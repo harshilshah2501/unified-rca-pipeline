@@ -1,0 +1,6 @@
+[Unit]
+Description=Unified RCA learning prototypes (single tabbed UI)
+Wants=unified-rca-learning-prototype.service
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,18 @@
+# Nested repo backups (never commit)
+**/.git.backup/
+
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Nezha datasets (too large for git)
+Nezha/rca_data/
+Nezha/construct_data/
+
+# RVC build artifacts
+RCA-MANIM-Generator-System/generated/
+RCA-MANIM-Generator-System/media/
+RCA-MANIM-Generator-System/.venv/

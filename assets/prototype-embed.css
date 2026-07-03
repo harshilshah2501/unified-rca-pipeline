@@ -1,0 +1,129 @@
+/* Shared styles when prototypes run inside unified index.html iframes */
+html.embedded {
+  font-size: 17px;
+}
+html.embedded body {
+  min-height: auto;
+  height: auto;
+  padding: 12px 16px 48px;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+html.embedded header,
+html.embedded .controls,
+html.embedded .walkthrough-bar,
+html.embedded .wt-chronology,
+html.embedded .wt-chrono-hint,
+html.embedded .wt-dissection,
+html.embedded .layout {
+  width: 100%;
+  max-width: 1480px;
+}
+/* Wider sidebar — dense text lives here, not in SVG frames */
+html.embedded .layout {
+  grid-template-columns: 1fr min(400px, 38vw);
+  gap: 14px;
+}
+html.embedded .svg-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+}
+/* 1:1 with viewBox — avoids foreignObject/CSS px mismatch from upscaling */
+html.embedded .svg-wrap > svg {
+  width: 1140px;
+  min-width: 1140px;
+  max-width: none;
+  height: auto;
+}
+html.embedded .card p,
+html.embedded .card li,
+html.embedded .wt-body {
+  font-size: 0.92rem;
+}
+html.embedded .wt-dissection {
+  font-size: 0.8rem;
+}
+html.embedded .mono,
+html.embedded .obs-line,
+html.embedded .rank-row,
+html.embedded .rc-table {
+  font-size: 0.78rem;
+}
+
+/* Readable HTML inside SVG foreignObject (compact diagram hints only) */
+html.embedded .svg-fo {
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 1.4;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+html.embedded .svg-fo.dim { color: #9ca3af; }
+html.embedded .svg-fo.ok { color: #34d399; }
+html.embedded .svg-fo.warn { color: #f87171; }
+html.embedded .svg-fo.hi { color: #a78bfa; }
+html.embedded .svg-fo.accent { color: #fbbf24; font-weight: 600; }
+
+/* Sidebar frame-detail panels (full text — no clipping) */
+html.embedded .frame-detail-card .frame-detail-body,
+html.embedded .gibbs-detail-card .gibbs-panel-body {
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+html.embedded .fd-section,
+html.embedded .gp-section {
+  margin: 0 0 10px;
+}
+html.embedded .fd-label,
+html.embedded .gp-label {
+  display: block;
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 3px;
+}
+html.embedded .fd-body { color: #e2e8f0; word-break: break-word; }
+html.embedded .fd-hint {
+  color: #6b7280;
+  font-size: 0.72rem;
+  margin-top: 8px;
+  line-height: 1.45;
+}
+
+/* Walkthrough chronology */
+html.embedded .wt-chronology {
+  flex-wrap: wrap;
+  row-gap: 8px;
+  padding: 12px 14px;
+}
+html.embedded .wt-chrono-item {
+  min-width: 92px;
+  max-width: 140px;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  padding: 8px 6px;
+}
+html.embedded .wt-chrono-label {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+  text-align: center;
+}
+html.embedded .wt-chrono-num {
+  font-size: 0.72rem;
+}
+
+/* Bump tiny SVG labels (diagram hints only) */
+html.embedded .svg-wrap > svg text[font-size="5"],
+html.embedded .svg-wrap > svg text[font-size="5.5"],
+html.embedded .svg-wrap > svg text[font-size="6"],
+html.embedded .svg-wrap > svg text[font-size="6.5"],
+html.embedded .svg-wrap > svg text[font-size="7"],
+html.embedded .svg-wrap > svg text[font-size="7.5"],
+html.embedded .svg-wrap > svg text[font-size="8"] {
+  font-size: 10px !important;
+}

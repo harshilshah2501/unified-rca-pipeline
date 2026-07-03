@@ -1,0 +1,14 @@
+# Superseded by unified-rca-learning-prototype.service (repo-root index.html with tabs).
+[Unit]
+Description=Nezha RCA Learning Prototype (HTTP :8770) [deprecated]
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/Harshil-PoCs/Unified-RCA/Nezha
+ExecStart=/usr/bin/python3 -m http.server 8770 --bind 0.0.0.0
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

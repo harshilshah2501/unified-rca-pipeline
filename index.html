@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <title>Unified RCA — Learning Prototypes</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --surface: #111827;
+      --border: #374151;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --nezha: #818cf8;
+      --panorama: #38bdf8;
+      --murphy: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); }
+    body {
+      display: flex;
+      flex-direction: column;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .shell-header {
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      padding: 10px 16px 0;
+    }
+    .shell-title {
+      margin: 0 0 4px;
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+    .shell-sub {
+      margin: 0 0 10px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .tab {
+      appearance: none;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      background: #1f2937;
+      color: var(--muted);
+      padding: 10px 20px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab:hover { color: var(--text); background: #273449; }
+    .tab.active { color: var(--text); background: var(--bg); }
+    .tab[data-tab="nezha"].active { box-shadow: inset 0 3px 0 var(--nezha); color: #c7d2fe; }
+    .tab[data-tab="panorama"].active { box-shadow: inset 0 3px 0 var(--panorama); color: #bae6fd; }
+    .tab[data-tab="murphy"].active { box-shadow: inset 0 3px 0 var(--murphy); color: #fde68a; }
+    .tab-desc {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 400;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .frame-wrap {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      overflow: auto;
+      background: var(--bg);
+    }
+    .proto-frame {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      width: 100%;
+      min-height: calc(100vh - 118px);
+      height: calc(100vh - 118px);
+      border: none;
+      background: var(--bg);
+      display: none;
+    }
+    .proto-frame.active { display: block; }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <h1 class="shell-title">Unified RCA — Learning Prototypes</h1>
+    <p class="shell-sub">Panorama (symptom / Tier 1) · Murphy (entity causality / Tier 2) · Nezha (code-level patterns)</p>
+    <nav class="tabs" role="tablist" aria-label="RCA prototype">
+      <button type="button" class="tab" role="tab" data-tab="panorama" aria-selected="false">
+        Panorama
+        <span class="tab-desc">distributed health inference</span>
+      </button>
+      <button type="button" class="tab" role="tab" data-tab="murphy" aria-selected="false">
+        Murphy
+        <span class="tab-desc">MRF + counterfactual Gibbs</span>
+      </button>
+      <button type="button" class="tab" role="tab" data-tab="nezha" aria-selected="false">
+        Nezha
+        <span class="tab-desc">multi-modal event-pair RCA</span>
+      </button>
+    </nav>
+  </header>
+  <div class="frame-wrap">
+    <iframe
+      id="frame-panorama"
+      class="proto-frame"
+      title="Panorama learning prototype"
+      data-src="panorama/panorama-learning-prototype.html"
+    ></iframe>
+    <iframe
+      id="frame-murphy"
+      class="proto-frame"
+      title="Murphy learning prototype"
+      data-src="murphy/murphy-learning-prototype.html"
+    ></iframe>
+    <iframe
+      id="frame-nezha"
+      class="proto-frame"
+      title="Nezha learning prototype"
+      data-src="Nezha/nezha-learning-prototype.html"
+    ></iframe>
+  </div>
+  <script>
+    (function () {
+      const TABS = {
+        panorama: {
+          frame: document.getElementById("frame-panorama"),
+          label: "Panorama — health inference",
+        },
+        murphy: {
+          frame: document.getElementById("frame-murphy"),
+          label: "Murphy — performance RCA",
+        },
+        nezha: {
+          frame: document.getElementById("frame-nezha"),
+          label: "Nezha — trace/log RCA",
+        },
+      };
+      const tabButtons = document.querySelectorAll(".tab");
+      const loaded = new Set();
+
+      function ensureLoaded(key) {
+        const { frame } = TABS[key];
+        if (!frame || loaded.has(key)) return;
+        const src = frame.dataset.src;
+        if (src) frame.src = `${src}?v=20260703f`;
+        loaded.add(key);
+      }
+
+      function activate(key, pushHash) {
+        if (!TABS[key]) key = "panorama";
+        tabButtons.forEach((btn) => {
+          const on = btn.dataset.tab === key;
+          btn.classList.toggle("active", on);
+          btn.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        Object.entries(TABS).forEach(([k, { frame }]) => {
+          frame.classList.toggle("active", k === key);
+        });
+        ensureLoaded(key);
+        document.title = `${TABS[key].label} · Unified RCA`;
+        if (pushHash !== false) {
+          const next = `#${key}`;
+          if (location.hash !== next) history.replaceState(null, "", next);
+        }
+      }
+
+      tabButtons.forEach((btn) => {
+        btn.addEventListener("click", () => activate(btn.dataset.tab));
+      });
+
+      window.addEventListener("hashchange", () => {
+        const key = (location.hash || "#panorama").slice(1);
+        activate(key, false);
+      });
+
+      const initial = (location.hash || "#panorama").slice(1);
+      activate(initial, false);
+
+      window.addEventListener("message", (e) => {
+        if (!e.data || e.data.type !== "unified-rca-embed-height") return;
+        const active = document.querySelector(".proto-frame.active");
+        if (!active || e.source !== active.contentWindow) return;
+        const minH = Math.max(480, window.innerHeight - 118);
+        active.style.height = `${Math.max(e.data.height, minH)}px`;
+      });
+    })();
+  </script>
+</body>
+</html>

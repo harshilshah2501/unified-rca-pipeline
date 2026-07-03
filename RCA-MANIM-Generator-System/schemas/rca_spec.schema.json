@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RCA-SPEC",
+  "type": "object",
+  "required": ["system", "nodes", "fault"],
+  "properties": {
+    "system": {
+      "type": "string",
+      "enum": ["nezha", "murphy", "panorama"]
+    },
+    "seed": { "type": "integer", "default": 42 },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/edge" }
+    },
+    "fault": { "$ref": "#/definitions/fault" },
+    "simulation": { "$ref": "#/definitions/simulation" },
+    "visualization": { "$ref": "#/definitions/visualization" },
+    "symptom": { "$ref": "#/definitions/symptom" },
+    "reports": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/report" }
+    },
+    "incident_time": { "type": "string" },
+    "app_id": { "type": "string" }
+  },
+  "definitions": {
+    "node": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string" },
+        "entity_type": { "type": "string" },
+        "role": { "type": "string", "enum": ["observer", "subject", "entity", "event"] },
+        "metrics": { "type": "array", "items": { "type": "string" } },
+        "mean": { "type": "object" },
+        "std": { "type": "object" },
+        "noise_std": { "type": "object" },
+        "span": { "type": "string" },
+        "pod": { "type": "string" },
+        "template": { "type": "string" },
+        "cluster_id": { "type": "integer" },
+        "path": { "type": "string", "enum": ["expected", "actual", "both"] }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "required": ["from", "to"],
+      "properties": {
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "weight": { "type": "number" },
+        "intercept": { "type": "number", "default": 0 },
+        "src_metric": { "type": "string" },
+        "dst_metric": { "type": "string" },
+        "bidirectional": { "type": "boolean", "default": true },
+        "rule": { "type": "string", "enum": ["A", "B"] }
+      }
+    },
+    "fault": {
+      "type": "object",
+      "required": ["type", "target"],
+      "properties": {
+        "type": { "type": "string" },
+        "target": { "type": "string" },
+        "metrics": { "type": "array", "items": { "type": "string" } },
+        "multiplier": { "type": "number", "default": 8.0 },
+        "diverge_at": { "type": "string" }
+      }
+    },
+    "simulation": {
+      "type": "object",
+      "properties": {
+        "inner_sweeps": { "type": "integer", "default": 4 },
+        "outer_samples": { "type": "integer", "default": 5000 },
+        "model": {
+          "type": "string",
+          "enum": ["ridge + gibbs", "event_graph", "voting"]
+        }
+      }
+    },
+    "visualization": {
+      "type": "object",
+      "properties": {
+        "style": {
+          "type": "string",
+          "enum": ["wave", "graph", "histogram", "vote"]
+        },
+        "show_counterfactual": { "type": "boolean", "default": true },
+        "show_drift": { "type": "boolean", "default": false }
+      }
+    },
+    "symptom": {
+      "type": "object",
+      "properties": {
+        "entity": { "type": "string" },
+        "metric": { "type": "string" }
+      }
+    },
+    "report": {
+      "type": "object",
+      "required": ["observer", "subject", "metric", "status", "score"],
+      "properties": {
+        "observer": { "type": "string" },
+        "subject": { "type": "string" },
+        "metric": { "type": "string" },
+        "status": { "type": "string" },
+        "score": { "type": "number" },
+        "tick": { "type": "integer" }
+      }
+    }
+  }
+}

@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Nezha — OnlineBoutique RCA Learning Simulator</title>
+  <link rel="stylesheet" href="../assets/prototype-embed.css?v=20260703d"/>
+  <script src="../assets/prototype-embed.js?v=20260703d"></script>
+  <style>
+    :root {
+      --bg: #0b0f14; --surface: #111827; --panel: #1f2937; --border: #374151;
+      --muted: #9ca3af; --text: #f3f4f6; --metrics: #60a5fa; --logs: #34d399;
+      --traces: #fbbf24; --expected: #22c55e; --fault: #ef4444; --drift: #f59e0b; --accent: #818cf8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 12px;
+    }
+    header { width: min(1240px, 100%); }
+    header h1 { margin: 0; font-size: 1.2rem; font-weight: 600; }
+    header p { margin: 4px 0 0; color: var(--muted); font-size: 0.82rem; }
+    .layout { display: grid; grid-template-columns: 1fr 340px; gap: 12px; width: min(1240px, 100%); }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+    .svg-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    svg { display: block; width: 100%; height: auto; user-select: none; }
+    .clickable { cursor: pointer; transition: opacity 0.15s; }
+    .clickable:hover { opacity: 0.88; }
+    .clickable.active { filter: brightness(1.2); }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; width: min(1240px, 100%); align-items: center; }
+    .controls label { font-size: 0.78rem; color: var(--muted); margin-right: 4px; }
+    button, select {
+      background: var(--panel); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 12px; font-size: 0.8rem; cursor: pointer;
+    }
+    button:hover { background: #273449; }
+    button.active-fault { outline: 2px solid var(--drift); }
+    .sidebar { display: flex; flex-direction: column; gap: 10px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+    .card h2 { margin: 0 0 8px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .card p, .card li { margin: 0; font-size: 0.82rem; line-height: 1.45; color: #d1d5db; }
+    .card ul { margin: 6px 0 0; padding-left: 18px; }
+    .mono { font-family: ui-monospace, monospace; font-size: 0.72rem; color: #a5b4fc; line-height: 1.55; white-space: pre-wrap; }
+    .obs-line { font-family: ui-monospace, monospace; font-size: 0.7rem; padding: 3px 0; border-bottom: 1px solid #2d3748; color: #cbd5e1; }
+    .obs-line:last-child { border-bottom: none; }
+    .rank-row { font-family: ui-monospace, monospace; font-size: 0.68rem; padding: 4px 0; border-bottom: 1px solid #2d3748; }
+    .rank-row.top { color: #fbbf24; }
+    .file-ref { color: #6b7280; font-size: 0.68rem; font-style: italic; }
+    .frame-detail-body { font-size: 0.76rem; line-height: 1.55; }
+    .fd-section { margin: 0 0 10px; }
+    .fd-label {
+      display: block; color: #9ca3af; font-weight: 600; font-size: 0.68rem;
+      text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 3px;
+    }
+    .fd-body { color: #e2e8f0; word-break: break-word; overflow-wrap: anywhere; }
+    @keyframes pulse-flow { 0%,100%{opacity:.35} 50%{opacity:1} }
+    .flow-active { animation: pulse-flow 1.2s ease-in-out infinite; }
+    @keyframes drift-pulse { 0%,100%{stroke-opacity:.45} 50%{stroke-opacity:1} }
+    .drift-line { animation: drift-pulse 1.5s ease-in-out infinite; }
+
+    /* Guided walkthrough */
+    .walkthrough-bar {
+      width: min(1240px, 100%);
+      background: #1a1f2e;
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      align-items: start;
+    }
+    .walkthrough-bar.hidden { display: none; }
+    .wt-step-badge {
+      background: var(--accent); color: #1e1b4b; font-weight: 700;
+      font-size: 0.75rem; padding: 6px 10px; border-radius: 8px; white-space: nowrap;
+    }
+    .wt-title { margin: 0 0 6px; font-size: 0.95rem; font-weight: 600; color: #e0e7ff; }
+    .wt-body { margin: 0 0 6px; font-size: 0.84rem; line-height: 1.5; color: #d1d5db; }
+    .wt-body strong { color: #fbbf24; }
+    .wt-file { display: block; font-size: 0.72rem; color: #6b7280; margin-top: 4px; }
+    .wt-dissection {
+      width: min(1240px, 100%);
+      background: #0c0f18;
+      border: 1px solid #374151;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.7rem;
+      line-height: 1.55;
+      color: #c7d2fe;
+    }
+    .wt-dissection.hidden { display: none; }
+    .wt-dissection-label {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 0.65rem; color: #6b7280;
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px;
+    }
+    .wt-dissection .dim { color: #6b7280; }
+    .wt-dissection .hi { color: #fbbf24; }
+    .wt-dissection .ok { color: #34d399; }
+    .wt-dissection .warn { color: #f87171; }
+    .wt-mod {
+      margin: 6px 0;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #111827;
+    }
+    .wt-mod.metrics { border-color: #1d4ed8; background: rgba(37, 99, 235, 0.12); }
+    .wt-mod.logs { border-color: #15803d; background: rgba(34, 197, 94, 0.12); }
+    .wt-mod.traces { border-color: #b45309; background: rgba(245, 158, 11, 0.12); }
+    .wt-mod .lbl {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+    .wt-mod.metrics .lbl { color: #93c5fd; }
+    .wt-mod.logs .lbl { color: #86efac; }
+    .wt-mod.traces .lbl { color: #fcd34d; }
+    .wt-actions { display: flex; flex-direction: column; gap: 6px; min-width: 100px; }
+    .wt-actions button.primary { border-color: var(--accent); color: #c7d2fe; }
+    .zone-dim { opacity: 0.1; transition: opacity 0.35s; }
+    .zone-focus { opacity: 1; transition: opacity 0.35s; }
+    .card.wt-focus { border-color: var(--accent); outline: 1px solid var(--accent); }
+    .card.wt-dim { opacity: 0.35; transition: opacity 0.35s; }
+    #guideBtn { border-color: var(--accent); color: #c7d2fe; font-weight: 600; }
+    .highlight-ring {
+      fill: none; stroke: #818cf8; stroke-width: 2.5; stroke-dasharray: 6 4;
+      pointer-events: none;
+      animation: ring-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes ring-pulse {
+      0%, 100% { stroke-opacity: 0.45; stroke-width: 2.5; }
+      50% { stroke-opacity: 1; stroke-width: 3.5; }
+    }
+    .wt-chronology {
+      width: min(1240px, 100%);
+      display: flex; align-items: center;
+      gap: 0; overflow-x: auto;
+      padding: 10px 12px;
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .wt-chronology.hidden { display: none; }
+    .wt-chrono-hint {
+      width: min(1240px, 100%);
+      margin: -4px 0 0;
+      padding: 0 8px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      min-height: 1.1rem;
+    }
+    .wt-chrono-hint.hidden { display: none; }
+    .wt-chrono-item {
+      display: flex; flex-direction: column; align-items: center;
+      min-width: 76px; max-width: 96px; padding: 6px 4px;
+      border-radius: 8px; border: 1px solid transparent;
+      background: transparent; cursor: pointer;
+      color: #9ca3af; font-size: 0.6rem; line-height: 1.2;
+      flex-shrink: 0;
+    }
+    .wt-chrono-item:hover { background: #1f2937; }
+    .wt-chrono-item.done { color: #86efac; }
+    .wt-chrono-item.done .wt-chrono-num { background: #14532d; border-color: #22c55e; color: #bbf7d0; }
+    .wt-chrono-item.active {
+      color: #e0e7ff; border-color: var(--accent);
+      background: rgba(129, 140, 248, 0.12);
+      box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.25);
+    }
+    .wt-chrono-item.active .wt-chrono-num {
+      background: var(--accent); color: #1e1b4b; border-color: #c7d2fe;
+      animation: chrono-pulse 1.4s ease-in-out infinite;
+    }
+    .wt-chrono-item.pending .wt-chrono-num { background: #1f2937; border-color: #4b5563; color: #6b7280; }
+    .wt-chrono-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.65rem; border: 2px solid;
+      margin-bottom: 3px; flex-shrink: 0;
+    }
+    .wt-chrono-label { text-align: center; font-weight: 600; }
+    .wt-chrono-arrow { color: #4b5563; padding: 0 2px; font-size: 0.65rem; flex-shrink: 0; }
+    @keyframes chrono-pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.4); }
+      50% { transform: scale(1.06); box-shadow: 0 0 0 4px rgba(129, 140, 248, 0); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Nezha RCA Simulator — OnlineBoutique (hipster)</h1>
+  <p>Aligned with <code>data_integrate.py</code> → <code>pattern_miner.py</code> → <code>pattern_ranker.py</code> · dataset: <code>construct_data/</code> vs <code>rca_data/2022-08-22</code></p>
+</header>
+
+<div class="controls">
+  <label>Fault scenario (from fault_list.json):</label>
+  <select id="scenarioSelect"></select>
+  <button data-modality="metrics">Highlight Metrics</button>
+  <button data-modality="logs">Highlight Logs</button>
+  <button data-modality="traces">Highlight Traces</button>
+  <button id="resetBtn" style="border-color:#7f1d1d;color:#fca5a5">Reset to fault-free</button>
+  <button id="guideBtn">Start guided walkthrough</button>
+</div>
+
+<div id="walkthroughBar" class="walkthrough-bar hidden">
+  <div class="wt-step-badge">Step <span id="wtStepNum">1</span>/<span id="wtStepTotal">9</span></div>
+  <div>
+    <p class="wt-title" id="wtTitle"></p>
+    <p class="wt-body" id="wtBody"></p>
+    <span class="wt-file" id="wtFile"></span>
+  </div>
+  <div class="wt-actions">
+    <button id="wtNext" class="primary">Next step</button>
+    <button id="wtPrev">Previous</button>
+    <button id="wtExit">Exit guide</button>
+  </div>
+</div>
+
+<div id="wtChronology" class="wt-chronology hidden" aria-label="Walkthrough step timeline"></div>
+<p id="wtChronoHint" class="wt-chrono-hint hidden"></p>
+<div id="wtDissection" class="wt-dissection hidden" aria-live="polite">
+  <div class="wt-dissection-label">Example record · dissection at this step</div>
+  <div id="wtDissectionBody"></div>
+</div>
+
+<div class="layout">
+  <div class="svg-wrap">
+    <svg id="nezhaSvg" viewBox="0 0 1140 700" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6b7280"/></marker>
+        <marker id="arrow-g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#22c55e"/></marker>
+        <marker id="arrow-r" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ef4444"/></marker>
+        <filter id="glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <rect width="1140" height="700" fill="#0b0f14"/>
+      <g id="highlightRings"></g>
+
+      <text x="36" y="32" fill="#f3f4f6" font-size="13" font-weight="600">Nezha multi-modal → event graph → pattern ranking</text>
+      <text x="36" y="50" fill="#6b7280" font-size="10">Events = Drain cluster IDs (log templates) + span start/end + metric alarms (CpuUsageRate, NetworkP90, …)</text>
+      <g id="stepDots" transform="translate(36, 62)"></g>
+
+      <!-- INPUTS -->
+      <g id="inputs">
+        <text x="36" y="100" fill="#9ca3af" font-size="10" font-weight="600">OBSERVABILITY (per-minute CSV windows)</text>
+        <g id="zoneMetrics" class="clickable input-card" data-modality="metrics">
+          <rect x="36" y="112" width="210" height="88" rx="9" fill="#1f2937" stroke="#374151"/>
+          <text x="86" y="140" fill="#60a5fa" font-size="13" font-weight="600">Metrics</text>
+          <text x="52" y="162" fill="#9ca3af" font-size="9">alarm.py → generate_alarm()</text>
+          <text id="metricsPreview" x="52" y="182" fill="#60a5fa" font-size="9" font-family="monospace">CpuUsageRate(%)</text>
+        </g>
+        <g id="zoneLogs" class="clickable input-card" data-modality="logs">
+          <rect x="36" y="212" width="210" height="88" rx="9" fill="#1f2937" stroke="#374151"/>
+          <text x="100" y="240" fill="#34d399" font-size="13" font-weight="600">Logs</text>
+          <text x="52" y="262" fill="#9ca3af" font-size="9">log_parsing.py → Drain3</text>
+          <text id="logsPreview" x="52" y="282" fill="#34d399" font-size="9" font-family="monospace">Start charge card</text>
+        </g>
+        <g id="zoneTraces" class="clickable input-card" data-modality="traces">
+          <rect x="36" y="312" width="210" height="88" rx="9" fill="#1f2937" stroke="#374151"/>
+          <text x="96" y="340" fill="#fbbf24" font-size="13" font-weight="600">Traces</text>
+          <text x="52" y="362" fill="#9ca3af" font-size="9">trace/*.csv + traceid/*.csv</text>
+          <text id="tracesPreview" x="52" y="382" fill="#fbbf24" font-size="9" font-family="monospace">CheckoutService/PlaceOrder</text>
+        </g>
+
+        <g id="zoneSvcChain">
+          <text x="36" y="430" fill="#9ca3af" font-size="10" font-weight="600">ONLINEBOUTIQUE SERVICES</text>
+          <g id="svcChain"></g>
+        </g>
+      </g>
+
+      <g id="inputArrows" opacity="0.35">
+        <line id="arrowMetrics" x1="246" y1="156" x2="290" y2="200" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line id="arrowLogs" x1="246" y1="256" x2="290" y2="270" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line id="arrowTraces" x1="246" y1="356" x2="290" y2="340" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow)"/>
+      </g>
+
+      <!-- data_integrate -->
+      <g id="integrate">
+        <rect x="285" y="115" width="118" height="270" rx="9" fill="#111827" stroke="#4b5563"/>
+        <text x="298" y="136" fill="#a5b4fc" font-size="10" font-weight="600">data_integrate</text>
+        <text x="294" y="154" fill="#6b7280" font-size="8">get_events_within_trace()</text>
+        <text x="294" y="168" fill="#6b7280" font-size="8">generate_event_graph()</text>
+        <g id="eventList" transform="translate(294, 180)"></g>
+        <line x1="403" y1="250" x2="428" y2="250" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+      </g>
+
+      <!-- Event graph -->
+      <g id="graphPanel">
+        <g id="graphChrome">
+          <rect x="425" y="95" width="400" height="430" rx="11" fill="#111827" stroke="#374151"/>
+          <text x="625" y="120" fill="#f3f4f6" font-size="12" font-weight="600" text-anchor="middle">EventGraph (per trace)</text>
+          <text x="440" y="140" fill="#6b7280" font-size="9">Edges: within-span sequence + parent→child span links (data_integrate.py)</text>
+        </g>
+
+        <g id="zoneExpected">
+          <text x="440" y="168" fill="#22c55e" font-size="10" font-weight="600">Fault-free phase (construct_data/2022-08-22)</text>
+          <g id="expectedPath"></g>
+        </g>
+
+        <g id="zoneActual">
+          <text x="440" y="318" fill="#ef4444" font-size="10" font-weight="600">Fault-suffering phase (rca_data/2022-08-22)</text>
+          <g id="actualPath"></g>
+        </g>
+
+        <g id="zoneDrift">
+          <line class="drift-line" id="driftLine" x1="579" y1="190" x2="579" y2="360" stroke="#f59e0b" stroke-width="3" opacity="0"/>
+          <line id="driftForkGreen" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="4,3" opacity="0"/>
+          <line id="driftForkRed" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="4,3" opacity="0"/>
+          <text id="driftLabel" x="593" y="278" fill="#f59e0b" font-size="11" font-weight="700" opacity="0">DRIFT</text>
+        </g>
+        <g id="flowParticles"></g>
+
+        <g id="zonePatterns">
+          <rect x="440" y="455" width="370" height="52" rx="7" fill="#1f2937" stroke="#374151"/>
+          <text x="452" y="474" fill="#9ca3af" font-size="9" font-weight="600">get_pattern_support() — see sidebar</text>
+          <foreignObject x="448" y="478" width="354" height="24">
+            <div xmlns="http://www.w3.org/1999/xhtml" id="pairCompact" class="svg-fo"></div>
+          </foreignObject>
+        </g>
+      </g>
+
+      <!-- pattern_ranker -->
+      <g id="ranker">
+        <g id="rankerArrows">
+          <line x1="825" y1="240" x2="855" y2="164" stroke="#6b7280" marker-end="url(#arrow)"/>
+          <line x1="825" y1="280" x2="855" y2="164" stroke="#6b7280" marker-end="url(#arrow)"/>
+          <line x1="825" y1="340" x2="855" y2="164" stroke="#6b7280" marker-end="url(#arrow)"/>
+        </g>
+
+        <g id="zoneRankerOutput">
+          <rect x="855" y="100" width="255" height="128" rx="9" fill="#1f2937" stroke="#374151"/>
+          <text x="872" y="122" fill="#f3f4f6" font-size="11" font-weight="600">Miner · Ranker · RCA</text>
+          <text x="872" y="136" fill="#6b7280" font-size="8">pattern_miner → pattern_ranker → output · sidebar</text>
+          <foreignObject x="864" y="142" width="238" height="78">
+            <div xmlns="http://www.w3.org/1999/xhtml" id="analysisCompact" class="svg-fo"></div>
+          </foreignObject>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <aside class="sidebar">
+    <div class="card" id="cardLearning">
+      <h2>Learning focus</h2>
+      <p id="learningText">Nezha compares event-pair supports between fault-free (<code>construct_data/</code>) and fault-suffering (<code>rca_data/</code>) phases. Root cause = suspicious event pair + pod depth from <code>get_event_depth_pod()</code>.</p>
+    </div>
+    <div class="card frame-detail-card" id="cardAnalysisDetail">
+      <h2>Pattern &amp; RCA detail</h2>
+      <div id="analysisSidebarBody" class="frame-detail-body"></div>
+    </div>
+    <div class="card" id="cardPipeline">
+      <h2>Repo pipeline</h2>
+      <div class="mono" id="pipelineText">trace+log+metric CSV
+  → data_integrate() → EventGraph
+  → get_pattern_support() → pattern dict
+  → pattern_ranker() → ranked RCA</div>
+    </div>
+    <div class="card" id="cardObs">
+      <h2>Observability snapshot</h2>
+      <div id="obsFeed"></div>
+      <p class="file-ref" id="dataRef"></p>
+    </div>
+    <div class="card" id="cardRank">
+      <h2>Ranked patterns</h2>
+      <div id="rankList"></div>
+    </div>
+    <div class="card" id="cardExplore">
+      <h2>How to explore</h2>
+      <ul>
+        <li>Click <strong>Start guided walkthrough</strong> — or pick any fault scenario to auto-start</li>
+        <li>Use <strong>Next step</strong> to follow the algorithm in order</li>
+        <li>Compare green (construct) vs red (rca) event chains</li>
+        <li>See which event <em>pair</em> support shifted</li>
+        <li>Verify score formula matches <code>pattern_ranker.py</code></li>
+        <li>Check inner-service label from <code>root_cause_hipster.json</code></li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const escHtml = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const MIN_SCORE = 0.67;
+  const MIN_SUPPORT = 5;
+  const STEPS = ["CSV inputs", "Events", "EventGraph", "Patterns", "Rank", "RCA"];
+
+  // Event node shorthand → full Drain template / span label (from repo semantics)
+  const NODE = {
+    po_start: { label: "PlaceOrder start", type: "span", svc: "checkoutservice" },
+    po_end: { label: "PlaceOrder end", type: "span", svc: "checkoutservice" },
+    charge_start: { label: "Start charge card", type: "log", svc: "checkoutservice" },
+    charge_ok: { label: "Charge successfully", type: "log", svc: "checkoutservice" },
+    charge_fail: { label: "Failed to connect payment service", type: "log", svc: "checkoutservice" },
+    prep_ok: { label: "Prepare order successfully", type: "log", svc: "checkoutservice" },
+    fe_recv_s: { label: "Frontend/Recv. start", type: "span", svc: "frontend" },
+    fe_recv_e: { label: "Frontend/Recv. end", type: "span", svc: "frontend" },
+    prod_start: { label: "Query product with name", type: "log", svc: "productcatalogservice" },
+    prod_ok: { label: "Query product successfully", type: "log", svc: "productcatalogservice" },
+    prod_early: { label: "early return (injected)", type: "log", svc: "productcatalogservice" },
+    cart_s: { label: "GetCart start", type: "span", svc: "cartservice" },
+    cart_e: { label: "GetCart end", type: "span", svc: "cartservice" },
+    cpu_alarm: { label: "CpuUsageRate(%)", type: "alarm", svc: "metric" },
+    net_alarm: { label: "NetworkP90(ms)", type: "alarm", svc: "metric" },
+    place_start: { label: "Placing order started", type: "log", svc: "frontend" },
+    place_ok: { label: "Order placed complete", type: "log", svc: "frontend" },
+  };
+
+  // Scenarios derived from rca_data/2022-08-22-fault_list.json + root_cause_hipster.json
+  const SCENARIOS = {
+    normal: {
+      name: "Fault-free baseline (construct_data 03:51)",
+      inject_time: null, inject_pod: null, inject_type: null,
+      data_ref: "construct_data/2022-08-22/trace/03_51_trace.csv",
+      highlight_svc: null,
+      metrics: "CpuUsageRate(%) within threshold",
+      logs: "Start charge card → Charge successfully",
+      traces: "checkoutservice CheckoutService/PlaceOrder 468ms",
+      normal_chain: ["po_start", "prep_ok", "charge_start", "charge_ok", "po_end"],
+      abnormal_chain: ["po_start", "prep_ok", "charge_start", "charge_ok", "po_end"],
+      drift_at: null,
+      normal_pairs: {
+        "charge_start→charge_ok": 118,
+        "po_start→prep_ok": 95,
+        "prep_ok→charge_start": 92,
+        "charge_ok→po_end": 110,
+      },
+      abnormal_pairs: {
+        "charge_start→charge_ok": 115,
+        "po_start→prep_ok": 93,
+        "prep_ok→charge_start": 90,
+        "charge_ok→po_end": 108,
+      },
+      ground_truth: null,
+      learning: "Fault-free phase builds the normal pattern dictionary from construct_data. Event pairs like 'Start charge card → Charge successfully' accumulate high support — this is Nezha's expected baseline.",
+      modality: {
+        metrics: "Metrics within μ±6σ — no alarm events injected into spans.",
+        logs: "Drain3 parses log templates; stable pairs like charge_start→charge_ok dominate support.",
+        traces: "Span start/end events anchor the graph; parent→child edges link cross-service calls.",
+      },
+    },
+    checkout_exception: {
+      name: "checkoutservice · exception · 2022-08-22 05:01:13",
+      inject_time: "2022-08-22 05:01:13",
+      inject_pod: "checkoutservice-578fcf4766-9csqn",
+      inject_type: "exception",
+      data_ref: "rca_data/2022-08-22/log/05_03_log.csv (trace 01e34b0e…)",
+      highlight_svc: "checkoutservice",
+      metrics: "No resource alarm (log-driven fault)",
+      logs: "Start charge card → Failed to connect payment service",
+      traces: "PlaceOrder 468ms · HTTP 500 on /cart/checkout",
+      normal_chain: ["po_start", "prep_ok", "charge_start", "charge_ok", "po_end"],
+      abnormal_chain: ["po_start", "prep_ok", "charge_start", "charge_fail", "po_end"],
+      drift_at: "charge_start",
+      normal_pairs: {
+        "charge_start→charge_ok": 118,
+        "charge_start→charge_fail": 1,
+        "po_start→prep_ok": 95,
+        "prep_ok→charge_start": 92,
+      },
+      abnormal_pairs: {
+        "charge_start→charge_ok": 4,
+        "charge_start→charge_fail": 52,
+        "po_start→prep_ok": 88,
+        "prep_ok→charge_start": 85,
+      },
+      ground_truth: "Start charge card_Charge successfully",
+      depth: 2,
+      learning: "Real fault: exception injected in checkoutservice during PlaceOrder. Expected pair charge_start→charge_ok loses support; new pair charge_start→charge_fail gains support. Nezha ranks the lost expected pair (score ≈ 0.97) and maps it to the code region between those log templates.",
+      modality: {
+        metrics: "Exception faults may not trigger metric alarms — logs carry the evidence.",
+        logs: "Drain detects template shift: 'Charge successfully' replaced by 'Failed to connect payment service'.",
+        traces: "CheckoutService/PlaceOrder span completes but frontend sees HTTP 500 — behavioral divergence in event pairs.",
+      },
+      record: {
+        fault_list: '{"datetime":"2022-08-22 05:01:13","inject_pod":"checkoutservice-578fcf4766-9csqn","inject_type":"exception","inject_method":"exception"}',
+        abnormal_window: "2022-08-22 05:03",
+        csv_files: ["rca_data/2022-08-22/trace/05_03_trace.csv", "rca_data/2022-08-22/traceid/05_03_traceid.csv", "rca_data/2022-08-22/log/05_03_log.csv", "rca_data/2022-08-22/metric/checkoutservice/*.csv"],
+        trace_id: "01e34b0e8f2a4c6d9b1e0a3f5c7d9e2b",
+        traceid_row: "01e34b0e8f2a4c6d9b1e0a3f5c7d9e2b,checkoutservice-578fcf4766-9csqn,checkoutservice,2022-08-22T05:03:01Z",
+        trace_row: "01e34b0e…,a1b2c3d4…,checkoutservice,CheckoutService/PlaceOrder,checkoutservice-578fcf4766-9csqn,468000000,…",
+        metric_row: "CpuUsageRate(%),pod=checkoutservice-578fcf4766-9csqn,window=05_03,value=normal",
+        log_rows: [
+          '{"TimeUnixNano":1661145781000000000,"Body":"Start charge card","PodName":"checkoutservice-578fcf4766-9csqn","SpanID":"a1b2c3d4…"}',
+          '{"TimeUnixNano":1661145781000500000,"Body":"Failed to connect payment service","PodName":"checkoutservice-578fcf4766-9csqn","SpanID":"a1b2c3d4…"}',
+        ],
+        drain: { "Start charge card": "cluster_id=45 (charge_start)", "Failed to connect payment service": "cluster_id=78 (charge_fail)" },
+      },
+    },
+    checkout_cpu: {
+      name: "checkoutservice · cpu_contention · 2022-08-22 04:44:16",
+      inject_time: "2022-08-22 04:44:16",
+      inject_pod: "checkoutservice-578fcf4766-9csqn",
+      inject_type: "cpu_contention",
+      data_ref: "rca_data/2022-08-22-fault_list.json",
+      highlight_svc: "checkoutservice",
+      metrics: "CpuUsageRate(%) alarm on checkoutservice pod",
+      logs: "Slower charge path · templates unchanged",
+      traces: "PlaceOrder duration elevated",
+      normal_chain: ["po_start", "prep_ok", "charge_start", "charge_ok", "po_end"],
+      abnormal_chain: ["cpu_alarm", "po_start", "prep_ok", "charge_start", "charge_ok", "po_end"],
+      drift_at: "cpu_alarm",
+      normal_pairs: {
+        "po_start→cpu_alarm": 0,
+        "cpu_alarm→prep_ok": 0,
+        "charge_start→charge_ok": 118,
+        "po_start→prep_ok": 95,
+      },
+      abnormal_pairs: {
+        "po_start→cpu_alarm": 38,
+        "cpu_alarm→prep_ok": 35,
+        "charge_start→charge_ok": 72,
+        "po_start→prep_ok": 60,
+      },
+      ground_truth: "CpuUsageRate(%)",
+      depth: 1,
+      resource: "CpuUsageRate(%)",
+      learning: "Resource faults inject metric alarm events into spans (alarm.py). New pair po_start→CpuUsageRate(%) appears only in fault phase. pattern_ranker attaches resource type to the ranked result.",
+      modality: {
+        metrics: "generate_alarm() flags CpuUsageRate(%) > μ+6σ — inserted as alarm event in EventGraph.",
+        logs: "Log templates may persist; metric alarm is the primary new signal.",
+        traces: "Span durations increase but graph structure adds alarm node at span start.",
+      },
+    },
+    checkout_network: {
+      name: "checkoutservice · network_delay · 2022-08-22 04:52:55",
+      inject_time: "2022-08-22 04:52:55",
+      inject_pod: "checkoutservice-578fcf4766-9csqn",
+      inject_type: "network_delay",
+      data_ref: "rca_data/2022-08-22-fault_list.json",
+      highlight_svc: "checkoutservice",
+      metrics: "NetworkP90(ms) alarm",
+      logs: "Downstream call latency in logs",
+      traces: "Child span P90 elevated",
+      normal_chain: ["po_start", "prep_ok", "charge_start", "charge_ok", "po_end"],
+      abnormal_chain: ["po_start", "net_alarm", "prep_ok", "charge_start", "charge_ok", "po_end"],
+      drift_at: "net_alarm",
+      normal_pairs: { "po_start→net_alarm": 0, "charge_start→charge_ok": 118 },
+      abnormal_pairs: { "po_start→net_alarm": 41, "charge_start→charge_ok": 70 },
+      ground_truth: "NetworkP90(ms)",
+      depth: 1,
+      resource: "NetworkP90(ms)",
+      learning: "network_delay faults surface as NetworkP90(ms) alarm events. Same ranking logic — compare pair supports between construct_data and rca_data windows (+2 min after inject per main.py).",
+      modality: {
+        metrics: "NetworkP90(ms) derived from trace latency percentiles in alarm.py.",
+        logs: "Secondary evidence; metric pair ranking drives RCA.",
+        traces: "P90 latency spike visible in span durations feeding alarm generation.",
+      },
+    },
+    cart_network: {
+      name: "cartservice · network_delay · 2022-08-22 04:27:03",
+      inject_time: "2022-08-22 04:27:03",
+      inject_pod: "cartservice-579f59597d-wc2lz",
+      inject_type: "network_delay",
+      data_ref: "rca_data/2022-08-22-fault_list.json",
+      highlight_svc: "cartservice",
+      metrics: "NetworkP90(ms) on cartservice",
+      logs: "GetCart slower",
+      traces: "cartservice GetCart span delay",
+      normal_chain: ["cart_s", "cart_e"],
+      abnormal_chain: ["cart_s", "net_alarm", "cart_e"],
+      drift_at: "net_alarm",
+      normal_pairs: { "cart_s→cart_e": 140, "cart_s→net_alarm": 0 },
+      abnormal_pairs: { "cart_s→cart_e": 55, "cart_s→net_alarm": 48 },
+      ground_truth: "NetworkP90(ms)",
+      depth: 1,
+      resource: "NetworkP90(ms)",
+      learning: "Service-level fault on cartservice — event graph localized to GetCart span. root_cause_hipster.json maps network_delay → NetworkP90(ms) for cartservice.",
+      modality: {
+        metrics: "Pod-level NetworkP90 alarm on cartservice-579f59597d-wc2lz.",
+        logs: "Cart operation logs show delayed responses.",
+        traces: "hipstershop.CartService/GetCart span duration increases.",
+      },
+    },
+    frontend_return: {
+      name: "frontend · return · 2022-08-22 04:02:07",
+      inject_time: "2022-08-22 04:02:07",
+      inject_pod: "frontend-579b9bff58-t2dbm",
+      inject_type: "return",
+      data_ref: "rca_data/2022-08-22-fault_list.json",
+      highlight_svc: "productcatalogservice",
+      metrics: "No metric alarm",
+      logs: "Query product with name → early return (injected)",
+      traces: "GetProduct span shortened",
+      normal_chain: ["fe_recv_s", "prod_start", "prod_ok", "fe_recv_e"],
+      abnormal_chain: ["fe_recv_s", "prod_start", "prod_early", "fe_recv_e"],
+      drift_at: "prod_start",
+      normal_pairs: { "prod_start→prod_ok": 105, "prod_start→prod_early": 0 },
+      abnormal_pairs: { "prod_start→prod_ok": 8, "prod_start→prod_early": 47 },
+      ground_truth: "Serving product page started_GetProduct start",
+      depth: 2,
+      learning: "return fault injects early exit in productcatalogservice. Inner-service label from root_cause_hipster.json: log region between 'Serving product page started' and 'GetProduct start'.",
+      modality: {
+        metrics: "Not the primary signal for return faults.",
+        logs: "Template pair prod_start→prod_ok loses support; prod_start→prod_early emerges.",
+        traces: "Frontend/Recv. child span to ProductCatalogService/GetProduct shows truncated path.",
+      },
+    },
+    frontend_cpu: {
+      name: "frontend · cpu_consumed · 2022-08-22 04:10:20",
+      inject_time: "2022-08-22 04:10:20",
+      inject_pod: "frontend-579b9bff58-t2dbm",
+      inject_type: "cpu_consumed",
+      data_ref: "rca_data/2022-08-22-fault_list.json",
+      highlight_svc: "frontend",
+      metrics: "CpuUsageRate(%) alarm on frontend",
+      logs: "Serving product page · slower",
+      traces: "Frontend/Recv. duration up",
+      normal_chain: ["fe_recv_s", "prod_start", "prod_ok", "fe_recv_e"],
+      abnormal_chain: ["cpu_alarm", "fe_recv_s", "prod_start", "prod_ok", "fe_recv_e"],
+      drift_at: "cpu_alarm",
+      normal_pairs: { "fe_recv_s→cpu_alarm": 0, "prod_start→prod_ok": 105 },
+      abnormal_pairs: { "fe_recv_s→cpu_alarm": 36, "prod_start→prod_ok": 68 },
+      ground_truth: "CpuUsageRate(%)",
+      depth: 1,
+      resource: "CpuUsageRate(%)",
+      learning: "cpu_consumed on frontend injects CpuUsageRate(%) alarm into frontend spans. Evaluation matches ranked pod + resource against root_cause_hipster.json.",
+      modality: {
+        metrics: "CpuUsageRate(%) alarm event inserted at span start.",
+        logs: "Product page logs continue but latency increases.",
+        traces: "Root span Frontend/Recv. duration grows.",
+      },
+    },
+  };
+
+  const SERVICES = [
+    { id: "frontend", label: "frontend", x: 36 },
+    { id: "cartservice", label: "cartservice", x: 108 },
+    { id: "checkoutservice", label: "checkoutservice", x: 36, y: 455 },
+    { id: "productcatalogservice", label: "productcatalog", x: 108, y: 455 },
+    { id: "paymentservice", label: "paymentservice", x: 72, y: 500 },
+  ];
+
+  let state = { scenario: "normal", modality: null, walkthrough: false, walkStep: 0 };
+
+  const CHAIN_X0 = 455;
+  const CHAIN_SPACING = 62;
+  const Y_EXPECTED = 195;
+  const Y_ACTUAL = 355;
+
+  const DIMMABLE_IDS = [
+    "zoneMetrics", "zoneLogs", "zoneTraces", "zoneSvcChain",
+    "arrowMetrics", "arrowLogs", "arrowTraces", "integrate",
+    "graphChrome", "zoneExpected", "zoneActual", "zoneDrift", "zonePatterns", "flowParticles",
+    "rankerArrows", "zoneRankerOutput",
+  ];
+
+  const ZONE_EXPAND = {
+    inputs: ["zoneMetrics", "zoneLogs", "zoneTraces", "zoneSvcChain", "arrowMetrics", "arrowLogs", "arrowTraces"],
+    metrics: ["zoneMetrics", "arrowMetrics"],
+    logs: ["zoneLogs", "arrowLogs"],
+    traces: ["zoneTraces", "arrowTraces"],
+    integrate: ["integrate", "arrowLogs", "arrowTraces"],
+    graph: ["graphChrome", "zoneExpected", "zoneActual", "zoneDrift", "zonePatterns"],
+    expected: ["graphChrome", "zoneExpected"],
+    actual: ["graphChrome", "zoneActual"],
+    drift: ["graphChrome", "zoneExpected", "zoneActual", "zoneDrift"],
+    patterns: ["graphChrome", "zonePatterns"],
+    miner: ["zoneRankerOutput", "rankerArrows"],
+    ranker: ["zoneRankerOutput", "rankerArrows"],
+    rca: ["zoneRankerOutput", "rankerArrows"],
+  };
+
+  function expandZoneFocus(zoneKeys) {
+    const focused = new Set();
+    (zoneKeys || []).forEach((key) => {
+      (ZONE_EXPAND[key] || [key]).forEach((id) => focused.add(id));
+    });
+    return focused;
+  }
+
+  const ZONE_RECTS = {
+    inputs: { x: 30, y: 88, w: 220, h: 430 },
+    metrics: { x: 30, y: 106, w: 220, h: 100 },
+    logs: { x: 30, y: 206, w: 220, h: 100 },
+    traces: { x: 30, y: 306, w: 220, h: 100 },
+    integrate: { x: 278, y: 108, w: 130, h: 285 },
+    graph: { x: 418, y: 88, w: 415, h: 440 },
+    expected: { x: 430, y: 155, w: 390, h: 75 },
+    actual: { x: 430, y: 305, w: 390, h: 75 },
+    drift: { x: 558, y: 168, w: 50, h: 200 },
+    patterns: { x: 432, y: 448, w: 385, h: 72 },
+    miner: { x: 848, y: 93, w: 270, h: 90 },
+    ranker: { x: 848, y: 188, w: 270, h: 108 },
+    rca: { x: 848, y: 298, w: 270, h: 235 },
+  };
+
+  const SIDEBAR_CARDS = {
+    learning: "cardLearning",
+    pipeline: "cardPipeline",
+    obs: "cardObs",
+    rank: "cardRank",
+    explore: "cardExplore",
+  };
+
+  function abnormalWindowTime(injectTime) {
+    if (!injectTime) return null;
+    const p = injectTime.split(" ");
+    const [h, m, s] = p[1].split(":").map(Number);
+    const nm = m + 2;
+    return nm >= 60 ? `${p[0]} ${h + 1}:${String(nm - 60).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${p[0]} ${h}:${String(nm).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+
+  function buildNezhaRecord(sc) {
+    if (sc.record) return sc.record;
+    const win = abnormalWindowTime(sc.inject_time);
+    const mm = win ? win.split(" ")[1].slice(0, 5).replace(":", "_") : "03_51";
+    const logParts = (sc.logs || "").split("→").map((s) => s.trim());
+    const metricName = sc.resource || ((sc.metrics || "").split(" ")[0] || "CpuUsageRate(%)");
+    return {
+      fault_list: sc.inject_time
+        ? `{"datetime":"${sc.inject_time}","inject_pod":"${sc.inject_pod}","inject_type":"${sc.inject_type}"}`
+        : null,
+      abnormal_window: win || "construct_data 2022-08-22 03:51",
+      csv_files: win
+        ? [`rca_data/2022-08-22/trace/${mm}_trace.csv`, `rca_data/2022-08-22/log/${mm}_log.csv`, `rca_data/2022-08-22/metric/*/*.csv`]
+        : ["construct_data/2022-08-22/trace/03_51_trace.csv", "construct_data/2022-08-22/log/03_51_log.csv"],
+      trace_id: sc.data_ref?.includes("01e34b") ? "01e34b0e…" : "(TraceID from traceid CSV)",
+      traceid_row: sc.inject_time
+        ? `trace_id=${sc.data_ref?.includes("01e34b") ? "01e34b0e…" : "traceid"} pod=${sc.inject_pod || "hipster-pod"} service=${sc.highlight_svc || "checkoutservice"}`
+        : "trace_id=construct_trace_03_51 pod=checkoutservice-baseline service=checkoutservice",
+      trace_row: sc.traces || "(span row from trace CSV)",
+      log_rows: logParts.length >= 2
+        ? logParts.map((body) => `{"Body":"${body}","PodName":"${sc.inject_pod || "hipster-pod"}"}`)
+        : [`{"Body":"${sc.logs}"}`],
+      metric_row: sc.inject_time
+        ? `${metricName},pod=${sc.inject_pod || "hipster-pod"},window=${mm},value=${sc.resource ? "alarm" : "normal"}`
+        : "CpuUsageRate(%),pod=checkoutservice-baseline,window=03_51,value=normal",
+      metric_alarm: sc.resource || null,
+      construct_only: !sc.inject_time,
+    };
+  }
+
+  function nezhaDissectionHtml(sc, stepIndex, ctx) {
+    const r = buildNezhaRecord(sc);
+    const lines = (arr) => arr.filter(Boolean).map((l) => `<div>${l}</div>`).join("");
+    const mod = (kind, title, value) => (
+      `<div class="wt-mod ${kind}"><div class="lbl">${title}</div><div><span class="ok">${value}</span></div></div>`
+    );
+    const pl = (key) => {
+      const [a, b] = (key || "").split("→");
+      return `${NODE[a]?.label || a} → ${NODE[b]?.label || b}`;
+    };
+
+    if (sc.inject_time == null) {
+      const normalBlocks = {
+        0: () => lines([
+          `<span class="dim">construct_data window (fault-free):</span> <span class="hi">2022-08-22 03:51</span>`,
+          `<span class="dim">files:</span> ${r.csv_files.join(", ")}`,
+        ]),
+        1: () => lines([
+          `<span class="dim">example trace row:</span>`,
+          `<span class="ok">${r.trace_row}</span>`,
+          `<span class="dim">example traceid row:</span> <span class="ok">${r.traceid_row}</span>`,
+          `<span class="dim">example metric row:</span> <span class="ok">${r.metric_row}</span>`,
+          `<span class="dim">example log row:</span> <span class="ok">${r.log_rows[0]}</span>`,
+          mod("metrics", "metric input", r.metric_row),
+          mod("logs", "log input", r.log_rows[0]),
+          mod("traces", "trace input", `${r.traceid_row} | ${r.trace_row}`),
+          `<span class="dim">→ Drain cluster → Event(event=45, pod=checkoutservice, …)</span>`,
+          `<span class="hi">pair ${pl(ctx.mainKey)}</span> support=<span class="ok">${ctx.normSup}</span> (baseline)`,
+        ]),
+        2: () => lines([
+          `<span class="dim">Switch to a fault scenario to see rca_data dissection step-by-step.</span>`,
+        ]),
+      };
+      return (normalBlocks[stepIndex] || normalBlocks[0])();
+    }
+
+    const chainEvents = sc.abnormal_chain.map((id, i) => {
+      const n = NODE[id];
+      return `${i + 1}. ${n?.type || "event"} <span class="hi">${n?.label || id}</span> (cluster ${id})`;
+    });
+    const driftIdx = sc.drift_at ? sc.abnormal_chain.indexOf(sc.drift_at) : -1;
+    const normNext = driftIdx >= 0 ? sc.normal_chain[sc.normal_chain.indexOf(sc.drift_at) + 1] : null;
+    const abnNext = driftIdx >= 0 ? sc.abnormal_chain[driftIdx + 1] : null;
+
+    const blocks = {
+      0: () => lines([
+        `<span class="dim">fault_list.json record:</span>`,
+        `<span class="warn">${r.fault_list}</span>`,
+      ]),
+      1: () => lines([
+        `<span class="dim">abnormal_time (+2 min):</span> <span class="hi">${r.abnormal_window}</span>`,
+        ...r.csv_files.map((f) => `<span class="dim">load</span> <span class="ok">${f}</span>`),
+        `<span class="dim">trace_id:</span> <span class="ok">${r.trace_id}</span>`,
+        `<span class="dim">example traceid row:</span> <span class="ok">${r.traceid_row}</span>`,
+        mod("traces", "trace input", `${r.traceid_row} | ${r.trace_row}`),
+      ]),
+      2: () => lines([
+        `<span class="dim">generate_alarm() on metric CSVs:</span>`,
+        `<span class="dim">example metric row:</span> <span class="ok">${r.metric_row}</span>`,
+        mod("metrics", "metric input", r.metric_row),
+        r.metric_alarm
+          ? `<span class="warn">ALARM ${r.metric_alarm}</span> → Event(event=metric_template, pod="alarm")`
+          : `<span class="ok">(no alarm)</span> — ${sc.inject_type} fault; metrics below μ+6σ`,
+      ]),
+      3: () => lines([
+        `<span class="dim">log CSV rows (same TraceID / SpanID):</span>`,
+        ...r.log_rows.map((row) => `<span class="ok">${row}</span>`),
+        mod("logs", "log input", r.log_rows[0]),
+        r.drain ? Object.entries(r.drain).map(([k, v]) => `<span class="dim">Drain:</span> "${k}" → <span class="hi">${v}</span>`).join("") : `<span class="dim">log_parsing() → Drain3 cluster_id per Body</span>`,
+        `<span class="dim">trace row:</span> <span class="ok">${r.trace_row}</span>`,
+      ]),
+      4: () => lines([
+        `<span class="dim">get_events_within_trace() ordered events:</span>`,
+        ...chainEvents,
+        `<span class="dim">→ homogeneous Event records (same shape for log/span/alarm)</span>`,
+      ]),
+      5: () => lines([
+        `<span class="dim">generate_event_graph() edges (consecutive + parent→child):</span>`,
+        sc.abnormal_chain.slice(0, -1).map((id, i) => {
+          const a = NODE[id]?.label || id;
+          const b = NODE[sc.abnormal_chain[i + 1]]?.label || sc.abnormal_chain[i + 1];
+          return `<span class="hi">${a}</span> → <span class="warn">${b}</span>`;
+        }).join("<br/>"),
+      ]),
+      6: () => lines([
+        `<span class="dim">construct_data chain (green):</span> ${sc.normal_chain.map((id) => NODE[id]?.label || id).join(" → ")}`,
+        `<span class="dim">rca_data chain (red):</span> ${sc.abnormal_chain.map((id) => NODE[id]?.label || id).join(" → ")}`,
+      ]),
+      7: () => lines([
+        `<span class="dim">DRIFT at:</span> <span class="hi">${NODE[sc.drift_at]?.label || sc.drift_at}</span>`,
+        normNext && abnNext
+          ? `normal edge → <span class="ok">${NODE[normNext]?.label || normNext}</span>  |  abnormal edge → <span class="warn">${NODE[abnNext]?.label || abnNext}</span>`
+          : null,
+      ]),
+      8: () => lines([
+        `<span class="dim">get_pattern_support() counts:</span>`,
+        ctx.mainKey ? `<span class="hi">${pl(ctx.mainKey)}</span>  normal=<span class="ok">${ctx.normSup}</span>  abnormal=<span class="warn">${ctx.abnSup}</span>` : null,
+        ctx.diag?.gainKey ? `<span class="hi">${pl(ctx.diag.gainKey)}</span>  normal=<span class="ok">${ctx.diag.gainNormSup}</span>  abnormal=<span class="warn">${ctx.diag.gainAbnSup}</span>` : null,
+      ]),
+      9: () => lines([
+        `<span class="dim">pattern_ranker score:</span>`,
+        ctx.mainKey ? `expected_loss(${pl(ctx.mainKey)}) = <span class="hi">${ctx.lossScore.toFixed(3)}</span>` : null,
+        ctx.gainKeyForScore ? `abnormal_gain(${pl(ctx.gainKeyForScore)}) = <span class="hi">${ctx.gainScoreVal.toFixed(3)}</span>` : null,
+        `<span class="dim">keep if score ≥ ${MIN_SCORE}</span>`,
+      ]),
+      10: () => lines([
+        `<span class="dim">get_event_depth_pod() from pair source event:</span>`,
+        `<span class="hi">pod</span>=<span class="ok">${sc.inject_pod}</span>  <span class="hi">depth</span>=<span class="ok">${sc.depth || 1}</span>`,
+      ]),
+      11: () => lines([
+        `<span class="dim">root_cause_hipster.json inner-service label:</span>`,
+        `<span class="ok">${(sc.ground_truth || "").replace(/_/g, " → ")}</span>`,
+        ctx.top ? `<span class="hi">ranked pair:</span> ${ctx.top.label}` : null,
+      ]),
+    };
+    return (blocks[stepIndex] || blocks[0])();
+  }
+
+  function renderWalkthroughDissection(sc, stepIndex, ctx) {
+    const el = $("wtDissection");
+    const body = $("wtDissectionBody");
+    if (!state.walkthrough) { el.classList.add("hidden"); return; }
+    el.classList.remove("hidden");
+    body.innerHTML = nezhaDissectionHtml(sc, stepIndex, ctx);
+  }
+
+  function getWalkthroughCtx(scenarioKey) {
+    const sc = SCENARIOS[scenarioKey];
+    const ranks = buildRankResults(sc);
+    const top = ranks[0];
+    const diag = getDiagnosticPair(sc);
+    const mainKey = diag?.key || Object.keys(sc.normal_pairs)[0];
+    const normSup = diag?.normSup ?? (sc.normal_pairs[mainKey] || 0);
+    const abnSup = diag?.abnSup ?? (sc.abnormal_pairs[mainKey] || 0);
+    const gainEntries = abnormalPatternRanker(sc.normal_pairs, sc.abnormal_pairs);
+    const topGain = gainEntries[0];
+    const gainKeyForScore = topGain ? topGain[0] : null;
+    const gainNormSup = gainKeyForScore ? (sc.normal_pairs[gainKeyForScore] || 0) : 0;
+    const gainAbnSup = gainKeyForScore ? (sc.abnormal_pairs[gainKeyForScore] || 0) : 0;
+    const lossScore = abnSup > 0 ? normSup / (abnSup + normSup) : 1.0;
+    const gainScoreVal = (gainNormSup + gainAbnSup) > 0
+      ? gainAbnSup / (gainAbnSup + gainNormSup) : 1.0;
+    return {
+      sc, top, diag, mainKey, normSup, abnSup, lossScore, gainKeyForScore, gainNormSup, gainAbnSup, gainScoreVal,
+      abnTime: abnormalWindowTime(sc.inject_time),
+    };
+  }
+
+  function buildWalkthroughSteps(scenarioKey) {
+    const ctx = getWalkthroughCtx(scenarioKey);
+    const { sc, top, diag, mainKey, normSup, abnSup, lossScore, gainKeyForScore, gainNormSup, gainAbnSup, gainScoreVal, abnTime } = ctx;
+    const lossEntries = expectedPatternLossRanker(sc.normal_pairs, sc.abnormal_pairs);
+    const gainEntries = abnormalPatternRanker(sc.normal_pairs, sc.abnormal_pairs);
+    const mainPair = lossEntries[0] || gainEntries[0];
+    const topGain = gainEntries[0];
+
+    if (scenarioKey === "normal") {
+      const steps = [
+        {
+          title: "Step 1 — Build the fault-free baseline",
+          body: "Before any fault, Nezha reads <strong>construct_data/</strong> (e.g. 2022-08-22 03:51) and builds <strong>normal_pattern_dict</strong>: how often each event-pair appears in healthy traffic.",
+          file: "pattern_ranker.py → get_pattern(normal_time, construct_data_path)",
+          zones: ["inputs", "patterns"],
+          sidebar: "pipeline",
+          stepDot: 0,
+          shortLabel: "Baseline",
+          hint: "Mine event-pair supports from construct_data (fault-free window)",
+        },
+        {
+          title: "Step 2 — Stable event pairs become the expectation",
+          body: `In healthy runs, pairs like <strong>${pairLabel(mainKey)}</strong> appear often (support=${normSup}). These counts are Nezha's "normal world" reference — nothing is ranked as RCA yet.`,
+          file: "pattern_miner.py → get_pattern_support(event_graphs)",
+          zones: ["graph", "expected", "patterns"],
+          sidebar: "learning",
+          stepDot: 3,
+          shortLabel: "Expectation",
+          hint: "High-support pairs define normal behavior — no RCA yet",
+        },
+        {
+          title: "Step 3 — Pick a fault to see what breaks",
+          body: "Select a scenario from the dropdown (e.g. checkoutservice exception) and click <strong>Start guided walkthrough</strong> to see how Nezha detects drift from this baseline.",
+          file: "rca_data/2022-08-22-fault_list.json",
+          zones: ["inputs"],
+          sidebar: "explore",
+          stepDot: 0,
+          shortLabel: "Pick fault",
+          hint: "Switch to a fault scenario to compare against this baseline",
+        },
+      ];
+      return steps;
+    }
+
+    const steps = [
+      {
+        title: "Step 1 — A fault is injected in the live system",
+        body: sc.inject_time
+          ? `At <strong>${sc.inject_time}</strong>, fault type <strong>${sc.inject_type}</strong> is injected into pod <strong>${sc.inject_pod}</strong>. This is ground truth from fault_list.json — Nezha does not know this yet.`
+          : "Fault injection metadata.",
+        file: "rca_data/2022-08-22-fault_list.json",
+        zones: ["inputs"],
+        sidebar: "obs",
+        stepDot: 0,
+        highlightSvc: true,
+      },
+      {
+        title: "Step 2 — Nezha loads a 1-minute observability window",
+        body: abnTime
+          ? `main.py queries data <strong>+2 minutes after inject</strong> → <strong>${abnTime}</strong>. It loads trace, traceid, log CSVs and metrics for that minute from rca_data/.`
+          : "Load trace + log + metric CSVs for the fault window.",
+        file: "pattern_ranker.py → get_pattern(abnormal_time, rca_data/)",
+        zones: ["metrics", "logs", "traces"],
+        sidebar: "obs",
+        stepDot: 0,
+      },
+      {
+        title: "Step 3 — Check metric alarms (may be empty)",
+        body: sc.resource
+          ? `<strong>generate_alarm()</strong> detects <strong>${sc.resource}</strong> exceeding μ+6σ and will insert an alarm event into the affected pod's spans.`
+          : `For <strong>${sc.inject_type}</strong> faults, metrics often stay below threshold — <strong>no alarm event</strong> is added. The signal lives in logs/traces instead.`,
+        file: "alarm.py → generate_alarm(metric_list, ns)",
+        zones: ["metrics"],
+        sidebar: "obs",
+        stepDot: 0,
+        modality: "metrics",
+      },
+      {
+        title: "Step 4 — Convert logs & traces into unified events",
+        body: `For each TraceID, <strong>get_events_within_trace()</strong> builds ordered events per span: span start/end + Drain-parsed log templates. Example: <strong>"${sc.logs.split("→")[0].trim()}"</strong>.`,
+        file: "data_integrate.py → get_events_within_trace()",
+        zones: ["logs", "traces", "integrate"],
+        sidebar: "pipeline",
+        stepDot: 1,
+        modality: "logs",
+        highlightModalities: ["logs", "traces"],
+      },
+      {
+        title: "Step 5 — Build EventGraph per trace",
+        body: "<strong>generate_event_graph()</strong> adds edges between consecutive events in a span, plus parent→child span links. Each request becomes one graph — the structural backbone of Nezha.",
+        file: "data_integrate.py → generate_event_graph() · EventGraph.add_edge()",
+        zones: ["integrate", "graph"],
+        sidebar: "pipeline",
+        stepDot: 2,
+        modality: "traces",
+      },
+      {
+        title: "Step 6 — Compare fault-free vs fault-suffering paths",
+        body: `Green = patterns from <strong>construct_data</strong> (normal). Red = same flow during fault window. Look at the last nodes: normal has <strong>${NODE[sc.normal_chain[sc.normal_chain.length - 2]]?.label || "?"}</strong>, abnormal diverges.`,
+        file: "Two phases: construct_data vs rca_data",
+        zones: ["expected", "actual"],
+        sidebar: "learning",
+        stepDot: 2,
+      },
+      {
+        title: "Step 7 — DRIFT = where behavior changed",
+        body: sc.drift_at
+          ? `The orange <strong>DRIFT</strong> marker sits on <strong>"${NODE[sc.drift_at]?.label || sc.drift_at}"</strong> — the last shared event before paths fork. The outgoing edge diverges: green → <strong>${NODE[sc.normal_chain[sc.normal_chain.indexOf(sc.drift_at) + 1]]?.label || "expected"}</strong>, red → <strong>${NODE[sc.abnormal_chain[sc.abnormal_chain.indexOf(sc.drift_at) + 1]]?.label || "actual"}</strong>.`
+          : "Drift is where abnormal execution diverges from the learned baseline.",
+        file: "Conceptual: behavioral divergence between phases",
+        zones: ["drift", "actual"],
+        sidebar: "learning",
+        stepDot: 2,
+        animateFlow: true,
+      },
+      {
+        title: "Step 8 — Count event-pair supports (pattern mining)",
+        body: mainKey
+          ? diag?.gainKey && diag.gainKey !== mainKey
+            ? `Across all traces in each phase, Nezha counts directed pairs. Expected pair <strong>${pairLabel(mainKey)}</strong>: normal=<strong>${normSup}</strong>, abnormal=<strong>${abnSup}</strong> (support drops). New fault edge <strong>${pairLabel(diag.gainKey)}</strong>: normal=<strong>${diag.gainNormSup}</strong>, abnormal=<strong>${diag.gainAbnSup}</strong> (support rises).`
+            : `Across all traces in each phase, Nezha counts directed pairs. Key pair <strong>${pairLabel(mainKey)}</strong>: normal support=<strong>${normSup}</strong>, abnormal support=<strong>${abnSup}</strong>. The drop/inversion is the signal.`
+          : "get_pattern_support() aggregates edge counts into pattern dictionaries.",
+        file: "pattern_miner.py → get_pattern_support()",
+        zones: ["patterns"],
+        sidebar: "rank",
+        stepDot: 3,
+      },
+      {
+        title: "Step 9 — Rank suspicious patterns",
+        body: mainPair
+          ? `<strong>Expected loss</strong> on <strong>${pairLabel(mainKey)}</strong> = ${normSup}/(${abnSup}+${normSup}) = <strong>${lossScore.toFixed(3)}</strong>.${topGain ? ` <strong>Abnormal gain</strong> on <strong>${pairLabel(gainKeyForScore)}</strong> = ${gainAbnSup}/(${gainAbnSup}+${gainNormSup}) = <strong>${gainScoreVal.toFixed(3)}</strong>.` : ""} Keep pairs with score ≥ 0.67.`
+          : "pattern_ranker compares normal_pattern_dict vs abnormal_pattern_dict.",
+        file: "pattern_ranker.py → expectedPatternLossRanker + abnormalPatternRanker",
+        zones: ["miner", "ranker"],
+        sidebar: "rank",
+        stepDot: 4,
+      },
+      {
+        title: "Step 10 — Localize pod & depth",
+        body: top
+          ? `<strong>get_event_depth_pod()</strong> walks back from the pair's source event in normal graphs → pod <strong>${sc.inject_pod}</strong>, depth=<strong>${sc.depth || top.depth}</strong>. Deeper = more specific code region.`
+          : "Attach pod and call-stack depth to ranked pair.",
+        file: "data_integrate.py → EventGraph.get_deepth_pod()",
+        zones: ["ranker"],
+        sidebar: "rank",
+        stepDot: 4,
+      },
+      {
+        title: "Step 11 — RCA output + ground truth check",
+        body: top && sc.ground_truth
+          ? `Top ranked pair: <strong>${top.label}</strong>. Mapped to inner-service label <strong>${sc.ground_truth.replace("_", " → ")}</strong> from root_cause_hipster.json — the code region between those two log statements.`
+          : top
+            ? `Top pair: <strong>${top.label}</strong> on pod ${sc.inject_pod}.`
+            : "Final ranked RCA list.",
+        file: "pattern_ranker.py → evaluation() · root_cause_hipster.json",
+        zones: ["rca"],
+        sidebar: "learning",
+        stepDot: 5,
+      },
+    ];
+    const META = [
+      ["Inject", "Fault injected into pod — ground truth from fault_list.json"],
+      ["Load CSVs", "Load 1-minute trace + traceid + log + metric files"],
+      ["Alarms", "generate_alarm() flags hot metrics (may be empty for log faults)"],
+      ["Events", "Traces + logs → unified Event records per span"],
+      ["EventGraph", "Wire events into directed graph per trace"],
+      ["Compare", "Green construct_data vs red rca_data chains"],
+      ["Drift", "Last shared event before normal/abnormal paths fork"],
+      ["Patterns", "Count directed event-pair supports in each phase"],
+      ["Rank", "Expected-loss / abnormal-gain scoring (min 0.67)"],
+      ["Depth", "Walk back to pod + call-stack depth"],
+      ["RCA", "Top ranked pair vs root_cause_hipster.json"],
+    ];
+    steps.forEach((s, i) => {
+      if (META[i]) { s.shortLabel = META[i][0]; s.hint = META[i][1]; }
+    });
+    return steps;
+  }
+
+  function drawHighlightRings(zoneKeys) {
+    const g = $("highlightRings");
+    g.innerHTML = "";
+    zoneKeys.forEach((key) => {
+      const z = ZONE_RECTS[key];
+      if (!z) return;
+      const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      r.setAttribute("class", "highlight-ring");
+      r.setAttribute("x", z.x); r.setAttribute("y", z.y);
+      r.setAttribute("width", z.w); r.setAttribute("height", z.h);
+      r.setAttribute("rx", 8);
+      g.appendChild(r);
+    });
+  }
+
+  function applyWalkthroughStep(stepIndex) {
+    const steps = buildWalkthroughSteps(state.scenario);
+    const step = steps[stepIndex];
+    if (!step) return;
+
+    state.walkStep = stepIndex;
+    $("wtStepNum").textContent = stepIndex + 1;
+    $("wtStepTotal").textContent = steps.length;
+    $("wtTitle").textContent = step.title;
+    $("wtBody").innerHTML = step.body;
+    $("wtFile").textContent = step.file || "";
+
+    $("wtPrev").disabled = stepIndex === 0;
+    $("wtNext").textContent = stepIndex === steps.length - 1 ? "Finish" : "Next step";
+
+    // Dim / focus leaf SVG zones independently (no parent-child opacity clash)
+    const focused = expandZoneFocus(step.zones);
+    DIMMABLE_IDS.forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.classList.remove("zone-dim", "zone-focus");
+      el.classList.add(focused.has(id) ? "zone-focus" : "zone-dim");
+    });
+    // Legacy group: inputArrows container stays neutral (children are dimmed individually)
+    const arrowGroup = $("inputArrows");
+    if (arrowGroup) {
+      arrowGroup.classList.remove("zone-dim", "zone-focus");
+      arrowGroup.setAttribute("opacity", state.walkthrough ? "1" : "0.35");
+    }
+
+    // Special: drift line pulse when drift step active
+    const sc = SCENARIOS[state.scenario];
+    const driftEl = $("driftLine");
+    if (driftEl) {
+      const driftOn = step.zones?.includes("drift");
+      driftEl.classList.toggle("drift-line", driftOn || !!sc.drift_at);
+      driftEl.setAttribute("opacity", driftOn ? "1" : (sc.drift_at ? "0.55" : "0.15"));
+    }
+
+    drawHighlightRings(step.zones || []);
+    renderStepDots(step.stepDot ?? 0, stepIndex);
+    renderWalkthroughChronology(steps, stepIndex);
+
+    // Sidebar cards
+    Object.entries(SIDEBAR_CARDS).forEach(([key, id]) => {
+      const el = $(id);
+      el.classList.remove("wt-focus", "wt-dim");
+      if (state.walkthrough) {
+        el.classList.add(key === step.sidebar ? "wt-focus" : "wt-dim");
+      }
+    });
+
+    // Modality highlight on input cards (supports multi-highlight)
+    const mods = step.highlightModalities || (step.modality ? [step.modality] : []);
+    document.querySelectorAll(".input-card").forEach((el) => {
+      el.classList.toggle("active", mods.includes(el.dataset.modality));
+    });
+
+    if (step.highlightSvc && sc) renderServices(sc.highlight_svc);
+
+    if (step.animateFlow && sc) {
+      animateFlow(sc.abnormal_chain, sc.drift_at ? "#ef4444" : "#22c55e");
+    }
+
+    if (sc.drift_at) positionDriftVisual(sc);
+
+    $("learningText").innerHTML = step.body;
+    renderWalkthroughDissection(SCENARIOS[state.scenario], stepIndex, getWalkthroughCtx(state.scenario));
+  }
+
+  function startWalkthrough() {
+    if (state.scenario === "normal") {
+      sel.value = "checkout_exception";
+      renderUI("checkout_exception", null, { skipWalkthroughReset: true });
+    }
+    state.walkthrough = true;
+    $("walkthroughBar").classList.remove("hidden");
+    $("guideBtn").textContent = "Walkthrough active";
+    applyWalkthroughStep(0);
+  }
+
+  function exitWalkthrough() {
+    state.walkthrough = false;
+    state.walkStep = 0;
+    $("walkthroughBar").classList.add("hidden");
+    $("guideBtn").textContent = "Start guided walkthrough";
+    $("wtChronology").classList.add("hidden");
+    $("wtChronoHint").classList.add("hidden");
+    $("wtDissection").classList.add("hidden");
+    DIMMABLE_IDS.forEach((id) => {
+      const el = $(id);
+      if (el) el.classList.remove("zone-dim", "zone-focus");
+    });
+    $("highlightRings").innerHTML = "";
+    Object.values(SIDEBAR_CARDS).forEach((id) => $(id).classList.remove("wt-focus", "wt-dim"));
+    document.querySelectorAll(".input-card").forEach((el) => el.classList.remove("active"));
+    renderUI(state.scenario, state.modality, { skipWalkthroughReset: true });
+  }
+
+  function nextWalkthroughStep() {
+    const steps = buildWalkthroughSteps(state.scenario);
+    if (state.walkStep >= steps.length - 1) {
+      exitWalkthrough();
+      return;
+    }
+    applyWalkthroughStep(state.walkStep + 1);
+  }
+
+  function prevWalkthroughStep() {
+    if (state.walkStep > 0) applyWalkthroughStep(state.walkStep - 1);
+  }
+
+  // --- pattern_ranker.py logic (simplified faithful port) ---
+  function abnormalPatternRanker(normalDict, abnormalDict) {
+    const scores = {};
+    for (const [key, abn] of Object.entries(abnormalDict)) {
+      if (abn <= MIN_SUPPORT) continue;
+      const norm = normalDict[key] || 0;
+      scores[key] = norm > 0 ? abn / (abn + norm) : 1.0;
+    }
+    return Object.entries(scores)
+      .filter(([, s]) => s >= MIN_SCORE)
+      .sort((a, b) => b[1] - a[1]);
+  }
+
+  function expectedPatternLossRanker(normalDict, abnormalDict) {
+    const scores = {};
+    for (const [key, norm] of Object.entries(normalDict)) {
+      if (norm <= MIN_SUPPORT) continue;
+      const abn = abnormalDict[key] || 0;
+      scores[key] = abn > 0 ? norm / (abn + norm) : 1.0;
+    }
+    return Object.entries(scores)
+      .filter(([, s]) => s >= MIN_SCORE)
+      .sort((a, b) => b[1] - a[1]);
+  }
+
+  function pairLabel(key) {
+    const [a, b] = key.split("→");
+    return `${NODE[a]?.label || a} → ${NODE[b]?.label || b}`;
+  }
+
+  /** Same pair key used in walkthrough step 8 and ranker (expected-loss or abnormal-gain). */
+  function getDiagnosticPair(sc) {
+    const lossEntries = expectedPatternLossRanker(sc.normal_pairs, sc.abnormal_pairs);
+    const gainEntries = abnormalPatternRanker(sc.normal_pairs, sc.abnormal_pairs);
+    const main = lossEntries[0] || gainEntries[0];
+    const key = main
+      ? main[0]
+      : Object.entries(sc.normal_pairs).sort((a, b) => b[1] - a[1])[0]?.[0];
+    if (!key) return null;
+
+    let gainKey = null;
+    if (sc.drift_at) {
+      const i = sc.normal_chain.indexOf(sc.drift_at);
+      const abnNext = sc.abnormal_chain[i + 1];
+      const normNext = sc.normal_chain[i + 1];
+      if (i >= 0 && abnNext && abnNext !== normNext) {
+        gainKey = `${sc.drift_at}→${abnNext}`;
+      }
+    }
+
+    return {
+      key,
+      normSup: sc.normal_pairs[key] || 0,
+      abnSup: sc.abnormal_pairs[key] || 0,
+      gainKey,
+      gainNormSup: gainKey ? (sc.normal_pairs[gainKey] || 0) : 0,
+      gainAbnSup: gainKey ? (sc.abnormal_pairs[gainKey] || 0) : 0,
+    };
+  }
+
+  function buildRankResults(scenario) {
+    const norm = scenario.normal_pairs;
+    const abn = scenario.abnormal_pairs;
+    const loss = expectedPatternLossRanker(norm, abn);
+    const gain = abnormalPatternRanker(norm, abn);
+    const results = [];
+
+    loss.forEach(([key, score], i) => {
+      const targetNode = key.split("→")[1];
+      const n = NODE[targetNode];
+      const entry = {
+        key, score, rank: i + 1, type: "expected_loss",
+        pod: scenario.inject_pod || `${n?.svc || "checkoutservice"}-pod`,
+        depth: scenario.depth || 2,
+        resource: scenario.resource || null,
+        label: pairLabel(key),
+      };
+      results.push(entry);
+    });
+
+    gain.forEach(([key, score]) => {
+      if (!results.find((r) => r.key === key)) {
+        const targetNode = key.split("→")[1];
+        const n = NODE[targetNode];
+        results.push({
+          key, score, rank: results.length + 1, type: "abnormal_gain",
+          pod: scenario.inject_pod || `${n?.svc}-pod`,
+          depth: scenario.depth || 1,
+          resource: scenario.resource || null,
+          label: pairLabel(key),
+        });
+      }
+    });
+
+    results.sort((a, b) => b.score - a.score || b.depth - a.depth);
+    results.forEach((r, i) => { r.rank = i + 1; });
+    return results;
+  }
+
+  function checkGroundTruth(scenario, top) {
+    if (!scenario.ground_truth || !top) return "";
+    const gt = scenario.ground_truth;
+    if (gt.includes("Cpu") || gt.includes("Network")) {
+      return top.resource && gt.includes(top.resource.split("(")[0])
+        ? "Matches ground truth (resource-level)" : "Compare pod + resource in evaluation_pod()";
+    }
+    const parts = gt.split("_");
+    const match = parts.length === 2 && parts.every((p) => top.label.includes(p.trim()));
+    return match ? "Matches inner-service label (AIS@k)" : `Ground truth region: ${parts.join(" → ")}`;
+  }
+
+  // --- SVG rendering ---
+  function renderStepDots(activePipelineIdx, walkthroughStepIdx) {
+    const g = $("stepDots");
+    g.innerHTML = "";
+    const inWalk = state.walkthrough;
+    STEPS.forEach((name, i) => {
+      const x = i * 78;
+      const isActive = inWalk && i === activePipelineIdx;
+      const isDone = inWalk ? i < activePipelineIdx : i <= activePipelineIdx;
+      if (i > 0) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", (i - 1) * 78 + 8); line.setAttribute("y1", 0);
+        line.setAttribute("x2", x - 8); line.setAttribute("y2", 0);
+        line.setAttribute("stroke", isDone ? "#818cf8" : "#374151");
+        line.setAttribute("stroke-width", isDone ? "2" : "1");
+        g.appendChild(line);
+      }
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", x); c.setAttribute("cy", 0);
+      c.setAttribute("r", isActive ? 6 : 4);
+      c.setAttribute("fill", isActive ? "#818cf8" : isDone ? "#6366f1" : "#374151");
+      if (isActive) c.setAttribute("filter", "url(#glow)");
+      g.appendChild(c);
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", x); t.setAttribute("y", 14); t.setAttribute("font-size", "7");
+      t.setAttribute("fill", isActive ? "#e0e7ff" : isDone ? "#c7d2fe" : "#6b7280");
+      t.setAttribute("font-weight", isActive ? "700" : "400");
+      t.setAttribute("text-anchor", "middle"); t.textContent = name;
+      g.appendChild(t);
+    });
+    if (inWalk && walkthroughStepIdx != null) {
+      const badge = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      badge.setAttribute("x", STEPS.length * 78 + 8); badge.setAttribute("y", 4);
+      badge.setAttribute("fill", "#818cf8"); badge.setAttribute("font-size", "8");
+      badge.textContent = `step ${walkthroughStepIdx + 1}`;
+      g.appendChild(badge);
+    }
+  }
+
+  function renderWalkthroughChronology(steps, activeIndex) {
+    const el = $("wtChronology");
+    const hintEl = $("wtChronoHint");
+    if (!state.walkthrough) {
+      el.classList.add("hidden");
+      hintEl.classList.add("hidden");
+      return;
+    }
+    el.classList.remove("hidden");
+    hintEl.classList.remove("hidden");
+    const parts = steps.map((s, i) => {
+      const st = i < activeIndex ? "done" : i === activeIndex ? "active" : "pending";
+      const label = s.shortLabel || s.title.replace(/^Step \d+ — /, "");
+      return `<button type="button" class="wt-chrono-item ${st}" data-step="${i}" title="${(s.hint || "").replace(/"/g, "&quot;")}">
+        <span class="wt-chrono-num">${i < activeIndex ? "✓" : i + 1}</span>
+        <span class="wt-chrono-label">${label}</span>
+      </button>`;
+    });
+    el.innerHTML = parts.join('<span class="wt-chrono-arrow">→</span>');
+    const step = steps[activeIndex];
+    hintEl.innerHTML = step
+      ? `<strong style="color:#818cf8">Now:</strong> ${step.hint || step.title.replace(/^Step \d+ — /, "")}`
+      : "";
+    el.onclick = (e) => {
+      const btn = e.target.closest(".wt-chrono-item");
+      if (btn) applyWalkthroughStep(+btn.dataset.step);
+    };
+  }
+
+  function renderChain(groupId, chain, color, yBase, sc) {
+    const g = $(groupId);
+    g.innerHTML = "";
+    const driftIdx = sc?.drift_at ? chain.indexOf(sc.drift_at) : -1;
+    const otherChain = groupId === "expectedPath" ? sc?.abnormal_chain : sc?.normal_chain;
+
+    chain.forEach((id, i) => {
+      const n = NODE[id];
+      const x = CHAIN_X0 + i * CHAIN_SPACING;
+      const cy = yBase;
+      const isDriftNode = sc?.drift_at && id === sc.drift_at;
+      const isDivergingEdge = sc?.drift_at && i === driftIdx && i < chain.length - 1
+        && otherChain && otherChain[driftIdx] === sc.drift_at
+        && otherChain[driftIdx + 1] !== chain[i + 1];
+
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", x); circle.setAttribute("cy", cy);
+      circle.setAttribute("r", isDriftNode ? 13 : 11);
+      circle.setAttribute("fill", n?.type === "alarm" ? "#60a5fa" : color);
+      circle.setAttribute("opacity", n?.type === "alarm" ? 1 : 0.85);
+      if (isDriftNode) {
+        circle.setAttribute("stroke", "#f59e0b");
+        circle.setAttribute("stroke-width", "3");
+      } else if (n?.type === "alarm") {
+        circle.setAttribute("stroke", color);
+        circle.setAttribute("stroke-width", "2");
+      }
+      g.appendChild(circle);
+
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", x); t.setAttribute("y", cy + 30); t.setAttribute("font-size", "9");
+      t.setAttribute("fill", isDriftNode ? "#fbbf24" : "#9ca3af");
+      t.setAttribute("text-anchor", "middle");
+      t.setAttribute("font-weight", isDriftNode ? "600" : "normal");
+      t.textContent = n?.label || id;
+      g.appendChild(t);
+
+      if (i < chain.length - 1) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x + 12); line.setAttribute("y1", cy);
+        line.setAttribute("x2", x + CHAIN_SPACING - 12); line.setAttribute("y2", cy);
+        line.setAttribute("stroke", isDivergingEdge ? "#f59e0b" : color);
+        line.setAttribute("stroke-width", isDivergingEdge ? "3" : "2");
+        if (isDivergingEdge) line.setAttribute("stroke-dasharray", "5,3");
+        line.setAttribute("marker-end", isDivergingEdge ? "url(#arrow)" : (color === "#22c55e" ? "url(#arrow-g)" : "url(#arrow-r)"));
+        g.appendChild(line);
+      }
+    });
+  }
+
+  function positionDriftVisual(sc) {
+    const driftLine = $("driftLine");
+    const driftLabel = $("driftLabel");
+    const forkG = $("driftForkGreen");
+    const forkR = $("driftForkRed");
+    const show = !!sc.drift_at;
+
+    [driftLine, driftLabel, forkG, forkR].forEach((el) => {
+      if (el) el.setAttribute("opacity", show ? "1" : "0");
+    });
+    if (!show) return;
+
+    const ni = sc.normal_chain.indexOf(sc.drift_at);
+    const ai = sc.abnormal_chain.indexOf(sc.drift_at);
+    const idx = ni >= 0 ? ni : ai;
+    if (idx < 0) return;
+
+    const x = CHAIN_X0 + idx * CHAIN_SPACING;
+    const xForkEnd = x + CHAIN_SPACING - 12;
+
+    // Vertical marker on the drift event (both rows)
+    driftLine.setAttribute("x1", x);
+    driftLine.setAttribute("x2", x);
+    driftLine.setAttribute("y1", Y_EXPECTED - 8);
+    driftLine.setAttribute("y2", Y_ACTUAL + 8);
+
+    driftLabel.setAttribute("x", x + 16);
+    driftLabel.setAttribute("y", (Y_EXPECTED + Y_ACTUAL) / 2 + 4);
+
+    // Orange fork on diverging outgoing edges
+    if (ni >= 0 && ni < sc.normal_chain.length - 1) {
+      forkG.setAttribute("x1", x + 12);
+      forkG.setAttribute("y1", Y_EXPECTED);
+      forkG.setAttribute("x2", xForkEnd);
+      forkG.setAttribute("y2", Y_EXPECTED);
+    } else if (forkG) forkG.setAttribute("opacity", "0");
+
+    if (ai >= 0 && ai < sc.abnormal_chain.length - 1) {
+      forkR.setAttribute("x1", x + 12);
+      forkR.setAttribute("y1", Y_ACTUAL);
+      forkR.setAttribute("x2", xForkEnd);
+      forkR.setAttribute("y2", Y_ACTUAL);
+    } else if (forkR) forkR.setAttribute("opacity", "0");
+
+    ZONE_RECTS.drift = { x: x - 22, y: Y_EXPECTED - 30, w: CHAIN_SPACING + 10, h: Y_ACTUAL - Y_EXPECTED + 60 };
+  }
+
+  function renderServices(highlight) {
+    const g = $("svcChain");
+    g.innerHTML = "";
+    SERVICES.forEach((s) => {
+      const y = s.y || 448;
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", s.x); rect.setAttribute("y", y); rect.setAttribute("width", 88); rect.setAttribute("height", 26);
+      rect.setAttribute("rx", 5);
+      const on = highlight === s.id;
+      rect.setAttribute("fill", on ? "#312e81" : "#1e293b");
+      rect.setAttribute("stroke", on ? "#f59e0b" : "#475569");
+      rect.setAttribute("stroke-width", on ? "2" : "1");
+      g.appendChild(rect);
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", s.x + 44); t.setAttribute("y", y + 17); t.setAttribute("font-size", "7.5");
+      t.setAttribute("fill", "#e2e8f0"); t.setAttribute("text-anchor", "middle");
+      t.textContent = s.label;
+      g.appendChild(t);
+    });
+  }
+
+  function renderEventList(chain) {
+    const g = $("eventList");
+    g.innerHTML = "";
+    const colors = { span: "#fbbf24", log: "#34d399", alarm: "#60a5fa" };
+    chain.slice(0, 6).forEach((id, i) => {
+      const n = NODE[id];
+      const y = i * 20;
+      const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      r.setAttribute("x", 0); r.setAttribute("y", y); r.setAttribute("width", 108); r.setAttribute("height", 18);
+      r.setAttribute("rx", 3); r.setAttribute("fill", colors[n?.type] || "#6b7280"); r.setAttribute("opacity", "0.2");
+      g.appendChild(r);
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", 4); t.setAttribute("y", y + 12);
+      t.setAttribute("font-size", "9"); t.setAttribute("font-family", "monospace");
+      t.setAttribute("fill", colors[n?.type] || "#9ca3af");
+      t.textContent = n?.label || id;
+      g.appendChild(t);
+    });
+  }
+
+  function animateFlow(chain, color) {
+    const g = $("flowParticles");
+    g.innerHTML = "";
+    const yBase = 355;
+    const spacing = CHAIN_SPACING;
+    const x0 = CHAIN_X0;
+    let i = 0;
+    const iv = setInterval(() => {
+      if (i >= chain.length) { clearInterval(iv); return; }
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", x0 + i * spacing); c.setAttribute("cy", yBase);
+      c.setAttribute("r", 7); c.setAttribute("fill", color); c.setAttribute("filter", "url(#glow)");
+      g.appendChild(c);
+      setTimeout(() => c.remove(), 700);
+      i++;
+    }, 350);
+  }
+
+  function renderAnalysisPanels(sc, diag, ranks, top) {
+    const pairBlock = diag
+      ? `<div style="color:#22c55e">normal: ${escHtml(pairLabel(diag.key))} · sup=${escHtml(diag.normSup)}</div>
+         <div style="color:#ef4444;margin-top:4px">abnormal: ${escHtml(pairLabel(diag.key))} · sup=${escHtml(diag.abnSup)}${
+           diag.gainKey && diag.gainKey !== diag.key
+             ? `<br/>new pair: ${escHtml(pairLabel(diag.gainKey))} · sup=${escHtml(diag.gainAbnSup)}`
+             : ""
+         }</div>`
+      : "<div>—</div>";
+    const minerBlock = `Aggregated ${Object.keys(sc.abnormal_pairs).length} event pairs from trace window`;
+    const rankBlock = top
+      ? `#1 score=${top.score.toFixed(3)} · depth=${top.depth} · ${top.type}<br/>
+         <span style="color:#9ca3af">expected_loss: normal/(abn+norm) · abnormal_gain: abn/(abn+norm) · min_score=0.67</span>`
+      : "No pair above min_score=0.67";
+    const injMeta = sc.inject_time ? `${sc.inject_pod} · ${sc.inject_type}` : "construct_data baseline (no injection)";
+    const rcaBlock = top
+      ? `<div style="color:#60a5fa;font-weight:600">#1 ${escHtml(top.label)}</div>
+         <div>score = ${top.score.toFixed(3)} (${top.type === "expected_loss" ? "normal/(abn+norm)" : "abn/(abn+norm)"})</div>
+         <div>pod: ${escHtml(sc.inject_pod || top.pod)}</div>
+         <div>${top.resource ? `resource: ${escHtml(top.resource)}` : `depth: ${top.depth}`}</div>`
+      : "<div>No suspicious pattern above threshold</div>";
+    const groundBlock = sc.ground_truth
+      ? `<div style="color:#fbbf24;font-family:monospace">${escHtml(sc.ground_truth)}</div>
+         <div style="color:#9ca3af">root_cause_hipster.json [${escHtml(sc.highlight_svc || "—")}][${escHtml(sc.inject_type || "—")}]</div>
+         <div style="color:#22c55e;margin-top:4px">${escHtml(checkGroundTruth(sc, top))}</div>`
+      : "<div>—</div>";
+
+    $("analysisSidebarBody").innerHTML = `
+      <div class="fd-section"><span class="fd-label">Pattern support</span><div class="fd-body">${pairBlock}</div></div>
+      <div class="fd-section"><span class="fd-label">pattern_miner.py</span><div class="fd-body">${escHtml(minerBlock)}</div></div>
+      <div class="fd-section"><span class="fd-label">pattern_ranker.py</span><div class="fd-body">${rankBlock}</div></div>
+      <div class="fd-section"><span class="fd-label">RCA output</span><div class="fd-body">
+        <div style="color:#6b7280;font-family:monospace;margin-bottom:4px">${escHtml(injMeta)}</div>${rcaBlock}</div></div>
+      <div class="fd-section"><span class="fd-label">Ground truth</span><div class="fd-body">${groundBlock}</div></div>`;
+
+    $("pairCompact").innerHTML = diag
+      ? `<span style="color:#22c55e">N ${escHtml(pairLabel(diag.key).slice(0, 28))}…</span>
+         <span style="color:#ef4444;margin-left:6px">A sup=${escHtml(diag.abnSup)}</span>`
+      : "—";
+    $("analysisCompact").innerHTML = top
+      ? `<div style="color:#f59e0b;font-weight:600">#1 ${escHtml(top.label.slice(0, 38))}${top.label.length > 38 ? "…" : ""}</div>
+         <div style="color:#60a5fa;margin-top:3px">score=${top.score.toFixed(3)} · ${escHtml(sc.inject_pod || top.pod)}</div>
+         <div style="color:#22c55e;margin-top:3px">${escHtml(checkGroundTruth(sc, top).slice(0, 48))}</div>`
+      : `<div style="color:#9ca3af">No pattern above min_score=0.67</div>`;
+  }
+
+  function renderUI(scenarioKey, modality, opts = {}) {
+    const sc = SCENARIOS[scenarioKey];
+    state.scenario = scenarioKey;
+    if (!opts.skipWalkthroughReset && state.walkthrough) {
+      applyWalkthroughStep(0);
+    }
+
+    renderStepDots(0, null);
+    renderChain("expectedPath", sc.normal_chain, "#22c55e", Y_EXPECTED, sc);
+    renderChain("actualPath", sc.abnormal_chain, "#ef4444", Y_ACTUAL, sc);
+    positionDriftVisual(sc);
+    renderServices(sc.highlight_svc);
+    renderEventList(sc.abnormal_chain);
+
+    $("driftLine").setAttribute("opacity", sc.drift_at ? "1" : "0");
+    if ($("driftLabel")) $("driftLabel").setAttribute("opacity", sc.drift_at ? "1" : "0");
+    $("metricsPreview").textContent = sc.metrics;
+    $("logsPreview").textContent = sc.logs;
+    $("tracesPreview").textContent = sc.traces;
+
+    const diag = getDiagnosticPair(sc);
+    const ranks = buildRankResults(sc);
+    const top = ranks[0];
+    renderAnalysisPanels(sc, diag, ranks, top);
+
+    const learn = modality && sc.modality?.[modality] ? sc.modality[modality] : sc.learning;
+    $("learningText").innerHTML = learn;
+
+    $("obsFeed").innerHTML = `
+      <div class="obs-line"><span style="color:#60a5fa">metric</span> ${sc.metrics}</div>
+      <div class="obs-line"><span style="color:#34d399">log</span> ${sc.logs}</div>
+      <div class="obs-line"><span style="color:#fbbf24">trace</span> ${sc.traces}</div>`;
+    $("dataRef").textContent = sc.data_ref;
+
+    $("rankList").innerHTML = ranks.slice(0, 5).map((r) =>
+      `<div class="rank-row${r.rank === 1 ? " top" : ""}">#${r.rank} ${r.score.toFixed(3)} · ${r.label.slice(0, 42)}</div>`
+    ).join("") || '<div class="rank-row">—</div>';
+
+    document.querySelectorAll(".input-card").forEach((el) => {
+      el.classList.toggle("active", modality && el.dataset.modality === modality);
+    });
+
+    if (!state.walkthrough) {
+      renderStepDots(4, null);
+      animateFlow(sc.abnormal_chain, sc.drift_at ? "#ef4444" : "#22c55e");
+      $("inputArrows").classList.add("flow-active");
+      setTimeout(() => $("inputArrows").classList.remove("flow-active"), 1800);
+    }
+  }
+
+  // Init scenario dropdown
+  const sel = $("scenarioSelect");
+  Object.entries(SCENARIOS).forEach(([k, v]) => {
+    const o = document.createElement("option");
+    o.value = k; o.textContent = v.name;
+    sel.appendChild(o);
+  });
+
+  sel.addEventListener("change", () => {
+    if (state.walkthrough) exitWalkthrough();
+    renderUI(sel.value, state.modality);
+    if (sel.value !== "normal") {
+      setTimeout(() => startWalkthrough(), 300);
+    }
+  });
+  $("resetBtn").addEventListener("click", () => {
+    exitWalkthrough();
+    sel.value = "normal";
+    renderUI("normal", null);
+  });
+  $("guideBtn").addEventListener("click", () => {
+    if (state.walkthrough) exitWalkthrough();
+    else startWalkthrough();
+  });
+  $("wtNext").addEventListener("click", nextWalkthroughStep);
+  $("wtPrev").addEventListener("click", prevWalkthroughStep);
+  $("wtExit").addEventListener("click", exitWalkthrough);
+  document.querySelectorAll("[data-modality]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.modality = btn.dataset.modality;
+      renderUI(state.scenario, state.modality);
+    });
+  });
+  document.querySelectorAll(".input-card").forEach((el) => {
+    el.addEventListener("click", () => {
+      state.modality = el.dataset.modality;
+      renderUI(state.scenario, state.modality);
+    });
+  });
+
+  renderUI("normal", null);
+})();
+</script>
+</body>
+</html>

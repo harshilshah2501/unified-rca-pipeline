@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+  <title>Murphy — Performance RCA Simulator</title>
+  <link rel="stylesheet" href="../assets/prototype-embed.css?v=20260703f"/>
+  <script src="../assets/prototype-embed.js?v=20260703f"></script>
+  <style>
+    :root {
+      --bg: #0b0f14; --surface: #111827; --panel: #1f2937; --border: #374151;
+      --muted: #9ca3af; --text: #f3f4f6; --metric: #34d399; --symptom: #f87171;
+      --graph: #a78bfa; --accent: #f59e0b; --train: #38bdf8; --rc: #fb923c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 12px;
+    }
+    header { width: min(1240px, 100%); }
+    header h1 { margin: 0; font-size: 1.2rem; font-weight: 600; }
+    header p { margin: 4px 0 0; color: var(--muted); font-size: 0.82rem; }
+    .layout { display: grid; grid-template-columns: 1fr 340px; gap: 12px; width: min(1240px, 100%); }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+    .svg-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    svg { display: block; width: 100%; height: auto; user-select: none; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; width: min(1240px, 100%); align-items: center; }
+    .controls label { font-size: 0.78rem; color: var(--muted); }
+    button, select {
+      background: var(--panel); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 12px; font-size: 0.8rem; cursor: pointer;
+    }
+    button:hover { background: #273449; }
+    #guideBtn { border-color: var(--accent); color: #fde68a; font-weight: 600; }
+    .sidebar { display: flex; flex-direction: column; gap: 10px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+    .card h2 { margin: 0 0 8px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .card p, .card li { margin: 0; font-size: 0.82rem; line-height: 1.45; color: #d1d5db; }
+    .card ul { margin: 6px 0 0; padding-left: 18px; }
+    .mono { font-family: ui-monospace, monospace; font-size: 0.68rem; color: #7dd3fc; line-height: 1.55; white-space: pre-wrap; }
+    .rc-table { font-family: ui-monospace, monospace; font-size: 0.65rem; }
+    .rc-header, .rc-row {
+      display: grid; grid-template-columns: 1fr 72px 40px 44px; gap: 6px;
+      padding: 4px 0; align-items: center;
+    }
+    .rc-header { color: #9ca3af; font-size: 0.58rem; text-transform: uppercase; border-bottom: 1px solid #374151; }
+    .rc-row { border-bottom: 1px solid #2d3748; color: #cbd5e1; }
+    .rc-row.top { color: #fb923c; font-weight: 600; }
+    .walkthrough-bar {
+      width: min(1240px, 100%); background: #1a1f2e; border: 2px solid var(--accent);
+      border-radius: 12px; padding: 14px 18px; display: grid;
+      grid-template-columns: auto 1fr auto; gap: 16px; align-items: start;
+    }
+    .walkthrough-bar.hidden { display: none; }
+    .wt-step-badge { background: var(--accent); color: #78350f; font-weight: 700; font-size: 0.75rem; padding: 6px 10px; border-radius: 8px; }
+    .wt-title { margin: 0 0 6px; font-size: 0.95rem; font-weight: 600; color: #fde68a; }
+    .wt-body { margin: 0 0 6px; font-size: 0.84rem; line-height: 1.5; color: #d1d5db; }
+    .wt-body strong { color: #fbbf24; }
+    .wt-file { display: block; font-size: 0.72rem; color: #6b7280; margin-top: 4px; }
+    .wt-actions { display: flex; flex-direction: column; gap: 6px; min-width: 100px; }
+    .wt-actions button.primary { border-color: var(--accent); color: #fde68a; }
+    .wt-chronology {
+      width: min(1240px, 100%); display: flex; align-items: center; gap: 0; overflow-x: auto;
+      padding: 10px 12px; background: #111827; border: 1px solid var(--border); border-radius: 10px;
+    }
+    .wt-chronology.hidden { display: none; }
+    .wt-chrono-hint { width: min(1240px, 100%); margin: -4px 0 0; padding: 0 8px; font-size: 0.72rem; color: var(--muted); min-height: 1.1rem; }
+    .wt-chrono-hint.hidden { display: none; }
+    .wt-chrono-item {
+      display: flex; flex-direction: column; align-items: center; min-width: 72px; max-width: 96px;
+      padding: 6px; border-radius: 8px; border: 1px solid transparent; background: transparent;
+      cursor: pointer; color: #9ca3af; font-size: 0.58rem; line-height: 1.2; flex-shrink: 0;
+    }
+    .wt-chrono-item:hover { background: #1f2937; }
+    .wt-chrono-item.done { color: #6ee7b7; }
+    .wt-chrono-item.done .wt-chrono-num { background: #14532d; border-color: #22c55e; color: #bbf7d0; }
+    .wt-chrono-item.active { color: #fde68a; border-color: var(--accent); background: rgba(245, 158, 11, 0.12); }
+    .wt-chrono-item.active .wt-chrono-num { background: var(--accent); color: #78350f; }
+    .wt-chrono-num {
+      width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.62rem; font-weight: 700; border: 1px solid #4b5563; margin-bottom: 4px;
+    }
+    .wt-chrono-arrow { color: #4b5563; font-size: 0.7rem; padding: 0 2px; flex-shrink: 0; }
+    .zone-dim { opacity: 0.58; }
+    .zone-focus { opacity: 1; }
+    .highlight-ring { fill: none; stroke: #f59e0b; stroke-width: 2.5; stroke-dasharray: 6 4; pointer-events: none; }
+    .wt-focus { border-color: var(--accent) !important; box-shadow: 0 0 0 1px rgba(245,158,11,0.3); }
+    .wt-dim { opacity: 0.45; }
+    @keyframes gibbs-edge-flow {
+      0% { stroke-dashoffset: 24; opacity: 0.35; }
+      50% { opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 0.35; }
+    }
+    @keyframes gibbs-node-pulse {
+      0%, 100% { stroke-opacity: 0.45; }
+      50% { stroke-opacity: 1; }
+    }
+    .gibbs-edge-flow {
+      stroke-dasharray: 6 4;
+      animation: gibbs-edge-flow 0.55s ease-in-out;
+    }
+    .gibbs-node-active { animation: gibbs-node-pulse 0.45s ease-in-out 2; }
+    .gibbs-sweep-on { fill: #f59e0b !important; stroke: #fde68a !important; }
+    @keyframes graph-bfs-pulse {
+      0%, 100% { stroke: #38bdf8; stroke-width: 2; opacity: 1; }
+      50% { stroke: #f59e0b; stroke-width: 4; opacity: 1; }
+    }
+    @keyframes graph-prune-fade {
+      to { opacity: 0.32; }
+    }
+    @keyframes graph-candidate-pulse {
+      0%, 100% { stroke: #22c55e; stroke-width: 2; }
+      50% { stroke: #86efac; stroke-width: 4; }
+    }
+    .graph-bfs-pulse { animation: graph-bfs-pulse 0.55s ease-in-out 2; }
+    .graph-pruned-node { animation: graph-prune-fade 0.6s ease forwards; }
+    .graph-candidate-node { animation: graph-candidate-pulse 1.2s ease-in-out infinite; }
+    .prune-line-in { opacity: 0; animation: prune-line-in 0.35s ease forwards; }
+    @keyframes prune-line-in {
+      from { opacity: 0; transform: translateX(-6px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .svg-fo {
+      font-family: ui-monospace, monospace;
+      font-size: 10px;
+      line-height: 1.45;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .svg-fo.dim { color: #9ca3af; }
+    .svg-fo.ok { color: #34d399; }
+    .svg-fo.warn { color: #f87171; }
+    .svg-fo.hi { color: #a78bfa; }
+    .svg-fo.accent { color: #fbbf24; font-weight: 600; }
+    .gibbs-panel-body { font-size: 10px; line-height: 1.55; }
+    .gibbs-panel-body .gp-section { margin: 0 0 10px; }
+    .gibbs-panel-body .gp-label {
+      display: block; color: #6b7280; font-weight: 600; font-size: 9px;
+      text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 3px;
+    }
+    .gibbs-panel-body .gp-clamp { color: #e2e8f0; }
+    .gibbs-panel-body .gp-path { color: #a78bfa; }
+    .gibbs-panel-body .gp-d1 { color: #34d399; }
+    .gibbs-panel-body .gp-d2 { color: #f87171; }
+    .gibbs-panel-body .gp-ttest { color: #fbbf24; font-weight: 600; }
+    .gibbs-panel-body .gp-hint { color: #6b7280; font-size: 9px; margin-top: 8px; }
+    .gibbs-detail-card .gibbs-panel-body { font-size: 0.76rem; }
+    .gibbs-compact { font-size: 9px; line-height: 1.35; color: #9ca3af; overflow: visible; }
+    .gibbs-compact .gc-ttest { color: #fbbf24; font-weight: 600; margin-bottom: 3px; word-break: break-word; }
+    .gibbs-compact .gc-d12 { margin: 2px 0; word-break: break-word; }
+    .gibbs-compact .gc-d1 { color: #34d399; }
+    .gibbs-compact .gc-d2 { color: #f87171; }
+    .gibbs-compact .gc-hint { color: #6b7280; font-size: 8px; margin-top: 3px; }
+    .frame-detail-body { font-size: 0.76rem; line-height: 1.55; }
+    .fd-section { margin: 0 0 10px; }
+    .fd-label {
+      display: block; color: #9ca3af; font-weight: 600; font-size: 0.68rem;
+      text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 3px;
+    }
+    .fd-body { color: #e2e8f0; word-break: break-word; overflow-wrap: anywhere; }
+    .fd-ok { color: #34d399; }
+    .fd-warn { color: #f87171; }
+    .fd-accent { color: #fbbf24; font-weight: 600; }
+    .fd-hi { color: #a78bfa; }
+    .explain-sidebar {
+      margin-top: 10px; padding-top: 8px; border-top: 1px solid #374151;
+      font-size: 0.78rem; line-height: 1.45; color: #d1d5db;
+    }
+    .scenario-legend { font-size: 0.78rem; line-height: 1.5; color: #d1d5db; }
+    .scenario-legend .legend-row {
+      margin: 0 -6px; padding: 6px 8px 8px; border-radius: 6px;
+      border-left: 3px solid transparent; transition: background 0.15s, border-color 0.15s;
+    }
+    .scenario-legend .legend-row.legend-active {
+      background: rgba(245, 158, 11, 0.12); border-left-color: #f59e0b;
+    }
+    .scenario-legend .legend-row.legend-done { opacity: 0.72; }
+    .scenario-legend .legend-row.legend-pending { opacity: 0.42; }
+    .scenario-legend dt {
+      color: #9ca3af; font-size: 0.68rem; text-transform: uppercase;
+      letter-spacing: 0.04em; margin: 0; display: flex; align-items: flex-start; gap: 2px;
+    }
+    .scenario-legend dd { margin: 4px 0 0 1.65rem; font-family: ui-monospace, monospace; font-size: 0.72rem; color: #e2e8f0; }
+    .scenario-legend .legend-num {
+      flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+      width: 1.35rem; height: 1.35rem; border-radius: 999px; background: #374151; color: #9ca3af;
+      font-size: 0.62rem; font-weight: 700; margin-right: 4px; font-style: normal;
+    }
+    .scenario-legend .legend-row.legend-active .legend-num { background: #f59e0b; color: #1f2937; }
+    .scenario-legend .legend-row.legend-done .legend-num { background: #065f46; color: #6ee7b7; }
+    .scenario-legend .sc-tag {
+      display: inline-block; margin-top: 6px; padding: 2px 6px; border-radius: 4px;
+      background: #1f2937; color: #fde68a; font-size: 0.68rem; font-family: inherit;
+    }
+    .sigma-plain {
+      margin-top: 12px; padding-top: 10px; border-top: 1px solid #374151;
+      font-size: 0.76rem; line-height: 1.5; color: #9ca3af;
+    }
+    .sigma-plain strong { color: #e2e8f0; display: block; margin-bottom: 4px; font-size: 0.78rem; }
+    .sigma-plain em { color: #7dd3fc; font-style: normal; }
+    body.in-walkthrough #cardLearning { display: none; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Murphy — Performance Diagnosis Simulator</h1>
+  <p>Tier 2 Unified RCA · MRF + counterfactual Gibbs · Panorama (symptom) → Murphy → Nezha (code) · <span id="buildStamp">build 2026-07-03f</span></p>
+</header>
+
+<div class="controls">
+  <label for="scenarioSelect">Scenario</label>
+  <select id="scenarioSelect"></select>
+  <button type="button" id="guideBtn">Start guided walkthrough</button>
+  <button type="button" id="resetBtn">Reset</button>
+</div>
+
+<div id="walkthroughBar" class="walkthrough-bar hidden">
+  <span class="wt-step-badge">Step <span id="wtStepNum">1</span>/<span id="wtStepTotal">9</span></span>
+  <div>
+    <h3 class="wt-title" id="wtTitle"></h3>
+    <p class="wt-body" id="wtBody"></p>
+    <span class="wt-file" id="wtFile"></span>
+  </div>
+  <div class="wt-actions">
+    <button type="button" class="primary" id="wtNext">Next step</button>
+    <button type="button" id="wtPrev">Previous</button>
+    <button type="button" id="wtExit">Exit guide</button>
+  </div>
+</div>
+<div id="wtChronoHint" class="wt-chrono-hint hidden"></div>
+<div id="wtChronology" class="wt-chronology hidden"></div>
+
+<div class="layout">
+  <div class="svg-wrap">
+    <svg viewBox="0 0 1140 640" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#6b7280"/>
+        </marker>
+        <filter id="glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <rect width="1140" height="640" fill="#0b0f14"/>
+      <g id="highlightRings"></g>
+      <g id="stepDots" transform="translate(36, 28)"></g>
+
+      <!-- SYMPTOM -->
+      <g id="zoneSymptom">
+        <text x="36" y="68" fill="#9ca3af" font-size="10" font-weight="600">SYMPTOM INPUT</text>
+        <rect x="36" y="78" width="200" height="118" rx="9" fill="#1f2937" stroke="#374151"/>
+        <text x="52" y="100" fill="#f87171" font-size="11" font-weight="600">Alert / Panorama handoff</text>
+        <text x="52" y="116" fill="#6b7280" font-size="8">types.py · Symptom</text>
+        <text id="symEntity" x="52" y="132" fill="#fca5a5" font-size="8" font-family="monospace"></text>
+        <text id="symMetric" x="52" y="146" fill="#fca5a5" font-size="8" font-family="monospace"></text>
+        <text id="symValue" x="52" y="160" fill="#fbbf24" font-size="8" font-family="monospace"></text>
+        <text id="symTime" x="52" y="174" fill="#6b7280" font-size="9" font-family="monospace"></text>
+        <text x="52" y="190" fill="#6b7280" font-size="9">Murphy does not detect symptoms</text>
+      </g>
+
+      <!-- GRAPH -->
+      <g id="zoneGraph">
+        <rect x="252" y="78" width="280" height="200" rx="9" fill="#111827" stroke="#4b5563"/>
+        <text x="268" y="100" fill="#a78bfa" font-size="10" font-weight="600">Relationship Graph</text>
+        <text x="268" y="114" fill="#6b7280" font-size="8">graph.py · cyclic infra topology</text>
+        <g id="relGraph" transform="translate(392, 188)"></g>
+        <text id="graphMeta" x="268" y="262" fill="#6b7280" font-size="9" font-family="monospace"></text>
+      </g>
+
+      <!-- PRUNE + TRAIN -->
+      <g id="zoneEngine">
+        <rect x="548" y="78" width="200" height="95" rx="9" fill="#1f2937" stroke="#374151"/>
+        <text x="564" y="100" fill="#38bdf8" font-size="10" font-weight="600">Prune Candidates</text>
+        <text x="564" y="114" fill="#6b7280" font-size="8">graph.prune_candidates() · BFS ±1σ</text>
+        <g id="pruneList" transform="translate(564, 122)"></g>
+
+        <rect x="548" y="183" width="200" height="95" rx="9" fill="#1f2937" stroke="#374151"/>
+        <text x="564" y="205" fill="#38bdf8" font-size="10" font-weight="600">Train Ridge Models</text>
+        <text x="564" y="219" fill="#6b7280" font-size="8">mrf.py · EntityModel · top-B neighbors</text>
+        <g id="trainList" transform="translate(564, 227)"></g>
+      </g>
+
+      <!-- COUNTERFACTUAL + GIBBS (compact — full detail in sidebar) -->
+      <g id="zoneGibbs">
+        <rect x="752" y="78" width="218" height="132" rx="9" fill="#111827" stroke="#4b5563"/>
+        <text x="768" y="100" fill="#f59e0b" font-size="11" font-weight="600">Counterfactual + Gibbs</text>
+        <text x="768" y="114" fill="#6b7280" font-size="8">summary · see sidebar “Gibbs detail”</text>
+        <foreignObject x="764" y="118" width="196" height="86">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="gibbsCompact" class="svg-fo gibbs-compact"></div>
+        </foreignObject>
+      </g>
+
+      <!-- RIDGE + GIBBS ANIMATION -->
+      <g id="zoneGibbsAnim">
+        <rect x="36" y="328" width="1089" height="112" rx="9" fill="#0f1419" stroke="#92400e" stroke-dasharray="4 3"/>
+        <text x="52" y="348" fill="#f59e0b" font-size="10" font-weight="600">Ridge propagation · Gibbs sweeps (W=4)</text>
+        <foreignObject x="48" y="352" width="820" height="36">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="gibbsAnimStatus" class="svg-fo dim">Start guided walkthrough — animations run on Prune / Train / Counter / Gibbs steps</div>
+        </foreignObject>
+        <g id="gibbsSweepBadges" transform="translate(900, 338)"></g>
+        <foreignObject x="888" y="368" width="220" height="20">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="gibbsSampleCount" class="svg-fo ok"></div>
+        </foreignObject>
+        <g id="gibbsAnimGraph" transform="translate(52, 376)"></g>
+        <g id="gibbsPulseLayer"></g>
+      </g>
+
+      <!-- OUTPUT (rank list only — explain in sidebar) -->
+      <g id="zoneOutput">
+        <rect x="976" y="78" width="155" height="118" rx="9" fill="#1f2937" stroke="#374151"/>
+        <text x="992" y="100" fill="#fb923c" font-size="10" font-weight="600">Rank + Explain</text>
+        <text x="992" y="114" fill="#6b7280" font-size="8">ranker.py · explainer → sidebar</text>
+        <g id="rcSvgList" transform="translate(992, 122)"></g>
+      </g>
+
+      <!-- METRICS STRIP -->
+      <g id="zoneMetrics">
+        <text x="36" y="442" fill="#9ca3af" font-size="10" font-weight="600">ENTITY METRICS AT INCIDENT (7-day μ ± σ)</text>
+        <rect x="36" y="452" width="1089" height="88" rx="9" fill="#111827" stroke="#374151"/>
+        <g id="metricStrip" transform="translate(48, 468)"></g>
+      </g>
+
+      <!-- GAP BANNER (compact — full text in sidebar) -->
+      <g id="zoneGap">
+        <rect x="36" y="564" width="1089" height="56" rx="9" fill="#1a1208" stroke="#92400e"/>
+        <text x="52" y="586" fill="#fbbf24" font-size="10" font-weight="600">Why Murphy? — fills the gap between Panorama and Nezha</text>
+        <foreignObject x="48" y="592" width="1060" height="22">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="gapCompact" class="svg-fo dim"></div>
+        </foreignObject>
+      </g>
+    </svg>
+  </div>
+
+  <aside class="sidebar">
+    <div class="card" id="cardLearning">
+      <h2>Learning focus</h2>
+      <p id="learningText"></p>
+    </div>
+    <div class="card" id="cardScenarioLegend">
+      <h2>Scenario legend</h2>
+      <div id="scenarioLegendBody" class="scenario-legend"></div>
+      <div class="sigma-plain">
+        <strong>μ ± 1σ in plain English</strong>
+        <p><em>μ</em> (mu) is the <strong>usual average</strong> for that metric over the last 7 days. <em>σ</em> (sigma) is how much it normally bounces around day to day.</p>
+        <p><strong>μ ± 1σ</strong> is the “typical range” — roughly the middle <strong>68%</strong> of healthy readings. Murphy uses it like a speed limit: if today’s value is <strong>outside</strong> that band, the entity stays in the candidate set; if it stays inside (like <code>normal_vm</code> CPU), it is <strong>pruned</strong> and never reaches Gibbs.</p>
+        <p>Counterfactual clamping uses <strong>μ ± 2σ</strong> — a stricter “back to clearly normal” target when simulating “what if we fixed entity A?”</p>
+      </div>
+    </div>
+    <div class="card gibbs-detail-card" id="cardGibbsDetail">
+      <h2>Gibbs detail</h2>
+      <div id="gibbsSidebarBody" class="gibbs-panel-body"></div>
+    </div>
+    <div class="card frame-detail-card" id="cardGap">
+      <h2>Three-tier gap</h2>
+      <div id="gapSidebarBody" class="frame-detail-body"></div>
+    </div>
+    <div class="card" id="cardPipeline">
+      <h2>Pipeline (Python)</h2>
+      <p class="mono" id="pipelineMono">Symptom
+  → RelationshipGraph.build
+  → prune_candidates
+  → train_all_models (Ridge)
+  → counterfactual + Gibbs
+  → t-test → rank → explain</p>
+    </div>
+    <div class="card" id="cardRC">
+      <h2>Root causes</h2>
+      <div id="rcFeed"></div>
+      <div id="explainSidebar" class="explain-sidebar"></div>
+    </div>
+    <div class="card" id="cardCompare">
+      <h2>Three-tier RCA</h2>
+      <ul id="compareList">
+        <li><strong>Panorama:</strong> who is unhealthy? (observer votes)</li>
+        <li><strong>Murphy:</strong> which entity caused this metric? (counterfactual MRF)</li>
+        <li><strong>Nezha:</strong> which event pattern drifted? (trace pairs)</li>
+      </ul>
+    </div>
+    <div class="card" id="cardExplore">
+      <h2>How to explore</h2>
+      <ul>
+        <li>Read <strong>Murphy_dissection.md</strong> groundwork section first</li>
+        <li>Start with <strong>Crawler incident</strong> (paper Figure 1)</li>
+        <li>Watch <strong>normal_vm</strong> get pruned — not every spike is root cause</li>
+        <li>Compare symptom on backend vs frontend</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function () {
+  const STEPS = ["Symptom", "Graph", "Prune", "Train", "Counter", "Gibbs", "T-test", "Rank", "Explain"];
+  const $ = (id) => document.getElementById(id);
+
+  const SCENARIOS = {
+    crawler_incident: {
+      name: "Crawler incident — paper Figure 1 (backend CPU symptom)",
+      data_ref: "murphy/tests/fixtures/crawler_incident.py · SIGCOMM 2023",
+      symptom: { entity: "backend_vm_1", metric: "cpu_usage", value: 0.771, time: "2024-06-15 12:00" },
+      graph_nodes: [
+        { id: "crawler_vm", x: -120, y: -30, role: "rc", label: "crawler" },
+        { id: "frontend_ms", x: 0, y: -55, role: "path", label: "frontend" },
+        { id: "backend_vm_1", x: 120, y: -30, role: "symptom", label: "backend" },
+        { id: "normal_vm", x: 0, y: 45, role: "pruned", label: "normal" },
+        { id: "tor_switch_1", x: 0, y: 75, role: "infra", label: "ToR" },
+      ],
+      graph_edges: [
+        ["crawler_vm", "frontend_ms"], ["frontend_ms", "backend_vm_1"],
+        ["crawler_vm", "tor_switch_1"], ["backend_vm_1", "tor_switch_1"],
+        ["normal_vm", "frontend_ms"],
+      ],
+      candidates: ["crawler_vm", "frontend_ms", "backend_vm_1"],
+      pruned: ["normal_vm", "host_crawler", "host_backend", "nic_crawler", "nic_backend", "tor_switch_1"],
+      train_models: ["crawler_vm:throughput", "frontend_ms:latency_p90", "backend_vm_1:cpu_usage"],
+      focus_candidate: "crawler_vm",
+      focus_metric: "throughput",
+      d1_mean: "0.25",
+      d2_mean: "0.77",
+      ttest: "p ≈ 0.0 → crawler_vm:throughput IS root cause",
+      path_fn: "shortest_path_subgraph(crawler, backend)",
+      root_causes: [
+        { entity: "crawler_vm", metric: "throughput", z: 87.5, p: 0.0, top: true },
+        { entity: "frontend_ms", metric: "latency_p90", z: 24.2, p: 0.0, top: false },
+      ],
+      chain: [
+        { from: "crawler_vm", to: "frontend_ms", from_s: "heavy_hitter", to_s: "degraded", edge: "sent high load to" },
+        { from: "frontend_ms", to: "backend_vm_1", from_s: "degraded", to_s: "degraded", edge: "propagated load to" },
+      ],
+      metrics: [
+        { entity: "crawler_vm", m: "session_count", val: 95.7, mean: 12.0, std: 1.0, hot: true },
+        { entity: "crawler_vm", m: "throughput", val: 975.8, mean: 119.4, std: 9.8, hot: true },
+        { entity: "frontend_ms", m: "latency_p90", val: 126.3, mean: 54.8, std: 3.0, hot: true },
+        { entity: "backend_vm_1", m: "cpu_usage", val: 0.771, mean: 0.25, std: 0.016, hot: true },
+        { entity: "normal_vm", m: "cpu_usage", val: 0.201, mean: 0.20, std: 0.006, hot: false },
+      ],
+      learning: "Symptom is <strong>backend CPU</strong>, but root cause is <strong>crawler_vm</strong> upstream. Panorama might flag backend UNHEALTHY; Nezha might find span pattern drift — neither ranks the crawler VM. Murphy's counterfactual test: fixing crawler metrics collapses backend CPU distribution.",
+      gap: [
+        "Panorama: backend_vm_1 UNHEALTHY — no upstream entity ranking.",
+        "Nezha: event-pair drift in traces — no infrastructure graph.",
+        "Murphy: crawler_vm:throughput p≈0 + chain crawler → frontend → backend.",
+      ],
+    },
+    frontend_symptom: {
+      name: "Frontend latency symptom — same incident, different alert",
+      data_ref: "Same crawler fault · symptom on frontend_ms",
+      symptom: { entity: "frontend_ms", metric: "latency_p90", value: 126.3, time: "2024-06-15 12:00" },
+      graph_nodes: [
+        { id: "crawler_vm", x: -120, y: -30, role: "rc", label: "crawler" },
+        { id: "frontend_ms", x: 0, y: -55, role: "symptom", label: "frontend" },
+        { id: "backend_vm_1", x: 120, y: -30, role: "path", label: "backend" },
+        { id: "normal_vm", x: 0, y: 45, role: "pruned", label: "normal" },
+        { id: "tor_switch_1", x: 0, y: 75, role: "infra", label: "ToR" },
+      ],
+      graph_edges: [
+        ["crawler_vm", "frontend_ms"], ["frontend_ms", "backend_vm_1"],
+        ["crawler_vm", "tor_switch_1"], ["normal_vm", "frontend_ms"],
+      ],
+      candidates: ["crawler_vm", "frontend_ms", "backend_vm_1"],
+      pruned: ["normal_vm"],
+      train_models: ["crawler_vm:session_count", "frontend_ms:latency_p90", "backend_vm_1:cpu_usage"],
+      focus_candidate: "crawler_vm",
+      focus_metric: "session_count",
+      d1_mean: "55",
+      d2_mean: "126",
+      ttest: "p ≈ 0.0 → crawler_vm:session_count IS root cause",
+      path_fn: "path: crawler_vm → frontend_ms",
+      root_causes: [
+        { entity: "crawler_vm", metric: "throughput", z: 87.5, p: 0.0, top: true },
+        { entity: "backend_vm_1", metric: "cpu_usage", z: 19.2, p: 0.0, top: false },
+      ],
+      chain: [
+        { from: "crawler_vm", to: "frontend_ms", from_s: "heavy_hitter", to_s: "degraded", edge: "sent high load to" },
+      ],
+      metrics: [
+        { entity: "crawler_vm", m: "session_count", val: 95.7, mean: 12.0, std: 1.0, hot: true },
+        { entity: "crawler_vm", m: "throughput", val: 975.8, mean: 119.4, std: 9.8, hot: true },
+        { entity: "frontend_ms", m: "latency_p90", val: 126.3, mean: 54.8, std: 3.0, hot: true },
+        { entity: "backend_vm_1", m: "cpu_usage", val: 0.771, mean: 0.25, std: 0.016, hot: true },
+        { entity: "normal_vm", m: "cpu_usage", val: 0.201, mean: 0.20, std: 0.006, hot: false },
+      ],
+      learning: "Same underlying fault — symptom entity changes where the alert fires. Murphy still finds <strong>crawler_vm</strong> as root cause regardless of whether SRE notices backend CPU or frontend latency first.",
+      gap: [
+        "Alert location ≠ root cause location — Murphy searches upstream graph.",
+        "backend_vm_1 may also test significant (downstream effect) but crawler ranks higher on z-score.",
+        "Panorama would report frontend UNHEALTHY without causal chain.",
+      ],
+    },
+    idle_bystander: {
+      name: "Idle bystander — normal_vm stays pruned",
+      data_ref: "Pruning demo · graph.prune_candidates()",
+      symptom: { entity: "backend_vm_1", metric: "cpu_usage", value: 0.771, time: "2024-06-15 12:00" },
+      graph_nodes: [
+        { id: "crawler_vm", x: -120, y: -30, role: "rc", label: "crawler" },
+        { id: "frontend_ms", x: 0, y: -55, role: "path", label: "frontend" },
+        { id: "backend_vm_1", x: 120, y: -30, role: "symptom", label: "backend" },
+        { id: "normal_vm", x: 0, y: 45, role: "pruned", label: "normal ✓" },
+        { id: "tor_switch_1", x: 0, y: 75, role: "infra", label: "ToR" },
+      ],
+      graph_edges: [
+        ["crawler_vm", "frontend_ms"], ["frontend_ms", "backend_vm_1"],
+        ["normal_vm", "frontend_ms"],
+      ],
+      candidates: ["crawler_vm", "frontend_ms", "backend_vm_1"],
+      pruned: ["normal_vm"],
+      train_models: ["crawler_vm:throughput", "backend_vm_1:cpu_usage"],
+      focus_candidate: "normal_vm",
+      focus_metric: "cpu_usage",
+      d1_mean: null,
+      d2_mean: "0.20",
+      ttest: "pruned before Gibbs — saves compute",
+      path_fn: "normal_vm never evaluated",
+      root_causes: [
+        { entity: "crawler_vm", metric: "throughput", z: 87.5, p: 0.0, top: true },
+      ],
+      chain: [
+        { from: "crawler_vm", to: "frontend_ms", from_s: "heavy_hitter", to_s: "degraded", edge: "sent high load to" },
+        { from: "frontend_ms", to: "backend_vm_1", from_s: "degraded", to_s: "degraded", edge: "propagated load to" },
+      ],
+      metrics: [
+        { entity: "normal_vm", m: "cpu_usage", val: 0.201, mean: 0.20, std: 0.006, hot: false },
+        { entity: "crawler_vm", m: "throughput", val: 975.8, mean: 119.4, std: 9.8, hot: true },
+        { entity: "backend_vm_1", m: "cpu_usage", val: 0.771, mean: 0.25, std: 0.016, hot: true },
+      ],
+      learning: "<strong>normal_vm</strong> connects to frontend but its CPU never exceeds μ±1σ — pruned before expensive Gibbs sampling. Not every neighbor is a candidate; correlation without anomaly is filtered early.",
+      gap: [
+        "Without pruning: O(entities × metrics × 5000) Gibbs runs.",
+        "Prune keeps: crawler_vm, frontend_ms, backend_vm_1 only.",
+        "normal_vm: idle worker — bystander, not root cause.",
+      ],
+    },
+  };
+
+  const ROLE_COLOR = {
+    rc: "#fb923c", symptom: "#f87171", path: "#38bdf8", pruned: "#4b5563", infra: "#6b7280",
+  };
+
+  let state = { scenario: "crawler_incident", walkthrough: false, walkStep: 0 };
+  let gibbsAnimTimer = null;
+  let gibbsAnimRunId = 0;
+  let gibbsLoopTimer = null;
+  let pruneAnimTimers = [];
+  const GIBBS_W = 4;
+  const GIBBS_OUTER_SAMPLES = 5000;
+
+  const ZONE_RECTS = {
+    symptom: { x: 30, y: 68, w: 210, h: 130 },
+    graph: { x: 248, y: 68, w: 290, h: 215 },
+    engine: { x: 544, y: 68, w: 210, h: 215 },
+    gibbs: { x: 748, y: 68, w: 228, h: 146 },
+    gibbsAnim: { x: 30, y: 322, w: 1100, h: 124 },
+    output: { x: 972, y: 68, w: 165, h: 132 },
+    metrics: { x: 30, y: 446, w: 1100, h: 105 },
+    gap: { x: 30, y: 558, w: 1100, h: 82 },
+  };
+
+  const SIDEBAR_CARDS = { learning: "cardLearning", legend: "cardScenarioLegend", gibbs: "cardGibbsDetail", pipeline: "cardPipeline", rc: "cardRC", compare: "cardCompare", explore: "cardExplore" };
+
+  function escHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function buildGibbsPanel(sc) {
+    const sym = `${sc.symptom.entity}:${sc.symptom.metric}`;
+    const ridgePath = sc.train_models.join(" → ");
+    const clampRows = (sc.metrics || [])
+      .filter((m) => m.entity === sc.focus_candidate && m.hot)
+      .map((m) => {
+        const dir = m.val > m.mean ? "−" : "+";
+        const val = typeof m.val === "number"
+          ? (m.val < 10 ? m.val.toFixed(2) : m.val.toFixed(1))
+          : m.val;
+        return `${m.m} ${val}→μ${dir}2σ`;
+      });
+    const clamp = clampRows.length
+      ? `${sc.focus_candidate}: ${clampRows.join("; ")}`
+      : "—";
+    const d1 = sc.d1_mean == null
+      ? "N/A — entity pruned before Gibbs"
+      : `${sym} sample-mean μ≈${sc.d1_mean}`;
+    const d2 = sc.d2_mean == null ? "—" : `${sym} sample-mean μ≈${sc.d2_mean}`;
+
+    const html = `
+      <div class="gp-section">
+        <span class="gp-label">Clamp candidate A (all hot metrics on entity)</span>
+        <div class="gp-clamp">${escHtml(clamp)}</div>
+      </div>
+      <div class="gp-section">
+        <span class="gp-label">Ridge path (trained models, shortest path A→symptom)</span>
+        <div class="gp-path">${escHtml(ridgePath)}</div>
+      </div>
+      <div class="gp-section">
+        <span class="gp-label">D1 — counterfactual (clamp A to normal, Gibbs ×5000)</span>
+        <div class="gp-d1">${escHtml(d1)}</div>
+      </div>
+      <div class="gp-section">
+        <span class="gp-label">D2 — observed (clamp A at true broken values)</span>
+        <div class="gp-d2">${escHtml(d2)}</div>
+      </div>
+      <div class="gp-section">
+        <span class="gp-label">t-test on symptom metric</span>
+        <div class="gp-ttest">${escHtml(sc.ttest)}</div>
+      </div>
+      <div class="gp-hint">Testing RC metric: ${escHtml(sc.focus_candidate)}:${escHtml(sc.focus_metric)} · W=4 Gibbs sweeps per sample</div>`;
+    const compact = sc.d1_mean == null
+      ? `<div class="gc-ttest">${escHtml(sc.ttest)}</div>
+         <div class="gc-hint">→ Gibbs detail sidebar</div>`
+      : `<div class="gc-ttest">${escHtml(sc.ttest)}</div>
+         <div class="gc-d12"><span class="gc-d1">D1 μ≈${escHtml(sc.d1_mean)}</span>
+         · <span class="gc-d2">D2 μ≈${escHtml(sc.d2_mean)}</span></div>
+         <div class="gc-hint">${escHtml(sym)} · sidebar ↓</div>`;
+    return { sym, ridgePath, clamp, d1, d2, html, compact };
+  }
+
+  function renderScenarioLegend(sc, walkStep = null) {
+    const sym = `${sc.symptom.entity}:${sc.symptom.metric}`;
+    const hotByEntity = {};
+    (sc.metrics || []).forEach((m) => {
+      if (!m.hot) return;
+      (hotByEntity[m.entity] ||= []).push(`${m.m}=${m.val} (μ=${m.mean})`);
+    });
+    const pruneNote = sc.pruned?.length
+      ? `Pruned example: ${sc.pruned.slice(0, 3).join(", ")}${sc.pruned.length > 3 ? "…" : ""}`
+      : "—";
+    const d1d2 = sc.d1_mean == null
+      ? "Gibbs not run — entity pruned or demo stops at prune step"
+      : `D1 ≈ ${sc.d1_mean} vs D2 ≈ ${sc.d2_mean} (mean of 5000 Gibbs samples on ${sym})`;
+    const clampMetrics = (sc.metrics || [])
+      .filter((m) => m.entity === sc.focus_candidate && m.hot)
+      .map((m) => m.m)
+      .join(" + ") || "—";
+
+    const rows = [
+      { num: 1, steps: [0], label: "Symptom (alert input)", body: `${sym} = ${sc.symptom.value}` },
+      { num: 2, steps: [2], label: "Candidates after prune (μ±1σ BFS)", body: sc.candidates.join(", ") },
+      { num: 3, steps: [2], label: "Hot metrics per entity (why they passed prune)", body: Object.entries(hotByEntity).map(([e, ms]) => `${e}: ${ms.join(", ")}`).join("\n") || "—" },
+      { num: 4, steps: [2], label: "Pruned (examples)", body: pruneNote },
+      { num: 5, steps: [3], label: "Ridge path (trained models)", body: sc.train_models.join(" → ") },
+      { num: 6, steps: [4], label: "Clamp on candidate A", body: `all hot metrics on ${sc.focus_candidate}: ${clampMetrics}` },
+      { num: 7, steps: [4], label: "Root-cause test metric", body: `${sc.focus_candidate}:${sc.focus_metric}` },
+      { num: 8, steps: [5, 6], label: "D1 vs D2 (symptom sample means)", body: d1d2 },
+      { num: 9, steps: [6], label: "t-test result", body: sc.ttest },
+    ];
+
+    $("scenarioLegendBody").innerHTML = `
+      <span class="sc-tag">${escHtml(sc.name)}</span>
+      ${rows.map((r) => `
+        <div class="legend-row" data-steps="${r.steps.join(",")}">
+          <dt><span class="legend-num">${r.num}</span>${escHtml(r.label)}</dt>
+          <dd>${escHtml(r.body).replace(/\n/g, "<br/>")}</dd>
+        </div>`).join("")}`;
+
+    if (walkStep !== null) highlightScenarioLegend(walkStep);
+    else document.querySelectorAll("#scenarioLegendBody .legend-row").forEach((row) => {
+      row.classList.remove("legend-active", "legend-done", "legend-pending");
+    });
+  }
+
+  function highlightScenarioLegend(walkStep) {
+    document.querySelectorAll("#scenarioLegendBody .legend-row").forEach((row) => {
+      const steps = (row.dataset.steps || "").split(",").map(Number).filter((n) => !Number.isNaN(n));
+      const active = steps.includes(walkStep);
+      const maxStep = Math.max(...steps);
+      const minStep = Math.min(...steps);
+      row.classList.remove("legend-active", "legend-done", "legend-pending");
+      if (active) row.classList.add("legend-active");
+      else if (walkStep > maxStep) row.classList.add("legend-done");
+      else if (walkStep < minStep) row.classList.add("legend-pending");
+    });
+  }
+
+  function parseTrainPath(sc) {
+    return sc.train_models.map((em) => {
+      const [entity, metric] = em.split(":");
+      return { entity, metric, label: em };
+    });
+  }
+
+  function svgEl(tag, attrs) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => el.setAttribute(k, String(v)));
+    return el;
+  }
+
+  function stopGibbsLoop() {
+    if (gibbsLoopTimer) {
+      clearTimeout(gibbsLoopTimer);
+      gibbsLoopTimer = null;
+    }
+  }
+
+  function stopPruneAnim() {
+    pruneAnimTimers.forEach((t) => clearTimeout(t));
+    pruneAnimTimers = [];
+    document.querySelectorAll("#relGraph [data-graph-node]").forEach((el) => {
+      el.classList.remove("graph-bfs-pulse", "graph-pruned-node", "graph-candidate-node");
+      el.style.opacity = "";
+    });
+    document.querySelectorAll("#pruneList .prune-line-in").forEach((el) => el.classList.remove("prune-line-in"));
+  }
+
+  function stopGibbsAnim() {
+    gibbsAnimRunId += 1;
+    if (gibbsAnimTimer) {
+      clearTimeout(gibbsAnimTimer);
+      gibbsAnimTimer = null;
+    }
+    const pulse = $("gibbsPulseLayer");
+    if (pulse) pulse.innerHTML = "";
+  }
+
+  function stopAllAnims() {
+    stopGibbsLoop();
+    stopPruneAnim();
+    stopGibbsAnim();
+  }
+
+  function renderGibbsAnimStructure(sc) {
+    const g = $("gibbsAnimGraph");
+    const badges = $("gibbsSweepBadges");
+    g.innerHTML = "";
+    badges.innerHTML = "";
+    const path = parseTrainPath(sc);
+    if (!path.length) {
+      g.appendChild(svgEl("text", { x: 0, y: 24, fill: "#6b7280", "font-size": 8 }));
+      g.lastChild.textContent = "No Ridge path for this scenario";
+      $("gibbsSampleCount").textContent = "";
+      return null;
+    }
+
+    const spacing = Math.min(220, 860 / Math.max(path.length - 1, 1));
+    const nodes = path.map((p, i) => ({
+      ...p,
+      x: i * spacing,
+      y: 18,
+      pinned: i === 0 && p.entity === sc.focus_candidate,
+      isSymptom: p.entity === sc.symptom.entity && p.metric === sc.symptom.metric,
+    }));
+
+    nodes.forEach((n, i) => {
+      if (i > 0) {
+        const prev = nodes[i - 1];
+        const line = svgEl("line", {
+          x1: prev.x + 78, y1: prev.y, x2: n.x - 8, y2: n.y,
+          stroke: "#4b5563", "stroke-width": 2, "data-edge": i,
+          id: `gibbsEdge${i}`,
+        });
+        g.appendChild(line);
+        const lbl = svgEl("text", {
+          x: (prev.x + n.x) / 2 + 86, y: n.y - 14,
+          fill: "#6b7280", "font-size": 7, "text-anchor": "middle",
+        });
+        lbl.textContent = "Ridge";
+        g.appendChild(lbl);
+      }
+      const rect = svgEl("rect", {
+        x: n.x, y: n.y - 16, width: 172, height: 32, rx: 6,
+        fill: n.isSymptom ? "#1c1917" : "#1f2937",
+        stroke: n.pinned ? "#f59e0b" : n.isSymptom ? "#f87171" : "#38bdf8",
+        "stroke-width": n.pinned || n.isSymptom ? 2 : 1,
+        id: `gibbsNode${i}`,
+      });
+      g.appendChild(rect);
+      const t1 = svgEl("text", {
+        x: n.x + 8, y: n.y - 2, fill: "#e2e8f0", "font-size": 8, "font-family": "monospace",
+      });
+      t1.textContent = n.entity;
+      g.appendChild(t1);
+      const t2 = svgEl("text", {
+        x: n.x + 8, y: n.y + 12, fill: n.isSymptom ? "#fca5a5" : "#7dd3fc", "font-size": 8, "font-family": "monospace",
+      });
+      t2.textContent = n.metric;
+      g.appendChild(t2);
+      if (n.pinned) {
+        const badge = svgEl("rect", {
+          x: n.x + 92, y: n.y - 30, width: 72, height: 15, rx: 4,
+          fill: "#78350f", stroke: "#fbbf24", "stroke-width": 1,
+        });
+        g.appendChild(badge);
+        const pin = svgEl("text", {
+          x: n.x + 128, y: n.y - 19, fill: "#fde68a", "font-size": 7, "font-weight": 700,
+          "text-anchor": "middle",
+        });
+        pin.textContent = "CLAMPED";
+        g.appendChild(pin);
+      }
+      const val = svgEl("text", {
+        x: n.x + 86, y: n.y + 30, fill: "#9ca3af", "font-size": 7,
+        "text-anchor": "middle", id: `gibbsVal${i}`,
+      });
+      val.textContent = "μ+noise";
+      g.appendChild(val);
+    });
+
+    badges.appendChild(svgEl("text", { x: 0, y: 8, fill: "#6b7280", "font-size": 6, "font-weight": 600 }));
+    badges.lastChild.textContent = "Gibbs sweeps";
+    for (let w = 1; w <= GIBBS_W; w++) {
+      const bx = (w - 1) * 28;
+      const c = svgEl("circle", {
+        cx: bx + 10, cy: 24, r: 9,
+        fill: "#1f2937", stroke: "#4b5563", id: `gibbsSweep${w}`,
+      });
+      badges.appendChild(c);
+      const t = svgEl("text", {
+        x: bx + 10, y: 27, fill: "#9ca3af", "font-size": 7,
+        "text-anchor": "middle", "font-weight": 700,
+      });
+      t.textContent = String(w);
+      badges.appendChild(t);
+    }
+    return nodes;
+  }
+
+  function flashGibbsNode(idx) {
+    const el = $(`gibbsNode${idx}`);
+    if (!el) return;
+    el.classList.remove("gibbs-node-active");
+    void el.getBBox();
+    el.classList.add("gibbs-node-active");
+    setTimeout(() => el.classList.remove("gibbs-node-active"), 900);
+  }
+
+  function flashGibbsEdge(idx) {
+    const el = $(`gibbsEdge${idx}`);
+    if (!el) return;
+    el.classList.remove("gibbs-edge-flow");
+    void el.getBBox();
+    el.classList.add("gibbs-edge-flow");
+    setTimeout(() => el.classList.remove("gibbs-edge-flow"), 600);
+  }
+
+  function setSweepBadge(activeSweep) {
+    for (let w = 1; w <= GIBBS_W; w++) {
+      const c = $(`gibbsSweep${w}`);
+      if (!c) continue;
+      c.classList.toggle("gibbs-sweep-on", w === activeSweep);
+      c.setAttribute("fill", w === activeSweep ? "#f59e0b" : w < activeSweep ? "#14532d" : "#1f2937");
+      c.setAttribute("stroke", w === activeSweep ? "#fde68a" : w < activeSweep ? "#22c55e" : "#4b5563");
+    }
+  }
+
+  function spawnGibbsPulse(x1, y1, x2, y2, color) {
+    const layer = $("gibbsPulseLayer");
+    const dot = svgEl("circle", {
+      cx: x1, cy: y1, r: 7, fill: color, filter: "url(#glow)",
+    });
+    layer.appendChild(dot);
+    const t0 = performance.now();
+    const dur = 420;
+    function tick(now) {
+      const u = Math.min(1, (now - t0) / dur);
+      dot.setAttribute("cx", x1 + (x2 - x1) * u);
+      dot.setAttribute("cy", y1 + (y2 - y1) * u);
+      if (u < 1) requestAnimationFrame(tick);
+      else dot.remove();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function startGibbsAnim(sc, mode) {
+    stopGibbsAnim();
+    const myRun = gibbsAnimRunId;
+    const nodes = renderGibbsAnimStructure(sc);
+    if (!nodes || mode === "idle") {
+      $("gibbsAnimStatus").textContent = mode === "idle"
+        ? "Ridge models trained — advance to Counter/Gibbs steps to animate"
+        : "No propagation path";
+      $("gibbsSampleCount").textContent = "";
+      return;
+    }
+
+    const sym = `${sc.symptom.entity}:${sc.symptom.metric}`;
+    const d1 = sc.d1_mean != null ? +sc.d1_mean : 0.25;
+    const d2 = sc.d2_mean != null ? +sc.d2_mean : +sc.symptom.value;
+    const pinMode = mode === "clamp";
+    const fullMode = mode === "gibbs" || mode === "ttest";
+
+    let outerSample = 0;
+    let sweep = 0;
+    let nodeIdx = pinMode ? 0 : 0;
+
+    function setStatus(txt) { $("gibbsAnimStatus").textContent = txt; }
+
+    function runOuterSample() {
+      if (myRun !== gibbsAnimRunId) return;
+      outerSample += 1;
+      sweep = 0;
+      setSweepBadge(0);
+      $("gibbsSampleCount").textContent = fullMode
+        ? `outer sample ${outerSample} / ${GIBBS_OUTER_SAMPLES}`
+        : "";
+      runSweep();
+    }
+
+    function runSweep() {
+      if (myRun !== gibbsAnimRunId) return;
+      sweep += 1;
+      if (sweep > GIBBS_W) {
+        const last = nodes.length - 1;
+        const valEl = $(`gibbsVal${last}`);
+        if (valEl && fullMode) {
+          const v = (d1 + (d2 - d1) * (0.35 + 0.3 * Math.random())).toFixed(2);
+          valEl.textContent = `${sym.split(":")[1]}≈${v}`;
+          valEl.setAttribute("fill", "#34d399");
+        }
+        if (fullMode && outerSample < 8) {
+          gibbsAnimTimer = setTimeout(runOuterSample, 500);
+        } else if (fullMode) {
+          setStatus(`recorded ${GIBBS_OUTER_SAMPLES} symptom samples · compare D1 vs D2`);
+          $("gibbsSampleCount").textContent = `outer sample ${GIBBS_OUTER_SAMPLES} / ${GIBBS_OUTER_SAMPLES}`;
+        }
+        return;
+      }
+      setSweepBadge(sweep);
+      setStatus(pinMode && sweep === 1
+        ? `CLAMP ${sc.focus_candidate}:${sc.focus_metric} · sweep ${sweep}/${GIBBS_W} — counterfactual held`
+        : `sweep ${sweep}/${GIBBS_W}: Ridge re-sample downstream (candidate clamped)`);
+      propagateNode(0);
+    }
+
+    function propagateNode(i) {
+      if (myRun !== gibbsAnimRunId) return;
+      flashGibbsNode(i);
+      if (i === 0 && pinMode) {
+        const v0 = $(`gibbsVal0`);
+        if (v0) { v0.textContent = "μ−2σ (fix)"; v0.setAttribute("fill", "#34d399"); }
+      }
+      if (i < nodes.length - 1) {
+        const n = nodes[i], next = nodes[i + 1];
+        const x1 = 52 + n.x + 86, y1 = 376 + n.y;
+        const x2 = 52 + next.x, y2 = 376 + next.y;
+        flashGibbsEdge(i + 1);
+        spawnGibbsPulse(x1, y1, x2, y2, "#f59e0b");
+        gibbsAnimTimer = setTimeout(() => propagateNode(i + 1), 480);
+        return;
+      }
+      const last = nodes.length - 1;
+      const valEl = $(`gibbsVal${last}`);
+      if (valEl) {
+        const jitter = (Math.random() * 0.04 - 0.02).toFixed(2);
+        const base = fullMode ? d2 : d1;
+        valEl.textContent = `${sc.symptom.metric}≈${(base + +jitter).toFixed(2)}`;
+        valEl.setAttribute("fill", fullMode ? "#f87171" : "#34d399");
+      }
+      gibbsAnimTimer = setTimeout(runSweep, 420);
+    }
+
+    if (pinMode) {
+      setStatus(`counterfactual: CLAMP ${sc.focus_candidate} metrics at μ±2σ`);
+      gibbsAnimTimer = setTimeout(runSweep, 400);
+    } else if (fullMode) {
+      setStatus(`Gibbs: ${GIBBS_W} sweeps per outer sample · read ${sym}`);
+      gibbsAnimTimer = setTimeout(runOuterSample, 300);
+    } else if (mode === "ridge") {
+      setStatus(`Ridge path: ${sc.train_models.join(" → ")}`);
+      nodes.forEach((_, i) => setTimeout(() => flashGibbsNode(i), i * 400));
+      let edge = 1;
+      while ($(`gibbsEdge${edge}`)) {
+        setTimeout(() => flashGibbsEdge(edge), edge * 400);
+        edge += 1;
+      }
+    }
+  }
+
+  function scheduleGibbsLoop(sc, stepIndex, mode, delayMs) {
+    stopGibbsLoop();
+    function run() {
+      if (!state.walkthrough || state.walkStep !== stepIndex) return;
+      startGibbsAnim(sc, mode);
+      gibbsLoopTimer = setTimeout(run, delayMs);
+    }
+    run();
+  }
+
+  function bfsGraphOrder(sc) {
+    const adj = {};
+    sc.graph_edges.forEach(([a, b]) => {
+      (adj[a] ||= []).push(b);
+      (adj[b] ||= []).push(a);
+    });
+    const start = sc.symptom.entity;
+    const seen = new Set([start]);
+    const q = [start];
+    const order = [start];
+    while (q.length) {
+      const u = q.shift();
+      (adj[u] || []).forEach((v) => {
+        if (!seen.has(v)) {
+          seen.add(v);
+          q.push(v);
+          order.push(v);
+        }
+      });
+    }
+    return order;
+  }
+
+  function startPruneAnim(sc) {
+    stopPruneAnim();
+    if (!state.walkthrough || state.walkStep !== 2) return;
+
+    const order = bfsGraphOrder(sc);
+    const nodeById = {};
+    sc.graph_nodes.forEach((n) => { nodeById[n.id] = n; });
+
+    order.forEach((id, i) => {
+      pruneAnimTimers.push(setTimeout(() => {
+        if (state.walkStep !== 2) return;
+        const el = document.querySelector(`#relGraph [data-graph-node="${id}"]`);
+        if (el) {
+          el.classList.remove("graph-bfs-pulse");
+          void el.getBBox?.();
+          el.classList.add("graph-bfs-pulse");
+        }
+      }, i * 450));
+    });
+
+    const afterBfs = order.length * 450 + 300;
+    sc.graph_nodes.forEach((n) => {
+      if (n.role === "pruned") {
+        pruneAnimTimers.push(setTimeout(() => {
+          if (state.walkStep !== 2) return;
+          const el = document.querySelector(`#relGraph [data-graph-node="${n.id}"]`);
+          if (el) el.classList.add("graph-pruned-node");
+        }, afterBfs));
+      }
+    });
+
+    sc.candidates.forEach((id, i) => {
+      pruneAnimTimers.push(setTimeout(() => {
+        if (state.walkStep !== 2) return;
+        const el = document.querySelector(`#relGraph [data-graph-node="${id}"]`);
+        if (el) el.classList.add("graph-candidate-node");
+      }, afterBfs + 200 + i * 200));
+    });
+
+    const g = $("pruneList");
+    g.innerHTML = "";
+    sc.candidates.forEach((c, i) => {
+      pruneAnimTimers.push(setTimeout(() => {
+        if (state.walkStep !== 2) return;
+        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t.setAttribute("x", 0);
+        t.setAttribute("y", i * 15 + 11);
+        t.setAttribute("fill", "#34d399");
+        t.setAttribute("font-size", "9");
+        t.setAttribute("font-family", "monospace");
+        t.setAttribute("class", "prune-line-in");
+        t.textContent = `✓ ${c}`;
+        g.appendChild(t);
+      }, afterBfs + 400 + i * 280));
+    });
+
+    pruneAnimTimers.push(setTimeout(() => {
+      if (state.walkStep === 2) startPruneAnim(sc);
+    }, afterBfs + 400 + sc.candidates.length * 280 + 2400));
+  }
+
+  function setGibbsAnimForStep(sc, stepIndex) {
+    stopGibbsLoop();
+    stopPruneAnim();
+    renderGibbsAnimStructure(sc);
+    if (stepIndex === 2) {
+      stopGibbsAnim();
+      renderSvgList("pruneList", [], "#34d399");
+      $("gibbsAnimStatus").textContent = "Prune step — watch BFS on graph; candidates appear in list";
+      $("gibbsSampleCount").textContent = "";
+      startPruneAnim(sc);
+    } else if (stepIndex === 3) {
+      renderSvgList("pruneList", sc.candidates.map((c) => `✓ ${c}`), "#34d399");
+      scheduleGibbsLoop(sc, 3, "ridge", 3200);
+    } else if (stepIndex === 4) scheduleGibbsLoop(sc, 4, "clamp", 10000);
+    else if (stepIndex === 5) scheduleGibbsLoop(sc, 5, "gibbs", 18000);
+    else if (stepIndex === 6) scheduleGibbsLoop(sc, 6, "ttest", 18000);
+    else {
+      stopGibbsAnim();
+      $("gibbsAnimStatus").textContent = "Clamp candidate → Ridge predict downstream → 4 re-sweeps → record symptom";
+      $("gibbsSampleCount").textContent = "";
+    }
+  }
+
+  function renderRelGraph(sc) {
+    const g = $("relGraph");
+    g.innerHTML = "";
+    const nodeMap = {};
+    sc.graph_nodes.forEach((n) => { nodeMap[n.id] = n; });
+
+    sc.graph_edges.forEach(([a, b]) => {
+      const na = nodeMap[a], nb = nodeMap[b];
+      if (!na || !nb) return;
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", na.x); line.setAttribute("y1", na.y);
+      line.setAttribute("x2", nb.x); line.setAttribute("y2", nb.y);
+      line.setAttribute("stroke", "#4b5563"); line.setAttribute("stroke-width", "1.5");
+      line.setAttribute("marker-end", "url(#arrow)");
+      g.appendChild(line);
+    });
+
+    sc.graph_nodes.forEach((n) => {
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", n.x); c.setAttribute("cy", n.y); c.setAttribute("r", 18);
+      c.setAttribute("fill", ROLE_COLOR[n.role] || "#374151");
+      c.setAttribute("stroke", n.role === "rc" ? "#fdba74" : n.role === "symptom" ? "#fca5a5" : "#6b7280");
+      c.setAttribute("stroke-width", n.role === "rc" || n.role === "symptom" ? "2" : "1");
+      c.setAttribute("data-graph-node", n.id);
+      g.appendChild(c);
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", n.x); t.setAttribute("y", n.y + 32);
+      t.setAttribute("text-anchor", "middle"); t.setAttribute("fill", "#9ca3af");
+      t.setAttribute("font-size", "9"); t.textContent = n.label;
+      t.setAttribute("data-graph-label", n.id);
+      g.appendChild(t);
+    });
+    $("graphMeta").textContent = `${sc.graph_nodes.length} entities · ${sc.candidates.length} candidates after prune`;
+  }
+
+  function renderSvgList(gid, items, color) {
+    const g = $(gid);
+    g.innerHTML = "";
+    items.slice(0, 4).forEach((txt, i) => {
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", 0); t.setAttribute("y", i * 15 + 11);
+      t.setAttribute("fill", color); t.setAttribute("font-size", "9"); t.setAttribute("font-family", "monospace");
+      t.textContent = txt;
+      g.appendChild(t);
+    });
+  }
+
+  function renderMetricStrip(sc) {
+    const g = $("metricStrip");
+    g.innerHTML = "";
+    sc.metrics.forEach((m, i) => {
+      const x = i * 210;
+      const hot = m.hot;
+      const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      r.setAttribute("x", x); r.setAttribute("y", 0); r.setAttribute("width", 198); r.setAttribute("height", 58);
+      r.setAttribute("rx", 6);
+      r.setAttribute("fill", hot ? "#1c1917" : "#1f2937");
+      r.setAttribute("stroke", hot ? "#ea580c" : "#374151");
+      g.appendChild(r);
+      const lines = [
+        `${m.entity}`,
+        `${m.m}: ${m.val} (μ=${m.mean})`,
+        hot ? `z ≈ ${((m.val - m.mean) / m.std).toFixed(1)}σ ANOMALOUS` : `within 1σ — pruned`,
+      ];
+      lines.forEach((txt, j) => {
+        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t.setAttribute("x", x + 8); t.setAttribute("y", j * 14 + 16);
+        t.setAttribute("fill", hot ? (j === 2 ? "#fb923c" : "#e2e8f0") : "#6b7280");
+        t.setAttribute("font-size", j === 0 ? "8" : "7");
+        t.setAttribute("font-family", "monospace");
+        t.textContent = txt;
+        g.appendChild(t);
+      });
+    });
+  }
+
+  function renderRCFeed(sc) {
+    const rows = sc.root_causes.map((rc) => `
+      <div class="rc-row ${rc.top ? "top" : ""}">
+        <span>${rc.entity}:${rc.metric}</span>
+        <span>z=${rc.z}</span>
+        <span>p=${rc.p}</span>
+        <span>${rc.top ? "★" : ""}</span>
+      </div>`).join("");
+    $("rcFeed").innerHTML = `
+      <div class="rc-table">
+        <div class="rc-header"><span>Entity:metric</span><span>z-score</span><span>p</span><span></span></div>
+        ${rows}
+      </div>`;
+  }
+
+  function renderExplain(sc) {
+    const parts = sc.chain.map((s) =>
+      `${s.from} (${s.from_s}) ${s.edge} ${s.to}`
+    );
+    $("explainSidebar").innerHTML = parts.length
+      ? parts.map((p) => `<p style="margin:0 0 6px">${escHtml(p)}</p>`).join("")
+      : "<p style=\"margin:0;color:#6b7280\">—</p>";
+    renderSvgList("rcSvgList", sc.root_causes.map((r) => `${r.entity}:${r.metric}`), "#fb923c");
+  }
+
+  function renderStepDots(activeIdx, walkIdx) {
+    const g = $("stepDots");
+    g.innerHTML = "";
+    const inWalk = state.walkthrough;
+    STEPS.forEach((name, i) => {
+      const x = i * 72;
+      const isActive = inWalk && i === activeIdx;
+      const isDone = inWalk ? i < activeIdx : i <= activeIdx;
+      if (i > 0) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", (i - 1) * 72 + 8); line.setAttribute("y1", 0);
+        line.setAttribute("x2", x - 8); line.setAttribute("y2", 0);
+        line.setAttribute("stroke", isDone ? "#f59e0b" : "#374151");
+        g.appendChild(line);
+      }
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", x); c.setAttribute("cy", 0);
+      c.setAttribute("r", isActive ? 6 : 4);
+      c.setAttribute("fill", isActive ? "#f59e0b" : isDone ? "#d97706" : "#374151");
+      g.appendChild(c);
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", x); t.setAttribute("y", 14); t.setAttribute("font-size", "7");
+      t.setAttribute("fill", isActive ? "#fde68a" : "#9ca3af");
+      t.setAttribute("text-anchor", "middle"); t.textContent = name;
+      g.appendChild(t);
+    });
+  }
+
+  function buildWalkthroughSteps(key) {
+    const sc = SCENARIOS[key];
+    const s = sc.symptom;
+    const rc = sc.root_causes[0];
+    return [
+      { title: "Step 1 — Symptom input (not detection)", shortLabel: "Symptom", hint: "Murphy receives a Symptom — Panorama or SLO alert hands off",
+        body: `Input: <strong>${s.entity}.${s.metric} = ${s.value}</strong> at ${s.time}. Murphy does <em>not</em> detect symptoms — Tier 1 (Panorama) or monitoring does.`,
+        file: "murphy/types.py · Symptom", zones: ["symptom"], sidebar: "legend", stepDot: 0 },
+      { title: "Step 2 — Build relationship graph", shortLabel: "Graph", hint: "Cyclic infra topology from entity metadata",
+        body: `<strong>RelationshipGraph.build_from_monitoring_db()</strong> wires VMs, microservices, hosts, NICs, ToR switches. Unlike Nezha's per-trace DAG — this is infrastructure-level and may be cyclic.`,
+        file: "murphy/graph.py · build_from_monitoring_db()", zones: ["graph"], sidebar: "pipeline", stepDot: 1 },
+      { title: "Step 3 — Prune candidates", shortLabel: "Prune", hint: "BFS from symptom; keep entities with metric beyond μ±1σ",
+        body: `Candidates: <strong>${sc.candidates.join(", ")}</strong>. Pruned: <strong>${sc.pruned.slice(0, 3).join(", ")}</strong>… e.g. <strong>normal_vm</strong> CPU within 1σ — never reaches Gibbs. <em>Watch BFS ripple on the graph and candidates fill in.</em>`,
+        file: "murphy/graph.py · prune_candidates()", zones: ["graph", "engine", "metrics"], sidebar: "legend", stepDot: 2 },
+      { title: "Step 4 — Train Ridge models", shortLabel: "Train", hint: "Per entity-metric: predict from top-B correlated in-neighbors",
+        body: `Train on 7-day history: ${sc.train_models.join(", ")}. Each <strong>EntityModel</strong> learns how neighbor metrics predict this metric (Ridge α=1). <em>Ridge path animates in the panel below.</em>`,
+        file: "murphy/mrf.py · EntityModel.fit()", zones: ["engine", "gibbsAnim"], sidebar: "pipeline", stepDot: 3 },
+      { title: "Step 5 — Counterfactual intervention", shortLabel: "Counter", hint: "Fix candidate A's metrics to normal (μ±2σ flip)",
+        body: (() => { const g = buildGibbsPanel(sc); return `Clamp <strong>${sc.focus_candidate}</strong> metrics (not <code>${g.sym}</code>): <strong>${g.clamp}</strong>. The <strong>CLAMPED</strong> badge marks the fixed candidate node. Question: if upstream were normal, would symptom drop?`; })(),
+        file: "murphy/mrf.py · _counterfactual_values_for_entity()", zones: ["gibbs", "gibbsAnim"], sidebar: "gibbs", stepDot: 4 },
+      { title: "Step 6 — Gibbs sampling", shortLabel: "Gibbs", hint: "Propagate samples along Ridge entity:metric path",
+        body: `Ridge path: <strong>${sc.train_models.join(" → ")}</strong>. Clamp candidate, re-sample downstream from EntityModels (W=4), read <strong>${sc.symptom.entity}:${sc.symptom.metric}</strong>. Repeat 5000×. <em>Orange dots = Ridge propagation; numbered circles = sweeps 1–4.</em>`,
+        file: "murphy/mrf.py · _gibbs_sample()", zones: ["gibbs", "gibbsAnim"], sidebar: "gibbs", stepDot: 5 },
+      { title: "Step 7 — t-test root cause", shortLabel: "T-test", hint: "Compare D1 (counterfactual) vs D2 (true) symptom distributions",
+        body: (() => { const g = buildGibbsPanel(sc); return `<strong>${sc.ttest}</strong>. D1: ${g.d1}. D2: ${g.d2}. One-sided t-test on <strong>${g.sym}</strong> — if fixing ${sc.focus_candidate}:${sc.focus_metric} shifts symptom down, A is root cause.`; })(),
+        file: "murphy/mrf.py · is_root_cause_static()", zones: ["gibbs", "gibbsAnim"], sidebar: "gibbs", stepDot: 6 },
+      { title: "Step 8 — Rank by anomaly score", shortLabel: "Rank", hint: "Sort significant causes by max |z| over metrics",
+        body: `Top: <strong>${rc.entity}:${rc.metric}</strong> (z=${rc.z}). Correlated downstream entities may also pass t-test but rank lower.`,
+        file: "murphy/ranker.py · RootCauseRanker", zones: ["output"], sidebar: "rc", stepDot: 7 },
+      { title: "Step 9 — Explain causal chain", shortLabel: "Explain", hint: "State machine labels along shortest path",
+        body: sc.chain.map((c) => `<strong>${c.from}</strong> (${c.from_s}) ${c.edge} <strong>${c.to}</strong>`).join("; ") + ". Human-readable narrative for SRE.",
+        file: "murphy/explainer.py · ExplanationGenerator", zones: ["output", "gap"], sidebar: "compare", stepDot: 8 },
+    ];
+  }
+
+  function renderWalkthroughChronology(steps, activeIndex) {
+    const el = $("wtChronology"), hintEl = $("wtChronoHint");
+    if (!state.walkthrough) { el.classList.add("hidden"); hintEl.classList.add("hidden"); return; }
+    el.classList.remove("hidden"); hintEl.classList.remove("hidden");
+    el.innerHTML = steps.map((s, i) => {
+      const st = i < activeIndex ? "done" : i === activeIndex ? "active" : "pending";
+      return `<button type="button" class="wt-chrono-item ${st}" data-step="${i}" title="${(s.hint || "").replace(/"/g, "&quot;")}">
+        <span class="wt-chrono-num">${i < activeIndex ? "✓" : i + 1}</span>
+        <span>${s.shortLabel || s.title}</span>
+      </button>`;
+    }).join('<span class="wt-chrono-arrow">→</span>');
+    const step = steps[activeIndex];
+    hintEl.innerHTML = step ? `<strong style="color:#f59e0b">Now:</strong> ${step.hint || ""}` : "";
+    el.onclick = (e) => { const b = e.target.closest(".wt-chrono-item"); if (b) applyWalkthroughStep(+b.dataset.step); };
+  }
+
+  function drawHighlightRings(keys) {
+    const g = $("highlightRings");
+    g.innerHTML = "";
+    keys.forEach((k) => {
+      const z = ZONE_RECTS[k];
+      if (!z) return;
+      const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      r.setAttribute("class", "highlight-ring");
+      r.setAttribute("x", z.x); r.setAttribute("y", z.y);
+      r.setAttribute("width", z.w); r.setAttribute("height", z.h);
+      r.setAttribute("rx", 8);
+      g.appendChild(r);
+    });
+  }
+
+  function applyWalkthroughStep(i) {
+    const steps = buildWalkthroughSteps(state.scenario);
+    const step = steps[i];
+    if (!step) return;
+    state.walkStep = i;
+    $("wtStepNum").textContent = i + 1;
+    $("wtStepTotal").textContent = steps.length;
+    $("wtTitle").textContent = step.title;
+    $("wtBody").innerHTML = step.body;
+    $("wtFile").textContent = step.file || "";
+    $("wtPrev").disabled = i === 0;
+    $("wtNext").textContent = i === steps.length - 1 ? "Finish" : "Next step";
+
+    const zoneMap = { symptom: "zoneSymptom", graph: "zoneGraph", engine: "zoneEngine", gibbs: "zoneGibbs", gibbsAnim: "zoneGibbsAnim", output: "zoneOutput", metrics: "zoneMetrics", gap: "zoneGap" };
+    const focus = new Set((step.zones || []).map((z) => zoneMap[z]));
+    Object.values(zoneMap).forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.classList.remove("zone-dim", "zone-focus");
+      el.classList.add(focus.has(id) ? "zone-focus" : "zone-dim");
+    });
+    drawHighlightRings(step.zones || []);
+    renderStepDots(step.stepDot ?? 0, i);
+    renderWalkthroughChronology(steps, i);
+    Object.entries(SIDEBAR_CARDS).forEach(([key, id]) => {
+      const el = $(id);
+      el.classList.remove("wt-focus", "wt-dim");
+      if (state.walkthrough) el.classList.add(key === step.sidebar ? "wt-focus" : "wt-dim");
+    });
+    highlightScenarioLegend(i);
+    setGibbsAnimForStep(SCENARIOS[state.scenario], i);
+  }
+
+  function renderUI(key, opts = {}) {
+    const sc = SCENARIOS[key];
+    state.scenario = key;
+    if (!opts.skipWalk) state.walkthrough = false;
+
+    const s = sc.symptom;
+    $("symEntity").textContent = `entity_id: ${s.entity}`;
+    $("symMetric").textContent = `metric: ${s.metric}`;
+    $("symValue").textContent = `observed: ${s.value}`;
+    $("symTime").textContent = `incident: ${s.time}`;
+
+    renderRelGraph(sc);
+    renderSvgList("pruneList", sc.candidates.map((c) => `✓ ${c}`), "#34d399");
+    renderSvgList("trainList", sc.train_models, "#7dd3fc");
+    const gibbs = buildGibbsPanel(sc);
+    $("gibbsSidebarBody").innerHTML = gibbs.html;
+    $("gibbsCompact").innerHTML = gibbs.compact;
+
+    renderMetricStrip(sc);
+    renderRCFeed(sc);
+    renderExplain(sc);
+    renderScenarioLegend(sc, state.walkthrough ? state.walkStep : null);
+    $("learningText").innerHTML = sc.learning;
+    $("gapSidebarBody").innerHTML = sc.gap.map((line) =>
+      `<p style="margin:0 0 8px;color:#d1d5db">${escHtml(line)}</p>`
+    ).join("");
+    $("gapCompact").textContent = sc.gap[0] ? `${sc.gap[0].slice(0, 72)}… → sidebar` : "—";
+
+    renderGibbsAnimStructure(sc);
+    if (!state.walkthrough) {
+      stopGibbsAnim();
+      $("gibbsAnimStatus").textContent = "Start guided walkthrough — Prune / Train / Counter / Gibbs steps animate automatically";
+      $("gibbsSampleCount").textContent = "";
+    }
+
+    if (!state.walkthrough) renderStepDots(8, null);
+  }
+
+  function startWalkthrough() {
+    state.walkthrough = true;
+    document.body.classList.add("in-walkthrough");
+    $("walkthroughBar").classList.remove("hidden");
+    $("guideBtn").textContent = "Walkthrough active";
+    applyWalkthroughStep(0);
+  }
+
+  function exitWalkthrough() {
+    stopAllAnims();
+    state.walkthrough = false;
+    document.body.classList.remove("in-walkthrough");
+    $("walkthroughBar").classList.add("hidden");
+    $("guideBtn").textContent = "Start guided walkthrough";
+    $("wtChronology").classList.add("hidden");
+    $("wtChronoHint").classList.add("hidden");
+    $("highlightRings").innerHTML = "";
+    ["zoneSymptom", "zoneGraph", "zoneEngine", "zoneGibbs", "zoneGibbsAnim", "zoneOutput", "zoneMetrics", "zoneGap"].forEach((id) => {
+      const el = $(id);
+      if (el) el.classList.remove("zone-dim", "zone-focus");
+    });
+    Object.values(SIDEBAR_CARDS).forEach((id) => $(id).classList.remove("wt-focus", "wt-dim"));
+    renderUI(state.scenario, { skipWalk: true });
+  }
+
+  const sel = $("scenarioSelect");
+  Object.entries(SCENARIOS).forEach(([k, v]) => {
+    const o = document.createElement("option");
+    o.value = k; o.textContent = v.name;
+    sel.appendChild(o);
+  });
+  sel.value = "crawler_incident";
+  sel.addEventListener("change", () => { exitWalkthrough(); renderUI(sel.value); });
+  $("guideBtn").addEventListener("click", () => state.walkthrough ? exitWalkthrough() : startWalkthrough());
+  $("resetBtn").addEventListener("click", () => { exitWalkthrough(); sel.value = "crawler_incident"; renderUI("crawler_incident"); });
+  $("wtNext").addEventListener("click", () => {
+    const steps = buildWalkthroughSteps(state.scenario);
+    if (state.walkStep >= steps.length - 1) exitWalkthrough();
+    else applyWalkthroughStep(state.walkStep + 1);
+  });
+  $("wtPrev").addEventListener("click", () => applyWalkthroughStep(state.walkStep - 1));
+  $("wtExit").addEventListener("click", exitWalkthrough);
+
+  renderUI("crawler_incident");
+})();
+</script>
+</body>
+</html>
