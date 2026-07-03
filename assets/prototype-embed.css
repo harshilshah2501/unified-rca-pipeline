@@ -65,6 +65,22 @@ html.embedded .svg-fo.warn { color: #f87171; }
 html.embedded .svg-fo.hi { color: #a78bfa; }
 html.embedded .svg-fo.accent { color: #fbbf24; font-weight: 600; }
 
+/* Horizontally scrollable panels inside SVG frames */
+html.embedded .filter-scroll,
+html.embedded .svg-fo-scroll,
+html.embedded .log-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 200px;
+}
+html.embedded .filter-scroll .ft-line,
+html.embedded .svg-fo-scroll .scroll-line,
+html.embedded .log-scroll .log-line,
+html.embedded .log-scroll .ft-line {
+  white-space: nowrap;
+}
+
 /* Sidebar frame-detail panels (full text — no clipping) */
 html.embedded .frame-detail-card .frame-detail-body,
 html.embedded .gibbs-detail-card .gibbs-panel-body {

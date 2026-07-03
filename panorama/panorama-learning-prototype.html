@@ -4,8 +4,8 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Panorama — Distributed Health Inference Simulator</title>
-  <link rel="stylesheet" href="../assets/prototype-embed.css?v=20260703d"/>
-  <script src="../assets/prototype-embed.js?v=20260703d"></script>
+  <link rel="stylesheet" href="../assets/prototype-embed.css?v=20260703h"/>
+  <script src="../assets/prototype-embed.js?v=20260703h"></script>
   <style>
     :root {
       --bg: #0b0f14; --surface: #111827; --panel: #1f2937; --border: #374151;
@@ -24,7 +24,10 @@
     header p { margin: 4px 0 0; color: var(--muted); font-size: 0.82rem; }
     .layout { display: grid; grid-template-columns: 1fr 340px; gap: 12px; width: min(1240px, 100%); }
     @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
-    .svg-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .svg-wrap {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch;
+    }
     svg { display: block; width: 100%; height: auto; user-select: none; }
     .controls { display: flex; flex-wrap: wrap; gap: 8px; width: min(1240px, 100%); align-items: center; }
     .controls label { font-size: 0.78rem; color: var(--muted); }
@@ -71,6 +74,61 @@
       text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 3px;
     }
     .fd-body { color: #e2e8f0; word-break: break-word; overflow-wrap: anywhere; }
+    /* Scrollable HTML inside SVG frames (filter tree, long log fields) */
+    .filter-scroll {
+      font-family: ui-monospace, monospace;
+      font-size: 8px;
+      line-height: 1.45;
+      max-height: 198px;
+      overflow-x: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      color: #9ca3af;
+    }
+    .filter-scroll .ft-label {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 7px; font-weight: 600; color: #6b7280; margin: 0 0 3px;
+    }
+    .filter-scroll .ft-box {
+      border: 1px solid #374151; border-radius: 4px; padding: 3px 5px; margin: 0 0 5px;
+      background: #0f172a;
+    }
+    .filter-scroll .ft-box.ft-active { border-color: #38bdf8; }
+    .filter-scroll .ft-box.ft-match { border-color: #22c55e; background: #052e16; }
+    .filter-scroll .ft-box.ft-out { border-color: #38bdf8; background: #1e3a5f; }
+    .filter-scroll .ft-box.ft-decoy { opacity: 0.75; }
+    .filter-scroll .ft-line { white-space: nowrap; padding: 1px 0; }
+    .filter-scroll .ft-key { color: #7dd3fc; }
+    .filter-scroll .ft-ok { color: #34d399; font-weight: 600; }
+    .filter-scroll .ft-step { color: #a7f3d0; padding-left: 4px; }
+    .filter-scroll .ft-result { color: #fbbf24; font-weight: 600; }
+    .filter-scroll .ft-muted { color: #6b7280; }
+    .filter-scroll .ft-hint { color: #38bdf8; margin-top: 4px; }
+    .filter-scroll .ft-arrow { text-align: center; color: #6b7280; margin: 2px 0; }
+    .filter-scroll .ft-scroll-hint {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 7px; color: #4b5563; margin-top: 4px; font-style: italic;
+    }
+    .log-scroll {
+      font-family: ui-monospace, monospace;
+      font-size: 8px;
+      line-height: 1.4;
+      max-height: 72px;
+      overflow-x: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .log-scroll .log-line { white-space: nowrap; color: #6ee7b7; padding: 1px 0; }
+    .log-scroll .log-line.log-hi { color: #34d399; }
+    .log-scroll .log-note { color: #6b7280; font-size: 7px; white-space: nowrap; margin-top: 3px; }
+    .log-scroll .parse-block {
+      margin-top: 5px; padding-top: 5px; border-top: 1px dashed #374151;
+    }
+    .log-scroll .parse-block .ft-label {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 7px; font-weight: 600; color: #38bdf8; margin-bottom: 3px;
+    }
+    .log-scroll .parse-block .ft-line { white-space: nowrap; color: #7dd3fc; padding: 1px 0; }
     .walkthrough-bar {
       width: min(1240px, 100%); background: #1a1f2e; border: 2px solid var(--accent);
       border-radius: 12px; padding: 14px 18px; display: grid;
@@ -222,26 +280,29 @@
       <!-- INPUT -->
       <g id="zoneInput">
         <text x="36" y="100" fill="#9ca3af" font-size="10" font-weight="600">INPUT MODALITIES</text>
-        <rect x="36" y="112" width="220" height="95" rx="9" fill="#1f2937" stroke="#374151"/>
+        <rect x="36" y="112" width="220" height="118" rx="9" fill="#1f2937" stroke="#374151"/>
         <text x="72" y="140" fill="#34d399" font-size="12" font-weight="600">ZooKeeper log</text>
         <text x="52" y="162" fill="#9ca3af" font-size="9">hview-logtail → plugin/zookeeper.go</text>
-        <g id="logPreviewLines" transform="translate(52, 176)"></g>
-        <text x="52" y="198" fill="#6b7280" font-size="8">zookeeper.out (tailed in-situ)</text>
+        <foreignObject x="48" y="168" width="196" height="72">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="logPreviewBody" class="svg-fo log-scroll"></div>
+        </foreignObject>
+        <text x="52" y="222" fill="#6b7280" font-size="8">zookeeper.out (tailed in-situ)</text>
 
-        <rect x="36" y="220" width="220" height="70" rx="9" fill="#1f2937" stroke="#374151"/>
-        <text x="68" y="248" fill="#fbbf24" font-size="12" font-weight="600">Manual report</text>
-        <text x="52" y="268" fill="#9ca3af" font-size="9">hview-client: metric:status:score</text>
-        <text id="manualPreview" x="52" y="282" fill="#fbbf24" font-size="8" font-family="monospace">snapshot:u:30</text>
+        <rect x="36" y="238" width="220" height="70" rx="9" fill="#1f2937" stroke="#374151"/>
+        <text x="68" y="266" fill="#fbbf24" font-size="12" font-weight="600">Manual report</text>
+        <text x="52" y="286" fill="#9ca3af" font-size="9">hview-client: metric:status:score</text>
+        <text id="manualPreview" x="52" y="300" fill="#fbbf24" font-size="8" font-family="monospace">snapshot:u:30</text>
       </g>
 
       <!-- FILTER -->
       <g id="zoneFilter">
-        <rect x="278" y="115" width="155" height="248" rx="9" fill="#111827" stroke="#4b5563"/>
+        <rect x="278" y="115" width="168" height="248" rx="9" fill="#111827" stroke="#4b5563"/>
         <text x="292" y="136" fill="#7dd3fc" font-size="10" font-weight="600">Filter Tree</text>
         <text x="286" y="152" fill="#6b7280" font-size="7">types/filter.go · conf/zoo_filter.json</text>
-        <g id="filterTreeViz" transform="translate(286, 158)"></g>
-        <g id="filterMatch" transform="translate(286, 178)" visibility="hidden"></g>
-        <line x1="433" y1="220" x2="425" y2="220" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+        <foreignObject x="286" y="156" width="152" height="200">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="filterTreeBody" class="svg-fo filter-scroll"></div>
+        </foreignObject>
+        <line x1="446" y1="220" x2="425" y2="220" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
       </g>
 
       <!-- REPORT / VIEW -->
@@ -520,8 +581,8 @@
   const $ = (id) => document.getElementById(id);
 
   const ZONE_RECTS = {
-    input: { x: 30, y: 88, w: 230, h: 210 },
-    filter: { x: 272, y: 108, w: 168, h: 260 },
+    input: { x: 30, y: 88, w: 230, h: 228 },
+    filter: { x: 272, y: 108, w: 178, h: 260 },
     storage: { x: 418, y: 93, w: 168, h: 245 },
     panorama: { x: 588, y: 78, w: 325, h: 335 },
     infer: { x: 922, y: 88, w: 205, h: 450 },
@@ -743,29 +804,34 @@
     return a;
   }
 
+  function filterVizMode() {
+    if (!state.walkthrough) return "compact";
+    if (state.walkStep < 2) return "idle";
+    if (state.walkStep === 2) return "filter";
+    return "compact";
+  }
+
   function renderLogPreview(sc) {
-    const g = $("logPreviewLines");
-    g.innerHTML = "";
+    const el = $("logPreviewBody");
+    if (!el) return;
     const lines = sc.log_lines || [sc.log];
-    lines.forEach((txt, i) => {
-      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      t.setAttribute("x", 0);
-      t.setAttribute("y", i * 11 + 8);
-      t.setAttribute("fill", i === 0 ? "#34d399" : "#6ee7b7");
-      t.setAttribute("font-size", "9");
-      t.setAttribute("font-family", "monospace");
-      t.textContent = txt;
-      g.appendChild(t);
-    });
+    let html = lines.map((txt, i) =>
+      `<div class="log-line${i === 0 ? " log-hi" : ""}">${escHtml(txt)}</div>`
+    ).join("");
     if (sc.log_note) {
-      const n = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      n.setAttribute("x", 0);
-      n.setAttribute("y", lines.length * 11 + 10);
-      n.setAttribute("fill", "#6b7280");
-      n.setAttribute("font-size", "8");
-      n.textContent = sc.log_note;
-      g.appendChild(n);
+      html += `<div class="log-note">${escHtml(sc.log_note)}</div>`;
     }
+    if (state.walkthrough && state.walkStep === 1 && sc.record?.parsed) {
+      const p = sc.record.parsed;
+      html += `<div class="parse-block">
+        <div class="ft-label">ParseLine → fields</div>
+        <div class="ft-line">tag_context: ${escHtml(p.tag_context || "—")}</div>
+        <div class="ft-line">content: ${escHtml(p.content || "—")}</div>
+        <div class="ft-line">observer: ${escHtml(p.observer || sc.observer)} · subject: ${escHtml(p.subject || sc.focus_subject)}</div>
+      </div>`;
+    }
+    html += `<div class="ft-scroll-hint">↔ scroll for long lines</div>`;
+    el.innerHTML = html;
   }
 
   function renderEnsemble(highlight) {
@@ -915,101 +981,73 @@
   }
 
   function renderFilterTreeViz(sc, scenarioKey, mode) {
-    const g = $("filterTreeViz");
-    g.innerHTML = "";
+    const el = $("filterTreeBody");
+    if (!el) return;
     const cfg = getFilterVizConfig(sc, scenarioKey);
     const r = sc.record;
     const rep = r?.report || sc.reports[0];
     const status = rep ? statusLabel(rep.status || sc.inference.status) : String(sc.filter.status).toUpperCase();
     const metric = r?.filter?.metric || rep?.metric || sc.filter.context;
     const score = rep?.score ?? sc.inference?.score ?? sc.filter.score;
+    const ftLine = (cls, text) => `<div class="ft-line ${cls}">${escHtml(text)}</div>`;
 
     if (cfg.manual) {
-      g.appendChild(svgEl("text", { x: 4, y: 24, fill: "#9ca3af", "font-size": 8 }));
-      g.lastChild.textContent = cfg.message;
-      g.appendChild(svgEl("rect", { x: 4, y: 36, width: 148, height: 40, rx: 4, fill: "#1f2937", stroke: "#fbbf24" }));
-      g.appendChild(svgEl("text", { x: 10, y: 54, fill: "#fbbf24", "font-size": 8, "font-family": "monospace" }));
-      g.lastChild.textContent = r?.manual?.[0] || sc.manual || "manual";
+      el.innerHTML = `
+        <div class="ft-muted">${escHtml(cfg.message)}</div>
+        <div class="ft-box ft-out">${ftLine("ft-result", r?.manual?.[0] || sc.manual || "manual")}</div>
+        <div class="ft-scroll-hint">↔ scroll for long lines</div>`;
       return;
     }
 
-    let y = 0;
-
-    if (mode === "parse" || mode === "filter" || mode === "compact") {
-      g.appendChild(svgEl("text", { x: 0, y: 8, fill: "#6b7280", "font-size": 8, "font-weight": 600 }));
-      g.lastChild.textContent = mode === "parse" ? "ParseLine → fields" : "parsed fields";
-      g.appendChild(svgEl("rect", { x: 0, y: 12, width: 148, height: 38, rx: 4, fill: "#0f172a", stroke: mode === "parse" ? "#38bdf8" : "#374151", "stroke-width": mode === "parse" ? 1.5 : 1 }));
-      const fields = [
-        ["tag_context", r?.parsed?.tag_context || "—"],
-        ["content", r?.parsed?.content || sc.log || "—"],
-      ];
-      fields.forEach(([k, v], i) => {
-        g.appendChild(svgEl("text", { x: 6, y: 28 + i * 13, fill: "#7dd3fc", "font-size": 8, "font-family": "monospace" }));
-        g.lastChild.textContent = `${k}: ${String(v).slice(0, 28)}`;
-      });
-      y = 56;
-      if (mode === "parse") {
-        g.appendChild(svgEl("text", { x: 0, y: y + 10, fill: "#38bdf8", "font-size": 8 }));
-        g.lastChild.textContent = "→ feed FilterTree.Eval";
-        return;
-      }
-      g.appendChild(svgEl("text", { x: 74, y: 52, fill: "#6b7280", "font-size": 9 }));
-      g.lastChild.textContent = "↓";
-      y = 62;
+    if (mode === "idle") {
+      el.innerHTML = `<div class="ft-muted" style="padding:10px 4px;line-height:1.5">
+        Filter tree runs on <strong style="color:#7dd3fc">Step 3</strong> after ParseLine extracts fields.</div>`;
+      return;
     }
 
-    if (mode !== "filter" && mode !== "compact") return;
+    const parts = [];
 
-    g.appendChild(svgEl("text", { x: 0, y: y + 8, fill: "#6b7280", "font-size": 8 }));
-    g.lastChild.textContent = "zoo_filter.json (try rules)";
-    y += 16;
+    if (mode === "parse" || mode === "filter" || mode === "compact") {
+      parts.push(`<div class="ft-label">${mode === "parse" ? "ParseLine → fields" : "parsed fields"}</div>`);
+      parts.push(`<div class="ft-box${mode === "parse" ? " ft-active" : ""}">`);
+      parts.push(ftLine("ft-key", `tag_context: ${r?.parsed?.tag_context || "—"}`));
+      parts.push(ftLine("ft-key", `content: ${r?.parsed?.content || sc.log || "—"}`));
+      parts.push("</div>");
+      if (mode === "parse") {
+        parts.push(`<div class="ft-hint">→ feed FilterTree.Eval</div>`);
+        parts.push(`<div class="ft-scroll-hint">↔ scroll for long lines</div>`);
+        el.innerHTML = parts.join("");
+        return;
+      }
+      parts.push(`<div class="ft-arrow">↓</div>`);
+    }
 
+    if (mode !== "filter" && mode !== "compact") {
+      el.innerHTML = parts.join("");
+      return;
+    }
+
+    parts.push(`<div class="ft-label">zoo_filter.json (try rules)</div>`);
     cfg.decoys.forEach((d) => {
-      g.appendChild(svgEl("rect", { x: 0, y, width: 148, height: 18, rx: 3, fill: "#1f2937", stroke: "#4b5563" }));
-      g.appendChild(svgEl("text", { x: 6, y: y + 12, fill: "#6b7280", "font-size": 8, "font-family": "monospace" }));
-      g.lastChild.textContent = `✗ ${d.label}`;
-      y += 20;
+      parts.push(`<div class="ft-box ft-decoy">${ftLine("", `✗ ${d.label}`)}</div>`);
     });
-
-    g.appendChild(svgEl("rect", { x: 0, y, width: 148, height: 16 + cfg.match.steps.length * 14, rx: 4, fill: "#052e16", stroke: "#22c55e", "stroke-width": 1.5 }));
-    g.appendChild(svgEl("text", { x: 6, y: y + 11, fill: "#34d399", "font-size": 8, "font-weight": 600 }));
-    g.lastChild.textContent = `✓ ${cfg.match.label}`;
-    cfg.match.steps.forEach((step, i) => {
-      g.appendChild(svgEl("text", { x: 10, y: y + 24 + i * 14, fill: "#a7f3d0", "font-size": 7.5, "font-family": "monospace" }));
-      g.lastChild.textContent = `${step.field} ${step.op} ${step.pattern}`;
+    parts.push(`<div class="ft-box ft-match">`);
+    parts.push(`<div class="ft-line ft-ok">✓ ${escHtml(cfg.match.label)}</div>`);
+    cfg.match.steps.forEach((step) => {
+      parts.push(ftLine("ft-step", `${step.field} ${step.op} ${step.pattern}`));
     });
-    y += 16 + cfg.match.steps.length * 14 + 6;
-
-    g.appendChild(svgEl("rect", { x: 0, y, width: 148, height: 30, rx: 4, fill: "#1e3a5f", stroke: "#38bdf8" }));
-    g.appendChild(svgEl("text", { x: 6, y: y + 11, fill: "#6b7280", "font-size": 8 }));
-    g.lastChild.textContent = "Classifier → Report";
-    g.appendChild(svgEl("text", { x: 6, y: y + 24, fill: "#fbbf24", "font-size": 8, "font-family": "monospace", "font-weight": 600 }));
-    g.lastChild.textContent = `${metric} · ${status} · ${score}`;
+    parts.push("</div>");
+    parts.push(`<div class="ft-box ft-out">`);
+    parts.push(`<div class="ft-muted">Classifier → Report</div>`);
+    parts.push(ftLine("ft-result", `${metric} · ${status} · ${score}`));
+    parts.push("</div>");
+    parts.push(`<div class="ft-scroll-hint">↔ scroll for long lines</div>`);
+    el.innerHTML = parts.join("");
   }
 
   function renderFilter(sc, scenarioKey, vizMode) {
-    const mode = vizMode || (state.walkthrough
-      ? (state.walkStep === 1 ? "parse" : state.walkStep === 2 ? "filter" : "compact")
-      : "compact");
+    const mode = vizMode || filterVizMode();
     renderFilterTreeViz(sc, scenarioKey, mode);
-    const g = $("filterMatch");
-    g.innerHTML = "";
-    const f = sc.filter;
-    const lines = [
-      `match: ${f.rule || f.context}`,
-      `context: ${f.context}`,
-      `status: ${f.status}`,
-      `score: ${f.score}`,
-    ];
-    lines.forEach((txt, i) => {
-      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      t.setAttribute("x", 0); t.setAttribute("y", i * 14 + 10);
-      t.setAttribute("fill", i === 0 ? "#7dd3fc" : "#9ca3af");
-      t.setAttribute("font-size", "9");
-      t.setAttribute("font-family", "monospace");
-      t.textContent = txt;
-      g.appendChild(t);
-    });
   }
 
   function renderObsStream(sc) {
@@ -1192,7 +1230,7 @@
         hint: "ParseLine regex extracts tag_context, content, class, subject",
         body: "<strong>ZooKeeperEventParser.ParseLine</strong> regex-parses the log into fields: tag_context, content, class, etc. These fields feed the filter tree.",
         file: "plugin/zookeeper.go · ParseLine()",
-        zones: ["input", "filter"], sidebar: "pipeline", stepDot: 0,
+        zones: ["input"], sidebar: "pipeline", stepDot: 0,
       },
       {
         title: "Step 3 — Filter tree classifies health",
@@ -1311,8 +1349,8 @@
     $("learningText").innerHTML = step.body;
     const ia = analyzeInferScenario(SCENARIOS[state.scenario]);
     renderWalkthroughDissection(SCENARIOS[state.scenario], i, ia);
-    renderFilter(SCENARIOS[state.scenario], state.scenario,
-      i === 1 ? "parse" : i === 2 ? "filter" : "compact");
+    renderFilter(SCENARIOS[state.scenario], state.scenario, filterVizMode());
+    renderLogPreview(SCENARIOS[state.scenario]);
   }
 
   function renderObsFeed(sc) {
