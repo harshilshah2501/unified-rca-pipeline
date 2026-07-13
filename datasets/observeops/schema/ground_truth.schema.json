@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "observeops-ground-truth",
+  "title": "ObserveOps Ground Truth",
+  "type": "object",
+  "required": ["root_ci", "signature"],
+  "properties": {
+    "root_ci": { "type": "string", "minLength": 1 },
+    "signature": {
+      "type": "string",
+      "enum": [
+        "cpu_contention",
+        "link_failure",
+        "network_saturation",
+        "storage_contention",
+        "os_resource_exhaustion",
+        "app_resource_exhaustion"
+      ]
+    },
+    "contributor_cis": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "blast_radius": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "upstream_healthy": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

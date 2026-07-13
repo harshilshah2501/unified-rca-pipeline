@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RCA Verdict",
+  "type": "object",
+  "required": ["engine", "uc_id", "root_ci", "signature", "evidence", "observations"],
+  "properties": {
+    "engine": { "enum": ["federated", "lean"] },
+    "uc_id": { "type": "string" },
+    "root_ci": { "type": "string" },
+    "signature": { "type": "string" },
+    "contributor_cis": { "type": "array", "items": { "type": "string" } },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ci", "signal", "value"],
+        "properties": {
+          "ci": { "type": "string" },
+          "signal": { "type": "string" },
+          "value": {},
+          "timestamp": { "type": "string" }
+        }
+      }
+    },
+    "observations": { "type": "integer", "minimum": 0 },
+    "evidentiary_tier": { "enum": [1, 2, 3] },
+    "fallback_fired": { "type": "boolean" },
+    "upstream_healthy_verified": { "type": "boolean" }
+  }
+}

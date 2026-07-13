@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "observeops-metrics-timeseries",
+  "title": "ObserveOps Metric Time Series",
+  "type": "object",
+  "required": ["ci", "signal", "threshold", "interval_minutes", "lookback_days", "points"],
+  "properties": {
+    "ci": { "type": "string", "minLength": 1 },
+    "signal": { "type": "string", "minLength": 1 },
+    "threshold": { "type": "number" },
+    "interval_minutes": { "type": "integer", "const": 30 },
+    "lookback_days": { "type": "integer", "const": 7 },
+    "points": {
+      "type": "array",
+      "minItems": 337,
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "value"],
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "value": { "type": "number" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

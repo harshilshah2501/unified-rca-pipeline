@@ -1,0 +1,36 @@
+{
+  "engine": "federated",
+  "uc_id": "UC-4",
+  "root_ci": "guest-os-vm-app-01",
+  "signature": "os_resource_exhaustion",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "guest-os-vm-app-01",
+      "signal": "filesystem.used_pct",
+      "value": 99.0,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "guest-os-vm-app-01",
+      "signal": "oom_killer_event",
+      "value": 1.0,
+      "timestamp": "2026-07-10T10:00:12Z"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "error_rate_5xx",
+      "value": 0.42,
+      "timestamp": "2026-07-10T10:00:18Z"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "health_check",
+      "value": 0.0,
+      "timestamp": "2026-07-10T10:00:18Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 2,
+  "fallback_fired": true
+}

@@ -1,0 +1,44 @@
+{
+  "engine": "federated",
+  "uc_id": "UC-2",
+  "root_ci": "switch-core-01:GigE0/2",
+  "signature": "link_failure",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "switch-core-01:GigE0/2",
+      "signal": "linkDown",
+      "value": 1.0,
+      "timestamp": "2026-07-10T10:00:00Z"
+    },
+    {
+      "ci": "switch-core-01:GigE0/2",
+      "signal": "ifOutDiscards",
+      "value": 450.0,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "esxi-host-01",
+      "signal": "vmnic.dropped_packets",
+      "value": 120.0,
+      "timestamp": "2026-07-10T10:00:12Z"
+    },
+    {
+      "ci": "vm-app-01",
+      "signal": "tcp.retransmits",
+      "value": 85.0,
+      "timestamp": "2026-07-10T10:00:12Z"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "tcp.timeouts",
+      "value": 42.0,
+      "timestamp": "2026-07-10T10:00:18Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 2,
+  "fallback_fired": true,
+  "fallback_reason": "earliest_onset_upstream:switch-core-01:GigE0/2",
+  "murphy_posterior": 0.96
+}

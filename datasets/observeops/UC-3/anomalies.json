@@ -1,0 +1,53 @@
+{
+  "incident_start": "2026-07-10T10:00:00Z",
+  "anomalies": [
+    {
+      "ci": "datastore-01",
+      "signal": "gavg_latency_ms",
+      "value": 45.0,
+      "threshold": 30.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "datastore-01",
+      "signal": "davg_latency_ms",
+      "value": 28.0,
+      "threshold": 20.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "vm-neighbor-01",
+      "signal": "virtualDisk.iops",
+      "value": 12000.0,
+      "threshold": 5000.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "vm-db-01",
+      "signal": "virtualDisk.totalLatency_ms",
+      "value": 38.0,
+      "threshold": 30.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:12Z"
+    },
+    {
+      "ci": "guest-os-vm-db-01",
+      "signal": "disk.iowait_pct",
+      "value": 72.0,
+      "threshold": 50.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:18Z"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "request.p95_latency_ms",
+      "value": 2100.0,
+      "threshold": 1000.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:25Z"
+    }
+  ]
+}

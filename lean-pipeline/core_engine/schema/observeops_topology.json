@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "observeops_topology.json",
+  "title": "ObserveOps Typed Topology",
+  "description": "Invocation graph for VMware stack: Network → ESXi → VM → Guest OS → App (+ datastore)",
+  "type": "object",
+  "required": ["version", "nodes", "edges"],
+  "properties": {
+    "version": { "type": "string" },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "name"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": {
+            "enum": [
+              "NetworkPort",
+              "HypervisorHost",
+              "Datastore",
+              "VirtualMachine",
+              "GuestOS",
+              "Service"
+            ]
+          },
+          "name": { "type": "string" }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "relation"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "relation": {
+            "enum": ["runs_on", "hosted_by", "stored_on", "uplink_to"]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+uc_id: UC-4
+fault: Filesystem full on guest OS
+inject_on: guest-os-vm-app-01
+method: fallocate until fs 100%
+corpus_version: 1.1.0
+source: rca-use-cases-only.md

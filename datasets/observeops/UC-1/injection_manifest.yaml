@@ -1,0 +1,6 @@
+uc_id: UC-1
+fault: ESXi CPU contention via stress-ng in co-located VMs
+inject_on: esxi-host-01
+method: stress-ng --cpu across vm-app-01, vm-db-01
+corpus_version: 1.1.0
+source: rca-use-cases-only.md

@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "ci": "guest-os-vm-app-01",
+      "event_type": "syslog.filesystem_full",
+      "severity": "critical",
+      "message": "No space left on device writing /var/log/orders-api"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "ci": "guest-os-vm-app-01",
+      "event_type": "syslog.oom_killer",
+      "severity": "critical",
+      "message": "kernel: Out of memory: Killed process 1842 (orders-api)"
+    }
+  ]
+}

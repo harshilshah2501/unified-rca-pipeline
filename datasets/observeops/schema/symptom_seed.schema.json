@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "observeops-symptom-seed",
+  "title": "ObserveOps Symptom Seed",
+  "type": "object",
+  "required": ["ci", "signal", "timestamp"],
+  "properties": {
+    "ci": { "type": "string", "minLength": 1 },
+    "signal": { "type": "string", "minLength": 1 },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

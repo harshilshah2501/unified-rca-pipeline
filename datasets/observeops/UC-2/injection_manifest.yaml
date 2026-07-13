@@ -1,0 +1,6 @@
+uc_id: UC-2
+fault: Switch uplink admin-down or saturation
+inject_on: switch-core-01:GigE0/2
+method: ifOperStatus=down or iperf flood
+corpus_version: 1.1.0
+source: rca-use-cases-only.md

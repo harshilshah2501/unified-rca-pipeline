@@ -1,0 +1,92 @@
+{
+  "engine": "lean",
+  "uc_id": "UC-2",
+  "root_ci": "switch-core-01:GigE0/2",
+  "signature": "link_failure",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "switch-core-01:GigE0/2",
+      "signal": "linkDown",
+      "value": 1.0,
+      "timestamp": "2026-07-10T10:00:00Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "switch-core-01:GigE0/2",
+      "signal": "ifOutDiscards",
+      "value": 450.0,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "esxi-host-01",
+      "signal": "vmnic.dropped_packets",
+      "value": 120.0,
+      "timestamp": "2026-07-10T10:00:12Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "vm-app-01",
+      "signal": "tcp.retransmits",
+      "value": 85.0,
+      "timestamp": "2026-07-10T10:00:12Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "tcp.timeouts",
+      "value": 42.0,
+      "timestamp": "2026-07-10T10:00:18Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "switch-core-01:GigE0/2",
+      "signal": "snmp.linkDown",
+      "value": "SNMP TRAP linkDown: ifDescr=GigE0/2 ifOperStatus=down",
+      "timestamp": "2026-07-10T10:00:00Z",
+      "source": "event",
+      "severity": "critical",
+      "message": "SNMP TRAP linkDown: ifDescr=GigE0/2 ifOperStatus=down"
+    },
+    {
+      "ci": "switch-core-01:GigE0/2",
+      "signal": "snmp.ifOutDiscards",
+      "value": "ifOutDiscards rising on GigE0/2",
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "ifOutDiscards rising on GigE0/2"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "causal_verified": null,
+  "causal_log": null,
+  "obs_to_convergence": 4,
+  "naive_bfs_expansions": 5,
+  "efficiency_ratio": 1.25,
+  "upstream_healthy_verified": false,
+  "causal_chain": [
+    "switch-core-01:GigE0/2",
+    "esxi-host-01",
+    "vm-app-01",
+    "guest-os-vm-app-01",
+    "orders-api"
+  ],
+  "blast_radius": [
+    "esxi-host-01",
+    "vm-app-01",
+    "vm-db-01",
+    "vm-neighbor-01",
+    "guest-os-vm-app-01",
+    "guest-os-vm-db-01",
+    "orders-api"
+  ],
+  "remediation": [
+    "Restore or replace the affected link.",
+    "Check redundant uplinks and NIC teaming.",
+    "Find and mitigate the traffic-spike source."
+  ]
+}

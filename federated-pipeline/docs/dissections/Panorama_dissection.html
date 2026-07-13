@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Panorama_dissection</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="assets/dissection-print.css" />
+</head>
+<body>
+<h1 id="panorama-distributed-fault-inference-via-local-views">Panorama:
+Distributed Fault Inference via Local Views</h1>
+<blockquote>
+<p><strong>Unified RCA — Tier 1 (Symptom Detection)</strong><br />
+Panorama’s core trick is <strong>not</strong> to compare against a
+historical baseline. It collects each node’s local observation of its
+neighbors, normalizes them into structured views, and reconciles
+disagreements via weighted majority. The signal is <em>convergence of
+independent observers</em>, not <em>deviation from normal</em>.</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Document</strong></td>
+<td style="text-align: left;">Panorama learning dissection</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Tier</strong></td>
+<td style="text-align: left;">1 — Symptom detection (observer
+consensus)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Code</strong></td>
+<td style="text-align: left;"><code>panorama/</code> ·
+<code>filter.go</code> · <code>decision/majority.go</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Simulator</strong></td>
+<td style="text-align: left;"><a
+href="http://127.0.0.1:8770/#panorama">127.0.0.1:8770/#panorama</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Print (A4)</strong></td>
+<td
+style="text-align: left;"><code>pandoc Panorama_dissection.md -o Panorama.pdf --css=assets/dissection-print.css -V papersize=a4</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="contents">Contents</h2>
+<ol type="1">
+<li><a href="#how-to-read-this-document">How to Read This
+Document</a></li>
+<li><a href="#the-big-picture-30-second-version">The Big Picture
+(30-Second Version)</a></li>
+<li><a href="#core-design-insight-why-not-a-baseline">Core Design
+Insight: Why Not a Baseline?</a></li>
+<li><a
+href="#the-report-tuple-what-the-simplified-triplet-was-missing">The
+Report Tuple</a></li>
+<li><a href="#los-storage-the-write-side-buffer">LOS Storage</a></li>
+<li><a href="#two-step-inference-inferview-then-inferpano">Two-Step
+Inference</a></li>
+<li><a href="#inferview-vs-inferpano-worm-view-and-bird-view">InferView
+vs InferPano (Worm / Bird)</a></li>
+<li><a
+href="#the-normalization-problem-why-raw-logs-are-incomparable">The
+Normalization Problem</a></li>
+<li><a href="#the-filter-tree-zoo_filterjson--filtergo">The Filter
+Tree</a></li>
+<li><a href="#local-views">Local Views</a></li>
+<li><a href="#majority-reconciliation-decisionmajoritygo">Majority
+Reconciliation</a></li>
+<li><a href="#why-its-called-panorama">Why It’s Called Panorama</a></li>
+<li><a href="#nezha-vs-panorama-side-by-side">Nezha vs Panorama</a></li>
+<li><a href="#key-files">Key Files</a></li>
+<li><a href="#cheat-sheet">Cheat Sheet</a></li>
+<li><a href="#where-to-go-next">Where to Go Next</a></li>
+</ol>
+<hr />
+<h2 id="how-to-read-this-document">How to Read This Document</h2>
+<p>Work through sections <strong>in order</strong> the first time.</p>
+<blockquote>
+<p><strong>core distinction → pipeline overview → worm/bird inference →
+normalization → filter tree → report tuple → local views → LOS storage →
+two-step inference → majority reconciliation → Nezha vs
+Panorama</strong></p>
+</blockquote>
+<p>For reference, jump to the <a href="#cheat-sheet">Cheat
+Sheet</a>.</p>
+<hr />
+<h2 id="the-big-picture-30-second-version">The Big Picture (30-Second
+Version)</h2>
+<figure>
+<img src="../assets/panorama-pipeline.svg"
+alt="Panorama pipeline — from ZooKeeper logs to per-subject inference verdict" />
+<figcaption aria-hidden="true">Panorama pipeline — from ZooKeeper logs
+to per-subject inference verdict</figcaption>
+</figure>
+<p><em>Figure 1 — Panorama pipeline.</em> Each row in
+<strong>Observation Details</strong> is the same
+<strong>5-tuple</strong>
+<code>(observer, subject, metric, status, score)</code>.
+<code>GetInference()</code> returns a per-subject verdict with
+<code>observer_set</code> instead of a single observer.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 28%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Phase</th>
+<th style="text-align: left;">Step</th>
+<th style="text-align: left;">Output</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Ingest</strong></td>
+<td style="text-align: left;"><code>ParseLine()</code></td>
+<td style="text-align: left;"><code>observer</code>,
+<code>subject</code>, <code>tag_context</code>,
+<code>content</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Ingest</strong></td>
+<td style="text-align: left;"><code>FilterTree.Eval()</code></td>
+<td style="text-align: left;"><code>metric</code>, <code>status</code>,
+<code>score</code> (from match)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Structure</strong></td>
+<td style="text-align: left;"><code>SubmitReport()</code> →
+<code>AddReport()</code> / LOS</td>
+<td style="text-align: left;">Report stored in
+<code>View[observer][subject]</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Distribute</strong></td>
+<td style="text-align: left;"><code>exchange.go</code></td>
+<td style="text-align: left;">Reports propagated to pano0…pano9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Infer</strong></td>
+<td style="text-align: left;"><code>InferView()</code> →
+<code>InferPano()</code></td>
+<td style="text-align: left;">Worm then bird — one subject at a
+time</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Verdict</strong></td>
+<td style="text-align: left;"><code>GetInference()</code></td>
+<td
+style="text-align: left;"><code>{ subject, metric, status, score, observer_set }</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="core-design-insight-why-not-a-baseline">Core Design Insight: Why
+Not a Baseline?</h2>
+<h3 id="the-nezha-approach-and-its-limits">The Nezha approach and its
+limits</h3>
+<p>Nezha compares fault-window patterns against a fault-free baseline
+(<code>construct_data</code>). The signal is deviation: pairs that
+appear in <code>rca_data</code> but not in <code>construct_data</code>.
+This works well but has two constraints:</p>
+<ul>
+<li>You need enough fault-free data first — no warm-up, no signal.</li>
+<li>A singleton service with no peers can still leave traces and logs
+for Nezha to mine.</li>
+</ul>
+<h3 id="panoramas-different-bet">Panorama’s different bet</h3>
+<p>Panorama asks: <strong>do independent observers agree right
+now?</strong> If 4 out of 5 ZooKeeper followers independently log
+“leader unreachable” within the same time window — no historical
+baseline needed — that convergence <em>is</em> the signal.</p>
+<blockquote>
+<p><strong>The family member metaphor:</strong> Rather than looking up a
+patient’s medical records (centralized logs/traces/metrics as in Nezha),
+Panorama asks the closest family members — the nodes in direct contact
+with the affected node — to report what they observed. Each node’s logs
+are a local observation of its neighbors’ health, not just a record of
+its own internal behavior.</p>
+</blockquote>
+<p>This makes Panorama:</p>
+<ul>
+<li><strong>Baseline-free</strong> — catches a fault the first time it
+ever happens.</li>
+<li><strong>Observer-dependent</strong> — needs multiple nodes watching
+the same subject. Can’t work on a singleton service with no peers.</li>
+<li><strong>Scale-friendly</strong> — gets <em>stronger</em> as you add
+more servers (more observers per subject). Nezha’s scan cost grows with
+server count; Panorama’s inference confidence grows.</li>
+</ul>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="the-report-tuple-what-the-simplified-triplet-was-missing">The
+Report Tuple: What the Simplified Triplet Was Missing</h2>
+<p>Our initial mental model used a 3-field triplet:
+<code>(observer, subject, state)</code>. The real report produced by
+Panorama is a <strong>5-tuple</strong>:</p>
+<pre><code>(observer,  subject,  metric/context,  status,  score)</code></pre>
+<h3 id="the-two-extra-fields">The two extra fields</h3>
+<p><strong>Metric / Context</strong> — scopes the status to a specific
+component dimension. Extracted as <code>tag_context</code> during
+<code>ParseLine()</code>. Examples: <code>SyncThread</code>,
+<code>LearnerHandler</code>, <code>WorkerSender</code>,
+<code>cpu</code>. A single subject can carry multiple metrics with
+independent statuses simultaneously:</p>
+<pre><code>subject=peer@9:
+  SyncThread    → UNHEALTHY, score=20
+  LearnerHandler → DEAD,      score=0</code></pre>
+<p>These are separate reports, not overwrites. Metric is the key that
+namespaces health state per component.</p>
+<p><strong>Score</strong> — numeric severity/confidence (0–100).
+Averages across observers in <code>InferPano</code> when status alone
+doesn’t discriminate. A low score on <code>UNHEALTHY</code> is weaker
+signal than a high score on <code>UNHEALTHY</code>.</p>
+<h3 id="status-vocabulary-richer-than-alivedeaduncertain">Status
+vocabulary (richer than ALIVE/DEAD/UNCERTAIN)</h3>
+<table>
+<colgroup>
+<col style="width: 47%" />
+<col style="width: 52%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>HEALTHY</code></td>
+<td>Explicitly observed as fine</td>
+</tr>
+<tr class="even">
+<td><code>UNHEALTHY</code></td>
+<td>Degraded but not down</td>
+</tr>
+<tr class="odd">
+<td><code>MAYBE_UNHEALTHY</code></td>
+<td>Weak signal, low confidence</td>
+</tr>
+<tr class="even">
+<td><code>DEAD</code></td>
+<td>Confirmed down</td>
+</tr>
+<tr class="odd">
+<td><code>PENDING</code></td>
+<td>Transient — absorbed by later <code>HEALTHY</code> in
+<code>InferView</code> lookback</td>
+</tr>
+</tbody>
+</table>
+<p><code>PENDING</code> is a first-class state that gets resolved rather
+than surfaced. If a <code>PENDING(50)</code> is followed by a
+<code>HEALTHY(90)</code> in the lookback window, <code>InferView</code>
+resolves it to <code>HEALTHY(90)</code> — the pending concern was
+short-lived.</p>
+<h3 id="match">Match</h3>
+<p>A <strong>Match</strong> is the filter tree rule that fires on a log
+line. One match produces one <code>(context, status, score)</code>
+triple. No match = line silently dropped, never enters LOS. Match is the
+gate between raw text and structured report.</p>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="los-storage-the-write-side-buffer">LOS Storage: The Write-Side
+Buffer</h2>
+<p><strong>LOS = Local Observation Store</strong>
+(<code>store/raw.go</code> → <code>AddReport()</code>).</p>
+<p>After <code>SubmitReport()</code> assembles the 5-tuple, it lands in
+LOS — the persistence layer between filter output and inference. LOS
+organizes reports into:</p>
+<ul>
+<li><strong>View</strong> — all reports from <strong>one
+observer</strong> about <strong>one subject</strong>, organized per
+metric. This is what <code>InferView()</code> reads.</li>
+<li><strong>Panorama (data model)</strong> — all views for <strong>one
+subject</strong> across <strong>all observers</strong>. This is what
+<code>InferPano()</code> reads.</li>
+</ul>
+<pre><code>LOS write side:  Report → AddReport() → View (per observer+subject+metric)
+LOS read side:   InferView() reads View → InferPano() reads Panorama model</code></pre>
+<p>The Panorama data model (lowercase) is distinct from the Panorama
+system (uppercase). The model is just the aggregated collection of views
+for a subject — the input to the majority vote.</p>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="two-step-inference-inferview-then-inferpano">Two-Step Inference:
+InferView then InferPano</h2>
+<p>The majority vote in <code>InferPano</code> does <strong>not</strong>
+operate on raw reports. It operates on <strong>already-smoothed
+per-observer summaries</strong> produced by <code>InferView</code>. This
+two-step design separates noise reduction from consensus.</p>
+<h3 id="step-1-inferview-decisionmajority.go">Step 1 — InferView
+(<code>decision/majority.go</code>)</h3>
+<p>Per observer, per subject, per metric:</p>
+<ul>
+<li>Looks backward over recent observations
+(<code>VIEW_METRIC_HISTORY_SIZE = 2</code>)</li>
+<li>Averages scores for same-status entries in the lookback window</li>
+<li>Resolves <code>PENDING → HEALTHY</code> transitions (if newer
+HEALTHY exists in window)</li>
+<li>Stops lookback when status changes (doesn’t average across status
+boundaries)</li>
+</ul>
+<p>Output: one smoothed <code>(status, score)</code> summary per
+observer per metric.</p>
+<h3 id="step-2-inferpano-decisionmajority.go">Step 2 — InferPano
+(<code>decision/majority.go</code>)</h3>
+<p>Across all observers for one subject, per metric:</p>
+<ul>
+<li>Status chosen by <strong>majority</strong> over observer
+summaries</li>
+<li>Tie-break: pick <strong>higher-severity</strong> status enum (DEAD
+&gt; UNHEALTHY &gt; MAYBE_UNHEALTHY &gt; HEALTHY)</li>
+<li>Score: <strong>average</strong> across observer summaries for the
+winning status</li>
+</ul>
+<p>Output: final
+<code>(subject, metric, status, score, observer_set)</code> verdict.</p>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="inferview-vs-inferpano-worm-view-and-bird-view">InferView vs
+InferPano: Worm View and Bird View</h2>
+<p>Yes — <strong>worm view vs bird view</strong> is the right mental
+model, with one important nuance: <strong>both steps are scoped to one
+subject at a time</strong>. Panorama does not fuse all entities in the
+cluster in one shot; it builds one panorama per subject, then infers
+that subject’s health.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>InferView</strong> (worm)</th>
+<th><strong>InferPano</strong> (bird)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Metaphor</strong></td>
+<td>One observer’s timeline along one subject</td>
+<td>All observers fused for that subject</td>
+</tr>
+<tr class="even">
+<td><strong>Input</strong></td>
+<td>One <code>View</code> = one observer’s stream about one subject</td>
+<td>One <code>Panorama</code> = all views about that subject</td>
+</tr>
+<tr class="odd">
+<td><strong>Question</strong></td>
+<td>“What does <strong>FE_2</strong> think about <strong>TS_3</strong>’s
+<code>cpu</code>?”</td>
+<td>“What do <strong>all observers</strong> think about
+<strong>TS_3</strong>’s <code>cpu</code>?”</td>
+</tr>
+<tr class="even">
+<td><strong>Granularity</strong></td>
+<td>per <strong>observer × subject × metric</strong></td>
+<td>per <strong>subject × metric</strong> (across observers)</td>
+</tr>
+<tr class="odd">
+<td><strong>Code</strong></td>
+<td><code>decision/majority.go</code> → <code>InferView()</code></td>
+<td><code>decision/majority.go</code> → <code>InferPano()</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="text"><code>Subject = TS_3   (who we are judging)
+
+  FE_1&#39;s worm (InferView)  ──┐
+  FE_2&#39;s worm (InferView)  ──┼──►  Bird view (InferPano) for TS_3
+  FE_4&#39;s worm (InferView)  ──┘</code></pre>
+<h3 id="the-three-names-in-every-report">The three names in every
+report</h3>
+<p>Every Panorama report is built from three identifiers plus
+status/score:</p>
+<pre class="text"><code>(observer, subject, metric, status, score)</code></pre>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 24%" />
+<col style="width: 56%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Meaning</th>
+<th>Question it answers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Subject</strong></td>
+<td>Entity being judged</td>
+<td>“Whose health?”</td>
+</tr>
+<tr class="even">
+<td><strong>Observer</strong></td>
+<td>Node that reported</td>
+<td>“Who saw it?”</td>
+</tr>
+<tr class="odd">
+<td><strong>Metric</strong></td>
+<td>Health dimension / failure aspect</td>
+<td>“Unhealthy in what way?”</td>
+</tr>
+</tbody>
+</table>
+<p>A report is always <strong>observer → subject</strong>: “I think
+<em>they</em> are …” on metric <em>X</em>.</p>
+<h3 id="subject-examples">Subject examples</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Subject</th>
+<th>In the system</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>peer@9</code></td>
+<td>ZooKeeper peer 9 (ensemble member)</td>
+</tr>
+<tr class="even">
+<td><code>peer@1</code></td>
+<td>ZooKeeper peer 1 (often a remote peer)</td>
+</tr>
+<tr class="odd">
+<td><code>TS_3</code></td>
+<td>Backend service (train-ticket style tests)</td>
+</tr>
+<tr class="even">
+<td><code>FE_2</code></td>
+<td>Frontend monitor node (in unit tests)</td>
+</tr>
+</tbody>
+</table>
+<p>In <strong><code>worker_sender</code></strong>: observer is
+<code>peer@2</code>, but <strong>subject is <code>peer@1</code></strong>
+— peer@2 reports that peer@1 looks unhealthy (channel open failure).</p>
+<h3 id="observer-examples">Observer examples</h3>
+<table>
+<colgroup>
+<col style="width: 62%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Observer</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>peer@9</code></td>
+<td>This ZK node’s <code>hview</code> instance (tails local
+<code>zookeeper.out</code>)</td>
+</tr>
+<tr class="even">
+<td><code>peer@2</code></td>
+<td>Another peer’s <code>hview</code></td>
+</tr>
+<tr class="odd">
+<td><code>FE_1</code>, <code>FE_2</code>, <code>FE_4</code></td>
+<td>Frontend monitors in <code>store/inference_test.go</code> →
+<code>TestInfer</code></td>
+</tr>
+</tbody>
+</table>
+<p>The same subject can have <strong>many observers</strong>; each
+contributes one <code>View</code> in that subject’s panorama.</p>
+<h3 id="metric-examples">Metric examples</h3>
+<p><strong>Metric</strong> comes from filter <code>Context</code> in
+<code>conf/zoo_filter.json</code>, or from manual
+<code>metric:status:score</code> in <code>hview-client</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Typical trigger</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>SyncThread</code></td>
+<td>Log: <code>Too busy to snap, skipping</code></td>
+</tr>
+<tr class="even">
+<td><code>RecvWorker</code></td>
+<td><code>tag_context == RecvWorker</code></td>
+</tr>
+<tr class="odd">
+<td><code>SendWorker</code></td>
+<td><code>tag_context == SendWorker</code></td>
+</tr>
+<tr class="even">
+<td><code>LearnerHandler</code></td>
+<td>Shutdown / GOODBYE / exception logs</td>
+</tr>
+<tr class="odd">
+<td><code>WorkerSender</code></td>
+<td><code>Cannot open channel to …</code></td>
+</tr>
+<tr class="even">
+<td><code>cpu</code>, <code>mem</code>, <code>network</code></td>
+<td>Manual or synthetic reports (<code>TestInfer</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>remote_dispatch</code></td>
+<td><code>TestInferPending</code> — pending→healthy resolution</td>
+</tr>
+</tbody>
+</table>
+<p>One subject can carry <strong>multiple metrics at once</strong> —
+each is a separate report, not an overwrite:</p>
+<pre class="text"><code>subject = peer@9:
+  SyncThread      → UNHEALTHY, 20
+  LearnerHandler  → DEAD,       0</code></pre>
+<hr />
+<h3 id="worked-example-1-inferview-only-pending_resolve">Worked example
+1 — InferView only (<code>pending_resolve</code>)</h3>
+<ul>
+<li><strong>subject:</strong> <code>TS_3</code></li>
+<li><strong>observer:</strong> <code>FE_2</code></li>
+<li><strong>metric:</strong> <code>remote_dispatch</code></li>
+</ul>
+<p>FE_2’s view timeline:</p>
+<pre class="text"><code>t1: remote_dispatch = PENDING,  50
+t2: remote_dispatch = HEALTHY,  90</code></pre>
+<p><code>InferView</code> walks backward (max 2 per metric), merges
+<code>PENDING</code> into later <code>HEALTHY</code>:</p>
+<pre class="text"><code>InferView(FE_2 → TS_3):  remote_dispatch = HEALTHY, 90</code></pre>
+<p>That is <strong>one worm</strong> — only FE_2’s smoothed opinion
+about TS_3. No other observers involved yet.</p>
+<hr />
+<h3 id="worked-example-2-inferview-then-inferpano-majority_cpu">Worked
+example 2 — InferView then InferPano (<code>majority_cpu</code>)</h3>
+<ul>
+<li><strong>subject:</strong> <code>TS_3</code></li>
+<li><strong>metric:</strong> <code>cpu</code></li>
+<li><strong>observers:</strong> FE_1, FE_2, FE_4 (mixed reports in
+simulator)</li>
+</ul>
+<p>After each observer’s stream is smoothed by
+<code>InferView</code>:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Observer</th>
+<th>InferView summary for <code>cpu</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>FE_1</td>
+<td>UNHEALTHY, 60</td>
+</tr>
+<tr class="even">
+<td>FE_2</td>
+<td>HEALTHY, 70</td>
+</tr>
+<tr class="odd">
+<td>FE_4</td>
+<td>(mixed raw stream → per-view summary)</td>
+</tr>
+</tbody>
+</table>
+<p><code>InferPano</code> on panorama for <strong>subject
+TS_3</strong>:</p>
+<ol type="1">
+<li>Count status votes across observers for metric <code>cpu</code></li>
+<li>Majority wins; tie → <strong>higher severity</strong> enum (DEAD
+&gt; UNHEALTHY &gt; … &gt; HEALTHY)</li>
+<li>Score = <strong>average</strong> of per-observer summary scores</li>
+</ol>
+<pre class="text"><code>InferPano(TS_3):  cpu = UNHEALTHY, score ≈ 40</code></pre>
+<p>That is the <strong>bird view</strong> — collective verdict for one
+subject on one metric.</p>
+<hr />
+<h3
+id="worked-example-3-same-observer-many-subjects-quorum_cascade">Worked
+example 3 — Same observer, many subjects
+(<code>quorum_cascade</code>)</h3>
+<p><code>peer@9</code> emits several reports in one fault window. Each
+<strong>subject</strong> gets its own panorama:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Report</th>
+<th>observer</th>
+<th>subject</th>
+<th>metric</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>peer@9</td>
+<td>peer@1</td>
+<td>RecvWorker</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>peer@9</td>
+<td>peer@4</td>
+<td>RecvWorker</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>peer@9</td>
+<td>peer@3</td>
+<td>SendWorker</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>peer@9</td>
+<td>peer@9</td>
+<td>SyncThread</td>
+</tr>
+</tbody>
+</table>
+<p>For <strong>subject = peer@9</strong> (simulator focus):</p>
+<ul>
+<li>Panorama contains view(s) about <code>peer@9</code></li>
+<li><code>InferView(peer@9 → peer@9)</code>: SyncThread UNHEALTHY,
+20</li>
+<li><code>InferPano(peer@9)</code>: SyncThread UNHEALTHY, 20</li>
+</ul>
+<p>For <strong>subject = peer@1</strong> (different panorama):</p>
+<ul>
+<li><code>InferView(peer@9 → peer@1)</code>: RecvWorker UNHEALTHY,
+20</li>
+<li><code>InferPano(peer@1)</code>: RecvWorker UNHEALTHY, 20</li>
+</ul>
+<p>Same observer, different subjects and metrics — <strong>one inference
+run per subject</strong>.</p>
+<hr />
+<h3 id="quick-reference">Quick reference</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Term</th>
+<th>One line</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Subject</strong></td>
+<td>Who we are diagnosing</td>
+</tr>
+<tr class="even">
+<td><strong>Observer</strong></td>
+<td>Who reported the observation</td>
+</tr>
+<tr class="odd">
+<td><strong>Metric</strong></td>
+<td>Which component/signal (SyncThread, cpu, …)</td>
+</tr>
+<tr class="even">
+<td><strong>InferView</strong></td>
+<td>Fuse <strong>one observer’s</strong> timeline for one subject</td>
+</tr>
+<tr class="odd">
+<td><strong>InferPano</strong></td>
+<td>Fuse <strong>all observers’</strong> summaries for one subject</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="the-normalization-problem-why-raw-logs-are-incomparable">The
+Normalization Problem: Why Raw Logs Are Incomparable</h2>
+<p>Two followers observing the same leader failure might log:</p>
+<pre><code>follower-1: &quot;WARN  QuorumCnxManager - Connection timeout to /10.0.0.1:2888&quot;
+follower-2: &quot;ERROR LeaderHandler - Lost connection to leader epoch 47&quot;</code></pre>
+<p>Same underlying fact — leader unreachable — expressed in completely
+different strings. You cannot majority-vote on raw strings. Before
+comparison is possible, both lines must produce the same structured
+output:</p>
+<pre><code>(observer=follower-1, subject=leader, state=DEAD)
+(observer=follower-2, subject=leader, state=DEAD)</code></pre>
+<p>This transformation is the <strong>filter tree’s job</strong>.</p>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="the-filter-tree-zoo_filter.json-filter.go">The Filter Tree
+(<code>zoo_filter.json</code> + <code>filter.go</code>)</h2>
+<h3 id="why-a-tree-not-a-flat-list-of-regex-rules">Why a tree, not a
+flat list of regex rules</h3>
+<p>A flat rule can match a string. It cannot match a string <em>in
+context</em>. Consider:</p>
+<pre><code>&quot;Connection lost to /10.0.0.1:2888&quot;</code></pre>
+<p>Before classifying this as <code>state=DEAD</code>, you need to know:
+is <code>/10.0.0.1</code> the <em>leader</em> or a <em>peer
+follower</em>? The same connection loss means something completely
+different depending on the subject’s role in the quorum.</p>
+<p>A tree provides <strong>topology awareness</strong>:</p>
+<pre><code>parent node  →  &quot;who is this log line about, and what role do they play?&quot;
+child node   →  &quot;given that role, what state does this observation imply?&quot;</code></pre>
+<p>The parent establishes role/context; the child fires
+<em>conditional</em> on that context. A flat list treats all connection
+losses identically. A tree discriminates: leader-loss →
+<code>DEAD</code> escalation; peer-loss → <code>UNCERTAIN</code> or
+lower severity.</p>
+<blockquote>
+<p><strong>Analogy to Nezha pairs:</strong> Just as Nezha uses directed
+pairs (A → B) rather than single events to encode cause-and-effect,
+Panorama uses tree-structured rules rather than flat patterns to encode
+topology-and-state. Both designs are solving the same underlying
+problem: single-unit matching loses the relationship that gives the
+signal meaning.</p>
+</blockquote>
+<h3 id="output-of-the-filter-tree">Output of the filter tree</h3>
+<p>Every matched log line produces one structured tuple:</p>
+<pre><code>(observer, subject, state)</code></pre>
+<p>Where <code>state</code> is one of: <code>ALIVE</code>,
+<code>DEAD</code>, <code>UNCERTAIN</code> (or system-specific
+variants).</p>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="local-views">Local Views</h2>
+<p>After the filter tree processes all log lines for a time window, you
+have a collection of <code>(observer, subject, state)</code> tuples.
+Grouped by observer, these form <strong>local views</strong>:</p>
+<pre><code>observer  →  { subject  →  state }</code></pre>
+<h3 id="concrete-zookeeper-example-1-leader-3-followers">Concrete
+ZooKeeper example (1 leader + 3 followers)</h3>
+<pre><code>follower-1&#39;s local view:  { leader → DEAD,  follower-2 → ALIVE, follower-3 → ALIVE     }
+follower-2&#39;s local view:  { leader → DEAD,  follower-1 → ALIVE, follower-3 → UNCERTAIN  }
+follower-3&#39;s local view:  { leader → ALIVE, follower-1 → ALIVE, follower-2 → ALIVE      }</code></pre>
+<p>Each row is one node’s filter-tree output — what that node’s logs say
+about every peer it interacts with. These are now structurally
+comparable: same fields, same state vocabulary, across all
+observers.</p>
+<h3 id="uncertain-is-a-first-class-state">UNCERTAIN is a first-class
+state</h3>
+<p><code>UNCERTAIN</code> is not a fallback or an error. It means: “I
+observed something about this subject, but my signal is ambiguous.” It
+is useful information for operators — it points where to look next
+rather than forcing a wrong binary verdict. A subject with many
+<code>UNCERTAIN</code> votes across observers is itself a signal worth
+investigating.</p>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="majority-reconciliation-decisionmajority.go">Majority
+Reconciliation (<code>decision/majority.go</code>)</h2>
+<p>With local views in hand, majority reconciliation combines them into
+a single <strong>panorama verdict</strong> per subject.</p>
+<p>Naive majority: count votes, pick the winner.</p>
+<pre><code>leader:  DEAD × 2,  ALIVE × 1  →  verdict: DEAD</code></pre>
+<p>But naive majority breaks when some observers are themselves
+compromised. If follower-3’s <code>ALIVE</code> vote for the leader
+comes from a node that is itself partially isolated, counting it equally
+with confident <code>DEAD</code> votes produces a wrong or uncertain
+verdict.</p>
+<h3 id="recursive-observer-assessment">Recursive observer
+assessment</h3>
+<p>Panorama solves this using the <strong>same local view
+infrastructure</strong> to assess observer credibility. It checks: what
+do <em>other</em> observers say about this observer?</p>
+<pre><code>follower-3 votes:  leader → ALIVE
+
+Check other observers&#39; views of follower-3:
+  follower-1&#39;s view of follower-3:  ALIVE
+  follower-2&#39;s view of follower-3:  UNCERTAIN
+
+→ follower-3 is partially suspect → its vote is down-weighted</code></pre>
+<p>The recursion is elegant: no separate credit-scoring system, no
+historical accuracy table. Observer credibility is derived <em>live</em>
+from the same filter tree + local view pipeline. The mechanism is
+self-referential — local views assess both subjects <em>and</em>
+observers.</p>
+<h3 id="final-panorama-verdict">Final panorama verdict</h3>
+<pre><code>subject     →  weighted majority verdict
+leader      →  DEAD       (2 × confident DEAD vs 1 × down-weighted ALIVE)
+follower-3  →  UNCERTAIN  (one observer flagged it; warrants further inspection)</code></pre>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="why-its-called-panorama">Why It’s Called Panorama</h2>
+<p>A panoramic photo is assembled from many overlapping narrow-angle
+images. Each partial image is valid within its frame; combining them —
+with awareness of overlap and occlusion — produces one wide composite
+picture.</p>
+<p>Panorama the system works identically:</p>
+<pre><code>many narrow local views  →  one wide composite inference
+     (per-observer)              (system-wide verdict)</code></pre>
+<p>Each node sees only its immediate neighbors clearly. Panorama
+stitches these partial pictures into a system-wide health assessment,
+handling disagreements (occlusion) through weighted majority.</p>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="nezha-vs-panorama-side-by-side">Nezha vs Panorama:
+Side-by-Side</h2>
+<table>
+<colgroup>
+<col style="width: 39%" />
+<col style="width: 25%" />
+<col style="width: 35%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dimension</th>
+<th>Nezha</th>
+<th>Panorama</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Signal</strong></td>
+<td>Pair support drift (normal vs fault baseline)</td>
+<td>Convergence of independent observer votes</td>
+</tr>
+<tr class="even">
+<td><strong>Requires baseline?</strong></td>
+<td>Yes — <code>construct_data</code> fault-free window</td>
+<td>No — inference is real-time</td>
+</tr>
+<tr class="odd">
+<td><strong>Catches first-time faults?</strong></td>
+<td>Only after baseline is established</td>
+<td>Yes, immediately</td>
+</tr>
+<tr class="even">
+<td><strong>Works on singleton services?</strong></td>
+<td>Yes — traces/logs exist regardless</td>
+<td>No — needs multiple observers of same subject</td>
+</tr>
+<tr class="odd">
+<td><strong>Scales with more servers</strong></td>
+<td>Cost grows (more CSVs to scan)</td>
+<td>Confidence grows (more observers per subject)</td>
+</tr>
+<tr class="even">
+<td><strong>Core data structure</strong></td>
+<td>Directed event pair (cluster_id → cluster_id)</td>
+<td>Local view tuple (observer, subject, state)</td>
+</tr>
+<tr class="odd">
+<td><strong>Normalization</strong></td>
+<td>Drain3 cluster_id (all telemetry → int)</td>
+<td>Filter tree (log line → structured state tuple)</td>
+</tr>
+<tr class="even">
+<td><strong>Combining signal</strong></td>
+<td>Pattern support count across traces</td>
+<td>Weighted majority across observer local views</td>
+</tr>
+<tr class="odd">
+<td><strong>Observer credibility</strong></td>
+<td>Not applicable (centralized)</td>
+<td>Assessed recursively via same local view pipeline</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="key-files">Key Files</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>panorama/conf/zoo_filter.json</code></td>
+<td>Filter tree definition — maps log patterns to (observer, subject,
+state)</td>
+</tr>
+<tr class="even">
+<td><code>panorama/types/filter.go</code></td>
+<td>Filter tree execution logic</td>
+</tr>
+<tr class="odd">
+<td><code>panorama/decision/majority.go</code></td>
+<td>Weighted majority reconciliation</td>
+</tr>
+<tr class="even">
+<td><code>panorama/plugin/zookeeper.go</code></td>
+<td>ZooKeeper-specific log parsing and node role identification</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="cheat-sheet">Cheat Sheet</h2>
+<h3 id="the-pipeline">The Pipeline</h3>
+<pre><code>raw log line
+  → filter tree (topology-aware: who is this about, what role do they play?)
+  → local view tuple: (observer, subject, state)
+  → group by observer: { observer → { subject → state } }
+  → weighted majority (weights derived from recursive observer health check)
+  → panorama verdict: { subject → ALIVE | DEAD | UNCERTAIN }</code></pre>
+<h3 id="key-concepts">Key Concepts</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Concept</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Observer</strong></td>
+<td>Node whose logs are being read</td>
+</tr>
+<tr class="even">
+<td><strong>Subject / Target</strong></td>
+<td>Node being assessed (potentially faulty)</td>
+</tr>
+<tr class="odd">
+<td><strong>Metric / Context</strong></td>
+<td>Component dimension scoping the status (e.g. SyncThread, cpu) —
+<code>tag_context</code> from ParseLine</td>
+</tr>
+<tr class="even">
+<td><strong>Status</strong></td>
+<td>Health state: HEALTHY / UNHEALTHY / MAYBE_UNHEALTHY / DEAD /
+PENDING</td>
+</tr>
+<tr class="odd">
+<td><strong>Score</strong></td>
+<td>Numeric severity 0–100; averaged across observers in InferPano</td>
+</tr>
+<tr class="even">
+<td><strong>Match</strong></td>
+<td>Filter tree rule that fires — gate between raw log and structured
+report</td>
+</tr>
+<tr class="odd">
+<td><strong>Report</strong></td>
+<td>Full 5-tuple: (observer, subject, metric, status, score)</td>
+</tr>
+<tr class="even">
+<td><strong>LOS storage</strong></td>
+<td>Local Observation Store — persistence layer between filter output
+and inference</td>
+</tr>
+<tr class="odd">
+<td><strong>View</strong></td>
+<td>All reports from one observer about one subject, per metric</td>
+</tr>
+<tr class="even">
+<td><strong>Panorama (data model)</strong></td>
+<td>All views for one subject across all observers — input to
+InferPano</td>
+</tr>
+<tr class="odd">
+<td><strong>InferView</strong></td>
+<td>Per-observer smoothing (worm): lookback, score averaging, PENDING
+resolution — one observer × subject × metric</td>
+</tr>
+<tr class="even">
+<td><strong>InferPano</strong></td>
+<td>Cross-observer majority (bird): tie-break + score averaging → final
+verdict — all observers × subject × metric</td>
+</tr>
+<tr class="odd">
+<td><strong>PENDING</strong></td>
+<td>Transient state absorbed by later HEALTHY in InferView lookback
+window</td>
+</tr>
+<tr class="even">
+<td><strong>Recursive assessment</strong></td>
+<td>Observer credibility derived from other observers’ local views of
+that observer</td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-anomaly-signal">The Anomaly Signal</h3>
+<pre><code>Nezha:    pair_score = support_in_rca_data - support_in_construct_data
+Panorama: verdict = weighted_majority({ observer → state for subject X })
+          weight(observer) ∝ how many other observers see it as ALIVE</code></pre>
+<hr />
+<div class="pagebreak">
+
+</div>
+<h2 id="where-to-go-next">Where to Go Next</h2>
+<ul>
+<li><strong>Simulation:</strong>
+<code>http://localhost:8771/panorama-learning-prototype.html</code> —
+walk scenarios in this order: Quorum cascade → SyncThread issue →
+LearnerHandler DEAD → WorkerSender issue → Pending resolution →
+Multi-observer majority. For each, identify: which observer voted first,
+what state it produced, and whether the final verdict matches your
+prediction.</li>
+<li><strong>Code bridge:</strong> for each UI stage in the simulator,
+find the corresponding function in <code>filter.go</code> or
+<code>majority.go</code>. One-line mapping: “UI stage X = function Y in
+file Z.”</li>
+<li><strong>Stretch:</strong> choose a scenario where one observer is
+noisy or missing. Predict whether majority still converges. Validate
+with the simulator.</li>
+<li><strong>Extension question:</strong> what happens if the filter tree
+produces conflicting states from two different rules matching the same
+log line? How should <code>filter.go</code> resolve the conflict — first
+match, highest-severity match, or something else?</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,13 @@
+[Unit]
+Description=Motadata Lean RCA API
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/Harshil-PoCs/Unified-RCA
+Environment=PORT=8780
+ExecStart=/root/Harshil-PoCs/Unified-RCA/lean-pipeline/scripts/serve-rca.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

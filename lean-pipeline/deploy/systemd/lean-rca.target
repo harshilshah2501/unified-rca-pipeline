@@ -1,0 +1,7 @@
+[Unit]
+Description=Motadata Lean RCA API target
+Wants=lean-rca.service
+After=network.target
+
+[Install]
+WantedBy=multi-user.target

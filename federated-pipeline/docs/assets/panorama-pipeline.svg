@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 980" role="img" aria-labelledby="title desc">
+  <title id="title">Panorama pipeline - logs to inference</title>
+  <desc id="desc">Flow from ZooKeeper logs through ParseLine, FilterTree, Report, LOS, propagation, InferView, InferPano, to GetInference verdict.</desc>
+  <defs>
+    <linearGradient id="ingest" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="struct" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#065f46"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="dist" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#5b21b6"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="infer" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9a3412"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/>
+    </marker>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="108%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="720" height="980" fill="#f8fafc"/>
+
+  <text x="360" y="42" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700" fill="#0f172a">Panorama Pipeline</text>
+  <text x="360" y="66" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="13" fill="#475569">Raw ZooKeeper logs to structured 5-tuple reports to per-subject inference</text>
+
+  <g font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">
+    <text x="28" y="118" transform="rotate(-90 28 118)">INGEST</text>
+    <text x="28" y="338" transform="rotate(-90 28 338)">STRUCTURE</text>
+    <text x="28" y="478" transform="rotate(-90 28 478)">DISTRIBUTE</text>
+    <text x="28" y="718" transform="rotate(-90 28 718)">INFER</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="100" y="88" width="520" height="52" rx="10" fill="url(#ingest)"/>
+    <text x="360" y="112" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">ZooKeeper logs from all nodes</text>
+    <text x="360" y="130" text-anchor="middle" font-family="Consolas, monospace" font-size="10" fill="#dbeafe">zookeeper.out @ each peer - hview-logtail</text>
+  </g>
+
+  <line x1="360" y1="140" x2="360" y2="158" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="100" y="160" width="520" height="64" rx="10" fill="url(#ingest)"/>
+    <text x="360" y="186" text-anchor="middle" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#ffffff">ParseLine()</text>
+    <text x="360" y="208" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" fill="#dbeafe">extract observer, subject, tag_context, content</text>
+  </g>
+  <rect x="540" y="172" width="168" height="40" rx="6" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="624" y="188" text-anchor="middle" font-family="Consolas, monospace" font-size="9" fill="#1e40af">observer, subject</text>
+  <text x="624" y="202" text-anchor="middle" font-family="Consolas, monospace" font-size="9" fill="#1e40af">context, content</text>
+
+  <line x1="360" y1="224" x2="360" y2="242" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="100" y="244" width="520" height="64" rx="10" fill="url(#ingest)"/>
+    <text x="360" y="270" text-anchor="middle" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#ffffff">FilterTree.Eval()</text>
+    <text x="360" y="292" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" fill="#dbeafe">zoo_filter.json match fires: metric, status, score</text>
+  </g>
+  <rect x="540" y="256" width="168" height="40" rx="6" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="624" y="274" text-anchor="middle" font-family="Consolas, monospace" font-size="9" fill="#1e40af">(metric, status, score)</text>
+  <text x="624" y="288" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="8" fill="#64748b">added by filter</text>
+
+  <line x1="360" y1="308" x2="360" y2="326" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="100" y="328" width="520" height="64" rx="10" fill="url(#struct)"/>
+    <text x="360" y="354" text-anchor="middle" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#ffffff">SubmitReport()</text>
+    <text x="360" y="376" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" fill="#d1fae5">pb.Report 5-tuple assembled</text>
+  </g>
+  <rect x="88" y="340" width="200" height="40" rx="6" fill="#ecfdf5" stroke="#6ee7b7"/>
+  <text x="188" y="356" text-anchor="middle" font-family="Consolas, monospace" font-size="8.5" fill="#065f46">(observer, subject, metric,</text>
+  <text x="188" y="370" text-anchor="middle" font-family="Consolas, monospace" font-size="8.5" fill="#065f46"> status, score)</text>
+
+  <line x1="360" y1="392" x2="360" y2="410" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="100" y="412" width="520" height="64" rx="10" fill="url(#struct)"/>
+    <text x="360" y="438" text-anchor="middle" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#ffffff">AddReport() / LOS</text>
+    <text x="360" y="460" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" fill="#d1fae5">append to View[observer][subject] per metric</text>
+  </g>
+
+  <line x1="360" y1="476" x2="360" y2="494" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="100" y="496" width="520" height="64" rx="10" fill="url(#dist)"/>
+    <text x="360" y="522" text-anchor="middle" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#ffffff">exchange.go</text>
+    <text x="360" y="544" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" fill="#ede9fe">peer propagation - LearnReport gRPC - pano0..pano9</text>
+  </g>
+
+  <line x1="360" y1="560" x2="360" y2="578" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="100" y="584" width="520" height="28" rx="6" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="360" y="603" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="600" fill="#9a3412">Two-step inference - one subject at a time</text>
+
+  <line x1="360" y1="612" x2="360" y2="630" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="100" y="632" width="250" height="72" rx="10" fill="url(#infer)"/>
+    <text x="225" y="658" text-anchor="middle" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#ffffff">InferView()</text>
+    <text x="225" y="678" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" fill="#ffedd5">worm - one observer</text>
+    <text x="225" y="694" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="9" fill="#ffedd5">lookback, PENDING to HEALTHY</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="370" y="632" width="250" height="72" rx="10" fill="url(#infer)"/>
+    <text x="495" y="658" text-anchor="middle" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#ffffff">InferPano()</text>
+    <text x="495" y="678" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" fill="#ffedd5">bird - all observers</text>
+    <text x="495" y="694" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="9" fill="#ffedd5">majority vote, score avg</text>
+  </g>
+
+  <path d="M225 704 L225 728 L495 728 L495 704" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="100" y="738" width="520" height="72" rx="10" fill="#0f172a"/>
+    <text x="360" y="766" text-anchor="middle" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#f8fafc">GetInference()</text>
+    <text x="360" y="788" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" fill="#cbd5e1">per-subject verdict - drops single observer column</text>
+  </g>
+  <rect x="88" y="750" width="220" height="48" rx="6" fill="#f1f5f9" stroke="#94a3b8"/>
+  <text x="198" y="768" text-anchor="middle" font-family="Consolas, monospace" font-size="8.5" fill="#0f172a">{ subject, metric, status,</text>
+  <text x="198" y="782" text-anchor="middle" font-family="Consolas, monospace" font-size="8.5" fill="#0f172a"> score, observer_set }</text>
+
+  <rect x="100" y="838" width="520" height="118" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="120" y="862" font-family="Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Legend</text>
+  <g font-family="Segoe UI, sans-serif" font-size="10" fill="#334155">
+    <rect x="120" y="874" width="14" height="14" rx="3" fill="url(#ingest)"/>
+    <text x="142" y="885">Ingest - parse and classify raw logs</text>
+    <rect x="120" y="896" width="14" height="14" rx="3" fill="url(#struct)"/>
+    <text x="142" y="907">Structure - 5-tuple report and LOS View storage</text>
+    <rect x="120" y="918" width="14" height="14" rx="3" fill="url(#dist)"/>
+    <text x="142" y="929">Distribute - propagate across Panorama peers</text>
+    <rect x="360" y="874" width="14" height="14" rx="3" fill="url(#infer)"/>
+    <text x="382" y="885">Infer - worm (InferView) then bird (InferPano)</text>
+    <rect x="360" y="896" width="14" height="14" rx="3" fill="#0f172a"/>
+    <text x="382" y="907">Verdict - fused health per subject x metric</text>
+    <text x="360" y="929" fill="#64748b">Example: [peer@9] ==&gt; peer@1: { RecvWorker: UNHEALTHY, 20.0; }</text>
+  </g>
+</svg>

@@ -1,0 +1,57 @@
+{
+  "engine": "lean",
+  "uc_id": "UC-5",
+  "root_ci": "orders-api",
+  "signature": "app_resource_exhaustion",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "orders-api",
+      "signal": "jvm.heap.used_pct",
+      "value": 96.0,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "db.conn_pool.active_ratio",
+      "value": 1.0,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "request.p95_latency_ms",
+      "value": 1800.0,
+      "timestamp": "2026-07-10T10:00:12Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "error_rate_5xx",
+      "value": 0.18,
+      "timestamp": "2026-07-10T10:00:12Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 4,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "causal_verified": null,
+  "causal_log": null,
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "orders-api"
+  ],
+  "blast_radius": [
+    "orders-api"
+  ],
+  "remediation": [
+    "Increase heap capacity or fix the memory leak.",
+    "Tune connection and worker pools.",
+    "Autoscale and check downstream dependencies."
+  ]
+}

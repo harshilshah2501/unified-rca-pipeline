@@ -1,0 +1,71 @@
+# ObserveOps signal registry — CI types, decisive signals, rule bindings.
+# Source: rca-use-cases-only.md table (b)
+
+ci_types:
+  hypervisor_host:
+    prefix: esxi-
+    signals:
+      - cpu.usage
+      - cpu.ready
+      - vmnic.dropped_packets
+  network_port:
+    prefix: switch-
+    signals:
+      - linkDown
+      - ifOutDiscards
+      - ifInErrors
+      - utilization_pct
+  datastore:
+    prefix: datastore-
+    signals:
+      - gavg_latency_ms
+      - davg_latency_ms
+  vm:
+    prefix: vm-
+    signals:
+      - cpu.ready
+      - virtualDisk.totalLatency_ms
+      - virtualDisk.iops
+      - tcp.retransmits
+  guest_os:
+    prefix: guest-os-
+    signals:
+      - filesystem.used_pct
+      - disk.iowait_pct
+      - oom_killer_event
+      - load.avg
+  application:
+    prefix: orders-
+    signals:
+      - request.p95_latency_ms
+      - jvm.heap.used_pct
+      - db.conn_pool.active_ratio
+      - error_rate_5xx
+      - health_check
+      - tcp.timeouts
+
+rules:
+  shared_upstream:
+    cpu_contention:
+      ci_prefix: vm-
+      signal: cpu.ready
+      min_crossed: 2
+      target_prefix: esxi-
+    storage_contention:
+      signals:
+        - virtualDisk.totalLatency_ms
+        - disk.iowait_pct
+      min_crossed: 1
+      target_prefix: datastore-
+  datastore_contributor:
+    ci_prefix: vm-neighbor
+    signal: virtualDisk.iops
+  upstream_healthy:
+    infra_prefixes:
+      - esxi-
+      - switch-
+      - datastore-
+      - vm-
+      - guest-os-
+    app_prefixes:
+      - orders-

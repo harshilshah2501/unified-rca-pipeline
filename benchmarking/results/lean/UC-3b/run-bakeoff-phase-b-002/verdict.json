@@ -1,0 +1,121 @@
+{
+  "engine": "lean",
+  "uc_id": "UC-3b",
+  "root_ci": "datastore-01",
+  "signature": "storage_contention",
+  "contributor_cis": [
+    "vm-neighbor-01"
+  ],
+  "evidence": [
+    {
+      "ci": "switch-core-01:GigE0/2",
+      "signal": "utilization_pct",
+      "value": 92.0,
+      "timestamp": "2026-07-10T09:59:58Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "datastore-01",
+      "signal": "gavg_latency_ms",
+      "value": 45.0,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "datastore-01",
+      "signal": "davg_latency_ms",
+      "value": 28.0,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "vm-neighbor-01",
+      "signal": "virtualDisk.iops",
+      "value": 12000.0,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "vm-db-01",
+      "signal": "virtualDisk.totalLatency_ms",
+      "value": 38.0,
+      "timestamp": "2026-07-10T10:00:12Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "guest-os-vm-db-01",
+      "signal": "disk.iowait_pct",
+      "value": 72.0,
+      "timestamp": "2026-07-10T10:00:18Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "request.p95_latency_ms",
+      "value": 2100.0,
+      "timestamp": "2026-07-10T10:00:25Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "switch-core-01:GigE0/2",
+      "signal": "snmp.utilization",
+      "value": "ifUtilizationPct=92 on GigE0/2 (concurrent noise; not causal for storage)",
+      "timestamp": "2026-07-10T09:59:58Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "ifUtilizationPct=92 on GigE0/2 (concurrent noise; not causal for storage)"
+    }
+  ],
+  "observations": 7,
+  "evidentiary_tier": 3,
+  "fallback_fired": true,
+  "causal_verified": true,
+  "causal_log": [
+    {
+      "check": "root_anomalous",
+      "passed": true,
+      "root_ci": "datastore-01",
+      "onset": "2026-07-10T10:00:05+00:00"
+    },
+    {
+      "check": "topology_upstream_of_seed",
+      "passed": true,
+      "seed_ci": "orders-api",
+      "root_ci": "datastore-01"
+    },
+    {
+      "check": "onset_precedes_connected_symptoms",
+      "passed": true,
+      "root_onset": "2026-07-10T10:00:05+00:00",
+      "connected_downstream_cis": [
+        "guest-os-vm-db-01",
+        "orders-api",
+        "vm-db-01",
+        "vm-neighbor-01"
+      ]
+    }
+  ],
+  "obs_to_convergence": 3,
+  "naive_bfs_expansions": 4,
+  "efficiency_ratio": 1.3333333333333333,
+  "upstream_healthy_verified": false,
+  "causal_chain": [
+    "datastore-01",
+    "vm-app-01",
+    "guest-os-vm-app-01",
+    "orders-api"
+  ],
+  "blast_radius": [
+    "vm-app-01",
+    "vm-db-01",
+    "vm-neighbor-01",
+    "guest-os-vm-app-01",
+    "guest-os-vm-db-01",
+    "orders-api"
+  ],
+  "remediation": [
+    "Storage vMotion the noisy VM or database workload.",
+    "Apply SIOC or I/O limits to competing workloads.",
+    "Check latency on the backing storage array."
+  ]
+}

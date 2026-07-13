@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Panorama — Distributed Health Inference Simulator</title>
+  <link rel="stylesheet" href="../assets/prototype-embed.css?v=20260703l"/>
+  <script src="../assets/prototype-embed.js?v=20260703l"></script>
+  <style>
+    :root {
+      --bg: #0b0f14; --surface: #111827; --panel: #1f2937; --border: #374151;
+      --muted: #9ca3af; --text: #f3f4f6; --log: #34d399; --trace: #fbbf24;
+      --healthy: #22c55e; --unhealthy: #ef4444; --pending: #a78bfa; --dead: #7f1d1d;
+      --accent: #38bdf8; --propagate: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 12px;
+    }
+    header { width: min(1240px, 100%); }
+    header h1 { margin: 0; font-size: 1.2rem; font-weight: 600; }
+    header p { margin: 4px 0 0; color: var(--muted); font-size: 0.82rem; }
+    .layout { display: grid; grid-template-columns: 1fr 340px; gap: 12px; width: min(1240px, 100%); }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+    .svg-wrap {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch;
+    }
+    svg { display: block; width: 100%; height: auto; user-select: none; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; width: min(1240px, 100%); align-items: center; }
+    .controls label { font-size: 0.78rem; color: var(--muted); }
+    button, select {
+      background: var(--panel); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 12px; font-size: 0.8rem; cursor: pointer;
+    }
+    button:hover { background: #273449; }
+    #guideBtn { border-color: var(--accent); color: #bae6fd; font-weight: 600; }
+    .sidebar { display: flex; flex-direction: column; gap: 10px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+    .card h2 { margin: 0 0 8px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .card p, .card li { margin: 0; font-size: 0.82rem; line-height: 1.45; color: #d1d5db; }
+    .card ul { margin: 6px 0 0; padding-left: 18px; }
+    .mono { font-family: ui-monospace, monospace; font-size: 0.7rem; color: #7dd3fc; line-height: 1.55; white-space: pre-wrap; }
+    .obs-line { font-family: ui-monospace, monospace; font-size: 0.68rem; padding: 3px 0; border-bottom: 1px solid #2d3748; color: #cbd5e1; }
+    .obs-table { font-family: ui-monospace, monospace; font-size: 0.65rem; }
+    .obs-header, .obs-row {
+      display: grid;
+      grid-template-columns: 68px 58px 76px 1fr 32px;
+      gap: 6px;
+      align-items: center;
+      padding: 4px 0;
+    }
+    .obs-header {
+      color: #9ca3af;
+      font-weight: 600;
+      font-size: 0.58rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #374151;
+      margin-bottom: 2px;
+    }
+    .obs-row { border-bottom: 1px solid #2d3748; color: #cbd5e1; }
+    .obs-row .obs-observer { color: #38bdf8; }
+    .obs-row .obs-subject { color: #e2e8f0; }
+    .obs-row .obs-metric { color: #a78bfa; }
+    .obs-row .obs-score { color: #fbbf24; text-align: right; }
+    .file-ref { color: #6b7280; font-size: 0.68rem; font-style: italic; }
+    .frame-detail-body { font-size: 0.76rem; line-height: 1.55; }
+    .fd-section { margin: 0 0 10px; }
+    .fd-label {
+      display: block; color: #9ca3af; font-weight: 600; font-size: 0.68rem;
+      text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 3px;
+    }
+    .fd-body { color: #e2e8f0; word-break: break-word; overflow-wrap: anywhere; }
+    /* Scrollable HTML inside SVG frames (filter tree, long log fields) */
+    .filter-scroll {
+      font-family: ui-monospace, monospace;
+      font-size: 8px;
+      line-height: 1.45;
+      max-height: 198px;
+      overflow-x: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      color: #9ca3af;
+    }
+    .filter-scroll .ft-label {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 7px; font-weight: 600; color: #6b7280; margin: 0 0 3px;
+    }
+    .filter-scroll .ft-box {
+      border: 1px solid #374151; border-radius: 4px; padding: 3px 5px; margin: 0 0 5px;
+      background: #0f172a;
+    }
+    .filter-scroll .ft-box.ft-active { border-color: #38bdf8; }
+    .filter-scroll .ft-box.ft-match { border-color: #22c55e; background: #052e16; }
+    .filter-scroll .ft-box.ft-out { border-color: #38bdf8; background: #1e3a5f; }
+    .filter-scroll .ft-box.ft-decoy { opacity: 0.75; }
+    .filter-scroll .ft-line { white-space: nowrap; padding: 1px 0; }
+    .filter-scroll .ft-key { color: #7dd3fc; }
+    .filter-scroll .ft-ok { color: #34d399; font-weight: 600; }
+    .filter-scroll .ft-step { color: #a7f3d0; padding-left: 4px; }
+    .filter-scroll .ft-result { color: #fbbf24; font-weight: 600; }
+    .filter-scroll .ft-muted { color: #6b7280; }
+    .filter-scroll .ft-hint { color: #38bdf8; margin-top: 4px; }
+    .filter-scroll .ft-arrow { text-align: center; color: #6b7280; margin: 2px 0; }
+    .filter-scroll .ft-scroll-hint {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 7px; color: #4b5563; margin-top: 4px; font-style: italic;
+    }
+    .log-scroll {
+      font-family: ui-monospace, monospace;
+      font-size: 8px;
+      line-height: 1.4;
+      max-height: 72px;
+      overflow-x: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .log-scroll .log-line { white-space: nowrap; color: #6ee7b7; padding: 1px 0; }
+    .log-scroll .log-line.log-hi { color: #34d399; }
+    .log-scroll .log-note { color: #6b7280; font-size: 7px; white-space: nowrap; margin-top: 3px; }
+    .log-scroll .parse-block {
+      margin-top: 5px; padding-top: 5px; border-top: 1px dashed #374151;
+    }
+    .log-scroll .parse-block .ft-label {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 7px; font-weight: 600; color: #38bdf8; margin-bottom: 3px;
+    }
+    .log-scroll .parse-block .ft-line { white-space: nowrap; color: #7dd3fc; padding: 1px 0; }
+    .walkthrough-bar {
+      width: min(1240px, 100%); background: #1a1f2e; border: 2px solid var(--accent);
+      border-radius: 12px; padding: 14px 18px; display: grid;
+      grid-template-columns: auto 1fr auto; gap: 16px; align-items: start;
+    }
+    .walkthrough-bar.hidden { display: none; }
+    .wt-step-badge { background: var(--accent); color: #0c4a6e; font-weight: 700; font-size: 0.75rem; padding: 6px 10px; border-radius: 8px; }
+    .wt-title { margin: 0 0 6px; font-size: 0.95rem; font-weight: 600; color: #e0f2fe; }
+    .wt-body { margin: 0 0 6px; font-size: 0.84rem; line-height: 1.5; color: #d1d5db; }
+    .wt-body strong { color: #fbbf24; }
+    .wt-file { display: block; font-size: 0.72rem; color: #6b7280; margin-top: 4px; }
+    .wt-dissection {
+      width: min(1240px, 100%);
+      background: #0c1118;
+      border: 1px solid #374151;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.7rem;
+      line-height: 1.55;
+      color: #bae6fd;
+    }
+    .wt-dissection.hidden { display: none; }
+    .wt-dissection-label {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 0.65rem; color: #6b7280;
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px;
+    }
+    .wt-dissection .dim { color: #6b7280; }
+    .wt-dissection .hi { color: #fbbf24; }
+    .wt-dissection .ok { color: #34d399; }
+    .wt-dissection .warn { color: #f87171; }
+    .wt-actions { display: flex; flex-direction: column; gap: 6px; min-width: 100px; }
+    .wt-actions button.primary { border-color: var(--accent); color: #bae6fd; }
+    .wt-chronology {
+      width: min(1240px, 100%);
+      display: flex; align-items: center;
+      gap: 0; overflow-x: auto;
+      padding: 10px 12px;
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .wt-chronology.hidden { display: none; }
+    .wt-chrono-hint {
+      width: min(1240px, 100%);
+      margin: -4px 0 0;
+      padding: 0 8px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      min-height: 1.1rem;
+    }
+    .wt-chrono-hint.hidden { display: none; }
+    .wt-chrono-item {
+      display: flex; flex-direction: column; align-items: center;
+      min-width: 84px; max-width: 110px; padding: 6px 6px;
+      border-radius: 8px; border: 1px solid transparent;
+      background: transparent; cursor: pointer;
+      color: #9ca3af; font-size: 0.62rem; line-height: 1.25;
+      flex-shrink: 0;
+    }
+    .wt-chrono-item:hover { background: #1f2937; }
+    .wt-chrono-item.done { color: #6ee7b7; }
+    .wt-chrono-item.done .wt-chrono-num { background: #14532d; border-color: #22c55e; color: #bbf7d0; }
+    .wt-chrono-item.active {
+      color: #e0f2fe; border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.12);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+    }
+    .wt-chrono-item.active .wt-chrono-num {
+      background: var(--accent); color: #0c4a6e; border-color: #7dd3fc;
+      animation: chrono-pulse 1.4s ease-in-out infinite;
+    }
+    .wt-chrono-item.pending .wt-chrono-num { background: #1f2937; border-color: #4b5563; color: #6b7280; }
+    .wt-chrono-num {
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.68rem; border: 2px solid;
+      margin-bottom: 4px; flex-shrink: 0;
+    }
+    .wt-chrono-label { text-align: center; font-weight: 600; }
+    .wt-chrono-arrow { color: #4b5563; padding: 0 3px; font-size: 0.7rem; flex-shrink: 0; }
+    @keyframes chrono-pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
+      50% { transform: scale(1.06); box-shadow: 0 0 0 4px rgba(56, 189, 248, 0); }
+    }
+    .zone-dim { opacity: 0.12; transition: opacity 0.35s; }
+    .zone-focus { opacity: 1; transition: opacity 0.35s; }
+    .card.wt-focus { border-color: var(--accent); outline: 1px solid var(--accent); }
+    .card.wt-dim { opacity: 0.35; }
+    .highlight-ring { fill: none; stroke: #38bdf8; stroke-width: 2.5; stroke-dasharray: 6 4; pointer-events: none; }
+    .status-healthy { fill: #22c55e; }
+    .status-unhealthy { fill: #ef4444; }
+    .status-maybe { fill: #f59e0b; }
+    .status-dead { fill: #7f1d1d; }
+    .status-pending { fill: #a78bfa; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Panorama Health Inference Simulator — ZooKeeper ensemble</h1>
+  <p>Aligned with <code>plugin/zookeeper.go</code> → <code>types/filter.go</code> → <code>store/raw.go</code> → <code>decision/majority.go</code> · OSDI'18</p>
+</header>
+
+<div class="controls">
+  <label>Scenario:</label>
+  <select id="scenarioSelect"></select>
+  <button id="guideBtn">Start guided walkthrough</button>
+  <button id="resetBtn" style="border-color:#7f1d1d;color:#fca5a5">Reset</button>
+</div>
+
+<div id="walkthroughBar" class="walkthrough-bar hidden">
+  <div class="wt-step-badge">Step <span id="wtStepNum">1</span>/<span id="wtStepTotal">10</span></div>
+  <div>
+    <p class="wt-title" id="wtTitle"></p>
+    <p class="wt-body" id="wtBody"></p>
+    <span class="wt-file" id="wtFile"></span>
+  </div>
+  <div class="wt-actions">
+    <button id="wtNext" class="primary">Next step</button>
+    <button id="wtPrev">Previous</button>
+    <button id="wtExit">Exit guide</button>
+  </div>
+</div>
+
+<div id="wtChronology" class="wt-chronology hidden" aria-label="Walkthrough step timeline"></div>
+<p id="wtChronoHint" class="wt-chrono-hint hidden"></p>
+<div id="wtDissection" class="wt-dissection hidden" aria-live="polite">
+  <div class="wt-dissection-label">Example record · dissection at this step</div>
+  <div id="wtDissectionBody"></div>
+</div>
+
+<div class="layout">
+  <div class="svg-wrap">
+    <svg id="panoSvg" viewBox="0 0 1140 700" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6b7280"/></marker>
+        <marker id="arrow-o" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f59e0b"/></marker>
+        <filter id="glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <rect width="1140" height="700" fill="#0b0f14"/>
+      <g id="highlightRings"></g>
+      <text x="36" y="32" fill="#f3f4f6" font-size="13" font-weight="600">Panorama: in-situ observation → views → panorama → majority inference</text>
+      <text x="36" y="50" fill="#6b7280" font-size="10">Unlike Nezha (offline RCA), Panorama fuses distributed health reports in real time</text>
+      <g id="stepDots" transform="translate(36, 62)"></g>
+
+      <!-- INPUT -->
+      <g id="zoneInput">
+        <text x="36" y="100" fill="#9ca3af" font-size="10" font-weight="600">INPUT MODALITIES</text>
+        <rect x="36" y="112" width="220" height="118" rx="9" fill="#1f2937" stroke="#374151"/>
+        <text x="72" y="140" fill="#34d399" font-size="12" font-weight="600">ZooKeeper log</text>
+        <text x="52" y="162" fill="#9ca3af" font-size="9">hview-logtail → plugin/zookeeper.go</text>
+        <foreignObject x="48" y="168" width="196" height="72">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="logPreviewBody" class="svg-fo log-scroll"></div>
+        </foreignObject>
+        <text x="52" y="222" fill="#6b7280" font-size="8">zookeeper.out (tailed in-situ)</text>
+
+        <rect x="36" y="238" width="220" height="70" rx="9" fill="#1f2937" stroke="#374151"/>
+        <text x="68" y="266" fill="#fbbf24" font-size="12" font-weight="600">Manual report</text>
+        <text x="52" y="286" fill="#9ca3af" font-size="9">hview-client: metric:status:score</text>
+        <text id="manualPreview" x="52" y="300" fill="#fbbf24" font-size="8" font-family="monospace">snapshot:u:30</text>
+      </g>
+
+      <!-- FILTER -->
+      <g id="zoneFilter">
+        <rect x="278" y="115" width="168" height="248" rx="9" fill="#111827" stroke="#4b5563"/>
+        <text x="292" y="136" fill="#7dd3fc" font-size="10" font-weight="600">Filter Tree</text>
+        <text x="286" y="152" fill="#6b7280" font-size="7">types/filter.go · conf/zoo_filter.json</text>
+        <foreignObject x="286" y="156" width="152" height="200">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="filterTreeBody" class="svg-fo filter-scroll"></div>
+        </foreignObject>
+        <line x1="446" y1="220" x2="425" y2="220" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+      </g>
+
+      <!-- REPORT / VIEW -->
+      <g id="zoneStorage">
+        <rect x="425" y="100" width="155" height="230" rx="9" fill="#111827" stroke="#374151"/>
+        <text x="440" y="122" fill="#f3f4f6" font-size="11" font-weight="600">LOS Storage</text>
+        <text x="440" y="140" fill="#6b7280" font-size="8">store/raw.go · AddReport()</text>
+        <text x="440" y="158" fill="#9ca3af" font-size="9" font-weight="600">Report</text>
+        <text id="reportLine" x="440" y="176" fill="#bae6fd" font-size="8" font-family="monospace"></text>
+        <text x="440" y="200" fill="#9ca3af" font-size="9" font-weight="600">View (observer→subject)</text>
+        <text id="viewLine" x="440" y="218" fill="#34d399" font-size="8" font-family="monospace"></text>
+        <text x="440" y="242" fill="#9ca3af" font-size="9" font-weight="600">Observation stream</text>
+        <g id="obsStream" transform="translate(440, 252)"></g>
+        <line x1="580" y1="210" x2="600" y2="210" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+      </g>
+
+      <!-- PANORAMA GRAPH -->
+      <g id="zonePanorama">
+        <rect x="595" y="85" width="310" height="280" rx="11" fill="#111827" stroke="#374151"/>
+        <text x="750" y="110" fill="#f3f4f6" font-size="12" font-weight="600" text-anchor="middle">Panorama (all views about subject)</text>
+        <text x="610" y="128" fill="#6b7280" font-size="9">One Panorama per subject · max 10 observations/view</text>
+        <g id="panoGraph" transform="translate(750, 210)"></g>
+        <text id="panoSubject" x="750" y="340" fill="#f59e0b" font-size="10" text-anchor="middle" font-weight="600"></text>
+
+        <!-- Propagation -->
+        <rect x="610" y="355" width="280" height="50" rx="7" fill="#1f2937" stroke="#374151"/>
+        <text x="622" y="374" fill="#f59e0b" font-size="9" font-weight="600">Peer propagation (exchange/exchange.go)</text>
+        <text id="propLine" x="622" y="392" fill="#9ca3af" font-size="8" font-family="monospace">LearnReport → merge remote views</text>
+      </g>
+
+      <!-- INFERENCE (compact — full detail in sidebar) -->
+      <g id="zoneInfer">
+        <line x1="905" y1="210" x2="930" y2="170" stroke="#6b7280" marker-end="url(#arrow)"/>
+        <line x1="905" y1="240" x2="930" y2="280" stroke="#6b7280" marker-end="url(#arrow)"/>
+        <rect x="930" y="100" width="190" height="118" rx="9" fill="#1f2937" stroke="#374151"/>
+        <text x="946" y="122" fill="#f3f4f6" font-size="11" font-weight="600">InferView · InferPano</text>
+        <text x="946" y="136" fill="#6b7280" font-size="8">majority vote → inference · see sidebar</text>
+        <foreignObject x="934" y="142" width="182" height="68">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="inferCompact" class="svg-fo"></div>
+        </foreignObject>
+      </g>
+
+      <!-- ZK ensemble strip -->
+      <g id="zoneEnsemble">
+        <text x="36" y="420" fill="#9ca3af" font-size="10" font-weight="600">ZOOKEEPER ENSEMBLE (peer@0 … peer@9)</text>
+        <g id="ensembleStrip" transform="translate(36, 432)"></g>
+      </g>
+
+      <g id="flowParticles"></g>
+    </svg>
+  </div>
+
+  <aside class="sidebar">
+    <div class="card" id="cardLearning">
+      <h2>Learning focus</h2>
+      <p id="learningText">Panorama detects <strong>which entity is unhealthy</strong> by fusing in-situ observations from many observers — not offline root-cause ranking like Nezha.</p>
+    </div>
+    <div class="card frame-detail-card" id="cardInferDetail">
+      <h2>Inference detail</h2>
+      <div id="inferSidebarBody" class="frame-detail-body"></div>
+    </div>
+    <div class="card" id="cardPipeline">
+      <h2>Repo pipeline (Go)</h2>
+      <div class="mono" id="pipelineText">ZK log → ParseLine → FilterTree.Eval
+  → SubmitReport → View → Panorama
+  → InferView → InferPano → Inference</div>
+    </div>
+    <div class="card" id="cardObs">
+      <h2>Observation details</h2>
+      <div id="obsFeed"></div>
+      <p class="file-ref" id="dataRef"></p>
+    </div>
+    <div class="card" id="cardCompare">
+      <h2>Panorama vs Nezha</h2>
+      <ul id="compareList">
+        <li><strong>Panorama:</strong> real-time failure detection, majority vote</li>
+        <li><strong>Nezha:</strong> offline RCA, event-pair pattern drift</li>
+        <li><strong>Input:</strong> logs (+ manual) vs metrics+logs+traces</li>
+        <li><strong>Output:</strong> health status vs root cause region</li>
+      </ul>
+    </div>
+    <div class="card" id="cardExplore">
+      <h2>How to explore</h2>
+      <ul>
+        <li>Pick a scenario from README / unit tests</li>
+        <li>Click <strong>Start guided walkthrough</strong></li>
+        <li>Follow observer→subject edges in the Panorama graph</li>
+        <li>See InferView then InferPano fusion formulas</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function () {
+  const STEPS = ["Log", "Filter", "Report", "View", "Panorama", "Propagate", "InferView", "InferPano", "Inference"];
+
+  const STATUS_COLOR = {
+    healthy: "#22c55e", unhealthy: "#ef4444", maybe_unhealthy: "#f59e0b",
+    dead: "#7f1d1d", pending: "#a78bfa",
+  };
+
+  const SCENARIOS = {
+    quorum_cascade: {
+      name: "Quorum cascade — SyncThread trace (README peer@1 dump)",
+      data_ref: "README.md · hview-client dump inference",
+      log: "RecvWorker: unable to read from peer@1",
+      log_lines: [
+        "RecvWorker: unable to read from peer@1",
+        "SendWorker: broken pipe to peer@3",
+        "SyncThread: Too busy to snap, skipping…",
+      ],
+      log_note: "3 log types in one fault window (README dump inference)",
+      manual: "(auto from log filter)",
+      filter: { context: "RecvWorker / SendWorker / SyncThread", status: "unhealthy", score: 20, rule: "conf/zoo_filter.json" },
+      observer: "peer@9",
+      focus_subject: "peer@1",
+      reports: [
+        { obs: "peer@9", sub: "peer@1", metric: "RecvWorker", status: "unhealthy", score: 20 },
+        { obs: "peer@9", sub: "peer@4", metric: "RecvWorker", status: "unhealthy", score: 20 },
+        { obs: "peer@9", sub: "peer@3", metric: "SendWorker", status: "unhealthy", score: 20 },
+        { obs: "peer@9", sub: "peer@2", metric: "SendWorker", status: "unhealthy", score: 20 },
+        { obs: "peer@9", sub: "peer@8", metric: "SendWorker", status: "unhealthy", score: 20 },
+        { obs: "peer@9", sub: "peer@9", metric: "SyncThread", status: "unhealthy", score: 20 },
+      ],
+      infer_view: "peer@9→peer@1: RecvWorker UNHEALTHY, 20",
+      infer_pano: "peer@1: RecvWorker UNHEALTHY, 20 (1 observer)",
+      inference: { subject: "peer@1", metric: "RecvWorker", status: "UNHEALTHY", score: 20, observers: 1 },
+      dump: "[peer@9] ==> peer@1: { RecvWorker: UNHEALTHY, 20.0; }",
+      learning: "<strong>peer@9</strong> is the <strong>observer</strong> (hview on that ZK node). <strong>peer@1</strong>, <strong>peer@3</strong>, etc. are <strong>subjects</strong> — each gets its own panorama + inference. This view shows README’s first dump block for subject <code>peer@1</code>; peer@9’s SyncThread self-report is a separate subject panorama.",
+      highlight_peer: "peer@9",
+      record: {
+        source: "zookeeper.out @ peer@9",
+        raw: "2024-05-21 08:00:39,365 [myid:9] - WARN  [SyncThread:SyncThread@412] - Too busy to snap, skipping snapshot sync request",
+        parsed: {
+          time: "2024-05-21 08:00:39,365",
+          myid: "9",
+          level: "WARN",
+          tag_context: "SyncThread",
+          class: "SyncThread",
+          content: "Too busy to snap, skipping snapshot sync request",
+          observer: "peer@9",
+          subject: "peer@9",
+        },
+        filter: {
+          matched: "tag_context==SyncThread ∧ content~^Too busy to snap",
+          metric: "SyncThread",
+          status: "unhealthy",
+          score: 20,
+        },
+        report: { observer: "peer@9", subject: "peer@9", metric: "SyncThread", status: "UNHEALTHY", score: 20 },
+        note: "Walkthrough traces this line (self-observation). Observation table lists all 6 reports; inference panel uses peer@1 (README first dump block).",
+      },
+    },
+    syncthread: {
+      name: "SyncThread snapshot skip — self observation",
+      data_ref: "conf/zoo_filter.json · SyncThread rule",
+      log: "SyncThread: Too busy to snap, skipping",
+      manual: "—",
+      filter: { context: "Snapshot", status: "unhealthy", score: 20, rule: "tag_context==SyncThread + content match" },
+      observer: "peer@9",
+      focus_subject: "peer@9",
+      reports: [{ obs: "peer@9", sub: "peer@9", metric: "SyncThread", status: "unhealthy", score: 20 }],
+      infer_view: "InferView: UNHEALTHY, 20 (single obs)",
+      infer_pano: "InferPano: UNHEALTHY, 20",
+      inference: { subject: "peer@9", metric: "SyncThread", status: "UNHEALTHY", score: 20, observers: 1 },
+      dump: "[peer@9] ==> peer@9: { SyncThread: UNHEALTHY, 20.0; }",
+      learning: "Single-node self-observation: log filter assigns metric SyncThread with score 20 from zoo_filter.json — no algorithmic score, declarative.",
+      highlight_peer: "peer@9",
+      record: {
+        source: "zookeeper.out @ peer@9",
+        raw: "2024-05-21 08:00:39,365 [myid:9] - WARN  [SyncThread:SyncThread@412] - Too busy to snap, skipping snapshot sync request",
+        parsed: { time: "2024-05-21 08:00:39,365", myid: "9", level: "WARN", tag_context: "SyncThread", class: "SyncThread", content: "Too busy to snap, skipping snapshot sync request", observer: "peer@9", subject: "peer@9" },
+        filter: { matched: "zoo_filter.json SyncThread + Too busy to snap", metric: "SyncThread", status: "unhealthy", score: 20 },
+        report: { observer: "peer@9", subject: "peer@9", metric: "SyncThread", status: "UNHEALTHY", score: 20 },
+      },
+    },
+    learner_dead: {
+      name: "LearnerHandler — unexpected shutdown (DEAD)",
+      data_ref: "conf/zoo_filter.json · LearnerHandler DEAD rule",
+      log: "Unexpected exception causing shutdown…",
+      manual: "—",
+      filter: { context: "LearnerHandler", status: "dead", score: 0, rule: "GOODBYE / exception pattern" },
+      observer: "peer@3",
+      focus_subject: "peer@3",
+      reports: [{ obs: "peer@3", sub: "peer@3", metric: "LearnerHandler", status: "dead", score: 0 }],
+      infer_view: "InferView: DEAD, 0",
+      infer_pano: "InferPano: DEAD, 0 (severity wins tie-break)",
+      inference: { subject: "peer@3", metric: "LearnerHandler", status: "DEAD", score: 0, observers: 1 },
+      dump: "[peer@3] ==> peer@3: { LearnerHandler: DEAD, 0.0; }",
+      learning: "Status ladder: HEALTHY(90) → MAYBE_UNHEALTHY(50) → UNHEALTHY(20) → DEAD(0). Filter tree assigns DEAD immediately on shutdown logs.",
+      highlight_peer: "peer@3",
+      record: {
+        source: "zookeeper.out @ peer@3",
+        raw: "2024-05-19 17:16:25,102 [myid:3] - ERROR [LearnerHandler-:LearnerHandler@891] - Unexpected exception causing shutdown of LearnerHandler",
+        parsed: { time: "2024-05-19 17:16:25,102", myid: "3", level: "ERROR", tag_context: "LearnerHandler-", class: "LearnerHandler", content: "Unexpected exception causing shutdown of LearnerHandler", observer: "peer@3", subject: "peer@3" },
+        filter: { matched: "LearnerHandler- + shutdown exception → DEAD rule", metric: "LearnerHandler", status: "dead", score: 0 },
+        report: { observer: "peer@3", subject: "peer@3", metric: "LearnerHandler", status: "DEAD", score: 0 },
+      },
+    },
+    worker_sender: {
+      name: "WorkerSender — cannot open channel",
+      data_ref: "types/filter_test.go · channel failure",
+      log: "Cannot open channel to 1 at election address …/host:port",
+      manual: "—",
+      filter: { context: "WorkerSender", status: "maybe_unhealthy", score: 40, rule: "regex captures remote peer as subject" },
+      observer: "peer@2",
+      focus_subject: "peer@1",
+      reports: [{ obs: "peer@2", sub: "peer@1", metric: "WorkerSender", status: "maybe_unhealthy", score: 40 }],
+      infer_view: "peer@2→peer@1: MAYBE_UNHEALTHY, 40",
+      infer_pano: "peer@1: MAYBE_UNHEALTHY, 40",
+      inference: { subject: "peer@1", metric: "WorkerSender", status: "MAYBE_UNHEALTHY", score: 40, observers: 1 },
+      dump: "[peer@2] ==> peer@1: { WorkerSender: MAYBE_UNHEALTHY, 40.0; }",
+      learning: "Filter tree remaps subject via regex capture (<content_host>) — observer peer@2 reports about remote peer@1.",
+      highlight_peer: "peer@1",
+      record: {
+        source: "zookeeper.out @ peer@2",
+        raw: "2024-05-20 11:02:18,441 [myid:2] - WARN  [WorkerSender:WorkerSender@204] - Cannot open channel to 1 at election address /10.0.0.5:3888",
+        parsed: { time: "2024-05-20 11:02:18,441", myid: "2", level: "WARN", tag_context: "WorkerSender", class: "WorkerSender", content: "Cannot open channel to 1 at election address /10.0.0.5:3888", observer: "peer@2", subject: "peer@1" },
+        filter: { matched: "WorkerSender + channel regex → subject=<content_host>", metric: "WorkerSender", status: "maybe_unhealthy", score: 40 },
+        report: { observer: "peer@2", subject: "peer@1", metric: "WorkerSender", status: "MAYBE_UNHEALTHY", score: 40 },
+      },
+    },
+    pending_resolve: {
+      name: "PENDING resolution — inference_test.go",
+      data_ref: "store/inference_test.go · TestInferPending",
+      log: "(manual / synthetic reports)",
+      manual: "remote_dispatch:p:50 then :h:90",
+      filter: { context: "remote_dispatch", status: "pending→healthy", score: "50→90", rule: "InferView merges PENDING into HEALTHY" },
+      observer: "FE_2",
+      focus_subject: "TS_3",
+      reports: [
+        { obs: "FE_2", sub: "TS_3", metric: "remote_dispatch", status: "pending", score: 50 },
+        { obs: "FE_2", sub: "TS_3", metric: "remote_dispatch", status: "healthy", score: 90 },
+      ],
+      infer_view: "PENDING(50) + HEALTHY(90) → HEALTHY, 90",
+      infer_pano: "InferPano: HEALTHY, 90",
+      inference: { subject: "TS_3", metric: "remote_dispatch", status: "HEALTHY", score: 90, observers: 1 },
+      dump: "TS_3: { remote_dispatch: HEALTHY, 90.0; }",
+      learning: "InferView walks observations backward. PENDING followed by HEALTHY is merged — pending is transient (majority.go lines 137–145).",
+      highlight_peer: null,
+      record: {
+        source: "hview-client manual report (inference_test.go)",
+        raw: null,
+        manual: [
+          "FE_2 → TS_3  remote_dispatch:PENDING:50",
+          "FE_2 → TS_3  remote_dispatch:HEALTHY:90",
+        ],
+        parsed: { observer: "FE_2", subject: "TS_3", metric: "remote_dispatch", entries: ["PENDING/50", "HEALTHY/90"] },
+        filter: { matched: "(bypassed — manual status assignment)", metric: "remote_dispatch", status: "pending then healthy", score: "50→90" },
+        report: { observer: "FE_2", subject: "TS_3", metric: "remote_dispatch", status: "HEALTHY", score: 90 },
+      },
+    },
+    majority_cpu: {
+      name: "Multi-observer majority — TestInfer cpu",
+      data_ref: "store/inference_test.go · TestInfer",
+      log: "(multiple FE observers)",
+      manual: "FE_1: cpu:u:60 · FE_2/FE_4: cpu:h:70-80",
+      filter: { context: "cpu", status: "majority vote", score: "averaged", rule: "InferPano status_hist majority" },
+      observer: "FE_1",
+      focus_subject: "TS_3",
+      reports: [
+        { obs: "FE_1", sub: "TS_3", metric: "cpu", status: "unhealthy", score: 60 },
+        { obs: "FE_2", sub: "TS_3", metric: "cpu", status: "healthy", score: 70 },
+        { obs: "FE_4", sub: "TS_3", metric: "cpu", status: "healthy", score: 80 },
+        { obs: "FE_4", sub: "TS_3", metric: "cpu", status: "unhealthy", score: 20 },
+      ],
+      infer_view: "Per-observer InferView first (lookback≤2)",
+      infer_pano: "cpu: UNHEALTHY (2 vs 2 → higher enum wins) · score=(60+20)/2=40 avg per view then pano avg",
+      inference: { subject: "TS_3", metric: "cpu", status: "UNHEALTHY", score: 40, observers: 4 },
+      dump: "TS_3: { cpu: UNHEALTHY, …; }",
+      learning: "InferPano: for each metric, count statuses across observers; majority wins; tie-break = higher severity enum. Score = mean of per-view scores.",
+      highlight_peer: null,
+      record: {
+        source: "hview-client manual reports (store/inference_test.go)",
+        raw: null,
+        manual: [
+          "FE_1 → TS_3  cpu:UNHEALTHY:60",
+          "FE_2 → TS_3  cpu:HEALTHY:70",
+          "FE_4 → TS_3  cpu:HEALTHY:80  then  cpu:UNHEALTHY:20",
+        ],
+        parsed: { observer: "FE_1 (example)", subject: "TS_3", metric: "cpu", status: "unhealthy", score: 60 },
+        filter: { matched: "(manual — no log filter)", metric: "cpu", status: "per-observer varies", score: "averaged in InferPano" },
+        report: { observer: "FE_1", subject: "TS_3", metric: "cpu", status: "UNHEALTHY", score: 60 },
+      },
+    },
+  };
+
+  let state = { scenario: "quorum_cascade", walkthrough: false, walkStep: 0 };
+  const $ = (id) => document.getElementById(id);
+
+  const ZONE_RECTS = {
+    input: { x: 30, y: 88, w: 230, h: 228 },
+    filter: { x: 272, y: 108, w: 178, h: 260 },
+    storage: { x: 418, y: 93, w: 168, h: 245 },
+    panorama: { x: 588, y: 78, w: 325, h: 335 },
+    infer: { x: 922, y: 88, w: 205, h: 450 },
+    ensemble: { x: 30, y: 408, w: 500, h: 80 },
+    propagate: { x: 602, y: 348, w: 295, h: 62 },
+  };
+
+  const SIDEBAR_CARDS = { learning: "cardLearning", pipeline: "cardPipeline", obs: "cardObs", compare: "cardCompare", explore: "cardExplore" };
+
+  function statusLabel(s) {
+    const map = { healthy: "HEALTHY", unhealthy: "UNHEALTHY", maybe_unhealthy: "MAYBE_UNHEALTHY", dead: "DEAD", pending: "PENDING" };
+    return map[s] || s.toUpperCase();
+  }
+
+  const STATUS_RANK = {
+    healthy: 2, pending: 3, maybe_unhealthy: 4, unhealthy: 5, dead: 7,
+  };
+  const VIEW_METRIC_HISTORY_SIZE = 2;
+  const INFER_VIEW_RULES = [
+    { id: "single", label: "single-obs pass-through" },
+    { id: "lookback", label: "lookback ≤2 per metric" },
+    { id: "pending", label: "PENDING→HEALTHY merge" },
+    { id: "avg", label: "same-status score avg" },
+  ];
+  const INFER_PANO_RULES = [
+    { id: "copy", label: "1 observer → copy InferView" },
+    { id: "majority", label: "status majority vote" },
+    { id: "tiebreak", label: "tie → higher severity" },
+    { id: "pano_avg", label: "score avg across views" },
+  ];
+
+  function groupReportsByObserver(reports, subject) {
+    const byObs = {};
+    reports.filter((r) => r.sub === subject).forEach((r) => {
+      if (!byObs[r.obs]) byObs[r.obs] = [];
+      byObs[r.obs].push({ metrics: { [r.metric]: { status: r.status, score: r.score } } });
+    });
+    return byObs;
+  }
+
+  function inferViewForObservations(obsList) {
+    const rules = new Set();
+    const metrics = {};
+    const aggs = {};
+    if (!obsList.length) return { metrics, rules };
+
+    const totalObs = obsList.length;
+    const singleMetricStreams = obsList.every((o) => Object.keys(o.metrics).length === 1);
+    if (totalObs === 1 && singleMetricStreams) rules.add("single");
+
+    for (let i = obsList.length - 1; i >= 0; i--) {
+      const obs = obsList[i];
+      for (const [name, m] of Object.entries(obs.metrics)) {
+        let agg = aggs[name];
+        if (!agg) { agg = { cnt: 0, stop: false }; aggs[name] = agg; }
+        if (agg.stop || agg.cnt >= VIEW_METRIC_HISTORY_SIZE) {
+          if (!rules.has("single")) rules.add("lookback");
+          continue;
+        }
+        if (!(name in metrics)) {
+          metrics[name] = { status: m.status, score: m.score };
+          agg.cnt++;
+          if (totalObs > 1) rules.add("lookback");
+        } else {
+          const m1 = metrics[name];
+          if (m.status === "pending" && m1.status === "healthy") {
+            rules.add("pending");
+            rules.add("lookback");
+            continue;
+          }
+          if (m1.status !== m.status) {
+            rules.add("lookback");
+            agg.stop = true;
+            continue;
+          }
+          rules.add("avg");
+          rules.add("lookback");
+          m1.score += m.score;
+          agg.cnt++;
+        }
+      }
+    }
+    for (const [name, metric] of Object.entries(metrics)) {
+      if (aggs[name].cnt > 1) metric.score = Math.round((metric.score / aggs[name].cnt) * 10) / 10;
+    }
+    return { metrics, rules };
+  }
+
+  function inferPanoFromViews(viewByObs) {
+    const rules = new Set();
+    const observers = Object.keys(viewByObs);
+    if (!observers.length) return { metrics: {}, rules };
+
+    if (observers.length === 1) {
+      rules.add("copy");
+      return { metrics: { ...viewByObs[observers[0]].metrics }, rules };
+    }
+
+    rules.add("majority");
+    rules.add("tiebreak");
+    rules.add("pano_avg");
+    const statmap = {};
+    observers.forEach((obs) => {
+      Object.entries(viewByObs[obs].metrics).forEach(([name, m]) => {
+        if (!statmap[name]) statmap[name] = { scoreSum: 0, cnt: 0, hist: {} };
+        const st = statmap[name];
+        st.scoreSum += m.score;
+        st.cnt++;
+        st.hist[m.status] = (st.hist[m.status] || 0) + 1;
+      });
+    });
+
+    const metrics = {};
+    Object.entries(statmap).forEach(([name, st]) => {
+      let maxcnt = 0;
+      let maxstatus = "healthy";
+      Object.entries(st.hist).forEach(([status, cnt]) => {
+        const rank = STATUS_RANK[status] || 0;
+        const maxRank = STATUS_RANK[maxstatus] || 0;
+        if (cnt > maxcnt || (cnt === maxcnt && rank > maxRank)) {
+          maxcnt = cnt;
+          maxstatus = status;
+        }
+      });
+      if (Object.keys(st.hist).length > 1 && maxcnt > 0) {
+        const tied = Object.values(st.hist).filter((c) => c === maxcnt).length > 1;
+        if (tied) rules.add("tiebreak");
+      }
+      metrics[name] = {
+        status: maxstatus,
+        score: Math.round((st.scoreSum / st.cnt) * 10) / 10,
+      };
+    });
+    return { metrics, rules };
+  }
+
+  function inferContext(sc) {
+    const ex = sc.record?.report;
+    const base = {
+      subject: sc.inference.subject,
+      metric: sc.inference.metric,
+      status: sc.inference.status,
+      score: sc.inference.score,
+      dump: sc.dump,
+      observer: sc.observer,
+    };
+    if (state.walkthrough && ex && state.walkStep >= 7) {
+      return {
+        subject: ex.subject,
+        metric: ex.metric,
+        status: ex.status,
+        score: ex.score,
+        dump: `[${ex.observer}] ==> ${ex.subject}: { ${ex.metric}: ${ex.status}, ${ex.score}.0; }`,
+        observer: ex.observer,
+        mode: "trace",
+      };
+    }
+    return { ...base, mode: "focus" };
+  }
+
+  function buildStreamSummary(sc, subject) {
+    const sub = subject ?? sc.focus_subject;
+    const byObs = groupReportsByObserver(sc.reports, sub);
+    const parts = Object.entries(byObs).map(([obs, obsList]) => {
+      const segs = obsList.map((o) => {
+        const [metric, m] = Object.entries(o.metrics)[0];
+        return `${metric} ${statusLabel(m.status).slice(0, 1)},${m.score}`;
+      });
+      return `${obs}: ${segs.join("→")}`;
+    });
+    return parts.join(" · ") || "(no reports for subject)";
+  }
+
+  function formatMetricLine(metrics, focusMetric) {
+    if (focusMetric && metrics[focusMetric]) {
+      const m = metrics[focusMetric];
+      return `${focusMetric}: ${statusLabel(m.status)}, ${m.score}`;
+    }
+    return Object.entries(metrics).map(([n, m]) => `${n}: ${statusLabel(m.status)}, ${m.score}`).join(" · ");
+  }
+
+  function analyzeInferScenario(sc, subject, focusMetric) {
+    const sub = subject ?? sc.focus_subject;
+    const metric = focusMetric ?? sc.inference?.metric;
+    const byObs = groupReportsByObserver(sc.reports, sub);
+    const viewByObs = {};
+    const viewRules = new Set();
+    Object.entries(byObs).forEach(([obs, obsList]) => {
+      const { metrics, rules } = inferViewForObservations(obsList);
+      viewByObs[obs] = { metrics, rules };
+      rules.forEach((r) => viewRules.add(r));
+    });
+
+    const pano = inferPanoFromViews(
+      Object.fromEntries(Object.entries(viewByObs).map(([k, v]) => [k, { metrics: v.metrics }]))
+    );
+    const panoRules = pano.rules;
+    const stream = buildStreamSummary(sc, sub);
+
+    const viewActive = INFER_VIEW_RULES.filter((r) => viewRules.has(r.id)).map((r) => r.label);
+    const viewInactive = INFER_VIEW_RULES.filter((r) => !viewRules.has(r.id)).map((r) => r.label);
+    const panoActive = INFER_PANO_RULES.filter((r) => panoRules.has(r.id)).map((r) => r.label);
+    const panoInactive = INFER_PANO_RULES.filter((r) => !panoRules.has(r.id)).map((r) => r.label);
+
+    const primaryView = viewByObs[sc.observer] || viewByObs[Object.keys(viewByObs)[0]];
+    const viewResult = primaryView ? formatMetricLine(primaryView.metrics, metric) : "—";
+    const panoResult = formatMetricLine(pano.metrics, metric);
+
+    return {
+      stream, viewActive, viewInactive, panoActive, panoInactive,
+      viewResult, panoResult,
+      observerCount: Object.keys(byObs).length,
+      subject: sub,
+      metric,
+    };
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function renderInferPanels(sc) {
+    const ctx = inferContext(sc);
+    const ex = sc.record?.report;
+
+    if (state.walkthrough && state.walkStep < 7) {
+      const trace = ex
+        ? `<strong>${escHtml(ex.observer)}→${escHtml(ex.subject)}</strong> (${escHtml(ex.metric)})`
+        : "—";
+      $("inferSidebarBody").innerHTML = `
+        <div class="fd-body" style="color:#9ca3af;line-height:1.55">
+          <p style="margin:0 0 8px">InferView / InferPano run at <strong>steps 8–10</strong> — one fused verdict per <em>subject</em>.</p>
+          <p style="margin:0 0 8px">Walkthrough now tracing: ${trace}</p>
+          <p style="margin:0">After the walkthrough, this panel shows README focus: <strong>${escHtml(sc.inference.subject)}</strong> · ${escHtml(sc.inference.metric)} (${escHtml(sc.dump || "")})</p>
+        </div>`;
+      $("inferCompact").innerHTML = `<div style="color:#6b7280">Inference at steps 8–10</div>`;
+      return analyzeInferScenario(sc, sc.focus_subject, sc.inference.metric);
+    }
+
+    const a = analyzeInferScenario(sc, ctx.subject, ctx.metric);
+    const modeNote = ctx.mode === "trace"
+      ? `<div style="color:#fbbf24;margin-bottom:6px">Walkthrough infer on traced subject <strong>${escHtml(ctx.subject)}</strong> · ${escHtml(ctx.metric)}</div>`
+      : `<div style="color:#6b7280;margin-bottom:6px">README inference focus (subject <strong>${escHtml(ctx.subject)}</strong>)</div>`;
+    const viewBlock = `
+      <div><span style="color:#6b7280;font-weight:600">Rules active:</span> <span style="color:#34d399">${escHtml(a.viewActive.join(" · ") || "—")}</span></div>
+      <div><span style="color:#6b7280;font-weight:600">Not used:</span> <span style="color:#4b5563">${escHtml(a.viewInactive.join(" · ") || "—")}</span></div>
+      <div><span style="color:#6b7280;font-weight:600">Stream:</span> <span style="color:#9ca3af">${escHtml(a.stream)}</span></div>
+      <div style="color:#a78bfa;font-weight:600">→ ${escHtml(a.viewResult)}</div>`;
+    const panoBlock = `
+      <div><span style="color:#6b7280;font-weight:600">Rules active:</span> <span style="color:#34d399">${escHtml(a.panoActive.join(" · ") || "—")}</span></div>
+      <div><span style="color:#6b7280;font-weight:600">Not used:</span> <span style="color:#4b5563">${escHtml(a.panoInactive.join(" · ") || "—")}</span></div>
+      <div style="color:#f59e0b;font-weight:600">→ ${escHtml(a.panoResult)}</div>`;
+    const outBlock = `
+      ${modeNote}
+      <div>observer: <span style="color:#38bdf8">${escHtml(ctx.observer)}</span></div>
+      <div>subject: <span style="color:#fbbf24">${escHtml(ctx.subject)}</span></div>
+      <div style="color:#60a5fa">${escHtml(ctx.metric)}: ${escHtml(ctx.status)}, ${escHtml(String(ctx.score))}</div>
+      <div>observers reporting on this subject: ${a.observerCount}</div>
+      <div style="color:#6b7280">dump format: [observer] ==&gt; subject: { metric: status, score; }</div>
+      <div style="color:#34d399;margin-top:6px">${escHtml(ctx.dump || "—")}</div>`;
+    $("inferSidebarBody").innerHTML = `
+      <div class="fd-section"><span class="fd-label">InferView (worm / one observer)</span><div class="fd-body">${viewBlock}</div></div>
+      <div class="fd-section"><span class="fd-label">InferPano (bird / all observers)</span><div class="fd-body">${panoBlock}</div></div>
+      <div class="fd-section"><span class="fd-label">Inference output</span><div class="fd-body">${outBlock}</div></div>`;
+    $("inferCompact").innerHTML = `
+      <div style="color:#38bdf8;font-weight:600">${escHtml(ctx.observer)} → ${escHtml(ctx.subject)}</div>
+      <div style="color:#a78bfa;font-weight:600;margin-top:4px">View → ${escHtml(a.viewResult)}</div>
+      <div style="color:#f59e0b;font-weight:600;margin-top:4px">Pano → ${escHtml(a.panoResult)}</div>`;
+    return a;
+  }
+
+  function filterVizMode() {
+    if (!state.walkthrough) return "compact";
+    if (state.walkStep < 2) return "idle";
+    if (state.walkStep === 2) return "filter";
+    return "compact";
+  }
+
+  function renderLogPreview(sc) {
+    const el = $("logPreviewBody");
+    if (!el) return;
+    const lines = sc.log_lines || [sc.log];
+    let html = lines.map((txt, i) =>
+      `<div class="log-line${i === 0 ? " log-hi" : ""}">${escHtml(txt)}</div>`
+    ).join("");
+    if (sc.log_note) {
+      html += `<div class="log-note">${escHtml(sc.log_note)}</div>`;
+    }
+    if (state.walkthrough && state.walkStep === 1 && sc.record?.parsed) {
+      const p = sc.record.parsed;
+      html += `<div class="parse-block">
+        <div class="ft-label">ParseLine → fields</div>
+        <div class="ft-line">tag_context: ${escHtml(p.tag_context || "—")}</div>
+        <div class="ft-line">content: ${escHtml(p.content || "—")}</div>
+        <div class="ft-line">observer: ${escHtml(p.observer || sc.observer)} · subject: ${escHtml(p.subject || activeSubject(sc))}</div>
+      </div>`;
+    }
+    html += `<div class="ft-scroll-hint">↔ scroll for long lines</div>`;
+    el.innerHTML = html;
+  }
+
+  function renderEnsemble(highlight) {
+    const g = $("ensembleStrip");
+    g.innerHTML = "";
+    for (let i = 0; i <= 9; i++) {
+      const id = `peer@${i}`;
+      const x = i * 52;
+      const on = highlight === id;
+      const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      r.setAttribute("x", x); r.setAttribute("y", 0); r.setAttribute("width", 46); r.setAttribute("height", 28);
+      r.setAttribute("rx", 5);
+      r.setAttribute("fill", on ? "#0c4a6e" : "#1e293b");
+      r.setAttribute("stroke", on ? "#38bdf8" : "#475569");
+      r.setAttribute("stroke-width", on ? "2" : "1");
+      g.appendChild(r);
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", x + 23); t.setAttribute("y", 18); t.setAttribute("font-size", "8");
+      t.setAttribute("fill", "#e2e8f0"); t.setAttribute("text-anchor", "middle");
+      t.textContent = id;
+      g.appendChild(t);
+    }
+  }
+
+  function renderPanoGraph(sc) {
+    const g = $("panoGraph");
+    g.innerHTML = "";
+    const sub = activeSubject(sc);
+    const repsForSub = sc.reports.filter((r) => r.sub === sub);
+    const center = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    center.setAttribute("cx", 0); center.setAttribute("cy", 0); center.setAttribute("r", 22);
+    center.setAttribute("fill", "#1e3a5f"); center.setAttribute("stroke", "#38bdf8"); center.setAttribute("stroke-width", "2");
+    g.appendChild(center);
+    const ct = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    ct.setAttribute("x", 0); ct.setAttribute("y", 4); ct.setAttribute("text-anchor", "middle");
+    ct.setAttribute("fill", "#e0f2fe"); ct.setAttribute("font-size", "8"); ct.setAttribute("font-weight", "600");
+    ct.textContent = sub.length > 10 ? sub.slice(0, 10) : sub;
+    g.appendChild(ct);
+
+    const uniqueObs = [...new Set(repsForSub.map((r) => r.obs))];
+    const n = Math.max(uniqueObs.length, 1);
+    uniqueObs.forEach((obs, i) => {
+      const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+      const x = Math.cos(angle) * 95;
+      const y = Math.sin(angle) * 75;
+      const rep = repsForSub.find((r) => r.obs === obs) || repsForSub[0];
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", x * 0.35); line.setAttribute("y1", y * 0.35);
+      line.setAttribute("x2", 0); line.setAttribute("y2", 0);
+      line.setAttribute("stroke", STATUS_COLOR[rep?.status] || "#6b7280");
+      line.setAttribute("stroke-width", "2");
+      line.setAttribute("marker-end", "url(#arrow)");
+      g.appendChild(line);
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", x); c.setAttribute("cy", y); c.setAttribute("r", 16);
+      c.setAttribute("fill", STATUS_COLOR[rep?.status] || "#374151");
+      g.appendChild(c);
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", x); t.setAttribute("y", y + 28); t.setAttribute("text-anchor", "middle");
+      t.setAttribute("fill", "#9ca3af"); t.setAttribute("font-size", "7");
+      t.textContent = obs;
+      g.appendChild(t);
+      if (rep) {
+        const m = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        m.setAttribute("x", x); m.setAttribute("y", y + 4); m.setAttribute("text-anchor", "middle");
+        m.setAttribute("fill", "#fff"); m.setAttribute("font-size", "6");
+        m.textContent = rep.metric.slice(0, 8);
+        g.appendChild(m);
+      }
+    });
+    $("panoSubject").textContent = `subject: ${sub}`;
+  }
+
+  const FILTER_VIZ = {
+    syncthread: {
+      decoys: [
+        { label: "RecvWorker", test: "tag_context == RecvWorker" },
+        { label: "SendWorker", test: "tag_context == SendWorker" },
+      ],
+      match: {
+        label: "SyncThread rule",
+        steps: [
+          { field: "tag_context", op: "==", pattern: "SyncThread" },
+          { field: "content", op: "~", pattern: "^Too busy to snap…" },
+        ],
+      },
+    },
+    quorum_cascade: {
+      decoys: [
+        { label: "RecvWorker", test: "tag_context == RecvWorker" },
+        { label: "SendWorker", test: "tag_context == SendWorker" },
+      ],
+      match: {
+        label: "SyncThread rule",
+        steps: [
+          { field: "tag_context", op: "==", pattern: "SyncThread" },
+          { field: "content", op: "~", pattern: "^Too busy to snap…" },
+        ],
+      },
+    },
+    learner_dead: {
+      decoys: [
+        { label: "Learner slow", test: "content ~ Slow serializing" },
+        { label: "SyncThread", test: "tag_context == SyncThread" },
+      ],
+      match: {
+        label: "LearnerHandler DEAD",
+        steps: [
+          { field: "tag_context", op: "==", pattern: "LearnerHandler-" },
+          { field: "content", op: "~", pattern: "Unexpected exception…" },
+        ],
+      },
+    },
+    worker_sender: {
+      decoys: [
+        { label: "RecvWorker", test: "tag_context == RecvWorker" },
+      ],
+      match: {
+        label: "WorkerSender channel",
+        steps: [
+          { field: "tag_context", op: "~", pattern: "WorkerSender[myid=…]" },
+          { field: "content", op: "~", pattern: "Cannot open channel…" },
+        ],
+      },
+    },
+  };
+
+  function getFilterVizConfig(sc, scenarioKey) {
+    if (FILTER_VIZ[scenarioKey]) return { manual: false, ...FILTER_VIZ[scenarioKey] };
+    const r = sc.record;
+    if (!r?.parsed?.tag_context) {
+      return { manual: true, message: "Manual report — zoo_filter.json skipped" };
+    }
+    return {
+      manual: false,
+      decoys: [{ label: "prior rules", test: "no match" }],
+      match: {
+        label: sc.filter?.rule || "match",
+        steps: [{ field: "tag_context", op: "==", pattern: r.parsed.tag_context }],
+      },
+    };
+  }
+
+  function svgEl(tag, attrs) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, String(v)));
+    return el;
+  }
+
+  function renderFilterTreeViz(sc, scenarioKey, mode) {
+    const el = $("filterTreeBody");
+    if (!el) return;
+    const cfg = getFilterVizConfig(sc, scenarioKey);
+    const r = sc.record;
+    const rep = r?.report || sc.reports[0];
+    const status = rep ? statusLabel(rep.status || sc.inference.status) : String(sc.filter.status).toUpperCase();
+    const metric = r?.filter?.metric || rep?.metric || sc.filter.context;
+    const score = rep?.score ?? sc.inference?.score ?? sc.filter.score;
+    const ftLine = (cls, text) => `<div class="ft-line ${cls}">${escHtml(text)}</div>`;
+
+    if (cfg.manual) {
+      el.innerHTML = `
+        <div class="ft-muted">${escHtml(cfg.message)}</div>
+        <div class="ft-box ft-out">${ftLine("ft-result", r?.manual?.[0] || sc.manual || "manual")}</div>
+        <div class="ft-scroll-hint">↔ scroll for long lines</div>`;
+      return;
+    }
+
+    if (mode === "idle") {
+      el.innerHTML = `<div class="ft-muted" style="padding:10px 4px;line-height:1.5">
+        Filter tree runs on <strong style="color:#7dd3fc">Step 3</strong> after ParseLine extracts fields.</div>`;
+      return;
+    }
+
+    const parts = [];
+
+    if (mode === "parse" || mode === "filter" || mode === "compact") {
+      parts.push(`<div class="ft-label">${mode === "parse" ? "ParseLine → fields" : "parsed fields"}</div>`);
+      parts.push(`<div class="ft-box${mode === "parse" ? " ft-active" : ""}">`);
+      parts.push(ftLine("ft-key", `tag_context: ${r?.parsed?.tag_context || "—"}`));
+      parts.push(ftLine("ft-key", `content: ${r?.parsed?.content || sc.log || "—"}`));
+      parts.push("</div>");
+      if (mode === "parse") {
+        parts.push(`<div class="ft-hint">→ feed FilterTree.Eval</div>`);
+        parts.push(`<div class="ft-scroll-hint">↔ scroll for long lines</div>`);
+        el.innerHTML = parts.join("");
+        return;
+      }
+      parts.push(`<div class="ft-arrow">↓</div>`);
+    }
+
+    if (mode !== "filter" && mode !== "compact") {
+      el.innerHTML = parts.join("");
+      return;
+    }
+
+    parts.push(`<div class="ft-label">zoo_filter.json (try rules)</div>`);
+    cfg.decoys.forEach((d) => {
+      parts.push(`<div class="ft-box ft-decoy">${ftLine("", `✗ ${d.label}`)}</div>`);
+    });
+    parts.push(`<div class="ft-box ft-match">`);
+    parts.push(`<div class="ft-line ft-ok">✓ ${escHtml(cfg.match.label)}</div>`);
+    cfg.match.steps.forEach((step) => {
+      parts.push(ftLine("ft-step", `${step.field} ${step.op} ${step.pattern}`));
+    });
+    parts.push("</div>");
+    parts.push(`<div class="ft-box ft-out">`);
+    parts.push(`<div class="ft-muted">Classifier → Report</div>`);
+    parts.push(ftLine("ft-result", `${metric} · ${status} · ${score}`));
+    parts.push("</div>");
+    parts.push(`<div class="ft-scroll-hint">↔ scroll for long lines</div>`);
+    el.innerHTML = parts.join("");
+  }
+
+  function renderFilter(sc, scenarioKey, vizMode) {
+    const mode = vizMode || filterVizMode();
+    renderFilterTreeViz(sc, scenarioKey, mode);
+  }
+
+  function activeSubject(sc) {
+    if (state.walkthrough && sc.record?.report) return sc.record.report.subject;
+    return sc.focus_subject;
+  }
+
+  function traceReport(sc) {
+    const r = sc.record?.report;
+    if (!r) return null;
+    return {
+      obs: r.observer,
+      sub: r.subject,
+      metric: r.metric,
+      status: String(r.status || "").toLowerCase(),
+      score: r.score,
+    };
+  }
+
+  function reportTuple(sc) {
+    if (state.walkthrough && sc.record?.report) return traceReport(sc);
+    return sc.reports.find((x) => x.sub === sc.focus_subject) || sc.reports[0];
+  }
+
+  function renderStorageZone(sc) {
+    const rep = reportTuple(sc);
+    $("reportLine").textContent = `${rep.obs} → ${rep.sub}`;
+    $("viewLine").textContent = `View: ${rep.obs} observes ${rep.sub}`;
+    renderObsStream(sc, rep.sub);
+  }
+
+  function renderObsStream(sc, subjectFilter) {
+    const g = $("obsStream");
+    g.innerHTML = "";
+    const sub = subjectFilter ?? sc.focus_subject;
+    const reps = sc.reports.filter((r) => r.sub === sub).slice(0, 4);
+    if (!reps.length) reps.push(sc.reports[0]);
+    reps.forEach((r, i) => {
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", 0); t.setAttribute("y", i * 13 + 10);
+      t.setAttribute("fill", STATUS_COLOR[r.status] || "#9ca3af");
+      t.setAttribute("font-size", "7"); t.setAttribute("font-family", "monospace");
+      t.textContent = `${r.metric}:${statusLabel(r.status).slice(0, 4)},${r.score}`;
+      g.appendChild(t);
+    });
+  }
+
+  function renderStepDots(activePipelineIdx, walkthroughStepIdx) {
+    const g = $("stepDots");
+    g.innerHTML = "";
+    const inWalk = state.walkthrough;
+    STEPS.forEach((name, i) => {
+      const x = i * 72;
+      const isActive = inWalk && i === activePipelineIdx;
+      const isDone = inWalk ? i < activePipelineIdx : i <= activePipelineIdx;
+      if (i > 0) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", (i - 1) * 72 + 8); line.setAttribute("y1", 0);
+        line.setAttribute("x2", x - 8); line.setAttribute("y2", 0);
+        line.setAttribute("stroke", isDone ? "#38bdf8" : "#374151");
+        line.setAttribute("stroke-width", isDone ? "2" : "1");
+        g.appendChild(line);
+      }
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", x); c.setAttribute("cy", 0);
+      c.setAttribute("r", isActive ? 6 : 4);
+      c.setAttribute("fill", isActive ? "#38bdf8" : isDone ? "#0ea5e9" : "#374151");
+      if (isActive) c.setAttribute("filter", "url(#glow)");
+      g.appendChild(c);
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", x); t.setAttribute("y", 14); t.setAttribute("font-size", "7");
+      t.setAttribute("fill", isActive ? "#e0f2fe" : isDone ? "#bae6fd" : "#6b7280");
+      t.setAttribute("font-weight", isActive ? "700" : "400");
+      t.setAttribute("text-anchor", "middle"); t.textContent = name;
+      g.appendChild(t);
+    });
+    if (inWalk && walkthroughStepIdx != null) {
+      const badge = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      badge.setAttribute("x", STEPS.length * 72 + 12); badge.setAttribute("y", 4);
+      badge.setAttribute("fill", "#38bdf8"); badge.setAttribute("font-size", "8");
+      badge.textContent = `walk ${walkthroughStepIdx + 1}`;
+      g.appendChild(badge);
+    }
+  }
+
+  function renderWalkthroughChronology(steps, activeIndex) {
+    const el = $("wtChronology");
+    const hintEl = $("wtChronoHint");
+    if (!state.walkthrough) {
+      el.classList.add("hidden");
+      hintEl.classList.add("hidden");
+      return;
+    }
+    el.classList.remove("hidden");
+    hintEl.classList.remove("hidden");
+    const parts = steps.map((s, i) => {
+      const st = i < activeIndex ? "done" : i === activeIndex ? "active" : "pending";
+      const label = s.shortLabel || s.title.replace(/^Step \d+ — /, "");
+      return `<button type="button" class="wt-chrono-item ${st}" data-step="${i}" title="${(s.hint || "").replace(/"/g, "&quot;")}">
+        <span class="wt-chrono-num">${i < activeIndex ? "✓" : i + 1}</span>
+        <span class="wt-chrono-label">${label}</span>
+      </button>`;
+    });
+    el.innerHTML = parts.join('<span class="wt-chrono-arrow">→</span>');
+    const step = steps[activeIndex];
+    hintEl.innerHTML = step
+      ? `<strong style="color:#38bdf8">Now:</strong> ${step.hint || step.title.replace(/^Step \d+ — /, "")}`
+      : "";
+    el.onclick = (e) => {
+      const btn = e.target.closest(".wt-chrono-item");
+      if (btn) applyWalkthroughStep(+btn.dataset.step);
+    };
+  }
+
+  function panoramaDissectionHtml(sc, stepIndex, ia) {
+    const r = sc.record;
+    if (!r) return "<span class='dim'>No example record for this scenario.</span>";
+    const inf = sc.inference;
+    const rep = r.report;
+    const p = r.parsed || {};
+    const lines = (arr) => arr.filter(Boolean).map((l) => `<div>${l}</div>`).join("");
+
+    const blocks = {
+      0: () => lines([
+        `<span class="dim">source:</span> <span class="hi">${r.source}</span>`,
+        r.raw ? `<span class="dim">zookeeper.out line:</span>` : `<span class="dim">input:</span>`,
+        r.raw ? `<span class="ok">${r.raw}</span>` : null,
+        r.manual ? r.manual.map((m) => `<span class="ok">${m}</span>`).join("") : null,
+        r.note ? `<span class="dim">note:</span> ${r.note}` : null,
+      ]),
+      1: () => lines([
+        `<span class="dim">ParseLine() → dt.Event fields:</span>`,
+        `<span class="hi">time</span>=${p.time || "—"}  <span class="hi">myid</span>=${p.myid || "—"}  <span class="hi">level</span>=${p.level || "—"}`,
+        `<span class="hi">tag_context</span>=${p.tag_context || "—"}  <span class="hi">class</span>=${p.class || "—"}`,
+        `<span class="hi">content</span>=${p.content || (r.manual ? "(manual)" : "—")}`,
+        `<span class="hi">observer</span>=${p.observer || sc.observer}  <span class="hi">subject</span>=${p.subject || activeSubject(sc)}`,
+      ]),
+      2: () => lines([
+        `<span class="dim">FieldFilterTree.Eval → classifier:</span>`,
+        `<span class="hi">matched</span> ${r.filter.matched}`,
+        `<span class="hi">metric</span>=${r.filter.metric}  <span class="hi">status</span>=${r.filter.status}  <span class="hi">score</span>=${r.filter.score}`,
+      ]),
+      3: () => lines([
+        `<span class="dim">SubmitReport → pb.Report:</span>`,
+        `(<span class="hi">observer</span>, <span class="hi">subject</span>, <span class="hi">metric</span>, <span class="hi">status</span>, <span class="hi">score</span>)`,
+        `= (<span class="ok">${rep.observer}</span>, <span class="ok">${rep.subject}</span>, <span class="ok">${rep.metric}</span>, <span class="warn">${rep.status}</span>, <span class="ok">${rep.score}</span>)`,
+      ]),
+      4: () => lines([
+        `<span class="dim">AddReport → View[${rep.observer}][${rep.subject}]:</span>`,
+        `Observation += { ts: now, metrics: { ${rep.metric}: { ${rep.status}, ${rep.score} } } }`,
+        sc.reports.length > 1 ? `<span class="dim">scenario has ${sc.reports.length} total reports in panorama window</span>` : null,
+      ]),
+      5: () => {
+        const sub = activeSubject(sc);
+        const rows = sc.reports.filter((x) => x.sub === sub).slice(0, 4);
+        return lines([
+          `<span class="dim">Panorama(subject=${sub}):</span>`,
+          ...rows.map((x) => `[${x.obs}→${x.sub}] ${x.metric}:${statusLabel(x.status)},${x.score}`),
+          state.walkthrough && sub !== sc.focus_subject
+            ? `<span class="dim">README inference uses separate subject ${sc.focus_subject}</span>`
+            : null,
+        ]);
+      },
+      6: () => lines([
+        `<span class="dim">LearnReport gRPC → peer pano instances:</span>`,
+        `propagate Report(${rep.observer}→${rep.subject}, ${rep.metric}) to pano0…pano9`,
+        `<span class="dim">each peer merges into its global Panorama for ${activeSubject(sc)}</span>`,
+      ]),
+      7: () => lines([
+        `<span class="dim">InferView stream (${rep.observer} → ${activeSubject(sc)}):</span> ${ia.stream}`,
+        `<span class="dim">rules active:</span> ${ia.viewActive.join(", ") || "none"}`,
+        `<span class="hi">→ ${ia.viewResult}</span>`,
+      ]),
+      8: () => lines([
+        `<span class="dim">InferPano (${ia.observerCount} observers):</span>`,
+        `<span class="dim">rules active:</span> ${ia.panoActive.join(", ") || "none"}`,
+        `<span class="hi">→ ${ia.panoResult}</span>`,
+      ]),
+      9: () => lines([
+        `<span class="dim">dump inference:</span>`,
+        `<span class="ok">${state.walkthrough && state.walkStep >= 7 && sc.record?.report
+          ? `[${sc.record.report.observer}] ==> ${sc.record.report.subject}: { ${sc.record.report.metric}: ${sc.record.report.status}, ${sc.record.report.score}.0; }`
+          : sc.dump}</span>`,
+        `<span class="hi">verdict:</span> ${state.walkthrough && state.walkStep >= 7 && sc.record?.report
+          ? `${sc.record.report.subject} · ${sc.record.report.metric}: ${sc.record.report.status}, ${sc.record.report.score}`
+          : `${inf.subject} · ${inf.metric}: ${inf.status}, ${inf.score}`}`,
+      ]),
+    };
+    return (blocks[stepIndex] || blocks[0])();
+  }
+
+  function renderWalkthroughDissection(sc, stepIndex, ia) {
+    const el = $("wtDissection");
+    const body = $("wtDissectionBody");
+    if (!state.walkthrough) {
+      el.classList.add("hidden");
+      return;
+    }
+    el.classList.remove("hidden");
+    body.innerHTML = panoramaDissectionHtml(sc, stepIndex, ia);
+  }
+
+  function buildWalkthroughSteps(key) {
+    const sc = SCENARIOS[key];
+    const inf = sc.inference;
+    const ex = sc.record?.report;
+    const exObs = ex?.observer ?? sc.observer;
+    const exSub = ex?.subject ?? sc.focus_subject;
+    const exMetric = ex?.metric ?? inf.metric;
+    const inferSub = ex?.subject ?? sc.focus_subject;
+    const inferMetric = ex?.metric ?? inf.metric;
+    const ia = analyzeInferScenario(sc, inferSub, inferMetric);
+    const verdict = ex
+      ? { subject: ex.subject, metric: ex.metric, status: ex.status, score: ex.score }
+      : inf;
+    const panoStepBody = exSub !== sc.focus_subject
+      ? `Panorama for <strong>${exSub}</strong> — all views about this subject. Walkthrough trace: <strong>${exObs}→${exSub}</strong> (${exMetric}). README <code>dump inference</code> uses subject <strong>${sc.focus_subject}</strong> (separate panorama — Observation Details).`
+      : `Panorama for <strong>${exSub}</strong> aggregates all observer views about that subject. Trace: <strong>${exObs}→${exSub}</strong> (${exMetric}).`;
+    return [
+      {
+        title: "Step 1 — In-situ observation source",
+        shortLabel: "Log source",
+        hint: "Each node tails zookeeper.out (hview-logtail) or accepts manual reports",
+        body: `Panorama runs <strong>on each node</strong> via <strong>hview-logtail</strong> (tails zookeeper.out) or <strong>hview-client</strong> (manual). Example log: <em>"${sc.log}"</em>`,
+        file: "cmd/hview-logtail/main.go · plugin/zookeeper.go",
+        zones: ["input"], sidebar: "obs", stepDot: 0,
+      },
+      {
+        title: "Step 2 — Parse log line to fields",
+        shortLabel: "Parse",
+        hint: "ParseLine regex extracts tag_context, content, class, subject",
+        body: "<strong>ZooKeeperEventParser.ParseLine</strong> regex-parses the log into fields: tag_context, content, class, etc. These fields feed the filter tree.",
+        file: "plugin/zookeeper.go · ParseLine()",
+        zones: ["input"], sidebar: "pipeline", stepDot: 0,
+      },
+      {
+        title: "Step 3 — Filter tree classifies health",
+        shortLabel: "Filter",
+        hint: "FilterTree.Eval matches zoo_filter.json → status + score",
+        body: `FieldFilterTree.Eval matches against <strong>conf/zoo_filter.json</strong>. Match → context=<strong>${sc.filter.context}</strong>, status=<strong>${sc.filter.status}</strong>, score=<strong>${sc.filter.score}</strong>.`,
+        file: "types/filter.go · FieldFilterTree.Eval · conf/zoo_filter.json",
+        zones: ["filter"], sidebar: "pipeline", stepDot: 1,
+      },
+      {
+        title: "Step 4 — Build Report (observer → subject)",
+        shortLabel: "Report",
+        hint: "Build 5-tuple: observer, subject, metric, status, score",
+        body: `Creates pb.Report: observer=<strong>${exObs}</strong>, subject=<strong>${exSub}</strong>, metric=<strong>${exMetric}</strong> (5-tuple). Submitted via <strong>HealthGServer.SubmitReport</strong>.`,
+        file: "service/service.go · SubmitReport() · types/health.go",
+        zones: ["storage"], sidebar: "obs", stepDot: 2,
+      },
+      {
+        title: "Step 5 — Store as View in LOS",
+        shortLabel: "View",
+        hint: "AddReport appends observation to observer's view for this subject",
+        body: `<strong>RawHealthStorage.AddReport</strong> appends an Observation to View[<strong>${exObs}</strong>][<strong>${exSub}</strong>]. Panorama is keyed by <em>subject</em> — separate graph per subject (e.g. peer@1 vs peer@9).`,
+        file: "store/raw.go · AddReport() · store/db.go",
+        zones: ["storage"], sidebar: "pipeline", stepDot: 3,
+      },
+      {
+        title: "Step 6 — Panorama = all views about one subject",
+        shortLabel: "Panorama",
+        hint: "One graph per subject — all observer→subject edges combined",
+        body: panoStepBody,
+        file: "types/health.go · Panorama · DumpPanorama()",
+        zones: ["panorama"], sidebar: "learning", stepDot: 4,
+      },
+      {
+        title: "Step 7 — Propagate to peer Panorama instances",
+        shortLabel: "Propagate",
+        hint: "Exchange reports via gRPC LearnReport to peer hview servers",
+        body: "<strong>ExchangeProtocol.Propagate</strong> sends reports to peer hview-server instances via gRPC LearnReport. Each peer builds its own global Panorama picture.",
+        file: "exchange/exchange.go · LearnReport",
+        zones: ["propagate", "panorama"], sidebar: "pipeline", stepDot: 5,
+      },
+      {
+        title: "Step 8 — InferView: fuse one observer's stream",
+        shortLabel: "InferView",
+        hint: "Worm view: smooth one observer's timeline (lookback, PENDING merge)",
+        body: `Subject stream: <strong>${ia.stream}</strong>. Active rules: <em>${ia.viewActive.join(", ") || "none"}</em>. Observer <strong>${exObs}</strong> → subject <strong>${inferSub}</strong>: <strong>${ia.viewResult}</strong>. PENDING+HEALTHY merges; same-status scores averaged; lookback stops on status change.`,
+        file: "decision/majority.go · InferView() · VIEW_METRIC_HISTORY_SIZE=2",
+        zones: ["infer"], sidebar: "learning", stepDot: 6,
+      },
+      {
+        title: "Step 9 — InferPano: majority across observers",
+        shortLabel: "InferPano",
+        hint: "Bird view: majority vote + score average across all observers",
+        body: `Active rules: <em>${ia.panoActive.join(", ") || "none"}</em>. ${ia.observerCount} observer(s) → <strong>${ia.panoResult}</strong>. Status = majority vote (tie → higher severity enum). Score = mean of per-view scores.`,
+        file: "decision/majority.go · InferPano() · StatusHist majority",
+        zones: ["infer"], sidebar: "learning", stepDot: 7,
+      },
+      {
+        title: "Step 10 — Inference output (failure detection)",
+        shortLabel: "Verdict",
+        hint: "Final health inference — who is unhealthy, on which metric",
+        body: `Final: <strong>${verdict.subject}</strong> · ${verdict.metric}: <strong>${verdict.status}</strong>, score <strong>${verdict.score}</strong>${ex && ex.subject !== inf.subject ? `. (README dump uses <strong>${inf.subject}</strong> · ${inf.metric} after walkthrough.)` : ""}. Query via <code>hview-client dump inference</code>. Panorama detects <em>who is unhealthy</em> — it does not rank code regions like Nezha.`,
+        file: "store/inference.go · GetInference() · README dump inference",
+        zones: ["infer"], sidebar: "compare", stepDot: 8,
+      },
+    ];
+  }
+
+  function drawHighlightRings(keys) {
+    const g = $("highlightRings");
+    g.innerHTML = "";
+    keys.forEach((k) => {
+      const z = ZONE_RECTS[k];
+      if (!z) return;
+      const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      r.setAttribute("class", "highlight-ring");
+      r.setAttribute("x", z.x); r.setAttribute("y", z.y);
+      r.setAttribute("width", z.w); r.setAttribute("height", z.h);
+      r.setAttribute("rx", 8);
+      g.appendChild(r);
+    });
+  }
+
+  function applyWalkthroughStep(i) {
+    const steps = buildWalkthroughSteps(state.scenario);
+    const step = steps[i];
+    if (!step) return;
+    state.walkStep = i;
+    $("wtStepNum").textContent = i + 1;
+    $("wtStepTotal").textContent = steps.length;
+    $("wtTitle").textContent = step.title;
+    $("wtBody").innerHTML = step.body;
+    $("wtFile").textContent = step.file || "";
+    $("wtPrev").disabled = i === 0;
+    $("wtNext").textContent = i === steps.length - 1 ? "Finish" : "Next step";
+
+    const zoneMap = { input: "zoneInput", filter: "zoneFilter", storage: "zoneStorage", panorama: "zonePanorama", infer: "zoneInfer", ensemble: "zoneEnsemble" };
+    const focusGroups = new Set((step.zones || []).map((z) => zoneMap[z] || z));
+    Object.values(zoneMap).forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.classList.remove("zone-dim", "zone-focus");
+      el.classList.add(focusGroups.has(id) || (step.zones || []).some((z) => z === "propagate" && id === "zonePanorama") ? "zone-focus" : "zone-dim");
+    });
+    if ((step.zones || []).includes("propagate")) $("zonePanorama").classList.add("zone-focus");
+
+    drawHighlightRings(step.zones || []);
+    renderStepDots(step.stepDot ?? 0, i);
+    renderWalkthroughChronology(steps, i);
+
+    Object.entries(SIDEBAR_CARDS).forEach(([key, id]) => {
+      const el = $(id);
+      el.classList.remove("wt-focus", "wt-dim");
+      if (state.walkthrough) el.classList.add(key === step.sidebar ? "wt-focus" : "wt-dim");
+    });
+    $("learningText").innerHTML = step.body;
+    const sc = SCENARIOS[state.scenario];
+    const ia = renderInferPanels(sc);
+    renderWalkthroughDissection(sc, i, ia);
+    renderFilter(SCENARIOS[state.scenario], state.scenario, filterVizMode());
+    renderLogPreview(SCENARIOS[state.scenario]);
+    renderStorageZone(SCENARIOS[state.scenario]);
+    renderPanoGraph(SCENARIOS[state.scenario]);
+  }
+
+  function renderObsFeed(sc) {
+    const rows = sc.reports.map((r) => `
+      <div class="obs-row">
+        <span class="obs-observer">${r.obs}</span>
+        <span class="obs-subject">${r.sub}</span>
+        <span class="obs-metric">${r.metric}</span>
+        <span class="obs-status" style="color:${STATUS_COLOR[r.status]}">${statusLabel(r.status)}</span>
+        <span class="obs-score">${r.score}</span>
+      </div>`).join("");
+    $("obsFeed").innerHTML = `
+      <div class="obs-table">
+        <div class="obs-header">
+          <span>Observer</span>
+          <span>Subject</span>
+          <span>Metric</span>
+          <span>Status</span>
+          <span>Score</span>
+        </div>
+        ${rows}
+      </div>`;
+  }
+
+  function renderUI(key, opts = {}) {
+    const sc = SCENARIOS[key];
+    state.scenario = key;
+    if (!opts.skipWalk) state.walkthrough = false;
+
+    renderLogPreview(sc);
+    $("manualPreview").textContent = sc.manual.slice(0, 42);
+    $("propLine").textContent = `Propagate reports to pano0…pano9 peers`;
+    const ia = renderInferPanels(sc);
+
+    renderFilter(sc, key);
+    renderStorageZone(sc);
+    renderPanoGraph(sc);
+    renderEnsemble(sc.highlight_peer);
+    $("learningText").innerHTML = sc.learning;
+    $("dataRef").textContent = sc.data_ref;
+
+    renderObsFeed(sc);
+
+    if (!state.walkthrough) renderStepDots(8, null);
+  }
+
+  function startWalkthrough() {
+    state.walkthrough = true;
+    $("walkthroughBar").classList.remove("hidden");
+    $("guideBtn").textContent = "Walkthrough active";
+    applyWalkthroughStep(0);
+  }
+
+  function exitWalkthrough() {
+    state.walkthrough = false;
+    $("walkthroughBar").classList.add("hidden");
+    $("guideBtn").textContent = "Start guided walkthrough";
+    $("wtChronology").classList.add("hidden");
+    $("wtChronoHint").classList.add("hidden");
+    $("wtDissection").classList.add("hidden");
+    $("highlightRings").innerHTML = "";
+    Object.values({ zoneInput: 1, zoneFilter: 1, zoneStorage: 1, zonePanorama: 1, zoneInfer: 1, zoneEnsemble: 1 }).forEach((_, id) => {});
+    ["zoneInput", "zoneFilter", "zoneStorage", "zonePanorama", "zoneInfer", "zoneEnsemble"].forEach((id) => {
+      const el = $(id);
+      if (el) el.classList.remove("zone-dim", "zone-focus");
+    });
+    Object.values(SIDEBAR_CARDS).forEach((id) => $(id).classList.remove("wt-focus", "wt-dim"));
+    renderUI(state.scenario, { skipWalk: true });
+  }
+
+  const sel = $("scenarioSelect");
+  Object.entries(SCENARIOS).forEach(([k, v]) => {
+    const o = document.createElement("option");
+    o.value = k; o.textContent = v.name;
+    sel.appendChild(o);
+  });
+  sel.value = "quorum_cascade";
+
+  sel.addEventListener("change", () => {
+    exitWalkthrough();
+    renderUI(sel.value);
+    setTimeout(startWalkthrough, 250);
+  });
+  $("guideBtn").addEventListener("click", () => state.walkthrough ? exitWalkthrough() : startWalkthrough());
+  $("resetBtn").addEventListener("click", () => { exitWalkthrough(); sel.value = "quorum_cascade"; renderUI("quorum_cascade"); });
+  $("wtNext").addEventListener("click", () => {
+    const steps = buildWalkthroughSteps(state.scenario);
+    if (state.walkStep >= steps.length - 1) exitWalkthrough();
+    else applyWalkthroughStep(state.walkStep + 1);
+  });
+  $("wtPrev").addEventListener("click", () => { if (state.walkStep > 0) applyWalkthroughStep(state.walkStep - 1); });
+  $("wtExit").addEventListener("click", exitWalkthrough);
+
+  function validateScenarioPairs() {
+    Object.entries(SCENARIOS).forEach(([key, sc]) => {
+      const r = sc.record?.report;
+      if (!r) return;
+      const match = sc.reports.some(
+        (x) => x.obs === r.observer && x.sub === r.subject && x.metric === r.metric
+      );
+      if (!match) {
+        console.warn(`[panorama] ${key}: record.report ${r.observer}→${r.subject} ${r.metric} not in reports[]`);
+      }
+      if (sc.inference.subject && !sc.reports.some((x) => x.sub === sc.inference.subject)) {
+        console.warn(`[panorama] ${key}: inference.subject ${sc.inference.subject} has no reports`);
+      }
+    });
+  }
+  validateScenarioPairs();
+
+  renderUI("quorum_cascade");
+})();
+</script>
+</body>
+</html>

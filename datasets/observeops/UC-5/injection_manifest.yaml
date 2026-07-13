@@ -1,0 +1,6 @@
+uc_id: UC-5
+fault: JVM heap exhaustion / connection pool saturation
+inject_on: orders-api
+method: hold all DB connections + heap fill
+corpus_version: 1.1.0
+source: rca-use-cases-only.md

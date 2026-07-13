@@ -1,0 +1,49 @@
+{
+  "engine": "lean",
+  "uc_id": "UC-1",
+  "root_ci": "esxi-host-01",
+  "signature": "cpu_contention",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "esxi-host-01",
+      "signal": "cpu.usage",
+      "value": 92.0,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "esxi-host-01",
+      "signal": "cpu.ready",
+      "value": 12.0,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "vm-app-01",
+      "signal": "cpu.ready",
+      "value": 11.0,
+      "timestamp": "2026-07-10T10:00:12Z"
+    },
+    {
+      "ci": "vm-db-01",
+      "signal": "cpu.ready",
+      "value": 10.0,
+      "timestamp": "2026-07-10T10:00:12Z"
+    },
+    {
+      "ci": "guest-os-vm-app-01",
+      "signal": "load.avg",
+      "value": 8.0,
+      "timestamp": "2026-07-10T10:00:18Z"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "request.p95_latency_ms",
+      "value": 1450.0,
+      "timestamp": "2026-07-10T10:00:25Z"
+    }
+  ],
+  "observations": 6,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "upstream_healthy_verified": false
+}
