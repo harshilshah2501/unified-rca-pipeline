@@ -1,18 +1,22 @@
-# Federated pipeline — specific documentation
+# Federated pipeline — documentation
 
-Federated-only architecture and algorithm docs. Shared PoC materials (use-cases, roadmap, Lean PRD/Simple Guide, ADR, lean-vs-federated decision guide) live in [`../../docs/`](../../docs/README.md).
+Federated-only architecture and algorithm docs. Shared Motadata materials (use-cases, roadmap, ADR, lean-vs-federated guide) live in [`../../docs/`](../../docs/README.md).
 
-**Motadata note:** For ObserveOps UC-1..UC-5, **lean is the primary engine** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). This tree remains the federated PoC + optional microservice/code-path track.
+**Motadata status:** For ObserveOps UC-1..UC-5, **lean is the primary engine** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). This tree is the federated PoC, bakeoff comparator, and optional microservice / code-path track.
 
-## Documents
+## Start here (aligned with lean-pipeline docs)
 
 | Document | Purpose |
 |----------|---------|
-| [REQUIREMENTS.md](./REQUIREMENTS.md) | Federated PoC scope, goals, success criteria, implementation status |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | Storage tiers, algorithms, write/query paths |
-| [ORCHESTRATOR.md](./ORCHESTRATOR.md) | Coordination layer — triggers, hop contracts, fusion |
-| [ARCHITECTURE_RATIONALE.md](./ARCHITECTURE_RATIONALE.md) | Novelty claim, paper gaps, design decisions |
-| [CAPACITY.md](./CAPACITY.md) | PoC sizing vs. 1B EPS production vision |
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | **Architecture, components, and workflows** (demos + ObserveOps bakeoff) |
+| [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md) | **Limitations, when to choose federated, Phase C/E deferrals** |
+| [`STORAGE_TIERS.md`](./STORAGE_TIERS.md) | Speed vs structural tier design vision |
+| [`ORCHESTRATOR.md`](./ORCHESTRATOR.md) | Hop contracts, fusion, open decisions |
+| [`REQUIREMENTS.md`](./REQUIREMENTS.md) | Federated PoC goals and implementation status |
+| [`ARCHITECTURE_RATIONALE.md`](./ARCHITECTURE_RATIONALE.md) | Novelty claim / paper gaps |
+| [`CAPACITY.md`](./CAPACITY.md) | PoC EPS measurements + 1B vision |
+
+Lean primary twin: [`../../lean-pipeline/docs/ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md).
 
 ## Related learning dissections
 
@@ -54,12 +58,12 @@ PYTHONPATH=..:. python run.py --scenario ingest
 PYTHONPATH=..:. python run.py --scenario hipster --with-speed-tier --verbose
 
 # Phase 0 capacity probe (Redis/Dragonfly on :6379 or :6380)
+PYTHONPATH=..:. python -m poc.benchmarks.phase0_dragonfly \
+  --port 6380 --workers 4 --pipeline-size 128 --seconds 20 \
   --output ../benchmarking/capacity/phase0_latest.json
 
-# Dragonfly (example — 2 threads on this host)
-# docker run -d --name poc-dragonfly --network host \
-#   docker.dragonflydb.io/dragonflydb/dragonfly:v1.25.1 \
-#   --proactor_threads=2 --port=6380
+# Motadata bakeoff (from repo root)
+# ./benchmarking/benchmark/run_bakeoff.sh
 
 # Tests
 PYTHONPATH=..:. python -m pytest tests/ -v
@@ -67,29 +71,26 @@ PYTHONPATH=..:. python -m pytest tests/ -v
 
 Expected hipster output: fused `RCAVerdict` with `root_cause_entity: checkoutservice`.
 
+Learning UI (not RCA API): `cd federated-pipeline && python3 -m http.server 8770`.
+
 ## Code layout
 
 ```
 federated-pipeline/
-├── run.py                  # CLI entry point
+├── run.py                  # Demo CLI
 ├── poc/
-│   ├── types.py            # Hop payload types (ORCHESTRATOR.md schemas)
+│   ├── types.py            # Hop payload types
 │   ├── orchestrator.py     # UnifiedRCAOrchestrator — 6-hop pipeline
-│   ├── adapters/
-│   │   ├── panorama.py           # DetectionFlag adapter
-│   │   ├── panorama_majority.py  # InferView / InferPano (Go port)
-│   │   ├── murphy.py             # Murphy.diagnose() adapter
-│   │   ├── nezha.py              # Pattern scoring + dataset path
-│   │   └── nezha_speed.py        # Nezha from Redis pc: counts
-│   ├── stores/
-│   │   ├── speed.py              # Dragonfly/Redis tg:/pc: writer
-│   │   └── structural.py         # In-memory LOS + metrics + edges
-│   ├── ingest.py                 # Dual-stream write-path normalizer
-│   ├── scenarios/
-│   │   ├── crawler.py
-│   │   └── hipster.py
-│   └── benchmarks/
-│       └── phase0_dragonfly.py
+│   ├── adapters/           # Panorama / Murphy / Nezha adapters
+│   ├── stores/             # Redis speed + in-memory structural
+│   ├── ingest.py           # Dual-stream write-path normalizer (PoC)
+│   ├── scenarios/          # crawler, hipster
+│   └── benchmarks/         # phase0_dragonfly
+├── murphy/ panorama/ Nezha/  # Reference implementations + learning UIs
+├── docs/                   # This documentation set
+├── deploy/systemd/         # Learning prototype :8770
 └── tests/
-    └── test_pipeline.py
 ```
+
+ObserveOps bakeoff adapter (outside this tree):  
+`benchmarking/benchmark/adapters/observeops_federated.py`.

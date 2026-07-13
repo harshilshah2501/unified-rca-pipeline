@@ -160,7 +160,9 @@ M9  Common docs/ consolidation          ✅ DONE
 | Use-case definitions | [`rca-use-cases-only.md`](./rca-use-cases-only.md) |
 | Lean PRD | [`Lean_RCA_PRD.pdf`](./Lean_RCA_PRD.pdf) · [`.md`](./Lean_RCA_PRD.md) |
 | Lean Simple Guide | [`Lean_RCA_Simple_Guide.pdf`](./Lean_RCA_Simple_Guide.pdf) · [`.md`](./Lean_RCA_Simple_Guide.md) |
+| Lean pipeline architecture | [`../lean-pipeline/docs/ARCHITECTURE.md`](../lean-pipeline/docs/ARCHITECTURE.md) · [limitations](../lean-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
 | Primary-engine ADR | [`ADR-001-lean-primary-engine.md`](./ADR-001-lean-primary-engine.md) |
+| Federated architecture | [`../federated-pipeline/docs/ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md) · [limitations](../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
 | Federated status | [`../federated-pipeline/docs/REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md) |
 | Capacity | [`../federated-pipeline/docs/CAPACITY.md`](../federated-pipeline/docs/CAPACITY.md) |
 | Bakeoff how-to | [`../benchmarking/README.md`](../benchmarking/README.md) |

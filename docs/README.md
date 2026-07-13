@@ -150,7 +150,7 @@ Need bit-stable + SRE-auditable RCA on classic infra?
 
 | Location | Contents |
 |----------|----------|
-| [`federated-pipeline/docs/`](../federated-pipeline/docs/) | Federated architecture, orchestrator, capacity, algorithm dissections |
-| [`lean-pipeline/docs/`](../lean-pipeline/docs/) | Lean-specific notes; historical PRD plan (status → [`ROADMAP.md`](./ROADMAP.md)) |
+| [`federated-pipeline/docs/ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md) | Federated architecture, components, workflow · [limitations](../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
+| [`lean-pipeline/docs/ARCHITECTURE.md`](../lean-pipeline/docs/ARCHITECTURE.md) | Lean architecture, components, workflow · [limitations & future](../lean-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
 | [`benchmarking/`](../benchmarking/) | Bakeoff runners + comparison reports |
 | [`datasets/observeops/`](../datasets/observeops/) | Frozen corpus + comparison contract |

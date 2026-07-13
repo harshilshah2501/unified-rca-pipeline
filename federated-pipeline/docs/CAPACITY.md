@@ -1,6 +1,8 @@
 # Capacity Planning
 
-Two scopes: **PoC** (what we build now) and **production vision** (1B EPS design anchor). PoC sizing is independent and should not be driven by the 1B number.
+**Motadata note:** Lean is primary for ObserveOps ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). Capacity work here is for the **federated** speed/structural tier vision (Phase C/E deferred). Motadata critical path does **not** block on 1B EPS. Overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md) · limits: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md).
+
+Two scopes: **PoC** (local Dragonfly/Redis probes) and **production vision** (1B EPS design anchor). PoC sizing is independent and should not be driven by the 1B number.
 
 ---
 
@@ -12,7 +14,7 @@ Two scopes: **PoC** (what we build now) and **production vision** (1B EPS design
 | Services | 10–50 microservices | TrainTicket / Online Boutique scale |
 | Dragonfly | 1–3 nodes | Single-node benchmark first, then small cluster |
 | Structural tier | 1 high-memory node | CSR graph + DashMap in-process; ~2M edges fits in GB |
-| Orchestrator | 1 Rust instance | Incident rate << event rate |
+| Orchestrator | 1 instance (Python PoC; Rust vision) | Incident rate << event rate |
 | Network | < 1 Gbps aggregate | Non-issue at PoC scale |
 
 ### PoC memory estimate (speed tier)
@@ -31,13 +33,13 @@ Before scaling math, run a **single-node Dragonfly benchmark**:
 2. Lua script performing pattern hash → ZSET/HSET write + score update.
 3. Measure sustained EPS until p99 latency exceeds threshold.
 
-Record the result here once measured:
+Record the result here once measured (laptop floor already filled below):
 
 | Metric | Value | Date |
 |--------|-------|------|
-| Single-node sustained EPS (Lua path) | *TBD* | — |
-| p99 write latency at sustained load | *TBD* | — |
-| Hardware spec | *TBD* | — |
+| Single-node sustained EPS (Lua path) | **~21K Dragonfly / ~20K Redis** on 2-core WSL | 2026-07-13 |
+| p99 write latency at sustained load | **~0.35 ms** (Dragonfly best) | 2026-07-13 |
+| Hardware spec | WSL2 · 2 CPUs · 7.8 GiB — not server-class | 2026-07-13 |
 
 ---
 
@@ -45,7 +47,7 @@ Record the result here once measured:
 
 At 1B EPS sustained, this is hyperscaler internal-observability territory (Google Monarch, Meta Scuba, CDN edge telemetry) — not a typical enterprise deployment.
 
-> **Naming:** These are **storage tiers** (data-plane role), not pipeline steps. Speed tier = Tier 1 below; Structural tier = Tier 2 below. Pipeline execution order (Panorama → Murphy → Nezha) is independent — see [ARCHITECTURE.md](./ARCHITECTURE.md).
+> **Naming:** These are **storage tiers** (data-plane role), not pipeline steps. Speed tier = Tier 1 below; Structural tier = Tier 2 below. Pipeline execution order (Panorama → Murphy → Nezha) is independent — see [STORAGE_TIERS.md](./STORAGE_TIERS.md) and [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ### Tier comparison (production vision)
 
@@ -112,10 +114,10 @@ docker run -d --name poc-dragonfly --network host \
   docker.dragonflydb.io/dragonflydb/dragonfly:v1.25.1 \
   --proactor_threads=2 --port=6380
 
-cd PoC
+cd federated-pipeline
 PYTHONPATH=..:. python -m poc.benchmarks.phase0_dragonfly \
   --port 6380 --workers 4 --pipeline-size 128 --seconds 20 \
-  --output phase0_dragonfly_hostnet_w4.json
+  --output ../benchmarking/capacity/phase0_dragonfly_hostnet_w4.json
 ```
 
 **Shard count (derived):**

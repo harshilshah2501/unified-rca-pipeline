@@ -1,6 +1,8 @@
 # Architecture Rationale
 
-Design decisions, novelty claims, and paper-level analysis behind the federated architecture. For the implementable spec, see [ARCHITECTURE.md](./ARCHITECTURE.md) and [ORCHESTRATOR.md](./ORCHESTRATOR.md).
+**Motadata note:** Lean is primary for ObserveOps classic infra ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). This rationale justifies the **federated** three-paper synthesis as an optional / research hybrid — not the Motadata default. Implementable shipping-state overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md). Limits: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md).
+
+Design decisions, novelty claims, and paper-level analysis behind the federated architecture. For hop contracts see [ORCHESTRATOR.md](./ORCHESTRATOR.md); for storage vision see [STORAGE_TIERS.md](./STORAGE_TIERS.md).
 
 ---
 

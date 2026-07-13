@@ -7,7 +7,7 @@
 | [`core_engine/`](core_engine/) | Lean core + ObserveOps engine |
 | [`lean_rca/`](lean_rca/) | Motadata CLI + HTTP API + SRE report enrichment |
 | [`deploy/`](deploy/) | systemd unit for the RCA API (`:8780`) |
-| [`docs/`](docs/) | Lean-specific notes (PRD PDFs live in shared `docs/`) |
+| [`docs/`](docs/) | Architecture, limitations/future work, historical notes · federated twin: [`../federated-pipeline/docs/`](../federated-pipeline/docs/) |
 
 ```bash
 # From repo root
@@ -37,4 +37,4 @@ The stdlib WSGI server exposes `GET /health`, `GET /v1/diagnose/UC-1`, and
 
 PRD / Simple Guide (shared): [../docs/Lean_RCA_PRD.pdf](../docs/Lean_RCA_PRD.pdf) · [../docs/Lean_RCA_Simple_Guide.pdf](../docs/Lean_RCA_Simple_Guide.pdf)
 
-Lean-specific notes: [docs/README.md](docs/README.md)
+Lean architecture & limits: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/LIMITATIONS_AND_FUTURE.md](docs/LIMITATIONS_AND_FUTURE.md) · [docs/README.md](docs/README.md)

@@ -525,7 +525,7 @@ Use these in NotebookLM chat or workshop discussions:
 | Bakeoff numbers | `benchmarking/results/comparison/COMPARISON.md` |
 | Decision memo | `benchmarking/results/comparison/DECISION.md` |
 | Benchmark contract | `datasets/observeops/COMPARISON_BENCHMARK.md` |
-| Federated design | `federated-pipeline/docs/` |
+| Federated design | `federated-pipeline/docs/ARCHITECTURE.md` (+ limitations / storage tiers) |
 | Lean engine notes | `lean-pipeline/core_engine/observeops/README.md` |
 | Lean PRD / Simple Guide | `docs/Lean_RCA_PRD.md` (+ `.pdf`), `docs/Lean_RCA_Simple_Guide.md` (+ `.pdf`) — Motadata-aligned 2026-07-13 |
 
