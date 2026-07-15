@@ -1,6 +1,6 @@
 # Full-Fledged Steps 1–3 RCA — Requirements
 
-**Status:** **Complete** for Motadata ObserveOps (Corpus B). Historical checklist kept for audit; live status is in [TASKS.md](TASKS.md) and [`docs/ROADMAP.md`](../../docs/ROADMAP.md).
+**Status:** **Complete** for ObserveOps (Corpus B). Historical checklist kept for audit; live status is in [TASKS.md](TASKS.md) and [`docs/ROADMAP.md`](../../docs/ROADMAP.md).
 
 ## Current vs target
 

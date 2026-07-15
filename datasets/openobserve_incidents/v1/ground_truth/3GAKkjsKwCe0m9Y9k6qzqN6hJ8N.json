@@ -1,0 +1,55 @@
+{
+  "incident_id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+  "title": "net_link_saturation",
+  "status": "final",
+  "stratum": "multi_network_topo",
+  "root_layer": "network",
+  "root_alert": "net_link_saturation",
+  "contributor_alerts": [
+    "gateway_5xx_spike",
+    "checkout_db_timeouts"
+  ],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "core-router link saturation (output discards) on app\u2192db path. Gateway 5xx and DB timeouts are downstream symptoms of the saturated link.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "network",
+      "root_alert": "net_link_saturation",
+      "confidence": "confident",
+      "evidence_note": "Network link is shared upstream of gateway and checkout-db symptoms.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "network",
+      "root_alert": "net_link_saturation",
+      "confidence": "confident",
+      "evidence_note": "Title matches infra root; do not crown gateway or DB timeout.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T07:33:28Z",
+    "notes": "Solo Option-B exercise: dual-pass by same reviewer (pass A evidence-first, pass B decoy-check). Agreed network / net_link_saturation. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "checkout_db_timeouts",
+    "gateway_5xx_spike",
+    "net_link_saturation"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "network",
+    "lean_root": "net_link_saturation",
+    "federated_layer": "network",
+    "federated_root": "net_link_saturation",
+    "openobserve_layer": "network",
+    "openobserve_root": "checkout_db_timeouts",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "Network link saturation on core-router-01 eth1 caused packet discard rates to escalate from 0 to 3,125 packets/sec beginning at 08:47:42 UTC, triggering TCP retransmissions and connection timeouts. The degraded network path forced PostgreSQ",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

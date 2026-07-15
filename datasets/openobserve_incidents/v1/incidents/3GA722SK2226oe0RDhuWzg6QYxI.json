@@ -1,0 +1,85 @@
+{
+  "id": "3GA722SK2226oe0RDhuWzg6QYxI",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783402308922342,
+  "last_alert_at": 1783402308922342,
+  "resolved_at": 1783402772634811,
+  "alert_count": 1,
+  "title": "starter_high_cpu",
+  "created_at": 1783402308930324,
+  "updated_at": 1783402772634811,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3G8HIj0XAY1HGbdDOjBHbCTutqQ",
+        "alert_name": "starter_high_cpu",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783402308922342,
+        "last_fired_at": 1783402308922342
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": null
+  },
+  "triggers": [
+    {
+      "incident_id": "3GA722SK2226oe0RDhuWzg6QYxI",
+      "alert_id": "3G8HIj0XAY1HGbdDOjBHbCTutqQ",
+      "alert_name": "starter_high_cpu",
+      "alert_fired_at": 1783402308922342,
+      "correlation_reason": "alert_id",
+      "created_at": 1783402308931847
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3G8HIj0XAY1HGbdDOjBHbCTutqQ",
+      "name": "starter_high_cpu",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "system_process_cpu_percent",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM system_process_cpu_percent WHERE value > 80",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 10,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Starter alert: fires when mock system_process_cpu_percent > 80; creates an incident for RCA.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

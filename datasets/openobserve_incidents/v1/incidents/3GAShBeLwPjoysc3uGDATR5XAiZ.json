@@ -1,0 +1,45 @@
+{
+  "id": "3GAShBeLwPjoysc3uGDATR5XAiZ",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783412996924942,
+  "last_alert_at": 1783412996924942,
+  "resolved_at": 1783414858574910,
+  "alert_count": 1,
+  "title": "ecom_dns_aaaa_numa on dns-resolver",
+  "created_at": 1783412996929825,
+  "updated_at": 1783414858574910,
+  "group_values": {
+    "service": "dns-resolver",
+    "k8s-cluster": "prod-use1",
+    "region": "region-b"
+  },
+  "key_type": "primary",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GASgLMdEAyCisunwGv61X82FNU",
+        "alert_name": "ecom_dns_aaaa_numa",
+        "service_name": "payment-service",
+        "alert_count": 1,
+        "first_fired_at": 1783412996924942,
+        "last_fired_at": 1783412996924942
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAShBeLwPjoysc3uGDATR5XAiZ\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-07 08:29:56 UTC\n- **Resolved**: Ongoing\n- **Duration**: Less than 1 minute (single alert trigger)\n- **Affected Services**: payment-service (via dns-resolver), payment-provider\n- **Customer Impact**: Payment processing delays and timeouts affecting downstream checkout flows\n\n## Impact Assessment\n\n- **Services Affected**: 2 primary (payment-service, payment-provider); 1 infrastructure (dns-resolver)\n- **Peak Error Rate**: DNS AAAA query latency spike to 3,262.8ms (threshold: 1,000ms)\n- **Failed Requests**: Multiple payment provider request timeouts with connection acquisition delays of 3,800-4,400ms\n- **Users Impacted**: All users initiating payment transactions during the incident window\n- **Data Loss**: No\n- **SLA Breach**: Probable (payment processing latency exceeded acceptable thresholds)\n\n## Evidence\n\n### Service Dependencies\nThe service topology analysis reveals:\n- **Payment-service** depends on **payment-provider** (external service)\n- **Payment-service** depends on **dns-resolver** for hostname resolution (payments.provider.com)\n- **Checkout-service** depends on **payment-service** with P99 latency of 17.8 seconds\n- **API-gateway** has 38.83% error rate, primarily from downstream failures\n\nThe root dependency chain shows: checkout-service \u2192 payment-service \u2192 (dns-resolver + payment-provider)\n\n### Distributed Traces\nService topology data indicates:\n- **Checkout-service to payment-service**: P99 latency degradation (17.8 seconds)\n- **Orders-service to postgres**: 20.7% error rate (96 failed / 464 total requests)\n- **API-gateway errors**: 38.83% error rate (372 failed / 958 total requests)\n\nThe traces show latency injection originated in the dns-resolver + payment-provider path, cascading to checkout-service.\n\n### Log Patterns\nPayment service logs reveal a consistent error pattern from 1783410396 onwards:\n\n1. **DNS Resolution Warnings**: \"DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3079ms\" (logged at 1783412498)\n2. **Connection Acquisition Delays**: Multiple warnings showing connection times of 3,800-4,400ms\n3. **Payment Provider Timeouts**: Repeated \"Payment provider request timeout\" errors every 30 seconds\n4. **Retry Loop**: Pattern shows \"Retry attempt 2/3\" indicating systematic failures in the payment provider path\n\nTimeline of log events:\n- 1783412498: First DNS resolution warning (3079ms AAAA query)\n- 1783412488-1783412882: Repeated payment provider timeouts with 4,000+ ms connection delays\n- Pattern repeats every 30 seconds, indicating systematic circuit-breaker or retry behavior\n\n### Metrics Analysis\nDNS query latency metrics show a critical anomaly on node pool NP-17, dns_server=10.20.4.53:\n\n**AAAA Query Latency on NP-17 (milliseconds)**:\n- Normal baseline: 8-22ms\n- Anomaly start (1783410960): 12.2ms\n- Spike progression:\n  - 1783411020: 22.9ms\n  - 1783411080: 24.3ms\n  - 1783411140: 35.3ms\n  - 1783411200: 25.7ms\n  - 1783411320: 25.1ms\n  - 1783411560: 26.8ms\n  - 1783412040: 38.9ms\n  - 1783412220: 37.0ms\n  - 1783412640: 38.4ms\n  - Peak: 40.8ms (1783411680)\n\n**P99 DNS Query Latency (metrics stream dns_query_latency_p99_ms)**:\n- Baseline values (A records): 11-15ms\n- AAAA queries: 2,700-3,300ms (3 measurements per minute consistently)\n- Threshold for alert: 1,000ms\n- Peak AAAA latency recorded: 3,359.3ms (exceeds threshold by 236%)\n\n**Cross-node pool comparison**:\n- NP-05, NP-09: Normal AAAA latencies 8-15ms\n- NP-17: Severe latency spike starting 1783410960\n\n**Query rate metrics**:\n- AAAA queries showing rates of 7,400-8,800 req/min on multiple samples\n- A query rates: 1,000-1,400 req/min\n\nThe bimodal latency distribution in P99 measurements (high values clustered at 2,700-3,400ms) suggests a NUMA locality issue rather than network congestion, consistent with the alert description mentioning \"cross-NUMA latency + NP-17 node-image IRQ change.\"\n\n### Recent Changes\n**Alert Description Context**: \"DNS AAAA(IPv6) P99=3.2s on NP-17/dns_server=10.20.4.53; correlates with RX-queue-7 cross-NUMA latency + NP-17 node-image IRQ change.\"\n\nThis indicates:\n1. A recent node-image update was applied to NP-17\n2. IRQ (interrupt request) handling changed, impacting RX-queue-7\n3. Cross-NUMA memory access patterns were altered, causing IPv6 DNS queries to traverse slow memory paths\n\nNo direct access to deploy history is available, but the alert text provides strong evidence of a recent infrastructure change (node-image update) on NP-17.\n\n### Contributing Factors\n1. **NP-17 node-image IRQ change** \u2014 Recent node kernel or driver update altered interrupt routing, causing RX-queue-7 to experience cross-NUMA latency\n2. **Cross-NUMA memory locality violation** \u2014 IPv6 (AAAA) DNS queries on dns_server=10.20.4.53 (bound to NP-17) now traverse high-latency NUMA node boundaries (40+ ms vs baseline 8-15ms)\n3. **Payment service timeout configuration** \u2014 Connection acquisition timeout (4,000+ ms observed) indicates either payment-provider latency threshold or DNS client timeout configuration is too aggressive, causing immediate retries on the slow DNS path\n4. **No fallback DNS server** \u2014 No evidence of failover to alternative DNS servers (e.g., 10.20.4.10) when NP-17 is degraded; all queries going to 10.20.4.53\n\n## Timeline\n\n- **07:29:56 UTC (1783410396)** \u2014 DNS resolver NUMA latency anomaly begins on NP-17\n- **07:32:18 UTC (1783412338)** \u2014 Alert threshold breach: P99 AAAA query latency exceeds 1,000ms\n- **07:34:58 UTC (1783412498)** \u2014 Payment service logs first DNS resolution warning (3079ms latency on payments.provider.com AAAA query)\n- **07:34:48-08:29:42 UTC (1783412488-1783412882)** \u2014 Sustained payment provider timeouts, 30-second interval repeating pattern\n- **08:29:56 UTC (1783412996)** \u2014 Alert triggered; incident opened\n\n## Actions\n\n### Immediate\n1. Drain traffic from dns_server=10.20.4.53 on NP-17; failover DNS requests to 10.20.4.10 (NP-05/NP-09)\n2. Revert NP-17 node-image to previous version to restore IRQ and NUMA configuration\n3. Restart DNS resolver pods on NP-17 to clear any stale memory mappings\n4. Monitor AAAA query latency on NP-17 post-revert; confirm baseline restoration to 8-15ms range\n\n### Future\n1. Implement active-active DNS server redundancy with automatic failover when latency exceeds threshold\n2. Add pre-deployment NUMA locality test suite to node-image updates\n3. Configure payment-service DNS client timeout to 2,000ms (current effective timeout is 4,000+ ms from cascading retries)\n4. Add cross-NUMA latency monitoring and alerting for NP-* node pools\n5. Implement circuit breaker in payment-service with exponential backoff rather than immediate retry on DNS timeout\n\n## Executive Summary\n\n**Potential Cause**: A recent node-image update on NP-17 modified interrupt (IRQ) handling, causing RX-queue-7 to traverse high-latency cross-NUMA memory paths. IPv6 DNS queries for payments.provider.com now incur 3,200+ ms latency (40\u00d7 baseline), triggering payment provider request timeouts and cascading failures through the checkout flow.\n\n**Impact**: Payment processing requests fail with connection timeouts; all downstream checkout transactions are delayed or rejected.\n\n**Resolution**: Revert NP-17 node-image to pre-change state and implement DNS server failover to prevent single-point-of-failure on degraded NUMA nodes."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAShBeLwPjoysc3uGDATR5XAiZ",
+      "alert_id": "3GASgLMdEAyCisunwGv61X82FNU",
+      "alert_name": "ecom_dns_aaaa_numa",
+      "alert_fired_at": 1783412996924942,
+      "correlation_reason": "service_discovery",
+      "created_at": 1783412996931467
+    }
+  ],
+  "alerts": []
+}

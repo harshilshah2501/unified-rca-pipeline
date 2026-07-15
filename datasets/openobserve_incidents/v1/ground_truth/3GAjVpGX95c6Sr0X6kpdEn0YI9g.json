@@ -1,0 +1,57 @@
+{
+  "incident_id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
+  "title": "cio_host_cpu_high",
+  "status": "final",
+  "stratum": "decoy_multi_cpu_title_storage",
+  "root_layer": "storage",
+  "root_alert": "cio_disk_io_stall",
+  "contributor_alerts": [
+    "cio_io_node_degraded",
+    "cio_host_cpu_high",
+    "cio_host_load_avg_high"
+  ],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "CPU title is iowait decoy (~65% wait, user+sys ~30%). Disk I/O stall on /data + io-node-02 RAID BBU degradation are causal; load avg is D-state symptom.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "storage",
+      "root_alert": "cio_disk_io_stall",
+      "confidence": "confident",
+      "evidence_note": "Storage: disk_io_stall primary; CPU title rejected as iowait decoy.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "storage",
+      "root_alert": "cio_disk_io_stall",
+      "confidence": "confident",
+      "evidence_note": "Same: io_node_degraded supports storage; crown disk_io_stall over CPU/load.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T07:33:28Z",
+    "notes": "Solo Option-B exercise: dual-pass by same reviewer (pass A evidence-first, pass B decoy-check). A/B agree on storage; primary disk_io_stall, io_node contributor. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "cio_disk_io_stall",
+    "cio_host_cpu_high",
+    "cio_host_load_avg_high",
+    "cio_io_node_degraded"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "storage",
+    "lean_root": "cio_disk_io_stall",
+    "federated_layer": "storage",
+    "federated_root": "cio_host_cpu_high",
+    "openobserve_layer": "storage",
+    "openobserve_root": "cio_host_load_avg_high",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "RAID controller Battery-Backed Unit (BBU) failure on io-node-02 storage node, which backs the /data filesystem mounted on app-node-07. The BBU failure disables write-cache, forcing all I/O into write-through mode, multiplying latency from ~",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

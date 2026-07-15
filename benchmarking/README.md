@@ -3,7 +3,10 @@
 **What this folder is for:** run **both** pipelines on the **same** ObserveOps corpus
 ([`docs/rca-use-cases-only.md`](../docs/rca-use-cases-only.md) → `datasets/observeops/`), keep per-engine run artifacts, then produce a **comparative analysis**.
 
-**Motadata outcome:** lean is the primary engine ([ADR-001](../docs/ADR-001-lean-primary-engine.md), [DECISION.md](results/comparison/DECISION.md)). Federated remains for bakeoff comparison and optional microservice work.
+**ObserveOps UC bakeoff:** lean favored on UC-1..UC-5 ([ADR-001](../docs/ADR-001-lean-primary-engine.md), [DECISION.md](results/comparison/DECISION.md)) — evaluation finding, not finalized.
+
+**OpenObserve incidents (29):** three-method **peer** comparison (Lean · Federated · OpenObserve) by default.  
+**Option B convention GT (n=12 · 10 scored):** scoreboard [`results/openobserve/GT_SCOREBOARD.md`](results/openobserve/GT_SCOREBOARD.md) · analysis [`results/openobserve/GT_ANALYSIS.md`](results/openobserve/GT_ANALYSIS.md) · labels [`../datasets/openobserve_incidents/v1/ground_truth/`](../datasets/openobserve_incidents/v1/ground_truth/). Dashboard: [`dashboard/`](dashboard/).
 
 Nezha Online Boutique / TrainTicket data under `datasets/nezha/` is reference-only and is **not** part of this bakeoff.
 
@@ -28,6 +31,7 @@ datasets/observeops/UC-1..UC-5     ← shared frozen dataset
 | [`results/lean/`](results/lean/) | Individual lean verdicts per UC/run |
 | [`results/comparison/`](results/comparison/) | Side-by-side analysis + winner |
 | [`capacity/`](capacity/) | Infra EPS probes (Dragonfly/Redis) — separate from UC bakeoff |
+| [`dashboard/`](dashboard/) | **Comparative Web UI** (4 axes · 5 roadblocks · UC · OpenObserve) |
 
 ## One-command bakeoff
 

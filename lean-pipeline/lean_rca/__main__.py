@@ -1,4 +1,4 @@
-"""Command-line entry point for the Motadata Lean RCA API."""
+"""Command-line entry point for the ObserveOps Lean RCA API."""
 
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ def _serve(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Motadata Lean RCA")
+    parser = argparse.ArgumentParser(description="ObserveOps Lean RCA")
     subcommands = parser.add_subparsers(dest="command", required=True)
 
     diagnose_parser = subcommands.add_parser("diagnose", help="Diagnose an ObserveOps UC")

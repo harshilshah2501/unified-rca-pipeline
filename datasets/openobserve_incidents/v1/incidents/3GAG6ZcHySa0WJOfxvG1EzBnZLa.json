@@ -1,0 +1,90 @@
+{
+  "id": "3GAG6ZcHySa0WJOfxvG1EzBnZLa",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783406785510482,
+  "last_alert_at": 1783406785510482,
+  "resolved_at": 1783408522134974,
+  "alert_count": 1,
+  "title": "pg_svc_down2",
+  "created_at": 1783406785516702,
+  "updated_at": 1783408522134974,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GAG6ZPYd1sKmu7nWXmfEdTqXyj",
+        "alert_name": "pg_svc_down2",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783406785510482,
+        "last_fired_at": 1783406785510482
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAG6ZcHySa0WJOfxvG1EzBnZLa\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-07 06:46:25 UTC\n- **Resolved**: Ongoing\n- **Duration**: Incident is currently open; degradation period lasted approximately 15 minutes\n- **Affected Services**: postgres-primary, orders-service\n- **Customer Impact**: Order checkout service requests experienced severe latency and eventual failures due to database unavailability\n\n## Impact Assessment\n\n- **Services Affected**: 2 services (postgres-primary, orders-service)\n- **Peak Error Rate**: 100% - database service completely down from 06:31:21 UTC onward\n- **Failed Requests**: Traces show multiple checkout operations with duration anomalies exceeding 900ms, indicating request timeouts\n- **Users Impacted**: All users attempting to place orders during the outage window\n- **Data Loss**: No (database recovered after shutdown; recovery mode initiated)\n- **SLA Breach**: Yes - database unavailability violates availability SLA\n\n## Evidence\n\n### Service Dependencies\nService topology graph was empty, but trace analysis reveals the following dependency chain:\n- **orders-service** (entry point) \u2192 **postgres-primary** (database driver) \u2192 **ordersdb** (underlying PostgreSQL database)\n- Traces show all three services are part of order checkout requests\n- postgres-primary is the critical dependency; when it fails, all downstream requests block\n\n### Distributed Traces\nTrace analysis revealed a clear pattern of degradation:\n- **Pre-incident (06:31:00 - 06:31:20 UTC)**: Normal trace durations 40-130ms\n- **Degradation window (06:31:21 - ~06:36:00 UTC)**: Trace durations escalated to 850-930ms, indicating connection timeouts and retry behavior\n- **Post-incident traces (06:36:00 - 06:46:25 UTC)**: Normal durations resumed but with intermittent spikes\n- All traces show the same three-service span structure, confirming dependency chain\n- Latency injected at postgres-primary service layer\n\n### Log Patterns\nPostgres logs reveal the root cause sequence:\n\n**Phase 1 - Memory Pressure (06:31:21 - 06:31:30 UTC):**\n```\n[ERROR] out of memory\nDETAIL: Failed on request of size 2097152 in memory context \"MessageContext\".\n[WARNING] out of memory\n```\nMultiple occurrences of out-of-memory errors at 50-second intervals, indicating repeated allocation failures.\n\n**Phase 2 - OOMKill Event (06:31:30 UTC):**\n```\n[kernel] Out of memory: Killed process 28471 (postgres) total-vm:8923412kB, anon-rss:7891844kB, oom_score_adj:0\n[LOG] server process (PID 28471) was terminated by signal 9: Killed\n[LOG] terminating any other active server processes\n[FATAL] the database system is in recovery mode\n[LOG] database system is shut down\n```\n\nThe PostgreSQL process was forcefully terminated by the kernel's OOM killer, triggering a cascade of shutdown events.\n\n**Phase 3 - Recovery (06:31:30+ UTC):**\nDatabase entered recovery mode and initiated shutdown procedures.\n\n### Metrics Analysis\nPromQL range query on `db_up` metric confirms the incident timeline:\n\n| Timestamp | db_up Value | Interpretation |\n|-----------|-------------|-----------------|\n| 06:31:21 UTC | 1 \u2192 0 | Service begins failing |\n| 06:31:30 - 06:36:00 UTC | 0 | Persistent downtime, OOM kill, recovery mode |\n| 06:36:00+ UTC | 1 | Service recovered |\n| 06:46:25 UTC (alert time) | 0 | Subsequent failure detected |\n\nThe metric shows a clean failure pattern: normal state \u2192 complete outage \u2192 recovery \u2192 subsequent downtime.\n\nTrace data shows memory-related symptoms: postgres process consumed 7.8GB of anonymous RSS memory before being killed on a system that likely had 8GB or less total container memory limit.\n\n### Recent Changes\nChange history not investigated \u2014 no change history tool available. However, the incident's technical nature (OOM kill, memory context allocation failure) suggests either:\n1. A recent query optimization change that increased memory consumption\n2. A data volume increase without corresponding tuning\n3. A connection pool or session management change increasing per-connection memory overhead\n\nRecommendation: Check Helm values, manifest changes, and application configuration changes in the 24 hours preceding 2026-07-07 06:31 UTC.\n\n### Contributing Factors\n1. **Memory Limit Misconfiguration** - PostgreSQL container memory limit set too low relative to actual workload and buffer cache requirements. The process consumed ~7.8GB before OOMKill, indicating the limit was insufficient.\n2. **Uncontrolled Memory Growth** - Query or workload pattern triggered repeated allocation failures in MessageContext (query planning/execution buffer), suggesting a query regression or data volume spike.\n3. **No Proactive Memory Monitoring** - The alert that fired (\"pg_svc_down2\") only triggers on service downtime (db_up < 1), not on memory pressure. Memory pressure warning (ERROR/WARNING logs) was not surfaced as an alert prior to OOMKill.\n\n## Timeline\n\n- **06:31:21 UTC** - First out-of-memory warning generated; MessageContext allocation failure in PostgreSQL\n- **06:31:30 UTC** - Kernel OOMKill triggered; PostgreSQL process (PID 28471) terminated with signal 9\n- **06:31:30 UTC** - Database initiated shutdown sequence; recovery mode entered\n- **06:31:32 UTC** - Database fully shut down\n- **06:36:00 UTC** - Database recovered and resumed accepting connections\n- **06:46:25 UTC** - Alert \"pg_svc_down2\" fired; metric db_up dropped below threshold (value < 1)\n\n## Actions\n\n### Immediate\n- **Increase PostgreSQL container memory limit** - Raise from current limit to at least 12GB to provide safe headroom above observed peak usage (7.8GB)\n- **Restart postgres-primary service** - Graceful rollout restart to clear any lingering memory fragmentation\n- **Verify orderdb data integrity** - Run consistency check on orders table to confirm no data corruption occurred during unclean shutdown\n\n### Future\n- **Implement memory pressure alerts** - Create alert on PostgreSQL memory usage >= 80% of limit to trigger before OOMKill. Use metric: `container_memory_usage_bytes / container_memory_limit_bytes >= 0.8`\n- **Add memory trend dashboard** - Create dashboard tracking memory growth over time per database service to detect gradual leaks or workload increases\n- **Review and tune query execution** - Audit recent query changes and slow-query logs to identify memory-inefficient queries (e.g., large sorts, hash aggregates without work_mem limits)\n- **Implement graceful OOM handling** - Configure PostgreSQL `maintenance_work_mem` and `work_mem` parameters based on available memory; consider enabling statement timeout to kill long-running queries\n- **Add database-layer availability monitoring** - Supplement db_up metric with connection pool health, query latency percentiles (p95, p99), and prepared statement cache hit rate\n\n## Executive Summary\n\n**Potential Cause**: PostgreSQL out-of-memory (OOM) condition caused by memory limit misconfiguration combined with a workload pattern that triggered high memory demand in the query execution layer (MessageContext allocation failure). The kernel OOM killer forcefully terminated the PostgreSQL process, triggering database shutdown and service unavailability.\n\n**Impact**: All order checkout requests failed during the 15-minute outage window (06:31:21 - 06:36:00 UTC). Post-recovery, intermittent failures resumed, indicating the root cause was not cleared (memory limit still insufficient for the current workload).\n\n**Resolution**: Immediately increase PostgreSQL container memory limit to 12GB minimum. Deploy memory pressure monitoring and alerting to detect and escalate OOM conditions before they trigger process termination. Audit recent query changes and database workload to determine if the memory demand is legitimate (data growth, new query patterns) or a regression requiring optimization."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAG6ZcHySa0WJOfxvG1EzBnZLa",
+      "alert_id": "3GAG6ZPYd1sKmu7nWXmfEdTqXyj",
+      "alert_name": "pg_svc_down2",
+      "alert_fired_at": 1783406785510482,
+      "correlation_reason": "alert_id",
+      "created_at": 1783406785518363
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAG6ZPYd1sKmu7nWXmfEdTqXyj",
+      "name": "pg_svc_down2",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "db_up",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM db_up WHERE value < 1",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 25,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "service_name": "postgres-primary",
+        "service": "postgres-primary",
+        "host": "pg-prod-01"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "postgres-primary DOWN.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 # Federated RCA — Architecture, Components & Workflow
 
-**Status:** Optional Motadata track. For ObserveOps UC-1..UC-5, **lean is primary** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)).  
+**Status:** Optional ObserveOps track. For ObserveOps UC-1..UC-5, **lean is primary** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)).  
 **Role of this tree:** Federated PoC, same-corpus bakeoff comparator, and optional microservice / code-path / gray-failure hybrid.  
-**Not:** Motadata’s shipping primary engine (that is [`lean-pipeline/`](../../lean-pipeline/docs/ARCHITECTURE.md)).
+**Not:** ObserveOps’ shipping primary engine (that is [`lean-pipeline/`](../../lean-pipeline/docs/ARCHITECTURE.md)).
 
 This document describes what the federated pipeline **actually implements** today (demos + ObserveOps bakeoff adapter), plus how that relates to the aspirational dual-tier design. Deeper hop contracts: [`ORCHESTRATOR.md`](./ORCHESTRATOR.md). Storage vision: [`STORAGE_TIERS.md`](./STORAGE_TIERS.md). Limits and deferred work: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md).
 
@@ -20,14 +20,14 @@ Federated synthesizes three independently published systems behind a coordinatio
 
 The **orchestrator** (`UnifiedRCAOrchestrator`) is the glue: trigger routing, schema translation, narrowing, and fusion. None of the three papers defines that contract.
 
-| Quality | Federated Motadata profile (bakeoff) |
+| Quality | Federated ObserveOps profile (bakeoff) |
 |---------|--------------------------------------|
 | Accuracy | **5/5** on UC-1..UC-5 (tied with lean) |
 | Reproducibility | **~40%** bit-stable (N=20) — Gibbs / synthetic-store variance |
 | Verifiability | Fusion path + hop logs; harder than lean tier trail |
 | Causal Validity | Murphy partial — strongest of the three papers, costly if global |
 
-**Motadata conclusion:** Murphy’s CV edge did **not** buy extra top-1 accuracy on classic infra; lean wins cost–benefit as primary. Keep federated when microservice gray-failure + code-path depth is explicitly in scope.
+**ObserveOps conclusion:** Murphy’s CV edge did **not** buy extra top-1 accuracy on classic infra; lean wins cost–benefit as primary. Keep federated when microservice gray-failure + code-path depth is explicitly in scope.
 
 ---
 
@@ -72,7 +72,7 @@ The **orchestrator** (`UnifiedRCAOrchestrator`) is the glue: trigger routing, sc
 | [`../panorama/`](../panorama/) | Panorama Go reference + learning UI |
 | [`../Nezha/`](../Nezha/) | Nezha reference + learning UI |
 | [`../run.py`](../run.py) | Demo CLI |
-| [`../deploy/`](../deploy/) | Learning-prototype systemd (:8770) — not Motadata RCA API |
+| [`../deploy/`](../deploy/) | Learning-prototype systemd (:8770) — not ObserveOps RCA API |
 | [`../index.html`](../index.html) | Learning prototypes hub |
 | Bakeoff adapter | [`../../benchmarking/benchmark/adapters/observeops_federated.py`](../../benchmarking/benchmark/adapters/observeops_federated.py) |
 
@@ -119,7 +119,7 @@ ObserveOps bakeoff builds a **simulated** detection flag from `symptom_seed` (no
 | `poc/adapters/nezha.py` | `rank_patterns` (`S_C/(S_C+S_P)`), dataset / simulated diagnose |
 | `poc/adapters/nezha_speed.py` | Score from Redis `pc:` keys |
 
-Natural strength: microservice code-path / pair mining (hipster demo). On Motadata classic-infra bakeoff, **root CI is driven mainly by Murphy fusion / heuristics**; Nezha is underused for Motadata root selection.
+Natural strength: microservice code-path / pair mining (hipster demo). On ObserveOps classic-infra bakeoff, **root CI is driven mainly by Murphy fusion / heuristics**; Nezha is underused for classic ObserveOps root selection.
 
 ### 3.5 Ingest & stores (PoC)
 
@@ -144,13 +144,13 @@ Rust/NATS production normalizer and Vortex structural fleet are **aspirational**
 **Path:** `benchmarking/benchmark/adapters/observeops_federated.py` (+ `run_federated.py`).
 
 1. Load frozen UC bundle from `datasets/observeops/`.  
-2. Build `SimulatedMetricStore` (seeded) with Motadata-aware propagation.  
+2. Build `SimulatedMetricStore` (seeded) with corpus-aware propagation.  
 3. Build simulated `DetectionFlag` from symptom seed.  
 4. Run `UnifiedRCAOrchestrator`.  
-5. Post-pipeline Motadata fusion: recover Murphy posterior if empty; prefer upstream among high-posterior candidates; **`resolve_root_ci`** may fall back to lean-shared helpers (`shared_upstream`, `upstream_healthy`) when posterior is weak.  
+5. Post-pipeline ObserveOps fusion: recover Murphy posterior if empty; prefer upstream among high-posterior candidates; **`resolve_root_ci`** may fall back to lean-shared helpers (`shared_upstream`, `upstream_healthy`) when posterior is weak.  
 6. Emit bakeoff verdict: `engine`, `root_ci`, `signature`, `contributor_cis`, `evidence`, `observations`, …
 
-Contrast with lean: lean walks the typed CI graph + Motadata rules + CARE/tiers natively (`lean-pipeline/core_engine/observeops/engine.py`). Federated re-hosts the same corpus into Murphy’s metric world.
+Contrast with lean: lean walks the typed CI graph + ObserveOps rules + CARE/tiers natively (`lean-pipeline/core_engine/observeops/engine.py`). Federated re-hosts the same corpus into Murphy’s metric world.
 
 ---
 
@@ -168,7 +168,7 @@ flowchart LR
 
 Expected hipster: `root_cause_entity: checkoutservice`.
 
-### 4.2 Motadata ObserveOps bakeoff
+### 4.2 ObserveOps bakeoff
 
 ```mermaid
 flowchart TD
@@ -193,7 +193,7 @@ cd federated-pipeline && python3 -m http.server 8770
 # → http://127.0.0.1:8770/  (index.html → algorithm prototypes)
 ```
 
-systemd: `deploy/systemd/unified-rca-learning-prototype.service` serves static HTTP only. Motadata packaged API is lean on `:8780`.
+systemd: `deploy/systemd/unified-rca-learning-prototype.service` serves static HTTP only. ObserveOps packaged API is lean on `:8780`.
 
 ---
 
@@ -226,9 +226,9 @@ Tests: `tests/test_pipeline.py` (crawler/hipster E2E); `tests/test_ingest.py` (s
 | [`CAPACITY.md`](./CAPACITY.md) | PoC EPS measurements + 1B vision |
 | [`REQUIREMENTS.md`](./REQUIREMENTS.md) | Federated PoC goals / status |
 | [`ARCHITECTURE_RATIONALE.md`](./ARCHITECTURE_RATIONALE.md) | Novelty claim / paper gaps |
-| [`../../docs/POC_BRIEFING.md`](../../docs/POC_BRIEFING.md) | Motadata end-to-end briefing |
-| [`../../lean-pipeline/docs/ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md) | Primary Motadata engine |
+| [`../../docs/POC_BRIEFING.md`](../../docs/POC_BRIEFING.md) | ObserveOps end-to-end briefing |
+| [`../../lean-pipeline/docs/ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md) | Primary ObserveOps engine |
 
 ---
 
-*Federated-pipeline technical architecture. Motadata-aligned (2026-07-13): lean primary; federated optional hybrid.*
+*Federated-pipeline technical architecture. evaluation-aligned (2026-07-13): lean primary; federated optional hybrid.*

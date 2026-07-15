@@ -1,8 +1,8 @@
 # Orchestrator — Coordination & Fusion Layer
 
-**Motadata note:** Lean is the primary ObserveOps engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). This document specifies the **federated** coordination contract (Panorama → Murphy → Nezha). Shipping Motadata diagnose path: [`../../lean-pipeline/docs/ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md). Federated overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+**ObserveOps note:** Lean is the primary ObserveOps engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). This document specifies the **federated** coordination contract (Panorama → Murphy → Nezha). Shipping ObserveOps diagnose path: [`../../lean-pipeline/docs/ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md). Federated overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
-The orchestrator is the **primary novel contribution of the federated synthesis**. None of the three papers (Panorama, Murphy, Nezha) define trigger routing, schema translation, search narrowing, or confidence fusion. It is **not** Motadata’s claim that federated is the default product brain — that decision is ADR-001 (lean primary).
+The orchestrator is the **primary novel contribution of the federated synthesis**. None of the three papers (Panorama, Murphy, Nezha) define trigger routing, schema translation, search narrowing, or confidence fusion. It is **not** ObserveOps’ claim that federated is the default product brain — that decision is ADR-001 (lean primary).
 
 ## Responsibilities
 

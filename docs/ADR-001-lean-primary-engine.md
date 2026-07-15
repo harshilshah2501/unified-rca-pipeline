@@ -1,41 +1,45 @@
-# ADR-001: Lean as the Primary ObserveOps RCA Engine
+# ADR-001: Lean vs Federated on the ObserveOps Corpus
 
 ## Status
 
-Accepted (2026-07-13)
+**Evaluation finding** (2026-07-13) — bakeoff recommendation for the classical ObserveOps UC corpus. **Not a finalized product commitment.** Approaches remain under evaluation.
 
 ## Context
 
-Motadata ObserveOps is evaluated only against the frozen UC-1..UC-5 corpus
+This workspace evaluates two RCA approaches against the frozen UC-1..UC-5 corpus
 derived from [`rca-use-cases-only.md`](./rca-use-cases-only.md) in
 `datasets/observeops/`. That corpus enforces **Roadblock 4** by convention
 (shared `ground_truth.json` + same-bundle bakeoff) and **Roadblock 1b** as a
 joined typed multi-domain CI graph. The matched bakeoffs `bakeoff-phase-a-001`
-and `bakeoff-phase-b-001` established the engine decision and lean's PRD depth.
+and `bakeoff-phase-b-001` (plus later `b-002`) measured accuracy, reproducibility,
+evidence depth, and efficiency.
 
-## Decision
+## Evaluation recommendation (corpus-scoped)
 
-Use the **lean engine** as the primary RCA engine for classic ObserveOps
-infrastructure paths (network → host → VM → OS → app).
+On **classic infrastructure** paths in this corpus (network → host → VM → OS → app),
+bakeoff evidence **favors the lean engine** as the stronger default for further
+evaluation (reproducibility, verifiability, cost).
 
-Keep the federated engine as an optional future hybrid component for
-microservice code-path, gray-failure, and pair-mining workloads, once a
-dedicated microservice evaluation corpus is in scope.
+Keep the **federated** engine in scope as a comparator and as a candidate for
+microservice / code-path / gray-failure / pair-mining workloads once a dedicated
+microservice evaluation corpus is defined.
 
-## Consequences
+Nothing here freezes a go-to-market or shipping decision.
 
-Phase D packaging is complete: lean CLI/HTTP API (`lean_rca`), SRE report
-fields (chain / blast radius / remediation), and systemd unit
-`lean-rca.service`. Defer Phase C federated production ingest/stores and
-Phase E scale/capacity work until a microservice evaluation track is
-prioritized. Optional later: B5 continuous causal memory.
+## Consequences (evaluation)
 
-| Evidence axis | `bakeoff-phase-b-001` result | Decision impact |
+Packaging artifacts exist so the lean path can be exercised end-to-end
+(`lean_rca` CLI/HTTP, SRE report fields, `lean-rca.service`). Federated Phase C
+ingest/stores and Phase E scale work stay deferred until a microservice track
+(or renewed bakeoff criteria) is prioritized. Optional later: B5 continuous
+causal memory.
+
+| Evidence axis | `bakeoff-phase-b-001` result | Evaluation impact |
 |---|---|---|
-| Accuracy | Both engines: 5/5 root-CI and 5/5 signature matches | No accuracy penalty for lean |
-| Reproducibility | Lean: 100% (5/5); federated: 40% | Lean is operationally more repeatable |
-| Evidence tiers | Lean: Tier 3 causal verification on UC-1 and UC-3; Tier 1 on UC-2, UC-4, and UC-5 | Lean supports the required evidence-depth range |
-| Efficiency | Lean: 5.00 average observations vs federated 5.40; best-first 2.40 vs naive BFS 2.80 | Lean is lighter on the evaluated paths |
+| Accuracy | Both engines: 5/5 root-CI and 5/5 signature matches | No accuracy penalty for lean on this corpus |
+| Reproducibility | Lean: 100% (5/5); federated: 40% | Lean is more repeatable on these bundles |
+| Evidence tiers | Lean: Tier 3 on UC-1 and UC-3; Tier 1 on UC-2, UC-4, and UC-5 | Lean covers the intended depth range |
+| Efficiency | Lean: 5.00 avg observations vs federated 5.40; best-first 2.40 vs naive BFS 2.80 | Lean is lighter on the evaluated paths |
 
 Evidence: [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md)
 and [`DECISION.md`](../benchmarking/results/comparison/DECISION.md).

@@ -1,0 +1,85 @@
+{
+  "id": "3GA9Ehaso21qDpWNlx9B55mZWzZ",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783403396412796,
+  "last_alert_at": 1783403396412796,
+  "resolved_at": 1783403796188001,
+  "alert_count": 1,
+  "title": "database_down",
+  "created_at": 1783403396419852,
+  "updated_at": 1783403796188001,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GA9Ej4fZMu5dm3DAh8ak7z90JX",
+        "alert_name": "database_down",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783403396412796,
+        "last_fired_at": 1783403396412796
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GA9Ehaso21qDpWNlx9B55mZWzZ\n- **Severity**: P3\n- **Detected**: 2026-07-07T07:49:56.412796Z\n- **Resolved**: Ongoing\n- **Duration**: Ongoing\n- **Affected Services**: Database (ordersdb postgres primary)\n- **Customer Impact**: Unknown due to lack of detailed telemetry.\n\n## Impact Assessment\n\n- **Services Affected**: 1 (Database - ordersdb postgres primary)\n- **Peak Error Rate**: Unknown\n- **Failed Requests**: Unknown\n- **Users Impacted**: Unknown\n- **Data Loss**: Unknown\n- **SLA Breach**: Unknown\n\n## Evidence\n\n### Service Dependencies\nService topology information is not available.\n\n### Distributed Traces\nDistributed trace data is not available.\n\n### Log Patterns\nSearches for logs related to \"ordersdb\" and \"pg-prod-01\" in the \"logs\" stream returned no results. Detailed log analysis is not possible due to the absence of relevant log data or inaccessible log streams.\n\n### Metrics Analysis\nThe \"db_up\" metric stream, which is monitored by the \"database_down\" alert, returned no data for the time range of the incident (`2026-07-07T07:40:00Z` to `2026-07-07T07:50:05.758539Z`). This is a critical gap, as the alert fired based on this metric.\n\n### Recent Changes\nInvestigation into recent changes (deploys, config changes) related to the affected service or the \"db_up\" metric stream could not be performed due to the lack of appropriate tooling. Change history not investigated \u2014 no tool access.\n\n### Contributing Factors\n1. **Database Unavailability**: The primary indicator is the \"database_down\" alert, triggered by the \"db_up\" metric dropping to 0, signifying the unavailability of the \"ordersdb\" postgres primary.\n2. **Missing Telemetry Data**: Critical metric data for \"db_up\" was not available during the incident, preventing a deeper analysis of the metric's behavior and potential cause. Log data was also unavailable for the affected services.\n\n## Timeline\n\n- 2026-07-07T07:49:56.412796Z - Incident detected; alert \"database_down\" triggered.\n- 2026-07-07T07:50:05.758539Z - Alert \"database_down\" last triggered.\n\n## Actions\n\n### Immediate\n- Investigate the \"db_up\" metric stream to understand why it is not reporting data, especially around the time of the incident.\n- Review the configuration and health of the \"ordersdb\" postgres primary instance.\n- Check for any recent deployments or configuration changes related to the database or the metric collection agent.\n\n### Future\n- Ensure comprehensive logging is enabled for database-related events and that logs are accessible for analysis.\n- Implement monitoring for the \"db_up\" metric collection agent itself to detect failures in data reporting.\n- Establish a procedure for correlating alerts with recent infrastructure or application changes.\n\n## Executive Summary\n\n**Potential Cause**: The \"ordersdb\" postgres primary database is down, as indicated by the \"database_down\" alert, likely due to an underlying issue with the database instance itself or the monitoring agent responsible for reporting the \"db_up\" metric.\n\n**Impact**: The unavailability of the primary database likely caused service disruptions, though the exact customer impact is unknown due to missing telemetry.\n\n**Resolution**: The immediate resolution requires restoring the \"ordersdb\" postgres primary database and ensuring the \"db_up\" metric is reliably reported. The underlying cause of the database downtime and metric reporting failure needs to be investigated."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GA9Ehaso21qDpWNlx9B55mZWzZ",
+      "alert_id": "3GA9Ej4fZMu5dm3DAh8ak7z90JX",
+      "alert_name": "database_down",
+      "alert_fired_at": 1783403396412796,
+      "correlation_reason": "alert_id",
+      "created_at": 1783403396421228
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GA9Ej4fZMu5dm3DAh8ak7z90JX",
+      "name": "database_down",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "db_up",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM db_up WHERE value < 1",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 20,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Postgres primary (ordersdb @ pg-prod-01) is DOWN: db_up dropped to 0.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

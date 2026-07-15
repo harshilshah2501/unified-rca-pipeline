@@ -1,7 +1,7 @@
 # ObserveOps Benchmark — Task Status
 
 **Corpus version:** 1.0.0 (`datasets/observeops/` — manifest.yaml + 7-day time-series)  
-**Last updated:** 2026-07-13 (Motadata critical path A→B→D complete; lean primary)  
+**Last updated:** 2026-07-13 (ObserveOps critical path A→B→D complete; lean primary)  
 **Canonical roadmap:** [`docs/ROADMAP.md`](../../docs/ROADMAP.md) · decision: [`docs/ADR-001-lean-primary-engine.md`](../../docs/ADR-001-lean-primary-engine.md)
 
 ## Latest bakeoffs
@@ -50,7 +50,7 @@ Reports: [`../results/comparison/COMPARISON.md`](../results/comparison/COMPARISO
 | Task | Status | Artifact |
 |------|--------|----------|
 | Compare + four-axis + efficiency | **done** | `benchmark/compare.py` → `results/comparison/` |
-| Motadata engine decision | **done** | Lean primary (ADR-001) |
+| ObserveOps engine decision | **done** | Lean primary (ADR-001) |
 
 ## Optional / deferred
 

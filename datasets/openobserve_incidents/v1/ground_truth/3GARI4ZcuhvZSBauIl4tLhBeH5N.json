@@ -1,0 +1,55 @@
+{
+  "incident_id": "3GARI4ZcuhvZSBauIl4tLhBeH5N",
+  "title": "ecom_checkout_slo_breach",
+  "status": "final",
+  "stratum": "decoy_multi_slo_title_dns_topo",
+  "root_layer": "dns",
+  "root_alert": "ecom_dns_aaaa_numa",
+  "contributor_alerts": [
+    "ecom_payment_conn_exhaustion",
+    "ecom_checkout_slo_breach"
+  ],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Checkout SLO is symptom. Alert chain: DNS AAAA P99 spike on NP-17 \u2192 payment connection acquisition exhaustion \u2192 checkout breach. Root at DNS, not SLO title.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "dns",
+      "root_alert": "ecom_dns_aaaa_numa",
+      "confidence": "confident",
+      "evidence_note": "Causal chain in SLO alert points to DNS AAAA then payment pool.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "dns",
+      "root_alert": "ecom_dns_aaaa_numa",
+      "confidence": "confident",
+      "evidence_note": "Title is SLO decoy; DNS alert present and earliest in chain.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T07:33:28Z",
+    "notes": "Solo Option-B exercise: dual-pass by same reviewer (pass A evidence-first, pass B decoy-check). Agreed dns / ecom_dns_aaaa_numa. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "ecom_checkout_slo_breach",
+    "ecom_dns_aaaa_numa",
+    "ecom_payment_conn_exhaustion"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "dns",
+    "lean_root": "ecom_dns_aaaa_numa",
+    "federated_layer": "dns",
+    "federated_root": "ecom_checkout_slo_breach",
+    "openobserve_layer": "dns",
+    "openobserve_root": "ecom_checkout_slo_breach",
+    "openobserve_has_narrative": false,
+    "openobserve_snippet": "SEV1 - Checkout success rate dropped 99.97%->97.2% in region=Region-B, payment_method=CARD, device_type=MOBILE (~2.8% of checkouts). Follow THIS causal chain, confirming each step with ONE targeted query; do NOT explore unrelated streams: 1",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

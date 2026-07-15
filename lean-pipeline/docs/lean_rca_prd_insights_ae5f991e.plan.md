@@ -1,6 +1,6 @@
 ---
 name: Lean RCA PRD Insights
-overview: "HISTORICAL design notes from the Lean RCA PRD + early ObserveOps plan. Motadata Corpus B path is complete (lean primary). Prefer docs/ROADMAP.md, docs/README.md, and docs/ADR-001 for current status. Paths like harness/corpus/ and PoC/ below are obsolete — use datasets/observeops/ and federated-pipeline/."
+overview: "HISTORICAL design notes from the Lean RCA PRD + early ObserveOps plan. ObserveOps Corpus B path is complete (lean primary). Prefer docs/ROADMAP.md, docs/README.md, and docs/ADR-001 for current status. Paths like harness/corpus/ and PoC/ below are obsolete — use datasets/observeops/ and federated-pipeline/."
 todos:
   - id: step1-define-corpus
     content: "Step 1: Freeze ObserveOps corpus — datasets/observeops/ UC-1..UC-5 from docs/rca-use-cases-only.md"
@@ -37,18 +37,18 @@ isProject: false
 
 # Lean RCA PRD — Thorough Insights (v17)
 
-> **Historical.** Motadata ObserveOps (Corpus B) is complete and **lean is primary** — see [`docs/ROADMAP.md`](../../docs/ROADMAP.md), [`docs/README.md`](../../docs/README.md), [`docs/ADR-001-lean-primary-engine.md`](../../docs/ADR-001-lean-primary-engine.md). Paths like `harness/`, `corpus/`, `PoC/`, and root `Lean_RCA_PRD.pdf` below are obsolete; use `datasets/observeops/`, `federated-pipeline/`, `lean-pipeline/`, and `docs/Lean_RCA_PRD.pdf`.
+> **Historical.** ObserveOps (Corpus B) is complete and **lean is primary** — see [`docs/ROADMAP.md`](../../docs/ROADMAP.md), [`docs/README.md`](../../docs/README.md), [`docs/ADR-001-lean-primary-engine.md`](../../docs/ADR-001-lean-primary-engine.md). Paths like `harness/`, `corpus/`, `PoC/`, and root `Lean_RCA_PRD.pdf` below are obsolete; use `datasets/observeops/`, `federated-pipeline/`, `lean-pipeline/`, and `docs/Lean_RCA_PRD.pdf`.
 >
-> **Roadblock note:** Body text below often echoes the PRD’s “targets 1a/2/3” framing and may omit **Roadblock 4**. For the live Motadata corpus, Mandatories are **1b** + **4** (shared GT bakeoff) — see [`docs/README.md`](../../docs/README.md).
+> **Roadblock note:** Body text below often echoes the PRD’s “targets 1a/2/3” framing and may omit **Roadblock 4**. For the live ObserveOps corpus, Mandatories are **1b** + **4** (shared GT bakeoff) — see [`docs/README.md`](../../docs/README.md).
 
 ## Document Status (Critical Change)
 
 [`docs/Lean_RCA_PRD.pdf`](../../docs/Lean_RCA_PRD.pdf) (originally marked **PROPOSAL — Pending Team Review**):
 
 - At the time of writing: nothing described had been built; federated was still the default design
-- **Superseded for Motadata classic infra:** lean is the adopted primary engine (ADR-001); Corpus A (DeathStarBench) remains deferred/optional
+- **Superseded for classic ObserveOps classic infra:** lean is the adopted primary engine (ADR-001); Corpus A (DeathStarBench) remains deferred/optional
 
-**Plan impact (original):** treat architecture claims as hypotheses. **Outcome:** Motadata adopted lean as primary ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)); federated remains optional for microservice/code-path work.
+**Plan impact (original):** treat architecture claims as hypotheses. **Outcome:** ObserveOps adopted lean as primary ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)); federated remains optional for microservice/code-path work.
 
 ---
 
@@ -253,7 +253,7 @@ flowchart LR
 | 4b | Cyclic topology findings note (optional) | Known limitation |
 | 5 | 20× rerun bit-for-bit reproducibility % | Reproducibility |
 | 6 | `EVAL.md` with tier-separated metrics | All four axes where applicable |
-| 7 | `COMPARISON.md` vs federated on **same Motadata corpus** | Measured per UC, four-axis |
+| 7 | `COMPARISON.md` vs federated on **same ObserveOps corpus** | Measured per UC, four-axis |
 
 ---
 
@@ -418,7 +418,7 @@ This is the **product-relevant comparison corpus** — VMware/classic-infra stac
 | Corpus | Purpose | Scenarios | Fair for lean today? |
 |--------|---------|-----------|---------------------|
 | **A — PRD synthetic** | Algorithm PoC (BFS, CARE, pod churn, blind spot) | DeathStarBench / TrainTicket | Yes (current PRD scope) |
-| **B — Motadata ObserveOps** | Federated vs lean head-to-head | UC-1..UC-5 in `rca-use-cases-only.md` | After **Phase 7-pre** (§2.9 upgrade below) |
+| **B — ObserveOps** | Federated vs lean head-to-head | UC-1..UC-5 in `rca-use-cases-only.md` | After **Phase 7-pre** (§2.9 upgrade below) |
 
 Phase 6 `EVAL.md` = Corpus A only. Steps 1–4 above = Corpus B comparison track.
 
@@ -557,7 +557,7 @@ Scoped §2.9 upgrade before Phase 7 — typed graph + signal-aware rules on froz
 | Scoped causal verification | **Done** (Tier 3 on UC-1/UC-3) |
 | Three-tier reporting | **Done** (verdicts + bakeoff) |
 | `COMPARISON.md` | → `benchmarking/results/comparison/` (**done**) |
-| Federated PoC (`PoC/`) | → `federated-pipeline/` (optional Motadata path; **not** primary) |
+| Federated PoC (`PoC/`) | → `federated-pipeline/` (optional ObserveOps path; **not** primary) |
 
 **Canonical status:** [`docs/ROADMAP.md`](../../docs/ROADMAP.md). Path aliases in this plan body (`harness/`, `PoC/`, `core-engine/`) are historical.
 
@@ -573,9 +573,9 @@ Scoped §2.9 upgrade before Phase 7 — typed graph + signal-aware rules on froz
 6. **Post-PoC roadmap** — §2.8 causal learning, §2.9 classic infra prioritized
 7. **Appendix D** — evidence-backed tradeoff for scoped causal check
 
-(Adoption for Motadata classic infra is now decided — lean primary.)
+(Adoption for classic ObserveOps classic infra is now decided — lean primary.)
 
-## Risks and Open Questions (historical; Motadata path resolved)
+## Risks and Open Questions (historical; ObserveOps path resolved)
 
 1. ~~**Proposal may not be adopted**~~ — **Resolved:** lean primary (ADR-001)
 2. **Tier confusion in implementation** — still watch UI/report labeling
@@ -591,7 +591,7 @@ Scoped §2.9 upgrade before Phase 7 — typed graph + signal-aware rules on froz
 
 ## Recommended Next Steps (ObserveOps comparison track)
 
-**Done (Motadata critical path):** Steps 1–4 + Phases A/B/D — see [`docs/ROADMAP.md`](../../docs/ROADMAP.md).
+**Done (ObserveOps critical path):** Steps 1–4 + Phases A/B/D — see [`docs/ROADMAP.md`](../../docs/ROADMAP.md).
 
 **Optional later:** B5 continuous causal memory; Phase C federated ingest (microservice track); Phase E capacity; Corpus A algorithm PoC.
 
@@ -599,4 +599,4 @@ Scoped §2.9 upgrade before Phase 7 — typed graph + signal-aware rules on froz
 
 ## Bottom Line
 
-ObserveOps bakeoff is complete: one frozen corpus (`datasets/observeops/`), both engines scored, **lean primary** for Motadata classic infra. Prefer [`docs/README.md`](../../docs/README.md) and ADR-001 over the obsolete path names in the body of this historical plan.
+ObserveOps bakeoff is complete: one frozen corpus (`datasets/observeops/`), both engines scored, **lean primary** for classic ObserveOps classic infra. Prefer [`docs/README.md`](../../docs/README.md) and ADR-001 over the obsolete path names in the body of this historical plan.

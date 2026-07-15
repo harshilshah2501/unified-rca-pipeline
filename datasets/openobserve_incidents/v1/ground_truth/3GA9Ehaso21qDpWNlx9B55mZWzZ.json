@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GA9Ehaso21qDpWNlx9B55mZWzZ",
+  "title": "database_down",
+  "status": "final",
+  "stratum": "single_database_with_narrative",
+  "root_layer": "database",
+  "root_alert": "database_down",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Single alert: Postgres primary ordersdb @ pg-prod-01 is DOWN (db_up=0). No competing decoys; root is the downed database.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "database",
+      "root_alert": "database_down",
+      "confidence": "confident",
+      "evidence_note": "Clear DB down signal.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "database",
+      "root_alert": "database_down",
+      "confidence": "confident",
+      "evidence_note": "No multi-trigger decoy; agree database_down.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T07:33:28Z",
+    "notes": "Solo Option-B exercise: dual-pass by same reviewer (pass A evidence-first, pass B decoy-check). Agreed database / database_down. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "database_down"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "database",
+    "lean_root": "database_down",
+    "federated_layer": "database",
+    "federated_root": "database_down",
+    "openobserve_layer": "database",
+    "openobserve_root": "database_down",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "The \"ordersdb\" postgres primary database is down, as indicated by the \"database_down\" alert, likely due to an underlying issue with the database instance itself or the monitoring agent responsible for reporting the \"db_up\" metric.",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

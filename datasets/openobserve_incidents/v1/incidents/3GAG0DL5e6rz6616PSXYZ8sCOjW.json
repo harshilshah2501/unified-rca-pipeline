@@ -1,0 +1,76 @@
+{
+  "id": "3GAG0DL5e6rz6616PSXYZ8sCOjW",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783406734923138,
+  "last_alert_at": 1783406734923138,
+  "resolved_at": 1783408522154042,
+  "alert_count": 1,
+  "title": "pg_svc_down",
+  "created_at": 1783406734928050,
+  "updated_at": 1783408522154042,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAG0DL5e6rz6616PSXYZ8sCOjW\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-07 06:45:34 UTC\n- **Resolved**: Ongoing\n- **Duration**: 13 minutes (from first signal degradation through service shutdown)\n- **Affected Services**: postgres-primary (ordersdb), orders-service (downstream dependency)\n- **Customer Impact**: Database unavailability; orders-service connection failures; potential customer-facing order processing delays\n\n## Impact Assessment\n\n- **Services Affected**: 1 primary (postgres-primary), 1+ downstream (orders-service)\n- **Peak Error Rate**: 100% (service down from 06:32:00 UTC onward)\n- **Failed Requests**: All database queries after 06:32:00 UTC\n- **Users Impacted**: All users attempting to place or view orders\n- **Data Loss**: No (database shutdown graceful; no corruption indicated)\n- **SLA Breach**: Yes (13+ minute outage)\n\n## Evidence\n\n### Service Dependencies\nIncident topology showed postgres-primary as the root service failure point. The alert description references orders-service as a downstream dependent, connecting through distributed traces. Service graph analysis shows no upstream services; postgres-primary is a critical leaf dependency.\n\n### Distributed Traces\nTrace data available in default stream for the incident window (1783405734923138 to 1783407734923138 microseconds). Specific traces were retrieved but truncated due to volume. Key finding: requests to postgres-primary began failing at 06:32:00 UTC as memory exhaustion progressed.\n\n### Log Patterns\nPostgreSQL logs reveal a clear progression of failure:\n\n1. **Memory pressure phase** (06:31:00\u201306:31:40 UTC):\n   - WARNING: \"out of memory\"\n   - ERROR: \"out of memory - Failed on request of size 2097152 in memory context MessageContext\"\n   - Multiple occurrences indicating sustained memory stress\n\n2. **Kernel OOM kill** (06:31:40 UTC):\n   - kernel: \"Out of memory: Killed process 28471 (postgres) total-vm:8923412kB, anon-rss:7891844kB\"\n   - Process 28471 (postgres primary) killed by kernel OOM killer\n\n3. **Database shutdown** (06:31:40\u201306:31:46 UTC):\n   - LOG: \"server process (PID 28471) was terminated by signal 9: Killed\"\n   - LOG: \"terminating any other active server processes\"\n   - FATAL: \"the database system is in recovery mode\"\n   - LOG: \"database system is shut down\"\n\n### Metrics Analysis\n\n**Memory Usage Trajectory**:\n- 06:28:00 UTC: 79.2% (healthy baseline)\n- 06:29:00 UTC: 84.45% (rising)\n- 06:30:00 UTC: 92.14% (critical level)\n- 06:31:00 UTC: 97.71% (peak, triggers OOM killer)\n- 06:32:00 UTC onward: 0% (service crashed, metrics stopped)\n\n**Connection Activity**:\n- 06:27:00 UTC: 410.03 active connections\n- 06:29:00 UTC: 429.93 active connections\n- 06:31:00 UTC: 470.5 active connections (peak, near 500-connection limit)\n- 06:32:00 UTC onward: 0 connections (service down)\n\n**Connection Limit**: 500 (db_max_connections metric, constant across incident window)\n\n**db_up Metric**:\n- 06:28:00 UTC\u201306:31:00 UTC: value = 1 (service healthy)\n- 06:32:00 UTC onward: value = 0 (service down)\n\n### Recent Changes\nNo change-history tools were available to query Git commits, deploy logs, or configuration changes during the incident window. This gap limits root-cause depth analysis regarding what triggered the sudden memory spike. Recommend checking:\n- Recent application deployments (new features, increased batch sizes)\n- Database configuration changes (shared_buffers, work_mem, cache sizes)\n- Query pattern changes (new slow queries introduced)\n\n### Contributing Factors\n\n1. **Memory exhaustion** \u2014 PostgreSQL memory usage climbed from 79% to 97.7% in 3 minutes, indicating a sudden spike in memory demand (likely a runaway query, large batch operation, or connection-pool leak).\n\n2. **High connection count** \u2014 470+ active connections (94% of 500-connection limit) created memory pressure for each connection context (authentication, session state, message buffers).\n\n3. **Kernel OOM killer invoked** \u2014 System-level memory exhaustion triggered forceful process termination (SIGKILL), bypassing PostgreSQL's graceful shutdown mechanisms. Indicates host-level memory overcommitment or insufficient swap.\n\n## Timeline\n\n- **06:28:00 UTC** \u2014 Memory usage at 79.2%, 410 active connections. Service healthy.\n- **06:29:00 UTC** \u2014 Memory climbing to 84.45%, 429 active connections.\n- **06:30:00 UTC** \u2014 Memory at 92.14%, connections rising to 450.\n- **06:31:00 UTC** \u2014 Memory peaks at 97.71%, connections reach 470 (94% of limit). First \"out of memory\" warnings logged.\n- **06:31:40 UTC** \u2014 Kernel OOM killer fires. PostgreSQL process 28471 terminated with SIGKILL (signal 9).\n- **06:31:46 UTC** \u2014 PostgreSQL shutdown sequence initiated. Server processes terminated. Database transitions to recovery mode then shut down.\n- **06:32:00 UTC** \u2014 db_up metric drops to 0. All queries fail. Service metrics stop recording (0 connections, 0 memory usage).\n- **06:45:34 UTC** \u2014 Alert fired, incident created.\n\n## Actions\n\n### Immediate\n1. **Restart postgres-primary service** \u2014 Service is down; restart to restore availability. Verify recovery completes successfully (WAL replay, consistency checks).\n2. **Review application logs for orders-service** \u2014 Check for connection pool exhaustion errors, query timeouts, and any cascading failures in dependent services during the outage.\n3. **Check current system resource state** \u2014 Verify memory and connection counts on pg-prod-01 are nominal post-restart. Monitor for recurrence.\n4. **Identify the memory spike trigger** \u2014 Query PostgreSQL logs for the preceding 15 minutes (before 06:28:00 UTC) to find the operation that consumed memory (e.g., large SELECT query, VACUUM, bulk INSERT, or client connection storm).\n\n### Future\n1. **Implement memory limits and alerts** \u2014 Set PostgreSQL work_mem and shared_buffers to values well below available host memory. Create alert for memory usage > 85% to trigger investigation before OOM.\n2. **Connection pool tuning** \u2014 Evaluate if 500-connection limit is appropriate for current workload. Consider connection pooler (PgBouncer, pgpool) in front of postgres-primary to manage connection lifecycle and reduce per-connection memory overhead.\n3. **Host swap configuration** \u2014 Ensure adequate swap space is configured and OOM killer is tuned (adjust oom_kill_allocating_task or use memory.limit_in_bytes in cgroups) to kill misbehaving application processes before PostgreSQL.\n4. **Query performance audit** \u2014 Profile slow queries and memory-intensive operations (ORDER BY on large result sets, large aggregations, etc.). Add query timeouts (statement_timeout) to prevent runaway queries.\n5. **Monitoring dashboard for postgres-primary** \u2014 Add panels for memory usage trend, connection count vs. limit, OOM killer events, and PostgreSQL recovery mode state. Alert on recovery mode transitions.\n\n## Executive Summary\n\n**Potential Cause**: PostgreSQL process (postgres-primary) was killed by the kernel OOM killer after memory usage spiked from 79% to 97.7% within 3 minutes, driven by a sudden increase in active connections (410\u2192470) and likely a memory-intensive query or batch operation.\n\n**Impact**: Database unavailability for 13+ minutes; orders-service unable to connect; all customer orders blocked during outage window.\n\n**Resolution**: Restart postgres-primary service. Identify the memory-consuming operation that preceded the spike (query, bulk operation, or client surge). Implement memory limits, connection pooling, and query-timeout safeguards to prevent recurrence."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAG0DL5e6rz6616PSXYZ8sCOjW",
+      "alert_id": "3GAG0FevdrExGFKQBNWLFLjrroa",
+      "alert_name": "pg_svc_down",
+      "alert_fired_at": 1783406734923138,
+      "correlation_reason": "alert_id",
+      "created_at": 1783406734929302
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAG0FevdrExGFKQBNWLFLjrroa",
+      "name": "pg_svc_down",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "db_up",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT service_name, count(*) AS c FROM db_up WHERE value < 1 GROUP BY service_name",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 25,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "postgres-primary DOWN (db_up=0). Evidence in postgres_logs/app_logs; traces orders-service -> postgres-primary.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

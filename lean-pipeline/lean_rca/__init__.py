@@ -1,1 +1,1 @@
-"""Motadata Lean RCA CLI and HTTP API."""
+"""ObserveOps Lean RCA CLI and HTTP API."""

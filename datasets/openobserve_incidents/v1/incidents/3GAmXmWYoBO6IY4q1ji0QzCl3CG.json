@@ -1,0 +1,171 @@
+{
+  "id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783422789981713,
+  "last_alert_at": 1783422802550757,
+  "resolved_at": 1783423258031953,
+  "alert_count": 7,
+  "title": "pgw_checkout_tps_drop",
+  "created_at": 1783422789988612,
+  "updated_at": 1783423361366335,
+  "group_values": {
+    "k8s-cluster": "prod-dmz",
+    "region": "us-east-1"
+  },
+  "key_type": "secondary",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GAmXr40ywPCqMqmn6S9Xuo6XYe",
+        "alert_name": "pgw_checkout_tps_drop",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783422789981713,
+        "last_fired_at": 1783422789981713
+      },
+      {
+        "alert_id": "3GAmXn9hAC46VIV1AtWFMBCZ4M9",
+        "alert_name": "pgw_syn_sent_pileup",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783422792078978,
+        "last_fired_at": 1783422792078978
+      },
+      {
+        "alert_id": "3GAmXkt5gQ130yousW41CgAfcJi",
+        "alert_name": "pgw_esxi_443_no_return",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783422794150083,
+        "last_fired_at": 1783422794150083
+      },
+      {
+        "alert_id": "3GAmXrNmNfIXHioxHKMin2oDlrR",
+        "alert_name": "pgw_vcenter_net_alarm",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783422796217334,
+        "last_fired_at": 1783422796217334
+      },
+      {
+        "alert_id": "3GAmXkptqxvGVF3xL2o8jVw3bjx",
+        "alert_name": "pgw_switch_443_asymmetric",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783422798284645,
+        "last_fired_at": 1783422798284645
+      },
+      {
+        "alert_id": "3GAmXlu2h13O4j10DwQiquCAbtv",
+        "alert_name": "pgw_router_egress_down",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783422800427647,
+        "last_fired_at": 1783422800427647
+      },
+      {
+        "alert_id": "3GAmXohqKy3k8Qs3CwEkDk3aqxA",
+        "alert_name": "pgw_fw_443_denies",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783422802550757,
+        "last_fired_at": 1783422802550757
+      }
+    ],
+    "edges": [
+      {
+        "from_node_index": 0,
+        "to_node_index": 1,
+        "edge_type": "temporal"
+      },
+      {
+        "from_node_index": 1,
+        "to_node_index": 2,
+        "edge_type": "temporal"
+      },
+      {
+        "from_node_index": 2,
+        "to_node_index": 3,
+        "edge_type": "temporal"
+      },
+      {
+        "from_node_index": 3,
+        "to_node_index": 4,
+        "edge_type": "temporal"
+      },
+      {
+        "from_node_index": 4,
+        "to_node_index": 5,
+        "edge_type": "temporal"
+      },
+      {
+        "from_node_index": 5,
+        "to_node_index": 6,
+        "edge_type": "temporal"
+      }
+    ],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAmXmWYoBO6IY4q1ji0QzCl3CG\n- **Severity**: P3 (SEV1 - Critical)\n- **Detected**: 2026-07-07 11:13:09 UTC\n- **Resolved**: 2026-07-07 11:20:58 UTC\n- **Duration**: 7 minutes 49 seconds\n- **Affected Services**: checkout-service (prod-dmz cluster, us-east-1 region)\n- **Customer Impact**: Complete checkout outage; all transaction processing failed with HTTP 504 Gateway Timeout errors\n\n## Impact Assessment\n\n- **Services Affected**: 1 critical service (checkout-service)\n- **Peak Error Rate**: 100% (checkout transactions per second: 150 \u2192 0)\n- **Failed Requests**: All checkout requests during incident (7+ minute window)\n- **Users Impacted**: All customers attempting to place orders during the incident\n- **Data Loss**: No\n- **SLA Breach**: Yes\n\n## Evidence\n\n### Service Dependencies\n\nThe checkout-service in prod-dmz cluster depends on:\n- External payment API (api.bank-payments.com:443)\n- Network infrastructure: ESXi hypervisor (esxi-node-04), vCenter portgroup (VLAN-200), network switches (TOR-Switch-0A Gi1/0/2), core router (Core-Router-01), firewall (Firewall-Primary)\n\nThe incident cascaded upstream from the checkout application through the network stack:\n1. **Checkout VM** (prod-checkout-vm01): SYN_SENT pileup (~430 connections stuck)\n2. **ESXi/vNIC** (esxi-node-04): No return traffic (rx_pps=0) despite normal outbound traffic\n3. **vCenter VLAN-200**: Portgroup connectivity alarm (value=0)\n4. **Network Switch** (TOR-Switch-0A): Asymmetric flow \u2014 outbound 443 forwarded but no inbound 443 responses (in_pps\u22480.3-0.4 pps vs normal >100 pps)\n5. **Core Router** (Core-Router-01): Outbound 443 forwarding halted (forward_pps\u22480.1-0.3 pps)\n6. **Firewall** (Firewall-Primary): Blocked 1500+ sessions; denied_sessions spiked to 1539.33/sec; CPU ~92%\n\n### Distributed Traces\n\nNo distributed trace data available; however, the cascade pattern is clear from metrics: requests originate at checkout-service, hit the network stack, and fail at the egress point (firewall).\n\n### Log Patterns\n\n**checkout_app_logs** \u2014 20+ identical errors across the incident window:\n```\njava.net.ConnectException: Connection timed out (api.bank-payments.com/203.0.113.44:443) -> HTTP 504 Gateway Timeout returned to client\n```\n\nThis pattern repeats consistently from 11:13:09 UTC through at least 11:16:25 UTC, indicating systematic outbound connectivity failure.\n\n**firewall_change_logs** \u2014 Single critical event at 2026-07-07 10:36:55 UTC (approximately 36 minutes before incident):\n```\nGlobal security policy committed by admin@corp: new ruleset ACL-OUT-DMZ-NEW. Rule #40 malformed ('deny ip any any 443' misordered before permit) -> blocks ALL tcp/443 OUTBOUND for VLAN-200 (10.20.200.0/24). Previous working policy: ACL-OUT-DMZ-v7.\n```\n\n### Metrics Analysis\n\n| Metric | Peak Value | Baseline | Status |\n|--------|-----------|----------|--------|\n| checkout_transactions_per_sec | 0.2-0.36 tps | ~150 tps | Dropped 99.7% |\n| tcp_connections_syn_sent | ~431 conns | <100 | +330% |\n| esxi_vnic_443_rx_pps | 0.09-0.35 pps | >100 pps | ~99% loss |\n| vcenter_portgroup_connectivity | 0 | 1 | Lost |\n| switch_uplink_443_in_pps | 0.01-0.4 pps | >100 pps | ~99% loss |\n| router_outbound_443_forward_pps | 0.02-0.3 pps | >100 pps | ~99% loss |\n| firewall_denied_sessions | 1539.33/sec | <100/sec | Spiked 15x |\n| payment_api_reachable | 1 (VLAN-100) / 0 (VLAN-200) | 1 (both) | VLAN-200 blocked |\n| VM CPU / Memory | 12% / 45% | Normal | Healthy (not resource-bound) |\n\n**Asymmetric traffic pattern**: Payment API reachable returns value=1 from VLAN-100 but value=0 from VLAN-200, proving the bank API is operational but VLAN-200 egress is blocked.\n\n### Recent Changes\n\n**Change detected at 2026-07-07 10:36:55 UTC** \u2014 Firewall ACL commit by `admin@corp`\n\n- **Repository**: Firewall configuration (security policy)\n- **Change**: New ruleset `ACL-OUT-DMZ-NEW` with malformed Rule #40\n- **Specific issue**: Rule #40 syntax error \u2014 `deny ip any any 443` placed before `permit` rules, causing all TCP/443 outbound traffic for VLAN-200 to be denied\n- **Scope**: Affects entire DMZ subnet (10.20.200.0/24)\n- **Previous state**: Working policy `ACL-OUT-DMZ-v7`\n- **Time delta**: Applied ~36 minutes before incident detection (10:36:55 UTC \u2192 incident at 11:13:09 UTC)\n\nThe firewall change is the direct cause: the misconfigured ACL blocks outbound HTTPS connections from the checkout service to the payment API.\n\n### Contributing Factors\n\n1. **Malformed firewall ACL rule** \u2014 Rule #40 in ACL-OUT-DMZ-NEW has incorrect precedence (`deny` before `permit`), blocking all TCP/443 egress for VLAN-200\n2. **Lack of pre-commit validation** \u2014 The firewall ruleset was deployed without syntax or semantic validation, allowing a broken rule to reach production\n3. **Delayed detection** \u2014 The change applied ~36 minutes before alerting (slow rollout or scheduled deployment), extending the outage window\n4. **No automatic rollback** \u2014 No self-healing or automatic rollback on firewall rule deployment failure\n\n## Timeline\n\n- **10:36:55 UTC** - Firewall ACL change `ACL-OUT-DMZ-NEW` committed by admin@corp with Rule #40 syntax error; blocks all TCP/443 outbound for VLAN-200\n- **11:13:09 UTC** - pgw_checkout_tps_drop alert fires; checkout transactions drop from 150/sec to <1/sec\n- **11:13:12 UTC** - pgw_syn_sent_pileup alert fires; ~430 TCP connections stuck in SYN_SENT on prod-checkout-vm01\n- **11:13:14 UTC** - pgw_esxi_443_no_return alert fires; ESXi vNIC receives 0 pps inbound on port 443\n- **11:13:16 UTC** - pgw_vcenter_net_alarm alert fires; vCenter portgroup VLAN-200 connectivity drops to 0\n- **11:13:18 UTC** - pgw_switch_443_asymmetric alert fires; switch uplink sees 0 inbound 443 pps\n- **11:13:20 UTC** - pgw_router_egress_down alert fires; Core-Router-01 outbound 443 forwarding stops\n- **11:13:22 UTC** - pgw_fw_443_denies alert fires; Firewall-Primary denied_sessions spike to 1539/sec; CPU 92%\n- **11:20:58 UTC** - Incident resolved (firewall ACL rolled back or rule corrected)\n\n## Actions\n\n### Immediate\n\n1. **Roll back firewall ACL** \u2014 Revert ACL-OUT-DMZ-NEW to ACL-OUT-DMZ-v7 (confirmed working)\n   - Expected result: Restore TCP/443 egress for VLAN-200; checkout transactions resume; SYN_SENT connections drain\n2. **Verify payment API connectivity** \u2014 Confirm api.bank-payments.com:443 is reachable from prod-checkout-vm01\n3. **Clear SYN_SENT backlog** \u2014 Monitor TCP connection state to ensure stuck connections close within 2 minutes of rollback\n\n### Future\n\n1. **Implement firewall ACL validation** \u2014 Add pre-commit syntax and semantic checks for firewall rulesets before deployment (order-of-operations, deny/permit precedence, rule conflicts)\n2. **Add canary deployment for firewall rules** \u2014 Deploy new ACLs to a test VLAN or limited device set first; monitor connectivity metrics before rolling out to production\n3. **Automate firewall rule testing** \u2014 Run connectivity tests (e.g., port reachability from VLAN-200 to external hosts on 443) after ACL deployment; trigger automatic rollback on test failure\n4. **Enable firewall change notifications** \u2014 Alert on-call engineers when firewall rulesets change, with auto-review of rule deltas (old vs. new)\n5. **Document firewall deployment runbook** \u2014 Standardize ACL change procedures, include rollback steps, and require peer review for production changes\n\n## Executive Summary\n\n**Potential Cause**: A misconfigured firewall ACL rule (ACL-OUT-DMZ-NEW) deployed by admin@corp at 10:36:55 UTC contained a syntax error that placed a deny rule (`deny ip any any 443`) before permit rules, blocking all outbound TCP/443 traffic for the VLAN-200 DMZ subnet. This prevented checkout-service from reaching the payment API (api.bank-payments.com:443), causing ~430 TCP connections to accumulate in SYN_SENT state and resulting in 504 Gateway Timeout errors for all checkout requests.\n\n**Impact**: Complete checkout service outage for 7 minutes 49 seconds; 100% transaction failure rate; all customers received HTTP 504 errors during checkout. The external payment API was operational but unreachable due to firewall egress block.\n\n**Resolution**: Rolled back firewall ACL from ACL-OUT-DMZ-NEW to ACL-OUT-DMZ-v7 (11:20:58 UTC). Restoring outbound 443 connectivity allowed TCP connections to drain, checkout service reconnected to payment API, and transaction processing resumed."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+      "alert_id": "3GAmXohqKy3k8Qs3CwEkDk3aqxA",
+      "alert_name": "pgw_fw_443_denies",
+      "alert_fired_at": 1783422802550757,
+      "correlation_reason": "alert_id",
+      "created_at": 1783422802556761
+    },
+    {
+      "incident_id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+      "alert_id": "3GAmXlu2h13O4j10DwQiquCAbtv",
+      "alert_name": "pgw_router_egress_down",
+      "alert_fired_at": 1783422800427647,
+      "correlation_reason": "alert_id",
+      "created_at": 1783422800435203
+    },
+    {
+      "incident_id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+      "alert_id": "3GAmXkptqxvGVF3xL2o8jVw3bjx",
+      "alert_name": "pgw_switch_443_asymmetric",
+      "alert_fired_at": 1783422798284645,
+      "correlation_reason": "alert_id",
+      "created_at": 1783422798289614
+    },
+    {
+      "incident_id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+      "alert_id": "3GAmXrNmNfIXHioxHKMin2oDlrR",
+      "alert_name": "pgw_vcenter_net_alarm",
+      "alert_fired_at": 1783422796217334,
+      "correlation_reason": "alert_id",
+      "created_at": 1783422796222791
+    },
+    {
+      "incident_id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+      "alert_id": "3GAmXkt5gQ130yousW41CgAfcJi",
+      "alert_name": "pgw_esxi_443_no_return",
+      "alert_fired_at": 1783422794150083,
+      "correlation_reason": "alert_id",
+      "created_at": 1783422794155091
+    },
+    {
+      "incident_id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+      "alert_id": "3GAmXn9hAC46VIV1AtWFMBCZ4M9",
+      "alert_name": "pgw_syn_sent_pileup",
+      "alert_fired_at": 1783422792078978,
+      "correlation_reason": "alert_id",
+      "created_at": 1783422792084327
+    },
+    {
+      "incident_id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+      "alert_id": "3GAmXr40ywPCqMqmn6S9Xuo6XYe",
+      "alert_name": "pgw_checkout_tps_drop",
+      "alert_fired_at": 1783422789981713,
+      "correlation_reason": "alert_id",
+      "created_at": 1783422789990034
+    }
+  ],
+  "alerts": []
+}

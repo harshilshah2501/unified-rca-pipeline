@@ -1,0 +1,60 @@
+{
+  "id": "3GARrIHDnfvHKz3jTKUoeQNwHjw",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783412583666080,
+  "last_alert_at": 1783412589822988,
+  "resolved_at": 1783412990367148,
+  "alert_count": 3,
+  "title": "ecom_checkout_slo_breach",
+  "created_at": 1783412583671466,
+  "updated_at": 1783412990367148,
+  "group_values": {
+    "k8s-cluster": "prod-use1",
+    "region": "region-b"
+  },
+  "key_type": "primary",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GAP2ZZOpg9wfbydqz2mskBBH30",
+        "alert_name": "ecom_checkout_slo_breach",
+        "service_name": "dns_query_latency_p99_ms",
+        "alert_count": 1,
+        "first_fired_at": 1783412583666080,
+        "last_fired_at": 1783412583666080
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GARrIHDnfvHKz3jTKUoeQNwHjw\n- **Severity**: P3\n- **Detected**: 2026-07-07 08:23:03 UTC\n- **Resolved**: Ongoing\n- **Duration**: Incident detected at first alert trigger\n- **Affected Services**: checkout-service, payment-service, api-gateway\n- **Customer Impact**: Checkout SLO breach affecting 2.8% of requests. Success rate degraded from 99.97% to 97.2%, with p99 latency reaching ~18 seconds for Region-B mobile users paying with CARD via INR currency with cart items > 12.\n\n## Impact Assessment\n\n- **Services Affected**: 3 services (checkout-service, payment-service, api-gateway)\n- **Peak Error Rate**: 38.83% on api-gateway; 15.47% on checkout-service\n- **Failed Requests**: Approximately 2.8% of checkout requests failed or significantly delayed\n- **Users Impacted**: Mobile checkout users in Region-B using CARD payment method with INR currency and cart items exceeding 12 items\n- **Data Loss**: No\n- **SLA Breach**: Yes \u2014 checkout success rate SLO of 99.5% breached\n\n## Evidence\n\n### Service Dependencies\n\nService topology reveals a critical bottleneck in the payment chain:\n\n- **api-gateway** \u2192 **checkout-service** (38.83% error rate, p99 latency 5030ms)\n- **checkout-service** \u2192 **payment-service** (error rate 0%, but p99 latency 17.8 seconds, indicating external delay)\n- **payment-service** \u2192 **payment-provider** (external service, p99 latency 17 seconds)\n\nThe dependency tree shows that checkout-service is the primary failure point, depending on payment-service which experiences dramatic latency spikes. This latency is then propagated upstream to api-gateway.\n\n### Distributed Traces\n\nTrace analysis reveals two distinct failure patterns:\n\n1. **Fast-fail traces** (200ms total duration): Processed quickly at 1783412342 timestamp \u2014 modern traces that complete but with internal contention.\n\n2. **Slow traces** (18+ second durations): Earlier traces from 1783410797-1783410981 timestamp demonstrate the payment-service \u2192 payment-provider chain taking 17\u201318 seconds total, with the payment-provider external call consuming ~17 seconds alone.\n\nThe traces confirm that checkout-service is initiating requests to payment-service, which then calls the payment-provider. The slow path occurs consistently for specific dimensions: Region-B, currency=INR, cart_items > 12.\n\n### Log Patterns\n\nPayment service logs reveal a systematic retry pattern across the incident window:\n\n**Connection Acquisition Delays (every 30\u201360 seconds):**\n- 4365ms, 4088ms, 4299ms, 4088ms, 4379ms (Region-B node pool NP-17, availability zone B2)\n- Nodes on NP-17 show 3500\u20134700ms acquisition times\n- Nodes on NP-09 (A1 AZ) show normal 20\u201329ms acquisition times\n\n**Payment Provider Request Timeouts:**\n- Pattern: \"Payment provider request timeout\" \u2192 \"Connection acquisition took Xms\" \u2192 \"Retry attempt 2/3\"\n- Consistent repeating cycle indicating sustained timeout condition\n\n**Kernel Network Issues (cross-NUMA memory):**\n- RX queue 7 processing latency spikes: 2612\u20132864ms\n- All instances on cpu=48, numa=1 with queue memory on numa=0 (NUMA mismatch)\n- 7 instances logged this cross-NUMA RX latency issue\n\n**Checkout Service Logs:**\n- \"Downstream payment call slow (9056ms\u201317170ms)\" \u2014 all entries from Region-B with currency=INR and cart_items \u2265 14\n\n### Metrics Analysis\n\n**Payment Connection Acquisition Times (Critical Finding):**\n\nNodes on NP-17 (node pool in AZ B2, newer image version 2026.06.18):\n- payment-pod-131: 3069\u20134365ms\n- payment-pod-124: 4407\u20134578ms\n- payment-pod-144: 3503\u20134699ms\n- payment-pod-118: 3432\u20133706ms\n\nNodes on NP-09 (node pool in AZ A1, older image version 2026.05.30):\n- All pods: 20\u201329ms (normal baseline)\n\n**DNS Query Latency for AAAA records (node pool NP-17):**\n- DNS server 10.20.4.53: 2798\u20133262ms p99 latency\n- DNS server 10.20.4.10: 11\u201315ms p99 latency\n- Clear divergence: NP-17 is experiencing 200\u00d7 slower AAAA queries\n\n**Payment Pool Exhaustion:**\n- NP-17 pods showing 5\u20137.1 pool exhausted events\n- NP-09 pods showing 0 exhaustion\n\n**Checkout p99 Latency (critical metric from alert query):**\n- Region-B, checkout_version=v4.18.7, currency=INR, cart_items=\"12+\": 16155\u201318303ms\n- All other regions/versions/currencies: 219\u2013263ms\n- 70\u00d7 latency increase for this specific cohort\n\n### Contributing Factors\n\n1. **DNS Latency Anomaly on NP-17 (Node Pool B2)**: AAAA record queries to DNS server 10.20.4.53 are 200\u00d7 slower (2800\u20133262ms) than to 10.20.4.10 (11\u201315ms) or than baseline on NP-09 (11ms). This is the primary latency source.\n\n2. **Connection Pool Saturation on NP-17**: Payment service pods on NP-17 are exhausting connection pools (5\u20137.1 instances per pod) and taking 3.5\u20134.7 seconds to acquire connections, compared to 20\u201329ms on NP-09. This is a secondary symptom driven by DNS delays causing connection timeouts.\n\n3. **Cross-NUMA RX Queue Contention**: Kernel logs show RX queue 7 processing latency spikes (2612\u20132864ms) on cpu=48, numa=1, with queue memory allocated to numa=0. This causes traffic originating from or destined for NP-17 to experience network I/O delays due to memory access latency across NUMA boundaries.\n\n4. **Dimensional Targeting**: The issue is isolated to:\n   - **Region**: Region-B (where NP-17 is located)\n   - **Payment method**: CARD (external provider call required)\n   - **Currency**: INR (potentially different processing rules)\n   - **Device**: MOBILE\n   - **Cart items**: > 12 (larger payloads increase network impact)\n\n5. **Version Mismatch on Nodes**: NP-17 nodes run image version 2026.06.18 while NP-09 nodes run 2026.05.30. The newer image on NP-17 may have introduced DNS resolution changes or networking stack modifications that trigger the slow AAAA lookup path.\n\n### Recent Changes\n\n**Change history not investigated \u2014 no tool access.**\n\nHowever, the node image version divergence (NP-17: 2026.06.18 vs NP-09: 2026.05.30) is a strong candidate. If this image version was recently deployed to NP-17, it may have altered DNS resolution behavior or kernel network stack configuration.\n\n## Timeline\n\n- **08:23:03 UTC** - Alert `ecom_checkout_slo_breach` fires. Checkout success rate has dropped to 97.2% (target 99.5%) with p99 latency reaching 18+ seconds for Region-B INR CARD transactions with cart items > 12.\n- **08:12:00 UTC** (estimated) - First slow transactions appear in logs. Checkout service logs \"Downstream payment call slow (9233\u201317170ms)\" for Region-B + INR combinations.\n- **08:10:00 UTC** (estimated) - Payment service begins experiencing connection acquisition delays on NP-17 pods (~4s per acquisition).\n- **08:08:00 UTC** (estimated) - DNS AAAA queries to 10.20.4.53 on NP-17 begin showing 2800\u20133262ms latency (anomaly onset).\n\n## Actions\n\n### Immediate\n\n1. **Verify DNS Server Configuration on NP-17**: Check if DNS server 10.20.4.53 is correctly routing AAAA (IPv6) queries or if there is a reverse-DNS lookup loop. Compare DNS server configurations between NP-17 and NP-09.\n\n2. **Reduce Payment Service Replicas on NP-17 or Drain Connections**: Either:\n   - Cordon NP-17 nodes and reschedule payment pods to NP-09, or\n   - Force-drain idle connections from the payment connection pool on NP-17 pods to clear the backlog.\n\n3. **Check Kernel Network Stack on NP-17**: Verify NUMA affinity for RX queues. CPU 48 should have queue memory allocated locally (NUMA 1) rather than cross-NUMA to AZ B2 infrastructure.\n\n### Future\n\n1. **Standardize Node Image Versions**: Align NP-17 and NP-09 on the same base image version. Investigate if 2026.06.18 introduced DNS or kernel network stack regressions. Rollback NP-17 to 2026.05.30 if the newer version is the culprit.\n\n2. **DNS Monitoring & Alerting**: Create alerts for DNS query latency by server and query type. Flag when p99 latency for AAAA queries exceeds 100ms.\n\n3. **Connection Pool Metrics**: Expose and monitor `payment_pool_exhausted_count` in dashboards. Alert when exhaustion events exceed 1 per minute per pod.\n\n4. **Dimension-Based SLO Monitoring**: The alert correctly identified the Region-B + INR + CARD + MOBILE + cart_items>12 cohort. Maintain separate SLOs for high-risk combinations and establish runbooks for each.\n\n5. **NUMA Affinity Audit**: Audit all nodes in Region-B for cross-NUMA RX queue allocation and align queue memory to the CPU that processes it.\n\n## Executive Summary\n\n**Potential Cause**: DNS resolution of the payment-provider endpoint via AAAA (IPv6) queries to server 10.20.4.53 is exhibiting ~200\u00d7 latency increase (2800\u20133262ms) on node pool NP-17 (AZ B2, image 2026.06.18), causing payment service connection pool exhaustion and checkout transaction failures. The issue is compounded by cross-NUMA RX queue contention on the same nodes.\n\n**Impact**: Checkout success rate degraded to 97.2% (SLO breach), with p99 latency reaching 18+ seconds, affecting ~2.8% of transactions in Region-B for CARD payments in INR currency with cart items > 12 on mobile devices.\n\n**Resolution**: Drain payment service pods from NP-17 to NP-09 or cordon NP-17 nodes immediately to restore service. Root cause investigation should focus on DNS server 10.20.4.53 configuration changes and the node image version rollout (2026.06.18) to NP-17. Consider rolling back NP-17 to image 2026.05.30 pending DNS investigation."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GARrIHDnfvHKz3jTKUoeQNwHjw",
+      "alert_id": "3GAP2VUwzdl5okOh4wA5RjjDzPn",
+      "alert_name": "ecom_dns_aaaa_numa",
+      "alert_fired_at": 1783412589822988,
+      "correlation_reason": "service_discovery",
+      "created_at": 1783412589828893
+    },
+    {
+      "incident_id": "3GARrIHDnfvHKz3jTKUoeQNwHjw",
+      "alert_id": "3GAP2YdN0GL8TeE7nin0UkXRyw2",
+      "alert_name": "ecom_payment_conn_exhaustion",
+      "alert_fired_at": 1783412586750792,
+      "correlation_reason": "service_discovery",
+      "created_at": 1783412586755782
+    },
+    {
+      "incident_id": "3GARrIHDnfvHKz3jTKUoeQNwHjw",
+      "alert_id": "3GAP2ZZOpg9wfbydqz2mskBBH30",
+      "alert_name": "ecom_checkout_slo_breach",
+      "alert_fired_at": 1783412583666080,
+      "correlation_reason": "service_discovery",
+      "created_at": 1783412583673181
+    }
+  ],
+  "alerts": []
+}

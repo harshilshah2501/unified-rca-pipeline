@@ -1,0 +1,76 @@
+{
+  "id": "3GAAEIzEzDuWjRmlZygujenDU8i",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783403886470820,
+  "last_alert_at": 1783403886470820,
+  "resolved_at": 1783404028241916,
+  "alert_count": 1,
+  "title": "db_primary_down",
+  "created_at": 1783403886476936,
+  "updated_at": 1783404028241916,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "The incident ID is `3GAAEIzEzDuWjRmlZygujenDU8i`. The incident title is \"db_primary_down\" and it was triggered by an alert named \"db_primary_down\" from the stream \"db_up\". The description for this alert is: \"Postgres primary (ordersdb @ pg-prod-01) is DOWN: db_up=0. Check postgres_logs and app_logs for cause; traces in default trace stream.\"\n\nThis indicates that the primary database for `ordersdb` is down. The alert condition is `value < 1`, meaning the `db_up` metric is less than 1, signifying the database is considered down.\n\nTo investigate further, I need to:\n1. Check `postgres_logs` for errors.\n2. Check `app_logs` for related errors.\n3. Check traces in the `default` trace stream.\n\nI will start by checking the `postgres_logs`. The incident occurred at `1783403886470820` microseconds. I will search for logs around this time."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAAEIzEzDuWjRmlZygujenDU8i",
+      "alert_id": "3GAAEGk4mNDFbXuMfxTiP9BwqJm",
+      "alert_name": "db_primary_down",
+      "alert_fired_at": 1783403886470820,
+      "correlation_reason": "alert_id",
+      "created_at": 1783403886479156
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAAEGk4mNDFbXuMfxTiP9BwqJm",
+      "name": "db_primary_down",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "db_up",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM db_up WHERE value < 1",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 20,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Postgres primary (ordersdb @ pg-prod-01) is DOWN: db_up=0. Check postgres_logs and app_logs for cause; traces in default trace stream.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "id": "3GARI4ZcuhvZSBauIl4tLhBeH5N",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783412303651118,
+  "last_alert_at": 1783412309841369,
+  "resolved_at": 1783412583647608,
+  "alert_count": 3,
+  "title": "ecom_checkout_slo_breach",
+  "created_at": 1783412303655827,
+  "updated_at": 1783412583647608,
+  "group_values": {
+    "k8s-cluster": "prod-use1",
+    "region": "region-b"
+  },
+  "key_type": "primary",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GAP2ZZOpg9wfbydqz2mskBBH30",
+        "alert_name": "ecom_checkout_slo_breach",
+        "service_name": "payment-service",
+        "alert_count": 1,
+        "first_fired_at": 1783412303651118,
+        "last_fired_at": 1783412303651118
+      },
+      {
+        "alert_id": "3GAP2YdN0GL8TeE7nin0UkXRyw2",
+        "alert_name": "ecom_payment_conn_exhaustion",
+        "service_name": "payment-service",
+        "alert_count": 1,
+        "first_fired_at": 1783412306762121,
+        "last_fired_at": 1783412306762121
+      },
+      {
+        "alert_id": "3GAP2VUwzdl5okOh4wA5RjjDzPn",
+        "alert_name": "ecom_dns_aaaa_numa",
+        "service_name": "payment-service",
+        "alert_count": 1,
+        "first_fired_at": 1783412309841369,
+        "last_fired_at": 1783412309841369
+      }
+    ],
+    "edges": [
+      {
+        "from_node_index": 0,
+        "to_node_index": 1,
+        "edge_type": "temporal"
+      },
+      {
+        "from_node_index": 1,
+        "to_node_index": 2,
+        "edge_type": "temporal"
+      }
+    ],
+    "related_incident_ids": [],
+    "suggested_root_cause": null
+  },
+  "triggers": [
+    {
+      "incident_id": "3GARI4ZcuhvZSBauIl4tLhBeH5N",
+      "alert_id": "3GAP2VUwzdl5okOh4wA5RjjDzPn",
+      "alert_name": "ecom_dns_aaaa_numa",
+      "alert_fired_at": 1783412309841369,
+      "correlation_reason": "service_discovery",
+      "created_at": 1783412309847786
+    },
+    {
+      "incident_id": "3GARI4ZcuhvZSBauIl4tLhBeH5N",
+      "alert_id": "3GAP2YdN0GL8TeE7nin0UkXRyw2",
+      "alert_name": "ecom_payment_conn_exhaustion",
+      "alert_fired_at": 1783412306762121,
+      "correlation_reason": "service_discovery",
+      "created_at": 1783412306767199
+    },
+    {
+      "incident_id": "3GARI4ZcuhvZSBauIl4tLhBeH5N",
+      "alert_id": "3GAP2ZZOpg9wfbydqz2mskBBH30",
+      "alert_name": "ecom_checkout_slo_breach",
+      "alert_fired_at": 1783412303651118,
+      "correlation_reason": "service_discovery",
+      "created_at": 1783412303657708
+    }
+  ],
+  "alerts": []
+}

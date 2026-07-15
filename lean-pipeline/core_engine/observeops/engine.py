@@ -54,7 +54,7 @@ def diagnose(uc_id: str, corpus_dir) -> dict:
     elif shared and shared in crossed_cis and not ambiguous:
         root_ci = shared
     elif ambiguous:
-        # Prefer Motadata shared-upstream rules under Δt ambiguity so an
+        # Prefer ObserveOps shared-upstream rules under Δt ambiguity so an
         # unrelated earlier anomaly (e.g. UC-3b switch noise) does not win
         # solely by onset / raw CARE severity.
         care_ranked = care_fallback_candidates(crossed, anomaly_candidates) or []

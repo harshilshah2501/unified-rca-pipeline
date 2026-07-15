@@ -2,21 +2,21 @@
 
 **Audience:** brainstorming, stakeholder reviews, NotebookLM → slide decks  
 **Date:** 2026-07-13  
-**Status:** Motadata critical path **complete** (Phases A → B → D)  
-**Decision:** **Lean is the primary engine** for classic ObserveOps RCA (ADR-001)  
+**Status:** ObserveOps critical path **complete** (Phases A → B → D)  
+**Evaluation finding (not finalized):** On the classic ObserveOps UC corpus, bakeoff evidence **favors lean** (ADR-001)  
 **Corpus:** ObserveOps UC-1..UC-5 primary bakeoff (classic infra typed CI graph). Spec + corpus also include **UC-3b** (adversarial early network noise) and synthetic **`events.json`** (required on UC-2/UC-4/UC-3b) — see [`rca-use-cases-only.md`](./rca-use-cases-only.md).
 
 ---
 
 ## 1. Executive summary (one slide)
 
-Motadata ObserveOps needs automatic root-cause analysis across a VMware-style stack:
+ObserveOps needs automatic root-cause analysis across a VMware-style stack:
 
 **Network → ESXi host → VM → Guest OS → Application (+ shared Datastore).**
 
 We built and compared **two engines on the exact same frozen corpus**:
 
-| Approach | What it is | Motadata role |
+| Approach | What it is | ObserveOps role |
 |----------|------------|---------------|
 | **Federated** | Panorama (detect) → Murphy (macro causal) → Nezha (micro patterns) | Optional / future microservice & gray-failure track |
 | **Lean** | Best-first + temporal + info-gain walk; CARE when Δt is ambiguous; scoped Tier-3 causal only when needed | **Primary product path** |
@@ -31,7 +31,7 @@ We built and compared **two engines on the exact same frozen corpus**:
 | Efficiency (avg observations) | 5.40 | **5.00** | **Lean** |
 | Causal Validity | Stronger (Murphy / costly if global) | Scoped Tier 3 only (UC-1, UC-3) | Design tradeoff |
 
-**Conclusion:** On Motadata classic-infra tickets, lean wins the cost–benefit. Murphy’s causal edge is real but does not buy extra accuracy on this corpus, and it loses on reproducibility, auditability, and compute/ops cost. Ship lean first; keep federated for a hybrid later if microservice/code-path RCA is in scope.
+**Conclusion:** On ObserveOps classic-infra tickets, lean wins the cost–benefit. Murphy’s causal edge is real but does not buy extra accuracy on this corpus, and it loses on reproducibility, auditability, and compute/ops cost. Ship lean first; keep federated for a hybrid later if microservice/code-path RCA is in scope.
 
 ---
 
@@ -39,7 +39,7 @@ We built and compared **two engines on the exact same frozen corpus**:
 
 ### 2.1 Product objective
 
-Deliver Motadata ObserveOps RCA that:
+Deliver ObserveOps RCA that:
 
 1. Localizes the **correct root CI** (not the loudest symptom app).
 2. Names a **fault signature** SRE teams recognize.
@@ -49,14 +49,14 @@ Deliver Motadata ObserveOps RCA that:
 
 ### 2.2 PoC objective
 
-Decide, with evidence, which pipeline should be Motadata’s **primary brain** for classic infrastructure RCA:
+Decide, with evidence, which pipeline should be ObserveOps’ **primary brain** for classic infrastructure RCA:
 
 - Run **both** engines on **identical** UC-1..UC-5 bundles.
 - Score them with a shared contract (accuracy, reproducibility, verifiability, efficiency, causal stance).
 - Harden the winner to a callable API/CLI with SRE report fields.
 - Document an explicit hybrid boundary (when federated still makes sense).
 
-### 2.3 Success criteria (Motadata critical path)
+### 2.3 Success criteria (ObserveOps critical path)
 
 | Criterion | Target | Result |
 |-----------|--------|--------|
@@ -70,7 +70,7 @@ Decide, with evidence, which pipeline should be Motadata’s **primary brain** f
 
 ## 3. Problem framing
 
-### 3.1 The Motadata failure mode we care about
+### 3.1 The ObserveOps failure mode we care about
 
 App owners often see **application symptoms** (latency, errors, “CPU 100% in guest”) while the true root sits in a **shared upstream layer**:
 
@@ -90,7 +90,7 @@ Without topology-aware RCA, tools either:
 
 Aligned with the Lean RCA PRD / Simple Guide:
 
-| Quality | Meaning | Motadata stance for this corpus |
+| Quality | Meaning | ObserveOps stance for this corpus |
 |---------|---------|----------------------------------|
 | **Reproducibility** | Same bundle → same verdict | **Mandatory** (bit-stable) |
 | **Verifiability** | Human can replay the evidence chain | **Mandatory** |
@@ -110,7 +110,7 @@ Aligned with the Lean RCA PRD / Simple Guide:
 | **4** No standardized ground truth | **Mandatory by convention** (shared GT + same-bundle bakeoff) |
 | **5** Compute / cost ceiling | **Recommended** to respect by design |
 
-**Do not skip Roadblock 4.** The Lean PRD often lists PoC targets as 1a/2/3 and calls 4 a field-wide open problem. For Motadata ObserveOps, **4 is Mandatory at corpus scope**: every UC has `ground_truth.json`, both engines are scored on the same contract, and UC-5’s false-infra-blame rule is part of that GT convention. We are not claiming a universal industry benchmark — we are requiring a fair bakeoff.
+**Do not skip Roadblock 4.** The Lean PRD often lists PoC targets as 1a/2/3 and calls 4 a field-wide open problem. For ObserveOps, **4 is Mandatory at corpus scope**: every UC has `ground_truth.json`, both engines are scored on the same contract, and UC-5’s false-infra-blame rule is part of that GT convention. We are not claiming a universal industry benchmark — we are requiring a fair bakeoff.
 
 **Per-UC stress:** all five UCs → **4**; UC-1..UC-3 also → **1b**; UC-5’s anti-FP rule is GT enforcement (still **4**), not true **1a**.
 
@@ -121,18 +121,18 @@ Aligned with the Lean RCA PRD / Simple Guide:
 ### 4.1 In scope
 
 - Classic infra typed CI graph (inventory CIs, not K8s pod call graphs).
-- Five synthetic but realistic Motadata use-cases (UC-1..UC-5).
+- Five synthetic but realistic ObserveOps use-cases (UC-1..UC-5).
 - Two runnable engines + matched bakeoff.
 - Lean packaging: diagnose CLI, HTTP API, SRE report, systemd unit.
 - Explicit primary-engine ADR.
 
 ### 4.2 Out of scope (intentionally)
 
-- DeathStarBench / TrainTicket / Online Boutique as Motadata acceptance gates.
-- Live SNMP/NetFlow/APM ingest into Motadata production.
+- DeathStarBench / TrainTicket / Online Boutique as ObserveOps acceptance gates.
+- Live SNMP/NetFlow/APM ingest into ObserveOps production.
 - Automated remediation / runbook execution.
 - Fleet-wide Pearl-style counterfactuals on every metric.
-- 1B EPS production sizing as a Motadata gate (capacity measured partially on laptop only).
+- 1B EPS production sizing as an ObserveOps gate (capacity measured partially on laptop only).
 
 ### 4.3 Optional later (not blocking)
 
@@ -226,7 +226,7 @@ Each UC specifies: fault injection idea, decisive telemetry thresholds, per-laye
 - Bit-stable by design.
 - Easy to audit (signals + chain + tier).
 - Cheap per incident (monitor-shaped).
-- Matches Motadata classic CI inventory.
+- Matches ObserveOps classic CI inventory.
 
 **Limits**
 
@@ -248,7 +248,7 @@ Each UC specifies: fault injection idea, decisive telemetry thresholds, per-laye
 
 ### 7.1 Why not mandate Causal Validity everywhere?
 
-**Temporal precedence** (“what failed first among reachable CIs?”) is cheap and enough for many Motadata tickets (linkDown, filesystem full, heap with healthy infra).
+**Temporal precedence** (“what failed first among reachable CIs?”) is cheap and enough for many ObserveOps tickets (linkDown, filesystem full, heap with healthy infra).
 
 **Structural causation** (“If ESXi CPU had *not* spiked, would the app still be slow?”) is a different mathematical class — typically interventions + heavy sampling. Running that **globally** across thousands of VMware metrics turns RCA into an inference cluster and violates Roadblock 5.
 
@@ -258,7 +258,7 @@ Each UC specifies: fault injection idea, decisive telemetry thresholds, per-laye
 
 Accuracy is a hard product KPI. Perfect **5/5 on five synthetic UCs** is a useful smoke bar, not a universal forever bar. Prefer a declared floor on larger corpora (e.g. ≥80%) over chasing stochastic peaks that destroy trust.
 
-### 7.3 Why lean wins Motadata cost–benefit
+### 7.3 Why lean wins ObserveOps cost–benefit
 
 | | Federated / Murphy | Lean |
 |--|--------------------|------|
@@ -270,13 +270,13 @@ Accuracy is a hard product KPI. Perfect **5/5 on five synthetic UCs** is a usefu
 | Cost — ops | Three algos + tiers | One engine |
 | Accuracy on this corpus | 5/5 | 5/5 (**no accuracy premium for Murphy CV**) |
 
-Net: lean wins for classic infra Motadata. Federated wins when you **explicitly need** deeper structural CV or microservice event/code-path RCA and will pay for it.
+Net: lean wins for classic infran ObserveOps. Federated wins when you **explicitly need** deeper structural CV or microservice event/code-path RCA and will pay for it.
 
 ### 7.4 Decision guide (what to choose when)
 
 | Situation | Choose |
 |-----------|--------|
-| Classic infra Motadata RCA | **Lean** |
+| Classic infran ObserveOps RCA | **Lean** |
 | Same incident must always yield same verdict | **Lean** |
 | SRE must explain answer in minutes from metrics/topology | **Lean** |
 | Clear Δt + hard signals | **Lean Tier 1** |
@@ -395,7 +395,7 @@ Scored **identically** for both engines against `datasets/observeops/*/ground_tr
 
 ### 10.4 How to read reproducibility
 
-Federated multi-hash on UC-2/3/5 shows stochastic / path-variance on the federated stack even when top-1 root CI is often correct. Lean is bit-identical across N=20 on all five UCs — the operational property Motadata needs for incident compare/diff and change control.
+Federated multi-hash on UC-2/3/5 shows stochastic / path-variance on the federated stack even when top-1 root CI is often correct. Lean is bit-identical across N=20 on all five UCs — the operational property ObserveOps needs for incident compare/diff and change control.
 
 ---
 
@@ -403,9 +403,9 @@ Federated multi-hash on UC-2/3/5 shows stochastic / path-variance on the federat
 
 ### 11.1 Accuracy tied — so other axes decide
 
-Both engines hit every Motadata root and signature on this corpus. That is important: **Murphy’s CV advantage did not translate into higher accuracy here.** Paying federated’s cost does not buy a correctness premium on classic infra UC-1..UC-5.
+Both engines hit every ObserveOps root and signature on this corpus. That is important: **Murphy’s CV advantage did not translate into higher accuracy here.** Paying federated’s cost does not buy a correctness premium on classic infra UC-1..UC-5.
 
-### 11.2 Reproducibility is the decisive Motadata gap
+### 11.2 Reproducibility is the decisive ObserveOps gap
 
 40% vs 100% is not a rounding error. Ops teams need:
 
@@ -425,13 +425,13 @@ Lean averages fewer observations and shows modest best-first gains vs naive BFS.
 
 ### 11.5 Causal Validity — keep as Recommended, not Mandatory
 
-UC-1/UC-3 exercise the Recommended Tier-3 path. UC-2/4/5 correctly stay Tier 1 with hard signals / clear stops / anti-FP. This matches the Motadata ticket mix: most incidents should not pay for structural CV.
+UC-1/UC-3 exercise the Recommended Tier-3 path. UC-2/4/5 correctly stay Tier 1 with hard signals / clear stops / anti-FP. This matches the ObserveOps ticket mix: most incidents should not pay for structural CV.
 
 ### 11.6 Limits of the evidence
 
 - Corpus size is **five** synthetic UCs — smoke, not a fleet study.
-- Federated ObserveOps path is an adapter over the research stack, not a full Motadata production ingest.
-- Capacity (~21K EPS on 2-core WSL Dragonfly) is **not** a Motadata acceptance metric and is not a 64-core production estimate.
+- Federated ObserveOps path is an adapter over the research stack, not a full ObserveOps production ingest.
+- Capacity (~21K EPS on 2-core WSL Dragonfly) is **not** an ObserveOps acceptance metric and is not a 64-core production estimate.
 - Lean Tier 3 ≠ full Murphy-quality counterfactuals.
 
 ---
@@ -440,21 +440,21 @@ UC-1/UC-3 exercise the Recommended Tier-3 path. UC-2/4/5 correctly stay Tier 1 w
 
 ### 12.1 Decision (ADR-001)
 
-**Use lean as the primary RCA engine** for Motadata ObserveOps classic infrastructure paths (network → host → VM → OS → app).
+**Use lean as the primary RCA engine** for ObserveOps classic infrastructure paths (network → host → VM → OS → app).
 
 **Keep federated** as an optional future hybrid component for microservice code-path, gray-failure, and pair-mining workloads — once a dedicated microservice evaluation corpus is in scope.
 
-### 12.2 Why this is the right Motadata call
+### 12.2 Why this is the right ObserveOps call
 
 1. Accuracy is tied on the declared corpus (**Roadblock 4** GT contract makes that comparison fair).
-2. Reproducibility and verifiability — Motadata Mandatories — strongly favor lean.
+2. Reproducibility and verifiability — corpus Mandatories — strongly favor lean.
 3. Roadblock **1b** (joined typed CI graph) is what lean walks; Roadblock **5** (cost) favors lean’s temporal-first design.
 4. Murphy’s CV edge is real but misaligned as the *default* brain for classic infra tickets.
 5. Lean is already packaged as a product-shaped CLI/API with SRE outputs.
 
 ### 12.3 One-sentence story for stakeholders
 
-> We compared a research-grade three-algorithm federated stack to a lean topology walk on the same Motadata use-cases; both were accurate, but only lean was bit-stable, auditable, and cheap enough to ship as the primary ObserveOps RCA engine.
+> We compared a research-grade three-algorithm federated stack to a lean topology walk on the same ObserveOps use-cases; both were accurate, but only lean was bit-stable, auditable, and cheap enough to ship as the primary ObserveOps RCA engine.
 
 ---
 
@@ -462,7 +462,7 @@ UC-1/UC-3 exercise the Recommended Tier-3 path. UC-2/4/5 correctly stay Tier 1 w
 
 Use these as generation prompts or section titles:
 
-1. **Title** — Unified RCA PoC: Lean vs Federated for Motadata ObserveOps  
+1. **Title** — Unified RCA PoC: Lean vs Federated for ObserveOps  
 2. **Problem** — Symptom apps hide upstream infra roots  
 3. **Objective** — Pick primary engine with same-corpus evidence  
 4. **Corpus** — Five layers, five traps (UC-1..UC-5 table)  
@@ -473,7 +473,7 @@ Use these as generation prompts or section titles:
 9. **Method** — Frozen bundles → matched bakeoff → ADR  
 10. **Results scoreboard** — 5/5 vs 5/5; 40% vs 100% repro  
 11. **Per-UC story** — Host / net / storage / OS / app anti-FP  
-12. **Cost–benefit** — Murphy CV vs Motadata ops fit  
+12. **Cost–benefit** — Murphy CV vs ObserveOps ops fit  
 13. **Decision** — Lean primary; federated optional hybrid  
 14. **Shipped** — `lean_rca` CLI/API/SRE report  
 15. **Open questions** — brainstorming (next section)  
@@ -485,12 +485,12 @@ Use these as generation prompts or section titles:
 
 Use these in NotebookLM chat or workshop discussions:
 
-1. What is the **accuracy floor** we will publish for the next (larger) Motadata corpus — 80%? 90%? How do we expand UCs without overfitting rules? (**Roadblock 4** stays corpus-local convention unless we join an external benchmark.)
-2. Should Motadata UI **expose evidentiary tiers** to customers, or only internally?
+1. What is the **accuracy floor** we will publish for the next (larger) ObserveOps corpus — 80%? 90%? How do we expand UCs without overfitting rules? (**Roadblock 4** stays corpus-local convention unless we join an external benchmark.)
+2. Should ObserveOps UI **expose evidentiary tiers** to customers, or only internally?
 3. When (if ever) do we **invoke Murphy** from lean as a paid Tier-3/4 escalation on ambiguous tickets?
-4. How do we productize **blast radius + remediation** into Motadata incident workflows without auto-remediation?
-5. What is the first **non-synthetic** Motadata customer topology we should freeze as Corpus B.1?
-6. Do we need a **microservice corpus** this year, or is classic infra enough for the Motadata roadmap?
+4. How do we productize **blast radius + remediation** into ObserveOps incident workflows without auto-remediation?
+5. What is the first **non-synthetic** ObserveOps customer topology we should freeze as Corpus B.1?
+6. Do we need a **microservice corpus** this year, or is classic infra enough for the ObserveOps roadmap?
 7. How should reproducibility be **regression-tested in CI** (N=20 harness on every engine change)?
 8. Is lightweight Tier 3 “good enough” CV messaging, or do we risk overclaiming “causal” in marketing?
 9. Where does **log/event multimodal** fusion fit if lean misses OS signals that Nezha would catch?
@@ -506,10 +506,10 @@ Use these in NotebookLM chat or workshop discussions:
 | CARE | Ambiguity fallback when onset Δt among candidates is unclear |
 | Tier 1/2/3 | Lean evidentiary depth labels |
 | Federated | Panorama + Murphy + Nezha + orchestrator |
-| Lean | Single-engine typed-graph RCA (Motadata primary) |
-| Corpus B | Motadata ObserveOps UC-1..UC-5 |
+| Lean | Single-engine typed-graph RCA (lean path under evaluation) |
+| Corpus B | ObserveOps UC-1..UC-5 |
 | Corpus A | Optional microservice / DeathStarBench-style track (deferred) |
-| ADR-001 | Accepted decision: lean primary |
+| ADR-001 | Evaluation finding: lean favored on this corpus (not finalized) |
 
 ---
 
@@ -527,7 +527,7 @@ Use these in NotebookLM chat or workshop discussions:
 | Benchmark contract | `datasets/observeops/COMPARISON_BENCHMARK.md` |
 | Federated design | `federated-pipeline/docs/ARCHITECTURE.md` (+ limitations / storage tiers) |
 | Lean engine notes | `lean-pipeline/core_engine/observeops/README.md` |
-| Lean PRD / Simple Guide | `docs/Lean_RCA_PRD.md` (+ `.pdf`), `docs/Lean_RCA_Simple_Guide.md` (+ `.pdf`) — Motadata-aligned 2026-07-13 |
+| Lean PRD / Simple Guide | `docs/Lean_RCA_PRD.md` (+ `.pdf`), `docs/Lean_RCA_Simple_Guide.md` (+ `.pdf`) — evaluation-aligned 2026-07-13 |
 
 ---
 

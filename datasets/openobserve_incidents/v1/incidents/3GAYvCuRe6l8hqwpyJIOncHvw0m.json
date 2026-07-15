@@ -1,0 +1,151 @@
+{
+  "id": "3GAYvCuRe6l8hqwpyJIOncHvw0m",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783416068775565,
+  "last_alert_at": 1783416071836523,
+  "resolved_at": 1783421292772492,
+  "alert_count": 2,
+  "title": "sc_latency_slo",
+  "created_at": 1783416068782255,
+  "updated_at": 1783421292772492,
+  "group_values": {
+    "k8s-cluster": "prod-apse1",
+    "region": "ap-southeast-1"
+  },
+  "key_type": "secondary",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GAYuQU1F9N0kLn2pvSvkbvtX4C",
+        "alert_name": "sc_latency_slo",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783416068775565,
+        "last_fired_at": 1783416068775565
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAYvCuRe6l8hqwpyJIOncHvw0m\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-07 14:34:28 UTC (first alert at 1783416068775565 microseconds)\n- **Resolved**: Ongoing\n- **Duration**: Less than 1 minute at time of analysis\n- **Affected Services**: catalog-service (prod-apse1 / ap-southeast-1)\n- **Customer Impact**: Request latency for catalog API increased from ~180ms to 420ms (p95), affecting e-commerce product searches and catalog browsing\n\n## Impact Assessment\n\n- **Services Affected**: 1 (catalog-service primary impact; upstream e-commerce services potentially affected)\n- **Peak Error Rate**: 0% (SLO breach on latency, not errors)\n- **Failed Requests**: 0 (no failed requests; all requests delayed)\n- **Users Impacted**: All users accessing catalog/product listing functionality during incident window\n- **Data Loss**: No\n- **SLA Breach**: Yes (request_latency_p95_ms threshold: 300ms; observed: 432.7ms)\n\n## Evidence\n\n### Service Dependencies\nService topology shows checkout-service and payment-service depend on catalog-service (indirectly through product availability). The catalog-service handles ~31 requests baseline, downstream from the API gateway entry point.\n\n### Distributed Traces\nService graph topology indicates:\n- Checkout-service P95 latency: 18s (18,000ms) \u2014 significant elevation\n- Payment-service P95 latency: 45ms \u2014 normal\n- Catalog-service baseline unchanged in topology view, but alert metrics show 432.7ms actual latency\n\n### Log Patterns\nCritical evidence from logs:\n1. **Redis log (1783415935000000)**: \"cache miss surge; redis-node-3 unreachable, falling back to DB (hit_ratio=68%)\"\n2. **DB slow query logs (1783415935000000)**: \"slow query 1579ms: SELECT * FROM products WHERE ... (rows_examined=144846)\"\n3. **DB slow query logs (1783415905000000)**: \"slow query 2169ms: SELECT * FROM products WHERE ... (rows_examined=193099)\"\n\n### Metrics Analysis\n- **Request Latency P95** (1783415905): 432.7ms (alert threshold: 300ms)\n- **Cache Hit Ratio** (1783415905): 69.4% (normal baseline ~98%)\n- **Cache Hit Ratio** (1783415845): 68% (dropped from ~98%)\n- **DB CPU** (1783415905): 96.1% (critical saturation)\n- **DB QPS** (1783415905): 12,718 queries/sec (normal baseline ~4,000 qps, 3x increase)\n- **DB QPS** (1783415845): 11,310 queries/sec (sustained elevated load)\n\n### Recent Changes\nChange history not investigated \u2014 no git/deploy audit tool access available. No deploy repository was specified in the investigation scope. However, the incident evidence shows a sudden operational failure (cache node loss) rather than a code deployment effect.\n\n### Contributing Factors\n1. **Redis-node-3 failure**: Cache node became unreachable, marked FAIL with \"connection refused\" error\n2. **Cache hit ratio collapse**: Dropped from ~98% to ~68% immediately upon redis-node-3 unavailability, forcing fallback to database\n3. **Database saturation**: QPS tripled from ~4,000 to ~12,700 as missed cache requests hit catalog-db; CPU jumped to 96.1%\n4. **Query degradation**: Slow queries exceeded 2 seconds due to increased concurrency on saturated database\n5. **Latency amplification**: Combined effect of cache bypass + DB queue wait time caused p95 latency to rise 2.4x from 180ms baseline to 432.7ms\n\n## Timeline\n\n- **14:34:01 UTC (1783415841)**: Baseline \u2014 Cache hit ratio 98%, DB QPS ~4000, latency p95 ~180ms\n- **14:34:25 UTC (1783415865)**: Redis-node-3 becomes unreachable; connection refused\n- **14:34:26 UTC (1783415905)**: Cache hit ratio drops to 68-70%, DB QPS surges to 12,718, DB CPU at 96.1%, Request latency p95 jumps to 432.7ms, slow queries appear (1579ms, 2169ms)\n- **14:34:28 UTC (1783416068)**: Alert triggered \u2014 \"sc_latency_slo\" fires when request_latency_p95_ms value 432.7 >= threshold 300\n\n## Actions\n\n### Immediate\n- Verify redis-node-3 pod/container status: check logs for crash, OOMKill, or network partition\n- Restore redis-node-3 to the cluster: redeploy or restart the failed node\n- Confirm cache hit ratio returns to 98%+ once node is online\n- Monitor DB QPS to confirm it drops back to baseline ~4,000 once cache bypass ends\n- Verify request latency p95 returns to <300ms after cache restoration\n\n### Future\n- Implement cache node health checks with automatic failover to alternate cache nodes\n- Add redundancy to cache cluster (3+ nodes minimum) so single-node failure does not cause 30% hit-ratio drop\n- Implement circuit breaker on cache misses to rate-limit database query storms\n- Set up alerting specifically for cache_hit_ratio drops >20% in 1-minute window\n- Add PVC monitoring on redis pods to catch disk-full or inode-exhaustion scenarios\n- Document cache node failure runbook and test recovery procedures quarterly\n\n## Executive Summary\n\n**Potential Cause**: Redis-node-3 cache node failure caused cache hit ratio to collapse from 98% to 68%, forcing catalog-db to handle 3x normal query load (4,000\u219212,700 qps), saturating CPU to 96.1% and injecting 2+ second query latencies; latency SLO breach (p95: 432.7ms vs 300ms threshold) detected 14:34:28 UTC.\n\n**Impact**: All catalog-service users experienced 2.4x latency increase on product searches and listing endpoints; e-commerce checkout flows degraded due to upstream catalog dependency.\n\n**Resolution**: Restore redis-node-3 to cluster, confirm cache hit ratio returns to baseline, and implement single-node failure resilience via redundant cache cluster design."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAYvCuRe6l8hqwpyJIOncHvw0m",
+      "alert_id": "3GAYuUe4C2NlA6yw1RuZWzG1OcA",
+      "alert_name": "sc_db_cpu",
+      "alert_fired_at": 1783416071836523,
+      "correlation_reason": "alert_id",
+      "created_at": 1783416071842259
+    },
+    {
+      "incident_id": "3GAYvCuRe6l8hqwpyJIOncHvw0m",
+      "alert_id": "3GAYuQU1F9N0kLn2pvSvkbvtX4C",
+      "alert_name": "sc_latency_slo",
+      "alert_fired_at": 1783416068775565,
+      "correlation_reason": "alert_id",
+      "created_at": 1783416068784602
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAYuUe4C2NlA6yw1RuZWzG1OcA",
+      "name": "sc_db_cpu",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "db_cpu_percent",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM db_cpu_percent WHERE cluster='prod-apse1' AND region='ap-southeast-1' AND value > 85",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "cluster": "prod-apse1",
+        "service_name": "catalog-service",
+        "host": "catalog-db",
+        "region": "ap-southeast-1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "catalog-db CPU ~95% (victim of a cache-driven query stampede).",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAYuQU1F9N0kLn2pvSvkbvtX4C",
+      "name": "sc_latency_slo",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "request_latency_p95_ms",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM request_latency_p95_ms WHERE cluster='prod-apse1' AND region='ap-southeast-1' AND value > 300",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "cluster": "prod-apse1",
+        "service_name": "catalog-service",
+        "region": "ap-southeast-1",
+        "host": "catalog-app"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "SEV2 - request_latency_p95 doubled (~180->420ms) on catalog service (prod-apse1/ap-southeast-1); catalog-db CPU ~95%. Confirm each step with ONE query; ignore unrelated streams:\n1) db_cpu_percent / db_slow_query_logs -> DB looks saturated. DECOY: DB is a victim, it handled the same load fine before onset.\n2) db_qps -> ~3x normal (4000->12000) at onset.\n3) cache_hit_ratio -> dropped 98%->70% at the same instant.\n4) cache_node_up WHERE node='redis-node-3' -> 0; redis_logs -> 'redis-node-3 marked FAIL - connection refused'.\nROOT CAUSE: redis-node-3 failed -> cache hit ratio collapsed -> misses hit catalog-db -> QPS 3x -> DB CPU saturation -> latency. Fix the CACHE node, not the DB.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

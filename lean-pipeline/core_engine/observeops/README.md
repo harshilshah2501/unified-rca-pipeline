@@ -60,4 +60,4 @@ PYTHONPATH=lean-pipeline:. .venv/bin/python -m pytest lean-pipeline/core_engine/
 
 `registry.py` requires PyYAML (`pip install pyyaml`).
 
-Shared Motadata docs: [`../../../docs/README.md`](../../../docs/README.md).
+Shared ObserveOps docs: [`../../../docs/README.md`](../../../docs/README.md).

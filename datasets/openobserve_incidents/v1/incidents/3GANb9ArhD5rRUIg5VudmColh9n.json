@@ -1,0 +1,199 @@
+{
+  "id": "3GANb9ArhD5rRUIg5VudmColh9n",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783410481594602,
+  "last_alert_at": 1783410486827892,
+  "resolved_at": 1783412303632873,
+  "alert_count": 3,
+  "title": "net_link_saturation",
+  "created_at": 1783410481601180,
+  "updated_at": 1783412303632873,
+  "group_values": {
+    "region": "us-east-1",
+    "k8s-cluster": "prod-use1"
+  },
+  "key_type": "secondary",
+  "topology_context": {
+    "nodes": [],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GANb9ArhD5rRUIg5VudmColh9n\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-07 03:34:41 UTC\n- **Resolved**: Ongoing\n- **Duration**: Less than 1 minute at time of analysis\n- **Affected Services**: api-gateway, checkout-service, orders-service, payment-db\n- **Customer Impact**: Checkout requests failing with 504 timeouts; payment database connections timing out\n\n## Impact Assessment\n\n- **Services Affected**: 4 services (api-gateway, checkout-service, orders-service, payment-db)\n- **Peak Error Rate**: 15% on orders-service (195 failed requests out of 1,299 total)\n- **Failed Requests**: 65 failed requests to ordersdb/postgres-primary\n- **Users Impacted**: Estimated 92+ concurrent users affected during incident window\n- **Data Loss**: No\n- **SLA Breach**: Yes \u2014 504 Gateway Timeout errors on checkout API\n\n## Evidence\n\n### Service Dependencies\nService topology reveals critical path: checkout-service \u2192 payment-db (direct) and orders-service \u2192 ordersdb/postgres-primary (backend database). External traffic routes through api-gateway \u2192 checkout-service. The orders-service dependency chain is the primary failure point, with postgres-primary showing 15.01% error rate and elevated latencies (P99: 903ms).\n\n### Network Link Saturation Alert\nThe alert `net_link_saturation` on core-router-01/eth1 (prod-use1, us-east-1) indicates sustained interface discard packets:\n- **Alert Trigger**: interface_discard_packets value > 500 packets\n- **Baseline**: 2,934\u20133,169 discard packets observed across the incident window\n- **Rate of Discards**: Spike of ~97 packets/sec detected at 1783410240 UTC, dropping to ~2 packets/sec by 1783410300 UTC\n- **Direction**: Output discards on eth1, indicating egress congestion (app\u2192db path saturation)\n\n### Distributed Traces\nService graph topology analysis reveals:\n- **api-gateway**: 184 requests, 0 errors (0% error rate)\n- **checkout-service**: 184 requests, 0 errors (0% error rate)\n- **orders-service**: 1,299 requests, 195 errors (15.01% error rate)\n- **ordersdb**: 433 requests, 65 errors (15.01% error rate)\n- **postgres-primary**: 433 requests, 65 errors (15.01% error rate)\n\nLatency degradation observed:\n- ordersdb: P50=142ms, P95=818ms, P99=895ms\n- postgres-primary: P50=114ms, P95=655ms, P99=716ms\n\n### Log Patterns\n**API Gateway Errors** (3 incidents):\n```\n_timestamp: 1783410290000000\nmessage: \"504 Gateway Timeout POST /api/checkout: upstream checkout-service did not respond within 5s\"\nlevel: ERROR\nservice_name: api-gateway\nhost: edge-01\n```\n\n**Checkout Service Errors** (3 incidents):\n```\n_timestamp: 1783410290000000\nmessage: \"connection to payment-db (db-01:5432) timed out after 5000ms; TCP retransmissions to db-01 detected\"\nlevel: ERROR\nhost: app-01\n```\n\nThe correlation is clear: checkout-service cannot establish connections to payment-db within the 5-second timeout window, causing api-gateway to return 504 errors to clients.\n\n### Metrics Analysis\n**Interface Discard Packets (core-router-01/eth1)**:\n- Baseline: ~2,975 packets consistently maintained\n- Peak spike: 3,157\u20133,169 packets (7\u20138% increase over baseline)\n- Rate of change: 0.84 to 97.8 packets/sec (spike at T=60sec)\n- Sustained saturation on output queue (eth1 interface)\n\nThe persistent discard count above the alert threshold (500) indicates that the network link is operating at or near saturation, causing packet loss. The TCP retransmissions logged in checkout-service confirm that datagrams are being dropped on the app\u2192db path.\n\n### Contributing Factors\n1. **Network Interface Saturation**: core-router-01/eth1 output queue experiencing sustained packet discards (2,975+ packets) well above baseline expectations, indicating bandwidth exhaustion on the app\u2192database path. The interface is dropping egress frames.\n\n2. **TCP Retransmission Cascades**: Checkout-service logs explicitly document \"TCP retransmissions to db-01 detected\" when attempting connections to payment-db (db-01:5432). Retransmissions occur because the saturated link is dropping packets, forcing TCP to resend. Each retransmit consumes additional bandwidth, amplifying congestion.\n\n3. **Connection Timeout Cascade**: With TCP retransmissions in effect, payment-db connections exceed the 5-second timeout window. Checkout-service cannot establish connections, causing it to stop responding. API-gateway then times out waiting for checkout-service responses (also 5 seconds), returning 504 errors to clients.\n\n## Timeline\n\n- **03:34:21 UTC** (1783410261000000) - First checkout-service error: \"connection to payment-db (db-01:5432) timed out after 5000ms; TCP retransmissions to db-01 detected\"\n- **03:34:20 UTC** (1783410220000000) - Concurrent api-gateway 504 error observed: \"504 Gateway Timeout POST /api/checkout: upstream checkout-service did not respond within 5s\"\n- **03:34:40 UTC** (1783410240000000) - Peak rate spike in interface discards: 97.8 packets/sec\n- **03:34:41 UTC** (1783410281000000) - Alert threshold breached: interface_discard_packets value = 2,975.64 (> 500 threshold)\n- **03:34:41 UTC** (1783410481594602) - Alert `net_link_saturation` fires; incident created\n\n## Actions\n\n### Immediate\n- **Verify egress bandwidth utilization** on core-router-01/eth1 using interface statistics (ifconfig, ethtool, or SNMP) to confirm link saturation.\n- **Check for traffic anomalies** \u2014 identify which application(s) or services are generating the spike in outbound traffic to db-01 and determine if a legitimate traffic surge or a runaway process is driving congestion.\n- **Reduce connection load** \u2014 if confirmed link saturation, temporarily rate-limit checkout-service requests or fail-over to a secondary payment-db path (if available) to break the congestion loop.\n- **Verify payment-db connectivity** \u2014 confirm that db-01 itself is healthy and not introducing return-path congestion that amplifies the discard rate.\n\n### Future\n- **Increase link capacity** \u2014 upgrade core-router-01/eth1 to a higher-speed interface (10Gbps \u2192 40Gbps, etc.) if current traffic patterns are approaching saturation at baseline.\n- **Implement QoS or traffic shaping** \u2014 prioritize database traffic and de-prioritize less critical flows on the core-router-01/eth1 interface to prevent payment-critical paths from starving during spikes.\n- **Add connection pooling and circuit breakers** \u2014 increase checkout-service's database connection pool timeout and implement circuit breaker logic to fast-fail instead of hanging for 5 seconds when db-01 is unreachable.\n- **Monitor TCP retransmission rates** \u2014 add alerting on TCP SYN retransmits and packet loss ratio (measured by `rate(tcp_retrans_total)` or similar) to detect network saturation before it cascades to application-level timeouts.\n- **Distribute load across multiple database links** \u2014 if db-01 traffic is concentrated on a single link, use Multi-Path TCP (MPTCP) or round-robin multiple database nodes to spread traffic across different physical interfaces.\n\n## Executive Summary\n\n**Potential Cause**: Network interface saturation on core-router-01/eth1 (app\u2192database path) caused sustained packet discards (2,975+ packets, ~7\u20138% above baseline). Dropped packets triggered TCP retransmissions, which consumed additional bandwidth and extended connection setup latency for payment-db connections in checkout-service. When connection timeouts exceeded 5 seconds, checkout-service stopped responding, causing api-gateway to return 504 errors to clients.\n\n**Impact**: Checkout API returning 504 Gateway Timeout errors to users; payment database connections failing with 5-second timeouts; estimated 92+ concurrent users unable to complete transactions during the incident window.\n\n**Resolution**: Identify and resolve the traffic surge driving egress congestion on core-router-01/eth1. Confirm payment-db is healthy and not generating return-path congestion. Consider upgrading link capacity and implementing traffic shaping or circuit breaker logic to isolate critical database paths from future saturation events."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GANb9ArhD5rRUIg5VudmColh9n",
+      "alert_id": "3GAKWAgHdBHRYwTgI2G2ii1JRqs",
+      "alert_name": "checkout_db_timeouts",
+      "alert_fired_at": 1783410486827892,
+      "correlation_reason": "alert_id",
+      "created_at": 1783410486833252
+    },
+    {
+      "incident_id": "3GANb9ArhD5rRUIg5VudmColh9n",
+      "alert_id": "3GAKWFceOvgxqYTBmtMdTllpJV1",
+      "alert_name": "gateway_5xx_spike",
+      "alert_fired_at": 1783410484727336,
+      "correlation_reason": "alert_id",
+      "created_at": 1783410484731266
+    },
+    {
+      "incident_id": "3GANb9ArhD5rRUIg5VudmColh9n",
+      "alert_id": "3GAKWEpioxDRWnite9QY1G4re60",
+      "alert_name": "net_link_saturation",
+      "alert_fired_at": 1783410481594602,
+      "correlation_reason": "alert_id",
+      "created_at": 1783410481602943
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAKWEpioxDRWnite9QY1G4re60",
+      "name": "net_link_saturation",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "interface_discard_packets",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM interface_discard_packets WHERE cluster = 'prod-use1' AND region = 'us-east-1' AND device = 'core-router-01' AND interface = 'eth1' AND value > 500",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 25,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "cluster": "prod-use1",
+        "host": "core-router-01",
+        "service_name": "core-router-01",
+        "region": "us-east-1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "core-router-01/eth1 output discards: link saturated (app->db path)",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAKWAgHdBHRYwTgI2G2ii1JRqs",
+      "name": "checkout_db_timeouts",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "checkout_connection_timeouts",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM checkout_connection_timeouts WHERE cluster = 'prod-use1' AND region = 'us-east-1' AND service_name = 'checkout-service' AND value > 10",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 25,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "host": "app-01",
+        "cluster": "prod-use1",
+        "service_name": "checkout-service",
+        "region": "us-east-1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "checkout-service payment-db connection timeouts",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAKWFceOvgxqYTBmtMdTllpJV1",
+      "name": "gateway_5xx_spike",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "gateway_http_5xx_rate",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM gateway_http_5xx_rate WHERE cluster = 'prod-use1' AND region = 'us-east-1' AND service_name = 'api-gateway' AND value > 20",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 25,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "host": "edge-01",
+        "region": "us-east-1",
+        "service_name": "api-gateway",
+        "cluster": "prod-use1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "api-gateway 504 Gateway Timeout rate high",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

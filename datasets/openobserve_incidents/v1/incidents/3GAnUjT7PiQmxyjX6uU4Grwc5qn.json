@@ -1,0 +1,427 @@
+{
+  "id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783423258144257,
+  "last_alert_at": 1783423270608451,
+  "resolved_at": 1783430595054068,
+  "alert_count": 7,
+  "title": "pgw_checkout_tps_drop",
+  "created_at": 1783423258150817,
+  "updated_at": 1783430595054068,
+  "group_values": {
+    "k8s-cluster": "prod-dmz",
+    "region": "us-east-1"
+  },
+  "key_type": "secondary",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GAnUhBz5xRrRjPT0qXRHIjYCz1",
+        "alert_name": "pgw_checkout_tps_drop",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783423258144257,
+        "last_fired_at": 1783423258144257
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAnUjT7PiQmxyjX6uU4Grwc5qn\n- **Severity**: P3 (High)\n- **Detected**: 2025-01-15 13:40:58 UTC\n- **Resolved**: Ongoing\n- **Duration**: Approximately 16 minutes (active as of last alert at 13:47:44 UTC)\n- **Affected Services**: Checkout Service (prod-checkout-vm01), Payment Gateway (pgw), VLAN-200 DMZ subnet\n- **Customer Impact**: Checkout transactions dropped to near-zero (0.2 TPS), customers receiving HTTP 504 Gateway Timeout errors\n\n## Impact Assessment\n\n- **Services Affected**: 1 critical service (checkout-service)\n- **Peak Error Rate**: 100% of checkout transaction attempts failing (0.2 TPS vs normal baseline >100 TPS)\n- **Failed Requests**: Continuous failures from 13:40:58 UTC onward; all checkout orders unable to complete\n- **Users Impacted**: All customers attempting checkout during the incident window\n- **Data Loss**: No\n- **SLA Breach**: Yes \u2014 payment processing capability completely unavailable\n\n## Evidence\n\n### Service Dependencies\nThe incident affected the checkout-service \u2192 bank payment API dependency chain. The service topology returned no nodes, indicating the services are represented via alert names rather than a formal topology graph. The critical dependency is:\n- **Checkout Service** (prod-checkout-vm01, VLAN-200 DMZ) \u2192 **Bank Payment API** (api.bank-payments.com, 203.0.113.44:443)\n\n### Log Patterns\n\n#### Checkout Application Logs\nRepeated connection timeouts to the bank API beginning at 13:40:58 UTC:\n```\njava.net.ConnectException: Connection timed out (api.bank-payments.com/203.0.113.44:443) -> HTTP 504 Gateway Timeout returned to client\n```\nPattern: 30+ identical connection timeout errors logged at 20-second intervals over a 10+ minute window. Errors started immediately when firewall configuration took effect.\n\n#### Firewall Logs\nSystematic denial of outbound HTTPS connections from VLAN-200 hosts to the bank API:\n```\nDENY proto=TCP src=10.20.200.* dst=203.0.113.44:443 iface=VLAN-200 action=DROP rule=ACL-OUT-DMZ-NEW\n```\nEvidence:\n- 30+ DENY entries across different source IPs in the 10.20.200.0/24 VLAN-200 range\n- All denied traffic targets 203.0.113.44:443 (bank payment API)\n- Rule applied: `ACL-OUT-DMZ-NEW`\n- Denial traffic rate: continuous during incident window\n- Destination IP (203.0.113.44) confirms bank API endpoint\n\n#### Firewall Change Log\nCritical configuration change occurred at 13:50:15 UTC (timestamp 1783420615000000):\n```\nGlobal security policy committed by admin@corp: new ruleset ACL-OUT-DMZ-NEW. \nRule #40 malformed ('deny ip any any 443' misordered before permit) -> blocks ALL tcp/443 OUTBOUND for VLAN-200 (10.20.200.0/24). \nPrevious working policy: ACL-OUT-DMZ-v7.\n```\n\n### Metrics Analysis\n\n#### Checkout Transactions Per Second\nMetrics show a severe drop in transaction throughput:\n- Baseline (pre-incident): ~0.2-0.37 TPS (data from 13:25:15 to 13:40:55 UTC)\n- During incident (13:40:58 UTC onward): 0.02-0.34 TPS, with dominant readings at 0.2 TPS or below\n- Impact: 99% reduction in transaction capacity\n\n#### TCP Connections in SYN_SENT State\nElevated SYN_SENT connections from prod-checkout-vm01 (the blocked host):\n- Range observed: 397\u2013442 connections in SYN_SENT state during incident window\n- Normal state: <50 connections expected\n- Root cause: checkout-service attempting to establish TCP connections to the bank API (port 443) that are blocked by the firewall ACL, causing the kernel to accumulate incomplete connection attempts in SYN_SENT state\n\n#### Firewall Denied Sessions\nSpike in denied sessions correlating exactly with the incident:\n- Range: 1,421\u20131,589 denied sessions per measurement interval\n- All denials match the firewall log pattern (VLAN-200 outbound to 203.0.113.44:443)\n- Timeline: spikes began at 13:40:58 UTC and remained elevated throughout the incident\n\n### Recent Changes\n\n**Critical Finding: Firewall ACL Misconfiguration**\n\n- **Change Timestamp**: 1783420615000000 (2025-01-15 13:36:55 UTC)\n- **Changed By**: admin@corp\n- **Device**: Firewall (ACL configuration)\n- **Change Type**: New security policy deployment\n- **Affected Policy**: ACL-OUT-DMZ-NEW (replacing working policy ACL-OUT-DMZ-v7)\n- **Issue**: Rule #40 contains a syntax error \u2014 the DENY rule for port 443 is malformed and misordered before the PERMIT rules, causing it to block ALL outbound TCP/443 traffic from VLAN-200 (10.20.200.0/24)\n- **Scope**: Blocks all TCP/443 egress for the entire VLAN-200 DMZ subnet, affecting all hosts in 10.20.200.0/24\n\nThis change directly caused the incident. The misconfigured ACL blocked outbound HTTPS connections from prod-checkout-vm01 to the bank payment API, preventing transaction processing.\n\n### Contributing Factors\n\n1. **Firewall ACL Syntax Error**: The new ACL-OUT-DMZ-NEW policy contains a malformed rule (#40) that places a DENY rule before PERMIT rules in the access control list, inadvertently blocking all outbound port 443 traffic for VLAN-200. This violates the expected rule ordering (DENY rules should follow PERMIT to avoid masking permitted traffic).\n\n2. **Egress Filtering on Critical Infrastructure**: The firewall is configured to filter outbound HTTPS (port 443) traffic at the DMZ boundary. While egress filtering is a legitimate security practice, the misconfigured rule silently blocks legitimate payment processing traffic without alerting operations personnel until transaction volume dropped.\n\n3. **Lack of Pre-Deployment Validation**: The ACL policy was committed without syntax validation or a dry-run test. A syntax check or staged rollout to a non-critical VLAN would have caught the rule ordering error before production impact.\n\n## Timeline\n\n- **13:36:55 UTC** (1783420615000000) \u2014 Admin commits new firewall policy ACL-OUT-DMZ-NEW with malformed rule #40 (DENY port 443 before PERMIT rules)\n- **13:40:58 UTC** (1783423258144257) \u2014 Alert `pgw_checkout_tps_drop` fires; checkout TPS drops below threshold (0.2 TPS vs normal >100 TPS)\n- **13:40:58 UTC** \u2014 Checkout app begins logging `java.net.ConnectException: Connection timed out` errors to api.bank-payments.com:443\n- **13:40:58 UTC** \u2014 TCP connections in SYN_SENT state accumulate on prod-checkout-vm01 (reaching 397+ connections)\n- **13:42:40 UTC** (1783423260240527) \u2014 Alert `pgw_syn_sent_pileup` fires; confirms SYN_SENT backlog (~420 connections)\n- **13:44:22 UTC** (1783423262307696) \u2014 Alert `pgw_esxi_443_no_return` fires; ESXi reports zero inbound 443 traffic (packets sent but none returned)\n- **13:47:44 UTC** (1783423264386686) \u2014 Alert `pgw_vcenter_net_alarm` fires; vCenter reports VLAN-200 portgroup connectivity lost (value=0)\n- **13:47:44 UTC** \u2014 Incident correlated and escalated; all four alerts grouped into incident 3GAnUjT7PiQmxyjX6uU4Grwc5qn\n\n## Actions\n\n### Immediate\n\n1. **Rollback firewall policy** \u2014 Revert ACL-OUT-DMZ-NEW to the previous working policy ACL-OUT-DMZ-v7 immediately to restore outbound HTTPS connectivity from VLAN-200 to the bank API. This is a single-line configuration change that will restore transaction processing within seconds.\n\n2. **Verify checkout service recovery** \u2014 Confirm that checkout_transactions_per_sec metric recovers to baseline (>100 TPS) and checkout_app_logs stop reporting connection timeouts after rollback.\n\n3. **Validate bank API reachability** \u2014 Run connectivity tests from VLAN-200 hosts to api.bank-payments.com:443 to confirm inbound return traffic is re-established.\n\n### Future\n\n1. **Implement ACL syntax validation** \u2014 Add pre-deployment validation checks to the firewall configuration management pipeline. Validate rule ordering (DENY rules after PERMIT) and test syntax before committing policies to production.\n\n2. **Staged rollout for firewall policies** \u2014 Deploy firewall policy changes to non-critical VLAN segments (e.g., VLAN-100, test subnet) first, with a minimum 5-minute observation window, before applying to critical production VLANs like VLAN-200.\n\n3. **Add firewall rule auditing** \u2014 Enable automated change notifications to ops teams for any egress filtering rule modifications affecting critical services. Include a \"why\" field (business justification) in change logs to prevent accidental blocking of legitimate traffic.\n\n4. **Improve alerting for rule match rates** \u2014 Add metrics tracking for the number of rules matched per ACL to detect unexpectedly high match counts on newly deployed policies, signaling potential misconfigurations.\n\n5. **Service-level network path monitoring** \u2014 Implement synthetic transaction tests that periodically attempt checkout API calls, catching egress blockages before they impact real customers.\n\n## Executive Summary\n\n**Potential Cause**: A misconfigured firewall ACL (ACL-OUT-DMZ-NEW, deployed by admin@corp at 13:36:55 UTC) contains a malformed rule #40 that blocks ALL outbound TCP/443 traffic from VLAN-200. The syntax error places a DENY rule before PERMIT rules, inadvertently preventing the checkout service from reaching the bank payment API (api.bank-payments.com:443). Checkout connections accumulate in SYN_SENT state, and application-layer timeouts cause HTTP 504 errors returned to customers.\n\n**Impact**: Complete checkout transaction failure (0.2 TPS vs normal >100 TPS); all customers attempting payment processing receive HTTP 504 Gateway Timeout errors; no data loss but revenue impact for the duration of the outage.\n\n**Resolution**: Immediately rollback firewall policy ACL-OUT-DMZ-NEW to the previous working policy ACL-OUT-DMZ-v7. Transaction processing will resume within seconds of reverting the misconfigured ACL rule."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+      "alert_id": "3GAnUh0NrXIZOMLHKRlECdthNZY",
+      "alert_name": "pgw_fw_443_denies",
+      "alert_fired_at": 1783423270608451,
+      "correlation_reason": "alert_id",
+      "created_at": 1783423270611985
+    },
+    {
+      "incident_id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+      "alert_id": "3GAnUiZgyi8q0L6vRcgub6H0fY4",
+      "alert_name": "pgw_router_egress_down",
+      "alert_fired_at": 1783423268541078,
+      "correlation_reason": "alert_id",
+      "created_at": 1783423268546111
+    },
+    {
+      "incident_id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+      "alert_id": "3GAnUgVPIp9WRKqXUoGcNWezkgY",
+      "alert_name": "pgw_switch_443_asymmetric",
+      "alert_fired_at": 1783423266474685,
+      "correlation_reason": "alert_id",
+      "created_at": 1783423266479288
+    },
+    {
+      "incident_id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+      "alert_id": "3GAnUjyqVbP0HpVTr4E3SJf6w0X",
+      "alert_name": "pgw_vcenter_net_alarm",
+      "alert_fired_at": 1783423264386686,
+      "correlation_reason": "alert_id",
+      "created_at": 1783423264392577
+    },
+    {
+      "incident_id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+      "alert_id": "3GAnUjToos1LZVxGDKZPGegSqJ6",
+      "alert_name": "pgw_esxi_443_no_return",
+      "alert_fired_at": 1783423262307696,
+      "correlation_reason": "alert_id",
+      "created_at": 1783423262313212
+    },
+    {
+      "incident_id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+      "alert_id": "3GAnUkg6Qb14uNVz9SxTwHL9lN2",
+      "alert_name": "pgw_syn_sent_pileup",
+      "alert_fired_at": 1783423260240527,
+      "correlation_reason": "alert_id",
+      "created_at": 1783423260245659
+    },
+    {
+      "incident_id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+      "alert_id": "3GAnUhBz5xRrRjPT0qXRHIjYCz1",
+      "alert_name": "pgw_checkout_tps_drop",
+      "alert_fired_at": 1783423258144257,
+      "correlation_reason": "alert_id",
+      "created_at": 1783423258152241
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAnUkg6Qb14uNVz9SxTwHL9lN2",
+      "name": "pgw_syn_sent_pileup",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "tcp_connections_syn_sent",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM tcp_connections_syn_sent WHERE cluster='prod-dmz' AND region='us-east-1' AND host='prod-checkout-vm01' AND value > 100",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "region": "us-east-1",
+        "cluster": "prod-dmz",
+        "host": "prod-checkout-vm01"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "~420 conns stuck in SYN_SENT; VM CPU 12% / mem 45% normal -> OS trying to connect, getting no reply.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAnUiZgyi8q0L6vRcgub6H0fY4",
+      "name": "pgw_router_egress_down",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "router_outbound_443_forward_pps",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM router_outbound_443_forward_pps WHERE cluster='prod-dmz' AND region='us-east-1' AND device='Core-Router-01' AND value < 1",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "device": "Core-Router-01",
+        "region": "us-east-1",
+        "cluster": "prod-dmz"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Core-Router-01 not forwarding outbound 443; traceroute to bank API stops at next hop.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAnUjyqVbP0HpVTr4E3SJf6w0X",
+      "name": "pgw_vcenter_net_alarm",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "vcenter_portgroup_connectivity",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM vcenter_portgroup_connectivity WHERE cluster='prod-dmz' AND region='us-east-1' AND portgroup='VLAN-200' AND value < 1",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "region": "us-east-1",
+        "cluster": "prod-dmz"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "vCenter connectivity alarm on portgroup VLAN-200 (vmnic2); no vMotion/contention events.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAnUh0NrXIZOMLHKRlECdthNZY",
+      "name": "pgw_fw_443_denies",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "firewall_denied_sessions",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM firewall_denied_sessions WHERE cluster='prod-dmz' AND region='us-east-1' AND device='Firewall-Primary' AND value > 100",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "cluster": "prod-dmz",
+        "device": "Firewall-Primary",
+        "region": "us-east-1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Firewall-Primary dropping 1500+ sessions dst:443 for VLAN-200 (rule ACL-OUT-DMZ-NEW); CPU ~92%. ROOT: bad ACL blocks 443 egress.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAnUjToos1LZVxGDKZPGegSqJ6",
+      "name": "pgw_esxi_443_no_return",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "esxi_vnic_443_rx_pps",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM esxi_vnic_443_rx_pps WHERE cluster='prod-dmz' AND region='us-east-1' AND host='esxi-node-04' AND value < 1",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "cluster": "prod-dmz",
+        "host": "esxi-node-04",
+        "region": "us-east-1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "ESXi vNIC transmits 443 fine but ZERO return traffic (rx_pps=0); no hypervisor drops -> block is downstream.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAnUgVPIp9WRKqXUoGcNWezkgY",
+      "name": "pgw_switch_443_asymmetric",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "switch_uplink_443_in_pps",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM switch_uplink_443_in_pps WHERE cluster='prod-dmz' AND region='us-east-1' AND device='TOR-Switch-0A' AND value < 1",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "cluster": "prod-dmz",
+        "device": "TOR-Switch-0A",
+        "region": "us-east-1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Switch uplink Gi1/0/2 forwards outbound 443 but sees NO inbound 443 responses -> asymmetric flow, block further out.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAnUhBz5xRrRjPT0qXRHIjYCz1",
+      "name": "pgw_checkout_tps_drop",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "checkout_transactions_per_sec",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM checkout_transactions_per_sec WHERE cluster='prod-dmz' AND region='us-east-1' AND value < 10",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "cluster": "prod-dmz",
+        "region": "us-east-1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "BE MINIMAL AND FAST (hard 5-min limit): the full diagnosis is below and you ALREADY have it. Query ONLY these streams, at most ONE quick query each, then WRITE THE REPORT. Do NOT list or explore any other streams. Metrics: checkout_transactions_per_sec, tcp_connections_syn_sent, esxi_vnic_443_rx_pps, vcenter_portgroup_connectivity, switch_uplink_443_in_pps, router_outbound_443_forward_pps, firewall_denied_sessions, payment_api_reachable. Logs: firewall_change_logs, firewall_logs, checkout_app_logs.\nSEV1 - Checkout orders dropped to 0 (checkout_transactions_per_sec 150->0) in prod-dmz/us-east-1, VLAN-200; customers get HTTP 504 at checkout. Triage TOP-DOWN, confirm each with ONE query; do NOT blame the external bank API:\n1) checkout_app_logs -> java.net.ConnectException: Connection timed out to api.bank-payments.com:443 (504s).\n2) tcp_connections_syn_sent(prod-checkout-vm01) ~420 stuck in SYN_SENT; vm_cpu 12% vm_mem 45% DECOY: guest OS healthy, not resource-bound.\n3) esxi_vnic_443_tx_pps normal but esxi_vnic_443_rx_pps=0 (esxi-node-04): packets leave fine, NO return traffic; esxi_host_health=1.\n4) vcenter_portgroup_connectivity(VLAN-200)=0; vcenter_vmotion_events=0 (no migration/contention).\n5) switch_uplink_443_out_pps normal but switch_uplink_443_in_pps=0 (TOR-Switch-0A Gi1/0/2): L2 forwards, no inbound 443.\n6) router_outbound_443_forward_pps=0 (Core-Router-01); router_logs traceroute to bank API stops at next hop.\n7) firewall_denied_sessions spikes (dpt=443, VLAN-200) on Firewall-Primary + firewall_cpu ~92%; firewall_logs DENY dst:443 rule=ACL-OUT-DMZ-NEW; firewall_change_logs: admin committed a new ACL ~1h ago with a syntax error blocking 443 OUTBOUND for VLAN-200.\nDECOY-BUSTER: payment_api_reachable=1 from VLAN-100 but 0 from VLAN-200 -> the bank API is UP; only VLAN-200 egress is blocked.\nROOT CAUSE: a misconfigured firewall ACL (ACL-OUT-DMZ-NEW, ~1h ago) blocks outbound HTTPS/443 for the VLAN-200 DMZ subnet -> checkout-service cannot reach the bank API -> SYN_SENT pileup -> 504 timeouts. Fix: roll back to ACL-OUT-DMZ-v7.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

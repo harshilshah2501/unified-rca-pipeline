@@ -1,0 +1,93 @@
+{
+  "id": "3GAAWBIAL515hv5Np5DNmiMDVxd",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783404028262604,
+  "last_alert_at": 1783405223307326,
+  "resolved_at": 1783408522230049,
+  "alert_count": 2,
+  "title": "db_primary_down",
+  "created_at": 1783404028268274,
+  "updated_at": 1783408522230049,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GAAEGk4mNDFbXuMfxTiP9BwqJm",
+        "alert_name": "db_primary_down",
+        "service_name": "unknown",
+        "alert_count": 2,
+        "first_fired_at": 1783404028262604,
+        "last_fired_at": 1783405223307326
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": null
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAAWBIAL515hv5Np5DNmiMDVxd",
+      "alert_id": "3GAAEGk4mNDFbXuMfxTiP9BwqJm",
+      "alert_name": "db_primary_down",
+      "alert_fired_at": 1783405223307326,
+      "correlation_reason": "alert_id",
+      "created_at": 1783405223316168
+    },
+    {
+      "incident_id": "3GAAWBIAL515hv5Np5DNmiMDVxd",
+      "alert_id": "3GAAEGk4mNDFbXuMfxTiP9BwqJm",
+      "alert_name": "db_primary_down",
+      "alert_fired_at": 1783404028262604,
+      "correlation_reason": "alert_id",
+      "created_at": 1783404028270162
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAAEGk4mNDFbXuMfxTiP9BwqJm",
+      "name": "db_primary_down",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "db_up",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM db_up WHERE value < 1",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 20,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Postgres primary (ordersdb @ pg-prod-01) is DOWN: db_up=0. Check postgres_logs and app_logs for cause; traces in default trace stream.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

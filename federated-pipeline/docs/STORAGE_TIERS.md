@@ -1,6 +1,6 @@
 # Federated storage tiers (design vision)
 
-**Motadata note:** Lean is the primary ObserveOps engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). This document describes the **federated** dual-tier storage model (PoC approximations + production vision). Shipping Motadata diagnose path does not require this stack — see lean [`ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md). Federated implementation status: [`ARCHITECTURE.md`](./ARCHITECTURE.md) · limits: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md).
+**ObserveOps note:** Lean is the primary ObserveOps engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). This document describes the **federated** dual-tier storage model (PoC approximations + production vision). Shipping ObserveOps diagnose path does not require this stack — see lean [`ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md). Federated implementation status: [`ARCHITECTURE.md`](./ARCHITECTURE.md) · limits: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md).
 
 ## Overview
 
@@ -112,4 +112,4 @@ Hop schemas: [`ORCHESTRATOR.md`](./ORCHESTRATOR.md). Capacity / EPS: [`CAPACITY.
 | Speed tier | Dragonfly/Redis 1 node | Dragonfly fleet |
 | Structural tier | In-memory / simulated | DashMap LSM + Vortex |
 | Orchestrator | Python `UnifiedRCAOrchestrator` | Rust HA service |
-| Motadata API | **Lean** `:8780` | Federated API only if microservice track funded |
+| ObserveOps API | **Lean** `:8780` | Federated API only if microservice track funded |

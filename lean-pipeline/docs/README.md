@@ -1,6 +1,6 @@
 # Lean pipeline — documentation
 
-Lean is Motadata’s **primary** ObserveOps RCA engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)).
+Lean is ObserveOps’ **primary** ObserveOps RCA engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)).
 
 ## Lean-pipeline docs (start here)
 
@@ -12,7 +12,7 @@ Lean is Motadata’s **primary** ObserveOps RCA engine ([ADR-001](../../docs/ADR
 | [`../README.md`](../README.md) | CLI / HTTP / layout |
 | [`../deploy/README.md`](../deploy/README.md) | systemd install |
 
-## Shared Motadata docs (repo `docs/`)
+## Shared ObserveOps docs (repo `docs/`)
 
 | Document | Path |
 |----------|------|
@@ -28,4 +28,4 @@ Lean is Motadata’s **primary** ObserveOps RCA engine ([ADR-001](../../docs/ADR
 
 | Document | Purpose |
 |----------|---------|
-| [`lean_rca_prd_insights_ae5f991e.plan.md`](./lean_rca_prd_insights_ae5f991e.plan.md) | Early PRD insights / Corpus A plan — **superseded** for Motadata status by ROADMAP + ARCHITECTURE |
+| [`lean_rca_prd_insights_ae5f991e.plan.md`](./lean_rca_prd_insights_ae5f991e.plan.md) | Early PRD insights / Corpus A plan — **superseded** for classic ObserveOps status by ROADMAP + ARCHITECTURE |

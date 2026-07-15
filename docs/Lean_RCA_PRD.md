@@ -1,6 +1,6 @@
 # Lean RCA Architecture
 
-**Product Requirements Document - Motadata-aligned revision (2026-07-13)**
+**Product Requirements Document - evaluation-aligned revision (2026-07-13)**
 
 *BFS + Temporal Ordering, Information-Gain Search, Spectrum-Based Fallback (CARE), Typed Classic-Infra Rules*
 
@@ -16,17 +16,17 @@ This document specifies a lean Root Cause Analysis (RCA) architecture, scored ex
 
 | Track | Status |
 |-------|--------|
-| **Motadata ObserveOps (classic infra typed CI graph)** | **Adopted.** Lean is the **primary** engine ([ADR-001](./ADR-001-lean-primary-engine.md)). Phases A/B/D complete. Bakeoff evidence: `bakeoff-phase-a-001`, `bakeoff-phase-b-001`, `bakeoff-phase-b-002`. |
-| **Microservice / DeathStarBench-style PoC (original Sections 3 + Appendix B)** | **Deferred / optional.** Still a valid research track for Roadblocks 1a / 2 / 3; not Motadata's primary packaging path. |
+| **ObserveOps (classic infra typed CI graph)** | **Under evaluation.** Bakeoff evidence favors lean on this corpus ([ADR-001](./ADR-001-lean-primary-engine.md)); approaches not finalized. Phases A/B/D exercised: `bakeoff-phase-a-001`, `bakeoff-phase-b-001`, `bakeoff-phase-b-002`. |
+| **Microservice / DeathStarBench-style PoC (original Sections 3 + Appendix B)** | **Deferred / optional.** Still a valid research track for Roadblocks 1a / 2 / 3; not the lean path under evaluation packaging path. |
 | **Federated pipeline** | **Optional hybrid** for microservice code-path / gray-failure / pair-mining once a dedicated microservice corpus is in scope. |
 
-Earlier proposal language ("nothing described has been built"; "no decision to move away from federated") is **obsolete for Motadata classic infra**. Architecture sections below remain the product requirements for lean; Motadata callouts mark what was shipped vs what stays deferred.
+Earlier proposal language ("nothing described has been built"; "no decision to move away from federated") is **obsolete for classic ObserveOps classic infra**. Architecture sections below remain the product requirements for lean; ObserveOps callouts mark what was shipped vs what stays deferred.
 
 Companion narrative: [`POC_BRIEFING.md`](./POC_BRIEFING.md); plain-language: [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md); corpus: [`rca-use-cases-only.md`](./rca-use-cases-only.md).
 
 ### Core mechanism (unchanged intent)
 
-One coherent core: search over an **invocation / typed inventory graph** combined with **temporal ordering of anomaly onset**, augmented with **information-gain-driven** (best-first) traversal, and a shared **CARE** fallback when onset windows are ambiguous. On Motadata classic infra, the same core is extended with **typed CI identity**, **fault signatures**, **shared-upstream preference**, and **contributor** fields (Section 2.9) - temporal earliest is a **candidate clue**, not an automatic verdict.
+One coherent core: search over an **invocation / typed inventory graph** combined with **temporal ordering of anomaly onset**, augmented with **information-gain-driven** (best-first) traversal, and a shared **CARE** fallback when onset windows are ambiguous. On ObserveOps classic infra, the same core is extended with **typed CI identity**, **fault signatures**, **shared-upstream preference**, and **contributor** fields (Section 2.9) - temporal earliest is a **candidate clue**, not an automatic verdict.
 
 No LLM-based reasoning in the causal deduction path. An LLM may optionally narrate an already-computed verdict.
 
@@ -43,17 +43,17 @@ A system can be fully reproducible and still be unverifiable, inaccurate, or mer
 
 ---
 
-## Motadata Alignment Summary (read first)
+## ObserveOps Alignment Summary (read first)
 
-| Original PRD claim | Motadata reality |
+| Original PRD claim | ObserveOps reality |
 |--------------------|------------------|
 | Proposal; nothing built; federated still default | Lean **primary** for classic infra (ADR-001) |
 | PoC targets Roadblocks **1a / 2 / 3** | Live Mandatories: **1b** (joined typed multi-domain graph) + **4** (shared GT + same-bundle bakeoff) |
 | **1b** out of scope; **4** convention-only / field-wide C | Org silos still C; **joined-graph 1b** and **corpus GT 4** are Mandatory and demonstrated |
-| Section 2.9 classic infra = "next planned extension" | **Shipped** as Motadata primary path |
-| Earliest anomaly = leading root-cause candidate | Earliest is a **hint**; Motadata prefers **shared-upstream + signatures**; UC-3b proves early unrelated switch is not root |
+| Section 2.9 classic infra = "next planned extension" | **Shipped** as lean path under evaluation |
+| Earliest anomaly = leading root-cause candidate | Earliest is a **hint**; ObserveOps prefers **shared-upstream + signatures**; UC-3b proves early unrelated switch is not root |
 | Scenarios = DeathStarBench cascading / blind spot / pod churn | Primary eval = ObserveOps **UC-1..UC-5** (+ **UC-3b**); microservice scenarios deferred |
-| No log/event fusion on main path | Motadata ingests **structured synthetic events** (`events.json`) on UC-2/UC-4/UC-3b for evidence - not full Nezha free-text mining |
+| No log/event fusion on main path | ObserveOps ingests **structured synthetic events** (`events.json`) on UC-2/UC-4/UC-3b for evidence - not full Nezha free-text mining |
 | Appendix C: no matched accuracy figures yet | Bakeoff **5/5** both engines; lean **100%** repro vs federated **~40%**; lean primary |
 
 ---
@@ -65,10 +65,10 @@ Roadblock 1 (blind spots) and cross-domain organizational fragmentation are trea
 | # | Roadblock | Why it resists solving |
 |---|-----------|------------------------|
 | **1a** | Instrumentation blind spots | Telemetry does not exist even in principle (third-party / black-box). Honest mitigation: detect-and-flag. |
-| **1b** | Cross-domain fragmentation | Telemetry exists but is siloed across teams/platforms (Conway's Law). Org silos have no pure algorithm fix. **Where data is already joined** into one typed multi-domain graph, architecture can reduce 1b - that is Motadata ObserveOps. |
+| **1b** | Cross-domain fragmentation | Telemetry exists but is siloed across teams/platforms (Conway's Law). Org silos have no pure algorithm fix. **Where data is already joined** into one typed multi-domain graph, architecture can reduce 1b - that is ObserveOps. |
 | **2** | Non-stationary topology | Deployments change dependency graphs continuously; graph must be live, not stale-cached. |
 | **3** | Ephemeral entity identity (pod churn) | Pod restarts explode identity cardinality; per-entity history methods degrade. |
-| **4** | No standardized ground truth / benchmark | Field-wide: still Category C. **Corpus-local:** solved by convention (shared labeled GT + matched bakeoff) - Mandatory for Motadata Accuracy. |
+| **4** | No standardized ground truth / benchmark | Field-wide: still Category C. **Corpus-local:** solved by convention (shared labeled GT + matched bakeoff) - Mandatory for classic ObserveOps Accuracy. |
 | **5** | Compute / cost ceiling | Full always-on hyperscale analysis is expensive. Lean addresses this structurally (cheap main path; scoped CV only). |
 
 ### Two PoC emphases (do not conflate)
@@ -76,9 +76,9 @@ Roadblock 1 (blind spots) and cross-domain organizational fragmentation are trea
 | Emphasis | Targets | Status |
 |----------|---------|--------|
 | **Original microservice PoC** (Sections 3.1-3.2, Appendix B Phase 0-6) | **1a, 2, 3** directly | Deferred |
-| **Motadata ObserveOps** ([`rca-use-cases-only.md`](./rca-use-cases-only.md)) | **1b** (joined classic-infra graph) + **4** (shared GT) Mandatory; **5** by design; **1a/2/3** Optional / out of scope | **Complete** - lean primary |
+| **ObserveOps** ([`rca-use-cases-only.md`](./rca-use-cases-only.md)) | **1b** (joined classic-infra graph) + **4** (shared GT) Mandatory; **5** by design; **1a/2/3** Optional / out of scope | **Complete** - lean primary |
 
-Roadblocks 2 and 3 are related but not nested: 2 is structural graph change; 3 is instance-identity churn under a stable logical graph. Workload-level keying (Section 2.4) lifts 3 to the abstraction layer where 2 already operates - relevant to the deferred microservice track, not Motadata VMs/hosts.
+Roadblocks 2 and 3 are related but not nested: 2 is structural graph change; 3 is instance-identity churn under a stable logical graph. Workload-level keying (Section 2.4) lifts 3 to the abstraction layer where 2 already operates - relevant to the deferred microservice track, not ObserveOps VMs/hosts.
 
 ---
 
@@ -93,9 +93,9 @@ Roadblocks 2 and 3 are related but not nested: 2 is structural graph change; 3 i
 | Dependency graph | Loose umbrella | Ambiguous | Avoided; prefer "invocation graph" or "typed CI graph" |
 | Causal graph | Formal SCM | Parent change produces child change - tested | Only approximated for CARE-triggered Tier 3 (Section 2.6) |
 
-Motadata classic infra walks a **typed CI inventory graph** (Network -> Host -> VM -> OS -> App + Datastore). That is the Section 2.9 extension of the microservice "invocation graph" idea - inventory CIs, not ephemeral pod identities.
+ObserveOps classic infra walks a **typed CI inventory graph** (Network -> Host -> VM -> OS -> App + Datastore). That is the Section 2.9 extension of the microservice "invocation graph" idea - inventory CIs, not ephemeral pod identities.
 
-### 2.1 Core: Search + Temporal Ordering (+ Motadata rules)
+### 2.1 Core: Search + Temporal Ordering (+ ObserveOps rules)
 
 On anomaly detection, the engine searches backward from the symptomatic node over confirmed edges, isolating the active propagation subgraph. The frontier is scored by expected information gain (Section 2.2), making traversal **best-first over the BFS frontier**, not strict FIFO BFS once that layer is active.
 
@@ -103,24 +103,24 @@ Within the discovered subgraph, nodes are ranked by anomaly-onset timestamps. Te
 
 - An earlier anomaly can be an independent unrelated event (common-cause confound).  
 - Clock skew can invert fine-grained order - CARE's Delta-t trigger uses a skew-aware window.  
-- **Therefore:** the earliest-crossing node is a **leading candidate for verification**, never an automatic Motadata verdict.
+- **Therefore:** the earliest-crossing node is a **leading candidate for verification**, never an automatic ObserveOps verdict.
 
-**Motadata classic-infra addition (shipped):** when multiple CIs share the same pain class (CPU ready, disk latency, etc.), apply **shared-upstream preference** and name a **fault signature** (e.g. `storage_contention`, `cpu_contention`, `link_failure`). A noisy-neighbor VM is typically the **contributor**; the shared datastore/host is the **root**. This is how lean rejects "Batch VM started I/O first => Batch is root" and "switch blipped earlier => switch is root" (UC-3 / UC-3b).
+**ObserveOps classic-infra addition (shipped):** when multiple CIs share the same pain class (CPU ready, disk latency, etc.), apply **shared-upstream preference** and name a **fault signature** (e.g. `storage_contention`, `cpu_contention`, `link_failure`). A noisy-neighbor VM is typically the **contributor**; the shared datastore/host is the **root**. This is how lean rejects "Batch VM started I/O first => Batch is root" and "switch blipped earlier => switch is root" (UC-3 / UC-3b).
 
 **Reproducibility:** same graph + same timestamps (+ same rules) => same ranking. No claim of Causal Validity on the main path alone.
 
 **Graph granularity:**
 
 - **Microservice track:** nodes = workload/Deployment identity (not raw pod ID); map pod->workload at graph construction time (Section 2.4).  
-- **Motadata track:** nodes = typed CIs (switch port, ESXi host, VM, guest OS, app, datastore) keyed by stable inventory IDs.
+- **ObserveOps track:** nodes = typed CIs (switch port, ESXi host, VM, guest OS, app, datastore) keyed by stable inventory IDs.
 
-**Ingestion:** microservice track uses trace span parent/child edges. Motadata track uses CMDB/discovery-style typed edges plus metric anomalies and optional structured events (Section 2.7 / 2.9). Main path does **not** run full Nezha Drain free-text log mining.
+**Ingestion:** microservice track uses trace span parent/child edges. ObserveOps track uses CMDB/discovery-style typed edges plus metric anomalies and optional structured events (Section 2.7 / 2.9). Main path does **not** run full Nezha Drain free-text log mining.
 
 ### 2.2 Efficiency Layer: Information-Gain-Driven Traversal
 
 Rather than exhaustively walking the full active subgraph, the engine selects the next observation by expected reduction in Shannon entropy of the belief distribution over candidates (boolean anomaly status + onset if crossed). Highest expected gain expands first.
 
-This is a PoC-implementable instantiation, not a claim of a universal externally validated formula. Motadata Phase B measured best-first vs naive BFS observation counts on the ObserveOps corpus (lean avg best-first ~2.4 vs naive ~2.8 on `bakeoff-phase-b-001` / similar on b-002).
+This is a PoC-implementable instantiation, not a claim of a universal externally validated formula. ObserveOps Phase B measured best-first vs naive BFS observation counts on the ObserveOps corpus (lean avg best-first ~2.4 vs naive ~2.8 on `bakeoff-phase-b-001` / similar on b-002).
 
 Sections 2.1 and 2.2 are **search strategies over a non-causal graph**. They do not construct a causal graph. Only Section 2.6's scoped check does that, and only for the CARE-triggered subset.
 
@@ -128,19 +128,19 @@ Sections 2.1 and 2.2 are **search strategies over a non-causal graph**. They do 
 
 When search + temporal ordering cannot cleanly separate cause from bystander - typically multiple threshold crossings inside Delta-t - the engine falls back to CARE-style spectrum risk scoring (active in abnormal traces more than normal) plus topology-weighted prioritization, to avoid blaming innocent downstream bystanders.
 
-**Motadata under CARE:** still prefer a fitting **shared-upstream / signature** winner over crowning the earliest CI in the ambiguous window (UC-3b).
+**ObserveOps under CARE:** still prefer a fitting **shared-upstream / signature** winner over crowning the earliest CI in the ambiguous window (UC-3b).
 
-**Scoped causal verification:** when CARE fires, and only then, apply a lightweight causal check on CARE's top candidates before returning Tier 3 (Section 2.6). On the main path (no fallback), output remains Tier 1 - temporal + reachability (+ Motadata rules) - **no Causal Validity claim**. Reporting must preserve this distinction.
+**Scoped causal verification:** when CARE fires, and only then, apply a lightweight causal check on CARE's top candidates before returning Tier 3 (Section 2.6). On the main path (no fallback), output remains Tier 1 - temporal + reachability (+ ObserveOps rules) - **no Causal Validity claim**. Reporting must preserve this distinction.
 
 ### 2.4 Entity Identity & Blind-Spot Handling
 
 - **Workload-level keying (microservice track):** required so CARE spectrum does not fragment across short-lived pod IDs, and so a rotating root is one continuous cause. Precedent: AWS Container Insights aggregates at service/task-definition level [9].  
-- **Blind spots (1a):** when traversal hits a node with no internal telemetry, halt and flag `bounded_by_uninstrumented_dependency` rather than blaming the last visible node. Motadata primary UCs do not exercise true 1a (frozen bundles expose decisive signals); UC-5 is anti-FP (healthy infra), not missing telemetry.  
-- **Motadata identity:** long-lived hosts/VMs/ports/datastores - Roadblock 3 out of scope.
+- **Blind spots (1a):** when traversal hits a node with no internal telemetry, halt and flag `bounded_by_uninstrumented_dependency` rather than blaming the last visible node. lean path under evaluation UCs do not exercise true 1a (frozen bundles expose decisive signals); UC-5 is anti-FP (healthy infra), not missing telemetry.  
+- **ObserveOps identity:** long-lived hosts/VMs/ports/datastores - Roadblock 3 out of scope.
 
 ### 2.5 Infrastructure Footprint
 
-Single lightweight service holding the live graph and a short rolling window of metrics/events - not a dual-tier federated storage fleet. This is a structural consequence of one coherent algorithm family. Motadata packaging: `lean_rca` CLI/HTTP API and `lean-rca.service` (Phase D).
+Single lightweight service holding the live graph and a short rolling window of metrics/events - not a dual-tier federated storage fleet. This is a structural consequence of one coherent algorithm family. ObserveOps packaging: `lean_rca` CLI/HTTP API and `lean-rca.service` (Phase D).
 
 Not Murphy Tier-2 Vortex/Arrow infrastructure. Invocation/inventory graph, not a causal graph (Section 2.6).
 
@@ -154,15 +154,15 @@ Chain of claims:
 
 CARE scores well on Reproducibility, Verifiability, and published Accuracy (72-89% top-1 [1]) but **does not** provide Causal Validity.
 
-**Decision:** do not run universal causal discovery on every incident (fails under churn / cost). Apply a **scoped** causal check only when CARE has fired. Mechanisms: constraint-based discovery on the small candidate set, or counterfactual-style verification. Motadata PoC Tier 3 is intentionally lightweight (topology + onset plausibility after CARE), not fleet-wide Gibbs.
+**Decision:** do not run universal causal discovery on every incident (fails under churn / cost). Apply a **scoped** causal check only when CARE has fired. Mechanisms: constraint-based discovery on the small candidate set, or counterfactual-style verification. ObserveOps PoC Tier 3 is intentionally lightweight (topology + onset plausibility after CARE), not fleet-wide Gibbs.
 
 **Three tiers (mandatory in reporting):**
 
 | Tier | Meaning | Causal Validity claim? |
 |------|---------|------------------------|
-| **1** | Main path: reachability + temporal (+ Motadata rules/signatures) | **No** |
+| **1** | Main path: reachability + temporal (+ ObserveOps rules/signatures) | **No** |
 | **2** | CARE fallback: stronger correlational ranking | **No** |
-| **3** | CARE + scoped causal check | **Yes** (bounded; Motadata: UC-1 / UC-3 / UC-3b) |
+| **3** | CARE + scoped causal check | **Yes** (bounded; ObserveOps: UC-1 / UC-3 / UC-3b) |
 
 Universal causal-graph construction on the main path remains out of scope. Continuous causal memory (Section 2.8) is optional later (roadmap B5).
 
@@ -170,23 +170,23 @@ Universal causal-graph construction on the main path remains out of scope. Conti
 
 Nezha reasoned jointly over metrics, logs, and traces. Lean's original main path: topology + metric thresholds only.
 
-**Motadata correction:** structured synthetic **events** (`events.json` - SNMP/syslog-style lines with `ci_id`, `timestamp`, `message`, optional `signal`) are required on UC-2 / UC-4 / UC-3b and may be cited in the evidence trail. This is **not** full Nezha free-text Drain mining. Deeper multimodal log RCA remains optional (federated / Nezha track).
+**ObserveOps correction:** structured synthetic **events** (`events.json` - SNMP/syslog-style lines with `ci_id`, `timestamp`, `message`, optional `signal`) are required on UC-2 / UC-4 / UC-3b and may be cited in the evidence trail. This is **not** full Nezha free-text Drain mining. Deeper multimodal log RCA remains optional (federated / Nezha track).
 
 ### 2.8 Continuous Causal Learning (Future Work)
 
-Move causal-structure learning off the per-incident path: background learner updated from healthy traffic and past incidents; incident-time verification becomes a cheap lookup. Requires persistent model store, update cadence, and invalidation under Roadblock 2. **Not required** for Motadata primary packaging (optional B5).
+Move causal-structure learning off the per-incident path: background learner updated from healthy traffic and past incidents; incident-time verification becomes a cheap lookup. Requires persistent model store, update cadence, and invalidation under Roadblock 2. **Not required** for lean path under evaluation packaging (optional B5).
 
-### 2.9 Classic Infrastructure Topology - Motadata Primary (SHIPPED)
+### 2.9 Classic Infrastructure Topology - ObserveOps Primary (SHIPPED)
 
 **Original PRD framing:** next major planned extension after a Kubernetes/microservice PoC.
 
-**Corrected framing:** Motadata ObserveOps **implemented and adopted** this extension as the **primary** product path. Microservice scenarios remain the deferred research track.
+**Corrected framing:** ObserveOps **implemented and adopted** this extension as the **primary** product path. Microservice scenarios remain the deferred research track.
 
-| Part | Requirement | Motadata status |
+| Part | Requirement | ObserveOps status |
 |------|-------------|-----------------|
 | Typed-node identity | Service / Host-VM / NetworkDevice / Datastore with type-appropriate keys | **Shipped** in `datasets/observeops/` + lean engine |
 | Dual / alternate edge construction | Trace spans **or** CMDB/discovery / flow-derived edges into one walkable graph | **Shipped** typed inventory edges for classic stack |
-| Motadata rules | Shared-upstream preference, fault signatures, contributor | **Shipped**; UC-3b adversarial early-switch fixture |
+| ObserveOps rules | Shared-upstream preference, fault signatures, contributor | **Shipped**; UC-3b adversarial early-switch fixture |
 | Roadblock 1b honesty | Closes gap only where data sources are accessible to one system | **Demonstrated** on joined corpus graph; org silos still unsolved |
 
 ---
@@ -203,9 +203,9 @@ Original PRD scenarios on DeathStarBench / TrainTicket synthetic base (Roadblock
 | Third-party blind spot | Boundary detect + flag | Correct blind-spot flag rate | **1a** |
 | Ephemeral pod churn | Workload vs pod keying | Accuracy delta under HPA churn | **3** (primary), **2** (secondary) |
 
-These scenarios are **not** Motadata's acceptance gate. Appendix B Phases 0-6 remain the plan **if** Corpus A is prioritized.
+These scenarios are **not** ObserveOps’ acceptance gate. Appendix B Phases 0-6 remain the plan **if** Corpus A is prioritized.
 
-### 3.2 Corpus B - Motadata ObserveOps (primary; complete)
+### 3.2 Corpus B - ObserveOps (primary; complete)
 
 Frozen typed CI corpus from [`rca-use-cases-only.md`](./rca-use-cases-only.md) in `datasets/observeops/` (v1.1.0+):
 
@@ -228,14 +228,14 @@ Frozen typed CI corpus from [`rca-use-cases-only.md`](./rca-use-cases-only.md) i
 | **B** | Proposed / partially measured |
 | **C** | No known architectural solution (field-wide) |
 
-| Roadblock | Lean / Motadata stance |
+| Roadblock | Lean / ObserveOps stance |
 |-----------|------------------------|
-| 1a | Category B targeting A on Corpus A Scenario 2; Optional on Motadata |
-| 1b | Org-wide: **C**. Joined typed graph: **A** on Motadata corpus |
-| 2 | Category B on live reconstruction; Optional on Motadata (frozen topology) |
-| 3 | Category B targeting A on Corpus A Scenario 3; out of scope Motadata |
-| 4 | Field-wide: **C**. Corpus GT convention: **A** on Motadata bakeoff |
-| 5 | Structural lean design; Motadata main path respects it; capacity benchmark optional |
+| 1a | Category B targeting A on Corpus A Scenario 2; Optional on ObserveOps |
+| 1b | Org-wide: **C**. Joined typed graph: **A** on ObserveOps corpus |
+| 2 | Category B on live reconstruction; Optional on ObserveOps (frozen topology) |
+| 3 | Category B targeting A on Corpus A Scenario 3; out of scope ObserveOps |
+| 4 | Field-wide: **C**. Corpus GT convention: **A** on ObserveOps bakeoff |
+| 5 | Structural lean design; ObserveOps main path respects it; capacity benchmark optional |
 
 ---
 
@@ -251,13 +251,13 @@ Frozen typed CI corpus from [`rca-use-cases-only.md`](./rca-use-cases-only.md) i
 
 ## 5. Prior Work Considered (Federated Design)
 
-An earlier design federated three non-interoperating academic systems via orchestration. Motadata **did not** adopt it as the primary classic-infra engine after matched bakeoffs.
+An earlier design federated three non-interoperating academic systems via orchestration. ObserveOps **did not** adopt it as the primary classic-infra engine after matched bakeoffs.
 
-- **Panorama (OSDI '18)** - distributed observer / gray-failure. Observer idea reusable; not a Motadata classic-infra component.  
+- **Panorama (OSDI '18)** - distributed observer / gray-failure. Observer idea reusable; not an ObserveOps classic-infra component.  
 - **Murphy (SIGCOMM '23)** - MRF + Gibbs for cyclic / structural diagnosis. Stronger Causal Validity profile; weaker Reproducibility/Verifiability; higher infra cost. Retained as optional hybrid for microservice/cyclic workloads.  
-- **Nezha (FSE '23)** - expected-vs-actual event patterns. Value largely subsumed for Motadata by CARE + structured events + signatures; full multimodal depth optional later.
+- **Nezha (FSE '23)** - expected-vs-actual event patterns. Value largely subsumed for classic ObserveOps by CARE + structured events + signatures; full multimodal depth optional later.
 
-This is a deliberate scope reduction for Motadata: prioritize Reproducibility, Verifiability, lean cost, and classic-infra Accuracy over Murphy's richer (still partial) Causal Validity as the **default** brain.
+This is a deliberate scope reduction for classic ObserveOps: prioritize Reproducibility, Verifiability, lean cost, and classic-infra Accuracy over Murphy's richer (still partial) Causal Validity as the **default** brain.
 
 ---
 
@@ -278,7 +278,7 @@ Pattern: distinguish Category A (paper-validated) from Category B (proposed adap
 
 ## Appendix B: Implementation Plan Status
 
-### Motadata critical path (COMPLETE)
+### ObserveOps critical path (COMPLETE)
 
 | Phase | Intent | Status |
 |-------|--------|--------|
@@ -302,17 +302,17 @@ Pattern: distinguish Category A (paper-validated) from Category B (proposed adap
 | 6 | EVAL.md with tier-separated reporting |
 | 7 | Matched comparison vs federated on same fixtures |
 
-Do not treat Corpus A phases as Motadata blockers.
+Do not treat Corpus A phases as ObserveOps blockers.
 
 ---
 
-## Appendix C: Lean vs Federated - Measured Motadata Comparison
+## Appendix C: Lean vs Federated - Measured ObserveOps Comparison
 
 Original PRD Appendix C was structural only ("no matched figures yet"). **Superseded** by ObserveOps bakeoffs.
 
 Latest matched report: [`../benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) · decision: [`DECISION.md`](../benchmarking/results/comparison/DECISION.md) · ADR: [`ADR-001`](./ADR-001-lean-primary-engine.md).
 
-| Dimension | Federated (Panorama + Murphy + Nezha) | Lean (BFS/best-first + temporal + CARE + Motadata rules) |
+| Dimension | Federated (Panorama + Murphy + Nezha) | Lean (BFS/best-first + temporal + CARE + ObserveOps rules) |
 |-----------|----------------------------------------|----------------------------------------------------------|
 | Core | Three heterogeneous algorithms + fusion | One coherent family + shared CARE + signatures |
 | Accuracy (UC-1..UC-5) | **5/5** root + signature | **5/5** root + signature |
@@ -321,7 +321,7 @@ Latest matched report: [`../benchmarking/results/comparison/COMPARISON.md`](../b
 | Causal Validity | Murphy partial (costly if global) | Recommended only on CARE->Tier 3 |
 | Efficiency | Higher avg observations; heavier stack | Fewer observations; best-first gains |
 | Infra | Multi-component federated stack | Single lean service / API |
-| Motadata decision | Optional hybrid later | **Primary** |
+| ObserveOps decision | Optional hybrid later | **Primary** |
 
 UC-3 note: federated sometimes uses fewer raw observations while accuracy ties; lean may spend budget reaching Tier 3 - acceptable under Recommended CV, not a reason to change primary engine.
 
@@ -335,7 +335,7 @@ UC-3 note: federated sometimes uses fewer raw observations while accuracy ties; 
 | **Murphy** | Lowest of three - Gibbs; seed-dependent | Medium - posterior needs model unpacking | ~1.35x / 4.7x+ error reduction by setting [7] | Highest of three, still partial / correlational concession |
 | **Nezha** | High - closed-form pattern scoring | Highest - readable expected-vs-actual diffs | 89.77% avg top-1 code-region level [8] | Low - baseline comparison, not causal modeling |
 
-**Net reading:** no single system is strong on all four axes. Lean main path inherits the high Reproducibility/Verifiability profile; Murphy-style depth is reserved for scoped Tier 3 (and optional federated hybrid), not the Motadata default ticket path.
+**Net reading:** no single system is strong on all four axes. Lean main path inherits the high Reproducibility/Verifiability profile; Murphy-style depth is reserved for scoped Tier 3 (and optional federated hybrid), not the ObserveOps default ticket path.
 
 ---
 
@@ -355,4 +355,4 @@ Note: "BFS + temporal ordering" and "information-gain-driven traversal" are desc
 
 ---
 
-*Corrected 2026-07-13 for Motadata ObserveOps + ADR-001. Prefer [`POC_BRIEFING.md`](./POC_BRIEFING.md) for stakeholder narrative; this PRD remains the lean architecture / requirements source.*
+*Corrected 2026-07-13 for ObserveOps + ADR-001. Prefer [`POC_BRIEFING.md`](./POC_BRIEFING.md) for stakeholder narrative; this PRD remains the lean architecture / requirements source.*

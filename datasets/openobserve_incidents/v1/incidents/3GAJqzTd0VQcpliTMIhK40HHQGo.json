@@ -1,0 +1,82 @@
+{
+  "id": "3GAJqzTd0VQcpliTMIhK40HHQGo",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783408634753848,
+  "last_alert_at": 1783408634753848,
+  "resolved_at": 1783408962677089,
+  "alert_count": 1,
+  "title": "pg_primary_down on pg-prod-01",
+  "created_at": 1783408634761202,
+  "updated_at": 1783408962677089,
+  "group_values": {
+    "host": "pg-prod-01"
+  },
+  "key_type": "secondary",
+  "topology_context": {
+    "nodes": [],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "**Investigation halted** \u2014 the backend service required for RCA analysis is not responding. Please verify:\n\n1. OpenObserve platform connectivity\n2. Backend API availability\n3. Organization `default` access permissions\n\n**Recommended Action**: Retry the analysis once the platform returns to availability."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAJqzTd0VQcpliTMIhK40HHQGo",
+      "alert_id": "3GAJcsbpL1exEnkresx1cTdKmCY",
+      "alert_name": "pg_primary_down",
+      "alert_fired_at": 1783408634753848,
+      "correlation_reason": "alert_id",
+      "created_at": 1783408634762520
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAJcsbpL1exEnkresx1cTdKmCY",
+      "name": "pg_primary_down",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "db_up",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM db_up WHERE service_name = 'postgres-primary' AND host = 'pg-prod-01' AND value < 1",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 25,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "host": "pg-prod-01",
+        "service_name": "postgres-primary"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "postgres-primary DOWN (OOM). See postgres_logs/app_logs; traces orders-service->postgres-primary.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

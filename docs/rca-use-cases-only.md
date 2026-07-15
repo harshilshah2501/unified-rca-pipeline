@@ -1,4 +1,4 @@
-# RCA Auto-Generation — Motadata ObserveOps Use-Cases
+# RCA Auto-Generation — ObserveOps Use-Cases
 
 Classic VMware-style stack: **Network Device → ESXi Host → VM → Guest OS → Application** (with a shared Datastore). Each primary use-case targets a **different root-cause layer**. Engine pattern: anomaly/event triggers → typed topology walk to the deepest common upstream CI → rule signature names it (and, in product, suppresses symptom alerts).
 
@@ -15,20 +15,20 @@ Frozen corpus today: `datasets/observeops/UC-1..UC-5`. **UC-3b** and **`events.j
 
 ---
 
-## Roadblocks this corpus addresses (Motadata)
+## Roadblocks this corpus addresses (ObserveOps)
 
 | Roadblock | Field-wide status | This corpus |
 |-----------|-------------------|-------------|
 | **1b** Cross-domain fragmentation | Org silos remain unsolved | **Mandatory where data is joined** — one typed multi-domain CI graph (net/host/storage/OS/app) |
 | **4** No standardized ground truth | No universal industry benchmark | **Mandatory by convention** — shared `ground_truth.json` + same-bundle bakeoff (see Eval contract) |
 
-Other roadblocks (1a blind spots, 2 non-stationary topology, 3 pod churn, 5 cost) are Optional / deferred / design constraints for this Motadata set — see [`docs/README.md`](./README.md).
+Other roadblocks (1a blind spots, 2 non-stationary topology, 3 pod churn, 5 cost) are Optional / deferred / design constraints for this ObserveOps set — see [`docs/README.md`](./README.md).
 
 ---
 
 ## Non-goals / known limits (do not overclaim)
 
-- **Circular / mutual service loops (A ↔ B):** These UCs use a **layered classic-infra graph**, not microservice call cycles. Temporal “who was first” on true cycles is a known lean limit; out of scope for Motadata primary bakeoff. Optional honesty fixture may be added later; it is **not** a Motadata acceptance gate.
+- **Circular / mutual service loops (A ↔ B):** These UCs use a **layered classic-infra graph**, not microservice call cycles. Temporal “who was first” on true cycles is a known lean limit; out of scope for lean path under evaluation bakeoff. Optional honesty fixture may be added later; it is **not** an ObserveOps acceptance gate.
 - **Live inject / live SNMP/vCenter ingest:** Sections (a) describe how a human would inject faults; the PoC evaluates **frozen bundles**, not live injection.
 - **Full free-text log mining (Nezha-style):** Out of scope for lean primary. Use **structured synthetic events** (§ Events schema) instead.
 - **Alert bus suppression:** (d) describes product behavior; bakeoff scores root/signature/contributor/evidence, not an alert pipeline.
@@ -273,5 +273,5 @@ Layers below OS (VM/host/network) remain **healthy** (`crossed: false` if presen
 | Events schema + UC-2/UC-4 (b2) | Done | Done — `events.json` + lean evidence ingest |
 | UC-3b adversarial | Done | Done — `datasets/observeops/UC-3b/` + tests |
 | Contributor scored on UC-3/UC-3b | Done | Done — compare + smoke tests |
-| Circular-deps Motadata gate | Explicit non-goal | No bakeoff requirement |
+| Circular-deps ObserveOps gate | Explicit non-goal | No bakeoff requirement |
 | Alert suppression | Product (d) only | Out of PoC bakeoff scope |

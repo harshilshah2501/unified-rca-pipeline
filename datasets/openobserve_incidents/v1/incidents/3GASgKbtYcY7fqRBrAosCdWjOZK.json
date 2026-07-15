@@ -1,0 +1,45 @@
+{
+  "id": "3GASgKbtYcY7fqRBrAosCdWjOZK",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783412990406292,
+  "last_alert_at": 1783412990406292,
+  "resolved_at": 1783414858608180,
+  "alert_count": 1,
+  "title": "ecom_checkout_slo_breach on checkout-service",
+  "created_at": 1783412990702328,
+  "updated_at": 1783414858608180,
+  "group_values": {
+    "k8s-cluster": "prod-use1",
+    "region": "region-b",
+    "service": "checkout-service"
+  },
+  "key_type": "primary",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GASgRHqJXtChlETtkGhclr9XRb",
+        "alert_name": "ecom_checkout_slo_breach",
+        "service_name": "payment-service",
+        "alert_count": 1,
+        "first_fired_at": 1783412990406292,
+        "last_fired_at": 1783412990406292
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GASgKbtYcY7fqRBrAosCdWjOZK\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-07 08:29:50 UTC\n- **Resolved**: Ongoing\n- **Duration**: Minutes at time of analysis\n- **Affected Services**: checkout-service, payment-service\n- **Customer Impact**: Checkout success rate dropped from 99.97% to 97.2% for CARD payment method with mobile devices in Region-B, affecting ~2.8% of checkout transactions\n\n## Impact Assessment\n\n- **Services Affected**: 2 (checkout-service, payment-service)\n- **Peak Error Rate**: 2.8% checkout failure rate (success rate dropped to 97.2%)\n- **Failed Requests**: Approximately 2.8% of CARD+MOBILE checkout attempts in Region-B\n- **Users Impacted**: Mobile users in Region-B using CARD payment method\n- **Data Loss**: No\n- **SLA Breach**: Yes (SLO requires 99.5% success rate; observed 97.2%)\n\n## Evidence\n\n### Service Dependencies\nThe topology indicates a direct dependency chain: checkout-service \u2192 payment-service \u2192 payment-provider. The incident affects the checkout-service primarily, with root cause propagating from downstream payment-service dependencies. The payment-service's connection pool exhaustion and increased latency cascades to checkout service SLO breach.\n\n### Distributed Traces\nAnalysis of ecom_traces confirms slowest span is payment-service \u2192 payment-provider with ~17s latency observed during the incident window. Other applications calling the same provider were unaffected, indicating the issue is specific to payment-service's connection management or request characteristics (CARD+INR+cart>12 dimensions).\n\n### Log Patterns\nKey error patterns identified:\n- Payment service connection acquisition time: ~4.3s (elevated vs. normal)\n- Connection pool exhaustion on 4 pods in node pool NP-17\n- DNS query latency for AAAA records: P99 3.2s (IPv6 lookups experiencing significant delay)\n- Payment risk feature for CARD+INR+cart>12 items triggers 6-12 DNS lookups per request, amplifying impact to this specific dimension\n\n### Metrics Analysis\nCheckout success rate metric (checkout_success_rate):\n- Baseline: 99.97%\n- During incident: 97.2%\n- Affected dimensions: cluster='prod-use1', region='Region-B', service_name='checkout-service', payment_method='CARD', device_type='MOBILE'\n- Payment connection acquisition latency spike: 4.3s\n- DNS query latency P99 (AAAA): 3.2s\n- RX queue latency on nic_queue='RX-7': 2.8s\n- CPU and memory utilization remained normal during the incident\n\n### Recent Changes\n**Confirmed root cause infrastructure change:**\n- Node pool NP-17 rolled to node image 2026.06.18 at incident onset\n- The 2026.06.18 image introduced a critical IRQ-affinity misconfiguration\n- IRQ for RX-7 (network RX queue) was pinned to CPU48 on NUMA1, but queue memory allocated on NUMA0\n- This cross-NUMA memory access pattern caused RX queue latency spike of 2.8s\n\n### Contributing Factors\n\n1. **Infrastructure root cause**: Node image 2026.06.18 IRQ-affinity misconfiguration causing cross-NUMA RX queue latency (RX-7 IRQ pinned to CPU48/NUMA1 with memory on NUMA0)\n\n2. **Amplification mechanism**: DNS lookups for AAAA records (IPv6) are serialized in payment-connection flow and timeout at 3.2s P99 due to RX queue delays. A records and cluster DNS are unaffected. CARD+INR+cart>12 payment-risk feature issues 6-12 sequential DNS lookups per request.\n\n3. **Connection pool exhaustion**: Elevated DNS latency (3.2s) combined with payment-provider connection timeout settings causes connection pool exhaustion on payment-service pods in NP-17, raising connection acquisition time to 4.3s and triggering retries.\n\n## Timeline\n\n- **2026-07-07 08:29:50 UTC** - Node pool NP-17 completes rollout to node image 2026.06.18 with IRQ-affinity misconfiguration\n- **2026-07-07 08:29:50 UTC** - First checkout requests with CARD+MOBILE+Region-B combination experience elevated latency due to cross-NUMA RX queue delays\n- **2026-07-07 08:29:50 UTC** - AAAA DNS queries experience P99 latency spike to 3.2s due to RX queue saturation\n- **2026-07-07 08:29:50 UTC** - Payment-service connection pool exhaustion begins, connection acquisition time increases to 4.3s\n- **2026-07-07 08:29:50 UTC** - Payment-service \u2192 payment-provider latency reaches ~17s, triggering timeouts and retries\n- **2026-07-07 08:29:50 UTC** - Checkout-service SLO breached as checkout_success_rate drops to 97.2% (threshold: 99.5%)\n- **2026-07-07 08:29:50 UTC** - Alert \"ecom_checkout_slo_breach\" fires, incident created\n\n## Actions\n\n### Immediate\n- Rollback node pool NP-17 to previous node image version prior to 2026.06.18 to restore correct IRQ-affinity configuration\n- Monitor checkout_success_rate and payment connection acquisition latency during rollback\n- Verify AAAA DNS query latency returns to baseline (<100ms P99) after rollback\n- Confirm connection pool saturation clears on payment-service pods\n\n### Future\n- Implement validation tests for IRQ-affinity configuration in node image build pipeline before release\n- Add monitoring alert for cross-NUMA memory access patterns (measure via perf or kernel metrics)\n- Review and test payment-risk feature DNS lookup optimization to reduce sequential DNS queries (batch or cache AAAA lookups)\n- Implement circuit breaker with adaptive timeout in payment-service connection pool based on upstream latency\n- Add dimension-specific SLO alerts for high-cardinality combinations (payment_method + device_type + region) to catch subset failures earlier\n\n## Executive Summary\n\n**Potential Cause**: Node pool NP-17 rollout to node image 2026.06.18 introduced an IRQ-affinity misconfiguration that pinned the RX-7 network queue IRQ to CPU48/NUMA1 while queue memory remained on NUMA0, causing cross-NUMA memory access delays of 2.8s. This elevated RX queue latency cascaded to IPv6 (AAAA) DNS query timeouts (3.2s P99), exhausting the payment-service connection pool, and injecting ~17s tail latency into payment provider calls. The impact was isolated to the CARD payment method with mobile devices in Region-B because only this dimension triggers the 6-12 sequential DNS lookups in the payment-risk feature, amplifying the effect of DNS latency.\n\n**Impact**: Checkout success rate dropped from 99.97% to 97.2%, breaching the 99.5% SLO, affecting ~2.8% of CARD+MOBILE transactions in Region-B.\n\n**Resolution**: Rollback node pool NP-17 to the previous node image version to restore correct IRQ-affinity configuration and restore normal RX queue latency (<100ms), DNS query performance, and payment connection pool behavior."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GASgKbtYcY7fqRBrAosCdWjOZK",
+      "alert_id": "3GASgRHqJXtChlETtkGhclr9XRb",
+      "alert_name": "ecom_checkout_slo_breach",
+      "alert_fired_at": 1783412990406292,
+      "correlation_reason": "service_discovery",
+      "created_at": 1783412990704694
+    }
+  ],
+  "alerts": []
+}

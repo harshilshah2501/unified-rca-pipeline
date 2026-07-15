@@ -2,7 +2,7 @@
 
 Panorama (detection) → Murphy (macro) → Nezha (micro) behind a coordination layer.
 
-**Motadata note:** For ObserveOps UC-1..UC-5, **lean is primary** ([ADR-001](../docs/ADR-001-lean-primary-engine.md)). This tree is the federated PoC, bakeoff comparator, and optional microservice / code-path track — not the Motadata shipping diagnose API.
+**ObserveOps note:** For ObserveOps UC-1..UC-5, **lean is primary** ([ADR-001](../docs/ADR-001-lean-primary-engine.md)). This tree is the federated PoC, bakeoff comparator, and optional microservice / code-path track — not the ObserveOps shipping diagnose API.
 
 | Path | Purpose |
 |------|---------|

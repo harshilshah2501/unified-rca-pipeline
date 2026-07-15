@@ -2,9 +2,9 @@
 
 **Evaluation corpus (only):** [`rca-use-cases-only.md`](./rca-use-cases-only.md) → frozen bundles in `../datasets/observeops/` (UC-1..UC-5).
 
-**Goal:** decide which pipeline (federated vs lean) wins on Motadata ObserveOps layers, then harden the winner toward production readiness.
+**Goal:** decide which pipeline (federated vs lean) wins on ObserveOps layers, then harden the winner toward production readiness.
 
-**Motadata critical path status:** **Complete** (Phases A → B → D). Lean is primary; packaged as CLI/HTTP API. Optional later: B5 / C* / E*.
+**ObserveOps critical path status:** **Complete** (Phases A → B → D). Lean is primary; packaged as CLI/HTTP API. Optional later: B5 / C* / E*.
 
 ```
                     ┌─────────────────────────────────────┐
@@ -76,17 +76,17 @@ Shared objective docs: [`README.md`](./README.md) (`docs/`). Pipeline-specific d
 | B2 | Tier 3 scoped causal check (only when CARE fires) | **Done** | `lean/causal.py`; `causal_verified` + `causal_log` |
 | B3 | Harden signatures vs `rca-use-cases-only.md` | **Done** | AND-condition matchers + negative tests |
 | B4 | Observation-efficiency vs naive BFS | **Done** | `obs_to_convergence` / `naive_bfs_expansions` / ratio in verdict + compare |
-| B5 | Continuous causal memory (§2.8) | Deferred | Optional; after Motadata packaging |
+| B5 | Continuous causal memory (§2.8) | Deferred | Optional; after ObserveOps packaging |
 
 **Bakeoff:** `bakeoff-phase-b-001` — [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md).
 
-**Out of scope for Motadata path:** DeathStarBench / TrainTicket Corpus A — optional only if paper-style algorithm proof beyond ObserveOps is needed.
+**Out of scope for classic ObserveOps path:** DeathStarBench / TrainTicket Corpus A — optional only if paper-style algorithm proof beyond ObserveOps is needed.
 
 ---
 
 ### Phase C — Federated production path (ingest + stores) — *optional / deferred*
 
-Only if a microservice / code-path eval track is prioritized (not Motadata ObserveOps).
+Only if a microservice / code-path eval track is prioritized (not ObserveOps).
 
 | # | Action item | Maps to | Exit criteria |
 |---|-------------|---------|---------------|
@@ -142,10 +142,10 @@ M9  Common docs/ consolidation          ✅ DONE
 
 ---
 
-## Non-goals (keep out of the Motadata PoC path)
+## Non-goals (keep out of the ObserveOps PoC path)
 
 - Replacing ObserveOps eval with Nezha Online Boutique / TrainTicket accuracy claims
-- DeathStarBench harness as a Motadata gate
+- DeathStarBench harness as an ObserveOps gate
 - 1B EPS deployment work before server-class Phase 0 measurement
 - Automated remediation / runbook execution
 

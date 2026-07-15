@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "openobserve_convention_gt_v1",
+  "title": "OpenObserve convention ground truth (Option B)",
+  "description": "Corpus-local scoring contract — not platform narrative, not physical certainty.",
+  "type": "object",
+  "required": [
+    "incident_id",
+    "status",
+    "root_layer",
+    "root_alert",
+    "confidence",
+    "evidence_note",
+    "labels"
+  ],
+  "properties": {
+    "incident_id": { "type": "string" },
+    "title": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "draft", "conflict", "final", "excluded"]
+    },
+    "root_layer": {
+      "type": ["string", "null"],
+      "enum": [
+        "firewall",
+        "network",
+        "storage",
+        "database",
+        "dns",
+        "filesystem",
+        "application",
+        "compute",
+        "unknown",
+        null
+      ]
+    },
+    "root_alert": {
+      "type": ["string", "null"],
+      "description": "Alert name (preferred) or CI id treated as the scoring root."
+    },
+    "contributor_alerts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Optional co-symptoms / contributors — not scored as root."
+    },
+    "confidence": {
+      "type": ["string", "null"],
+      "enum": ["confident", "ambiguous", "multi-cause", null]
+    },
+    "include_in_accuracy": {
+      "type": "boolean",
+      "description": "false when ambiguous/excluded from Top-1 accuracy; still useful for peer notes."
+    },
+    "evidence_note": {
+      "type": "string",
+      "description": "Short SRE note: why this root, what decoys were rejected."
+    },
+    "labels": {
+      "type": "object",
+      "description": "Dual-label slots before adjudication.",
+      "properties": {
+        "A": { "$ref": "#/$defs/labeler" },
+        "B": { "$ref": "#/$defs/labeler" }
+      }
+    },
+    "adjudication": {
+      "type": "object",
+      "properties": {
+        "resolved_by": { "type": "string" },
+        "resolved_at": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "stratum": {
+      "type": "string",
+      "description": "Why this incident is in the Option-B sample."
+    },
+    "peer_hints_not_gt": {
+      "type": "object",
+      "description": "Engine outputs at freeze time — hints for labelers; NEVER copy as GT."
+    }
+  },
+  "$defs": {
+    "labeler": {
+      "type": "object",
+      "properties": {
+        "labeler_id": { "type": "string" },
+        "root_layer": { "type": ["string", "null"] },
+        "root_alert": { "type": ["string", "null"] },
+        "confidence": { "type": ["string", "null"] },
+        "evidence_note": { "type": "string" },
+        "labeled_at": { "type": "string" }
+      }
+    }
+  }
+}

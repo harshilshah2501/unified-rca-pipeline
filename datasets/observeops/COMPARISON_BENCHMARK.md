@@ -6,7 +6,7 @@
 
 ## Ground truth
 
-This contract is how Motadata ObserveOps addresses **Roadblock 4** (no field-wide standardized GT): we do not invent an industry benchmark, but we **require** a corpus-local shared GT so Accuracy and federated-vs-lean comparison are defined. See [`docs/README.md`](../../docs/README.md) and the Eval contract in the use-case spec.
+This contract is how ObserveOps addresses **Roadblock 4** (no field-wide standardized GT): we do not invent an industry benchmark, but we **require** a corpus-local shared GT so Accuracy and federated-vs-lean comparison are defined. See [`docs/README.md`](../../docs/README.md) and the Eval contract in the use-case spec.
 
 | UC | Root CI | Signature | Pass | Fail |
 |----|---------|-----------|------|------|

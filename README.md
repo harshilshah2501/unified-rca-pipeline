@@ -10,15 +10,16 @@ Root-cause analysis research workspace with two pipelines (federated + lean), sh
 | [`rca-use-cases-only.md`](rca-use-cases-only.md) | Symlink → `docs/` (sole evaluation corpus spec) |
 | [`ROADMAP.md`](ROADMAP.md) | Symlink → `docs/ROADMAP.md` |
 | [`datasets/observeops/`](datasets/observeops/) | Frozen bundles derived from the use-case spec |
-| [`federated-pipeline/`](federated-pipeline/) | Panorama → Murphy → Nezha + federated-specific docs (optional Motadata path) |
-| [`lean-pipeline/`](lean-pipeline/) | **Primary** Motadata engine/API + lean-specific docs |
+| [`federated-pipeline/`](federated-pipeline/) | Panorama → Murphy → Nezha + federated-specific docs (under evaluation) |
+| [`lean-pipeline/`](lean-pipeline/) | Lean engine/API + docs (favored on classic-infra bakeoffs; not finalized) |
 | [`benchmarking/`](benchmarking/) | Same-corpus bakeoff runners and results |
+| [`benchmarking/dashboard/`](benchmarking/dashboard/) | **Comparative Web UI** — 4 axes, 5 roadblocks, UC + OpenObserve |
 | [`repo_paths.py`](repo_paths.py) | Shared path constants + `sys.path` bootstrap |
 
 ## Quick start
 
 ```bash
-# Motadata Lean RCA (primary) — SRE report
+# ObserveOps Lean RCA (evaluation packaging) — SRE report
 PYTHONPATH=lean-pipeline:. .venv/bin/python -m lean_rca diagnose UC-1 --format report
 
 # HTTP API on :8780

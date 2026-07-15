@@ -1,8 +1,8 @@
 # Federated pipeline — documentation
 
-Federated-only architecture and algorithm docs. Shared Motadata materials (use-cases, roadmap, ADR, lean-vs-federated guide) live in [`../../docs/`](../../docs/README.md).
+Federated-only architecture and algorithm docs. Shared ObserveOps materials (use-cases, roadmap, ADR, lean-vs-federated guide) live in [`../../docs/`](../../docs/README.md).
 
-**Motadata status:** For ObserveOps UC-1..UC-5, **lean is the primary engine** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). This tree is the federated PoC, bakeoff comparator, and optional microservice / code-path track.
+**ObserveOps status:** For ObserveOps UC-1..UC-5, **lean is the primary engine** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). This tree is the federated PoC, bakeoff comparator, and optional microservice / code-path track.
 
 ## Start here (aligned with lean-pipeline docs)
 
@@ -62,7 +62,7 @@ PYTHONPATH=..:. python -m poc.benchmarks.phase0_dragonfly \
   --port 6380 --workers 4 --pipeline-size 128 --seconds 20 \
   --output ../benchmarking/capacity/phase0_latest.json
 
-# Motadata bakeoff (from repo root)
+# ObserveOps bakeoff (from repo root)
 # ./benchmarking/benchmark/run_bakeoff.sh
 
 # Tests

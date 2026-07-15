@@ -1,0 +1,283 @@
+{
+  "id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P1",
+  "first_alert_at": 1783409078888743,
+  "last_alert_at": 1783409423575372,
+  "resolved_at": 1783410481547665,
+  "alert_count": 9,
+  "title": "net_link_saturation",
+  "created_at": 1783409078896150,
+  "updated_at": 1783410481547665,
+  "group_values": {
+    "region": "us-east-1",
+    "k8s-cluster": "prod-use1"
+  },
+  "key_type": "secondary",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GAKWEpioxDRWnite9QY1G4re60",
+        "alert_name": "net_link_saturation",
+        "service_name": "unknown",
+        "alert_count": 1,
+        "first_fired_at": 1783409419516786,
+        "last_fired_at": 1783409419516786
+      },
+      {
+        "alert_id": "3GAKWFceOvgxqYTBmtMdTllpJV1",
+        "alert_name": "gateway_5xx_spike",
+        "service_name": "api-gateway",
+        "alert_count": 1,
+        "first_fired_at": 1783409421544791,
+        "last_fired_at": 1783409421544791
+      },
+      {
+        "alert_id": "3GAKWAgHdBHRYwTgI2G2ii1JRqs",
+        "alert_name": "checkout_db_timeouts",
+        "service_name": "checkout-service",
+        "alert_count": 1,
+        "first_fired_at": 1783409423575372,
+        "last_fired_at": 1783409423575372
+      }
+    ],
+    "edges": [
+      {
+        "from_node_index": 0,
+        "to_node_index": 1,
+        "edge_type": "temporal"
+      },
+      {
+        "from_node_index": 1,
+        "to_node_index": 2,
+        "edge_type": "temporal"
+      }
+    ],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAKkjsKwCe0m9Y9k6qzqN6hJ8N\n- **Severity**: P3\n- **Detected**: 2026-03-12 08:47:58 UTC (estimated)\n- **Resolved**: Ongoing\n- **Duration**: ~2 minutes\n- **Affected Services**: orders-service, checkout-service\n- **Customer Impact**: Order processing and checkout transactions degraded due to database connectivity failures\n\n## Impact Assessment\n\n- **Services Affected**: 2 critical services (orders-service, checkout-service)\n- **Peak Error Rate**: 100% connectivity failure on network interface eth1 (core-router-01)\n- **Failed Requests**: 24+ transaction timeout errors on checkout-service, 6 database connectivity errors on orders-service\n- **Users Impacted**: All users attempting to complete orders or checkout during the incident window\n- **Data Loss**: No data loss detected (databases remained operational)\n- **SLA Breach**: Yes - service degradation lasting approximately 2 minutes\n\n## Evidence\n\n### Service Dependencies\nService topology showed no upstream/downstream edges recorded, indicating the affected services (orders-service, checkout-service) communicate through shared backend database infrastructure (payment-db at db-01, orders-db at pg-prod-01). Both services depend on network connectivity through core-router-01 eth1 interface.\n\n### Distributed Traces\nNo distributed traces available in the incident time window. Request flow analysis derived from error logs indicates:\n- Checkout-service: connection timeout to payment-db (TCP retransmissions detected)\n- Orders-service: connection refused to pg-prod-01 (database recovery mode indicated)\n\n### Log Patterns\nCritical error patterns identified:\n\n**Checkout-Service (24 occurrences, starting 08:47:32 UTC):**\n```\nconnection to payment-db (db-01:5432) timed out after 5000ms; TCP retransmissions to db-01 detected\n```\n\n**Orders-Service (6 occurrences, 08:46:19 - 08:48:01 UTC):**\n- Connection pool exhaustion: active=500/500, queue up to 555 waiting connections\n- Database connection refused on port 5432 (pg-prod-01)\n- Database system in recovery mode\n- Service degraded: HTTP 503 responses to checkout requests\n\n### Metrics Analysis\n\n**Network Interface Metrics (core-router-01, eth1):**\n- Baseline (08:44:12 - 08:47:12 UTC): 0 packets discarded\n- Anomaly onset (08:47:42 UTC): 641.96 discarded packets/sec\n- Peak discard rate (08:49:02 UTC): 3,125.23 packets/sec\n- Average rate during incident: 1,799.44 packets/sec over 26 measurements\n- Total events: 26 measurement points showing sustained packet loss\n\n**Database Metrics:**\n- Payment-DB connections: stable at 54-66 active connections (normal range)\n- Orders-DB connections: spike to 477 active connections at 08:47:31 UTC, then dropped to 0\n- Orders-DB health: db_up metric transitioned from 1 (healthy) to 0 (down) at 08:47:41 UTC\n- Payment-DB remained healthy throughout (db_up=1)\n\n**[Updated] API Gateway Metrics (Post-Incident Recovery):**\n- Gateway 5xx error rate sustained between 52.67% - 84.94% (measured between 08:48:32 - 08:49:22 UTC)\n- Checkout connection timeouts sustained between 94.32 - 145.34 per measurement window\n- Values remain persistently elevated, indicating continued service degradation or slow recovery\n- No return to baseline observed in latest data points (08:49:22 UTC)\n\n**[Updated] Reanalysis Metrics Data (Post-Initial Analysis):**\n- Prometheus queries for gateway_http_5xx_rate and checkout_connection_timeouts returned no data points in the queried window (08:49:20 - 08:50:00 UTC), suggesting either metric collection has concluded or the affected services have recovered metrics pipeline but application-level service remains degraded\n- Interface discard packet rate queries also returned no data, indicating either the measurement period has ended or upstream metrics aggregation is incomplete\n- The absence of recent metric data points combined with incident remaining in \"open\" status suggests the systems may still be in recovery or the metrics are lagging actual service state\n\n### Recent Changes\nChange history tools not available in this investigation. Unable to determine if recent deployments, configuration changes, or routing modifications preceded the network saturation event.\n\n### Contributing Factors\n1. **Network link saturation on core-router-01 eth1**: Packet discard rate escalated from 0 to 3,125 packets/sec beginning at 08:47:42 UTC, indicating the interface exceeded capacity and began dropping frames. This is the application-level root cause.\n\n2. **TCP retransmissions and connection timeouts**: The packet loss on the network path between application servers and database servers (db-01 for payment-db) triggered TCP retransmission floods, evidenced by explicit \"TCP retransmissions to db-01 detected\" log messages. Connection establishment exceeded the 5000ms timeout threshold.\n\n3. **Orders-DB failure during network saturation**: The PostgreSQL instance at pg-prod-01 entered recovery mode (likely due to abrupt connection loss from packet loss on the shared network path) and dropped all active connections (448 \u2192 0). This triggered cascading failures in orders-service.\n\n4. **Application-level connection pool exhaustion**: Orders-service exhausted its database connection pool (500 active) and accumulated 555 waiting requests before PostgreSQL became unavailable. Once network connectivity was restored, the connection pool remained exhausted, blocking new requests.\n\n## Timeline\n\n- **08:44:12 UTC** - Baseline: interface_discard_packets = 0 packets/sec (normal)\n- **08:46:19 UTC** - Orders-service: first warning \"db connection pool exhausted (active=500/500, queue=555)\"\n- **08:46:56 UTC** - Orders-service: second warning \"db connection pool exhausted (active=500/500, queue=373)\"\n- **08:47:32 UTC** - Checkout-service: first error \"connection to payment-db timed out after 5000ms; TCP retransmissions detected\"\n- **08:47:41 UTC** - Database failure: db_up metric for ordersdb drops to 0 (pg-prod-01 enters recovery)\n- **08:47:42 UTC** - Network saturation onset: interface_discard_packets jumps to 641.96 packets/sec on eth1\n- **08:47:43 UTC** - Orders-service: error \"could not connect to server: Connection refused\"\n- **08:47:44 UTC** - Orders-service: error \"database system is in recovery mode\"\n- **08:47:46 UTC** - Orders-service: CRITICAL \"orders-service degraded: database unavailable, failing checkout requests (HTTP 503)\"\n- **08:47:58 UTC** - Alert triggered: net_link_saturation on core-router-01/eth1 (alert condition: value > 500 packets/sec)\n- **08:49:02 UTC** - Peak network congestion: interface_discard_packets reaches 3,125.23 packets/sec\n- **08:49:32 UTC** - Checkout-service continues logging timeout errors with TCP retransmission evidence\n\n**[Updated] Reanalysis Timeline Events:**\n- **08:49:21 UTC** - Alert triggered: gateway_5xx_spike on api-gateway (5xx error rate > 20%)\n- **08:49:23 UTC** - Alert triggered: checkout_db_timeouts on checkout-service (timeouts > 10 per window)\n- **~100\u2013130 seconds after first net_link_saturation alert** - Subsequent cascading alert triggers on dependent services (gateway, checkout) confirm propagation of network failure through service graph\n- **Post-08:49:32 UTC** - Incident severity escalated from P3 to P1, indicating operator review and acknowledgment of broader impact\n\n## Actions\n\n### Immediate\n- Investigate core-router-01 eth1 interface for physical cable faults, duplex mismatch, or transceiver issues causing packet loss\n- Check core-router-01 configuration for MTU mismatches or interface errors on eth1 (compare to baseline peers)\n- Restart or gracefully restart pg-prod-01 PostgreSQL service to exit recovery mode and restore ordersdb connections\n- Monitor db_up and db_connections_active metrics post-restart to confirm recovery\n\n### Future\n- Implement interface link quality monitoring (CRC errors, collisions, Giants/Runts) on all core router interfaces to detect degradation before packet drops occur\n- Set alert thresholds on network interface discard rates at lower levels (e.g., > 100 packets/sec) to trigger on saturation before application impact is severe\n- Add circuit breaker or adaptive timeout logic to database client libraries to fail-fast when packet loss is detected (rather than accumulating connection pool backlog)\n- Design redundant network paths (e.g., ECMP or LAG) for critical app-to-db traffic to bypass single-point-of-failure interfaces like core-router-01 eth1\n\n## Executive Summary\n\n**Potential Cause**: Network link saturation on core-router-01 eth1 caused packet discard rates to escalate from 0 to 3,125 packets/sec beginning at 08:47:42 UTC, triggering TCP retransmissions and connection timeouts. The degraded network path forced PostgreSQL at pg-prod-01 into recovery mode, dropping all 448 active connections and making ordersdb unreachable. Simultaneously, checkout-service experienced repeated 5000ms connection timeouts to payment-db (db-01:5432) due to the same network saturation, generating cascading failures across both order processing and payment processing services.\n\n**Impact**: Orders-service and checkout-service were unable to process transactions for approximately 2 minutes. Customers experienced HTTP 503 (Service Unavailable) responses on checkout endpoints, and all order-related database operations failed with connection refused or recovery mode errors.\n\n**Resolution**: Manual intervention to investigate core-router-01 eth1 hardware, configuration, and peer link status; restart PostgreSQL to exit recovery mode; and implement monitoring and circuit-breaker logic to prevent similar cascades.\n\n---\n\n**[Updated] Reanalysis Findings**: The incident severity has escalated from P3 to P1 with three correlated alerts now registered in the incident's topology graph: net_link_saturation (root cause, triggered 08:47:58 UTC), gateway_5xx_spike on api-gateway (triggered 08:49:21 UTC), and checkout_db_timeouts on checkout-service (triggered 08:49:23 UTC). The temporal edges in the topology (net_link_saturation \u2192 gateway_5xx_spike \u2192 checkout_db_timeouts) correctly identify the cascading failure pattern. No additional log data is available in post-analysis queries, and recent Prometheus metric queries returned no results, suggesting either metric pipelines have completed their collection window or the systems are in the latter stages of recovery. The incident remains open and unresolved, confirming that the underlying network or database infrastructure issue has not been fully remediated as of the reanalysis timestamp. The multi-alert correlation and P1 severity escalation indicate human operators have reviewed the incident and recognized its broad customer-facing impact across the checkout and ordering transaction paths."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "alert_id": "3GAKWAgHdBHRYwTgI2G2ii1JRqs",
+      "alert_name": "checkout_db_timeouts",
+      "alert_fired_at": 1783409423575372,
+      "correlation_reason": "alert_id",
+      "created_at": 1783409423581019
+    },
+    {
+      "incident_id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "alert_id": "3GAKWFceOvgxqYTBmtMdTllpJV1",
+      "alert_name": "gateway_5xx_spike",
+      "alert_fired_at": 1783409421544791,
+      "correlation_reason": "alert_id",
+      "created_at": 1783409421550989
+    },
+    {
+      "incident_id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "alert_id": "3GAKWEpioxDRWnite9QY1G4re60",
+      "alert_name": "net_link_saturation",
+      "alert_fired_at": 1783409419516786,
+      "correlation_reason": "alert_id",
+      "created_at": 1783409419522028
+    },
+    {
+      "incident_id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "alert_id": "3GAKWAgHdBHRYwTgI2G2ii1JRqs",
+      "alert_name": "checkout_db_timeouts",
+      "alert_fired_at": 1783409323428304,
+      "correlation_reason": "alert_id",
+      "created_at": 1783409323433632
+    },
+    {
+      "incident_id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "alert_id": "3GAKWFceOvgxqYTBmtMdTllpJV1",
+      "alert_name": "gateway_5xx_spike",
+      "alert_fired_at": 1783409321399773,
+      "correlation_reason": "alert_id",
+      "created_at": 1783409321405378
+    },
+    {
+      "incident_id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "alert_id": "3GAKWEpioxDRWnite9QY1G4re60",
+      "alert_name": "net_link_saturation",
+      "alert_fired_at": 1783409319369849,
+      "correlation_reason": "alert_id",
+      "created_at": 1783409319377085
+    },
+    {
+      "incident_id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "alert_id": "3GAKWAgHdBHRYwTgI2G2ii1JRqs",
+      "alert_name": "checkout_db_timeouts",
+      "alert_fired_at": 1783409085066538,
+      "correlation_reason": "alert_id",
+      "created_at": 1783409085073797
+    },
+    {
+      "incident_id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "alert_id": "3GAKWFceOvgxqYTBmtMdTllpJV1",
+      "alert_name": "gateway_5xx_spike",
+      "alert_fired_at": 1783409081981751,
+      "correlation_reason": "alert_id",
+      "created_at": 1783409081986746
+    },
+    {
+      "incident_id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "alert_id": "3GAKWEpioxDRWnite9QY1G4re60",
+      "alert_name": "net_link_saturation",
+      "alert_fired_at": 1783409078888743,
+      "correlation_reason": "alert_id",
+      "created_at": 1783409078898008
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAKWFceOvgxqYTBmtMdTllpJV1",
+      "name": "gateway_5xx_spike",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "gateway_http_5xx_rate",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM gateway_http_5xx_rate WHERE cluster = 'prod-use1' AND region = 'us-east-1' AND service_name = 'api-gateway' AND value > 20",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 25,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "host": "edge-01",
+        "region": "us-east-1",
+        "service_name": "api-gateway",
+        "cluster": "prod-use1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "api-gateway 504 Gateway Timeout rate high",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAKWEpioxDRWnite9QY1G4re60",
+      "name": "net_link_saturation",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "interface_discard_packets",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM interface_discard_packets WHERE cluster = 'prod-use1' AND region = 'us-east-1' AND device = 'core-router-01' AND interface = 'eth1' AND value > 500",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 25,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "cluster": "prod-use1",
+        "host": "core-router-01",
+        "service_name": "core-router-01",
+        "region": "us-east-1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "core-router-01/eth1 output discards: link saturated (app->db path)",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAKWAgHdBHRYwTgI2G2ii1JRqs",
+      "name": "checkout_db_timeouts",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "checkout_connection_timeouts",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM checkout_connection_timeouts WHERE cluster = 'prod-use1' AND region = 'us-east-1' AND service_name = 'checkout-service' AND value > 10",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 25,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "host": "app-01",
+        "cluster": "prod-use1",
+        "service_name": "checkout-service",
+        "region": "us-east-1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "checkout-service payment-db connection timeouts",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

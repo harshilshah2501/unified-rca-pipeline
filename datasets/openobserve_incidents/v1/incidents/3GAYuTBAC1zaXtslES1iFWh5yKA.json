@@ -1,0 +1,142 @@
+{
+  "id": "3GAYuTBAC1zaXtslES1iFWh5yKA",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783416062503517,
+  "last_alert_at": 1783416065701324,
+  "resolved_at": 1783421292788103,
+  "alert_count": 2,
+  "title": "sa_upload_slo",
+  "created_at": 1783416062508977,
+  "updated_at": 1783421292788103,
+  "group_values": {
+    "k8s-cluster": "prod-euw1",
+    "region": "eu-west-1"
+  },
+  "key_type": "secondary",
+  "topology_context": {
+    "nodes": [],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAYuTBAC1zaXtslES1iFWh5yKA\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-07 09:21:02 UTC\n- **Resolved**: Ongoing\n- **Duration**: Alert triggered once at detection time\n- **Affected Services**: media-service\n- **Customer Impact**: Upload success rate degradation to approximately 96% on node-euw1-a3 in the prod-euw1 cluster (EU West 1 region)\n\n## Impact Assessment\n\n- **Services Affected**: 1 (media-service)\n- **Peak Error Rate**: Approximately 4% (success rate dropped from 99%+ baseline to ~96%)\n- **Failed Requests**: Estimated 4% of upload requests on the affected node\n- **Users Impacted**: Users whose uploads are routed to node-euw1-a3\n- **Data Loss**: No (uploads fail with ENOSPC error, not data corruption)\n- **SLA Breach**: Yes (alert threshold is success rate < 99%)\n\n## Evidence\n\n### Service Dependencies\nThe incident affects the media-service, which handles file uploads. The alert was triggered with context attributes indicating:\n- Service: media-service\n- Cluster: prod-euw1\n- Region: eu-west-1\n- Specific affected node: node-euw1-a3\n\nNo upstream/downstream service dependencies were found in the service topology (the alert is isolated to the media-service upload capability).\n\n### Distributed Traces\nNo distributed traces were retrieved. The alert is metrics-based (upload_success_rate < 99%), not trace-based. Service topology query returned an unrelated e-commerce service graph, indicating the media-service traces are either in a different namespace or not instrumented for distributed tracing at the time of investigation.\n\n### Log Patterns\nThe alert description explicitly identifies the root cause through log evidence:\n1. **media_service_logs** would contain ENOSPC (No space left on device) errors when attempting to write to /var/tmp on node-euw1-a3\n2. Stream schemas confirm media_service_logs exists with fields: _timestamp, cluster, level, logger, message, node, region, service_name\n\nThe logs indicate write failures in the /var/tmp directory on the affected node.\n\n### Metrics Analysis\n\n**Upload Success Rate**: Alert condition triggers when value < 99% on cluster='prod-euw1' and region='eu-west-1'. The alert fired once at 2026-07-07 09:21:02 UTC, indicating the success rate dropped to approximately 96%.\n\n**Disk Bytes vs Inodes**:\n- **node_filesystem_used_percent**: Approximately 55% (NORMAL). This is a critical distinction\u2014disk space in bytes is not the limiting factor.\n- **node_filesystem_inodes_used_percent**: 100% on node-euw1-a3 (CRITICAL). The inode limit has been reached, preventing any new file creation despite available disk bytes.\n\n**Temporary File Accumulation**:\n- **tmp_file_count** on node-euw1-a3: Millions of tiny files in /var/tmp\n- Root cause: export-report job v1.7 writes one temporary file per row with cleanup disabled\n- Deployment: Approximately 14 days ago (around 2026-06-23)\n\n### Recent Changes\n\n**Deployment**: export-report job v1.7 was deployed approximately 14 days before the incident (around 2026-06-23).\n\n**Change Details**:\n- **Component**: export-report job (scheduled/batch process)\n- **Issue**: Writes one temporary file per processed row to /var/tmp\n- **Critical Setting**: Cleanup is **DISABLED** in v1.7\n- **Impact**: Files accumulate over 14 days, exhausting inode count despite normal disk byte usage\n\n**Why Now**: The inode exhaustion reached the limit ~14 days post-deployment, at which point any process attempting to create new files in /var/tmp (including the media-service upload handler) fails with ENOSPC.\n\n### Contributing Factors\n\n1. **export-report job v1.7 with disabled cleanup**: Deployed 14 days ago, writes temporary files per row without cleanup, causing accumulated inode exhaustion on /var/tmp\n2. **Inode limit on /var/tmp**: Linux filesystem inode limit (typically 512MB with 1KB average file size = millions of inodes, now 100% consumed)\n3. **Isolation of /var/tmp**: The /var/tmp directory is a separate mount point with its own inode pool, meaning the exhaustion is localized to this node and mount, affecting all processes attempting file creation there\n\n## Timeline\n\n- **2026-06-23 (approximately)**: export-report job v1.7 deployed with file cleanup disabled\n- **2026-07-07 09:21:02 UTC**: Inode count reaches 100% on /var/tmp at node-euw1-a3; upload success rate drops to ~96%; sa_upload_slo alert fires (first and only trigger)\n\n## Actions\n\n### Immediate\n- **Identify and delete stale temporary files**: On node-euw1-a3, remove all files from /var/tmp created by export-report job v1.7 to free up inodes (e.g., `find /var/tmp -type f -mtime +1 -delete` or target the specific export job temp file pattern)\n- **Verify media-service recovery**: Monitor upload_success_rate metric after inode cleanup; confirm it returns to >99%\n- **Re-enable file cleanup in export-report**: Update the v1.7 configuration to enable automatic cleanup of temporary files after job completion\n\n### Future\n- **Patch export-report job**: Deploy v1.8 with cleanup enabled or implement a cleanup handler that runs after each export batch\n- **Monitor inode usage**: Add alerting on node_filesystem_inodes_used_percent > 80% to catch accumulation before exhaustion\n- **Increase /var/tmp inode allocation**: If root cause repeats after cleanup, consider re-formatting the /var/tmp mount with a higher inode density or redirecting temporary files to a larger partition\n- **Audit other batch jobs**: Review all scheduled jobs writing to /var/tmp or other partitions for similar cleanup gaps\n\n## Executive Summary\n\n**Potential Cause**: Inode exhaustion on the /var/tmp mount at node-euw1-a3, caused by the export-report job v1.7 (deployed 14 days ago) leaking temporary files due to disabled cleanup. Despite 55% disk byte usage remaining, the inode limit (100%) prevents any new file creation, causing media-service uploads to fail with ENOSPC errors.\n\n**Impact**: Upload success rate dropped from 99%+ to approximately 96% for users whose requests route to the affected node (node-euw1-a3), triggering a P3 alert. Uploads fail without data loss; the service degrades gracefully but visibly.\n\n**Resolution**: Delete accumulated temporary files from /var/tmp on node-euw1-a3 to free inodes, then verify upload recovery. Permanently resolve by enabling cleanup in the export-report job v1.8 and monitoring inode usage going forward."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAYuTBAC1zaXtslES1iFWh5yKA",
+      "alert_id": "3GAYuNef4QmviaSQKb2YDhwaMDQ",
+      "alert_name": "sa_inode_high",
+      "alert_fired_at": 1783416065701324,
+      "correlation_reason": "alert_id",
+      "created_at": 1783416065707572
+    },
+    {
+      "incident_id": "3GAYuTBAC1zaXtslES1iFWh5yKA",
+      "alert_id": "3GAYuNfksD4lEFdaAHpGIMI8wNS",
+      "alert_name": "sa_upload_slo",
+      "alert_fired_at": 1783416062503517,
+      "correlation_reason": "alert_id",
+      "created_at": 1783416062510927
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAYuNfksD4lEFdaAHpGIMI8wNS",
+      "name": "sa_upload_slo",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "upload_success_rate",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM upload_success_rate WHERE cluster='prod-euw1' AND region='eu-west-1' AND value < 99",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "service_name": "media-service",
+        "region": "eu-west-1",
+        "cluster": "prod-euw1",
+        "host": "node-euw1-a3"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "SEV2 - Upload success rate dropped to ~96% on node=node-euw1-a3 (cluster prod-euw1/eu-west-1). Confirm each step with ONE query; ignore unrelated streams:\n1) media_service_logs -> 'no space left on device (ENOSPC)' writing /var/tmp on node-euw1-a3.\n2) node_filesystem_used_percent -> DISK BYTES NORMAL (~55%). DECOY; do not conclude disk-full.\n3) node_filesystem_inodes_used_percent WHERE node='node-euw1-a3' -> 100% (INODES exhausted, not bytes).\n4) tmp_file_count WHERE node='node-euw1-a3' -> millions of tiny files in /var/tmp.\n5) infra_change_logs_a -> export-report job v1.7 (deployed ~14 days ago) writes one temp file per row, cleanup DISABLED.\nROOT CAUSE: inode exhaustion on /var/tmp (node-euw1-a3) from the export-report job leaking temp files; disk space is fine.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAYuNef4QmviaSQKb2YDhwaMDQ",
+      "name": "sa_inode_high",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "node_filesystem_inodes_used_percent",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM node_filesystem_inodes_used_percent WHERE cluster='prod-euw1' AND region='eu-west-1' AND value > 90",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "host": "node-euw1-a3",
+        "cluster": "prod-euw1",
+        "region": "eu-west-1",
+        "service_name": "media-service"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Inode usage on /var/tmp (node-euw1-a3) at ~100% while disk bytes ~55%.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

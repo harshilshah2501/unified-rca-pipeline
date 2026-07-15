@@ -1,6 +1,6 @@
-# Lean Motadata RCA — Architecture, Components & Workflow
+# Lean ObserveOps RCA — Architecture, Components & Workflow
 
-**Status:** Motadata primary engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)).  
+**Status:** lean path under evaluation engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)).  
 **Scope:** Classic infrastructure typed CI graph (Network → Host → VM → Guest OS → App + Datastore).  
 **Corpus:** [`datasets/observeops/`](../../datasets/observeops/) from [`rca-use-cases-only.md`](../../docs/rca-use-cases-only.md).
 
@@ -10,17 +10,17 @@ This document describes what the lean pipeline **actually implements**. Product 
 
 ## 1. Design intent
 
-Lean answers Motadata classic-infra tickets with one coherent algorithm family:
+Lean answers ObserveOps classic-infra tickets with one coherent algorithm family:
 
 1. Walk a **typed inventory graph** upstream from the symptomatic CI.  
 2. Use **anomaly onset** and **information-gain scoring** to prioritize checks.  
-3. Apply **Motadata rules** (shared-upstream, signatures, contributors, upstream-healthy).  
+3. Apply **ObserveOps rules** (shared-upstream, signatures, contributors, upstream-healthy).  
 4. Escalate to **CARE** only when onsets clump inside a Δt window.  
 5. Claim **Causal Validity** only after a **scoped** Tier-3 check.
 
 **Not** the design: equating “earliest abnormal CI” with root cause, fleet-wide counterfactual sampling, or LLM reasoning in the deduction path.
 
-| Quality | Motadata stance |
+| Quality | ObserveOps stance |
 |---------|-----------------|
 | Reproducibility | Mandatory (bit-stable) |
 | Verifiability | Mandatory (tier + evidence trail) |
@@ -40,7 +40,7 @@ Lean answers Motadata classic-infra tickets with one coherent algorithm family:
                                 v
 ┌─────────────────────────────────────────────────────────────────┐
 |              observeops/engine.py  (diagnose orchestrator)       |
-|  load bundle → search → Motadata rules → tiers → signature       |
+|  load bundle → search → ObserveOps rules → tiers → signature       |
 └───────┬─────────────────┬─────────────────┬─────────────────────┘
         |                 |                 |
         v                 v                 v
@@ -64,7 +64,7 @@ Lean answers Motadata classic-infra tickets with one coherent algorithm family:
 | Path | Role |
 |------|------|
 | [`../core_engine/lean/`](../core_engine/lean/) | Graph walk, scoring, temporal, CARE, causal, signature |
-| [`../core_engine/observeops/`](../core_engine/observeops/) | Motadata orchestration, ingest, rules, signal registry |
+| [`../core_engine/observeops/`](../core_engine/observeops/) | ObserveOps orchestration, ingest, rules, signal registry |
 | [`../core_engine/schema/`](../core_engine/schema/) | Typed topology JSON Schema |
 | [`../lean_rca/`](../lean_rca/) | CLI, HTTP API, SRE report (`causal_chain`, blast radius, remediation) |
 | [`../deploy/`](../deploy/) | systemd unit `lean-rca.service` |
@@ -80,7 +80,7 @@ Lean answers Motadata classic-infra tickets with one coherent algorithm family:
 - Edges are oriented **effect → cause** (`from` → `to`): search walks **upstream** toward shared infrastructure.  
 - **`upstream_of(ci)`** / **`collect_upstream(start)`** — immediate neighbors and full upstream closure (BFS discovery order).
 
-**Motadata node types** (schema): `NetworkPort`, `HypervisorHost`, `Datastore`, `VirtualMachine`, `GuestOS`, `Service`.  
+**ObserveOps node types** (schema): `NetworkPort`, `HypervisorHost`, `Datastore`, `VirtualMachine`, `GuestOS`, `Service`.  
 **Relations:** `uplink_to`, `hosted_by`, `stored_on`, `runs_on`.
 
 This is an **inventory / interaction graph**, not a causal graph. Edges assert configuration/runtime relatedness, not proven causation.
@@ -105,7 +105,7 @@ Temporal precedence is a **necessary clue**, not a sufficient verdict. Independe
 When Δt ambiguity fires:
 
 - PoC CARE ranks crossed candidates by **severity sum** (`value/threshold`), not full PRD spectrum scoring + PageRank.  
-- Engine then **prefers Motadata shared-upstream** over raw CARE severity when a shared CI is in the crossed set (UC-3b).
+- Engine then **prefers ObserveOps shared-upstream** over raw CARE severity when a shared CI is in the crossed set (UC-3b).
 
 ### 3.5 Scoped causal verification (`lean/causal.py`)
 
@@ -121,7 +121,7 @@ Pass → **Tier 3**. Fail → remain Tier 2. This is intentionally lightweight (
 
 **`infer_signature(crossed)`** — deterministic first-match on crossed metrics (no GT leak):
 
-| Signature | Typical Motadata UC |
+| Signature | Typical ObserveOps UC |
 |-----------|---------------------|
 | `cpu_contention` | UC-1 |
 | `link_failure` | UC-2 |
@@ -148,7 +148,7 @@ Loads a frozen UC directory:
 
 Maps CI prefixes (`esxi-`, `switch-`, `datastore-`, `vm-`, `guest-os-`, `orders-`) to decisive signals and rule bindings used by shared-upstream / contributor / upstream-healthy.
 
-### 3.9 Motadata rules (`observeops/rules/`)
+### 3.9 ObserveOps rules (`observeops/rules/`)
 
 | Rule | Module | Behavior |
 |------|--------|----------|
@@ -248,7 +248,7 @@ Core engine fields before/with SRE enrichment:
 
 | Tier | Code condition | Causal Validity claim? |
 |------|----------------|------------------------|
-| **1** | Main path; no CARE | **No** — temporal + topology + Motadata rules |
+| **1** | Main path; no CARE | **No** — temporal + topology + ObserveOps rules |
 | **2** | CARE fired; causal check failed or not claimed | **No** — stronger correlational ranking |
 | **3** | CARE fired **and** `verify_care_root` passed | **Yes** — scoped, lightweight |
 
@@ -284,10 +284,10 @@ Deploy notes: [`../deploy/README.md`](../deploy/README.md).
 | [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md) | Honest limits + deferred work |
 | [`../core_engine/observeops/README.md`](../core_engine/observeops/README.md) | Engine-local quick reference |
 | [`../../docs/Lean_RCA_PRD.md`](../../docs/Lean_RCA_PRD.md) | Product requirements |
-| [`../../docs/POC_BRIEFING.md`](../../docs/POC_BRIEFING.md) | End-to-end Motadata briefing |
+| [`../../docs/POC_BRIEFING.md`](../../docs/POC_BRIEFING.md) | End-to-end ObserveOps briefing |
 | [`../../docs/ROADMAP.md`](../../docs/ROADMAP.md) | Phases A/B/D done; B5/C*/E* optional |
 | [`../../benchmarking/results/comparison/DECISION.md`](../../benchmarking/results/comparison/DECISION.md) | Bakeoff decision memo |
 
 ---
 
-*Lean-pipeline technical architecture. Corrected to Motadata ObserveOps shipping state (2026-07-13).*
+*Lean-pipeline technical architecture. Corrected to ObserveOps shipping state (2026-07-13).*

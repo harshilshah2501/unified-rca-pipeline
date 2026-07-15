@@ -1,0 +1,55 @@
+{
+  "incident_id": "3GARrIHDnfvHKz3jTKUoeQNwHjw",
+  "title": "ecom_checkout_slo_breach",
+  "status": "final",
+  "stratum": "decoy_multi_lean_fed_disagree_oo",
+  "root_layer": "dns",
+  "root_alert": "ecom_dns_aaaa_numa",
+  "contributor_alerts": [
+    "ecom_payment_conn_exhaustion",
+    "ecom_checkout_slo_breach"
+  ],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Same ecom multi-trigger pattern as sibling incident: DNS AAAA NUMA/IRQ issue drives payment conn exhaustion and checkout SLO drop. Title is symptom.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "dns",
+      "root_alert": "ecom_dns_aaaa_numa",
+      "confidence": "confident",
+      "evidence_note": "Prefer DNS over application SLO title.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "dns",
+      "root_alert": "ecom_dns_aaaa_numa",
+      "confidence": "confident",
+      "evidence_note": "Payment exhaustion is mid-chain; DNS is upstream root.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T07:33:28Z",
+    "notes": "Solo Option-B exercise: dual-pass by same reviewer (pass A evidence-first, pass B decoy-check). Agreed dns; OO may call application \u2014 we do not copy OO. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "ecom_checkout_slo_breach",
+    "ecom_dns_aaaa_numa",
+    "ecom_payment_conn_exhaustion"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "dns",
+    "lean_root": "ecom_dns_aaaa_numa",
+    "federated_layer": "dns",
+    "federated_root": "ecom_checkout_slo_breach",
+    "openobserve_layer": "application",
+    "openobserve_root": "ecom_checkout_slo_breach",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "DNS resolution of the payment-provider endpoint via AAAA (IPv6) queries to server 10.20.4.53 is exhibiting ~200\u00d7 latency increase (2800\u20133262ms) on node pool NP-17 (AZ B2, image 2026.06.18), causing payment service connection pool exhaustion",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

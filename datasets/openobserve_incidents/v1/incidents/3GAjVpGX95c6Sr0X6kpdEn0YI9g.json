@@ -1,0 +1,252 @@
+{
+  "id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783421292857795,
+  "last_alert_at": 1783421302817128,
+  "resolved_at": 1783422788882813,
+  "alert_count": 4,
+  "title": "cio_host_cpu_high",
+  "created_at": 1783421293570376,
+  "updated_at": 1783422788882813,
+  "group_values": {
+    "region": "us-central1",
+    "k8s-cluster": "prod-batch1"
+  },
+  "key_type": "secondary",
+  "topology_context": {
+    "nodes": [],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAjVpGX95c6Sr0X6kpdEn0YI9g\n- **Severity**: P3 (Medium)\n- **Detected**: 2025-07-07 15:01:32 UTC\n- **Resolved**: Ongoing\n- **Duration**: ~4 seconds between first and last alert\n- **Affected Services**: app-node-07 (prod-batch1, us-central1 region)\n- **Customer Impact**: Storage I/O degradation affecting batch ETL processes, with elevated load average and blocked processes\n\n## Impact Assessment\n\n- **Services Affected**: 1 host (app-node-07) and dependent storage infrastructure (io-node-02)\n- **Peak Error Rate**: N/A (infrastructure metric alert)\n- **Failed Requests**: 325+ device errors on io-node-02 storage backing device\n- **Users Impacted**: Batch ETL jobs and any services reading from /data mount point\n- **Data Loss**: No confirmed data loss; write operations stalled due to write-cache disablement\n- **SLA Breach**: Likely, given sustained high latency (>1000ms) and process hangs\n\n## Evidence\n\n### Service Dependencies\nService topology data unavailable. However, the incident chain is clear: io-node-02 (storage backing device) \u2192 /data filesystem mount on app-node-07 \u2192 batch-etl process (PID 21877) and other consumers.\n\n### Distributed Traces\nNo distributed traces available for analysis. The incident is an infrastructure-level issue affecting I/O subsystem, not application traces.\n\n### Log Patterns\n\n**Kernel logs on app-node-07** reveal hung task warnings and blocked I/O calls:\n- `INFO: task batch-etl:21877 blocked for more than 120 seconds` \u2014 process stuck waiting for I/O\n- `Call Trace: io_schedule+0x12/0x40 wait_on_page_bit+0x137 __filemap_fdatawait_range (blocked on /data write-back)` \u2014 process blocked on write-back to /data\n\n**Storage node logs from io-node-02**:\n- `blk_update_request: I/O error, dev sdb, sector 18755177 op READ` \u2014 device-level I/O errors\n- `sd 2:0:0:1: [sdb] tag#56 device reset; megaraid_sas: controller I/O timeout on io-node-02` \u2014 RAID controller timeout and device reset attempts\n\nThese errors correlate with RAID controller Battery-Backed Unit (BBU) degradation, which forces write-cache disablement and triggers write-through mode (significantly slower).\n\n### Metrics Analysis\n\n| Metric | Value | Interpretation |\n|--------|-------|-----------------|\n| **host_cpu_usage_percent** | 91.4% | High overall CPU, but misleading |\n| **host_cpu_user_percent** | 22.69% | Only ~23% in user space (not compute-bound) |\n| **host_cpu_system_percent** | 7.81% | Only ~8% in kernel space |\n| **host_cpu_iowait_percent** | 67.3% | **ROOT: 67% of CPU cycles waiting on I/O** |\n| **host_load_average_5m** | 24.78 | 3x the 8-core capacity (very high) |\n| **host_procs_blocked** | 40 | **40 processes in D-state (uninterruptible sleep on I/O)** |\n| **io_node_disk_latency_ms** | 1293.9 ms | **Severely elevated; normal is <10ms** |\n| **io_node_device_errors** | 325 | Persistent I/O errors accumulating |\n| **process_io_read_bytes_per_sec (batch-etl, PID 21877)** | 545 MB/s | Attempting sustained I/O but timing out |\n\n**Analysis:**\n- CPU is NOT compute-bound (user+system = ~30.5%)\n- CPU is waiting on I/O (iowait = 67.3%)\n- Load average is high because 40 processes are blocked waiting for /data I/O\n- Disk latency is extreme (~1.3 seconds per operation; normal <10ms)\n- RAID device (sdb on io-node-02) is returning errors continuously\n\n### Recent Changes\n\n**Change history tool not available.** Infrastructure changes (RAID controller BBU failure on io-node-02) cannot be tracked via commit/deploy history; this is a hardware failure event, not a code deployment. The alert descriptions in the incident metadata suggest the administrator (admin@motadata.com) has documented the root cause in the alert description itself:\n\nFrom `cio_host_cpu_high` alert description:\n> \"io-node-02 (backing /data) degraded (RAID BBU failure -> write-through) -> all I/O to /data stalls -> batch-etl and other procs block in D-state -> load avg + iowait climb, presenting as 'high CPU'. The CPU is not busy; it is waiting on a failing storage node. Fix: recover/failover io-node-02.\"\n\nThis clearly identifies the culprit: **RAID controller Battery-Backed Unit (BBU) failure on io-node-02**, which has disabled write-cache and forced all writes into write-through mode.\n\n### Contributing Factors\n\n1. **RAID Controller BBU Failure (Primary)**: Battery-backed unit on io-node-02 RAID controller degraded or failed, disabling write-cache and forcing write-through mode. This multiplies I/O latency by 100\u20131000x (from ~1ms to 1000+ms per operation).\n\n2. **Sustained High-Volume I/O Load**: batch-etl process (PID 21877) was performing ~545 MB/s of continuous read I/O to /data at the time of the failure. With degraded storage backend, these operations timeout and retry, accumulating 325+ device errors within seconds.\n\n3. **Cascading Process Blockage**: As I/O latency skyrocketed, 40 processes entered D-state (uninterruptible sleep), waiting for /data I/O to complete. This inflates load average to 24.78 on an 8-core host, presenting as a CPU overload when the actual bottleneck is storage.\n\n## Timeline\n\n- **2025-07-07 15:01:32.857795 UTC** (1783421292.857795 seconds): `cio_host_cpu_high` alert fires. CPU usage detected at 91.4%, but underlying cause is I/O stall on /data mount.\n- **2025-07-07 15:01:36.669716 UTC** (1783421296.669716 seconds): `cio_host_load_avg_high` alert fires. Load average at 24.78 (3x 8-core capacity), driven by 40 blocked processes.\n- **~1783421101\u20131783421194 UTC**: Storage node logs show repeated `blk_update_request: I/O error` and `megaraid_sas: controller I/O timeout` messages, indicating io-node-02 RAID controller degradation.\n- **2025-07-07 15:01:18\u201315:01:36 UTC**: Kernel logs on app-node-07 show `batch-etl:21877 blocked for more than 120 seconds`, indicating the process has been stuck waiting for I/O completion.\n\n## Actions\n\n### Immediate\n1. **Recover or failover io-node-02** \u2014 The RAID controller BBU is degraded/failed. Either restore BBU health (if possible) or failover /data storage to a healthy io-node. This is the single point of failure blocking all I/O.\n2. **Monitor RAID controller status** on io-node-02 \u2014 Verify battery charge, capacitor status, and controller logs to confirm BBU failure. Check for firmware updates that address known BBU issues.\n3. **Verify /data filesystem integrity** post-recovery \u2014 Once io-node-02 is recovered, run filesystem checks (fsck or equivalent) to ensure no corruption occurred during the stall period.\n\n### Future\n1. **Implement RAID BBU monitoring and alerting** \u2014 Create alerts that trigger when RAID controller BBU health degrades (below 80% charge, failed diagnostic, etc.), before write-cache is disabled.\n2. **Configure write-through fallback gracefully** \u2014 Set I/O timeout thresholds so that hung processes are killed rather than blocked indefinitely in D-state. Alternatively, demote to read-only mode if write-cache cannot be used.\n3. **Improve storage isolation** \u2014 Place /data on a separate, redundant storage node pair (active/passive or RAID 1) with automatic failover, rather than a single io-node.\n4. **Enhance alert correlation** \u2014 Add contextual rules to correlate high CPU + high load average + high iowait into a single \"Storage I/O Degradation\" incident, rather than treating CPU and load separately.\n\n## Executive Summary\n\n**Potential Cause**: RAID controller Battery-Backed Unit (BBU) failure on io-node-02 storage node, which backs the /data filesystem mounted on app-node-07. The BBU failure disables write-cache, forcing all I/O into write-through mode, multiplying latency from ~1ms to >1000ms per operation. This caused the batch-etl process (PID 21877) and 39 other processes to block in uninterruptible sleep (D-state) waiting for I/O completion, inflating load average to 24.78 and iowait to 67.3%, which presents as \"high CPU\" even though the CPU is idle and waiting on storage.\n\n**Impact**: Batch ETL jobs and other workloads reading from /data are stalled. 325+ I/O errors accumulating on the backing storage device. Elevated load average exceeds system capacity 3x. Write operations are severely delayed (>1000ms latency), impacting all batch operations and potentially SLA compliance.\n\n**Resolution**: Recover or failover io-node-02 by either restoring RAID controller BBU health or switching /data to a healthy backup storage node. Post-recovery, verify filesystem integrity and implement proactive RAID BBU monitoring to prevent recurrence."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
+      "alert_id": "3GAjVj2PGdE59zZ1jQ5ON1vXOtj",
+      "alert_name": "cio_io_node_degraded",
+      "alert_fired_at": 1783421302817128,
+      "correlation_reason": "alert_id",
+      "created_at": 1783421302821824
+    },
+    {
+      "incident_id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
+      "alert_id": "3GAjVk2jo9RyxtGIDWhq8gJSAAK",
+      "alert_name": "cio_disk_io_stall",
+      "alert_fired_at": 1783421299741754,
+      "correlation_reason": "alert_id",
+      "created_at": 1783421299746756
+    },
+    {
+      "incident_id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
+      "alert_id": "3GAjVhNBIweUT1hD9OJvfw6vwXD",
+      "alert_name": "cio_host_load_avg_high",
+      "alert_fired_at": 1783421296669716,
+      "correlation_reason": "alert_id",
+      "created_at": 1783421296676374
+    },
+    {
+      "incident_id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
+      "alert_id": "3GAjVdaQKMyvrPGRxk0axyiMnjv",
+      "alert_name": "cio_host_cpu_high",
+      "alert_fired_at": 1783421292857795,
+      "correlation_reason": "alert_id",
+      "created_at": 1783421293572724
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAjVdaQKMyvrPGRxk0axyiMnjv",
+      "name": "cio_host_cpu_high",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "host_cpu_usage_percent",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM host_cpu_usage_percent WHERE cluster='prod-batch1' AND region='us-central1' AND host='app-node-07' AND value > 90",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "region": "us-central1",
+        "cluster": "prod-batch1",
+        "host": "app-node-07"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "SEV2 - CPU usage ~95%+ on host=app-node-07 (prod-batch1/us-central1). Confirm each step with ONE query; ignore unrelated streams:\n1) host_cpu_user_percent + host_cpu_system_percent -> only ~30% combined. DECOY: this is NOT compute-bound; do not blame a CPU-bound process.\n2) host_cpu_iowait_percent -> ~65% (the CPU is WAITING on I/O, not computing).\n3) host_load_average_5m -> ~24 on 8 cores; host_procs_blocked -> ~40 procs in D-state (uninterruptible sleep on I/O) -> this is what inflates load average.\n4) disk_io_util_percent -> 100% and disk_io_await_ms -> >1000ms on /data; process_io_read_bytes_per_sec -> batch-etl (pid 21877) doing ~500MB/s continuous I/O.\n5) host_kernel_logs -> 'task batch-etl:21877 blocked for more than 120 seconds' (hung task).\n6) io_node_disk_latency_ms / io_node_device_errors on io-node-02 -> latency >1000ms + device errors; storage_node_logs + infra_change_logs_io -> io-node-02 RAID controller BBU failed (write-cache disabled) at onset.\nROOT CAUSE: io-node-02 (backing /data) degraded (RAID BBU failure -> write-through) -> all I/O to /data stalls -> batch-etl and other procs block in D-state -> load avg + iowait climb, presenting as 'high CPU'. The CPU is not busy; it is waiting on a failing storage node. Fix: recover/failover io-node-02.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAjVk2jo9RyxtGIDWhq8gJSAAK",
+      "name": "cio_disk_io_stall",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "disk_io_await_ms",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM disk_io_await_ms WHERE cluster='prod-batch1' AND region='us-central1' AND host='app-node-07' AND value > 500",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "region": "us-central1",
+        "host": "app-node-07",
+        "cluster": "prod-batch1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Disk I/O latency on /data (sdb) >1s and util 100%; I/O is stalling, not the CPU.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAjVhNBIweUT1hD9OJvfw6vwXD",
+      "name": "cio_host_load_avg_high",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "host_load_average_5m",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM host_load_average_5m WHERE cluster='prod-batch1' AND region='us-central1' AND host='app-node-07' AND value > 16",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "region": "us-central1",
+        "cluster": "prod-batch1",
+        "host": "app-node-07"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Load average ~24 on 8 cores; driven by D-state (blocked-on-I/O) processes, not runnable CPU load.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAjVj2PGdE59zZ1jQ5ON1vXOtj",
+      "name": "cio_io_node_degraded",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "io_node_disk_latency_ms",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM io_node_disk_latency_ms WHERE cluster='prod-batch1' AND region='us-central1' AND value > 1000",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "host": "io-node-02",
+        "region": "us-central1",
+        "cluster": "prod-batch1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "io-node-02 disk latency >1s + device errors; backing store for /data is degraded (RAID BBU failure).",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

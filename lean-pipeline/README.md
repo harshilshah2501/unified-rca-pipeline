@@ -1,11 +1,11 @@
 # Lean pipeline
 
-**Primary Motadata ObserveOps RCA engine** ([ADR-001](../docs/ADR-001-lean-primary-engine.md)): BFS + temporal ordering + information-gain search, with CARE fallback and scoped ObserveOps rules (§2.9).
+**Primary ObserveOps RCA engine** ([ADR-001](../docs/ADR-001-lean-primary-engine.md)): BFS + temporal ordering + information-gain search, with CARE fallback and scoped ObserveOps rules (§2.9).
 
 | Path | Purpose |
 |------|---------|
 | [`core_engine/`](core_engine/) | Lean core + ObserveOps engine |
-| [`lean_rca/`](lean_rca/) | Motadata CLI + HTTP API + SRE report enrichment |
+| [`lean_rca/`](lean_rca/) | ObserveOps CLI + HTTP API + SRE report enrichment |
 | [`deploy/`](deploy/) | systemd unit for the RCA API (`:8780`) |
 | [`docs/`](docs/) | Architecture, limitations/future work, historical notes · federated twin: [`../federated-pipeline/docs/`](../federated-pipeline/docs/) |
 
@@ -15,7 +15,7 @@ PYTHONPATH=lean-pipeline:. python -m pytest lean-pipeline/core_engine/tests/obse
 PYTHONPATH=lean-pipeline:. python benchmarking/benchmark/run_lean.py --all
 ```
 
-## Motadata Lean RCA API
+## ObserveOps Lean RCA API
 
 The public package is `lean_rca`. It resolves the bundled ObserveOps corpus
 from `repo_paths.OBSERVEOPS_CORPUS`, or from `OBSERVEOPS_CORPUS` when set.

@@ -1,0 +1,146 @@
+{
+  "mode": "option_b_convention_gt",
+  "labeling_mode": "solo_dual_pass",
+  "labeling_note": "Completed solo because other engineers unavailable. Dual-pass by same reviewer; replace with independent A/B humans when available.",
+  "sample_size": 12,
+  "final_count": 12,
+  "accuracy_eligible": 10,
+  "ambiguous_excluded": 2,
+  "corpus": "/root/Harshil-PoCs/Unified-RCA/datasets/openobserve_incidents/v1",
+  "rubric": "datasets/openobserve_incidents/v1/ground_truth/README.md",
+  "labeled_at": "2026-07-15T07:33:28Z",
+  "items": [
+    {
+      "id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
+      "title": "cio_host_cpu_high",
+      "stratum": "decoy_multi_cpu_title_storage",
+      "status": "final",
+      "root_layer": "storage",
+      "root_alert": "cio_disk_io_stall",
+      "confidence": "confident",
+      "include_in_accuracy": true,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3GAjVpGX95c6Sr0X6kpdEn0YI9g.json"
+    },
+    {
+      "id": "3GARI4ZcuhvZSBauIl4tLhBeH5N",
+      "title": "ecom_checkout_slo_breach",
+      "stratum": "decoy_multi_slo_title_dns_topo",
+      "status": "final",
+      "root_layer": "dns",
+      "root_alert": "ecom_dns_aaaa_numa",
+      "confidence": "confident",
+      "include_in_accuracy": true,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3GARI4ZcuhvZSBauIl4tLhBeH5N.json"
+    },
+    {
+      "id": "3GARrIHDnfvHKz3jTKUoeQNwHjw",
+      "title": "ecom_checkout_slo_breach",
+      "stratum": "decoy_multi_lean_fed_disagree_oo",
+      "status": "final",
+      "root_layer": "dns",
+      "root_alert": "ecom_dns_aaaa_numa",
+      "confidence": "confident",
+      "include_in_accuracy": true,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3GARrIHDnfvHKz3jTKUoeQNwHjw.json"
+    },
+    {
+      "id": "3GAYuTBAC1zaXtslES1iFWh5yKA",
+      "title": "sa_upload_slo",
+      "stratum": "decoy_multi_slo_filesystem",
+      "status": "final",
+      "root_layer": "filesystem",
+      "root_alert": "sa_inode_high",
+      "confidence": "confident",
+      "include_in_accuracy": true,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3GAYuTBAC1zaXtslES1iFWh5yKA.json"
+    },
+    {
+      "id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "title": "net_link_saturation",
+      "stratum": "multi_network_topo",
+      "status": "final",
+      "root_layer": "network",
+      "root_alert": "net_link_saturation",
+      "confidence": "confident",
+      "include_in_accuracy": true,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3GAKkjsKwCe0m9Y9k6qzqN6hJ8N.json"
+    },
+    {
+      "id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+      "title": "pgw_checkout_tps_drop",
+      "stratum": "multi_firewall_topo",
+      "status": "final",
+      "root_layer": "firewall",
+      "root_alert": "pgw_fw_443_denies",
+      "confidence": "confident",
+      "include_in_accuracy": true,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3GAmXmWYoBO6IY4q1ji0QzCl3CG.json"
+    },
+    {
+      "id": "3G8HsK79FfddyepBxqtx6OmeTIQ",
+      "title": "starter_high_cpu",
+      "stratum": "single_no_narrative_cpu",
+      "status": "final",
+      "root_layer": "compute",
+      "root_alert": "starter_high_cpu",
+      "confidence": "ambiguous",
+      "include_in_accuracy": false,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3G8HsK79FfddyepBxqtx6OmeTIQ.json"
+    },
+    {
+      "id": "3GA9Ehaso21qDpWNlx9B55mZWzZ",
+      "title": "database_down",
+      "stratum": "single_database_with_narrative",
+      "status": "final",
+      "root_layer": "database",
+      "root_alert": "database_down",
+      "confidence": "confident",
+      "include_in_accuracy": true,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3GA9Ehaso21qDpWNlx9B55mZWzZ.json"
+    },
+    {
+      "id": "3GABGbdhy3cIOxLutKax6lC87qK",
+      "title": "db_primary_down",
+      "stratum": "single_db_lean_fed_disagree_oo",
+      "status": "final",
+      "root_layer": "database",
+      "root_alert": "db_primary_down",
+      "confidence": "ambiguous",
+      "include_in_accuracy": false,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3GABGbdhy3cIOxLutKax6lC87qK.json"
+    },
+    {
+      "id": "3GAJqvDUEt9zeZqtY0hlZRDtIDy",
+      "title": "orders_service_surge on app-prod-01",
+      "stratum": "single_app_surge_vs_db_layer",
+      "status": "final",
+      "root_layer": "application",
+      "root_alert": "orders_service_surge",
+      "confidence": "confident",
+      "include_in_accuracy": true,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3GAJqvDUEt9zeZqtY0hlZRDtIDy.json"
+    },
+    {
+      "id": "3GAShBeLwPjoysc3uGDATR5XAiZ",
+      "title": "ecom_dns_aaaa_numa on dns-resolver",
+      "stratum": "single_dns",
+      "status": "final",
+      "root_layer": "dns",
+      "root_alert": "ecom_dns_aaaa_numa",
+      "confidence": "confident",
+      "include_in_accuracy": true,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3GAShBeLwPjoysc3uGDATR5XAiZ.json"
+    },
+    {
+      "id": "3GAYvCuRe6l8hqwpyJIOncHvw0m",
+      "title": "sc_latency_slo",
+      "stratum": "multi_app_slo_lean_fed_disagree_oo",
+      "status": "final",
+      "root_layer": "application",
+      "root_alert": "redis-node-3",
+      "confidence": "confident",
+      "include_in_accuracy": true,
+      "path": "datasets/openobserve_incidents/v1/ground_truth/3GAYvCuRe6l8hqwpyJIOncHvw0m.json"
+    }
+  ]
+}

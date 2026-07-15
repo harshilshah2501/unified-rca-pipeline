@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GAShBeLwPjoysc3uGDATR5XAiZ",
+  "title": "ecom_dns_aaaa_numa on dns-resolver",
+  "status": "final",
+  "stratum": "single_dns",
+  "root_layer": "dns",
+  "root_alert": "ecom_dns_aaaa_numa",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Single DNS AAAA P99 latency alert on dns-resolver / NP-17 with NUMA/IRQ correlation. No competing title decoy; root is DNS.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "dns",
+      "root_alert": "ecom_dns_aaaa_numa",
+      "confidence": "confident",
+      "evidence_note": "Direct DNS fault signal.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "dns",
+      "root_alert": "ecom_dns_aaaa_numa",
+      "confidence": "confident",
+      "evidence_note": "Agree dns / ecom_dns_aaaa_numa.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T07:33:28Z",
+    "notes": "Solo Option-B exercise: dual-pass by same reviewer (pass A evidence-first, pass B decoy-check). Agreed. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "ecom_dns_aaaa_numa"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "dns",
+    "lean_root": "ecom_dns_aaaa_numa",
+    "federated_layer": "dns",
+    "federated_root": "ecom_dns_aaaa_numa",
+    "openobserve_layer": "dns",
+    "openobserve_root": "ecom_dns_aaaa_numa",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "A recent node-image update on NP-17 modified interrupt (IRQ) handling, causing RX-queue-7 to traverse high-latency cross-NUMA memory paths. IPv6 DNS queries for payments.provider.com now incur 3,200+ ms latency (40\u00d7 baseline), triggering pa",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

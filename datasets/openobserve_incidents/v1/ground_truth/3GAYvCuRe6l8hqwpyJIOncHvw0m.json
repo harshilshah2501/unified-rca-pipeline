@@ -1,0 +1,54 @@
+{
+  "incident_id": "3GAYvCuRe6l8hqwpyJIOncHvw0m",
+  "title": "sc_latency_slo",
+  "status": "final",
+  "stratum": "multi_app_slo_lean_fed_disagree_oo",
+  "root_layer": "application",
+  "root_alert": "redis-node-3",
+  "contributor_alerts": [
+    "sc_db_cpu",
+    "sc_latency_slo"
+  ],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "SLO alert documents ROOT CAUSE: redis-node-3 FAIL \u2192 cache hit collapse \u2192 catalog-db QPS stampede \u2192 DB CPU ~95% \u2192 latency. sc_db_cpu is explicit victim; do not crown DB or SLO title. No redis alert in triggers \u2014 use CI id redis-node-3 per rubric.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "application",
+      "root_alert": "redis-node-3",
+      "confidence": "confident",
+      "evidence_note": "Alert text root is cache node failure, not DB.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "application",
+      "root_alert": "redis-node-3",
+      "confidence": "confident",
+      "evidence_note": "DB CPU is victim; primary CI redis-node-3; layer application (cache service).",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T07:33:28Z",
+    "notes": "Solo Option-B exercise: dual-pass by same reviewer (pass A evidence-first, pass B decoy-check). Agreed application / redis-node-3; layer enum has no cache \u2014 application is closest. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "sc_db_cpu",
+    "sc_latency_slo"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "unknown",
+    "lean_root": "sc_latency_slo",
+    "federated_layer": "unknown",
+    "federated_root": "sc_latency_slo",
+    "openobserve_layer": "application",
+    "openobserve_root": "sc_latency_slo",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "Redis-node-3 cache node failure caused cache hit ratio to collapse from 98% to 68%, forcing catalog-db to handle 3x normal query load (4,000\u219212,700 qps), saturating CPU to 96.1% and injecting 2+ second query latencies; latency SLO breach (p",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

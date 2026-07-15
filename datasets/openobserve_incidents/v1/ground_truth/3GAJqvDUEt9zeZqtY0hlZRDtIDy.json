@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GAJqvDUEt9zeZqtY0hlZRDtIDy",
+  "title": "orders_service_surge on app-prod-01",
+  "status": "final",
+  "stratum": "single_app_surge_vs_db_layer",
+  "root_layer": "application",
+  "root_alert": "orders_service_surge",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Alert states orders-service traffic surge (active users >3000) driving DB load. Root is application demand surge, not a primary DB outage.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "application",
+      "root_alert": "orders_service_surge",
+      "confidence": "confident",
+      "evidence_note": "Surge is the cause; DB load is effect.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "application",
+      "root_alert": "orders_service_surge",
+      "confidence": "confident",
+      "evidence_note": "Do not re-label as database solely because DB is mentioned.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T07:33:28Z",
+    "notes": "Solo Option-B exercise: dual-pass by same reviewer (pass A evidence-first, pass B decoy-check). Agreed application / orders_service_surge. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "orders_service_surge"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "unknown",
+    "lean_root": "orders_service_surge",
+    "federated_layer": "unknown",
+    "federated_root": "orders_service_surge",
+    "openobserve_layer": "database",
+    "openobserve_root": "orders_service_surge",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "PostgreSQL database connection pool exhaustion on pg-prod-01 during load surges (~5,250 concurrent users), causing the database to enter recovery mode and reject new connections. The orders-service connection pool (500 connections) was unde",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

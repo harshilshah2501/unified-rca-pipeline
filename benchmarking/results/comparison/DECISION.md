@@ -1,4 +1,4 @@
-# Motadata ObserveOps — Engine Decision
+# ObserveOps — Engine Evaluation Memo
 
 **Date:** 2026-07-13  
 **Corpus:** [`rca-use-cases-only.md`](../../../docs/rca-use-cases-only.md) → `datasets/observeops/`  
@@ -7,9 +7,9 @@
 **ADR:** [`docs/ADR-001-lean-primary-engine.md`](../../../docs/ADR-001-lean-primary-engine.md)  
 **Decision guide:** [`docs/README.md`](../../../docs/README.md#lean-vs-federated--design-choice--decision-guide)
 
-## Recommendation
+## Recommendation (corpus-scoped; not finalized)
 
-**Primary engine for Motadata ObserveOps (UC-1..UC-5): lean.**
+**On ObserveOps UC-1..UC-5, bakeoff evidence favors lean** for further classic-infra evaluation. Federated stays a valid comparator and optional hybrid candidate.
 
 Both engines are **5/5** on root-CI and signature accuracy. Lean wins on the remaining axes that matter for this corpus:
 
@@ -25,10 +25,10 @@ Both engines are **5/5** on root-CI and signature accuracy. Lean wins on the rem
 
 1. **Reproducibility** — Gibbs / synthetic store paths still produce multi-hash runs on some UCs.
 2. **Cost / complexity** — Panorama + Murphy + Nezha + dual tiers for layers lean already resolves on a typed CI graph (**Roadblock 1b** + **Roadblock 5**).
-3. **Motadata fit** — classic infra tickets prioritize bit-stable, auditable answers over fleet-wide structural causation.
+3. **ObserveOps fit** — classic infra tickets prioritize bit-stable, auditable answers over fleet-wide structural causation.
 4. **Fair scoring already exists** — **Roadblock 4** is handled by corpus convention (shared GT + matched bakeoff); Murphy CV does not improve top-1 accuracy on that contract.
 
-Murphy’s causal-inference edge is real; it loses the Motadata cost–benefit when Reproducibility, Verifiability, Roadblock **4** (fair GT bakeoff already in place), and Roadblock **5** dominate. Details: [docs/README.md decision guide](../../../docs/README.md#lean-vs-federated--design-choice--decision-guide).
+Murphy’s causal-inference edge is real; it loses the ObserveOps cost–benefit when Reproducibility, Verifiability, Roadblock **4** (fair GT bakeoff already in place), and Roadblock **5** dominate. Details: [docs/README.md decision guide](../../../docs/README.md#lean-vs-federated--design-choice--decision-guide).
 
 ## Hybrid (optional, later)
 

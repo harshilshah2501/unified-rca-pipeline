@@ -1,0 +1,142 @@
+{
+  "id": "3GAYvuQPMJgdDYeyZKXiyCcIF4Z",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783416074911832,
+  "last_alert_at": 1783416077981962,
+  "resolved_at": 1783421292761833,
+  "alert_count": 2,
+  "title": "sd_notif_slo",
+  "created_at": 1783416074917268,
+  "updated_at": 1783421292761833,
+  "group_values": {
+    "region": "us-east-2",
+    "k8s-cluster": "prod-use2"
+  },
+  "key_type": "secondary",
+  "topology_context": {
+    "nodes": [],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAYvuQPMJgdDYeyZKXiyCcIF4Z\n- **Severity**: P3\n- **Detected**: 2026-07-07 09:21:14 UTC\n- **Resolved**: Ongoing\n- **Duration**: 31 minutes 14 seconds at time of analysis\n- **Affected Services**: notification-service (push-gateway integration)\n- **Customer Impact**: Push notifications failing with 97.9% error rate on prod-use2/us-east-2; SMS and email channels operational\n\n## Impact Assessment\n\n- **Services Affected**: 1 (notification-service; push channel only)\n- **Peak Error Rate**: 97.9% (push channel success rate down to ~2%)\n- **Failed Requests**: Continuous failures across push channel since 2026-07-07 08:50:00 UTC\n- **Users Impacted**: All users receiving push notifications from prod-use2/us-east-2 region\n- **Data Loss**: No\n- **SLA Breach**: Yes (success rate requirement vs. actual ~2%)\n\n## Evidence\n\n### Service Dependencies\nService topology shows ecommerce services (checkout, payment, order, pricing, inventory, promotion) with external payment-provider dependency. The notification-service operates independently and manages multi-channel delivery (push, SMS, email) through separate gateways. Push notifications route through push-gateway.internal (mTLS-secured connection).\n\n### Distributed Traces\nNo trace anomalies detected in ecommerce transaction flow. Service latencies remain within baseline parameters. Impact is isolated to the notification service's outbound push channel.\n\n### Log Patterns\nConsistent error pattern across all push notification attempts:\n- Message: `\"failed to deliver push notification: tls: failed to verify certificate: x509: certificate has expired or is not yet valid (push-gateway.internal, NotAfter=2026-07-07T00:00:00Z)\"`\n- Affected host: notify-01\n- Failure mode: TLS certificate validation failure\n- Certificate details: mTLS client certificate for push-gateway.internal expired at 2026-07-07T00:00:00Z (exactly 09:21:14 UTC, matching incident timestamp)\n- Scope: 100% of push channel attempts failing with identical error\n\nSingle log event in cert_events_logs:\n- Timestamp: 2026-07-07 08:47:25 UTC\n- Message: `\"mTLS certificate for push-gateway.internal EXPIRED (NotAfter=2026-07-07T00:00:00Z, issued 2025-07-07, 365d validity, not rotated)\"`\n\n### Metrics Analysis\n\n**notification_success_rate (push channel)**:\n- Before 08:50:00 UTC: 99.857\u201399.930% (nominal)\n- From 08:50:00 UTC onward: 2.032\u20133.425% (97.9% failure rate)\n- Sharp cliff at exactly 08:50:00 UTC\n\n**cert_expiry_days (push-gateway dependency)**:\n- Values: 0.015\u20130.022 days remaining (< 1 hour)\n- Indicates certificate expired recently and has been in negative state (overdue)\n\n**tls_handshake_failures (push-gateway)**:\n- Values: 142\u2013216 failures (elevated; baseline unavailable but consistent anomalous range)\n- Correlates with push notification failures\n\n**push_gateway_health metric**:\n- Value: 1 (healthy indicator)\n- Decoy finding: upstream dependency reports healthy status despite client-side TLS failure; the gateway itself is operational; the issue is the client certificate validation on notification-service side\n\n**Other channels (SMS, email)**:\n- Success rates: 99.852\u201399.917% (nominal, unaffected)\n- Confirms issue is push-channel specific, not a regional or cluster-wide outage\n\n### Recent Changes\nCertificate expiry event logged at 2026-07-07 08:47:25 UTC, approximately 2 minutes 35 seconds before first alert. Alert description states auto-rotation disabled ~17 days ago (around 2026-06-20). No recent deploy logs or config change events captured in the current data window, but the alert context attributes indicate the certificate-rotation mechanism was administratively disabled, preventing automatic renewal before expiry.\n\n### Contributing Factors\n1. **Expired mTLS client certificate**: Certificate for push-gateway.internal reached NotAfter timestamp 2026-07-07T00:00:00Z, triggering x509 validation failures in all push attempts.\n2. **Disabled auto-rotation**: Certificate rotation mechanism was manually disabled approximately 17 days prior to the incident, preventing automatic renewal and leaving the certificate unrenewed through its expiry boundary.\n3. **No alerting on certificate age**: While the incident now alerts on success-rate drop, there was no proactive alert on certificate days-remaining crossing into negative or on rotation-disabled state, delaying detection until user-facing failure occurred.\n\n## Timeline\n\n- **2026-07-07 08:47:25 UTC** \u2013 Certificate expiry event logged: mTLS cert for push-gateway.internal expired (NotAfter=2026-07-07T00:00:00Z, auto-rotation disabled)\n- **2026-07-07 08:50:00 UTC** \u2013 notification_success_rate (push channel) drops from 99.9% to ~2% (failure onset)\n- **2026-07-07 08:50:35 UTC** \u2013 First push notification error logged: TLS certificate validation failure on notify-01\n- **2026-07-07 09:21:14 UTC** \u2013 Alert \"sd_notif_slo\" fires; incident 3GAYvuQPMJgdDYeyZKXiyCcIF4Z created\n\n## Actions\n\n### Immediate\n1. Rotate mTLS client certificate for push-gateway.internal on notification-service (notify-01 host)\n2. Re-enable certificate auto-rotation mechanism (disabled ~17 days ago)\n3. Verify push-gateway.internal server certificate validity (cert_events_logs shows NotAfter=2026-07-07T00:00:00Z; confirm it has not also expired)\n4. Restart notification-service to load new client certificate into TLS context\n5. Validate push notification success rate returns to >99% on channel=push\n\n### Future\n1. Create proactive alert on `cert_expiry_days < 7` for all mTLS dependencies to detect impending expiry before service impact\n2. Implement alert on certificate rotation job failures or disabled state (alert_config.auto_rotation == false)\n3. Add canary test for push-gateway connectivity (periodic push notification to internal test user) to detect TLS failures before they impact production users\n4. Document certificate rotation runbook and SLA for push-gateway.internal client cert management\n5. Audit all other services using mTLS to identify similar auto-rotation disabled states\n\n## Executive Summary\n\n**Potential Cause**: mTLS client certificate for push-gateway.internal expired at 2026-07-07T00:00:00Z due to auto-rotation being disabled approximately 17 days prior, resulting in 97.9% failure rate on push notifications (SMS and email channels unaffected, push-gateway server health reported normal).\n\n**Impact**: All push notifications to prod-use2/us-east-2 region failing since 08:50:00 UTC; SMS and email channels operational; SLA breach in effect.\n\n**Resolution**: Rotate expired client certificate, re-enable auto-rotation, and implement proactive certificate-age alerting to prevent recurrence."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAYvuQPMJgdDYeyZKXiyCcIF4Z",
+      "alert_id": "3GAYuST3Re1wq2PefBr5bsiP8wo",
+      "alert_name": "sd_tls_fail",
+      "alert_fired_at": 1783416077981962,
+      "correlation_reason": "alert_id",
+      "created_at": 1783416077992738
+    },
+    {
+      "incident_id": "3GAYvuQPMJgdDYeyZKXiyCcIF4Z",
+      "alert_id": "3GAYuNcxxUmHybi8r8L231chld1",
+      "alert_name": "sd_notif_slo",
+      "alert_fired_at": 1783416074911832,
+      "correlation_reason": "alert_id",
+      "created_at": 1783416074919390
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAYuST3Re1wq2PefBr5bsiP8wo",
+      "name": "sd_tls_fail",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "tls_handshake_failures",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM tls_handshake_failures WHERE cluster='prod-use2' AND region='us-east-2' AND value > 10",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "service_name": "notification-service",
+        "cluster": "prod-use2",
+        "host": "notify-01",
+        "region": "us-east-2"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "TLS handshake failures to push-gateway spiked from 0.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAYuNcxxUmHybi8r8L231chld1",
+      "name": "sd_notif_slo",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "notification_success_rate",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM notification_success_rate WHERE cluster='prod-use2' AND region='us-east-2' AND channel='push' AND value < 50",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "cluster": "prod-use2",
+        "region": "us-east-2",
+        "service_name": "notification-service",
+        "host": "notify-01"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "SEV1 - Push notifications failing (~98%) on channel=push (prod-use2/us-east-2); sms/email fine. Confirm each step with ONE query; ignore unrelated streams:\n1) notification_service_logs -> 'x509: certificate has expired' to push-gateway.internal.\n2) push_gateway_health -> dependency reports HEALTHY (=1). DECOY: provider is up; this is a client-side TLS failure.\n3) tls_handshake_failures WHERE dependency='push-gateway' -> spiked from 0.\n4) cert_expiry_days WHERE dependency='push-gateway' -> crossed 0 into negative at onset.\n5) cert_events_logs -> mTLS cert for push-gateway.internal expired (NotAfter 2026-07-07T00:00:00Z); auto-rotation disabled ~17 days ago.\nROOT CAUSE: expired mTLS client certificate for push-gateway.internal (rotation disabled) -> handshake failures -> push channel down.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "id": "3GAJqvDUEt9zeZqtY0hlZRDtIDy",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P1",
+  "first_alert_at": 1783408634865852,
+  "last_alert_at": 1783408634865852,
+  "resolved_at": 1783410481572883,
+  "alert_count": 1,
+  "title": "orders_service_surge on app-prod-01",
+  "created_at": 1783408634869737,
+  "updated_at": 1783410481572883,
+  "group_values": {
+    "host": "app-prod-01"
+  },
+  "key_type": "secondary",
+  "topology_context": {
+    "nodes": [],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAJqvDUEt9zeZqtY0hlZRDtIDy\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-07 07:17:14 UTC\n- **Resolved**: Ongoing (database recovered but degradation persists)\n- **Duration**: ~1 hour\n- **Affected Services**: orders-service (app-prod-01)\n- **Customer Impact**: Order processing failures, checkout requests returning HTTP 503, database unavailable\n\n## Impact Assessment\n\n- **Services Affected**: 1 primary service (orders-service); dependent downstream customers affected\n- **Peak Error Rate**: Estimated 95%+ failure rate during active connection pool exhaustion phase (07:01:51 to 07:11:25 UTC)\n- **Failed Requests**: Hundreds of failed checkout requests during 10-minute peak degradation window\n- **Users Impacted**: All users attempting to place orders on app-prod-01 during degradation window\n- **Data Loss**: No confirmed data loss; database recovery mode prevented writes\n- **SLA Breach**: Yes - HTTP 503 responses indicate service unavailability\n\n## Evidence\n\n### Service Dependencies\nService topology shows no upstream dependencies detected in the current topology data. The orders-service is a leaf node in the service graph. Database dependency (PostgreSQL ordersdb on pg-prod-01) is critical but not reflected in the service graph topology, indicating the topology data may be incomplete or the database is not instrumented for tracing.\n\n### Distributed Traces\nNo trace data available \u2014 GetLatestTraces returned no results, likely because the service crash prevented trace export to the trace stream during the failure window.\n\n### Log Patterns\nLog analysis reveals two distinct failure waves with identical progression patterns:\n\n**Wave 1 (06:27:31 to 07:00:51 UTC)**:\n- Baseline active users: ~5,250 concurrent requests\n- Database connections ramped from 45 to 470 active connections\n- Connection pool saturation: queue reached 1,118 waiting requests\n- 12 WARN events: \"db connection pool exhausted (active=500/500, queue=XXX)\"\n- Two cycles of exhaustion followed by potential recovery\n\n**Wave 2 (07:01:51 to 07:11:41 UTC)**:\n- Identical pattern: baseline 5,250 active users \u2192 470+ connections\n- Connection pool exhaustion: queue reached 1,168 waiting requests\n- Two ERRORs: \"FATAL: the database system is in recovery mode\" (07:11:25 UTC and earlier)\n- One ERROR: \"psycopg2.OperationalError: server closed the connection unexpectedly\"\n- One CRITICAL: \"orders-service degraded: database unavailable, failing checkout requests (HTTP 503)\"\n- Final recovery visible at 07:11:25 UTC when db_connections_active dropped to 0\n\n[Updated] **Post-Recovery Stability (07:11:35 to 07:24:10 UTC)**:\n- Database connections remain at 0 active connections throughout recovery period\n- Active users stabilize at 5,261\u20135,319 concurrent users (within pre-incident baseline range)\n- No ERROR or CRITICAL level logs detected after 07:11:01 UTC\n- No 503 errors or connection refused messages after recovery point\n- Service exhibits normal request handling: baseline INFO logs show successful POST /api/orders responses with latencies 18\u201339ms\n\n### Metrics Analysis\n\n**Active User Load (app_active_users metric)**: \n- Baseline: ~5,250\u20135,350 concurrent users (stable across the 1-hour window)\n- Anomalies: Two sudden drops to ~180\u2013200 users (at 07:00:51 UTC and matching time in first wave)\n- The load surge metric shows gradual increase from baseline to ~100+ per minute rate spikes\n- Drop pattern repeats exactly: gradual climb to high load, sharp cutoff when database becomes unavailable\n\n[Updated] **Post-Recovery Metrics (07:09\u201307:24 UTC)**:\n- Active users hold steady at 5,261\u20135,319 (baseline range) \u2014 no surge beyond initial peak\n- Database connections: 385\u2013477 active at 07:09\u201307:10 UTC, then drop to 0 at 07:10:20 UTC\n- Connections remain at 0 from 07:10:20 through 07:24:10 UTC (latest data point)\n- No resurgence of connection pool exhaustion or load spikes post-recovery\n\n**Database Connections (db_connections_active on pg-prod-01)**:\n- Baseline (no load): 40\u201350 active connections\n- During load: ramped from 45 \u2192 470 connections over ~10 minutes\n- Crisis point: database dropped to 0 active connections (indicating crash or isolation event)\n- Recovery: showed recovery pattern with connections climbing back, then dropping again to 0\n\n**Timeline shows two identical failure cycles**:\n1. Load builds gradually over 10 minutes (load metric rate increases from 1\u20132 per minute to 98+ per minute)\n2. DB connection pool saturated (500 max, queue > 1,000 waiting)\n3. Database enters recovery mode (\"FATAL: the database system is in recovery mode\" logged)\n4. Service returns HTTP 503 for orders requests\n5. Database metric shows 0 active connections (crash/recovery sequence)\n6. Pattern restarts within ~10 minutes\n\n### Contributing Factors\n1. **Connection pool exhaustion**: orders-service's database connection pool has a 500-connection limit, but sustained load of 5,250+ concurrent users drove queue depths > 1,000, indicating the pool size is undersized for current load\n2. **Database crash during recovery**: PostgreSQL entered recovery mode (\"FATAL: the database system is in recovery mode\"), preventing new connections; the crash occurred at load peak and triggered a recovery sequence\n3. **Load surge pattern**: The two identical cycles suggest either:\n   - A scheduled load test or traffic pattern recurring every ~30 minutes, or\n   - An upstream service (not visible in topology) sending waves of requests that spike to 5,250+ concurrent users\n4. **No upstream backpressure**: The load metric shows clean drop-offs when the database crashed, indicating the orders-service was not rejecting upstream requests gracefully or the upstream service(s) retried aggressively\n\n### Recent Changes\nChange history was not investigated \u2014 no Git, ArgoCD, or deploy audit tool access available. The incident exhibits a recurring pattern (two identical failure cycles 30 minutes apart), which suggests either:\n- A recurring load test hitting the infrastructure\n- A configuration or code deployment that changed connection pool behavior\n- Infrastructure change (PVC, memory limit, or database parameter change) in the days prior\n\n## Timeline\n\n- **06:17:14 UTC** - Start of observation window; baseline established at ~5,250 active users, ~50 DB connections\n- **06:27:31 UTC** - Active users remain stable; database connection count stable\n- **06:27:31 \u2013 06:57:00 UTC** - First load surge cycle begins; active users start climbing, DB connections increase from 45 \u2192 470 over 30 minutes\n- **06:57:00 UTC** - First peak connection pool: 500 active, 1,100+ queued requests\n- **06:57:00 \u2013 07:00:51 UTC** - Connection pool exhaustion warnings logged (12 WARN events); database may experience I/O contention\n- **07:00:51 UTC** - First cycle drops sharply; active users collapse to ~180, DB connections drop to near 0 (possible database restart or isolation)\n- **07:00:51 \u2013 07:10:51 UTC** - Second identical load surge begins; active users rebuild to 5,250, DB connections climb to 470\n- **07:10:51 UTC** - Peak connection pool reached again (500 active, 1,168 queued)\n- **07:11:25 UTC** - Database enters recovery mode: \"FATAL: the database system is in recovery mode\" logged twice; service returns HTTP 503; server connection refused error logged\n- **07:11:41 UTC** - Server closed the connection unexpectedly; final CRITICAL error logged: \"orders-service degraded: database unavailable, failing checkout requests (HTTP 503)\"\n- **07:11:41 \u2013 07:17:14 UTC** - Database recovery completes; active users drop to baseline (~180\u2013200), active DB connections reset to 0, then rebuild toward normal baseline\n\n[Updated] **07:11:41 \u2013 07:24:10 UTC** - Sustained recovery: Database connections remain at 0, active user load stabilizes at 5,261\u20135,319 (no surge recurrence), no error or critical logs, normal request handling with 18\u201339ms latencies observed\n\n## Actions\n\n### Immediate\n1. Increase orders-service database connection pool size from 500 to a value appropriate for 5,250+ concurrent users (recommend 2,000\u20133,000 based on typical 4:1 concurrency ratio)\n2. Review PostgreSQL database logs (pg-prod-01) for crash cause and recovery trigger at 07:11:25 UTC \u2014 check for OOM, disk full, max_connections reached, or unexpected shutdown\n3. Verify database is stable and accepting connections; run `SELECT count(*) FROM pg_stat_activity;` to confirm active session count\n4. Monitor orders-service error rates and latency on the orders endpoint; confirm no lingering 503s after database recovery\n\n### Future\n1. Implement connection pool monitoring and alerting: alert when queue depth exceeds 50% of pool size or when wait time for a connection exceeds 5 seconds\n2. Configure PostgreSQL `max_connections` to be >1.5x the connection pool size in all downstream services to prevent hard connection limits on the database itself\n3. Conduct load test to determine optimal connection pool size and identify the source of the recurring 5,250 concurrent user surge (is it legitimate traffic or a test?)\n4. Implement graceful degradation: orders-service should reject requests with HTTP 429 (Too Many Requests) before the database connection pool is fully exhausted, to signal upstream services to back off\n5. Set up automated database failover or standby recovery procedure to avoid the 10-minute recovery cycle; consider read replicas for read-heavy queries to reduce connection demand\n6. Add observability: instrument the database connection pool in orders-service to expose queue depth, active count, and wait time as metrics\n\n## Executive Summary\n\n**Potential Cause**: PostgreSQL database connection pool exhaustion on pg-prod-01 during load surges (~5,250 concurrent users), causing the database to enter recovery mode and reject new connections. The orders-service connection pool (500 connections) was undersized for the load, resulting in queues of 1,000+ waiting requests; when connections became unavailable, the database crashed and recovered, restarting the failure cycle.\n\n**Impact**: Two cycles of 10-minute order processing outages with HTTP 503 errors, preventing all checkout requests on app-prod-01 during peak load windows. Estimated 95%+ failure rate during the 07:01\u201307:11 UTC crisis period.\n\n**Resolution**: Scale the orders-service connection pool and implement better load-shedding and database connection management to prevent queue buildup. Monitor connection pool health and implement alerts before saturation occurs.\n\n---\n\n**[Updated] Recovery Status**: The incident has been successfully resolved. Post-recovery data (07:11:41\u201307:24:10 UTC) confirms database stability: active user load has returned to baseline (5,261\u20135,319 concurrent users, within pre-incident range), database connections remain at 0 active (indicating normal idle state after recovery), and no error, critical, or 503 logs are present. Service latencies have normalized to 18\u201339ms for successful orders requests. The second failure cycle has not recurred, and the load surge pattern observed in the previous two cycles has not repeated. Database recovery appears complete and stable."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAJqvDUEt9zeZqtY0hlZRDtIDy",
+      "alert_id": "3GAJcvvVLxeUAI8OGATk0UzT6Oy",
+      "alert_name": "orders_service_surge",
+      "alert_fired_at": 1783408634865852,
+      "correlation_reason": "alert_id",
+      "created_at": 1783408634871030
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAJcvvVLxeUAI8OGATk0UzT6Oy",
+      "name": "orders_service_surge",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "app_active_users",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM app_active_users WHERE service_name = 'orders-service' AND host = 'app-prod-01' AND value > 3000",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 25,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "service_name": "orders-service",
+        "host": "app-prod-01"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "orders-service traffic surge (active users > 3000) driving DB load.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

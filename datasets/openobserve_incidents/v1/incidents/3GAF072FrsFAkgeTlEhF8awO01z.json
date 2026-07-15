@@ -1,0 +1,76 @@
+{
+  "id": "3GAF072FrsFAkgeTlEhF8awO01z",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783406240002446,
+  "last_alert_at": 1783406240002446,
+  "resolved_at": 1783408522194911,
+  "alert_count": 1,
+  "title": "pg_ordersdb_down",
+  "created_at": 1783406240010587,
+  "updated_at": 1783408522194911,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAF072FrsFAkgeTlEhF8awO01z\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-01-15 14:30:40 UTC (14:30:40 UTC)\n- **Resolved**: Ongoing\n- **Duration**: Ongoing since first alert\n- **Affected Services**: postgres-primary (ordersdb), orders-service\n- **Customer Impact**: Orders checkout service degraded; database unavailable; HTTP 503 errors returned to customers\n\n## Impact Assessment\n\n- **Services Affected**: 2 (postgres-primary, orders-service)\n- **Peak Error Rate**: 100% (all checkout requests failing after postgres crash)\n- **Failed Requests**: Hundreds of checkout requests queued and failed after 1783405881 UTC\n- **Users Impacted**: All orders-service customers attempting checkout during the outage\n- **Data Loss**: No (database was in recovery mode, not corrupted)\n- **SLA Breach**: Yes (checkout service unavailable for sustained period)\n\n## Evidence\n\n### Service Dependencies\nThe incident topology reveals a simple dependency chain:\n- **orders-service** \u2192 depends on \u2192 **postgres-primary** (database: ordersdb)\n\nThe orders-service calls postgres-primary for all checkout operations. When postgres-primary fails, orders-service immediately enters a degraded state and returns HTTP 503 errors.\n\n### Distributed Traces\nTrace analysis shows a clear escalation pattern:\n- **Before 1783405877**: Traces show increasing latency in database operations (spans extending from ~40ms to ~900ms duration)\n- **At 1783405877** (trace ID: 073cde551e65b77767cfa5b82e31d5e8): Database span duration jumps to 918ms with incomplete spans (span count drops from 3 to 0), indicating transaction timeout or connection loss\n- **After 1783405881**: No successful traces; orders-service receives connection-refused errors\n\nThe trace pattern directly correlates with the database memory exhaustion and OOM kill.\n\n### Log Patterns\nThree coordinated error streams:\n\n**Postgres Memory Exhaustion (postgres_logs)**:\n- 1783405402\u20131783405860: Repeating \"out of memory\" errors requesting 2MB allocations in MessageContext\n- 1783405881: Kernel OOM killer fires: `Out of memory: Killed process 28471 (postgres) total-vm:8923412kB, anon-rss:7891844kB`\n- 1783405883: Database enters recovery mode: `FATAL: the database system is in recovery mode`\n\n**Application Connection Pool Saturation (app_logs, orders-service)**:\n- 1783405401\u20131783405859: Cascading \"db connection pool exhausted\" warnings (active=500/500, queue growing from 305 to 1124)\n- 1783405883\u20131783405901: Connection errors: `Connection refused`, `server closed the connection unexpectedly`\n- 1783405888: Critical alert: `orders-service degraded: database unavailable, failing checkout requests (HTTP 503)`\n\n**Memory Growth Trajectory (db_memory_usage_percent)**:\n- 1783405371: Memory usage at 51.83%\n- 1783405401: Memory usage at 53.53% \u2014 climbing begins\n- 1783405701: Memory usage at 81.71% \u2014 acceleration phase\n- 1783405851: Memory usage at 97.71% \u2014 peak before crash\n- 1783405881: Memory drops to 0% \u2014 process killed by kernel\n\n### Metrics Analysis\nThe db_up metric clearly marks the failure boundary:\n- 1783405851: db_up = 1 (last healthy reading)\n- 1783405881: db_up = 0 (first down reading)\n- 1783405911\u20131783406121: db_up = 0 (sustained outage during incident window)\n\nMemory exhaustion metrics show a **9-minute climb from ~45% to 98%** before OOM kill:\n- Linear growth rate: approximately 0.6% per 30-second interval\n- Acceleration phase after 1783405401: growth rate increases to ~1.2% per interval\n- Final 30 seconds (1783405851\u20131783405881): exceeds physical limit \u2192 kernel intervention\n\nDatabase query latency (evident in trace durations) increases proportionally with memory pressure:\n- Normal latency: 30\u201350ms\n- At 70% memory: 80\u2013110ms latency\n- At 90% memory: 900ms+ latency (connection timeouts)\n\n### Recent Changes\n**Change history not investigated \u2014 no Git/deploy audit tool available in this session.**\n\nHowever, the incident timeline strongly suggests this was triggered by a workload change rather than a code deploy:\n- Memory was stable at ~45% until ~1783405371\n- Smooth, continuous rise over 9 minutes indicates sustained increased query load or larger result sets\n- No sudden spikes (typical of code bugs); gradual saturation (typical of workload shift)\n\n### Contributing Factors\n\n1. **Insufficient Memory Limit on postgres-primary Container**\n   - Database memory usage climbed to 97.71% and hit OS limit\n   - No memory headroom for unexpected load spike\n   - Kernel OOM killer forcibly terminated postgres process (PID 28471)\n\n2. **Sustained High-Volume Query Load**\n   - Query load increased steadily over 9 minutes (~1783405371 to 1783405881)\n   - Connection pool at max capacity (500/500 active) by 1783405401\n   - Queue backed up to 1,124 pending connections\n   - Root cause of load increase: unknown without change history (could be promotional traffic, batch job, or client code change)\n\n3. **Connection Pool Exhaustion in orders-service**\n   - Application pool maxed at 500 connections with 1,000+ requests queued\n   - Database slowdown (due to memory pressure) prevents connection release\n   - Orders-service unable to acquire new connections; checkout requests queued then eventually fail\n\n4. **No Circuit Breaker / Failover**\n   - No replica fallback configured for ordersdb\n   - No graceful degradation; all checkout traffic directed to single postgres-primary instance\n   - When primary went down, 100% of checkout traffic failed immediately\n\n## Timeline\n\n- **14:27:31 (1783405251)** - Memory usage: 45.35% (baseline)\n- **14:29:11 (1783405351)** - Memory usage: 48.44% \u2014 gradual increase begins\n- **14:29:41 (1783405401)** - Memory usage: 53.53%; first \"db connection pool exhausted\" warning appears\n- **14:31:01 (1783405461)** - Memory usage: 59.94% \u2014 acceleration phase; connection queue growing\n- **14:32:51 (1783405571)** - Memory usage: 70.59% (interpolated); latency visibly increasing in traces (100ms+)\n- **14:34:21 (1783405661)** - Memory usage: 79.20% \u2014 repeated OOM errors in postgres logs\n- **14:35:51 (1783405751)** - Memory usage: 88.04% \u2014 database operations timing out; trace spans incomplete\n- **14:36:51 (1783405811)** - Memory usage: 94.02% \u2014 orders-service connection timeouts\n- **14:37:21 (1783405841)** - Memory usage: 97.71% \u2014 peak; postgres barely functional\n- **14:37:51 (1783405881)** - Kernel OOM killer fires; postgres process (PID 28471) terminated by signal 9\n- **14:37:52 (1783405882)** - `server process was terminated by signal 9: Killed`\n- **14:37:53 (1783405883)** - Database enters recovery mode; orders-service begins receiving connection-refused errors\n- **14:37:58 (1783405888)** - Critical log: `orders-service degraded: database unavailable, failing checkout requests (HTTP 503)`\n- **14:37:51\u201314:40:51 (1783405881\u20131783406051)** - db_up metric = 0; postgres-primary stays down\n- **14:40:40 (1783406240)** - Alert `pg_ordersdb_down` fires; incident created (INC ID: 3GAF072FrsFAkgeTlEhF8awO01z)\n\n## Actions\n\n### Immediate\n1. **Restart postgres-primary service** to bring ordersdb back online and restore checkout functionality\n2. **Investigate current memory limit and OS configuration** on pg-prod-01; increase container/process memory limit if insufficient\n3. **Drain and restart orders-service** instances to flush exhausted connection pools and restart the application\n4. **Check for active long-running queries** blocking connection release (may need explicit kill after restart)\n\n### Future\n1. **Implement connection pool monitoring and alerting** at 70% and 90% thresholds to catch saturation before OOM\n2. **Add circuit breaker pattern** in orders-service to detect database unavailability and fail fast (instead of queuing indefinitely)\n3. **Configure read replicas** for ordersdb and implement automatic failover to handle single-node failures\n4. **Set PostgreSQL work_mem or memory limits** per query to prevent unbounded memory consumption per session\n5. **Implement query timeout enforcement** (statement_timeout, lock_timeout) to prevent long-running queries from holding connections indefinitely\n6. **Add graceful degradation** \u2014 orders-service should return HTTP 503 immediately when connection pool exhausted, rather than queuing\n7. **Establish a runbook** for postgres OOM scenarios: pre-calculated safe limits, escalation procedures, automated monitoring dashboards\n8. **Review workload patterns** (via change history, app logs, or traffic analysis) to identify what triggered the load spike on 1783405371\n\n## Executive Summary\n\n**Potential Cause**: PostgreSQL primary database (postgres-primary, ordersdb) crashed due to out-of-memory (OOM) condition. Memory usage climbed from 45% to 98% over 9 minutes under sustained high query load, exceeded container limits, and triggered kernel OOM killer, forcibly terminating the postgres process. Database entered recovery mode. orders-service lost all connectivity, exhausted its 500-connection pool, and returned HTTP 503 errors to all checkout customers.\n\n**Impact**: Checkout service unavailable for all customers attempting to place orders during the outage. No data loss; database was in recovery mode rather than corrupted.\n\n**Resolution**: Restart postgres-primary to bring ordersdb back online. Increase memory limits on pg-prod-01 to accommodate the new workload baseline. Implement connection pool monitoring, circuit breakers, and read replicas to prevent recurrence."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAF072FrsFAkgeTlEhF8awO01z",
+      "alert_id": "3GAEzyX0a6V3So969Ek5ZeXWRa7",
+      "alert_name": "pg_ordersdb_down",
+      "alert_fired_at": 1783406240002446,
+      "correlation_reason": "alert_id",
+      "created_at": 1783406240012065
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAEzyX0a6V3So969Ek5ZeXWRa7",
+      "name": "pg_ordersdb_down",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "db_up",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM db_up WHERE value < 1",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 20,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "postgres-primary (ordersdb @ pg-prod-01) DOWN: db_up=0. Investigate postgres_logs, app_logs, and the default trace stream (orders-service -> postgres-primary).",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

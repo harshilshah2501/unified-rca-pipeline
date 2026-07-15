@@ -1,0 +1,770 @@
+{
+  "generated_at": "2026-07-15T07:39:57.261864+00:00",
+  "corpus": "/root/Harshil-PoCs/Unified-RCA/datasets/openobserve_incidents/v1",
+  "evaluation": {
+    "mode": "option_b_convention_gt_accuracy",
+    "baseline": "human_convention_root (solo dual-pass)",
+    "paper_analogy": "Murphy-style operator-decided baseline; not Nezha known-injected-service GT",
+    "accuracy_claimed": true,
+    "caveat": "Labels were solo dual-pass (same reviewer), not independent human A/B. Principle analyzers for Lean/Fed \u2014 not full typed-CI runners."
+  },
+  "summary": {
+    "sample_final": 12,
+    "accuracy_n": 10,
+    "excluded_n": 2,
+    "labeling_mode": "solo_dual_pass",
+    "methods": [
+      "lean",
+      "federated",
+      "openobserve"
+    ],
+    "layer_accuracy": {
+      "lean": 0.8,
+      "federated": 0.8,
+      "openobserve": 0.8
+    },
+    "root_alert_accuracy": {
+      "lean": 0.9,
+      "federated": 0.4,
+      "openobserve": 0.3
+    },
+    "both_hit_accuracy": {
+      "lean": 0.8,
+      "federated": 0.3,
+      "openobserve": 0.2
+    },
+    "layer_accuracy_multi": {
+      "lean": 0.8571,
+      "federated": 0.8571,
+      "openobserve": 0.8571
+    },
+    "root_accuracy_multi": {
+      "lean": 0.8571,
+      "federated": 0.1429,
+      "openobserve": 0.0
+    },
+    "layer_accuracy_single": {
+      "lean": 0.6667,
+      "federated": 0.6667,
+      "openobserve": 0.6667
+    },
+    "title_pick_on_eligible_multi": {
+      "lean": 0.2857,
+      "federated": 1.0,
+      "openobserve": 0.5714
+    },
+    "counts": {
+      "eligible_multi": 7,
+      "eligible_single": 3,
+      "lean_layer_hits": 8,
+      "fed_layer_hits": 8,
+      "oo_layer_hits": 8,
+      "lean_root_hits": 9,
+      "fed_root_hits": 4,
+      "oo_root_hits": 3
+    },
+    "ranking_by_layer_then_root": [
+      "lean",
+      "federated",
+      "openobserve"
+    ],
+    "best_on_convention_gt": "lean"
+  },
+  "excluded": [
+    {
+      "id": "3G8HsK79FfddyepBxqtx6OmeTIQ",
+      "title": "starter_high_cpu",
+      "reason": "Single stub alert (mock CPU>80); no co-firing signals, topology, or narrative. Convention root = title alert only \u2014 too thin for accuracy scoring.",
+      "confidence": "ambiguous"
+    },
+    {
+      "id": "3GABGbdhy3cIOxLutKax6lC87qK",
+      "title": "db_primary_down",
+      "reason": "Incident has empty triggers, empty alerts list, and no platform narrative \u2014 only title db_primary_down. Title-only convention; exclude from accuracy.",
+      "confidence": "ambiguous"
+    }
+  ],
+  "by_stratum": {
+    "decoy_multi_cpu_title_storage": {
+      "n": 1,
+      "lean_layer": 1,
+      "fed_layer": 1,
+      "oo_layer": 1,
+      "lean_root": 1,
+      "fed_root": 0,
+      "oo_root": 0
+    },
+    "decoy_multi_lean_fed_disagree_oo": {
+      "n": 1,
+      "lean_layer": 1,
+      "fed_layer": 1,
+      "oo_layer": 0,
+      "lean_root": 1,
+      "fed_root": 0,
+      "oo_root": 0
+    },
+    "decoy_multi_slo_filesystem": {
+      "n": 1,
+      "lean_layer": 1,
+      "fed_layer": 1,
+      "oo_layer": 1,
+      "lean_root": 1,
+      "fed_root": 0,
+      "oo_root": 0
+    },
+    "decoy_multi_slo_title_dns_topo": {
+      "n": 1,
+      "lean_layer": 1,
+      "fed_layer": 1,
+      "oo_layer": 1,
+      "lean_root": 1,
+      "fed_root": 0,
+      "oo_root": 0
+    },
+    "multi_app_slo_lean_fed_disagree_oo": {
+      "n": 1,
+      "lean_layer": 0,
+      "fed_layer": 0,
+      "oo_layer": 1,
+      "lean_root": 0,
+      "fed_root": 0,
+      "oo_root": 0
+    },
+    "multi_firewall_topo": {
+      "n": 1,
+      "lean_layer": 1,
+      "fed_layer": 1,
+      "oo_layer": 1,
+      "lean_root": 1,
+      "fed_root": 0,
+      "oo_root": 0
+    },
+    "multi_network_topo": {
+      "n": 1,
+      "lean_layer": 1,
+      "fed_layer": 1,
+      "oo_layer": 1,
+      "lean_root": 1,
+      "fed_root": 1,
+      "oo_root": 0
+    },
+    "single_app_surge_vs_db_layer": {
+      "n": 1,
+      "lean_layer": 0,
+      "fed_layer": 0,
+      "oo_layer": 0,
+      "lean_root": 1,
+      "fed_root": 1,
+      "oo_root": 1
+    },
+    "single_database_with_narrative": {
+      "n": 1,
+      "lean_layer": 1,
+      "fed_layer": 1,
+      "oo_layer": 1,
+      "lean_root": 1,
+      "fed_root": 1,
+      "oo_root": 1
+    },
+    "single_dns": {
+      "n": 1,
+      "lean_layer": 1,
+      "fed_layer": 1,
+      "oo_layer": 1,
+      "lean_root": 1,
+      "fed_root": 1,
+      "oo_root": 1
+    }
+  },
+  "rows": [
+    {
+      "id": "3G8HsK79FfddyepBxqtx6OmeTIQ",
+      "title": "starter_high_cpu",
+      "stratum": "single_no_narrative_cpu",
+      "include_in_accuracy": false,
+      "confidence": "ambiguous",
+      "gt": {
+        "root_layer": "compute",
+        "root_alert": "starter_high_cpu",
+        "contributor_alerts": [],
+        "evidence_note": "Single stub alert (mock CPU>80); no co-firing signals, topology, or narrative. Convention root = title alert only \u2014 too thin for accuracy scoring."
+      },
+      "multi_trigger": false,
+      "trigger_count": 1,
+      "title_base": "starter_high_cpu",
+      "lean": {
+        "layer": "unknown",
+        "root_alert": "starter_high_cpu",
+        "layer_hit": false,
+        "root_hit": true,
+        "both_hit": false,
+        "rationale": "earliest_in_best_layer"
+      },
+      "federated": {
+        "layer": "unknown",
+        "root_alert": "starter_high_cpu",
+        "layer_hit": false,
+        "root_hit": true,
+        "both_hit": false,
+        "rationale": "fusion_pano_murphyish_nezha_lite"
+      },
+      "openobserve": {
+        "layer": "unknown",
+        "root_alert": "starter_high_cpu",
+        "layer_hit": false,
+        "root_hit": true,
+        "both_hit": false,
+        "rationale": "title_alert_fallback"
+      },
+      "picks_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      },
+      "methods_agree_layer": true,
+      "lean_fed_agree_layer": true
+    },
+    {
+      "id": "3GA9Ehaso21qDpWNlx9B55mZWzZ",
+      "title": "database_down",
+      "stratum": "single_database_with_narrative",
+      "include_in_accuracy": true,
+      "confidence": "confident",
+      "gt": {
+        "root_layer": "database",
+        "root_alert": "database_down",
+        "contributor_alerts": [],
+        "evidence_note": "Single alert: Postgres primary ordersdb @ pg-prod-01 is DOWN (db_up=0). No competing decoys; root is the downed database."
+      },
+      "multi_trigger": false,
+      "trigger_count": 1,
+      "title_base": "database_down",
+      "lean": {
+        "layer": "database",
+        "root_alert": "database_down",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "earliest_in_best_layer"
+      },
+      "federated": {
+        "layer": "database",
+        "root_alert": "database_down",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "fusion_pano_murphyish_nezha_lite"
+      },
+      "openobserve": {
+        "layer": "database",
+        "root_alert": "database_down",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "platform_narrative"
+      },
+      "picks_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      },
+      "methods_agree_layer": true,
+      "lean_fed_agree_layer": true
+    },
+    {
+      "id": "3GABGbdhy3cIOxLutKax6lC87qK",
+      "title": "db_primary_down",
+      "stratum": "single_db_lean_fed_disagree_oo",
+      "include_in_accuracy": false,
+      "confidence": "ambiguous",
+      "gt": {
+        "root_layer": "database",
+        "root_alert": "db_primary_down",
+        "contributor_alerts": [],
+        "evidence_note": "Incident has empty triggers, empty alerts list, and no platform narrative \u2014 only title db_primary_down. Title-only convention; exclude from accuracy."
+      },
+      "multi_trigger": false,
+      "trigger_count": 0,
+      "title_base": "db_primary_down",
+      "lean": {
+        "layer": "database",
+        "root_alert": "db_primary_down",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "no_triggers_title_only"
+      },
+      "federated": {
+        "layer": "database",
+        "root_alert": "db_primary_down",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "no_triggers_title_only"
+      },
+      "openobserve": {
+        "layer": "unknown",
+        "root_alert": "db_primary_down",
+        "layer_hit": false,
+        "root_hit": true,
+        "both_hit": false,
+        "rationale": "title_alert_fallback"
+      },
+      "picks_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      },
+      "methods_agree_layer": false,
+      "lean_fed_agree_layer": true
+    },
+    {
+      "id": "3GAJqvDUEt9zeZqtY0hlZRDtIDy",
+      "title": "orders_service_surge on app-prod-01",
+      "stratum": "single_app_surge_vs_db_layer",
+      "include_in_accuracy": true,
+      "confidence": "confident",
+      "gt": {
+        "root_layer": "application",
+        "root_alert": "orders_service_surge",
+        "contributor_alerts": [],
+        "evidence_note": "Alert states orders-service traffic surge (active users >3000) driving DB load. Root is application demand surge, not a primary DB outage."
+      },
+      "multi_trigger": false,
+      "trigger_count": 1,
+      "title_base": "orders_service_surge",
+      "lean": {
+        "layer": "unknown",
+        "root_alert": "orders_service_surge",
+        "layer_hit": false,
+        "root_hit": true,
+        "both_hit": false,
+        "rationale": "earliest_in_best_layer"
+      },
+      "federated": {
+        "layer": "unknown",
+        "root_alert": "orders_service_surge",
+        "layer_hit": false,
+        "root_hit": true,
+        "both_hit": false,
+        "rationale": "fusion_pano_murphyish_nezha_lite"
+      },
+      "openobserve": {
+        "layer": "database",
+        "root_alert": "orders_service_surge",
+        "layer_hit": false,
+        "root_hit": true,
+        "both_hit": false,
+        "rationale": "platform_narrative"
+      },
+      "picks_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      },
+      "methods_agree_layer": false,
+      "lean_fed_agree_layer": true
+    },
+    {
+      "id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "title": "net_link_saturation",
+      "stratum": "multi_network_topo",
+      "include_in_accuracy": true,
+      "confidence": "confident",
+      "gt": {
+        "root_layer": "network",
+        "root_alert": "net_link_saturation",
+        "contributor_alerts": [
+          "gateway_5xx_spike",
+          "checkout_db_timeouts"
+        ],
+        "evidence_note": "core-router link saturation (output discards) on app\u2192db path. Gateway 5xx and DB timeouts are downstream symptoms of the saturated link."
+      },
+      "multi_trigger": true,
+      "trigger_count": 3,
+      "title_base": "net_link_saturation",
+      "lean": {
+        "layer": "network",
+        "root_alert": "net_link_saturation",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "shared_upstream_under_ambiguity"
+      },
+      "federated": {
+        "layer": "network",
+        "root_alert": "net_link_saturation",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "fusion_pano_murphyish_nezha_lite"
+      },
+      "openobserve": {
+        "layer": "network",
+        "root_alert": "checkout_db_timeouts",
+        "layer_hit": true,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "platform_narrative"
+      },
+      "picks_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": false
+      },
+      "methods_agree_layer": true,
+      "lean_fed_agree_layer": true
+    },
+    {
+      "id": "3GARI4ZcuhvZSBauIl4tLhBeH5N",
+      "title": "ecom_checkout_slo_breach",
+      "stratum": "decoy_multi_slo_title_dns_topo",
+      "include_in_accuracy": true,
+      "confidence": "confident",
+      "gt": {
+        "root_layer": "dns",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "contributor_alerts": [
+          "ecom_payment_conn_exhaustion",
+          "ecom_checkout_slo_breach"
+        ],
+        "evidence_note": "Checkout SLO is symptom. Alert chain: DNS AAAA P99 spike on NP-17 \u2192 payment connection acquisition exhaustion \u2192 checkout breach. Root at DNS, not SLO title."
+      },
+      "multi_trigger": true,
+      "trigger_count": 3,
+      "title_base": "ecom_checkout_slo_breach",
+      "lean": {
+        "layer": "dns",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "shared_upstream_under_ambiguity"
+      },
+      "federated": {
+        "layer": "dns",
+        "root_alert": "ecom_checkout_slo_breach",
+        "layer_hit": true,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "fusion_pano_murphyish_nezha_lite"
+      },
+      "openobserve": {
+        "layer": "dns",
+        "root_alert": "ecom_checkout_slo_breach",
+        "layer_hit": true,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "title_alert_fallback"
+      },
+      "picks_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": true
+      },
+      "methods_agree_layer": true,
+      "lean_fed_agree_layer": true
+    },
+    {
+      "id": "3GARrIHDnfvHKz3jTKUoeQNwHjw",
+      "title": "ecom_checkout_slo_breach",
+      "stratum": "decoy_multi_lean_fed_disagree_oo",
+      "include_in_accuracy": true,
+      "confidence": "confident",
+      "gt": {
+        "root_layer": "dns",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "contributor_alerts": [
+          "ecom_payment_conn_exhaustion",
+          "ecom_checkout_slo_breach"
+        ],
+        "evidence_note": "Same ecom multi-trigger pattern as sibling incident: DNS AAAA NUMA/IRQ issue drives payment conn exhaustion and checkout SLO drop. Title is symptom."
+      },
+      "multi_trigger": true,
+      "trigger_count": 3,
+      "title_base": "ecom_checkout_slo_breach",
+      "lean": {
+        "layer": "dns",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "shared_upstream_under_ambiguity"
+      },
+      "federated": {
+        "layer": "dns",
+        "root_alert": "ecom_checkout_slo_breach",
+        "layer_hit": true,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "fusion_pano_murphyish_nezha_lite"
+      },
+      "openobserve": {
+        "layer": "application",
+        "root_alert": "ecom_checkout_slo_breach",
+        "layer_hit": false,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "platform_narrative"
+      },
+      "picks_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": true
+      },
+      "methods_agree_layer": false,
+      "lean_fed_agree_layer": true
+    },
+    {
+      "id": "3GAShBeLwPjoysc3uGDATR5XAiZ",
+      "title": "ecom_dns_aaaa_numa on dns-resolver",
+      "stratum": "single_dns",
+      "include_in_accuracy": true,
+      "confidence": "confident",
+      "gt": {
+        "root_layer": "dns",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "contributor_alerts": [],
+        "evidence_note": "Single DNS AAAA P99 latency alert on dns-resolver / NP-17 with NUMA/IRQ correlation. No competing title decoy; root is DNS."
+      },
+      "multi_trigger": false,
+      "trigger_count": 1,
+      "title_base": "ecom_dns_aaaa_numa",
+      "lean": {
+        "layer": "dns",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "earliest_in_best_layer"
+      },
+      "federated": {
+        "layer": "dns",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "fusion_pano_murphyish_nezha_lite"
+      },
+      "openobserve": {
+        "layer": "dns",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "platform_narrative"
+      },
+      "picks_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      },
+      "methods_agree_layer": true,
+      "lean_fed_agree_layer": true
+    },
+    {
+      "id": "3GAYuTBAC1zaXtslES1iFWh5yKA",
+      "title": "sa_upload_slo",
+      "stratum": "decoy_multi_slo_filesystem",
+      "include_in_accuracy": true,
+      "confidence": "confident",
+      "gt": {
+        "root_layer": "filesystem",
+        "root_alert": "sa_inode_high",
+        "contributor_alerts": [
+          "sa_upload_slo"
+        ],
+        "evidence_note": "Upload SLO + ENOSPC in logs; inode usage ~100% on /var/tmp while disk bytes only ~55%. Root is inode exhaustion, not the SLO title."
+      },
+      "multi_trigger": true,
+      "trigger_count": 2,
+      "title_base": "sa_upload_slo",
+      "lean": {
+        "layer": "filesystem",
+        "root_alert": "sa_inode_high",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "shared_upstream_under_ambiguity"
+      },
+      "federated": {
+        "layer": "filesystem",
+        "root_alert": "sa_upload_slo",
+        "layer_hit": true,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "fusion_pano_murphyish_nezha_lite"
+      },
+      "openobserve": {
+        "layer": "filesystem",
+        "root_alert": "sa_upload_slo",
+        "layer_hit": true,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "platform_narrative"
+      },
+      "picks_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": true
+      },
+      "methods_agree_layer": true,
+      "lean_fed_agree_layer": true
+    },
+    {
+      "id": "3GAYvCuRe6l8hqwpyJIOncHvw0m",
+      "title": "sc_latency_slo",
+      "stratum": "multi_app_slo_lean_fed_disagree_oo",
+      "include_in_accuracy": true,
+      "confidence": "confident",
+      "gt": {
+        "root_layer": "application",
+        "root_alert": "redis-node-3",
+        "contributor_alerts": [
+          "sc_db_cpu",
+          "sc_latency_slo"
+        ],
+        "evidence_note": "SLO alert documents ROOT CAUSE: redis-node-3 FAIL \u2192 cache hit collapse \u2192 catalog-db QPS stampede \u2192 DB CPU ~95% \u2192 latency. sc_db_cpu is explicit victim; do not crown DB or SLO title. No redis alert in triggers \u2014 use CI id redis-node-3 per rubric."
+      },
+      "multi_trigger": true,
+      "trigger_count": 2,
+      "title_base": "sc_latency_slo",
+      "lean": {
+        "layer": "unknown",
+        "root_alert": "sc_latency_slo",
+        "layer_hit": false,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "earliest_in_best_layer"
+      },
+      "federated": {
+        "layer": "unknown",
+        "root_alert": "sc_latency_slo",
+        "layer_hit": false,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "fusion_pano_murphyish_nezha_lite"
+      },
+      "openobserve": {
+        "layer": "application",
+        "root_alert": "sc_latency_slo",
+        "layer_hit": true,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "platform_narrative"
+      },
+      "picks_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      },
+      "methods_agree_layer": false,
+      "lean_fed_agree_layer": true
+    },
+    {
+      "id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
+      "title": "cio_host_cpu_high",
+      "stratum": "decoy_multi_cpu_title_storage",
+      "include_in_accuracy": true,
+      "confidence": "confident",
+      "gt": {
+        "root_layer": "storage",
+        "root_alert": "cio_disk_io_stall",
+        "contributor_alerts": [
+          "cio_io_node_degraded",
+          "cio_host_cpu_high",
+          "cio_host_load_avg_high"
+        ],
+        "evidence_note": "CPU title is iowait decoy (~65% wait, user+sys ~30%). Disk I/O stall on /data + io-node-02 RAID BBU degradation are causal; load avg is D-state symptom."
+      },
+      "multi_trigger": true,
+      "trigger_count": 4,
+      "title_base": "cio_host_cpu_high",
+      "lean": {
+        "layer": "storage",
+        "root_alert": "cio_disk_io_stall",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "shared_upstream_under_ambiguity"
+      },
+      "federated": {
+        "layer": "storage",
+        "root_alert": "cio_host_cpu_high",
+        "layer_hit": true,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "fusion_pano_murphyish_nezha_lite"
+      },
+      "openobserve": {
+        "layer": "storage",
+        "root_alert": "cio_host_load_avg_high",
+        "layer_hit": true,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "platform_narrative"
+      },
+      "picks_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": false
+      },
+      "methods_agree_layer": true,
+      "lean_fed_agree_layer": true
+    },
+    {
+      "id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+      "title": "pgw_checkout_tps_drop",
+      "stratum": "multi_firewall_topo",
+      "include_in_accuracy": true,
+      "confidence": "confident",
+      "gt": {
+        "root_layer": "firewall",
+        "root_alert": "pgw_fw_443_denies",
+        "contributor_alerts": [
+          "pgw_router_egress_down",
+          "pgw_switch_443_asymmetric",
+          "pgw_esxi_443_no_return",
+          "pgw_syn_sent_pileup",
+          "pgw_vcenter_net_alarm",
+          "pgw_checkout_tps_drop"
+        ],
+        "evidence_note": "Firewall ACL-OUT-DMZ-NEW denying 443 for VLAN-200 is explicitly labeled ROOT in alert text. Switch asymmetry, no-return on ESXi, SYN_SENT pileup, and TPS drop are symptoms of blocked egress."
+      },
+      "multi_trigger": true,
+      "trigger_count": 7,
+      "title_base": "pgw_checkout_tps_drop",
+      "lean": {
+        "layer": "firewall",
+        "root_alert": "pgw_fw_443_denies",
+        "layer_hit": true,
+        "root_hit": true,
+        "both_hit": true,
+        "rationale": "shared_upstream_under_ambiguity"
+      },
+      "federated": {
+        "layer": "firewall",
+        "root_alert": "pgw_checkout_tps_drop",
+        "layer_hit": true,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "fusion_pano_murphyish_nezha_lite"
+      },
+      "openobserve": {
+        "layer": "firewall",
+        "root_alert": "pgw_esxi_443_no_return",
+        "layer_hit": true,
+        "root_hit": false,
+        "both_hit": false,
+        "rationale": "platform_narrative"
+      },
+      "picks_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": false
+      },
+      "methods_agree_layer": true,
+      "lean_fed_agree_layer": true
+    }
+  ]
+}

@@ -1,0 +1,2259 @@
+{
+  "generated_at": "2026-07-14T13:01:39.901099+00:00",
+  "corpus": "/root/Harshil-PoCs/Unified-RCA/datasets/openobserve_incidents/v1",
+  "evaluation": {
+    "mode": "peer_comparison",
+    "methods": [
+      "lean",
+      "federated",
+      "openobserve"
+    ],
+    "accuracy_claimed": false,
+    "note": "No independent ground truth. OpenObserve is method #3 (platform RCA), not a scoring oracle."
+  },
+  "summary": {
+    "mode": "peer_comparison",
+    "ground_truth": null,
+    "incident_count": 29,
+    "with_openobserve_narrative": 23,
+    "multi_trigger": 11,
+    "with_topo_edges": 3,
+    "pairwise_layer_agreement": {
+      "lean_federated": 1.0,
+      "lean_openobserve": 0.7586,
+      "federated_openobserve": 0.7586
+    },
+    "triple_layer_agreement": 0.7586,
+    "pairwise_root_agreement": {
+      "lean_federated": 0.7586,
+      "lean_openobserve": 0.7241,
+      "federated_openobserve": 0.8621
+    },
+    "reproducibility": {
+      "lean": 1.0,
+      "federated": 1.0,
+      "openobserve": 1.0
+    },
+    "multi_trigger_title_pick": {
+      "lean": 0.3636,
+      "federated": 1.0,
+      "openobserve": 0.6364
+    },
+    "counts": {
+      "agree_lf_layer": 29,
+      "agree_lo_layer": 22,
+      "agree_fo_layer": 22,
+      "triple_layer": 22,
+      "agree_lf_root": 22,
+      "agree_lo_root": 21,
+      "agree_fo_root": 25,
+      "fed_stable": 29,
+      "oo_narrative": 23,
+      "multi": 11,
+      "topo": 3
+    }
+  },
+  "by_openobserve_layer": {
+    "unknown": {
+      "n": 6,
+      "lean": 4,
+      "federated": 4,
+      "openobserve": 6
+    },
+    "database": {
+      "n": 10,
+      "lean": 9,
+      "federated": 9,
+      "openobserve": 10
+    },
+    "network": {
+      "n": 2,
+      "lean": 2,
+      "federated": 2,
+      "openobserve": 2
+    },
+    "dns": {
+      "n": 2,
+      "lean": 2,
+      "federated": 2,
+      "openobserve": 2
+    },
+    "application": {
+      "n": 5,
+      "lean": 1,
+      "federated": 1,
+      "openobserve": 5
+    },
+    "filesystem": {
+      "n": 1,
+      "lean": 1,
+      "federated": 1,
+      "openobserve": 1
+    },
+    "storage": {
+      "n": 1,
+      "lean": 1,
+      "federated": 1,
+      "openobserve": 1
+    },
+    "firewall": {
+      "n": 2,
+      "lean": 2,
+      "federated": 2,
+      "openobserve": 2
+    }
+  },
+  "behavioral_edge_lean_vs_federated": "lean",
+  "closest_to_openobserve_layer": "both_equal",
+  "overall_better": "lean",
+  "rows": [
+    {
+      "id": "3G8HsK79FfddyepBxqtx6OmeTIQ",
+      "title": "starter_high_cpu",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "starter_high_cpu",
+        "layer": "unknown",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "starter_high_cpu"
+        ],
+        "candidate_layers": {
+          "starter_high_cpu": "unknown"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "starter_high_cpu",
+        "layer": "unknown",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "starter_high_cpu",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "unknown",
+        "root_alert": "starter_high_cpu",
+        "cause_snippet": "Starter alert: fires when mock system_process_cpu_percent > 80; creates an incident for RCA.",
+        "has_narrative": false,
+        "rationale": "title_alert_fallback",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "starter_high_cpu",
+        "starter_high_cpu",
+        "starter_high_cpu",
+        "starter_high_cpu",
+        "starter_high_cpu"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GA722SK2226oe0RDhuWzg6QYxI",
+      "title": "starter_high_cpu",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "starter_high_cpu",
+        "layer": "unknown",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "starter_high_cpu"
+        ],
+        "candidate_layers": {
+          "starter_high_cpu": "unknown"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "starter_high_cpu",
+        "layer": "unknown",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "starter_high_cpu",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "unknown",
+        "root_alert": "starter_high_cpu",
+        "cause_snippet": "Starter alert: fires when mock system_process_cpu_percent > 80; creates an incident for RCA.",
+        "has_narrative": false,
+        "rationale": "title_alert_fallback",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "starter_high_cpu",
+        "starter_high_cpu",
+        "starter_high_cpu",
+        "starter_high_cpu",
+        "starter_high_cpu"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GA7yKK8vUcMNfiX8tld1EhfiUR",
+      "title": "starter_high_cpu",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "starter_high_cpu",
+        "layer": "unknown",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "starter_high_cpu"
+        ],
+        "candidate_layers": {
+          "starter_high_cpu": "unknown"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "starter_high_cpu",
+        "layer": "unknown",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "starter_high_cpu",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "unknown",
+        "root_alert": "starter_high_cpu",
+        "cause_snippet": "Starter alert: fires when mock system_process_cpu_percent > 80; creates an incident for RCA.",
+        "has_narrative": false,
+        "rationale": "title_alert_fallback",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "starter_high_cpu",
+        "starter_high_cpu",
+        "starter_high_cpu",
+        "starter_high_cpu",
+        "starter_high_cpu"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GA9Ehaso21qDpWNlx9B55mZWzZ",
+      "title": "database_down",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "database_down",
+        "layer": "database",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "database_down"
+        ],
+        "candidate_layers": {
+          "database_down": "database"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "database_down",
+        "layer": "database",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "database_down",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "database",
+        "root_alert": "database_down",
+        "cause_snippet": "The \"ordersdb\" postgres primary database is down, as indicated by the \"database_down\" alert, likely due to an underlying issue with the database instance itself or the monitoring agent responsible for reporting the \"db_up\" metric.",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "database_down",
+        "database_down",
+        "database_down",
+        "database_down",
+        "database_down"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAAEIzEzDuWjRmlZygujenDU8i",
+      "title": "db_primary_down",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "db_primary_down",
+        "layer": "database",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "db_primary_down"
+        ],
+        "candidate_layers": {
+          "db_primary_down": "database"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "db_primary_down",
+        "layer": "database",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "db_primary_down",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "database",
+        "root_alert": "db_primary_down",
+        "cause_snippet": "The incident ID is `3GAAEIzEzDuWjRmlZygujenDU8i`. The incident title is \"db_primary_down\" and it was triggered by an alert named \"db_primary_down\" from the stream \"db_up\". The description for this alert is: \"Postgres primary (ordersdb @ pg-prod-01) is DOWN: db_up=0. Check postgres_logs and app_logs ",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "db_primary_down",
+        "db_primary_down",
+        "db_primary_down",
+        "db_primary_down",
+        "db_primary_down"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAAWBIAL515hv5Np5DNmiMDVxd",
+      "title": "db_primary_down",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "db_primary_down",
+        "layer": "database",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "db_primary_down"
+        ],
+        "candidate_layers": {
+          "db_primary_down": "database"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "db_primary_down",
+        "layer": "database",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "db_primary_down",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "database",
+        "root_alert": "db_primary_down",
+        "cause_snippet": "Postgres primary (ordersdb @ pg-prod-01) is DOWN: db_up=0. Check postgres_logs and app_logs for cause; traces in default trace stream.",
+        "has_narrative": false,
+        "rationale": "title_alert_fallback",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "db_primary_down",
+        "db_primary_down",
+        "db_primary_down",
+        "db_primary_down",
+        "db_primary_down"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GABGbdhy3cIOxLutKax6lC87qK",
+      "title": "db_primary_down",
+      "trigger_count": 0,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "db_primary_down",
+        "layer": "database",
+        "rationale": "no_triggers_title_only",
+        "evidentiary_tier": 1,
+        "observations": 0
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "db_primary_down",
+        "layer": "database",
+        "rationale": "no_triggers_title_only",
+        "observations": 0,
+        "max_posterior": 1.0
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "unknown",
+        "root_alert": "db_primary_down",
+        "cause_snippet": "db_primary_down",
+        "has_narrative": false,
+        "rationale": "title_alert_fallback",
+        "observations": 0
+      },
+      "federated_repro_roots": [
+        "db_primary_down",
+        "db_primary_down",
+        "db_primary_down",
+        "db_primary_down",
+        "db_primary_down"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": false,
+        "federated_openobserve": false,
+        "triple": false
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAD6Wqr33nxPmYw8ZMwjoqNUlz",
+      "title": "pg_ordersdb_outage",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "pg_ordersdb_outage",
+        "layer": "database",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "pg_ordersdb_outage"
+        ],
+        "candidate_layers": {
+          "pg_ordersdb_outage": "database"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "pg_ordersdb_outage",
+        "layer": "database",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "pg_ordersdb_outage",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "database",
+        "root_alert": "pg_ordersdb_outage",
+        "cause_snippet": "PostgreSQL primary (ordersdb @ pg-prod-01) exhausted available memory and was OOMKilled by the kernel, entering crash-recovery cycles. The root cause is either insufficient memory allocation (memory limit <16GB for current workload) or a memory leak in PostgreSQL or application queries. The same out",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "pg_ordersdb_outage",
+        "pg_ordersdb_outage",
+        "pg_ordersdb_outage",
+        "pg_ordersdb_outage",
+        "pg_ordersdb_outage"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAF072FrsFAkgeTlEhF8awO01z",
+      "title": "pg_ordersdb_down",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "pg_ordersdb_down",
+        "layer": "database",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "pg_ordersdb_down"
+        ],
+        "candidate_layers": {
+          "pg_ordersdb_down": "database"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "pg_ordersdb_down",
+        "layer": "database",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "pg_ordersdb_down",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "database",
+        "root_alert": "pg_ordersdb_down",
+        "cause_snippet": "PostgreSQL primary database (postgres-primary, ordersdb) crashed due to out-of-memory (OOM) condition. Memory usage climbed from 45% to 98% over 9 minutes under sustained high query load, exceeded container limits, and triggered kernel OOM killer, forcibly terminating the postgres process. Database ",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "pg_ordersdb_down",
+        "pg_ordersdb_down",
+        "pg_ordersdb_down",
+        "pg_ordersdb_down",
+        "pg_ordersdb_down"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAFg9p5QarIXejxbg6thp1LV0w",
+      "title": "pg_ordersdb_outage3",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "pg_ordersdb_outage3",
+        "layer": "database",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "pg_ordersdb_outage3"
+        ],
+        "candidate_layers": {
+          "pg_ordersdb_outage3": "database"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "pg_ordersdb_outage3",
+        "layer": "database",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "pg_ordersdb_outage3",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "database",
+        "root_alert": "pg_ordersdb_outage3",
+        "cause_snippet": "PostgreSQL shared memory exhaustion on pg-prod-01 caused by rapid memory growth (45% \u2192 98% in 10 minutes), likely triggered by unoptimized query scans or missing indexes. Kernel OOM killer terminated the postgres process, cascading to orders-service connection pool exhaustion and database unavailabi",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "pg_ordersdb_outage3",
+        "pg_ordersdb_outage3",
+        "pg_ordersdb_outage3",
+        "pg_ordersdb_outage3",
+        "pg_ordersdb_outage3"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAG0DL5e6rz6616PSXYZ8sCOjW",
+      "title": "pg_svc_down",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "pg_svc_down",
+        "layer": "database",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "pg_svc_down"
+        ],
+        "candidate_layers": {
+          "pg_svc_down": "database"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "pg_svc_down",
+        "layer": "database",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "pg_svc_down",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "database",
+        "root_alert": "pg_svc_down",
+        "cause_snippet": "PostgreSQL process (postgres-primary) was killed by the kernel OOM killer after memory usage spiked from 79% to 97.7% within 3 minutes, driven by a sudden increase in active connections (410\u2192470) and likely a memory-intensive query or batch operation.",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "pg_svc_down",
+        "pg_svc_down",
+        "pg_svc_down",
+        "pg_svc_down",
+        "pg_svc_down"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAG6ZcHySa0WJOfxvG1EzBnZLa",
+      "title": "pg_svc_down2",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "pg_svc_down2",
+        "layer": "database",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "pg_svc_down2"
+        ],
+        "candidate_layers": {
+          "pg_svc_down2": "database"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "pg_svc_down2",
+        "layer": "database",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "pg_svc_down2",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "database",
+        "root_alert": "pg_svc_down2",
+        "cause_snippet": "PostgreSQL out-of-memory (OOM) condition caused by memory limit misconfiguration combined with a workload pattern that triggered high memory demand in the query execution layer (MessageContext allocation failure). The kernel OOM killer forcefully terminated the PostgreSQL process, triggering databas",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "pg_svc_down2",
+        "pg_svc_down2",
+        "pg_svc_down2",
+        "pg_svc_down2",
+        "pg_svc_down2"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAINIkn1ovFoFzmkJbmUapDMY0",
+      "title": "pg_db_down_dim",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "pg_db_down_dim",
+        "layer": "database",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "pg_db_down_dim"
+        ],
+        "candidate_layers": {
+          "pg_db_down_dim": "database"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "pg_db_down_dim",
+        "layer": "database",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "pg_db_down_dim",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "database",
+        "root_alert": "pg_db_down_dim",
+        "cause_snippet": "A recent query, schema change, or database configuration modification caused postgres memory consumption to spike from 44% to 97.71% baseline utilization within 8 minutes. The Linux kernel OOM killer forcibly terminated the postgres process (signal 9), inducing a crash and recovery cycle that took ~",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "pg_db_down_dim",
+        "pg_db_down_dim",
+        "pg_db_down_dim",
+        "pg_db_down_dim",
+        "pg_db_down_dim"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAJqvDUEt9zeZqtY0hlZRDtIDy",
+      "title": "orders_service_surge on app-prod-01",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "orders_service_surge",
+        "layer": "unknown",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "orders_service_surge"
+        ],
+        "candidate_layers": {
+          "orders_service_surge": "unknown"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "orders_service_surge",
+        "layer": "unknown",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "orders_service_surge",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "database",
+        "root_alert": "orders_service_surge",
+        "cause_snippet": "PostgreSQL database connection pool exhaustion on pg-prod-01 during load surges (~5,250 concurrent users), causing the database to enter recovery mode and reject new connections. The orders-service connection pool (500 connections) was undersized for the load, resulting in queues of 1,000+ waiting r",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "orders_service_surge",
+        "orders_service_surge",
+        "orders_service_surge",
+        "orders_service_surge",
+        "orders_service_surge"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": false,
+        "federated_openobserve": false,
+        "triple": false
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAJqzTd0VQcpliTMIhK40HHQGo",
+      "title": "pg_primary_down on pg-prod-01",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "pg_primary_down",
+        "layer": "database",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "pg_primary_down"
+        ],
+        "candidate_layers": {
+          "pg_primary_down": "database"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "pg_primary_down",
+        "layer": "database",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "pg_primary_down",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "unknown",
+        "root_alert": "pg_primary_down",
+        "cause_snippet": "**Investigation halted** \u2014 the backend service required for RCA analysis is not responding. Please verify:  1. OpenObserve platform connectivity",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "pg_primary_down",
+        "pg_primary_down",
+        "pg_primary_down",
+        "pg_primary_down",
+        "pg_primary_down"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": false,
+        "federated_openobserve": false,
+        "triple": false
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "title": "net_link_saturation",
+      "trigger_count": 3,
+      "topo_edges": 2,
+      "multi_trigger": true,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "net_link_saturation",
+        "layer": "network",
+        "rationale": "shared_upstream_under_ambiguity",
+        "evidentiary_tier": 3,
+        "observations": 3,
+        "candidates": [
+          "net_link_saturation",
+          "gateway_5xx_spike",
+          "checkout_db_timeouts"
+        ],
+        "candidate_layers": {
+          "net_link_saturation": "network",
+          "gateway_5xx_spike": "unknown",
+          "checkout_db_timeouts": "application"
+        },
+        "fallback_fired": true
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "net_link_saturation",
+        "layer": "network",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 3,
+        "max_posterior": 0.5913,
+        "posterior_top3": [
+          [
+            "net_link_saturation",
+            0.5913
+          ],
+          [
+            "checkout_db_timeouts",
+            0.3089
+          ],
+          [
+            "gateway_5xx_spike",
+            0.0998
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "network",
+        "root_alert": "checkout_db_timeouts",
+        "cause_snippet": "Network link saturation on core-router-01 eth1 caused packet discard rates to escalate from 0 to 3,125 packets/sec beginning at 08:47:42 UTC, triggering TCP retransmissions and connection timeouts. The degraded network path forced PostgreSQL at pg-prod-01 into recovery mode, dropping all 448 active ",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 3
+      },
+      "federated_repro_roots": [
+        "net_link_saturation",
+        "net_link_saturation",
+        "net_link_saturation",
+        "net_link_saturation",
+        "net_link_saturation"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": false,
+        "federated_openobserve": false
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": false
+      }
+    },
+    {
+      "id": "3GANb9ArhD5rRUIg5VudmColh9n",
+      "title": "net_link_saturation",
+      "trigger_count": 3,
+      "topo_edges": 0,
+      "multi_trigger": true,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "net_link_saturation",
+        "layer": "network",
+        "rationale": "shared_upstream_under_ambiguity",
+        "evidentiary_tier": 3,
+        "observations": 3,
+        "candidates": [
+          "net_link_saturation",
+          "gateway_5xx_spike",
+          "checkout_db_timeouts"
+        ],
+        "candidate_layers": {
+          "net_link_saturation": "network",
+          "gateway_5xx_spike": "unknown",
+          "checkout_db_timeouts": "application"
+        },
+        "fallback_fired": true
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "net_link_saturation",
+        "layer": "network",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 3,
+        "max_posterior": 0.5546,
+        "posterior_top3": [
+          [
+            "net_link_saturation",
+            0.5546
+          ],
+          [
+            "checkout_db_timeouts",
+            0.2743
+          ],
+          [
+            "gateway_5xx_spike",
+            0.1711
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "network",
+        "root_alert": "net_link_saturation",
+        "cause_snippet": "Network interface saturation on core-router-01/eth1 (app\u2192database path) caused sustained packet discards (2,975+ packets, ~7\u20138% above baseline). Dropped packets triggered TCP retransmissions, which consumed additional bandwidth and extended connection setup latency for payment-db connections in chec",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 3
+      },
+      "federated_repro_roots": [
+        "net_link_saturation",
+        "net_link_saturation",
+        "net_link_saturation",
+        "net_link_saturation",
+        "net_link_saturation"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GARI4ZcuhvZSBauIl4tLhBeH5N",
+      "title": "ecom_checkout_slo_breach",
+      "trigger_count": 3,
+      "topo_edges": 2,
+      "multi_trigger": true,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "layer": "dns",
+        "rationale": "shared_upstream_under_ambiguity",
+        "evidentiary_tier": 3,
+        "observations": 3,
+        "candidates": [
+          "ecom_checkout_slo_breach",
+          "ecom_payment_conn_exhaustion",
+          "ecom_dns_aaaa_numa"
+        ],
+        "candidate_layers": {
+          "ecom_checkout_slo_breach": "dns",
+          "ecom_payment_conn_exhaustion": "application",
+          "ecom_dns_aaaa_numa": "dns"
+        },
+        "fallback_fired": true
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "ecom_checkout_slo_breach",
+        "layer": "dns",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 3,
+        "max_posterior": 0.6081,
+        "posterior_top3": [
+          [
+            "ecom_checkout_slo_breach",
+            0.6081
+          ],
+          [
+            "ecom_payment_conn_exhaustion",
+            0.2407
+          ],
+          [
+            "ecom_dns_aaaa_numa",
+            0.1512
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "dns",
+        "root_alert": "ecom_checkout_slo_breach",
+        "cause_snippet": "SEV1 - Checkout success rate dropped 99.97%->97.2% in region=Region-B, payment_method=CARD, device_type=MOBILE (~2.8% of checkouts). Follow THIS causal chain, confirming each step with ONE targeted query; do NOT explore unrelated streams: 1) checkout_latency_p99_ms WHERE region='Region-B' AND curren",
+        "has_narrative": false,
+        "rationale": "title_alert_fallback",
+        "observations": 3
+      },
+      "federated_repro_roots": [
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": false,
+        "lean_openobserve": false,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GARrIHDnfvHKz3jTKUoeQNwHjw",
+      "title": "ecom_checkout_slo_breach",
+      "trigger_count": 3,
+      "topo_edges": 0,
+      "multi_trigger": true,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "layer": "dns",
+        "rationale": "shared_upstream_under_ambiguity",
+        "evidentiary_tier": 3,
+        "observations": 3,
+        "candidates": [
+          "ecom_checkout_slo_breach",
+          "ecom_payment_conn_exhaustion",
+          "ecom_dns_aaaa_numa"
+        ],
+        "candidate_layers": {
+          "ecom_checkout_slo_breach": "dns",
+          "ecom_payment_conn_exhaustion": "application",
+          "ecom_dns_aaaa_numa": "dns"
+        },
+        "fallback_fired": true
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "ecom_checkout_slo_breach",
+        "layer": "dns",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 3,
+        "max_posterior": 0.7052,
+        "posterior_top3": [
+          [
+            "ecom_checkout_slo_breach",
+            0.7052
+          ],
+          [
+            "ecom_payment_conn_exhaustion",
+            0.2119
+          ],
+          [
+            "ecom_dns_aaaa_numa",
+            0.083
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "application",
+        "root_alert": "ecom_checkout_slo_breach",
+        "cause_snippet": "DNS resolution of the payment-provider endpoint via AAAA (IPv6) queries to server 10.20.4.53 is exhibiting ~200\u00d7 latency increase (2800\u20133262ms) on node pool NP-17 (AZ B2, image 2026.06.18), causing payment service connection pool exhaustion and checkout transaction failures. The issue is compounded ",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 3
+      },
+      "federated_repro_roots": [
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": false,
+        "federated_openobserve": false,
+        "triple": false
+      },
+      "agree_root_alert": {
+        "lean_federated": false,
+        "lean_openobserve": false,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GASgKbtYcY7fqRBrAosCdWjOZK",
+      "title": "ecom_checkout_slo_breach on checkout-service",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "ecom_checkout_slo_breach",
+        "layer": "dns",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "ecom_checkout_slo_breach"
+        ],
+        "candidate_layers": {
+          "ecom_checkout_slo_breach": "dns"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "ecom_checkout_slo_breach",
+        "layer": "dns",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "ecom_checkout_slo_breach",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "application",
+        "root_alert": "ecom_checkout_slo_breach",
+        "cause_snippet": "Node pool NP-17 rollout to node image 2026.06.18 introduced an IRQ-affinity misconfiguration that pinned the RX-7 network queue IRQ to CPU48/NUMA1 while queue memory remained on NUMA0, causing cross-NUMA memory access delays of 2.8s. This elevated RX queue latency cascaded to IPv6 (AAAA) DNS query t",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": false,
+        "federated_openobserve": false,
+        "triple": false
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GASgjYJR4SG2aTMdpysOhLiZ4U",
+      "title": "ecom_payment_conn_exhaustion on payment-service",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "ecom_payment_conn_exhaustion",
+        "layer": "application",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "ecom_payment_conn_exhaustion"
+        ],
+        "candidate_layers": {
+          "ecom_payment_conn_exhaustion": "application"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "ecom_payment_conn_exhaustion",
+        "layer": "application",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "ecom_payment_conn_exhaustion",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "application",
+        "root_alert": "ecom_payment_conn_exhaustion",
+        "cause_snippet": "Connection pool exhaustion on payment-service pods in node pool NP-17 caused by asymmetric, elevated latency (15-17s) to external payment provider (payments.provider.com) reachable only from NP-17. Evidence includes 40-50x slower DNS resolution times on NP-17 and normal (56-84ms) provider latency fr",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "ecom_payment_conn_exhaustion",
+        "ecom_payment_conn_exhaustion",
+        "ecom_payment_conn_exhaustion",
+        "ecom_payment_conn_exhaustion",
+        "ecom_payment_conn_exhaustion"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAShBeLwPjoysc3uGDATR5XAiZ",
+      "title": "ecom_dns_aaaa_numa on dns-resolver",
+      "trigger_count": 1,
+      "topo_edges": 0,
+      "multi_trigger": false,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "layer": "dns",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 1,
+        "candidates": [
+          "ecom_dns_aaaa_numa"
+        ],
+        "candidate_layers": {
+          "ecom_dns_aaaa_numa": "dns"
+        },
+        "fallback_fired": false
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "layer": "dns",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 1,
+        "max_posterior": 1.0,
+        "posterior_top3": [
+          [
+            "ecom_dns_aaaa_numa",
+            1.0
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "dns",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "cause_snippet": "A recent node-image update on NP-17 modified interrupt (IRQ) handling, causing RX-queue-7 to traverse high-latency cross-NUMA memory paths. IPv6 DNS queries for payments.provider.com now incur 3,200+ ms latency (40\u00d7 baseline), triggering payment provider request timeouts and cascading failures throu",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 1
+      },
+      "federated_repro_roots": [
+        "ecom_dns_aaaa_numa",
+        "ecom_dns_aaaa_numa",
+        "ecom_dns_aaaa_numa",
+        "ecom_dns_aaaa_numa",
+        "ecom_dns_aaaa_numa"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+      "title": "ecom_checkout_slo_breach",
+      "trigger_count": 3,
+      "topo_edges": 0,
+      "multi_trigger": true,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "ecom_dns_aaaa_numa",
+        "layer": "dns",
+        "rationale": "shared_upstream_under_ambiguity",
+        "evidentiary_tier": 3,
+        "observations": 3,
+        "candidates": [
+          "ecom_checkout_slo_breach",
+          "ecom_payment_conn_exhaustion",
+          "ecom_dns_aaaa_numa"
+        ],
+        "candidate_layers": {
+          "ecom_checkout_slo_breach": "dns",
+          "ecom_payment_conn_exhaustion": "application",
+          "ecom_dns_aaaa_numa": "dns"
+        },
+        "fallback_fired": true
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "ecom_checkout_slo_breach",
+        "layer": "dns",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 3,
+        "max_posterior": 0.6545,
+        "posterior_top3": [
+          [
+            "ecom_checkout_slo_breach",
+            0.6545
+          ],
+          [
+            "ecom_payment_conn_exhaustion",
+            0.1965
+          ],
+          [
+            "ecom_dns_aaaa_numa",
+            0.149
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "application",
+        "root_alert": "ecom_checkout_slo_breach",
+        "cause_snippet": "Node image 2026.06.18 deployed to node pool NP-17 in prod-use1/Region-B on 2026-07-07 08:25:48 UTC with an IRQ affinity misconfiguration that pinned the RX-7 network interrupt to CPU48 (NUMA node 1) while NIC queue memory resides on NUMA node 0, causing ~2.8-second cross-NUMA memory access latencies",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 3
+      },
+      "federated_repro_roots": [
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach",
+        "ecom_checkout_slo_breach"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": false,
+        "federated_openobserve": false,
+        "triple": false
+      },
+      "agree_root_alert": {
+        "lean_federated": false,
+        "lean_openobserve": false,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAYuTBAC1zaXtslES1iFWh5yKA",
+      "title": "sa_upload_slo",
+      "trigger_count": 2,
+      "topo_edges": 0,
+      "multi_trigger": true,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "sa_inode_high",
+        "layer": "filesystem",
+        "rationale": "shared_upstream_under_ambiguity",
+        "evidentiary_tier": 3,
+        "observations": 2,
+        "candidates": [
+          "sa_upload_slo",
+          "sa_inode_high"
+        ],
+        "candidate_layers": {
+          "sa_upload_slo": "filesystem",
+          "sa_inode_high": "filesystem"
+        },
+        "fallback_fired": true
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "sa_upload_slo",
+        "layer": "filesystem",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 2,
+        "max_posterior": 0.872,
+        "posterior_top3": [
+          [
+            "sa_upload_slo",
+            0.872
+          ],
+          [
+            "sa_inode_high",
+            0.128
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "filesystem",
+        "root_alert": "sa_upload_slo",
+        "cause_snippet": "Inode exhaustion on the /var/tmp mount at node-euw1-a3, caused by the export-report job v1.7 (deployed 14 days ago) leaking temporary files due to disabled cleanup. Despite 55% disk byte usage remaining, the inode limit (100%) prevents any new file creation, causing media-service uploads to fail wit",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 2
+      },
+      "federated_repro_roots": [
+        "sa_upload_slo",
+        "sa_upload_slo",
+        "sa_upload_slo",
+        "sa_upload_slo",
+        "sa_upload_slo"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": false,
+        "lean_openobserve": false,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAYvCuRe6l8hqwpyJIOncHvw0m",
+      "title": "sc_latency_slo",
+      "trigger_count": 2,
+      "topo_edges": 0,
+      "multi_trigger": true,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "sc_latency_slo",
+        "layer": "unknown",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 2,
+        "candidates": [
+          "sc_latency_slo",
+          "sc_db_cpu"
+        ],
+        "candidate_layers": {
+          "sc_latency_slo": "unknown",
+          "sc_db_cpu": "unknown"
+        },
+        "fallback_fired": true
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "sc_latency_slo",
+        "layer": "unknown",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 2,
+        "max_posterior": 0.8335,
+        "posterior_top3": [
+          [
+            "sc_latency_slo",
+            0.8335
+          ],
+          [
+            "sc_db_cpu",
+            0.1665
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "application",
+        "root_alert": "sc_latency_slo",
+        "cause_snippet": "Redis-node-3 cache node failure caused cache hit ratio to collapse from 98% to 68%, forcing catalog-db to handle 3x normal query load (4,000\u219212,700 qps), saturating CPU to 96.1% and injecting 2+ second query latencies; latency SLO breach (p95: 432.7ms vs 300ms threshold) detected 14:34:28 UTC.",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 2
+      },
+      "federated_repro_roots": [
+        "sc_latency_slo",
+        "sc_latency_slo",
+        "sc_latency_slo",
+        "sc_latency_slo",
+        "sc_latency_slo"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": false,
+        "federated_openobserve": false,
+        "triple": false
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAYvuQPMJgdDYeyZKXiyCcIF4Z",
+      "title": "sd_notif_slo",
+      "trigger_count": 2,
+      "topo_edges": 0,
+      "multi_trigger": true,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "sd_notif_slo",
+        "layer": "unknown",
+        "rationale": "earliest_in_best_layer",
+        "evidentiary_tier": 1,
+        "observations": 2,
+        "candidates": [
+          "sd_notif_slo",
+          "sd_tls_fail"
+        ],
+        "candidate_layers": {
+          "sd_notif_slo": "unknown",
+          "sd_tls_fail": "unknown"
+        },
+        "fallback_fired": true
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "sd_notif_slo",
+        "layer": "unknown",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 2,
+        "max_posterior": 0.8472,
+        "posterior_top3": [
+          [
+            "sd_notif_slo",
+            0.8472
+          ],
+          [
+            "sd_tls_fail",
+            0.1528
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "unknown",
+        "root_alert": "sd_notif_slo",
+        "cause_snippet": "mTLS client certificate for push-gateway.internal expired at 2026-07-07T00:00:00Z due to auto-rotation being disabled approximately 17 days prior, resulting in 97.9% failure rate on push notifications (SMS and email channels unaffected, push-gateway server health reported normal).",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 2
+      },
+      "federated_repro_roots": [
+        "sd_notif_slo",
+        "sd_notif_slo",
+        "sd_notif_slo",
+        "sd_notif_slo",
+        "sd_notif_slo"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true
+      },
+      "picks_incident_title": {
+        "lean": true,
+        "federated": true,
+        "openobserve": true
+      }
+    },
+    {
+      "id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
+      "title": "cio_host_cpu_high",
+      "trigger_count": 4,
+      "topo_edges": 0,
+      "multi_trigger": true,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "cio_disk_io_stall",
+        "layer": "storage",
+        "rationale": "shared_upstream_under_ambiguity",
+        "evidentiary_tier": 3,
+        "observations": 4,
+        "candidates": [
+          "cio_host_cpu_high",
+          "cio_host_load_avg_high",
+          "cio_disk_io_stall",
+          "cio_io_node_degraded"
+        ],
+        "candidate_layers": {
+          "cio_host_cpu_high": "storage",
+          "cio_host_load_avg_high": "unknown",
+          "cio_disk_io_stall": "storage",
+          "cio_io_node_degraded": "storage"
+        },
+        "fallback_fired": true
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "cio_host_cpu_high",
+        "layer": "storage",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 4,
+        "max_posterior": 0.676,
+        "posterior_top3": [
+          [
+            "cio_host_cpu_high",
+            0.676
+          ],
+          [
+            "cio_disk_io_stall",
+            0.1362
+          ],
+          [
+            "cio_io_node_degraded",
+            0.1196
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "storage",
+        "root_alert": "cio_host_load_avg_high",
+        "cause_snippet": "RAID controller Battery-Backed Unit (BBU) failure on io-node-02 storage node, which backs the /data filesystem mounted on app-node-07. The BBU failure disables write-cache, forcing all I/O into write-through mode, multiplying latency from ~1ms to >1000ms per operation. This caused the batch-etl proc",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 4
+      },
+      "federated_repro_roots": [
+        "cio_host_cpu_high",
+        "cio_host_cpu_high",
+        "cio_host_cpu_high",
+        "cio_host_cpu_high",
+        "cio_host_cpu_high"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": false,
+        "lean_openobserve": false,
+        "federated_openobserve": false
+      },
+      "picks_incident_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": false
+      }
+    },
+    {
+      "id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+      "title": "pgw_checkout_tps_drop",
+      "trigger_count": 7,
+      "topo_edges": 6,
+      "multi_trigger": true,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "pgw_fw_443_denies",
+        "layer": "firewall",
+        "rationale": "shared_upstream_under_ambiguity",
+        "evidentiary_tier": 3,
+        "observations": 7,
+        "candidates": [
+          "pgw_checkout_tps_drop",
+          "pgw_syn_sent_pileup",
+          "pgw_esxi_443_no_return",
+          "pgw_vcenter_net_alarm",
+          "pgw_switch_443_asymmetric",
+          "pgw_router_egress_down",
+          "pgw_fw_443_denies"
+        ],
+        "candidate_layers": {
+          "pgw_checkout_tps_drop": "firewall",
+          "pgw_syn_sent_pileup": "unknown",
+          "pgw_esxi_443_no_return": "network",
+          "pgw_vcenter_net_alarm": "firewall",
+          "pgw_switch_443_asymmetric": "network",
+          "pgw_router_egress_down": "network",
+          "pgw_fw_443_denies": "firewall"
+        },
+        "fallback_fired": true
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "pgw_checkout_tps_drop",
+        "layer": "firewall",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 7,
+        "max_posterior": 0.4864,
+        "posterior_top3": [
+          [
+            "pgw_checkout_tps_drop",
+            0.4864
+          ],
+          [
+            "pgw_esxi_443_no_return",
+            0.1157
+          ],
+          [
+            "pgw_fw_443_denies",
+            0.1135
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "firewall",
+        "root_alert": "pgw_esxi_443_no_return",
+        "cause_snippet": "A misconfigured firewall ACL rule (ACL-OUT-DMZ-NEW) deployed by admin@corp at 10:36:55 UTC contained a syntax error that placed a deny rule (`deny ip any any 443`) before permit rules, blocking all outbound TCP/443 traffic for the VLAN-200 DMZ subnet. This prevented checkout-service from reaching th",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 7
+      },
+      "federated_repro_roots": [
+        "pgw_checkout_tps_drop",
+        "pgw_checkout_tps_drop",
+        "pgw_checkout_tps_drop",
+        "pgw_checkout_tps_drop",
+        "pgw_checkout_tps_drop"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": false,
+        "lean_openobserve": false,
+        "federated_openobserve": false
+      },
+      "picks_incident_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": false
+      }
+    },
+    {
+      "id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+      "title": "pgw_checkout_tps_drop",
+      "trigger_count": 7,
+      "topo_edges": 0,
+      "multi_trigger": true,
+      "lean": {
+        "engine": "lean",
+        "root_alert": "pgw_fw_443_denies",
+        "layer": "firewall",
+        "rationale": "shared_upstream_under_ambiguity",
+        "evidentiary_tier": 3,
+        "observations": 7,
+        "candidates": [
+          "pgw_checkout_tps_drop",
+          "pgw_syn_sent_pileup",
+          "pgw_esxi_443_no_return",
+          "pgw_vcenter_net_alarm",
+          "pgw_switch_443_asymmetric",
+          "pgw_router_egress_down",
+          "pgw_fw_443_denies"
+        ],
+        "candidate_layers": {
+          "pgw_checkout_tps_drop": "firewall",
+          "pgw_syn_sent_pileup": "unknown",
+          "pgw_esxi_443_no_return": "network",
+          "pgw_vcenter_net_alarm": "firewall",
+          "pgw_switch_443_asymmetric": "network",
+          "pgw_router_egress_down": "network",
+          "pgw_fw_443_denies": "firewall"
+        },
+        "fallback_fired": true
+      },
+      "federated": {
+        "engine": "federated",
+        "root_alert": "pgw_checkout_tps_drop",
+        "layer": "firewall",
+        "rationale": "fusion_pano_murphyish_nezha_lite",
+        "observations": 7,
+        "max_posterior": 0.4569,
+        "posterior_top3": [
+          [
+            "pgw_checkout_tps_drop",
+            0.4569
+          ],
+          [
+            "pgw_fw_443_denies",
+            0.1253
+          ],
+          [
+            "pgw_esxi_443_no_return",
+            0.1049
+          ]
+        ],
+        "fallback_fired": false
+      },
+      "openobserve": {
+        "engine": "openobserve",
+        "layer": "firewall",
+        "root_alert": "pgw_esxi_443_no_return",
+        "cause_snippet": "A misconfigured firewall ACL (ACL-OUT-DMZ-NEW, deployed by admin@corp at 13:36:55 UTC) contains a malformed rule #40 that blocks ALL outbound TCP/443 traffic from VLAN-200. The syntax error places a DENY rule before PERMIT rules, inadvertently preventing the checkout service from reaching the bank p",
+        "has_narrative": true,
+        "rationale": "platform_narrative",
+        "observations": 7
+      },
+      "federated_repro_roots": [
+        "pgw_checkout_tps_drop",
+        "pgw_checkout_tps_drop",
+        "pgw_checkout_tps_drop",
+        "pgw_checkout_tps_drop",
+        "pgw_checkout_tps_drop"
+      ],
+      "federated_bit_stable": true,
+      "agree_layer": {
+        "lean_federated": true,
+        "lean_openobserve": true,
+        "federated_openobserve": true,
+        "triple": true
+      },
+      "agree_root_alert": {
+        "lean_federated": false,
+        "lean_openobserve": false,
+        "federated_openobserve": false
+      },
+      "picks_incident_title": {
+        "lean": false,
+        "federated": true,
+        "openobserve": false
+      }
+    }
+  ]
+}

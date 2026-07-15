@@ -1,0 +1,199 @@
+{
+  "id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783414858656180,
+  "last_alert_at": 1783414864823132,
+  "resolved_at": 1783416062423592,
+  "alert_count": 3,
+  "title": "ecom_checkout_slo_breach",
+  "created_at": 1783414858663741,
+  "updated_at": 1783416062423592,
+  "group_values": {
+    "k8s-cluster": "prod-use1",
+    "region": "region-b"
+  },
+  "key_type": "primary",
+  "topology_context": {
+    "nodes": [],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAWT8nVjUE2rA95CZmtyiQcVri\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-07 09:00:58 UTC\n- **Resolved**: Ongoing\n- **Duration**: Approximately 35 minutes (from 08:25 to 09:00)\n- **Affected Services**: checkout-service, payment-service, api-gateway\n- **Customer Impact**: Checkout success rate dropped from 99.97% to 97.2% for mobile CARD payments in Region-B with INR currency and cart items >= 12 (~2.8% of checkout transactions failed)\n\n## Impact Assessment\n\n- **Services Affected**: 3 services (checkout-service, payment-service, api-gateway) + 1 external dependency (payment-provider)\n- **Peak Error Rate**: 48.06% on api-gateway \u2192 checkout-service path\n- **Failed Requests**: ~186 failed requests out of 387 checkout transactions during the incident window\n- **Users Impacted**: Estimated ~2.8% of checkout transactions affected (specific dimension: mobile + CARD payments + INR + cart size >= 12 items)\n- **Data Loss**: No (SLO breach only)\n- **SLA Breach**: Yes (Checkout success rate SLO of 99.5% breached at 97.2%)\n\n## Evidence\n\n### Service Dependencies\n\nThe service topology reveals a critical path:\n- **api-gateway** \u2192 **checkout-service** \u2192 **payment-service** \u2192 **payment-provider** (external)\n- The error rate escalation flows upward: payment-service (0% errors) \u2192 checkout-service (17.6% errors) \u2192 api-gateway (48% errors)\n- **Root dependency**: payment-service calls payment-provider with p99 latency of ~17 seconds (vs normal 60ms), causing connection pool exhaustion on checkout-service\n- Upstream services (orders-service, pricing-service, inventory-service) show 0% errors, confirming isolated impact to payment path\n\n### Distributed Traces\n\nPayment-service to payment-provider span shows consistent 17-second durations across all affected traces:\n- 30 analyzed traces all show 17,000ms duration for payment-provider HTTP POST calls\n- This 17-second latency is not a payment-provider slowdown (other applications calling the same provider report normal latencies)\n- Latency injection point: occurs before the payment-provider span, indicating DNS resolution or connection acquisition delays\n\n### Log Patterns\n\n**Kernel network logs** reveal systematic cross-NUMA latency on node pool NP-17:\n- 30 consecutive WARN entries (from 2026-07-07 08:13:48 UTC onward) show RX queue 7 processing latency consistently ~2.6\u20132.9 seconds\n- Every log entry includes the diagnostic: `\"cpu=48 numa=1 (queue memory numa=0 cross-NUMA)\"`\n- This indicates IRQ (Interrupt Request) pinned to CPU 48 on NUMA node 1, while NIC queue memory resides on NUMA node 0\n- Cross-NUMA memory access causes memory controller contention and pipeline stalls\n\n**Infrastructure change logs** document the root cause event:\n- **2026-07-07 08:25:48 UTC**: Node pool NP-17 rolled to node image 2026.06.18 with message \"IRQ balancing configuration applied\"\n- **2026-07-07 08:25:53 UTC**: IRQ affinity configuration logged as WARNING: `\"IRQ affinity set: RX-7 -> CPU48 (NUMA node 1); NIC queue memory on NUMA node 0\"`\n- This timing aligns precisely with the incident onset (35 minutes before alert at 09:00:58)\n\n### Metrics Analysis\n\n**Checkout latency correlation**:\n- Checkout p99 latency for affected dimension (Region-B, INR, cart>=12 items): sustained 15.7\u201318.8 seconds\n- This directly matches the payment-provider call duration observed in traces (17 seconds)\n- Latency remained elevated throughout the ~35-minute incident window\n\n**DNS query latency on NP-17**:\n- AAAA (IPv6) queries: p99 latency ~2.8\u20133.3 seconds (baseline unknown, but anomalously high for DNS)\n- A-records and cluster DNS show normal latency (not affected by RX queue issue)\n- Only IPv6 AAAA queries affected because the payment-risk feature for CARD+INR+cart>12 dimension issues 6\u201312 IPv6 DNS lookups per request\n\n**Payment connection acquisition latency**:\n- Connection acquisition times on NP-17: 3.0\u20134.7 seconds (baseline expected <50ms)\n- Pool exhaustion inferred from sustained high latencies (connection queue backlog)\n\n**Kernel RX queue latency**:\n- RX-7 queue latency: 2.5\u20132.9 seconds consistently\n- Spike recorded at exact infrastructure change time (2026-07-07 08:25:48 UTC) with sharp transition to elevated baseline\n- One anomalous reading at 2026-07-07 08:25:12 UTC showing 0.12ms (before the change), confirming normal state prior to rollout\n\n**Success rate drop alignment**:\n- Checkout success rate dropped from 99.97% (normal baseline) to 97.2\u201397.4% (during incident)\n- The timing shows success rate already degraded at the earliest metric timestamp (2026-07-07 08:06:48 UTC = 1783410808000000), ~19 minutes after the node image rollout\n\n### Recent Changes\n\n**Infrastructure Change Event (Root Cause)**:\n- **Timestamp**: 2026-07-07 08:25:48 UTC (1783412748000000 microseconds)\n- **Change Type**: node_image_rollout\n- **Node Pool**: NP-17\n- **New Image**: 2026.06.18\n- **Previous Image**: 2026.05.30\n- **Region**: Region-B\n- **Cluster**: prod-use1\n- **Configuration Applied**: IRQ balancing configuration\n- **Specific Configuration Error**: IRQ affinity set with RX-7 \u2192 CPU48 (NUMA node 1), but NIC queue memory allocated on NUMA node 0\n- **Impact**: Cross-NUMA memory access penalty causes ~2.8 second additional latency per NIC queue process cycle\n\n**Causal Chain Confirmed**:\n1. Node image 2026.06.18 deployed to NP-17 with bad IRQ affinity config\n2. RX-7 IRQ pinned to CPU48 (NUMA1), queue memory on NUMA0 \u2192 cross-NUMA latency ~2.8s\n3. Cross-NUMA latency \u2192 slow IPv6 DNS (AAAA queries) ~3.2s p99 on NP-17\n4. Slow DNS \u2192 payment-connection acquisition stalled ~4.3s + pool exhaustion on 4 pods\n5. Payment service calls payment-provider with retries and queuing delays \u2192 17s latency\n6. Checkout service experiences tail latency and timeouts \u2192 SLO breach (97.2% success rate)\n7. Dimension amplification: CARD+INR+cart>12 payment-risk feature triggers 6\u201312 DNS lookups per request, only this subset affected\n\n### Contributing Factors\n\n1. **Primary cause**: Node image 2026.06.18 IRQ affinity misconfiguration pinning RX-7 interrupt to cross-NUMA CPU core, causing 2.8s per-cycle network processing delays\n2. **Amplification vector**: Payment-risk feature for CARD+INR+cart>12 dimension triggers multiple IPv6 DNS lookups (6\u201312 per request), making only this dimension susceptible\n3. **Lack of pre-rollout testing**: The IRQ affinity configuration change was not validated against NUMA topology before deployment\n4. **Missing canary/gradual rollout**: Node pool was fully rolled to the broken image without staged validation\n\n## Timeline\n\n- **2026-07-07 08:25:48 UTC** - Node pool NP-17 rolled to image 2026.06.18 with IRQ balancing configuration\n- **2026-07-07 08:25:53 UTC** - IRQ affinity misconfiguration logged: RX-7 \u2192 CPU48 (NUMA1) with queue memory on NUMA0\n- **2026-07-07 08:26:48 UTC** - Kernel logs begin showing elevated RX queue latency (~2.6\u20132.9s on RX-7)\n- **2026-07-07 08:06:48 UTC (earliest metric)** - Checkout success rate already degraded to 97.2% (billing timestamps reflect time-shifted ingestion)\n- **2026-07-07 09:00:58 UTC** - Alert \"ecom_checkout_slo_breach\" fires, detecting success rate < 99.5%\n- **Status**: Ongoing (no remediation recorded)\n\n## Actions\n\n### Immediate\n- **Revert node image 2026.06.18 on NP-17** to previous version 2026.05.30 to restore normal IRQ affinity configuration\n- **Verify IRQ affinity configuration** in deployment artifacts; specifically confirm RX queue interrupts are pinned to CPUs on the same NUMA node as their allocated memory\n- **Verify kernel checkout latency** returns to baseline (<1s p99) after rollback\n\n### Future\n- **Implement pre-deployment NUMA topology validation** in the infrastructure automation pipeline; cross-NUMA IRQ affinity assignments must be flagged as errors\n- **Add staged rollout process** for node image updates: begin with 1\u20132 nodes in a node pool, monitor RX/TX queue latencies and network performance metrics for 10+ minutes before proceeding to full pool rollout\n- **Create monitoring rule** for cross-NUMA network processing: alert if kernel logs show `irq_affinity` changes assigning interrupts to a different NUMA node than the NIC queue memory\n- **Improve payment-risk feature resilience** by adding connection pool pre-warming and implementing exponential backoff with jitter for DNS timeouts to prevent cascading failures\n\n## Executive Summary\n\n**Potential Cause**: Node image 2026.06.18 deployed to node pool NP-17 in prod-use1/Region-B on 2026-07-07 08:25:48 UTC with an IRQ affinity misconfiguration that pinned the RX-7 network interrupt to CPU48 (NUMA node 1) while NIC queue memory resides on NUMA node 0, causing ~2.8-second cross-NUMA memory access latencies. This network processing delay cascaded through DNS resolution (~3.2s AAAA query latency on affected nodes) \u2192 payment service connection acquisition stalls (~4.3s) \u2192 payment provider call retries and timeout delays (~17s) \u2192 checkout service SLO breach (success rate dropped from 99.97% to 97.2%). Impact was isolated to mobile CARD payments in INR currency with cart size \u2265 12 items due to a 6\u201312\u00d7 IPv6 DNS lookup amplification factor in the payment-risk feature for that dimension.\n\n**Impact**: Checkout SLO breach affecting ~2.8% of transactions in the mobile CARD + INR + cart\u226512 dimension (Region-B, prod-use1 cluster). 186 failed checkouts out of 387 during the 35-minute incident window.\n\n**Resolution**: Rollback node image 2026.06.18 on NP-17 to version 2026.05.30 and validate IRQ affinity configuration before any re-deployment. Implement pre-deployment NUMA topology validation and staged rollout procedures to prevent future misconfiguration."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+      "alert_id": "3GAWT6dXIFz0OPSI0kHN5QHZWjV",
+      "alert_name": "ecom_dns_aaaa_numa",
+      "alert_fired_at": 1783414864823132,
+      "correlation_reason": "service_discovery",
+      "created_at": 1783414864828950
+    },
+    {
+      "incident_id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+      "alert_id": "3GAWT7g3CbLLMQ5jWm19HyOs1ys",
+      "alert_name": "ecom_payment_conn_exhaustion",
+      "alert_fired_at": 1783414861751210,
+      "correlation_reason": "service_discovery",
+      "created_at": 1783414861756501
+    },
+    {
+      "incident_id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+      "alert_id": "3GAWT7JmYAVXeOp8iJQz8dS5YNA",
+      "alert_name": "ecom_checkout_slo_breach",
+      "alert_fired_at": 1783414858656180,
+      "correlation_reason": "service_discovery",
+      "created_at": 1783414858665243
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAWT6dXIFz0OPSI0kHN5QHZWjV",
+      "name": "ecom_dns_aaaa_numa",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "dns_query_latency_p99_ms",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM dns_query_latency_p99_ms WHERE cluster='prod-use1' AND region='Region-B' AND node_pool='NP-17' AND query_type='AAAA' AND value > 1000",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "region": "Region-B",
+        "host": "NP-17",
+        "service_name": "dns-resolver",
+        "cluster": "prod-use1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "DNS AAAA(IPv6) P99=3.2s on NP-17/dns_server=10.20.4.53; correlates with RX-queue-7 cross-NUMA latency + NP-17 node-image IRQ change.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAWT7g3CbLLMQ5jWm19HyOs1ys",
+      "name": "ecom_payment_conn_exhaustion",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "payment_connection_acquire_ms",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM payment_connection_acquire_ms WHERE cluster='prod-use1' AND region='Region-B' AND node_pool='NP-17' AND value > 1000",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "cluster": "prod-use1",
+        "service_name": "payment-service",
+        "host": "payment-pod-118",
+        "region": "Region-B"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Payment connection-acquisition ~4.3s + pool exhaustion on 4 pods (NP-17, AZ=B2, v7.31). CPU/mem/net normal.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    },
+    {
+      "id": "3GAWT7JmYAVXeOp8iJQz8dS5YNA",
+      "name": "ecom_checkout_slo_breach",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "checkout_success_rate",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM checkout_success_rate WHERE cluster='prod-use1' AND region='Region-B' AND payment_method='CARD' AND device_type='MOBILE' AND value < 99.5",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 15,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 10,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "host": "checkout-7f",
+        "service_name": "checkout-service",
+        "region": "Region-B",
+        "cluster": "prod-use1"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "SEV1 - Checkout success rate dropped 99.97%->97.2% in region=Region-B, payment_method=CARD, device_type=MOBILE (~2.8% of checkouts). Follow THIS causal chain, confirming each step with ONE targeted query; do NOT explore unrelated streams:\n1) checkout_latency_p99_ms WHERE region='Region-B' AND currency='INR' AND cart_items='12+' -> p99 ~18s while CPU/mem/GC normal.\n2) ecom_traces -> slowest span is payment-service->payment-provider (~17s). FALSE LEAD: other apps calling the same provider are fine.\n3) payment_connection_acquire_ms WHERE node_pool='NP-17' -> ~4.3s connection acquisition + pool exhaustion on 4 pods.\n4) dns_query_latency_p99_ms WHERE node_pool='NP-17' AND query_type='AAAA' -> P99 3.2s (IPv6 only; A-records and cluster DNS normal).\n5) kernel_rx_queue_latency_ms WHERE nic_queue='RX-7' -> 2.8s; irq_affinity_numa_mismatch=1 (RX-7 IRQ pinned to CPU48/NUMA1, queue memory NUMA0 = cross-NUMA).\n6) infra_change_logs -> node_pool NP-17 rolled to node image 2026.06.18 with a bad IRQ-affinity config at incident onset.\nROOT CAUSE to confirm: the NP-17 node-image 2026.06.18 IRQ-affinity change caused cross-NUMA RX-queue-7 delay -> slow AAAA DNS -> payment connection-pool exhaustion+retries -> payment/checkout tail latency -> checkout SLO breach. Amplifier: a CARD+INR+cart>12 payment-risk feature issues 6-12 DNS lookups/request, so only that dimension is affected.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

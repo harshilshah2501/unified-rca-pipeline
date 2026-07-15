@@ -2,7 +2,7 @@
 
 Orchestrates the **4-step federated vs lean comparison** on Corpus B (`datasets/observeops/`).
 
-**Motadata status (2026-07-13):** Critical path complete — lean is primary ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). Use this guide to **rerun** bakeoffs or extend optional work (Phase C/E, B5), not to rediscover the engine choice.
+**ObserveOps status (2026-07-13):** Critical path complete — lean is primary ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). Use this guide to **rerun** bakeoffs or extend optional work (Phase C/E, B5), not to rediscover the engine choice.
 
 ## Current pipeline
 
@@ -15,7 +15,7 @@ Step 4  benchmarking/benchmark/compare.py         →  results/comparison/
 
 ## Full-fledged checklist
 
-See [FULLFLEDGED.md](FULLFLEDGED.md) (all Motadata items checked) and [TASKS.md](TASKS.md).
+See [FULLFLEDGED.md](FULLFLEDGED.md) (all ObserveOps items checked) and [TASKS.md](TASKS.md).
 
 ## For agents resuming
 

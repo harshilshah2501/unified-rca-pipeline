@@ -1,0 +1,85 @@
+{
+  "id": "3GAINIkn1ovFoFzmkJbmUapDMY0",
+  "org_id": "default",
+  "status": "resolved",
+  "severity": "P3",
+  "first_alert_at": 1783407904289495,
+  "last_alert_at": 1783407904289495,
+  "resolved_at": 1783408522117734,
+  "alert_count": 1,
+  "title": "pg_db_down_dim",
+  "created_at": 1783407904294991,
+  "updated_at": 1783408522117734,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3GAINBqOtXYLM1mH5fdlJTtnm2P",
+        "alert_name": "pg_db_down_dim",
+        "service_name": "postgres-primary",
+        "alert_count": 1,
+        "first_fired_at": 1783407904289495,
+        "last_fired_at": 1783407904289495
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3GAINIkn1ovFoFzmkJbmUapDMY0\n- **Severity**: P3\n- **Detected**: 2026-07-07 06:31:44 UTC\n- **Resolved**: Ongoing\n- **Duration**: ~34 minutes (from memory spike to incident alert)\n- **Affected Services**: postgres-primary (primary database), orders-service (dependent application)\n- **Customer Impact**: Checkout and order operations degraded; database unavailable for ~6 minutes\n\n## Impact Assessment\n\n- **Services Affected**: 2 primary services (postgres-primary database, orders-service application)\n- **Peak Error Rate**: 100% (complete database unavailability from 06:30:51 to 06:31:23 UTC)\n- **Failed Requests**: Estimated hundreds of checkout requests queued and failed\n- **Users Impacted**: All users attempting to place orders during the 6-minute outage window\n- **Data Loss**: No (database recovered after OOM condition resolved)\n- **SLA Breach**: Yes (service degradation exceeded typical availability targets)\n\n## Evidence\n\n### Service Dependencies\nThe incident topology shows:\n- **orders-service** \u2192 depends on **postgres-primary** (orders database, host pg-prod-01)\n- No upstream dependencies detected; postgres-primary is a critical leaf service\n- Dependency chain: User requests \u2192 orders-service \u2192 postgres-primary\n\n### Distributed Traces\nService graph topology returned empty, indicating no active trace collection during the incident. However, application logs provide evidence of request flow disruption:\n- Orders-service successfully processed requests prior to 06:23:21 UTC (latency 18-38ms)\n- Connection attempts began failing at 06:23:48 UTC with connection refusal errors\n- Requests queued in connection pool until postgres restart at 06:30:51 UTC\n\n### Log Patterns\n**Postgres Database Logs (postgres_logs stream):**\n- **Normal operations (06:05:04 - 06:23:21 UTC)**: Regular query processing with sub-30ms latencies\n- **Memory pressure onset (06:23:21 UTC)**: First \"out of memory\" WARNING logged\n- **Cascading memory errors (06:23:48 - 06:30:51 UTC)**: Repeated ERROR messages \"out of memory - Failed on request of size 2097152 in memory context\"\n- **Process termination (06:30:51 UTC)**: Kernel OOM killer invoked; postgres process 28471 killed with signal 9\n- **Recovery phase (06:30:51 - 06:31:23 UTC)**: Database transitioned to recovery mode, then shut down and restarted\n\n**Application Logs (app_logs stream):**\n- **Connection pool exhaustion (06:23:48 - 06:30:51 UTC)**: 14 log entries reporting \"db connection pool exhausted (active=500/500, queue=512-1124)\"\n- **Connection errors (06:31:23 UTC)**: \"psycopg2.OperationalError: could not connect to server\" and \"Connection refused on port 5432\"\n- **Service degradation (06:30:51 - 06:31:23 UTC)**: \"orders-service degraded: database unavailable, failing checkout requests (HTTP 503)\"\n- **Database recovery error (06:31:23 UTC)**: \"FATAL: the database system is in recovery mode\"\n\n### Metrics Analysis\n\n**Memory Usage (db_memory_usage_percent):**\n- **Baseline (06:05:04 - 06:23:21 UTC)**: Stable at 42-45% of available memory\n- **Rapid increase (06:23:21 UTC)**: Memory usage climbed from 44.68% to 53.53% in ~5 minutes\n- **Critical threshold (06:30:51 UTC)**: Peaked at 97.71% memory utilization before process termination\n- **Recovery (after 06:30:51 UTC)**: Dropped to 0% after database shutdown and restart\n\n**Active Connections (db_connections_active):**\n- **Normal baseline (06:05:04 - 06:23:21 UTC)**: 42-50 active connections\n- **Connection buildup (06:23:21 - 06:30:51 UTC)**: Connections increased from 46.51 to 470.5 in 7.5 minutes\n- **Peak connections (06:30:51 UTC)**: 470.5 active connections (94% of max_connections=500)\n- **Post-restart (after 06:30:51 UTC)**: Reset to 0 after database shutdown\n\n**Database Health (db_up metric):**\n- **Pre-incident (06:05:04 - 06:23:21 UTC)**: value = 1 (healthy)\n- **Service unavailable (06:23:21 - 06:30:51 UTC)**: value = 0 (down)\n- **Alert triggered (06:30:51 UTC)**: Alert fired on observation of value < 1 for 25 periods (minimum 25 * 5 minute check interval)\n\n### Recent Changes\nChange history not investigated \u2014 no tool access to deployment or infrastructure audit logs. However, the incident pattern is consistent with a recent schema change, missing index, or query optimization regression that increased memory consumption during query execution.\n\n### Contributing Factors\n\n1. **Memory Leak or Unbounded Memory Consumption in Postgres**: A query or feature deployed recently began consuming significantly more memory than historical baseline. Memory usage jumped from stable 44% to critical 97.71% in under 8 minutes, despite normal connection counts (46 \u2192 139 active connections early in the ramp). This suggests the issue is not connection count but memory per query/transaction.\n\n2. **Rapid Connection Pool Exhaustion in orders-service**: As postgres memory pressure increased, connection timeouts and rejections cascaded, causing orders-service to accumulate connections in its pool (max 500). Queue depth grew to 1000+ waiting requests, overwhelming the application's connection management. The service correctly degraded gracefully, returning HTTP 503 errors rather than hanging.\n\n3. **Kernel OOM Killer Invocation**: When postgres memory exceeded the container or node limit (likely a cgroup or VM memory cap), the Linux kernel OOM killer forcibly terminated the postgres process with signal 9 (SIGKILL), preventing graceful shutdown and recovery steps. This transitioned the database to recovery mode on restart.\n\n## Timeline\n\n- **2026-07-07 06:05:04 UTC** - Normal operations begin. postgres-primary processing ~50 active connections, memory usage ~44%.\n- **2026-07-07 06:23:21 UTC** - First \"out of memory\" warning logged in postgres_logs. Memory usage begins rising sharply.\n- **2026-07-07 06:23:48 UTC** - orders-service detects connection failures. First \"db connection pool exhausted\" error logged. Active connections spike to 139.\n- **2026-07-07 06:30:51 UTC** - Postgres memory reaches 97.71% utilization. Kernel invokes OOM killer; postgres process 28471 terminated with signal 9. Database transitions to recovery mode.\n- **2026-07-07 06:30:51 UTC** - db_up metric drops from 1 to 0. Database marked as unavailable.\n- **2026-07-07 06:31:23 UTC** - Postgres database system is shut down. FATAL: \"the database system is in recovery mode\" message logged. Connection attempts from orders-service fail with \"Connection refused.\"\n- **2026-07-07 06:31:44 UTC** - Alert pg_db_down_dim triggered (25 consecutive checks with value < 1 detected). Incident 3GAINIkn1ovFoFzmkJbmUapDMY0 created.\n- **2026-07-07 07:05:04 UTC** - Incident detection marked. Database remains offline during entire investigation window.\n\n## Actions\n\n### Immediate\n- **Restart postgres-primary service** to recover from OOM-induced shutdown. Database should come online within seconds once recovery mode completes.\n- **Monitor memory consumption post-restart** at 30-second intervals for the first 10 minutes to detect any recurren memory leak.\n- **Drain and reset connection pools** in orders-service after postgres availability confirmed. Clear accumulated queue of 1000+ requests.\n- **Notify affected users** of service restoration and potential order processing delays during recovery.\n\n### Future\n- **Investigate recent schema/query changes**: Cross-reference postgres commits and PRs merged in the 24 hours prior to 2026-07-07 06:23:21 UTC. Focus on:\n  - New indexes or table structures\n  - Query execution plan changes (EXPLAIN ANALYZE comparison)\n  - Configuration parameter changes (work_mem, shared_buffers, effective_cache_size)\n  - New or modified stored procedures or triggers\n- **Add memory limit alerting**: Configure alerts to fire at 75%, 85%, and 95% memory usage thresholds *before* OOM killer invocation.\n- **Implement query timeout and memory limits**: Set statement_timeout and work_mem to enforce hard limits on individual queries to prevent runaway memory consumption.\n- **Review connection pool sizing**: Current max_connections=500 was insufficient to buffer the connection spike. Evaluate increasing to 750-1000 or implementing circuit-breaker logic in orders-service.\n- **Enable pg_stat_statements extension**: Persist query memory statistics to identify high-memory queries after restart.\n- **Implement graceful degradation**: Configure postgres to return a specific error code (not connection refused) when at resource limits, allowing orders-service to degrade gracefully sooner rather than queue indefinitely.\n\n## Executive Summary\n\n**Potential Cause**: A recent query, schema change, or database configuration modification caused postgres memory consumption to spike from 44% to 97.71% baseline utilization within 8 minutes. The Linux kernel OOM killer forcibly terminated the postgres process (signal 9), inducing a crash and recovery cycle that took ~6 minutes to complete. orders-service was unable to connect, causing checkout request failures and connection pool exhaustion (max 500 active connections \u00d7 1000+ queued).\n\n**Impact**: Complete unavailability of the orders database for 6 minutes (06:23:21 to 06:30:51 UTC), causing all checkout operations to fail or queue. Estimated hundreds of customer orders dropped or delayed; SLA targets exceeded.\n\n**Resolution**: Restart postgres-primary service to recover from forced shutdown. Investigate recent code and config changes in the 24-hour window prior to incident start. Implement memory threshold alerting, query timeouts, and connection pool tuning to prevent recurrence."
+  },
+  "triggers": [
+    {
+      "incident_id": "3GAINIkn1ovFoFzmkJbmUapDMY0",
+      "alert_id": "3GAINBqOtXYLM1mH5fdlJTtnm2P",
+      "alert_name": "pg_db_down_dim",
+      "alert_fired_at": 1783407904289495,
+      "correlation_reason": "alert_id",
+      "created_at": 1783407904296374
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3GAINBqOtXYLM1mH5fdlJTtnm2P",
+      "name": "pg_db_down_dim",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "db_up",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "custom",
+        "conditions": null,
+        "sql": "SELECT * FROM db_up WHERE service_name = 'postgres-primary' AND host = 'pg-prod-01' AND value < 1",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 25,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1,
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "postgres-primary (ordersdb @ pg-prod-01) DOWN. Evidence in postgres_logs/app_logs; traces orders-service -> postgres-primary.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "incident_id": "3GAYuTBAC1zaXtslES1iFWh5yKA",
+  "title": "sa_upload_slo",
+  "status": "final",
+  "stratum": "decoy_multi_slo_filesystem",
+  "root_layer": "filesystem",
+  "root_alert": "sa_inode_high",
+  "contributor_alerts": [
+    "sa_upload_slo"
+  ],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Upload SLO + ENOSPC in logs; inode usage ~100% on /var/tmp while disk bytes only ~55%. Root is inode exhaustion, not the SLO title.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "filesystem",
+      "root_alert": "sa_inode_high",
+      "confidence": "confident",
+      "evidence_note": "Filesystem inode alert explains ENOSPC / upload failures.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "filesystem",
+      "root_alert": "sa_inode_high",
+      "confidence": "confident",
+      "evidence_note": "SLO is symptom; inode_high is infra root.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T07:33:28Z",
+    "notes": "Solo Option-B exercise: dual-pass by same reviewer (pass A evidence-first, pass B decoy-check). Agreed filesystem / sa_inode_high. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "sa_inode_high",
+    "sa_upload_slo"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "filesystem",
+    "lean_root": "sa_inode_high",
+    "federated_layer": "filesystem",
+    "federated_root": "sa_upload_slo",
+    "openobserve_layer": "filesystem",
+    "openobserve_root": "sa_upload_slo",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "Inode exhaustion on the /var/tmp mount at node-euw1-a3, caused by the export-report job v1.7 (deployed 14 days ago) leaking temporary files due to disabled cleanup. Despite 55% disk byte usage remaining, the inode limit (100%) prevents any ",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

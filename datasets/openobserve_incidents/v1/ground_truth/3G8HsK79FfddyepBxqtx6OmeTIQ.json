@@ -1,0 +1,50 @@
+{
+  "incident_id": "3G8HsK79FfddyepBxqtx6OmeTIQ",
+  "title": "starter_high_cpu",
+  "status": "final",
+  "stratum": "single_no_narrative_cpu",
+  "root_layer": "compute",
+  "root_alert": "starter_high_cpu",
+  "contributor_alerts": [],
+  "confidence": "ambiguous",
+  "include_in_accuracy": false,
+  "evidence_note": "Single stub alert (mock CPU>80); no co-firing signals, topology, or narrative. Convention root = title alert only \u2014 too thin for accuracy scoring.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "compute",
+      "root_alert": "starter_high_cpu",
+      "confidence": "ambiguous",
+      "evidence_note": "Only signal is starter_high_cpu \u2192 compute, but evidence is stub-quality.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "compute",
+      "root_alert": "starter_high_cpu",
+      "confidence": "ambiguous",
+      "evidence_note": "No corroboration; mark ambiguous / exclude from accuracy.",
+      "labeled_at": "2026-07-15T07:33:28Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T07:33:28Z",
+    "notes": "Solo Option-B exercise: dual-pass by same reviewer (pass A evidence-first, pass B decoy-check). Both thin; finalize as compute/title but include_in_accuracy=false. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "starter_high_cpu"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "unknown",
+    "lean_root": "starter_high_cpu",
+    "federated_layer": "unknown",
+    "federated_root": "starter_high_cpu",
+    "openobserve_layer": "unknown",
+    "openobserve_root": "starter_high_cpu",
+    "openobserve_has_narrative": false,
+    "openobserve_snippet": "Starter alert: fires when mock system_process_cpu_percent > 80; creates an incident for RCA.",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}
