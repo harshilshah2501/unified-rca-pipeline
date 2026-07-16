@@ -2,6 +2,8 @@
 
 Root-cause analysis research workspace with two pipelines (federated + lean), shared datasets, and benchmarking.
 
+**Documentation:** **[`docs/NAVIGATION.md`](docs/NAVIGATION.md)** — single index for all docs (PoC, learning, pipelines, bakeoff, datasets).
+
 ## Layout
 
 | Path | Purpose |
@@ -30,7 +32,7 @@ PYTHONPATH=lean-pipeline:. .venv/bin/python -m lean_rca diagnose UC-1 --format r
 ./benchmarking/benchmark/run_bakeoff.sh
 ```
 
-See [`docs/POC_BRIEFING.md`](docs/POC_BRIEFING.md) for the full end-to-end PoC narrative (NotebookLM / slides), plus [`docs/README.md`](docs/README.md), [`docs/ADR-001-lean-primary-engine.md`](docs/ADR-001-lean-primary-engine.md), and [`benchmarking/README.md`](benchmarking/README.md).
+See [`docs/NAVIGATION.md`](docs/NAVIGATION.md) for the full doc map. Short path: [`docs/POC_BRIEFING.md`](docs/POC_BRIEFING.md) (narrative), [`RCA-learning-cheatsheet.md`](RCA-learning-cheatsheet.md) (study + cost PoC plan), [`docs/ADR-001-lean-primary-engine.md`](docs/ADR-001-lean-primary-engine.md), [`benchmarking/README.md`](benchmarking/README.md).
 
 ## Learning UI (federated prototypes)
 

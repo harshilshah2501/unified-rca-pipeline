@@ -27,11 +27,11 @@ We built and compared **two engines on the exact same frozen corpus**:
 |------|-----------|------|--------|
 | Accuracy (root CI + signature) | 5/5 | 5/5 | Tie |
 | Reproducibility (N=20) | ~40% | **100%** | **Lean** |
-| Verifiability | Higher main-path %; less tier/CARE audit trail | Tier labels + CARE/causal log + SRE report | **Lean** (audit narrative)* |
+| Verifiability | Fusion path (no lean-rule rescue on this run); weaker SRE audit trail | Explicit Tier 1/2/3 + CARE/causal log + SRE report | **Lean** (audit narrative)* |
 | Efficiency (avg observations) | 5.60 | **5.00** | **Lean** |
 | Causal Validity | Stronger (Murphy / costly if global) | Scoped Tier 3 only (UC-1, UC-3) | Design tradeoff |
 
-\*Federated scores higher on **main-path %** (no CARE fallback fired); lean wins **Verifiability** for SRE audit because tiers, CARE, and causal logs make the evidence chain explicit. See [`benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md).
+\*Do **not** read “main path” as lean’s Tier 1/2/3 — that ladder is **lean-only**. The bakeoff’s shared `main_path %` only means `fallback_fired: false` for both engines: for lean = CARE did not fire; for federated = fusion did not fall back to lean rules. On `b-002`, federated is 5/5 “no-fallback” while lean fires CARE on UC-1/UC-3 (intentional Tier 2→3 depth). **Verifiability still favors lean** for SRE auditability of the evidence chain. See [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) and [`GLOSSARY.md`](./GLOSSARY.md).
 
 **Conclusion:** On ObserveOps classic-infra tickets, lean wins the cost–benefit. Murphy’s causal edge is real but does not buy extra accuracy on this corpus, and it loses on reproducibility, auditability, and compute/ops cost. Ship lean first; keep federated for a hybrid later if microservice/code-path RCA is in scope.
 

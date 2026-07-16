@@ -3,7 +3,9 @@
 PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 `federated-pipeline/docs/` and `lean-pipeline/docs/`.
 
-## Index
+**Full repo doc map:** [`NAVIGATION.md`](./NAVIGATION.md) — **start here** if you are lost.
+
+## Index (common docs only)
 
 | Document | Purpose |
 |----------|---------|

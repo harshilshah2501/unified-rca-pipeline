@@ -22,7 +22,16 @@ When a doc says “Tier 3” without qualification, assume **lean evidentiary ti
 
 ## Verifiability vs main-path %
 
-On the four-axis bakeoff, **main-path %** counts verdicts where `fallback_fired: false`. Lean may score **lower** main-path % when CARE fires (UC-1, UC-3) while still winning **Verifiability** for SRE audit: explicit tier labels, CARE flags, causal logs, and evidence citations. Federated can show higher main-path % with less structured audit narrative. See [`benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md).
+**Lean Tier 1/2/3** is lean-only (evidentiary depth). Federated does not use that ladder.
+
+The bakeoff’s shared **main-path %** is a different, coarser metric: % of verdicts with `fallback_fired: false`.
+
+| Engine | `fallback_fired: false` | `fallback_fired: true` |
+|--------|-------------------------|------------------------|
+| Lean | CARE did not fire (Tier 1) | CARE fired (Tier 2/3) |
+| Federated | Fusion path (no lean-rule rescue) | Fell back to lean helpers after weak Murphy |
+
+Lean may score **lower** main-path % when CARE fires (UC-1, UC-3) while still winning **Verifiability** for SRE audit: explicit tier labels, CARE flags, causal logs, and evidence citations. Federated’s higher no-fallback % is **not** “more Tier 1.” See [`benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md).
 
 ## Evaluation verdict (standard phrase)
 
