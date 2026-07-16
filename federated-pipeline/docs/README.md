@@ -2,13 +2,14 @@
 
 Federated-only architecture and algorithm docs. Shared ObserveOps materials (use-cases, roadmap, ADR, lean-vs-federated guide) live in [`../../docs/`](../../docs/README.md).
 
-**ObserveOps status:** For ObserveOps UC-1..UC-5, **lean is the primary engine** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). This tree is the federated PoC, bakeoff comparator, and optional microservice / code-path track.
+**ObserveOps status:** For ObserveOps UC-1..UC-5, **lean is the primary evaluation engine** per [ADR-001](../../docs/ADR-001-lean-primary-engine.md) (**not a finalized product commitment**). This tree is the federated PoC, bakeoff comparator, and optional microservice / code-path track.
 
 ## Start here (aligned with lean-pipeline docs)
 
 | Document | Purpose |
 |----------|---------|
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | **Architecture, components, and workflows** (demos + ObserveOps bakeoff) |
+| [`FEDERATED_PIPELINE_VISUAL_GUIDE.md`](./FEDERATED_PIPELINE_VISUAL_GUIDE.md) | **Sub-step guide for visual simulation (UC-1)** — Panorama → Murphy → Nezha → resolve |
 | [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md) | **Limitations, when to choose federated, Phase C/E deferrals** |
 | [`STORAGE_TIERS.md`](./STORAGE_TIERS.md) | Speed vs structural tier design vision |
 | [`ORCHESTRATOR.md`](./ORCHESTRATOR.md) | Hop contracts, fusion, open decisions |

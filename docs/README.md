@@ -12,8 +12,19 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | [`UC_LEARNING_BRAINSTORM.md`](./UC_LEARNING_BRAINSTORM.md) | **Learning / brainstorm** — simplified UC frames (problem → RCA output); not bakeoff GT |
 | [`ROADMAP.md`](./ROADMAP.md) | End-to-end phases and status |
 | [`ADR-001-lean-primary-engine.md`](./ADR-001-lean-primary-engine.md) | Bakeoff evaluation finding (lean favored on this corpus; not a finalized product decision) |
-| [`Lean_RCA_PRD.pdf`](./Lean_RCA_PRD.pdf) | Lean RCA product requirements ([`.docx`](./Lean_RCA_PRD.docx) · [`.md`](./Lean_RCA_PRD.md); evaluation-aligned 2026-07-13) |
-| [`Lean_RCA_Simple_Guide.pdf`](./Lean_RCA_Simple_Guide.pdf) | Lean RCA simple guide ([`.docx`](./Lean_RCA_Simple_Guide.docx) · [`.md`](./Lean_RCA_Simple_Guide.md); corrected 2026-07-13) |
+| [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) | **Standard evaluation checklist** for any RCA method (4 axes + 5 roadblocks + evidence provenance) — not lean-only |
+| [`GLOSSARY.md`](./GLOSSARY.md) | Disambiguates **tier** namespaces, corpus names, and verifiability vs main-path % |
+| [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) | Lean RCA product requirements (**canonical**; includes Appendix E) · [`.pdf`](./Lean_RCA_PRD.pdf) export · [`.docx`](./Lean_RCA_PRD.docx) |
+| [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md) | Lean RCA simple guide (**canonical**) · [`.pdf`](./Lean_RCA_Simple_Guide.pdf) export · [`.docx`](./Lean_RCA_Simple_Guide.docx) |
+
+## Two evaluation corpora (do not merge scoreboards)
+
+| Corpus | Location | Ground truth | Typical accuracy headline |
+|--------|----------|--------------|---------------------------|
+| **ObserveOps UC** (Corpus B) | `datasets/observeops/` v1.1.0 | Shared `ground_truth.json` per UC | **5/5** root-CI on UC-1..UC-5 (`bakeoff-phase-b-002`) |
+| **OpenObserve incidents** | `datasets/openobserve_incidents/v1/` | Alert-heuristic labels (Option B) | ~**88%** on n=24 scored incidents — **different contract** |
+
+Reports: ObserveOps → [`benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md); OpenObserve → [`benchmarking/results/openobserve/`](../benchmarking/results/openobserve/). See [`benchmarking/README.md`](../benchmarking/README.md).
 
 See also: **[Lean vs federated — design choice & decision guide](#lean-vs-federated--design-choice--decision-guide)** below.
 
@@ -31,6 +42,8 @@ Root also keeps convenience symlinks: `ROADMAP.md`, `rca-use-cases-only.md` → 
 Lean still *walks* that typed graph upstream (best-first / temporal / CARE), which is the §2.9 classic-infra extension of the PRD “invocation graph” idea — inventory CIs, not ephemeral pod identities.
 
 ## ObserveOps UCs vs four qualities & five roadblocks
+
+**Project-wide protocol** for scoring any RCA method (academic, commercial, lean, federated, future): [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) — four axes, five roadblocks, evidence provenance. The ObserveOps Mandatories below are a **deployment profile** applied on top of that checklist for classic-infra tickets.
 
 Definitions match the Lean PRD / Simple Guide.
 
@@ -145,7 +158,7 @@ Need bit-stable + SRE-auditable RCA on classic infra?
        └─ Still ObserveOps VMware stack? → Prefer Lean; don’t buy Murphy for CV alone
 ```
 
-**PoC decision:** Lean is primary for [`rca-use-cases-only.md`](./rca-use-cases-only.md). Federated remains available for comparison and for a future microservice hybrid — not as the ObserveOps default brain.
+**PoC decision:** Lean is the **primary evaluation engine** for [`rca-use-cases-only.md`](./rca-use-cases-only.md) per ADR-001 (**not a finalized product commitment**). Federated remains available for comparison and for a future microservice hybrid — not as the ObserveOps default brain.
 
 ## Pipeline-specific docs (not moved)
 

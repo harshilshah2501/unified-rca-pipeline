@@ -35,6 +35,8 @@ This contract is how ObserveOps addresses **Roadblock 4** (no field-wide standar
 |------|-----------|------|
 | Reproducibility | Same bundle → same verdict | Same |
 | Verifiability | Inspectable evidence trail | Same + `evidentiary_tier` |
+
+**Verifiability vs main-path %:** Compare reports may show federated with a higher **main-path %** (`fallback_fired: false`) than lean when lean fires CARE on UC-1/UC-3. Verifiability still favors lean for SRE audit: tier labels, CARE flags, causal logs, and cited evidence. Do not use main-path % alone as the Verifiability winner. See [`docs/GLOSSARY.md`](../../docs/GLOSSARY.md).
 | Accuracy | top-1 vs ground truth (Mandatory KPI with a declared floor; 5/5 on this tiny corpus is smoke, not a forever-100% rule) | Same |
 | Causal Validity | Murphy partial (if claimed; costly if global) | Tier 3 only (CARE + scoped causal check) — Recommended, not Mandatory on every UC |
 

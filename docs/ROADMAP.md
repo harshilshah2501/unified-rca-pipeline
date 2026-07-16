@@ -49,7 +49,7 @@ Shared objective docs: [`README.md`](./README.md) (`docs/`). Pipeline-specific d
 | M4 Same-corpus bakeoff | **Done** | Both engines 5/5 accuracy on ObserveOps; comparison artifacts exist |
 | M5 Phase 0 EPS (laptop) | **Partial** | ~21K EPS on 2-core WSL Dragonfly; **not** 64-core production estimate |
 | **M6 Phase A bakeoff close** | **Done** | A1 fusion fix; A2 four-axis compare; `bakeoff-phase-a-001`; **lean primary** — [`DECISION.md`](../benchmarking/results/comparison/DECISION.md) |
-| **M7 Phase B lean PRD depth** | **Done** | Tiers 1/2/3 + CARE→causal; signatures; search vs BFS efficiency; `bakeoff-phase-b-001` |
+| **M7 Phase B lean PRD depth** | **Done** | Tiers 1/2/3 + CARE→causal; signatures; search vs BFS efficiency; `bakeoff-phase-b-002` (latest) |
 | **M8 Phase D packaging** | **Done** | ADR-001; `lean_rca` CLI/HTTP; SRE report fields; systemd `lean-rca.service` |
 | **M9 Docs consolidation** | **Done** | Common objective docs in [`docs/`](./README.md) (use-cases, roadmap, ADR, Lean PRD + Simple Guide); pipeline-specific docs remain in-tree |
 
@@ -78,7 +78,7 @@ Shared objective docs: [`README.md`](./README.md) (`docs/`). Pipeline-specific d
 | B4 | Observation-efficiency vs naive BFS | **Done** | `obs_to_convergence` / `naive_bfs_expansions` / ratio in verdict + compare |
 | B5 | Continuous causal memory (§2.8) | Deferred | Optional; after ObserveOps packaging |
 
-**Bakeoff:** `bakeoff-phase-b-001` — [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md).
+**Bakeoff:** `bakeoff-phase-b-002` — [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md).
 
 **Out of scope for classic ObserveOps path:** DeathStarBench / TrainTicket Corpus A — optional only if paper-style algorithm proof beyond ObserveOps is needed.
 
@@ -158,8 +158,8 @@ M9  Common docs/ consolidation          ✅ DONE
 | Docs home | [`README.md`](./README.md) |
 | End-to-end PoC briefing | [`POC_BRIEFING.md`](./POC_BRIEFING.md) |
 | Use-case definitions | [`rca-use-cases-only.md`](./rca-use-cases-only.md) |
-| Lean PRD | [`Lean_RCA_PRD.pdf`](./Lean_RCA_PRD.pdf) · [`.md`](./Lean_RCA_PRD.md) |
-| Lean Simple Guide | [`Lean_RCA_Simple_Guide.pdf`](./Lean_RCA_Simple_Guide.pdf) · [`.md`](./Lean_RCA_Simple_Guide.md) |
+| Lean PRD | [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) (**canonical**) · [`.pdf`](./Lean_RCA_PRD.pdf) |
+| Lean Simple Guide | [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md) (**canonical**) · [`.pdf`](./Lean_RCA_Simple_Guide.pdf) |
 | Lean pipeline architecture | [`../lean-pipeline/docs/ARCHITECTURE.md`](../lean-pipeline/docs/ARCHITECTURE.md) · [limitations](../lean-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
 | Primary-engine ADR | [`ADR-001-lean-primary-engine.md`](./ADR-001-lean-primary-engine.md) |
 | Federated architecture | [`../federated-pipeline/docs/ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md) · [limitations](../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |

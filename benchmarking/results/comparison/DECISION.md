@@ -1,6 +1,6 @@
 # ObserveOps — Engine Evaluation Memo
 
-**Date:** 2026-07-13  
+**Date:** 2026-07-16  
 **Corpus:** [`rca-use-cases-only.md`](../../../docs/rca-use-cases-only.md) → `datasets/observeops/`  
 **Matched runs:** `bakeoff-phase-a-001`, `bakeoff-phase-b-001`, **`bakeoff-phase-b-002`** (corpus v1.1.0 — events + shared-upstream-under-ambiguity)  
 **Report:** [`COMPARISON.md`](./COMPARISON.md) (latest: `bakeoff-phase-b-002`)  
@@ -17,9 +17,11 @@ Both engines are **5/5** on root-CI and signature accuracy. Lean wins on the rem
 |------|-----------|------|------|
 | Accuracy | 5/5 | 5/5 | tie (measure vs a floor; not “must be 100% forever”) |
 | Reproducibility (N=20) | **~40%** (UC-2/3/5 multi-hash) | **100%** | lean |
-| Verifiability | Fusion path + logged overrides | Tier labels + CARE/causal log + SRE report | lean |
-| Efficiency | Higher avg observations; heavier stack | Fewer observations; best-first vs BFS metrics | lean |
+| Verifiability | Higher main-path %; fusion audit | Tier labels + CARE/causal log + SRE report | lean (audit narrative)* |
+| Efficiency | Avg observations **5.60**; heavier stack | Avg **5.00**; best-first vs BFS metrics | lean |
 | Causal Validity | Murphy partial (costly if global) | Recommended only on CARE→Tier 3 (UC-1/UC-3) | design choice — see docs |
+
+\*On `bakeoff-phase-b-002`, federated scores **100% main-path** (no CARE fallback) vs lean **60%** (CARE on UC-1/UC-3). Lean still wins **Verifiability** for explicit tier/CARE/causal audit fields — not raw main-path % alone.
 
 ## Why not “federated only”
 

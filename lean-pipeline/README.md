@@ -1,6 +1,6 @@
 # Lean pipeline
 
-**Primary ObserveOps RCA engine** ([ADR-001](../docs/ADR-001-lean-primary-engine.md)): BFS + temporal ordering + information-gain search, with CARE fallback and scoped ObserveOps rules (§2.9).
+**Primary ObserveOps evaluation engine** ([ADR-001](../docs/ADR-001-lean-primary-engine.md); not a finalized product commitment): BFS + temporal ordering + information-gain search, with CARE fallback and scoped ObserveOps rules (§2.9).
 
 | Path | Purpose |
 |------|---------|
@@ -35,6 +35,6 @@ The stdlib WSGI server exposes `GET /health`, `GET /v1/diagnose/UC-1`, and
 # or: see lean-pipeline/deploy/README.md for systemd install
 ```
 
-PRD / Simple Guide (shared): [../docs/Lean_RCA_PRD.pdf](../docs/Lean_RCA_PRD.pdf) · [../docs/Lean_RCA_Simple_Guide.pdf](../docs/Lean_RCA_Simple_Guide.pdf)
+PRD / Simple Guide (shared, MD canonical): [../docs/Lean_RCA_PRD.md](../docs/Lean_RCA_PRD.md) · [PDF](../docs/Lean_RCA_PRD.pdf) · [../docs/Lean_RCA_Simple_Guide.md](../docs/Lean_RCA_Simple_Guide.md) · [PDF](../docs/Lean_RCA_Simple_Guide.pdf)
 
 Lean architecture & limits: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/LIMITATIONS_AND_FUTURE.md](docs/LIMITATIONS_AND_FUTURE.md) · [docs/README.md](docs/README.md)

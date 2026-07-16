@@ -1,7 +1,7 @@
 {
   "uc": {
-    "generated_at": "2026-07-13T11:30:59.945915Z",
-    "run_id": "bakeoff-20260713T113023Z",
+    "generated_at": "2026-07-16T06:36:06.440601Z",
+    "run_id": "bakeoff-phase-b-002",
     "axes": {
       "federated": {
         "accuracy": {
@@ -22,22 +22,21 @@
         },
         "verifiability": {
           "evaluated_verdicts": 5,
-          "main_path_count": 4,
-          "fallback_count": 1,
+          "main_path_count": 5,
+          "fallback_count": 0,
           "unknown_path_count": 0,
-          "main_path_pct": 80.0,
-          "fallback_pct": 20.0,
+          "main_path_pct": 100.0,
+          "fallback_pct": 0.0,
           "with_evidence_count": 5,
           "with_evidence_pct": 100.0,
           "signature_match_count": 5,
           "signature_match_pct": 100.0,
           "evidentiary_tier_counts": {
-            "1": 4,
-            "2": 1
+            "1": 5
           }
         },
         "efficiency": {
-          "average_observations": 5.4,
+          "average_observations": 5.6,
           "observation_samples": 5,
           "average_obs_to_convergence": null,
           "average_naive_bfs_expansions": null,
@@ -99,13 +98,13 @@
       "lean_signature_match": "5/5",
       "per_uc_winners": {
         "federated": 1,
-        "lean": 2,
-        "tie": 2,
+        "lean": 3,
+        "tie": 1,
         "tie-fail": 0,
         "none": 0
       },
       "overall_better": "lean",
-      "rationale": "Both engines are 5/5 on root-CI accuracy and signatures; lean wins more per-UC tie-breaks on observation count (2 vs federated 1; ties=2).",
+      "rationale": "Both engines are 5/5 on root-CI accuracy and signatures; lean wins more per-UC tie-breaks on observation count (3 vs federated 1; ties=1).",
       "winner_tie_break_policy": "Accuracy (root-CI match with UC-5 infrastructure false-positive guard), then fewer observations, then lower explicitly recorded latency; otherwise tie."
     },
     "rows": [
@@ -125,8 +124,8 @@
         "gt": "switch-core-01:GigE0/2",
         "fed": "switch-core-01:GigE0/2",
         "lean": "switch-core-01:GigE0/2",
-        "winner": "tie",
-        "fed_obs": 5,
+        "winner": "lean",
+        "fed_obs": 6,
         "lean_obs": 5,
         "lean_tier": null,
         "fed_tier": null
@@ -886,7 +885,7 @@
     ]
   },
   "openobserve_gt": {
-    "generated_at": "2026-07-15T07:39:57.261864+00:00",
+    "generated_at": "2026-07-15T09:55:21.723922+00:00",
     "evaluation": {
       "mode": "option_b_convention_gt_accuracy",
       "baseline": "human_convention_root (solo dual-pass)",
@@ -895,9 +894,9 @@
       "caveat": "Labels were solo dual-pass (same reviewer), not independent human A/B. Principle analyzers for Lean/Fed \u2014 not full typed-CI runners."
     },
     "summary": {
-      "sample_final": 12,
-      "accuracy_n": 10,
-      "excluded_n": 2,
+      "sample_final": 29,
+      "accuracy_n": 24,
+      "excluded_n": 5,
       "labeling_mode": "solo_dual_pass",
       "methods": [
         "lean",
@@ -905,49 +904,49 @@
         "openobserve"
       ],
       "layer_accuracy": {
-        "lean": 0.8,
-        "federated": 0.8,
-        "openobserve": 0.8
+        "lean": 0.875,
+        "federated": 0.875,
+        "openobserve": 0.7917
       },
       "root_alert_accuracy": {
-        "lean": 0.9,
-        "federated": 0.4,
-        "openobserve": 0.3
+        "lean": 0.9167,
+        "federated": 0.625,
+        "openobserve": 0.5833
       },
       "both_hit_accuracy": {
-        "lean": 0.8,
-        "federated": 0.3,
-        "openobserve": 0.2
+        "lean": 0.875,
+        "federated": 0.5833,
+        "openobserve": 0.5
       },
       "layer_accuracy_multi": {
-        "lean": 0.8571,
-        "federated": 0.8571,
-        "openobserve": 0.8571
+        "lean": 0.8182,
+        "federated": 0.8182,
+        "openobserve": 0.7273
       },
       "root_accuracy_multi": {
-        "lean": 0.8571,
-        "federated": 0.1429,
-        "openobserve": 0.0
+        "lean": 0.8182,
+        "federated": 0.1818,
+        "openobserve": 0.0909
       },
       "layer_accuracy_single": {
-        "lean": 0.6667,
-        "federated": 0.6667,
-        "openobserve": 0.6667
+        "lean": 0.9231,
+        "federated": 0.9231,
+        "openobserve": 0.8462
       },
       "title_pick_on_eligible_multi": {
-        "lean": 0.2857,
+        "lean": 0.3636,
         "federated": 1.0,
-        "openobserve": 0.5714
+        "openobserve": 0.6364
       },
       "counts": {
-        "eligible_multi": 7,
-        "eligible_single": 3,
-        "lean_layer_hits": 8,
-        "fed_layer_hits": 8,
-        "oo_layer_hits": 8,
-        "lean_root_hits": 9,
-        "fed_root_hits": 4,
-        "oo_root_hits": 3
+        "eligible_multi": 11,
+        "eligible_single": 13,
+        "lean_layer_hits": 21,
+        "fed_layer_hits": 21,
+        "oo_layer_hits": 19,
+        "lean_root_hits": 22,
+        "fed_root_hits": 15,
+        "oo_root_hits": 14
       },
       "ranking_by_layer_then_root": [
         "lean",
@@ -964,15 +963,67 @@
         "confidence": "ambiguous"
       },
       {
+        "id": "3GA722SK2226oe0RDhuWzg6QYxI",
+        "title": "starter_high_cpu",
+        "reason": "Single stub alert (mock CPU>80); no co-firing signals, topology, or narrative. Convention root = title alert only \u2014 too thin for accuracy scoring.",
+        "confidence": "ambiguous"
+      },
+      {
+        "id": "3GA7yKK8vUcMNfiX8tld1EhfiUR",
+        "title": "starter_high_cpu",
+        "reason": "Duplicate starter stub; same as sibling starter_high_cpu \u2014 exclude from accuracy.",
+        "confidence": "ambiguous"
+      },
+      {
         "id": "3GABGbdhy3cIOxLutKax6lC87qK",
         "title": "db_primary_down",
         "reason": "Incident has empty triggers, empty alerts list, and no platform narrative \u2014 only title db_primary_down. Title-only convention; exclude from accuracy.",
+        "confidence": "ambiguous"
+      },
+      {
+        "id": "3GASgKbtYcY7fqRBrAosCdWjOZK",
+        "title": "ecom_checkout_slo_breach on checkout-service",
+        "reason": "Only ecom_checkout_slo_breach co-fired; no DNS/payment upstream alerts in triggers despite narrative hints. SLO title is symptom-only \u2014 exclude from accuracy.",
         "confidence": "ambiguous"
       }
     ],
     "rows": [
       {
         "id": "3G8HsK79FfddyepBxqtx6OmeTIQ",
+        "title": "starter_high_cpu",
+        "stratum": "single_no_narrative_cpu",
+        "eligible": false,
+        "gt_layer": "compute",
+        "gt_root": "starter_high_cpu",
+        "lean_layer_hit": false,
+        "lean_root_hit": true,
+        "fed_layer_hit": false,
+        "fed_root_hit": true,
+        "oo_layer_hit": false,
+        "oo_root_hit": true,
+        "lean_root": "starter_high_cpu",
+        "fed_root": "starter_high_cpu",
+        "oo_root": "starter_high_cpu"
+      },
+      {
+        "id": "3GA722SK2226oe0RDhuWzg6QYxI",
+        "title": "starter_high_cpu",
+        "stratum": "single_no_narrative_cpu",
+        "eligible": false,
+        "gt_layer": "compute",
+        "gt_root": "starter_high_cpu",
+        "lean_layer_hit": false,
+        "lean_root_hit": true,
+        "fed_layer_hit": false,
+        "fed_root_hit": true,
+        "oo_layer_hit": false,
+        "oo_root_hit": true,
+        "lean_root": "starter_high_cpu",
+        "fed_root": "starter_high_cpu",
+        "oo_root": "starter_high_cpu"
+      },
+      {
+        "id": "3GA7yKK8vUcMNfiX8tld1EhfiUR",
         "title": "starter_high_cpu",
         "stratum": "single_no_narrative_cpu",
         "eligible": false,
@@ -1006,6 +1057,40 @@
         "oo_root": "database_down"
       },
       {
+        "id": "3GAAEIzEzDuWjRmlZygujenDU8i",
+        "title": "db_primary_down",
+        "stratum": "single_database_with_narrative",
+        "eligible": true,
+        "gt_layer": "database",
+        "gt_root": "db_primary_down",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": true,
+        "oo_layer_hit": true,
+        "oo_root_hit": true,
+        "lean_root": "db_primary_down",
+        "fed_root": "db_primary_down",
+        "oo_root": "db_primary_down"
+      },
+      {
+        "id": "3GAAWBIAL515hv5Np5DNmiMDVxd",
+        "title": "db_primary_down",
+        "stratum": "single_database_with_narrative",
+        "eligible": true,
+        "gt_layer": "database",
+        "gt_root": "db_primary_down",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": true,
+        "oo_layer_hit": true,
+        "oo_root_hit": true,
+        "lean_root": "db_primary_down",
+        "fed_root": "db_primary_down",
+        "oo_root": "db_primary_down"
+      },
+      {
         "id": "3GABGbdhy3cIOxLutKax6lC87qK",
         "title": "db_primary_down",
         "stratum": "single_db_lean_fed_disagree_oo",
@@ -1021,6 +1106,108 @@
         "lean_root": "db_primary_down",
         "fed_root": "db_primary_down",
         "oo_root": "db_primary_down"
+      },
+      {
+        "id": "3GAD6Wqr33nxPmYw8ZMwjoqNUlz",
+        "title": "pg_ordersdb_outage",
+        "stratum": "single_database_variant",
+        "eligible": true,
+        "gt_layer": "database",
+        "gt_root": "pg_ordersdb_outage",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": true,
+        "oo_layer_hit": true,
+        "oo_root_hit": true,
+        "lean_root": "pg_ordersdb_outage",
+        "fed_root": "pg_ordersdb_outage",
+        "oo_root": "pg_ordersdb_outage"
+      },
+      {
+        "id": "3GAF072FrsFAkgeTlEhF8awO01z",
+        "title": "pg_ordersdb_down",
+        "stratum": "single_database_variant",
+        "eligible": true,
+        "gt_layer": "database",
+        "gt_root": "pg_ordersdb_down",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": true,
+        "oo_layer_hit": true,
+        "oo_root_hit": true,
+        "lean_root": "pg_ordersdb_down",
+        "fed_root": "pg_ordersdb_down",
+        "oo_root": "pg_ordersdb_down"
+      },
+      {
+        "id": "3GAFg9p5QarIXejxbg6thp1LV0w",
+        "title": "pg_ordersdb_outage3",
+        "stratum": "single_database_variant",
+        "eligible": true,
+        "gt_layer": "database",
+        "gt_root": "pg_ordersdb_outage3",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": true,
+        "oo_layer_hit": true,
+        "oo_root_hit": true,
+        "lean_root": "pg_ordersdb_outage3",
+        "fed_root": "pg_ordersdb_outage3",
+        "oo_root": "pg_ordersdb_outage3"
+      },
+      {
+        "id": "3GAG0DL5e6rz6616PSXYZ8sCOjW",
+        "title": "pg_svc_down",
+        "stratum": "single_database_variant",
+        "eligible": true,
+        "gt_layer": "database",
+        "gt_root": "pg_svc_down",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": true,
+        "oo_layer_hit": true,
+        "oo_root_hit": true,
+        "lean_root": "pg_svc_down",
+        "fed_root": "pg_svc_down",
+        "oo_root": "pg_svc_down"
+      },
+      {
+        "id": "3GAG6ZcHySa0WJOfxvG1EzBnZLa",
+        "title": "pg_svc_down2",
+        "stratum": "single_database_variant",
+        "eligible": true,
+        "gt_layer": "database",
+        "gt_root": "pg_svc_down2",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": true,
+        "oo_layer_hit": true,
+        "oo_root_hit": true,
+        "lean_root": "pg_svc_down2",
+        "fed_root": "pg_svc_down2",
+        "oo_root": "pg_svc_down2"
+      },
+      {
+        "id": "3GAINIkn1ovFoFzmkJbmUapDMY0",
+        "title": "pg_db_down_dim",
+        "stratum": "single_database_variant",
+        "eligible": true,
+        "gt_layer": "database",
+        "gt_root": "pg_db_down_dim",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": true,
+        "oo_layer_hit": true,
+        "oo_root_hit": true,
+        "lean_root": "pg_db_down_dim",
+        "fed_root": "pg_db_down_dim",
+        "oo_root": "pg_db_down_dim"
       },
       {
         "id": "3GAJqvDUEt9zeZqtY0hlZRDtIDy",
@@ -1040,6 +1227,23 @@
         "oo_root": "orders_service_surge"
       },
       {
+        "id": "3GAJqzTd0VQcpliTMIhK40HHQGo",
+        "title": "pg_primary_down on pg-prod-01",
+        "stratum": "single_database_with_narrative",
+        "eligible": true,
+        "gt_layer": "database",
+        "gt_root": "pg_primary_down",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": true,
+        "oo_layer_hit": false,
+        "oo_root_hit": true,
+        "lean_root": "pg_primary_down",
+        "fed_root": "pg_primary_down",
+        "oo_root": "pg_primary_down"
+      },
+      {
         "id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
         "title": "net_link_saturation",
         "stratum": "multi_network_topo",
@@ -1055,6 +1259,23 @@
         "lean_root": "net_link_saturation",
         "fed_root": "net_link_saturation",
         "oo_root": "checkout_db_timeouts"
+      },
+      {
+        "id": "3GANb9ArhD5rRUIg5VudmColh9n",
+        "title": "net_link_saturation",
+        "stratum": "multi_network_topo",
+        "eligible": true,
+        "gt_layer": "network",
+        "gt_root": "net_link_saturation",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": true,
+        "oo_layer_hit": true,
+        "oo_root_hit": true,
+        "lean_root": "net_link_saturation",
+        "fed_root": "net_link_saturation",
+        "oo_root": "net_link_saturation"
       },
       {
         "id": "3GARI4ZcuhvZSBauIl4tLhBeH5N",
@@ -1091,6 +1312,40 @@
         "oo_root": "ecom_checkout_slo_breach"
       },
       {
+        "id": "3GASgKbtYcY7fqRBrAosCdWjOZK",
+        "title": "ecom_checkout_slo_breach on checkout-service",
+        "stratum": "single_slo_title_only",
+        "eligible": false,
+        "gt_layer": "application",
+        "gt_root": "ecom_checkout_slo_breach",
+        "lean_layer_hit": false,
+        "lean_root_hit": true,
+        "fed_layer_hit": false,
+        "fed_root_hit": true,
+        "oo_layer_hit": true,
+        "oo_root_hit": true,
+        "lean_root": "ecom_checkout_slo_breach",
+        "fed_root": "ecom_checkout_slo_breach",
+        "oo_root": "ecom_checkout_slo_breach"
+      },
+      {
+        "id": "3GASgjYJR4SG2aTMdpysOhLiZ4U",
+        "title": "ecom_payment_conn_exhaustion on payment-service",
+        "stratum": "single_app_conn_exhaustion",
+        "eligible": true,
+        "gt_layer": "application",
+        "gt_root": "ecom_payment_conn_exhaustion",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": true,
+        "oo_layer_hit": true,
+        "oo_root_hit": true,
+        "lean_root": "ecom_payment_conn_exhaustion",
+        "fed_root": "ecom_payment_conn_exhaustion",
+        "oo_root": "ecom_payment_conn_exhaustion"
+      },
+      {
         "id": "3GAShBeLwPjoysc3uGDATR5XAiZ",
         "title": "ecom_dns_aaaa_numa on dns-resolver",
         "stratum": "single_dns",
@@ -1106,6 +1361,23 @@
         "lean_root": "ecom_dns_aaaa_numa",
         "fed_root": "ecom_dns_aaaa_numa",
         "oo_root": "ecom_dns_aaaa_numa"
+      },
+      {
+        "id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+        "title": "ecom_checkout_slo_breach",
+        "stratum": "decoy_multi_slo_title_dns",
+        "eligible": true,
+        "gt_layer": "dns",
+        "gt_root": "ecom_dns_aaaa_numa",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": false,
+        "oo_layer_hit": false,
+        "oo_root_hit": false,
+        "lean_root": "ecom_dns_aaaa_numa",
+        "fed_root": "ecom_checkout_slo_breach",
+        "oo_root": "ecom_checkout_slo_breach"
       },
       {
         "id": "3GAYuTBAC1zaXtslES1iFWh5yKA",
@@ -1142,6 +1414,23 @@
         "oo_root": "sc_latency_slo"
       },
       {
+        "id": "3GAYvuQPMJgdDYeyZKXiyCcIF4Z",
+        "title": "sd_notif_slo",
+        "stratum": "decoy_multi_slo_tls",
+        "eligible": true,
+        "gt_layer": "network",
+        "gt_root": "sd_tls_fail",
+        "lean_layer_hit": false,
+        "lean_root_hit": false,
+        "fed_layer_hit": false,
+        "fed_root_hit": false,
+        "oo_layer_hit": false,
+        "oo_root_hit": false,
+        "lean_root": "sd_notif_slo",
+        "fed_root": "sd_notif_slo",
+        "oo_root": "sd_notif_slo"
+      },
+      {
         "id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
         "title": "cio_host_cpu_high",
         "stratum": "decoy_multi_cpu_title_storage",
@@ -1160,6 +1449,23 @@
       },
       {
         "id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+        "title": "pgw_checkout_tps_drop",
+        "stratum": "multi_firewall_topo",
+        "eligible": true,
+        "gt_layer": "firewall",
+        "gt_root": "pgw_fw_443_denies",
+        "lean_layer_hit": true,
+        "lean_root_hit": true,
+        "fed_layer_hit": true,
+        "fed_root_hit": false,
+        "oo_layer_hit": true,
+        "oo_root_hit": false,
+        "lean_root": "pgw_fw_443_denies",
+        "fed_root": "pgw_checkout_tps_drop",
+        "oo_root": "pgw_esxi_443_no_return"
+      },
+      {
+        "id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
         "title": "pgw_checkout_tps_drop",
         "stratum": "multi_firewall_topo",
         "eligible": true,

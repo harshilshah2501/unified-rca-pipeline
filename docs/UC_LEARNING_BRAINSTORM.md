@@ -15,26 +15,26 @@
 5. **Symptoms per layer** — What each owner sees vs reality.  
 6. **Correlation logic** — Deduction: why shared upstream / signature wins.  
 7. **Auto RCA output** — Root, signature, contributor, chain, blast radius, fix hints.  
-8. **Lean approach** — How Motadata’s primary engine would get there.  
-9. **Federated approach** — How Panorama → Murphy → Nezha (+ Motadata bakeoff adapters) would get there.
+8. **Lean approach** — How ObserveOps’ primary evaluation engine (lean) would get there.  
+9. **Federated approach** — How Panorama → Murphy → Nezha (+ ObserveOps bakeoff adapters) would get there.
 
 ---
 
 ## Two engines, same story — mental model
 
-Both engines get the **same frozen UC bundles** in the Motadata bakeoff. They answer the same question (“what is `root_ci` / `signature`?”) with different brains.
+Both engines get the **same frozen UC bundles** in the ObserveOps bakeoff. They answer the same question (“what is `root_ci` / `signature`?”) with different brains.
 
-| | **Lean** (Motadata primary) | **Federated** (optional / bakeoff comparator) |
+| | **Lean** (primary evaluation engine) | **Federated** (optional / bakeoff comparator) |
 |--|------------------------------|-----------------------------------------------|
 | Core idea | One typed CI graph *is* the reasoner | Three papers glued by an orchestrator |
-| Typical path | Best-first upstream walk → temporal / Motadata rules → optional CARE → signature | Simulated detection flag → Murphy MRF/Gibbs posterior → optional Nezha → fusion |
-| Motadata “secret sauce” | `shared_upstream`, signatures, contributors, `upstream_healthy`, structured events | Same Motadata helpers used in fusion / **fallback** when Murphy is weak |
+| Typical path | Best-first upstream walk → temporal / ObserveOps rules → optional CARE → signature | Simulated detection flag → Murphy MRF/Gibbs posterior → optional Nezha → fusion |
+| ObserveOps “secret sauce” | `shared_upstream`, signatures, contributors, `upstream_healthy`, structured events | Same ObserveOps helpers used in fusion / **fallback** when Murphy is weak |
 | Natural strength | Classic infra tickets; bit-stable; auditable tiers | Microservice gray-failure + code-path (Nezha); Murphy CV when funded |
 | On this corpus | Usually Tier 1, or CARE→Tier 3 when onsets clump | Often accurate; less reproducible (~40% vs lean 100% in matched bakeoffs) |
 
 ### Typed CI graph
 
-**CI** = Configuration Item — a durable inventory object Motadata monitors (host, switch port, datastore, VM, guest OS, app).
+**CI** = Configuration Item — a durable inventory object ObserveOps monitors (host, switch port, datastore, VM, guest OS, app).
 
 A **typed CI graph** is a map of those objects as nodes, with **typed** meaning:
 
@@ -57,7 +57,7 @@ orders-api  --runs_on-->  guest-os  --hosted_by-->  vm-app
 
 - Rules can say: “≥2 VMs with CPU Ready → blame the **HypervisorHost**,” or “storage latency → blame the **Datastore**.”  
 - Walks know which direction is **upstream** (toward shared infra) vs symptom.  
-- Different from a microservice “who called whom” graph (pods/services); Motadata ObserveOps uses long-lived inventory CIs.
+- Different from a microservice “who called whom” graph (pods/services); ObserveOps ObserveOps uses long-lived inventory CIs.
 
 Edges mean “related in inventory / dependency,” **not** “proven cause.” Causation is claimed separately (rules / Tier 3), not by the edge alone.
 
@@ -90,7 +90,7 @@ Symptoms at App. Upstream candidates: GuestOS (quiet), VM (quiet), Host (high Re
 - **BFS:** might expand GuestOS → VM → Host in layer order.  
 - **Best-first:** may expand **Host** first because `cpu.ready` / decisive signals score highest.
 
-Both can still find the same root; best-first aims to get there with a shorter expansion path (efficiency), while Motadata **rules** (shared-upstream, etc.) still decide the final `root_ci` when signatures apply.
+Both can still find the same root; best-first aims to get there with a shorter expansion path (efficiency), while ObserveOps **rules** (shared-upstream, etc.) still decide the final `root_ci` when signatures apply.
 
 ```text
 Symptom seed (usually orders-api)
@@ -98,10 +98,10 @@ Symptom seed (usually orders-api)
         ├────────────── lean ──────────────► walk typed graph + rules + CARE?
         │
         └────────── federated ─────────────► flag → Murphy posterior → Nezha?
-                                              └─ Motadata fusion / lean-rule fallback if needed
+                                              └─ ObserveOps fusion / lean-rule fallback if needed
 ```
 
-**Honest Motadata note:** On classic infra UC-1..UC-5 both engines often land the **same correct root**. The teaching value is *how* they get there — and where each can still go wrong without Motadata rules (especially UC-3b).
+**Honest ObserveOps note:** On classic infra UC-1..UC-5 both engines often land the **same correct root**. The teaching value is *how* they get there — and where each can still go wrong without ObserveOps rules (especially UC-3b).
 
 Deeper architecture: [`../lean-pipeline/docs/ARCHITECTURE.md`](../lean-pipeline/docs/ARCHITECTURE.md) · [`../federated-pipeline/docs/ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md).
 
@@ -114,7 +114,7 @@ Deeper architecture: [`../lean-pipeline/docs/ARCHITECTURE.md`](../lean-pipeline/
 | UC-1 | Host CPU | Blame app / one VM | `esxi-host-01` | `cpu_contention` | Shared-upstream + often CARE→Tier 3 | Murphy tends to host; stable in bakeoff |
 | UC-2 | Network | Blame app / server | `switch-core-01:GigE0/2` | `link_failure` | Clear link / events; usually Tier 1 | Can be accurate but repro weaker |
 | UC-3 | Storage | Blame slow DB/app | `datastore-01` | `storage_contention` | Shared-upstream + contributor; CARE→Tier 3 | Murphy + fusion; sometimes fewer obs |
-| UC-3b | Storage + early noise | Blame earliest CI (switch) | still `datastore-01` | `storage_contention` | CARE fires; **shared beats earliest** | Needs Motadata fusion — naïve earliest fails |
+| UC-3b | Storage + early noise | Blame earliest CI (switch) | still `datastore-01` | `storage_contention` | CARE fires; **shared beats earliest** | Needs ObserveOps fusion — naïve earliest fails |
 | UC-4 | Guest OS | Blame app code | `guest-os-vm-app-01` | `os_resource_exhaustion` | Stop at OS + events; Tier 1 | Posterior / heuristics land OS |
 | UC-5 | Application | Blame healthy infra | `orders-api` | `app_resource_exhaustion` | `upstream_healthy` gate | Must not invent infra; gate / fusion |
 
@@ -171,17 +171,17 @@ Do not stop at the app CI.
 5. `infer_signature` → `cpu_contention`.  
 6. SRE report: chain / blast radius / remediations from signature table.
 
-**Without Motadata shared-upstream:** might crown an early VM or the app if you only followed “earliest/most severe symptom.” Shared rule is the teaching point.
+**Without ObserveOps shared-upstream:** might crown an early VM or the app if you only followed “earliest/most severe symptom.” Shared rule is the teaching point.
 
 ### How federated approaches UC-1
 
 1. Bundle → **SimulatedMetricStore** with CPU propagation (host usage elevates VM Ready, etc.).  
-2. Build a **DetectionFlag** from the symptom seed (Panorama adapter in “simulated” mode for Motadata — not live multi-observer LOS).  
+2. Build a **DetectionFlag** from the symptom seed (Panorama adapter in “simulated” mode for ObserveOps — not live multi-observer LOS).  
 3. Orchestrator → **Murphy** Gibbs: entities with high Ready/usage around the host bubble up in the posterior.  
-4. Nezha may be invoked if posterior is confident, but **root CI for Motadata** is mainly Murphy fusion (code-path mining does little on classic host CPU).  
+4. Nezha may be invoked if posterior is confident, but **root CI for ObserveOps** is mainly Murphy fusion (code-path mining does little on classic host CPU).  
 5. If posterior is weak: bakeoff **`resolve_root_ci`** can fall back to lean-style shared-upstream / temporal heuristics.
 
-**Teaching contrast:** Federated *reasons* via metric dependency / MRF; lean *walks* inventory and applies Motadata host rules. Bakeoff often: both pick `esxi-host-01`; lean more often labels Tier 3 when CARE fires.
+**Teaching contrast:** Federated *reasons* via metric dependency / MRF; lean *walks* inventory and applies ObserveOps host rules. Bakeoff often: both pick `esxi-host-01`; lean more often labels Tier 3 when CARE fires.
 
 ---
 
@@ -246,11 +246,11 @@ Topology: port → host → all VMs/apps. Shared network upstream explains ident
 
 1. Propagation rules inject network→host drops→TCP→app latency into the simulated store.  
 2. Murphy posterior should favor the switch port / NIC entity once cross-layer metrics align.  
-3. Classic Panorama strength (observer gray failure) is only lightly simulated here — Motadata path is not “full OSDI Panorama on switches.”  
-4. Nezha does not mine SNMP free text; Motadata uses lean’s structured events for traps on the lean side.  
+3. Classic Panorama strength (observer gray failure) is only lightly simulated here — ObserveOps path is not “full OSDI Panorama on switches.”  
+4. Nezha does not mine SNMP free text; ObserveOps uses lean’s structured events for traps on the lean side.  
 5. Bakeoff history: accuracy can match GT, but **reproducibility** is weaker (Gibbs / path variance) than lean’s bit-stable Walk.
 
-**Teaching contrast:** Lean treats linkDown as a hard inventory + signal rule. Federated must rediscover the same story through sampled causal posteriors — powerful in theory, noisier as a Motadata default.
+**Teaching contrast:** Lean treats linkDown as a hard inventory + signal rule. Federated must rediscover the same story through sampled causal posteriors — powerful in theory, noisier as a ObserveOps default.
 
 ---
 
@@ -314,11 +314,11 @@ Signature: **`storage_contention`**. Do not crown the DB app.
 
 1. Simulated store includes **noisy-neighbor rules**: neighbor IOPS elevates datastore GAVG/DAVG, which elevates victim VM disk latency → app.  
 2. Murphy’s MRF is a good fit *in spirit* (shared storage + cyclic-ish effects) — posterior can peak on `datastore-01`.  
-3. Fusion may prefer upstream among high-posterior candidates (Motadata-aware).  
+3. Fusion may prefer upstream among high-posterior candidates (ObserveOps-aware).  
 4. Bakeoff: sometimes federated uses **fewer raw observations** while accuracy still matches lean — Murphy can “short-cut,” while lean may spend budget reaching Tier 3.  
-5. Contributor naming is a Motadata/lean-native field; federated bakeoff maps to the same GT via Motadata scoring helpers.
+5. Contributor naming is a ObserveOps/lean-native field; federated bakeoff maps to the same GT via ObserveOps scoring helpers.
 
-**Teaching contrast:** Federated can *discover* shared-storage causality statistically; lean *encodes* the Motadata pattern as inventory rules + contributor. On this corpus both can be correct; lean remains preferable for reproducible SRE reports.
+**Teaching contrast:** Federated can *discover* shared-storage causality statistically; lean *encodes* the ObserveOps pattern as inventory rules + contributor. On this corpus both can be correct; lean remains preferable for reproducible SRE reports.
 
 ---
 
@@ -355,20 +355,20 @@ Same as UC-3. Report should note concurrent network anomaly, non-causal for this
 ### How lean approaches UC-3b
 
 1. Δt ambiguity **fires CARE** because switch and storage onsets are close.  
-2. Critical Motadata policy: under ambiguity, **prefer `shared_upstream` datastore** over CARE severity / earliest CI.  
+2. Critical ObserveOps policy: under ambiguity, **prefer `shared_upstream` datastore** over CARE severity / earliest CI.  
 3. Root stays `datastore-01`; contributor stays neighbor; switch stays in evidence as concurrent noise.  
 4. Often Tier 3 after `verify_care_root`.
 
-**This is the flagship lean Motadata lesson.** Temporal-only lean *would fail*; Motadata rules salvage it.
+**This is the flagship lean ObserveOps lesson.** Temporal-only lean *would fail*; ObserveOps rules salvage it.
 
 ### How federated approaches UC-3b
 
 1. Synthetic store still has storage causality; switch noise is an extra early metric.  
 2. Pure “earliest entity” or a weak posterior can drift to the switch.  
-3. Motadata bakeoff path needs **fusion / shared-upstream preference / resolve_root_ci** to stay on datastore — same Motadata idea, bolted after Murphy.  
+3. ObserveOps bakeoff path needs **fusion / shared-upstream preference / resolve_root_ci** to stay on datastore — same ObserveOps idea, bolted after Murphy.  
 4. Nezha does not resolve this classic-infra confound (no helpful code-path pattern).
 
-**Teaching contrast:** UC-3b punishes “earliest abnormal” engines. Lean fails closed into Motadata shared-upstream; federated must not trust Gibbs alone without Motadata post-fusion. Primary bakeoff is still UC-1..UC-5; UC-3b is the adversarial teaching / lean-regression fixture.
+**Teaching contrast:** UC-3b punishes “earliest abnormal” engines. Lean fails closed into ObserveOps shared-upstream; federated must not trust Gibbs alone without ObserveOps post-fusion. Primary bakeoff is still UC-1..UC-5; UC-3b is the adversarial teaching / lean-regression fixture.
 
 ---
 
@@ -436,11 +436,11 @@ Signature: app errors **and** (fs full **or** OOM **or** runaway) → **`os_reso
 ### How federated approaches UC-4
 
 1. Simulated store keeps host/datastore/network healthy; OS/resource metrics on the guest / container-mapped entity are abnormal.  
-2. Murphy posterior should peak near the guest-OS entity (Motadata maps GuestOS into Murphy’s type map).  
-3. Nezha *could* shine on free-text OS logs in a microservice track; Motadata PoC uses **structured events** instead — lean cites them; federated Motadata root still mainly Murphy/fusion.  
+2. Murphy posterior should peak near the guest-OS entity (ObserveOps maps GuestOS into Murphy’s type map).  
+3. Nezha *could* shine on free-text OS logs in a microservice track; ObserveOps PoC uses **structured events** instead — lean cites them; federated ObserveOps root still mainly Murphy/fusion.  
 4. Bakeoff: lean often wins observation-efficiency on this simple stop-at-OS path.
 
-**Teaching contrast:** Federated’s Nezha paper strength (log/event patterns) is underused on Motadata UC-4; lean covers the gap with `events.json` without Drain mining.
+**Teaching contrast:** Federated’s Nezha paper strength (log/event patterns) is underused on ObserveOps UC-4; lean covers the gap with `events.json` without Drain mining.
 
 ---
 
@@ -498,16 +498,16 @@ Anti-false-positive: do not invent infra blame.
 
 1. Simulated store keeps infra metrics healthy; app heap/pool anomalies present.  
 2. Murphy should *not* invent a strong infra cause — posterior should stay on the app / microservice entity.  
-3. Same Motadata **`upstream_healthy`** helper can force / check the anti-FP outcome in bakeoff resolution.  
+3. Same ObserveOps **`upstream_healthy`** helper can force / check the anti-FP outcome in bakeoff resolution.  
 4. Historical bakeoff: accuracy can match, reproducibility weaker than lean.
 
-**Teaching contrast:** Both need an explicit “infra is clean → stay at app” gate. Federated’s hunger for *some* causal entity is the risk mode; Motadata fusion must refuse false infra blame.
+**Teaching contrast:** Both need an explicit “infra is clean → stay at app” gate. Federated’s hunger for *some* causal entity is the risk mode; ObserveOps fusion must refuse false infra blame.
 
 ---
 
 ## Side-by-side cheat sheet (brainstorm)
 
-| UC | Lean “winning move” | Federated “winning move” | Shared Motadata trap if skipped |
+| UC | Lean “winning move” | Federated “winning move” | Shared ObserveOps trap if skipped |
 |----|---------------------|--------------------------|----------------------------------|
 | UC-1 | Shared-upstream host + Ready | Murphy links host Ready ↔ VM Ready | Blame one VM |
 | UC-2 | Port linkDown / util+discards + events | Posterior on network entity | Blame app for timeouts |
@@ -537,9 +537,9 @@ reproducibility; keep the 5 UC bakeoff for classic typed-CI Accuracy.
 2. UC-3 without neighbor IOPS — can GAVG alone + multi-VM disk latency still justify storage root?  
 3. UC-3b with *real* linkDown — when **should** network win, and how do lean/federated avoid teaching the wrong lesson?  
 4. UC-4 filesystem-full vs OOM — same signature, different remediation: subtypes? Who owns that — signature table or events?  
-5. UC-5 with one slightly crossed host metric (noise) — same trap as UC-3b; which Motadata rule holds the line for each engine?  
+5. UC-5 with one slightly crossed host metric (noise) — same trap as UC-3b; which ObserveOps rule holds the line for each engine?  
 6. Where should **contributor_cis** expand (UC-1 runaway VM as contributor, not root)? Does Murphy posterior express “contributor” or only “root”?  
-7. If Motadata funded a microservice corpus next year, which UCs would *flip* (federated Nezha suddenly relevant)?  
+7. If ObserveOps funded a microservice corpus next year, which UCs would *flip* (federated Nezha suddenly relevant)?  
 8. Draw the evidence trail an SRE must see for Tier 1 vs Tier 3 on UC-1 — what is missing from a Murphy-only PDF dump?
 
 ---
@@ -557,7 +557,7 @@ reproducibility; keep the 5 UC bakeoff for classic typed-CI Accuracy.
 | **Remediation** | Advisor hints keyed by signature (not auto-execute) |
 | **CARE / Tier 2–3** | Lean ambiguity path; Tier 3 = scoped causal claim |
 | **Murphy posterior** | Federated distribution over candidate root entities |
-| **Fusion / resolve_root_ci** | Motadata bakeoff glue after Murphy (may use lean rules) |
+| **Fusion / resolve_root_ci** | ObserveOps bakeoff glue after Murphy (may use lean rules) |
 
 ---
 

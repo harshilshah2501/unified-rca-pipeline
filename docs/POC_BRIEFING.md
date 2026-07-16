@@ -1,9 +1,9 @@
 # Unified RCA PoC — End-to-End Briefing
 
 **Audience:** brainstorming, stakeholder reviews, NotebookLM → slide decks  
-**Date:** 2026-07-13  
+**Date:** 2026-07-16  
 **Status:** ObserveOps critical path **complete** (Phases A → B → D)  
-**Evaluation finding (not finalized):** On the classic ObserveOps UC corpus, bakeoff evidence **favors lean** (ADR-001)  
+**Evaluation finding (not a finalized product commitment):** On the classic ObserveOps UC corpus, bakeoff evidence **favors lean** as the primary evaluation engine ([ADR-001](./ADR-001-lean-primary-engine.md); matched run **`bakeoff-phase-b-002`**)  
 **Corpus:** ObserveOps UC-1..UC-5 primary bakeoff (classic infra typed CI graph). Spec + corpus also include **UC-3b** (adversarial early network noise) and synthetic **`events.json`** (required on UC-2/UC-4/UC-3b) — see [`rca-use-cases-only.md`](./rca-use-cases-only.md).
 
 ---
@@ -19,17 +19,19 @@ We built and compared **two engines on the exact same frozen corpus**:
 | Approach | What it is | ObserveOps role |
 |----------|------------|---------------|
 | **Federated** | Panorama (detect) → Murphy (macro causal) → Nezha (micro patterns) | Optional / future microservice & gray-failure track |
-| **Lean** | Best-first + temporal + info-gain walk; CARE when Δt is ambiguous; scoped Tier-3 causal only when needed | **Primary product path** |
+| **Lean** | Best-first + temporal + info-gain walk; CARE when Δt is ambiguous; scoped Tier-3 causal only when needed | **Primary evaluation engine** (ADR-001; not a finalized GTM commitment) |
 
-**Bakeoff headline (`bakeoff-phase-b-001`):**
+**Bakeoff headline (`bakeoff-phase-b-002`, corpus v1.1.0):**
 
 | Axis | Federated | Lean | Winner |
 |------|-----------|------|--------|
 | Accuracy (root CI + signature) | 5/5 | 5/5 | Tie |
 | Reproducibility (N=20) | ~40% | **100%** | **Lean** |
-| Verifiability | Fusion path + overrides | Tiers + CARE/causal log + SRE report | **Lean** |
-| Efficiency (avg observations) | 5.40 | **5.00** | **Lean** |
+| Verifiability | Higher main-path %; less tier/CARE audit trail | Tier labels + CARE/causal log + SRE report | **Lean** (audit narrative)* |
+| Efficiency (avg observations) | 5.60 | **5.00** | **Lean** |
 | Causal Validity | Stronger (Murphy / costly if global) | Scoped Tier 3 only (UC-1, UC-3) | Design tradeoff |
+
+\*Federated scores higher on **main-path %** (no CARE fallback fired); lean wins **Verifiability** for SRE audit because tiers, CARE, and causal logs make the evidence chain explicit. See [`benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md).
 
 **Conclusion:** On ObserveOps classic-infra tickets, lean wins the cost–benefit. Murphy’s causal edge is real but does not buy extra accuracy on this corpus, and it loses on reproducibility, auditability, and compute/ops cost. Ship lean first; keep federated for a hybrid later if microservice/code-path RCA is in scope.
 
@@ -351,11 +353,11 @@ Scored **identically** for both engines against `datasets/observeops/*/ground_tr
 
 **Winner policy (per UC):** accuracy first (with UC-5 guard), then fewer observations, then explicit latency; else tie.
 
-**Matched run ids:** `bakeoff-phase-a-001` (decision call), `bakeoff-phase-b-001` (PRD-depth + efficiency; numbers below).
+**Matched run ids:** `bakeoff-phase-a-001` (decision call), **`bakeoff-phase-b-002`** (latest scoreboard; corpus v1.1.0). Historical: `bakeoff-phase-b-001`.
 
 ---
 
-## 10. Results (`bakeoff-phase-b-001`)
+## 10. Results (`bakeoff-phase-b-002`)
 
 ### 10.1 Overall scoreboard
 
@@ -365,8 +367,9 @@ Scored **identically** for both engines against `datasets/observeops/*/ground_tr
 | Signature match | 5/5 | 5/5 |
 | UC-5 infra false-positive | 0 | 0 |
 | Reproducibility | **40%** | **100%** |
-| Avg observations | 5.40 | **5.00** |
+| Avg observations | 5.60 | **5.00** |
 | Lean best-first vs naive BFS (avg) | — | 2.40 vs 2.80 (ratio **1.12**) |
+| Verifiability (main path %) | **100%** (5/5 main) | 60% (3/5 main; 2 CARE→Tier 3) |
 
 **Overall better on this corpus: lean.**
 
@@ -375,7 +378,7 @@ Scored **identically** for both engines against `datasets/observeops/*/ground_tr
 | UC | Ground truth | Both correct? | Repro F / L | Lean tier | Per-UC winner* |
 |----|--------------|---------------|-------------|-----------|----------------|
 | UC-1 | `esxi-host-01` | Yes | 100% / 100% | Tier 3 (CARE + causal) | Tie |
-| UC-2 | `switch-core-01:GigE0/2` | Yes | 0% / 100% | Tier 1 | Tie |
+| UC-2 | `switch-core-01:GigE0/2` | Yes | 0% / 100% | Tier 1 | **Lean** |
 | UC-3 | `datastore-01` | Yes | 0% / 100% | Tier 3 (CARE + causal) | Federated† |
 | UC-4 | `guest-os-vm-app-01` | Yes | 100% / 100% | Tier 1 | Lean |
 | UC-5 | `orders-api` | Yes | 0% / 100% | Tier 1 | Lean |
@@ -388,7 +391,7 @@ Scored **identically** for both engines against `datasets/observeops/*/ground_tr
 | UC | Fed obs | Lean obs | Lean best-first | Lean naive BFS | Ratio |
 |----|---------|----------|-----------------|----------------|-------|
 | UC-1 | 6 | 6 | 3 | 3 | 1.00 |
-| UC-2 | 5 | 5 | 4 | 5 | 1.25 |
+| UC-2 | 6 | 5 | 4 | 5 | 1.25 |
 | UC-3 | 5 | 6 | 3 | 4 | 1.33 |
 | UC-4 | 6 | 4 | 1 | 1 | 1.00 |
 | UC-5 | 5 | 4 | 1 | 1 | 1.00 |
@@ -417,7 +420,7 @@ Lean satisfies this by construction. Federated needs heavy gating/seeding to app
 
 ### 11.3 Verifiability favors lean for SRE narrative
 
-Lean emits explicit tiers, CARE flags, causal logs, and SRE report fields. Federated fusion + posteriors can be correct but are harder to explain under time pressure.
+Lean emits explicit tiers, CARE flags, causal logs, and SRE report fields. Federated fusion + posteriors can be correct but are harder to explain under time pressure. On **`bakeoff-phase-b-002`**, federated has a higher **main-path %** (no CARE fallback) while lean fires CARE on UC-1/UC-3 — that is intentional depth, not weaker evidence. The bakeoff still scores **Verifiability** to lean for auditability of the chain.
 
 ### 11.4 Efficiency — lean lighter overall; not uniformly on every UC
 
@@ -440,7 +443,7 @@ UC-1/UC-3 exercise the Recommended Tier-3 path. UC-2/4/5 correctly stay Tier 1 w
 
 ### 12.1 Decision (ADR-001)
 
-**Use lean as the primary RCA engine** for ObserveOps classic infrastructure paths (network → host → VM → OS → app).
+**Bakeoff evaluation finding:** Use **lean as the primary evaluation engine** for ObserveOps classic infrastructure paths (network → host → VM → OS → app). **Not a finalized GTM or product commitment.**
 
 **Keep federated** as an optional future hybrid component for microservice code-path, gray-failure, and pair-mining workloads — once a dedicated microservice evaluation corpus is in scope.
 
@@ -454,7 +457,7 @@ UC-1/UC-3 exercise the Recommended Tier-3 path. UC-2/4/5 correctly stay Tier 1 w
 
 ### 12.3 One-sentence story for stakeholders
 
-> We compared a research-grade three-algorithm federated stack to a lean topology walk on the same ObserveOps use-cases; both were accurate, but only lean was bit-stable, auditable, and cheap enough to ship as the primary ObserveOps RCA engine.
+> We compared a research-grade three-algorithm federated stack to a lean topology walk on the same ObserveOps use-cases; both were accurate, but only lean was bit-stable, auditable, and cheap enough to **favor as the primary evaluation engine** (not yet a finalized shipping decision).
 
 ---
 
@@ -504,12 +507,15 @@ Use these in NotebookLM chat or workshop discussions:
 |------|---------|
 | CI | Configuration Item (host, switch port, datastore, OS, app, …) |
 | CARE | Ambiguity fallback when onset Δt among candidates is unclear |
-| Tier 1/2/3 | Lean evidentiary depth labels |
+| Tier 1/2/3 | Lean **evidentiary** depth labels (ours): Tier 1 = main path, no causal claim; Tier 2 = CARE correlational ranking under Δt ambiguity; Tier 3 = CARE + scoped causal check. Not Netdata/Dynatrace product tiers. |
+| Top-1 accuracy | How often the system’s **first / single chosen** root matches ground truth on a fixed eval set (paper metric; e.g. Nezha ~89.77% avg top-1 [FSE’23]) |
 | Federated | Panorama + Murphy + Nezha + orchestrator |
-| Lean | Single-engine typed-graph RCA (lean path under evaluation) |
-| Corpus B | ObserveOps UC-1..UC-5 |
+| Lean | Single-engine typed-graph RCA (primary evaluation engine per ADR-001; not finalized) |
+| Corpus B | ObserveOps UC-1..UC-5 (+ UC-3b adversarial in v1.1.0) |
 | Corpus A | Optional microservice / DeathStarBench-style track (deferred) |
-| ADR-001 | Evaluation finding: lean favored on this corpus (not finalized) |
+| ADR-001 | Evaluation finding: lean favored on ObserveOps corpus (not a finalized product commitment) |
+| Netdata (placement) | Product docs: correlation ranking; root often in top **30–50** results — looser bar than paper top-1 / our single-candidate contract. See Lean PRD Appendix E. |
+| Dynatrace Davis (placement) | Claims causal AI; no independent published top-1 we can scoreboard — philosophy precedent only. See Lean PRD Appendix E. |
 
 ---
 
@@ -527,8 +533,10 @@ Use these in NotebookLM chat or workshop discussions:
 | Benchmark contract | `datasets/observeops/COMPARISON_BENCHMARK.md` |
 | Federated design | `federated-pipeline/docs/ARCHITECTURE.md` (+ limitations / storage tiers) |
 | Lean engine notes | `lean-pipeline/core_engine/observeops/README.md` |
-| Lean PRD / Simple Guide | `docs/Lean_RCA_PRD.md` (+ `.pdf`), `docs/Lean_RCA_Simple_Guide.md` (+ `.pdf`) — evaluation-aligned 2026-07-13 |
+| Lean PRD / Simple Guide | `docs/Lean_RCA_PRD.md` (canonical) · [`Lean_RCA_PRD.pdf`](./Lean_RCA_PRD.pdf) · `docs/Lean_RCA_Simple_Guide.md` · [`Lean_RCA_Simple_Guide.pdf`](./Lean_RCA_Simple_Guide.pdf) — regenerated 2026-07-16 from MD |
+| Standard RCA evaluation checklist (any method) | `docs/RCA_EVALUATION_CHECKLIST.md` |
+| Dynatrace / Netdata vs papers + lean Tier 1/2/3 | `docs/Lean_RCA_PRD.md` **Appendix E** (worked example of the checklist) |
 
 ---
 
-*End of briefing. Upload this file to NotebookLM as the primary source for slide generation; add the Lean PRD / Simple Guide PDFs if you want deeper algorithm/product language.*
+*End of briefing. Upload this file to NotebookLM as the primary source for slide generation; add the Lean PRD / Simple Guide **Markdown** (or regenerated PDFs) for deeper algorithm/product language.*

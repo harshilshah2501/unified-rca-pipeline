@@ -7,11 +7,11 @@ Classic VMware-style stack: **Network Device → ESXi Host → VM → Guest OS �
 | UC-1 | Hypervisor (host CPU) | ESXi CPU contention starving many VMs | Blaming the app / individual VMs | Primary |
 | UC-2 | Network | Switch uplink/port saturation or link down | Blaming the app or the server | Primary |
 | UC-3 | Storage | Shared datastore latency (noisy neighbor) | Blaming the DB app that "got slow" | Primary |
-| **UC-3b** | Storage + confound | Same as UC-3 **plus** early unrelated network anomaly | Picking earliest abnormal CI (switch) | **Adversarial / Required next** |
+| **UC-3b** | Storage + confound | Same as UC-3 **plus** early unrelated network anomaly | Picking earliest abnormal CI (switch) | **Adversarial** (frozen v1.1.0) |
 | UC-4 | Guest OS | Filesystem full / runaway process / OOM | Blaming the app code | Primary (+ events) |
 | UC-5 | Application | JVM heap / DB connection-pool exhaustion | *False-blaming* the infra below | Primary |
 
-Frozen corpus today: `datasets/observeops/UC-1..UC-5`. **UC-3b** and **`events.json`** are specified here for the next corpus revision.
+Frozen corpus: `datasets/observeops/` **v1.1.0** (`manifest.json`) — UC-1..UC-5 (primary bakeoff), **UC-3b** (adversarial confound), and **`events.json`** on UC-2 / UC-4 / UC-3b. Matched bakeoff: **`bakeoff-phase-b-002`**.
 
 ---
 

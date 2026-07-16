@@ -1,5 +1,7 @@
 # Team Knowledge-Sharing Guide - No Technical Background Needed
 
+> **Source of truth:** this `.md` file. [`Lean_RCA_Simple_Guide.pdf`](./Lean_RCA_Simple_Guide.pdf) is an export for slides/NotebookLM (regenerated 2026-07-16).
+
 ## Understanding the Lean RCA System
 
 **Why we evaluate lean for classic infrastructure, how it actually decides root cause (not "who failed first"), and what remains open.**
@@ -229,7 +231,7 @@ Frozen bundles UC-1..UC-5 (+ UC-3b adversarial):
 | UC-4 | Guest OS | OS resource fault (+ event evidence), not app code |
 | UC-5 | App | Must **not** false-blame healthy infra |
 
-Same bundle -> both engines -> compare (Accuracy, Reproducibility N=20, Verifiability, Efficiency). Latest matched run: `bakeoff-phase-b-002`. Decision: **lean primary** (ADR-001).
+Same bundle -> both engines -> compare (Accuracy, Reproducibility N=20, Verifiability, Efficiency). Latest matched run: `bakeoff-phase-b-002`. **Evaluation finding:** lean is the primary evaluation engine on this corpus (ADR-001); not a finalized product commitment.
 
 ### Older PRD scenarios (pod churn / blind spot)
 

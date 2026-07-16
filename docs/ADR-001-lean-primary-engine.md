@@ -2,7 +2,7 @@
 
 ## Status
 
-**Evaluation finding** (2026-07-13) — bakeoff recommendation for the classical ObserveOps UC corpus. **Not a finalized product commitment.** Approaches remain under evaluation.
+**Evaluation finding** (2026-07-16) — bakeoff recommendation for the classical ObserveOps UC corpus (`bakeoff-phase-b-002`, corpus v1.1.0). **Lean is the primary evaluation engine on this corpus; not a finalized product or GTM commitment.**
 
 ## Context
 
@@ -11,7 +11,7 @@ derived from [`rca-use-cases-only.md`](./rca-use-cases-only.md) in
 `datasets/observeops/`. That corpus enforces **Roadblock 4** by convention
 (shared `ground_truth.json` + same-bundle bakeoff) and **Roadblock 1b** as a
 joined typed multi-domain CI graph. The matched bakeoffs `bakeoff-phase-a-001`
-and `bakeoff-phase-b-001` (plus later `b-002`) measured accuracy, reproducibility,
+and `bakeoff-phase-b-001` / **`bakeoff-phase-b-002`** measured accuracy, reproducibility,
 evidence depth, and efficiency.
 
 ## Evaluation recommendation (corpus-scoped)
@@ -34,12 +34,13 @@ ingest/stores and Phase E scale work stay deferred until a microservice track
 (or renewed bakeoff criteria) is prioritized. Optional later: B5 continuous
 causal memory.
 
-| Evidence axis | `bakeoff-phase-b-001` result | Evaluation impact |
+| Evidence axis | `bakeoff-phase-b-002` result | Evaluation impact |
 |---|---|---|
 | Accuracy | Both engines: 5/5 root-CI and 5/5 signature matches | No accuracy penalty for lean on this corpus |
 | Reproducibility | Lean: 100% (5/5); federated: 40% | Lean is more repeatable on these bundles |
 | Evidence tiers | Lean: Tier 3 on UC-1 and UC-3; Tier 1 on UC-2, UC-4, and UC-5 | Lean covers the intended depth range |
-| Efficiency | Lean: 5.00 avg observations vs federated 5.40; best-first 2.40 vs naive BFS 2.80 | Lean is lighter on the evaluated paths |
+| Efficiency | Lean: 5.00 avg observations vs federated 5.60; best-first 2.40 vs naive BFS 2.80 | Lean is lighter on the evaluated paths |
+| Verifiability | Federated: 100% main-path; lean: 60% main-path with explicit tier/CARE/causal audit trail | Lean favored for SRE audit narrative despite lower main-path % |
 
 Evidence: [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md)
 and [`DECISION.md`](../benchmarking/results/comparison/DECISION.md).

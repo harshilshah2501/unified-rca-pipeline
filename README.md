@@ -6,12 +6,12 @@ Root-cause analysis research workspace with two pipelines (federated + lean), sh
 
 | Path | Purpose |
 |------|---------|
-| [`docs/`](docs/) | **Common PoC docs** — use-cases, roadmap, ADR, Lean PRD + Simple Guide, lean-vs-federated guide |
+| [`docs/`](docs/) | **Common PoC docs** — use-cases, roadmap, ADR, RCA evaluation checklist, Lean PRD + Simple Guide, lean-vs-federated guide |
 | [`rca-use-cases-only.md`](rca-use-cases-only.md) | Symlink → `docs/` (sole evaluation corpus spec) |
 | [`ROADMAP.md`](ROADMAP.md) | Symlink → `docs/ROADMAP.md` |
 | [`datasets/observeops/`](datasets/observeops/) | Frozen bundles derived from the use-case spec |
 | [`federated-pipeline/`](federated-pipeline/) | Panorama → Murphy → Nezha + federated-specific docs (under evaluation) |
-| [`lean-pipeline/`](lean-pipeline/) | Lean engine/API + docs (favored on classic-infra bakeoffs; not finalized) |
+| [`lean-pipeline/`](lean-pipeline/) | Lean engine/API + docs (primary evaluation engine on ObserveOps bakeoffs; ADR-001; not finalized) |
 | [`benchmarking/`](benchmarking/) | Same-corpus bakeoff runners and results |
 | [`benchmarking/dashboard/`](benchmarking/dashboard/) | **Comparative Web UI** — 4 axes, 5 roadblocks, UC + OpenObserve |
 | [`repo_paths.py`](repo_paths.py) | Shared path constants + `sys.path` bootstrap |

@@ -9,7 +9,8 @@
 | Run | Result |
 |-----|--------|
 | `bakeoff-phase-a-001` | Both 5/5; lean primary called |
-| `bakeoff-phase-b-001` | Both 5/5; lean Tier 3 on UC-1/UC-3; four-axis + efficiency columns |
+| `bakeoff-phase-b-002` | Corpus v1.1.0; both 5/5; lean Tier 3 on UC-1/UC-3; four-axis + efficiency; **canonical scoreboard** |
+| `bakeoff-phase-b-001` | Historical; superseded by b-002 for headline numbers |
 
 Reports: [`../results/comparison/COMPARISON.md`](../results/comparison/COMPARISON.md), [`../results/comparison/DECISION.md`](../results/comparison/DECISION.md)
 

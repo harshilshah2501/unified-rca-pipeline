@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-13T11:30:59.945915Z",
+  "generated_at": "2026-07-16T06:36:06.440601Z",
   "corpus": "datasets/observeops",
-  "run_id_filter": "bakeoff-20260713T113023Z",
+  "run_id_filter": "bakeoff-phase-b-002",
   "reproducibility_sources": {
     "federated": "benchmarking/results/reproducibility_federated_full-repro.json",
     "lean": "benchmarking/results/reproducibility_lean_full-repro.json"
@@ -26,22 +26,21 @@
       },
       "verifiability": {
         "evaluated_verdicts": 5,
-        "main_path_count": 4,
-        "fallback_count": 1,
+        "main_path_count": 5,
+        "fallback_count": 0,
         "unknown_path_count": 0,
-        "main_path_pct": 80.0,
-        "fallback_pct": 20.0,
+        "main_path_pct": 100.0,
+        "fallback_pct": 0.0,
         "with_evidence_count": 5,
         "with_evidence_pct": 100.0,
         "signature_match_count": 5,
         "signature_match_pct": 100.0,
         "evidentiary_tier_counts": {
-          "1": 4,
-          "2": 1
+          "1": 5
         }
       },
       "efficiency": {
-        "average_observations": 5.4,
+        "average_observations": 5.6,
         "observation_samples": 5,
         "average_obs_to_convergence": null,
         "average_naive_bfs_expansions": null,
@@ -103,13 +102,13 @@
     "lean_signature_match": "5/5",
     "per_uc_winners": {
       "federated": 1,
-      "lean": 2,
-      "tie": 2,
+      "lean": 3,
+      "tie": 1,
       "tie-fail": 0,
       "none": 0
     },
     "overall_better": "lean",
-    "rationale": "Both engines are 5/5 on root-CI accuracy and signatures; lean wins more per-UC tie-breaks on observation count (2 vs federated 1; ties=2).",
+    "rationale": "Both engines are 5/5 on root-CI accuracy and signatures; lean wins more per-UC tie-breaks on observation count (3 vs federated 1; ties=1).",
     "winner_tie_break_policy": "Accuracy (root-CI match with UC-5 infrastructure false-positive guard), then fewer observations, then lower explicitly recorded latency; otherwise tie."
   },
   "rows": [
@@ -140,7 +139,7 @@
         "latency_ms": null,
         "latency_source": null,
         "engine": "federated",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-1/run-bakeoff-20260713T113023Z/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-1/run-bakeoff-phase-b-002/verdict.json"
       },
       "lean": {
         "status": "pass",
@@ -163,7 +162,7 @@
         "latency_ms": null,
         "latency_source": null,
         "engine": "lean",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-1/run-bakeoff-20260713T113023Z/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-1/run-bakeoff-phase-b-002/verdict.json"
       },
       "winner": "tie"
     },
@@ -181,20 +180,20 @@
         "uc5_fp": false,
         "root_ci": "switch-core-01:GigE0/2",
         "signature": "link_failure",
-        "tier": 2,
-        "fallback_fired": true,
-        "observations": 5,
+        "tier": 1,
+        "fallback_fired": false,
+        "observations": 6,
         "obs_to_convergence": null,
         "naive_bfs_expansions": null,
         "efficiency_ratio": null,
         "causal_verified": null,
         "evidence_count": 5,
         "has_evidence": true,
-        "main_path": false,
+        "main_path": true,
         "latency_ms": null,
         "latency_source": null,
         "engine": "federated",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-2/run-bakeoff-20260713T113023Z/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-2/run-bakeoff-phase-b-002/verdict.json"
       },
       "lean": {
         "status": "pass",
@@ -217,9 +216,9 @@
         "latency_ms": null,
         "latency_source": null,
         "engine": "lean",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-2/run-bakeoff-20260713T113023Z/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-2/run-bakeoff-phase-b-002/verdict.json"
       },
-      "winner": "tie"
+      "winner": "lean"
     },
     {
       "uc_id": "UC-3",
@@ -248,7 +247,7 @@
         "latency_ms": null,
         "latency_source": null,
         "engine": "federated",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-3/run-bakeoff-20260713T113023Z/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-3/run-bakeoff-phase-b-002/verdict.json"
       },
       "lean": {
         "status": "pass",
@@ -271,7 +270,7 @@
         "latency_ms": null,
         "latency_source": null,
         "engine": "lean",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-3/run-bakeoff-20260713T113023Z/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-3/run-bakeoff-phase-b-002/verdict.json"
       },
       "winner": "federated"
     },
@@ -302,7 +301,7 @@
         "latency_ms": null,
         "latency_source": null,
         "engine": "federated",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-4/run-bakeoff-20260713T113023Z/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-4/run-bakeoff-phase-b-002/verdict.json"
       },
       "lean": {
         "status": "pass",
@@ -325,7 +324,7 @@
         "latency_ms": null,
         "latency_source": null,
         "engine": "lean",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-4/run-bakeoff-20260713T113023Z/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-4/run-bakeoff-phase-b-002/verdict.json"
       },
       "winner": "lean"
     },
@@ -356,7 +355,7 @@
         "latency_ms": null,
         "latency_source": null,
         "engine": "federated",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-5/run-bakeoff-20260713T113023Z/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-5/run-bakeoff-phase-b-002/verdict.json"
       },
       "lean": {
         "status": "pass",
@@ -379,7 +378,7 @@
         "latency_ms": null,
         "latency_source": null,
         "engine": "lean",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-5/run-bakeoff-20260713T113023Z/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-5/run-bakeoff-phase-b-002/verdict.json"
       },
       "winner": "lean"
     }

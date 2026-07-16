@@ -1,6 +1,8 @@
 # Lean RCA Architecture
 
-**Product Requirements Document - evaluation-aligned revision (2026-07-13)**
+**Product Requirements Document — evaluation-aligned revision (canonical Markdown; PDF regenerated 2026-07-16)**
+
+> **Source of truth:** this `.md` file. [`Lean_RCA_PRD.pdf`](./Lean_RCA_PRD.pdf) is an export for slides/NotebookLM.
 
 *BFS + Temporal Ordering, Information-Gain Search, Spectrum-Based Fallback (CARE), Typed Classic-Infra Rules*
 
@@ -16,7 +18,7 @@ This document specifies a lean Root Cause Analysis (RCA) architecture, scored ex
 
 | Track | Status |
 |-------|--------|
-| **ObserveOps (classic infra typed CI graph)** | **Under evaluation.** Bakeoff evidence favors lean on this corpus ([ADR-001](./ADR-001-lean-primary-engine.md)); approaches not finalized. Phases A/B/D exercised: `bakeoff-phase-a-001`, `bakeoff-phase-b-001`, `bakeoff-phase-b-002`. |
+| **ObserveOps (classic infra typed CI graph)** | **Primary evaluation engine** per bakeoff ([ADR-001](./ADR-001-lean-primary-engine.md)); **not a finalized product commitment**. Phases A/B/D exercised: `bakeoff-phase-a-001`, `bakeoff-phase-b-001`, **`bakeoff-phase-b-002`** (corpus v1.1.0). |
 | **Microservice / DeathStarBench-style PoC (original Sections 3 + Appendix B)** | **Deferred / optional.** Still a valid research track for Roadblocks 1a / 2 / 3; not the lean path under evaluation packaging path. |
 | **Federated pipeline** | **Optional hybrid** for microservice code-path / gray-failure / pair-mining once a dedicated microservice corpus is in scope. |
 
@@ -339,6 +341,54 @@ UC-3 note: federated sometimes uses fewer raw observations while accuracy ties; 
 
 ---
 
+## Appendix E: Dynatrace and Netdata vs academic methods (and this design)
+
+**Protocol:** This appendix is a *worked example* of the project-wide checklist in [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) (common docs — not lean-only). Use that checklist for any new method.
+
+Comparing two widely deployed commercial products to Panorama, Murphy, Nezha, CARE, and this lean design. Read Section 2.6 first if the Tier 1 / 2 / 3 labels are unfamiliar.
+
+### Terms (plain language)
+
+| Term | Meaning here |
+|------|----------------|
+| **Top-1 accuracy** | On a fixed evaluation set with a known correct root cause, how often the system’s **first-ranked / single chosen** answer matches that truth. Example: Nezha’s paper reports **89.77% average top-1** at code-region level [8] — meaning the primary suggested region was correct about nine times in ten on that corpus. CARE reports **72–89% top-1** [1] on its published evaluations. These are **paper metrics**, not ObserveOps bakeoff scores. |
+| **Published / peer-reviewed number** | An accuracy (or related) figure that appears in a refereed paper or similarly citable study, and can be re-checked against that paper’s protocol. |
+| **Self-reported claim** | Vendor marketing or product docs (e.g. “causal AI”) with **no independent published accuracy figure** we can cite the same way. |
+| **Evidentiary Tier 1 / 2 / 3** | *This design’s* labels for how strong the claim is (Section 2.6). They are **not** Dynatrace or Netdata product tiers. |
+
+**What our tiers mean (reminder):**
+
+| Our tier | What the engine did | May we say “A caused B”? |
+|----------|---------------------|---------------------------|
+| **Tier 1** | Main path: topology reachability + temporal onset (+ ObserveOps rules/signatures). One leading candidate + evidence trail. | **No** |
+| **Tier 2** | CARE fired because onset times among candidates were ambiguous. Stronger **correlation / ranking** over a small set. Still one reportable lead. | **No** |
+| **Tier 3** | CARE + a **scoped** causal check on that small set. | **Yes** (bounded; ObserveOps PoC: when CARE escalates, e.g. UC-1 / UC-3 / UC-3b) |
+
+Do **not** read “Tier” below as Netdata’s UI ranking length or Dynatrace’s product packaging. When we relate a commercial product to a tier, we mean: *its public mechanism resembles the kind of reasoning we put in that row of the table above*.
+
+### Placement of Netdata and Dynatrace
+
+| System | Closest likeness in *our* terms | Accuracy story | Causal story |
+|--------|----------------------------------|----------------|--------------|
+| **Netdata** | Correlational ranking — similar in **spirit** to diagnosing without a causal check (our Tier 1 without a hard single-candidate contract, or CARE-style ordering without Tier 3). Netdata’s own docs describe **correlation analysis**, not causation, and state that the root cause typically surfaces somewhere in the **top 30–50** ranked results, not as one verified verdict. | Product docs: soft ranked list. **Looser** success bar than CARE’s or Nezha’s published top-1 figures. | Explicitly **not** causation. |
+| **Dynatrace (Davis)** | Rhetorically closest to **Murphy / our Tier 3**: product material claims **causal**, not merely correlational, reasoning [4]. | **Self-reported.** No independently published, third-party-verifiable top-1 (or equivalent) number found that we can put next to [1]/[6]/[7]/[8]. | Claims causal AI; **cannot be scoreboarded** against paper numbers until independently measured. |
+| **Panorama** | Symptom / observer consensus | Peer-reviewed eval [6] | Correlation of local views — not structural cause. |
+| **CARE** | Ambiguity ranking (feeds our Tier 2) | Peer-reviewed ~72–89% top-1 [1] | Correlation / context ranking — not Causal Validity in our sense. |
+| **Nezha** | Pattern drift (expected vs actual) | Peer-reviewed ~89.77% avg top-1 [8] | Baseline comparison — not causal modeling. |
+| **Murphy** | Counterfactual intervention on metrics | Peer-reviewed error-reduction figures [7] | Partial causal screening (strongest of the three papers). |
+| **This design (lean)** | Tier 1 by default; CARE → Tier 2; scoped check → Tier 3 | ObserveOps bakeoff: measured (e.g. 5/5 root+signature on UC-1..UC-5); bit-stable main path | Causal Validity **only** when Tier 3 is emitted. |
+
+### Takeaway (market vs evaluation)
+
+1. The **commercial product bar** (especially Netdata’s “find it in a long ranked list”) is **measurably looser** than the **academic top-1 bar** used in CARE / Nezha papers.
+2. That is **not** a reason to lower this design’s own contract: main-path outputs remain a **single leading candidate** with an **inspectable evidence trail**, not a 30–50 item triage dump.
+3. It **is** fair to note that shipping something weaker than this design’s own targets can still be a real product improvement over a widely deployed correlational ranked-list baseline (Netdata’s documented framing).
+4. Dynatrace’s causal claim is a useful **design philosophy** precedent (separate diagnosis engine from generative fluff) [4], but **must not** be treated as a measured competitor until independent accuracy exists. Cite it as philosophy, not as a reusable component or as a win/loss on top-1.
+
+**ObserveOps implications:** Prefer lean Tier 1 when signals and Δt are clean; escalate CARE/Tier 3 only under ambiguity; never market every ticket as “causal” the way a brochure might. Accuracy comparisons to Dynatrace stay out of bakeoff tables until someone runs a fair, frozen corpus against it.
+
+---
+
 ## References
 
 1. CARE: Context-Aware Root Cause Identification Using Distributed Traces and Profiling Metrics. Top-1 accuracy 72%-89%. ResearchGate.  
@@ -349,10 +399,11 @@ UC-3 note: federated sometimes uses fewer raw observations while accuracy ties; 
 6. Huang et al. Panorama. OSDI 2018.  
 7. Harsh et al. Murphy. ACM SIGCOMM 2023.  
 8. Yu et al. Nezha. ESEC/FSE 2023.  
-9. Amazon CloudWatch Container Insights documentation.
+9. Amazon CloudWatch Container Insights documentation.  
+10. Netdata documentation on anomaly / root-cause ranking (correlation analysis; root often among top 30–50 ranked results) — product docs, not a peer-reviewed top-1 study.
 
 Note: "BFS + temporal ordering" and "information-gain-driven traversal" are described as established engineering / decision-theoretic techniques, not a single paper's contribution.
 
 ---
 
-*Corrected 2026-07-13 for ObserveOps + ADR-001. Prefer [`POC_BRIEFING.md`](./POC_BRIEFING.md) for stakeholder narrative; this PRD remains the lean architecture / requirements source.*
+*Corrected 2026-07-13 for ObserveOps + ADR-001; Appendix E (Dynatrace / Netdata placement) added 2026-07-15. Prefer [`POC_BRIEFING.md`](./POC_BRIEFING.md) for stakeholder narrative; this PRD remains the lean architecture / requirements source.*

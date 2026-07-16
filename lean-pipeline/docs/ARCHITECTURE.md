@@ -1,10 +1,10 @@
 # Lean ObserveOps RCA — Architecture, Components & Workflow
 
-**Status:** lean path under evaluation engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)).  
+**Status:** Primary ObserveOps **evaluation** engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)); not a finalized product commitment.  
 **Scope:** Classic infrastructure typed CI graph (Network → Host → VM → Guest OS → App + Datastore).  
 **Corpus:** [`datasets/observeops/`](../../datasets/observeops/) from [`rca-use-cases-only.md`](../../docs/rca-use-cases-only.md).
 
-This document describes what the lean pipeline **actually implements**. Product requirements and four-axis framing live in the shared [Lean PRD](../../docs/Lean_RCA_PRD.md); plain-language narrative in the [Simple Guide](../../docs/Lean_RCA_Simple_Guide.md). Limitations and roadmap items: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md).
+This document describes what the lean pipeline **actually implements**. Product requirements and four-axis framing live in the shared [Lean PRD](../../docs/Lean_RCA_PRD.md); plain-language narrative in the [Simple Guide](../../docs/Lean_RCA_Simple_Guide.md). Limitations and roadmap items: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md). **Frame-by-frame sub-step guide for visual simulation:** [`TIERED_ESCALATION_VISUAL_GUIDE.md`](./TIERED_ESCALATION_VISUAL_GUIDE.md).
 
 ---
 
