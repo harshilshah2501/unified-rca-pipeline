@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GAG6ZcHySa0WJOfxvG1EzBnZLa",
+  "title": "pg_svc_down2",
+  "status": "final",
+  "stratum": "single_database_variant",
+  "root_layer": "database",
+  "root_alert": "pg_svc_down2",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Single pg_svc_down2 trigger; Postgres service down variant is the root.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "database",
+      "root_alert": "pg_svc_down2",
+      "confidence": "confident",
+      "evidence_note": "Alert name is explicit DB service failure.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "database",
+      "root_alert": "pg_svc_down2",
+      "confidence": "confident",
+      "evidence_note": "No decoy alerts.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed database / pg_svc_down2. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "pg_svc_down2"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "database",
+    "lean_root": "pg_svc_down2",
+    "federated_layer": "database",
+    "federated_root": "pg_svc_down2",
+    "openobserve_layer": "database",
+    "openobserve_root": "pg_svc_down2",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "PostgreSQL out-of-memory (OOM) condition caused by memory limit misconfiguration combined with a workload pattern that triggered high memory demand in the query execution layer (MessageContext allocation failure). The kernel OOM killer forc",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

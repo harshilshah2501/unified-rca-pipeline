@@ -1,0 +1,27 @@
+{
+  "engine": "federated",
+  "uc_id": "3GAYuTBAC1zaXtslES1iFWh5yKA",
+  "root_ci": "sa_upload_slo",
+  "signature": "os_resource_exhaustion",
+  "contributor_cis": [
+    "sa_upload_slo"
+  ],
+  "evidence": [
+    {
+      "ci": "sa_upload_slo",
+      "signal": "upload_success_rate",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:02Z"
+    },
+    {
+      "ci": "sa_inode_high",
+      "signal": "node_filesystem_inodes_used_percent",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:05Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 0.987
+}

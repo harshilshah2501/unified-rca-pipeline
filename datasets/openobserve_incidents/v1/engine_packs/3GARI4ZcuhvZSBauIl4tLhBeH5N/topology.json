@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "ecom_checkout_slo_breach",
+      "type": "Service",
+      "name": "ecom_checkout_slo_breach"
+    },
+    {
+      "id": "ecom_payment_conn_exhaustion",
+      "type": "Service",
+      "name": "ecom_payment_conn_exhaustion"
+    },
+    {
+      "id": "ecom_dns_aaaa_numa",
+      "type": "Service",
+      "name": "ecom_dns_aaaa_numa"
+    }
+  ],
+  "edges": [
+    {
+      "from": "ecom_payment_conn_exhaustion",
+      "to": "ecom_checkout_slo_breach",
+      "relation": "depends_on"
+    },
+    {
+      "from": "ecom_dns_aaaa_numa",
+      "to": "ecom_payment_conn_exhaustion",
+      "relation": "depends_on"
+    }
+  ]
+}

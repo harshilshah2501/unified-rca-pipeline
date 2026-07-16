@@ -1,0 +1,12 @@
+{
+  "root_ci": "ecom_dns_aaaa_numa",
+  "signature": "app_resource_exhaustion",
+  "contributor_cis": [
+    "ecom_payment_conn_exhaustion",
+    "ecom_checkout_slo_breach"
+  ],
+  "blast_radius": [],
+  "include_in_accuracy": true,
+  "root_layer": "dns",
+  "option_b_source": "datasets/openobserve_incidents/v1/ground_truth/3GARI4ZcuhvZSBauIl4tLhBeH5N.json"
+}

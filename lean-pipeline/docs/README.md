@@ -1,12 +1,13 @@
 # Lean pipeline — documentation
 
-Lean is ObserveOps’ **primary** ObserveOps RCA engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)).
+Lean is ObserveOps’ **primary evaluation engine** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md); not a finalized product commitment).
 
 ## Lean-pipeline docs (start here)
 
 | Document | Purpose |
 |----------|---------|
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | **Architecture, components, and diagnose workflow** |
+| [`TIERED_ESCALATION_VISUAL_GUIDE.md`](./TIERED_ESCALATION_VISUAL_GUIDE.md) | **Sub-step guide for visual simulation** (info-gain, best-first, temporal, CARE, Tier‑3) |
 | [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md) | **Limitations, non-goals, and deferred roadmap** |
 | [`../core_engine/observeops/README.md`](../core_engine/observeops/README.md) | Engine-local quick reference |
 | [`../README.md`](../README.md) | CLI / HTTP / layout |

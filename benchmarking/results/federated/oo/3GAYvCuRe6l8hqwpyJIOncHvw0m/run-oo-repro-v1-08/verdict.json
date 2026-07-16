@@ -1,0 +1,28 @@
+{
+  "engine": "federated",
+  "uc_id": "3GAYvCuRe6l8hqwpyJIOncHvw0m",
+  "root_ci": "sc_latency_slo",
+  "signature": "app_resource_exhaustion",
+  "contributor_cis": [
+    "sc_db_cpu",
+    "sc_latency_slo"
+  ],
+  "evidence": [
+    {
+      "ci": "sc_latency_slo",
+      "signal": "request_latency_p95_ms",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:08Z"
+    },
+    {
+      "ci": "sc_db_cpu",
+      "signal": "db_cpu_percent",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:11Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 0.987
+}

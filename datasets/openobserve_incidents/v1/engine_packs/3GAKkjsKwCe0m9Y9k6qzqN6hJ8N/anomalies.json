@@ -1,0 +1,29 @@
+{
+  "incident_start": "2026-07-07T07:24:38Z",
+  "anomalies": [
+    {
+      "ci": "net_link_saturation",
+      "signal": "interface_discard_packets",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T07:24:38Z"
+    },
+    {
+      "ci": "gateway_5xx_spike",
+      "signal": "gateway_http_5xx_rate",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T07:24:41Z"
+    },
+    {
+      "ci": "checkout_db_timeouts",
+      "signal": "checkout_connection_timeouts",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T07:24:45Z"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "sa_upload_slo",
+      "type": "GuestOS",
+      "name": "media-service"
+    },
+    {
+      "id": "sa_inode_high",
+      "type": "GuestOS",
+      "name": "media-service"
+    }
+  ],
+  "edges": [
+    {
+      "from": "sa_inode_high",
+      "to": "sa_upload_slo",
+      "relation": "depends_on"
+    }
+  ]
+}

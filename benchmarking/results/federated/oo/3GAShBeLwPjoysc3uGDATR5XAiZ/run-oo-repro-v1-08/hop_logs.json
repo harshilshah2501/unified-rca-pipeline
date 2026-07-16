@@ -1,0 +1,42 @@
+[
+  {
+    "hop": 1,
+    "component": "panorama",
+    "incident_id": "6be0f783-c91f-4a3f-be63-2b76a8609803",
+    "latency_ms": 0.02,
+    "input_hash": "44136fa355b3678a",
+    "output_hash": "fe123aca468405c7"
+  },
+  {
+    "hop": 2,
+    "component": "orchestrator",
+    "incident_id": "6be0f783-c91f-4a3f-be63-2b76a8609803",
+    "latency_ms": 0.02,
+    "input_hash": "fe123aca468405c7",
+    "output_hash": "f6eb9502b1ba3627"
+  },
+  {
+    "hop": 3,
+    "component": "murphy",
+    "incident_id": "6be0f783-c91f-4a3f-be63-2b76a8609803",
+    "latency_ms": 0.54,
+    "input_hash": "f6eb9502b1ba3627",
+    "output_hash": "bb090f910b5f129f"
+  },
+  {
+    "hop": 4,
+    "component": "orchestrator",
+    "incident_id": "6be0f783-c91f-4a3f-be63-2b76a8609803",
+    "latency_ms": 0.01,
+    "input_hash": "bb090f910b5f129f",
+    "output_hash": "aeaa44979c8eb54b"
+  },
+  {
+    "hop": 6,
+    "component": "orchestrator",
+    "incident_id": "6be0f783-c91f-4a3f-be63-2b76a8609803",
+    "latency_ms": 0.03,
+    "input_hash": "139692aef920c560",
+    "output_hash": "8e887377ed592a27"
+  }
+]

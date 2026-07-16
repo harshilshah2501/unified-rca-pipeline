@@ -1,6 +1,6 @@
 # Federated storage tiers (design vision)
 
-**ObserveOps note:** Lean is the primary ObserveOps engine ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). This document describes the **federated** dual-tier storage model (PoC approximations + production vision). Shipping ObserveOps diagnose path does not require this stack — see lean [`ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md). Federated implementation status: [`ARCHITECTURE.md`](./ARCHITECTURE.md) · limits: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md).
+**ObserveOps note:** Lean is the primary evaluation engine for ObserveOps ([ADR-001](../../docs/ADR-001-lean-primary-engine.md); not a finalized product commitment). This document describes the **federated** dual-tier storage model (PoC approximations + production vision). Shipping ObserveOps diagnose path does not require this stack — see lean [`ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md). Federated implementation status: [`ARCHITECTURE.md`](./ARCHITECTURE.md) · limits: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md).
 
 ## Overview
 

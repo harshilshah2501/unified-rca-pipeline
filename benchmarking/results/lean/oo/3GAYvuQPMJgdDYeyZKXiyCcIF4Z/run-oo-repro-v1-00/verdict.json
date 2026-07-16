@@ -1,0 +1,62 @@
+{
+  "engine": "lean",
+  "uc_id": "3GAYvuQPMJgdDYeyZKXiyCcIF4Z",
+  "root_ci": "sd_notif_slo",
+  "signature": "unknown",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "sd_notif_slo",
+      "signal": "notification_success_rate",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:14Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "sd_tls_fail",
+      "signal": "tls_handshake_failures",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:17Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 2,
+  "evidentiary_tier": 3,
+  "fallback_fired": true,
+  "causal_verified": true,
+  "causal_log": [
+    {
+      "check": "root_anomalous",
+      "passed": true,
+      "root_ci": "sd_notif_slo",
+      "onset": "2026-07-07T09:21:14+00:00"
+    },
+    {
+      "check": "topology_upstream_of_seed",
+      "passed": true,
+      "seed_ci": "sd_notif_slo",
+      "root_ci": "sd_notif_slo"
+    },
+    {
+      "check": "onset_precedes_connected_symptoms",
+      "passed": true,
+      "root_onset": "2026-07-07T09:21:14+00:00",
+      "connected_downstream_cis": [
+        "sd_tls_fail"
+      ]
+    }
+  ],
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "sd_notif_slo"
+  ],
+  "blast_radius": [
+    "sd_notif_slo"
+  ],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

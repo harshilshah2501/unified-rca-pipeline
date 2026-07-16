@@ -1,6 +1,6 @@
 # Federated RCA — Limitations & Future Work
 
-Companion to [`ARCHITECTURE.md`](./ARCHITECTURE.md). ObserveOps decision: **lean is primary** for classic ObserveOps ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). Federated remains a PoC, bakeoff comparator, and optional microservice / code-path hybrid.
+Companion to [`ARCHITECTURE.md`](./ARCHITECTURE.md). ObserveOps decision: **lean is the primary evaluation engine** for classic ObserveOps ([ADR-001](../../docs/ADR-001-lean-primary-engine.md); not a finalized product commitment). Federated remains a PoC, bakeoff comparator, and optional microservice / code-path hybrid.
 
 ---
 
@@ -28,7 +28,7 @@ Three heterogeneous algorithms + dual storage tiers + orchestrator translation. 
 
 ### 1.6 Open orchestrator decisions
 
-[`ORCHESTRATOR.md`](./ORCHESTRATOR.md) still lists draft items (OD-1..OD-3): trigger arbitration, Nezha baseline lifecycle, fusion strategy. Fine for research; not ObserveOps-blocking while lean is primary.
+[`ORCHESTRATOR.md`](./ORCHESTRATOR.md) still lists draft items (OD-1..OD-3): trigger arbitration, Nezha baseline lifecycle, fusion strategy. Fine for research; not ObserveOps-blocking while lean is the primary evaluation engine.
 
 ### 1.7 Live Nezha / paper datasets
 
@@ -64,7 +64,7 @@ When Murphy posterior is weak, `resolve_root_ci` can fall back to lean `shared_u
 | Hard signals + rules + temporal enough | Dedicated microservice evaluation corpus in scope |
 | Roadblock 5 tight | Research / Boutique / TrainTicket-style workloads |
 
-Hybrid product posture: **lean primary + federated optional** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)).
+Hybrid product posture: **primary evaluation engine (ADR-001) + federated optional** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md); not a finalized product commitment).
 
 ---
 
@@ -89,7 +89,7 @@ Aligned with [`../../docs/ROADMAP.md`](../../docs/ROADMAP.md). ObserveOps critic
 
 If ObserveOps funds code-path RCA: freeze a Boutique/TrainTicket-style corpus with GT, then re-run lean vs federated on **that** contract — do not reuse classic-infra UC-1..UC-5 as the sole federated win claim.
 
-### 3.4 Explicitly out of lean path under evaluation path
+### 3.4 Explicitly out of ObserveOps evaluation path
 
 - Replacing lean as default classic-infra engine without new evidence  
 - Learning UI as production RCA API  
@@ -105,7 +105,7 @@ If ObserveOps funds code-path RCA: freeze a Boutique/TrainTicket-style corpus wi
 | Orchestrator 6-hop demo (crawler / hipster) | **Done** |
 | Dual-stream PoC ingest stub + optional Redis speed tier | **Done** (PoC) |
 | ObserveOps bakeoff adapter + matched compare | **Done** |
-| lean path under evaluation packaging | **N/A — lean** |
+| primary evaluation engine packaging | **N/A — lean** |
 | Phase C production ingest / OD resolution | **Deferred** |
 | Phase E 1B EPS | **Deferred** |
 
@@ -122,4 +122,4 @@ If ObserveOps funds code-path RCA: freeze a Boutique/TrainTicket-style corpus wi
 
 ---
 
-*Limitations & future work for federated-pipeline. evaluation-aligned (2026-07-13).*
+*Limitations & future work for federated-pipeline. evaluation-aligned (2026-07-16): primary evaluation engine per ADR-001; not a finalized product commitment.*

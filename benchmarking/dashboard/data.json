@@ -1482,5 +1482,55 @@
         "oo_root": "pgw_esxi_443_no_return"
       }
     ]
+  },
+  "openobserve_engine": {
+    "generated_at": "2026-07-15T11:26:42.876768+00:00",
+    "run_id": "oo-bakeoff-v1",
+    "evaluation": {
+      "mode": "oo_engine_pack_bakeoff",
+      "accuracy_target": "option_b_root_alert_as_root_ci",
+      "engines": [
+        "lean",
+        "federated"
+      ],
+      "openobserve_scored": false
+    },
+    "summary": {
+      "sample_packs": 29,
+      "accuracy_n": 24,
+      "excluded_n": 5,
+      "accuracy": {
+        "lean": 0.625,
+        "federated": 0.625
+      },
+      "verifiability": {
+        "lean_fallback_rate": 0.4583333333333333,
+        "federated_fallback_rate": 0.0,
+        "lean_avg_tier": 1.7083333333333333,
+        "federated_avg_tier": 1.0,
+        "lean_causal_verified_rate": 0.25
+      },
+      "efficiency": {
+        "lean_avg_observations": 2.1666666666666665,
+        "federated_avg_observations": 5.0,
+        "lean_avg_obs_to_convergence": 0.7916666666666666,
+        "lean_avg_efficiency_ratio": 0.7916666666666666
+      },
+      "reproducibility": {
+        "lean_overall_pct": 100.0,
+        "federated_overall_pct": 75.0,
+        "lean_n": 20,
+        "federated_n": 20,
+        "lean_packs": 24,
+        "federated_packs": 24,
+        "definition": "Per pack: N runs, SHA-256(verdict.json); 100% iff all hashes identical."
+      },
+      "best_on_accuracy": "tie",
+      "pillars_note": "Accuracy vs Option B. Verifiability/Efficiency from verdicts. Reproducibility = N-run bit-identical verdict hashes (when report present)."
+    },
+    "reproducibility_sources": {
+      "lean_loaded": true,
+      "federated_loaded": true
+    }
   }
 }

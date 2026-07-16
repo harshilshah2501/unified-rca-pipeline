@@ -286,7 +286,7 @@ Net: lean wins for classic infran ObserveOps. Federated wins when you **explicit
 | Tight compute ceiling | **Lean** |
 | Strongest structural/counterfactual localization | **Federated / Murphy** |
 | Microservice gray failure + code-path drift | **Federated** |
-| Hybrid product roadmap | **Lean primary + federated optional** |
+| Hybrid product roadmap | **Primary evaluation engine (ADR-001) + federated optional** |
 
 ---
 
@@ -304,7 +304,7 @@ Federated   Lean
         ↓
 Matched bakeoff + four-axis compare
         ↓
-ADR-001: lean primary
+ADR-001: primary evaluation engine
         ↓
 Package lean_rca (CLI / HTTP / SRE / systemd)
 ```
@@ -323,7 +323,7 @@ Package lean_rca (CLI / HTTP / SRE / systemd)
 - Lean: evidentiary tiers correctly labeled; scoped causal only after CARE; signatures hardened to use-case AND-conditions.
 - Compare harness: identical ground truth, reproducibility N=20, observation efficiency metrics.
 
-### What we shipped (lean primary)
+### What we shipped (primary evaluation engine)
 
 ```bash
 # SRE report
@@ -477,7 +477,7 @@ Use these as generation prompts or section titles:
 10. **Results scoreboard** — 5/5 vs 5/5; 40% vs 100% repro  
 11. **Per-UC story** — Host / net / storage / OS / app anti-FP  
 12. **Cost–benefit** — Murphy CV vs ObserveOps ops fit  
-13. **Decision** — Lean primary; federated optional hybrid  
+13. **Decision** — Primary evaluation engine (ADR-001); federated optional hybrid  
 14. **Shipped** — `lean_rca` CLI/API/SRE report  
 15. **Open questions** — brainstorming (next section)  
 16. **Ask** — Align on hybrid boundary + next corpus size

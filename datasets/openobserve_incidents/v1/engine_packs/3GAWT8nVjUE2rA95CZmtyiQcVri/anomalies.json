@@ -1,0 +1,29 @@
+{
+  "incident_start": "2026-07-07T09:00:58Z",
+  "anomalies": [
+    {
+      "ci": "ecom_checkout_slo_breach",
+      "signal": "checkout_success_rate",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T09:00:58Z"
+    },
+    {
+      "ci": "ecom_payment_conn_exhaustion",
+      "signal": "payment_connection_acquire_ms",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T09:01:01Z"
+    },
+    {
+      "ci": "ecom_dns_aaaa_numa",
+      "signal": "dns_query_latency_p99_ms",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T09:01:04Z"
+    }
+  ]
+}

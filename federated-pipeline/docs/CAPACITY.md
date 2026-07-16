@@ -1,6 +1,6 @@
 # Capacity Planning
 
-**ObserveOps note:** Lean is primary for ObserveOps ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). Capacity work here is for the **federated** speed/structural tier vision (Phase C/E deferred). ObserveOps critical path does **not** block on 1B EPS. Overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md) · limits: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md).
+**ObserveOps note:** Lean is the primary evaluation engine for ObserveOps ([ADR-001](../../docs/ADR-001-lean-primary-engine.md); not a finalized product commitment). Capacity work here is for the **federated** speed/structural tier vision (Phase C/E deferred). ObserveOps critical path does **not** block on 1B EPS. Overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md) · limits: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md).
 
 Two scopes: **PoC** (local Dragonfly/Redis probes) and **production vision** (1B EPS design anchor). PoC sizing is independent and should not be driven by the 1B number.
 

@@ -1,0 +1,70 @@
+{
+  "engine": "lean",
+  "uc_id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+  "root_ci": "ecom_checkout_slo_breach",
+  "signature": "unknown",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "ecom_checkout_slo_breach",
+      "signal": "checkout_success_rate",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:00:58Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "ecom_payment_conn_exhaustion",
+      "signal": "payment_connection_acquire_ms",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:01:01Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "ecom_dns_aaaa_numa",
+      "signal": "dns_query_latency_p99_ms",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:01:04Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 3,
+  "evidentiary_tier": 3,
+  "fallback_fired": true,
+  "causal_verified": true,
+  "causal_log": [
+    {
+      "check": "root_anomalous",
+      "passed": true,
+      "root_ci": "ecom_checkout_slo_breach",
+      "onset": "2026-07-07T09:00:58+00:00"
+    },
+    {
+      "check": "topology_upstream_of_seed",
+      "passed": true,
+      "seed_ci": "ecom_checkout_slo_breach",
+      "root_ci": "ecom_checkout_slo_breach"
+    },
+    {
+      "check": "onset_precedes_connected_symptoms",
+      "passed": true,
+      "root_onset": "2026-07-07T09:00:58+00:00",
+      "connected_downstream_cis": [
+        "ecom_dns_aaaa_numa",
+        "ecom_payment_conn_exhaustion"
+      ]
+    }
+  ],
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "ecom_checkout_slo_breach"
+  ],
+  "blast_radius": [
+    "ecom_checkout_slo_breach"
+  ],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

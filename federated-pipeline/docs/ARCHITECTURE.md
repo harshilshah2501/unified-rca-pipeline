@@ -1,6 +1,6 @@
 # Federated RCA — Architecture, Components & Workflow
 
-**Status:** Optional ObserveOps track. For ObserveOps UC-1..UC-5, **lean is primary** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)).  
+**Status:** Optional ObserveOps track. For ObserveOps UC-1..UC-5, **lean is the primary evaluation engine** ([ADR-001](../../docs/ADR-001-lean-primary-engine.md); not a finalized product commitment).  
 **Role of this tree:** Federated PoC, same-corpus bakeoff comparator, and optional microservice / code-path / gray-failure hybrid.  
 **Not:** ObserveOps’ shipping primary engine (that is [`lean-pipeline/`](../../lean-pipeline/docs/ARCHITECTURE.md)).
 
@@ -231,4 +231,4 @@ Tests: `tests/test_pipeline.py` (crawler/hipster E2E); `tests/test_ingest.py` (s
 
 ---
 
-*Federated-pipeline technical architecture. evaluation-aligned (2026-07-13): lean primary; federated optional hybrid.*
+*Federated-pipeline technical architecture. evaluation-aligned (2026-07-16): primary evaluation engine per ADR-001; not a finalized product commitment.*

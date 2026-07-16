@@ -1,6 +1,6 @@
 # Requirements — Federated RCA PoC
 
-**Scope:** Federated pipeline only (Panorama → Murphy → Nezha). For ObserveOps UC-1..UC-5, **lean is the primary engine** — see [`../../docs/ADR-001-lean-primary-engine.md`](../../docs/ADR-001-lean-primary-engine.md) and [`../../docs/ROADMAP.md`](../../docs/ROADMAP.md). Shipping-state overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md). Limits / Phase C deferrals: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md). This document tracks the federated PoC and optional microservice/code-path track (Phase C deferred).
+**Scope:** Federated pipeline only (Panorama → Murphy → Nezha). For ObserveOps UC-1..UC-5, **lean is the primary evaluation engine** (ADR-001; not a finalized product commitment) — see [`../../docs/ADR-001-lean-primary-engine.md`](../../docs/ADR-001-lean-primary-engine.md) and [`../../docs/ROADMAP.md`](../../docs/ROADMAP.md). Shipping-state overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md). Limits / Phase C deferrals: [`LIMITATIONS_AND_FUTURE.md`](./LIMITATIONS_AND_FUTURE.md). This document tracks the federated PoC and optional microservice/code-path track (Phase C deferred).
 
 ## Problem statement
 

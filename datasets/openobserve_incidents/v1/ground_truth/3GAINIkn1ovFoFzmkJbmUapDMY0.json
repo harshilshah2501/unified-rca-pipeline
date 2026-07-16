@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GAINIkn1ovFoFzmkJbmUapDMY0",
+  "title": "pg_db_down_dim",
+  "status": "final",
+  "stratum": "single_database_variant",
+  "root_layer": "database",
+  "root_alert": "pg_db_down_dim",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Single pg_db_down_dim trigger; dimensional Postgres DB down is the root.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "database",
+      "root_alert": "pg_db_down_dim",
+      "confidence": "confident",
+      "evidence_note": "DB down alert is only co-fired signal.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "database",
+      "root_alert": "pg_db_down_dim",
+      "confidence": "confident",
+      "evidence_note": "Confident database root.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed database / pg_db_down_dim. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "pg_db_down_dim"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "database",
+    "lean_root": "pg_db_down_dim",
+    "federated_layer": "database",
+    "federated_root": "pg_db_down_dim",
+    "openobserve_layer": "database",
+    "openobserve_root": "pg_db_down_dim",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "A recent query, schema change, or database configuration modification caused postgres memory consumption to spike from 44% to 97.71% baseline utilization within 8 minutes. The Linux kernel OOM killer forcibly terminated the postgres process",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

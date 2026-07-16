@@ -1,0 +1,21 @@
+{
+  "incident_start": "2026-07-07T09:21:02Z",
+  "anomalies": [
+    {
+      "ci": "sa_upload_slo",
+      "signal": "upload_success_rate",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T09:21:02Z"
+    },
+    {
+      "ci": "sa_inode_high",
+      "signal": "node_filesystem_inodes_used_percent",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T09:21:05Z"
+    }
+  ]
+}

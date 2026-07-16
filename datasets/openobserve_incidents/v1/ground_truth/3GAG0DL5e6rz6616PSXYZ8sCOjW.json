@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GAG0DL5e6rz6616PSXYZ8sCOjW",
+  "title": "pg_svc_down",
+  "status": "final",
+  "stratum": "single_database_variant",
+  "root_layer": "database",
+  "root_alert": "pg_svc_down",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Single pg_svc_down trigger; Postgres service down is the root.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "database",
+      "root_alert": "pg_svc_down",
+      "confidence": "confident",
+      "evidence_note": "pg_svc_down is sole signal.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "database",
+      "root_alert": "pg_svc_down",
+      "confidence": "confident",
+      "evidence_note": "Database layer root; no upstream chain.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed database / pg_svc_down. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "pg_svc_down"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "database",
+    "lean_root": "pg_svc_down",
+    "federated_layer": "database",
+    "federated_root": "pg_svc_down",
+    "openobserve_layer": "database",
+    "openobserve_root": "pg_svc_down",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "PostgreSQL process (postgres-primary) was killed by the kernel OOM killer after memory usage spiked from 79% to 97.7% within 3 minutes, driven by a sudden increase in active connections (410\u2192470) and likely a memory-intensive query or batch",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

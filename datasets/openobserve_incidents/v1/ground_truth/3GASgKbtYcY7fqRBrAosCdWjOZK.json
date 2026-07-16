@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GASgKbtYcY7fqRBrAosCdWjOZK",
+  "title": "ecom_checkout_slo_breach on checkout-service",
+  "status": "final",
+  "stratum": "single_slo_title_only",
+  "root_layer": "application",
+  "root_alert": "ecom_checkout_slo_breach",
+  "contributor_alerts": [],
+  "confidence": "ambiguous",
+  "include_in_accuracy": false,
+  "evidence_note": "Only ecom_checkout_slo_breach co-fired; no DNS/payment upstream alerts in triggers despite narrative hints. SLO title is symptom-only \u2014 exclude from accuracy.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "application",
+      "root_alert": "ecom_checkout_slo_breach",
+      "confidence": "ambiguous",
+      "evidence_note": "Single SLO alert; no upstream chain in triggers.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "application",
+      "root_alert": "ecom_checkout_slo_breach",
+      "confidence": "ambiguous",
+      "evidence_note": "Decoy-title risk without co-fired infra alerts.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; ambiguous SLO-only; exclude from accuracy. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "ecom_checkout_slo_breach"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "dns",
+    "lean_root": "ecom_checkout_slo_breach",
+    "federated_layer": "dns",
+    "federated_root": "ecom_checkout_slo_breach",
+    "openobserve_layer": "application",
+    "openobserve_root": "ecom_checkout_slo_breach",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "Node pool NP-17 rollout to node image 2026.06.18 introduced an IRQ-affinity misconfiguration that pinned the RX-7 network queue IRQ to CPU48/NUMA1 while queue memory remained on NUMA0, causing cross-NUMA memory access delays of 2.8s. This e",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

@@ -1,0 +1,53 @@
+{
+  "incident_id": "3GAYvuQPMJgdDYeyZKXiyCcIF4Z",
+  "title": "sd_notif_slo",
+  "status": "final",
+  "stratum": "decoy_multi_slo_tls",
+  "root_layer": "network",
+  "root_alert": "sd_tls_fail",
+  "contributor_alerts": [
+    "sd_notif_slo"
+  ],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "sd_tls_fail (TLS handshake failures from expired mTLS cert) is upstream of sd_notif_slo push success-rate breach. Title SLO is symptom.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "network",
+      "root_alert": "sd_tls_fail",
+      "confidence": "confident",
+      "evidence_note": "TLS failure alert is causal; cert expiry drives SLO drop.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "network",
+      "root_alert": "sd_tls_fail",
+      "confidence": "confident",
+      "evidence_note": "Do not crown sd_notif_slo title; sd_tls_fail is infra root.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed network / sd_tls_fail. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "sd_notif_slo",
+    "sd_tls_fail"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "unknown",
+    "lean_root": "sd_notif_slo",
+    "federated_layer": "unknown",
+    "federated_root": "sd_notif_slo",
+    "openobserve_layer": "unknown",
+    "openobserve_root": "sd_notif_slo",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "mTLS client certificate for push-gateway.internal expired at 2026-07-07T00:00:00Z due to auto-rotation being disabled approximately 17 days prior, resulting in 97.9% failure rate on push notifications (SMS and email channels unaffected, pus",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

@@ -1,0 +1,61 @@
+{
+  "incident_start": "2026-07-07T11:20:58Z",
+  "anomalies": [
+    {
+      "ci": "pgw_checkout_tps_drop",
+      "signal": "checkout_transactions_per_sec",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:20:58Z"
+    },
+    {
+      "ci": "pgw_syn_sent_pileup",
+      "signal": "tcp_connections_syn_sent",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:21:00Z"
+    },
+    {
+      "ci": "pgw_esxi_443_no_return",
+      "signal": "esxi_vnic_443_rx_pps",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:21:02Z"
+    },
+    {
+      "ci": "pgw_vcenter_net_alarm",
+      "signal": "vcenter_portgroup_connectivity",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:21:04Z"
+    },
+    {
+      "ci": "pgw_switch_443_asymmetric",
+      "signal": "switch_uplink_443_in_pps",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:21:06Z"
+    },
+    {
+      "ci": "pgw_router_egress_down",
+      "signal": "router_outbound_443_forward_pps",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:21:08Z"
+    },
+    {
+      "ci": "pgw_fw_443_denies",
+      "signal": "firewall_denied_sessions",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:21:10Z"
+    }
+  ]
+}

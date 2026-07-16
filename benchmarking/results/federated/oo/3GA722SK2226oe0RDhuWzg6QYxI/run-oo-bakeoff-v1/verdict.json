@@ -1,0 +1,19 @@
+{
+  "engine": "federated",
+  "uc_id": "3GA722SK2226oe0RDhuWzg6QYxI",
+  "root_ci": "starter_high_cpu",
+  "signature": "cpu_contention",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "starter_high_cpu",
+      "signal": "system_process_cpu_percent",
+      "value": 1.0,
+      "timestamp": "2026-07-07T05:31:48Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 1.0
+}

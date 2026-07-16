@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "net_link_saturation",
+      "type": "NetworkPort",
+      "name": "core-router-01"
+    },
+    {
+      "id": "gateway_5xx_spike",
+      "type": "Service",
+      "name": "api-gateway"
+    },
+    {
+      "id": "checkout_db_timeouts",
+      "type": "Service",
+      "name": "checkout-service"
+    }
+  ],
+  "edges": [
+    {
+      "from": "gateway_5xx_spike",
+      "to": "net_link_saturation",
+      "relation": "depends_on"
+    },
+    {
+      "from": "checkout_db_timeouts",
+      "to": "gateway_5xx_spike",
+      "relation": "depends_on"
+    }
+  ]
+}

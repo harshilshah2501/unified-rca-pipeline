@@ -1,0 +1,19 @@
+{
+  "engine": "federated",
+  "uc_id": "3GAJqvDUEt9zeZqtY0hlZRDtIDy",
+  "root_ci": "orders_service_surge",
+  "signature": "app_resource_exhaustion",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "orders_service_surge",
+      "signal": "app_active_users",
+      "value": 1.0,
+      "timestamp": "2026-07-07T07:17:14Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 1.0
+}

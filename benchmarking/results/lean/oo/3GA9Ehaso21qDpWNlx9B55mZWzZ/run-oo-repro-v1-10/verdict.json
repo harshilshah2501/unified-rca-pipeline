@@ -1,0 +1,34 @@
+{
+  "engine": "lean",
+  "uc_id": "3GA9Ehaso21qDpWNlx9B55mZWzZ",
+  "root_ci": "database_down",
+  "signature": "unknown",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "database_down",
+      "signal": "db_up",
+      "value": 1.0,
+      "timestamp": "2026-07-07T05:49:56Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 1,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "causal_verified": null,
+  "causal_log": null,
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "database_down"
+  ],
+  "blast_radius": [
+    "database_down"
+  ],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

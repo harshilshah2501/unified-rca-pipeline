@@ -4,7 +4,7 @@
 
 **Goal:** decide which pipeline (federated vs lean) wins on ObserveOps layers, then harden the winner toward production readiness.
 
-**ObserveOps critical path status:** **Complete** (Phases A → B → D). Lean is primary; packaged as CLI/HTTP API. Optional later: B5 / C* / E*.
+**ObserveOps critical path status:** **Complete** (Phases A → B → D). Lean is the primary evaluation engine (ADR-001; not a finalized product commitment); packaged as CLI/HTTP API. Optional later: B5 / C* / E*.
 
 ```
                     ┌─────────────────────────────────────┐
@@ -26,7 +26,7 @@
                                       ▼
                     ┌─────────────────────────────────────┐
    Bakeoff          │  benchmarking/results/comparison/   │
-   Decision         │  lean primary (ADR-001) ✅          │
+   Decision         │  primary evaluation engine (ADR-001) ✅ │
                     └─────────────────┬───────────────────┘
                                       ▼
                     ┌─────────────────────────────────────┐
@@ -48,7 +48,7 @@ Shared objective docs: [`README.md`](./README.md) (`docs/`). Pipeline-specific d
 | M3 Lean ObserveOps engine | **Done** | BFS + info-gain + temporal + CARE; Tier 3 causal on UC-1/UC-3; hardened signatures |
 | M4 Same-corpus bakeoff | **Done** | Both engines 5/5 accuracy on ObserveOps; comparison artifacts exist |
 | M5 Phase 0 EPS (laptop) | **Partial** | ~21K EPS on 2-core WSL Dragonfly; **not** 64-core production estimate |
-| **M6 Phase A bakeoff close** | **Done** | A1 fusion fix; A2 four-axis compare; `bakeoff-phase-a-001`; **lean primary** — [`DECISION.md`](../benchmarking/results/comparison/DECISION.md) |
+| **M6 Phase A bakeoff close** | **Done** | A1 fusion fix; A2 four-axis compare; `bakeoff-phase-a-001`; **primary evaluation engine (ADR-001)** — [`DECISION.md`](../benchmarking/results/comparison/DECISION.md) |
 | **M7 Phase B lean PRD depth** | **Done** | Tiers 1/2/3 + CARE→causal; signatures; search vs BFS efficiency; `bakeoff-phase-b-002` (latest) |
 | **M8 Phase D packaging** | **Done** | ADR-001; `lean_rca` CLI/HTTP; SRE report fields; systemd `lean-rca.service` |
 | **M9 Docs consolidation** | **Done** | Common objective docs in [`docs/`](./README.md) (use-cases, roadmap, ADR, Lean PRD + Simple Guide); pipeline-specific docs remain in-tree |
@@ -64,7 +64,7 @@ Shared objective docs: [`README.md`](./README.md) (`docs/`). Pipeline-specific d
 | A1 | Fix federated fusion gaps (UC-2/UC-3 Murphy posterior) | **Done** | Murphy posteriors high; lean-heuristic fallback gone |
 | A2 | Enrich compare.py with four-axis + reproducibility | **Done** | Four-axis scoreboard in COMPARISON.md / comparison.json |
 | A3 | Re-run matched bakeoff after A1–A2 | **Done** | `bakeoff-phase-a-001` |
-| A4 | Document verdict: federated vs lean on ObserveOps | **Done** | [`DECISION.md`](../benchmarking/results/comparison/DECISION.md) — **lean primary** |
+| A4 | Document verdict: federated vs lean on ObserveOps | **Done** | [`DECISION.md`](../benchmarking/results/comparison/DECISION.md) — **primary evaluation engine (ADR-001)** |
 
 ---
 
@@ -129,7 +129,7 @@ See [`../lean-pipeline/deploy/README.md`](../lean-pipeline/deploy/README.md).
 ## Suggested sequence (critical path)
 
 ```
-A1–A4 ObserveOps bakeoff close          ✅ DONE → lean primary
+A1–A4 ObserveOps bakeoff close          ✅ DONE → primary evaluation engine per ADR-001
 B1–B4 Lean PRD depth on same corpus     ✅ DONE
 D1–D4 Package lean RCA API/report       ✅ DONE
 M9  Common docs/ consolidation          ✅ DONE

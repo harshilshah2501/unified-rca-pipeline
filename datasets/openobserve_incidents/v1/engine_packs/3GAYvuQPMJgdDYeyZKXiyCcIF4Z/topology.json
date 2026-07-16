@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "sd_notif_slo",
+      "type": "Service",
+      "name": "notification-service"
+    },
+    {
+      "id": "sd_tls_fail",
+      "type": "Service",
+      "name": "notification-service"
+    }
+  ],
+  "edges": [
+    {
+      "from": "sd_tls_fail",
+      "to": "sd_notif_slo",
+      "relation": "depends_on"
+    }
+  ]
+}

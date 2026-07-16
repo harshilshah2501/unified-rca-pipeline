@@ -1,0 +1,55 @@
+{
+  "engine": "lean",
+  "uc_id": "3GAYvCuRe6l8hqwpyJIOncHvw0m",
+  "root_ci": "sc_db_cpu",
+  "signature": "unknown",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "sc_latency_slo",
+      "signal": "request_latency_p95_ms",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:08Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "sc_db_cpu",
+      "signal": "db_cpu_percent",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:11Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 2,
+  "evidentiary_tier": 2,
+  "fallback_fired": true,
+  "causal_verified": false,
+  "causal_log": [
+    {
+      "check": "root_anomalous",
+      "passed": true,
+      "root_ci": "sc_db_cpu",
+      "onset": "2026-07-07T09:21:11+00:00"
+    },
+    {
+      "check": "topology_upstream_of_seed",
+      "passed": false,
+      "seed_ci": "sc_latency_slo",
+      "root_ci": "sc_db_cpu"
+    }
+  ],
+  "obs_to_convergence": 0,
+  "naive_bfs_expansions": 0,
+  "efficiency_ratio": 0.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "sc_db_cpu",
+    "sc_latency_slo"
+  ],
+  "blast_radius": [
+    "sc_db_cpu"
+  ],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

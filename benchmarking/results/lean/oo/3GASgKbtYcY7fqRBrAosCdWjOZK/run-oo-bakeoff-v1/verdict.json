@@ -1,0 +1,34 @@
+{
+  "engine": "lean",
+  "uc_id": "3GASgKbtYcY7fqRBrAosCdWjOZK",
+  "root_ci": "ecom_checkout_slo_breach",
+  "signature": "unknown",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "ecom_checkout_slo_breach",
+      "signal": "ecom_checkout_slo_breach",
+      "value": 1.0,
+      "timestamp": "2026-07-07T08:29:50Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 1,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "causal_verified": null,
+  "causal_log": null,
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "ecom_checkout_slo_breach"
+  ],
+  "blast_radius": [
+    "ecom_checkout_slo_breach"
+  ],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

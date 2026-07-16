@@ -2,7 +2,7 @@
 
 Companion to [`ARCHITECTURE.md`](./ARCHITECTURE.md). This document states what lean **does not** claim today, and what is intentionally deferred.
 
-ObserveOps decision context: lean is **primary** for classic infra ([ADR-001](../../docs/ADR-001-lean-primary-engine.md)). Federated remains an optional hybrid for microservice / code-path work.
+ObserveOps decision context: lean is the **primary evaluation engine** for classic infra ([ADR-001](../../docs/ADR-001-lean-primary-engine.md); not a finalized product commitment). Federated remains an optional hybrid for microservice / code-path work.
 
 ---
 
@@ -28,7 +28,7 @@ Causal Validity is **Recommended**, claimed only on Tier 3. Most ObserveOps tick
 
 ### 1.4 Circular / mutual dependency graphs
 
-True A ↔ B microservice cycles weaken temporal “who first.” lean path under evaluation UCs use a **layered classic-infra** graph, not call cycles. Cyclic stress is an explicit non-goal for this corpus ([`rca-use-cases-only.md`](../../docs/rca-use-cases-only.md)); optional honesty fixtures may document the limit later.
+True A ↔ B microservice cycles weaken temporal “who first.” ObserveOps evaluation path UCs use a **layered classic-infra** graph, not call cycles. Cyclic stress is an explicit non-goal for this corpus ([`rca-use-cases-only.md`](../../docs/rca-use-cases-only.md)); optional honesty fixtures may document the limit later.
 
 ### 1.5 No full multimodal log mining
 
@@ -86,7 +86,7 @@ Ordered by ObserveOps relevance. Phases A/B/D are **complete** ([`ROADMAP.md`](.
 Background learner accumulates structure from healthy traffic and past incidents so incident-time CV becomes a cheap lookup rather than only CARE-triggered verification.
 
 **Requires:** persistent model store, update/retrain cadence, invalidation under topology change (Roadblock 2).  
-**Not required** for lean path under evaluation packaging today.
+**Not required** for primary evaluation engine packaging today.
 
 ### 2.3 Microservice / federated hybrid — roadmap **C\***
 
@@ -103,7 +103,7 @@ Corpus A (DeathStarBench / TrainTicket / pod churn / true 1a blind-spot) remains
 
 Event encoding size, structural tier at large entity counts, fleet sizing. Explicitly **not** PoC-blocking; measure before claiming hyperscale economics.
 
-### 2.5 Explicitly out of lean path under evaluation path
+### 2.5 Explicitly out of ObserveOps evaluation path
 
 - Replacing ObserveOps eval with Nezha Online Boutique / TrainTicket accuracy claims  
 - DeathStarBench harness as an ObserveOps gate  
@@ -122,7 +122,7 @@ Event encoding size, structural tier at large entity counts, fleet sizing. Expli
 | Signatures + contributors + events evidence | **Shipped** |
 | UC-3b early-noise resistance | **Shipped** |
 | CLI / HTTP / SRE report / systemd | **Shipped** |
-| Same-corpus bakeoff vs federated; lean primary | **Done** (ADR-001) |
+| Same-corpus bakeoff vs federated; primary evaluation engine (ADR-001) | **Done** |
 | B5 / live ingest / microservice corpus / E\* | **Deferred** |
 
 ---

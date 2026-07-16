@@ -28,9 +28,9 @@ Other roadblocks (1a blind spots, 2 non-stationary topology, 3 pod churn, 5 cost
 
 ## Non-goals / known limits (do not overclaim)
 
-- **Circular / mutual service loops (A ↔ B):** These UCs use a **layered classic-infra graph**, not microservice call cycles. Temporal “who was first” on true cycles is a known lean limit; out of scope for lean path under evaluation bakeoff. Optional honesty fixture may be added later; it is **not** an ObserveOps acceptance gate.
+- **Circular / mutual service loops (A ↔ B):** These UCs use a **layered classic-infra graph**, not microservice call cycles. Temporal “who was first” on true cycles is a known lean limit; out of scope for the primary evaluation engine bakeoff (ADR-001). Optional honesty fixture may be added later; it is **not** an ObserveOps acceptance gate.
 - **Live inject / live SNMP/vCenter ingest:** Sections (a) describe how a human would inject faults; the PoC evaluates **frozen bundles**, not live injection.
-- **Full free-text log mining (Nezha-style):** Out of scope for lean primary. Use **structured synthetic events** (§ Events schema) instead.
+- **Full free-text log mining (Nezha-style):** Out of scope for the primary evaluation engine path (ADR-001; not a finalized product commitment). Use **structured synthetic events** (§ Events schema) instead.
 - **Alert bus suppression:** (d) describes product behavior; bakeoff scores root/signature/contributor/evidence, not an alert pipeline.
 
 ---

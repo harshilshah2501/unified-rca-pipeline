@@ -1,0 +1,269 @@
+{
+  "corpus_version": "oo-engine-packs-v1",
+  "source_corpus": "datasets/openobserve_incidents/v1",
+  "pack_count": 29,
+  "note": "Projected alert-centric packs for Lean/Federated engines. Accuracy target is Option B root_alert as root_ci. No metrics/ series in v1.",
+  "items": [
+    {
+      "id": "3G8HsK79FfddyepBxqtx6OmeTIQ",
+      "title": "starter_high_cpu",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "starter_high_cpu",
+      "include_in_accuracy": false
+    },
+    {
+      "id": "3GA722SK2226oe0RDhuWzg6QYxI",
+      "title": "starter_high_cpu",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "starter_high_cpu",
+      "include_in_accuracy": false
+    },
+    {
+      "id": "3GA7yKK8vUcMNfiX8tld1EhfiUR",
+      "title": "starter_high_cpu",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "starter_high_cpu",
+      "include_in_accuracy": false
+    },
+    {
+      "id": "3GA9Ehaso21qDpWNlx9B55mZWzZ",
+      "title": "database_down",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "database_down",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAAEIzEzDuWjRmlZygujenDU8i",
+      "title": "db_primary_down",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "db_primary_down",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAAWBIAL515hv5Np5DNmiMDVxd",
+      "title": "db_primary_down",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "db_primary_down",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GABGbdhy3cIOxLutKax6lC87qK",
+      "title": "db_primary_down",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "db_primary_down",
+      "include_in_accuracy": false
+    },
+    {
+      "id": "3GAD6Wqr33nxPmYw8ZMwjoqNUlz",
+      "title": "pg_ordersdb_outage",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "pg_ordersdb_outage",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAF072FrsFAkgeTlEhF8awO01z",
+      "title": "pg_ordersdb_down",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "pg_ordersdb_down",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAFg9p5QarIXejxbg6thp1LV0w",
+      "title": "pg_ordersdb_outage3",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "pg_ordersdb_outage3",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAG0DL5e6rz6616PSXYZ8sCOjW",
+      "title": "pg_svc_down",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "pg_svc_down",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAG6ZcHySa0WJOfxvG1EzBnZLa",
+      "title": "pg_svc_down2",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "pg_svc_down2",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAINIkn1ovFoFzmkJbmUapDMY0",
+      "title": "pg_db_down_dim",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "pg_db_down_dim",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAJqvDUEt9zeZqtY0hlZRDtIDy",
+      "title": "orders_service_surge on app-prod-01",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "orders_service_surge",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAJqzTd0VQcpliTMIhK40HHQGo",
+      "title": "pg_primary_down on pg-prod-01",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "pg_primary_down",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAKkjsKwCe0m9Y9k6qzqN6hJ8N",
+      "title": "net_link_saturation",
+      "nodes": 3,
+      "edges": 2,
+      "anomalies": 3,
+      "root_ci": "net_link_saturation",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GANb9ArhD5rRUIg5VudmColh9n",
+      "title": "net_link_saturation",
+      "nodes": 3,
+      "edges": 2,
+      "anomalies": 3,
+      "root_ci": "net_link_saturation",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GARI4ZcuhvZSBauIl4tLhBeH5N",
+      "title": "ecom_checkout_slo_breach",
+      "nodes": 3,
+      "edges": 2,
+      "anomalies": 3,
+      "root_ci": "ecom_dns_aaaa_numa",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GARrIHDnfvHKz3jTKUoeQNwHjw",
+      "title": "ecom_checkout_slo_breach",
+      "nodes": 3,
+      "edges": 2,
+      "anomalies": 3,
+      "root_ci": "ecom_dns_aaaa_numa",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GASgKbtYcY7fqRBrAosCdWjOZK",
+      "title": "ecom_checkout_slo_breach on checkout-service",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "ecom_checkout_slo_breach",
+      "include_in_accuracy": false
+    },
+    {
+      "id": "3GASgjYJR4SG2aTMdpysOhLiZ4U",
+      "title": "ecom_payment_conn_exhaustion on payment-service",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "ecom_payment_conn_exhaustion",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAShBeLwPjoysc3uGDATR5XAiZ",
+      "title": "ecom_dns_aaaa_numa on dns-resolver",
+      "nodes": 1,
+      "edges": 0,
+      "anomalies": 1,
+      "root_ci": "ecom_dns_aaaa_numa",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+      "title": "ecom_checkout_slo_breach",
+      "nodes": 3,
+      "edges": 2,
+      "anomalies": 3,
+      "root_ci": "ecom_dns_aaaa_numa",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAYuTBAC1zaXtslES1iFWh5yKA",
+      "title": "sa_upload_slo",
+      "nodes": 2,
+      "edges": 1,
+      "anomalies": 2,
+      "root_ci": "sa_inode_high",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAYvCuRe6l8hqwpyJIOncHvw0m",
+      "title": "sc_latency_slo",
+      "nodes": 2,
+      "edges": 1,
+      "anomalies": 2,
+      "root_ci": "redis-node-3",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAYvuQPMJgdDYeyZKXiyCcIF4Z",
+      "title": "sd_notif_slo",
+      "nodes": 2,
+      "edges": 1,
+      "anomalies": 2,
+      "root_ci": "sd_tls_fail",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
+      "title": "cio_host_cpu_high",
+      "nodes": 4,
+      "edges": 3,
+      "anomalies": 4,
+      "root_ci": "cio_disk_io_stall",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAmXmWYoBO6IY4q1ji0QzCl3CG",
+      "title": "pgw_checkout_tps_drop",
+      "nodes": 7,
+      "edges": 6,
+      "anomalies": 7,
+      "root_ci": "pgw_fw_443_denies",
+      "include_in_accuracy": true
+    },
+    {
+      "id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+      "title": "pgw_checkout_tps_drop",
+      "nodes": 7,
+      "edges": 6,
+      "anomalies": 7,
+      "root_ci": "pgw_fw_443_denies",
+      "include_in_accuracy": true
+    }
+  ]
+}

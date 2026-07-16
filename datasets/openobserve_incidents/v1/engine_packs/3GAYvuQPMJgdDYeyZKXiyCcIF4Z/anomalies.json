@@ -1,0 +1,21 @@
+{
+  "incident_start": "2026-07-07T09:21:14Z",
+  "anomalies": [
+    {
+      "ci": "sd_notif_slo",
+      "signal": "notification_success_rate",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T09:21:14Z"
+    },
+    {
+      "ci": "sd_tls_fail",
+      "signal": "tls_handshake_failures",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T09:21:17Z"
+    }
+  ]
+}

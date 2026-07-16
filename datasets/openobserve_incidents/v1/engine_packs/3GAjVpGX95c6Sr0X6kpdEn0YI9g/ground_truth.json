@@ -1,0 +1,13 @@
+{
+  "root_ci": "cio_disk_io_stall",
+  "signature": "storage_contention",
+  "contributor_cis": [
+    "cio_io_node_degraded",
+    "cio_host_cpu_high",
+    "cio_host_load_avg_high"
+  ],
+  "blast_radius": [],
+  "include_in_accuracy": true,
+  "root_layer": "storage",
+  "option_b_source": "datasets/openobserve_incidents/v1/ground_truth/3GAjVpGX95c6Sr0X6kpdEn0YI9g.json"
+}

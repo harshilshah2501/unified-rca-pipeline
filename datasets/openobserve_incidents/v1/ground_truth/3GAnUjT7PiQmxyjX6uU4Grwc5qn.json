@@ -1,0 +1,63 @@
+{
+  "incident_id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+  "title": "pgw_checkout_tps_drop",
+  "status": "final",
+  "stratum": "multi_firewall_topo",
+  "root_layer": "firewall",
+  "root_alert": "pgw_fw_443_denies",
+  "contributor_alerts": [
+    "pgw_router_egress_down",
+    "pgw_switch_443_asymmetric",
+    "pgw_esxi_443_no_return",
+    "pgw_syn_sent_pileup",
+    "pgw_vcenter_net_alarm",
+    "pgw_checkout_tps_drop"
+  ],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Twin of labeled pgw_checkout_tps_drop: firewall ACL denying 443 is ROOT; switch/router/ESXi/SYN/TPS alerts are downstream symptoms.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "firewall",
+      "root_alert": "pgw_fw_443_denies",
+      "confidence": "confident",
+      "evidence_note": "pgw_fw_443_denies states ROOT bad ACL.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "firewall",
+      "root_alert": "pgw_fw_443_denies",
+      "confidence": "confident",
+      "evidence_note": "Title TPS drop is business symptom; firewall is cause.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed firewall / pgw_fw_443_denies. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "pgw_checkout_tps_drop",
+    "pgw_esxi_443_no_return",
+    "pgw_fw_443_denies",
+    "pgw_router_egress_down",
+    "pgw_switch_443_asymmetric",
+    "pgw_syn_sent_pileup",
+    "pgw_vcenter_net_alarm"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "firewall",
+    "lean_root": "pgw_fw_443_denies",
+    "federated_layer": "firewall",
+    "federated_root": "pgw_checkout_tps_drop",
+    "openobserve_layer": "firewall",
+    "openobserve_root": "pgw_esxi_443_no_return",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "A misconfigured firewall ACL (ACL-OUT-DMZ-NEW, deployed by admin@corp at 13:36:55 UTC) contains a malformed rule #40 that blocks ALL outbound TCP/443 traffic from VLAN-200. The syntax error places a DENY rule before PERMIT rules, inadverten",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

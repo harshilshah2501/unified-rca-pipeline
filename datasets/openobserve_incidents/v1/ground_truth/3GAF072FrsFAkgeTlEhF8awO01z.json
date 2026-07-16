@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GAF072FrsFAkgeTlEhF8awO01z",
+  "title": "pg_ordersdb_down",
+  "status": "final",
+  "stratum": "single_database_variant",
+  "root_layer": "database",
+  "root_alert": "pg_ordersdb_down",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Single pg_ordersdb_down trigger; Postgres orders DB down is the root.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "database",
+      "root_alert": "pg_ordersdb_down",
+      "confidence": "confident",
+      "evidence_note": "Database down alert is sole co-fired signal.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "database",
+      "root_alert": "pg_ordersdb_down",
+      "confidence": "confident",
+      "evidence_note": "No competing infra alerts.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed database / pg_ordersdb_down. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "pg_ordersdb_down"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "database",
+    "lean_root": "pg_ordersdb_down",
+    "federated_layer": "database",
+    "federated_root": "pg_ordersdb_down",
+    "openobserve_layer": "database",
+    "openobserve_root": "pg_ordersdb_down",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "PostgreSQL primary database (postgres-primary, ordersdb) crashed due to out-of-memory (OOM) condition. Memory usage climbed from 45% to 98% over 9 minutes under sustained high query load, exceeded container limits, and triggered kernel OOM ",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

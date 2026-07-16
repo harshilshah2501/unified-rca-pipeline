@@ -1,0 +1,34 @@
+{
+  "engine": "federated",
+  "uc_id": "3GANb9ArhD5rRUIg5VudmColh9n",
+  "root_ci": "net_link_saturation",
+  "signature": "link_failure",
+  "contributor_cis": [
+    "gateway_5xx_spike",
+    "checkout_db_timeouts"
+  ],
+  "evidence": [
+    {
+      "ci": "net_link_saturation",
+      "signal": "interface_discard_packets",
+      "value": 1.0,
+      "timestamp": "2026-07-07T07:48:01Z"
+    },
+    {
+      "ci": "gateway_5xx_spike",
+      "signal": "gateway_http_5xx_rate",
+      "value": 1.0,
+      "timestamp": "2026-07-07T07:48:04Z"
+    },
+    {
+      "ci": "checkout_db_timeouts",
+      "signal": "checkout_connection_timeouts",
+      "value": 1.0,
+      "timestamp": "2026-07-07T07:48:06Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 0.9875
+}

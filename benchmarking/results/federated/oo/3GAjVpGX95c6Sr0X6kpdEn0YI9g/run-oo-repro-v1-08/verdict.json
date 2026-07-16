@@ -1,0 +1,41 @@
+{
+  "engine": "federated",
+  "uc_id": "3GAjVpGX95c6Sr0X6kpdEn0YI9g",
+  "root_ci": "cio_host_cpu_high",
+  "signature": "storage_contention",
+  "contributor_cis": [
+    "cio_io_node_degraded",
+    "cio_host_cpu_high",
+    "cio_host_load_avg_high"
+  ],
+  "evidence": [
+    {
+      "ci": "cio_host_cpu_high",
+      "signal": "host_cpu_usage_percent",
+      "value": 1.0,
+      "timestamp": "2026-07-07T10:48:12Z"
+    },
+    {
+      "ci": "cio_host_load_avg_high",
+      "signal": "host_load_average_5m",
+      "value": 1.0,
+      "timestamp": "2026-07-07T10:48:16Z"
+    },
+    {
+      "ci": "cio_disk_io_stall",
+      "signal": "disk_io_await_ms",
+      "value": 1.0,
+      "timestamp": "2026-07-07T10:48:19Z"
+    },
+    {
+      "ci": "cio_io_node_degraded",
+      "signal": "io_node_disk_latency_ms",
+      "value": 1.0,
+      "timestamp": "2026-07-07T10:48:22Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 0.9783
+}

@@ -1,0 +1,16 @@
+{
+  "root_ci": "pgw_fw_443_denies",
+  "signature": "link_failure",
+  "contributor_cis": [
+    "pgw_router_egress_down",
+    "pgw_switch_443_asymmetric",
+    "pgw_esxi_443_no_return",
+    "pgw_syn_sent_pileup",
+    "pgw_vcenter_net_alarm",
+    "pgw_checkout_tps_drop"
+  ],
+  "blast_radius": [],
+  "include_in_accuracy": true,
+  "root_layer": "firewall",
+  "option_b_source": "datasets/openobserve_incidents/v1/ground_truth/3GAmXmWYoBO6IY4q1ji0QzCl3CG.json"
+}

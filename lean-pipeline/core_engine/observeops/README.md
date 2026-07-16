@@ -61,3 +61,6 @@ PYTHONPATH=lean-pipeline:. .venv/bin/python -m pytest lean-pipeline/core_engine/
 `registry.py` requires PyYAML (`pip install pyyaml`).
 
 Shared ObserveOps docs: [`../../../docs/README.md`](../../../docs/README.md).
+
+**Visual / simulation guide (sub-steps for Tier 1→2→3):**  
+[`../../docs/TIERED_ESCALATION_VISUAL_GUIDE.md`](../../docs/TIERED_ESCALATION_VISUAL_GUIDE.md) — Best-first, info-gain, temporal, CARE, scoped causal (not Murphy).

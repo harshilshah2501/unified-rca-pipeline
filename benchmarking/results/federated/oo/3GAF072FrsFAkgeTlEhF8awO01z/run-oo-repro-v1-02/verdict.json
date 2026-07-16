@@ -1,0 +1,19 @@
+{
+  "engine": "federated",
+  "uc_id": "3GAF072FrsFAkgeTlEhF8awO01z",
+  "root_ci": "pg_ordersdb_down",
+  "signature": "app_resource_exhaustion",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "pg_ordersdb_down",
+      "signal": "db_up",
+      "value": 1.0,
+      "timestamp": "2026-07-07T06:37:20Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 1.0
+}

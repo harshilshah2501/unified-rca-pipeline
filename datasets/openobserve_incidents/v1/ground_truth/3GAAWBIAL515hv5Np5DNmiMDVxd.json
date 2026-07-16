@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GAAWBIAL515hv5Np5DNmiMDVxd",
+  "title": "db_primary_down",
+  "status": "final",
+  "stratum": "single_database_with_narrative",
+  "root_layer": "database",
+  "root_alert": "db_primary_down",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "db_primary_down co-fired with trigger payload (unlike empty-payload sibling); confident database root.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "database",
+      "root_alert": "db_primary_down",
+      "confidence": "confident",
+      "evidence_note": "Trigger present with db_primary_down alert.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "database",
+      "root_alert": "db_primary_down",
+      "confidence": "confident",
+      "evidence_note": "No upstream decoys in triggers.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed database / db_primary_down. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "db_primary_down"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "database",
+    "lean_root": "db_primary_down",
+    "federated_layer": "database",
+    "federated_root": "db_primary_down",
+    "openobserve_layer": "database",
+    "openobserve_root": "db_primary_down",
+    "openobserve_has_narrative": false,
+    "openobserve_snippet": "Postgres primary (ordersdb @ pg-prod-01) is DOWN: db_up=0. Check postgres_logs and app_logs for cause; traces in default trace stream.",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

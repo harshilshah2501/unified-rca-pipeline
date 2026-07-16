@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GAD6Wqr33nxPmYw8ZMwjoqNUlz",
+  "title": "pg_ordersdb_outage",
+  "status": "final",
+  "stratum": "single_database_variant",
+  "root_layer": "database",
+  "root_alert": "pg_ordersdb_outage",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Single pg_ordersdb_outage trigger; orders DB outage is the root.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "database",
+      "root_alert": "pg_ordersdb_outage",
+      "confidence": "confident",
+      "evidence_note": "Alert name declares orders DB outage.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "database",
+      "root_alert": "pg_ordersdb_outage",
+      "confidence": "confident",
+      "evidence_note": "Title-only variant; no decoy chain.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed database / pg_ordersdb_outage. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "pg_ordersdb_outage"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "database",
+    "lean_root": "pg_ordersdb_outage",
+    "federated_layer": "database",
+    "federated_root": "pg_ordersdb_outage",
+    "openobserve_layer": "database",
+    "openobserve_root": "pg_ordersdb_outage",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "PostgreSQL primary (ordersdb @ pg-prod-01) exhausted available memory and was OOMKilled by the kernel, entering crash-recovery cycles. The root cause is either insufficient memory allocation (memory limit <16GB for current workload) or a me",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

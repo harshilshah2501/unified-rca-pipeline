@@ -1,0 +1,62 @@
+{
+  "engine": "lean",
+  "uc_id": "3GANb9ArhD5rRUIg5VudmColh9n",
+  "root_ci": "checkout_db_timeouts",
+  "signature": "unknown",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "net_link_saturation",
+      "signal": "interface_discard_packets",
+      "value": 1.0,
+      "timestamp": "2026-07-07T07:48:01Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "gateway_5xx_spike",
+      "signal": "gateway_http_5xx_rate",
+      "value": 1.0,
+      "timestamp": "2026-07-07T07:48:04Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "checkout_db_timeouts",
+      "signal": "checkout_connection_timeouts",
+      "value": 1.0,
+      "timestamp": "2026-07-07T07:48:06Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 3,
+  "evidentiary_tier": 2,
+  "fallback_fired": true,
+  "causal_verified": false,
+  "causal_log": [
+    {
+      "check": "root_anomalous",
+      "passed": true,
+      "root_ci": "checkout_db_timeouts",
+      "onset": "2026-07-07T07:48:06+00:00"
+    },
+    {
+      "check": "topology_upstream_of_seed",
+      "passed": false,
+      "seed_ci": "net_link_saturation",
+      "root_ci": "checkout_db_timeouts"
+    }
+  ],
+  "obs_to_convergence": 0,
+  "naive_bfs_expansions": 0,
+  "efficiency_ratio": 0.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "checkout_db_timeouts",
+    "net_link_saturation"
+  ],
+  "blast_radius": [
+    "checkout_db_timeouts"
+  ],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

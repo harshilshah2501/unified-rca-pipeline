@@ -1,0 +1,21 @@
+{
+  "incident_start": "2026-07-07T09:21:08Z",
+  "anomalies": [
+    {
+      "ci": "sc_latency_slo",
+      "signal": "request_latency_p95_ms",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T09:21:08Z"
+    },
+    {
+      "ci": "sc_db_cpu",
+      "signal": "db_cpu_percent",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T09:21:11Z"
+    }
+  ]
+}

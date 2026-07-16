@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GAAEIzEzDuWjRmlZygujenDU8i",
+  "title": "db_primary_down",
+  "status": "final",
+  "stratum": "single_database_with_narrative",
+  "root_layer": "database",
+  "root_alert": "db_primary_down",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Single db_primary_down trigger with alert payload; primary DB unavailable is the declared root.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "database",
+      "root_alert": "db_primary_down",
+      "confidence": "confident",
+      "evidence_note": "Alert name and text identify primary database failure.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "database",
+      "root_alert": "db_primary_down",
+      "confidence": "confident",
+      "evidence_note": "No decoy co-triggers; title matches root.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed database / db_primary_down. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "db_primary_down"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "database",
+    "lean_root": "db_primary_down",
+    "federated_layer": "database",
+    "federated_root": "db_primary_down",
+    "openobserve_layer": "database",
+    "openobserve_root": "db_primary_down",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "The incident ID is `3GAAEIzEzDuWjRmlZygujenDU8i`. The incident title is \"db_primary_down\" and it was triggered by an alert named \"db_primary_down\" from the stream \"db_up\". The description for this alert is: \"Postgres primary (ordersdb @ pg-",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

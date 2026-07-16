@@ -311,7 +311,7 @@ def to_markdown(report: dict) -> str:
             f"{s['title_pick_on_eligible_multi']['openobserve']*100:.0f}% |"
         ),
         "",
-        "## Per-incident results (all 12)",
+        f"## Per-incident results (all {s['sample_final']})",
         "",
         "| Title | GT layer / alert | Lean | Fed | OO | L✓ | F✓ | O✓ | Acc? |",
         "|-------|------------------|------|-----|----|----|----|----|------|",

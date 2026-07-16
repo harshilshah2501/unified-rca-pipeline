@@ -19,7 +19,7 @@ This document specifies a lean Root Cause Analysis (RCA) architecture, scored ex
 | Track | Status |
 |-------|--------|
 | **ObserveOps (classic infra typed CI graph)** | **Primary evaluation engine** per bakeoff ([ADR-001](./ADR-001-lean-primary-engine.md)); **not a finalized product commitment**. Phases A/B/D exercised: `bakeoff-phase-a-001`, `bakeoff-phase-b-001`, **`bakeoff-phase-b-002`** (corpus v1.1.0). |
-| **Microservice / DeathStarBench-style PoC (original Sections 3 + Appendix B)** | **Deferred / optional.** Still a valid research track for Roadblocks 1a / 2 / 3; not the lean path under evaluation packaging path. |
+| **Microservice / DeathStarBench-style PoC (original Sections 3 + Appendix B)** | **Deferred / optional.** Still a valid research track for Roadblocks 1a / 2 / 3; not the primary evaluation engine packaging path. |
 | **Federated pipeline** | **Optional hybrid** for microservice code-path / gray-failure / pair-mining once a dedicated microservice corpus is in scope. |
 
 Earlier proposal language ("nothing described has been built"; "no decision to move away from federated") is **obsolete for classic ObserveOps classic infra**. Architecture sections below remain the product requirements for lean; ObserveOps callouts mark what was shipped vs what stays deferred.
@@ -49,14 +49,14 @@ A system can be fully reproducible and still be unverifiable, inaccurate, or mer
 
 | Original PRD claim | ObserveOps reality |
 |--------------------|------------------|
-| Proposal; nothing built; federated still default | Lean **primary** for classic infra (ADR-001) |
+| Proposal; nothing built; federated still default | Primary evaluation engine per ADR-001; not a finalized product commitment |
 | PoC targets Roadblocks **1a / 2 / 3** | Live Mandatories: **1b** (joined typed multi-domain graph) + **4** (shared GT + same-bundle bakeoff) |
 | **1b** out of scope; **4** convention-only / field-wide C | Org silos still C; **joined-graph 1b** and **corpus GT 4** are Mandatory and demonstrated |
-| Section 2.9 classic infra = "next planned extension" | **Shipped** as lean path under evaluation |
+| Section 2.9 classic infra = "next planned extension" | **Shipped** as primary evaluation engine path |
 | Earliest anomaly = leading root-cause candidate | Earliest is a **hint**; ObserveOps prefers **shared-upstream + signatures**; UC-3b proves early unrelated switch is not root |
 | Scenarios = DeathStarBench cascading / blind spot / pod churn | Primary eval = ObserveOps **UC-1..UC-5** (+ **UC-3b**); microservice scenarios deferred |
 | No log/event fusion on main path | ObserveOps ingests **structured synthetic events** (`events.json`) on UC-2/UC-4/UC-3b for evidence - not full Nezha free-text mining |
-| Appendix C: no matched accuracy figures yet | Bakeoff **5/5** both engines; lean **100%** repro vs federated **~40%**; lean primary |
+| Appendix C: no matched accuracy figures yet | Bakeoff **5/5** both engines; lean **100%** repro vs federated **~40%**; primary evaluation engine (ADR-001) |
 
 ---
 
@@ -78,7 +78,7 @@ Roadblock 1 (blind spots) and cross-domain organizational fragmentation are trea
 | Emphasis | Targets | Status |
 |----------|---------|--------|
 | **Original microservice PoC** (Sections 3.1-3.2, Appendix B Phase 0-6) | **1a, 2, 3** directly | Deferred |
-| **ObserveOps** ([`rca-use-cases-only.md`](./rca-use-cases-only.md)) | **1b** (joined classic-infra graph) + **4** (shared GT) Mandatory; **5** by design; **1a/2/3** Optional / out of scope | **Complete** - lean primary |
+| **ObserveOps** ([`rca-use-cases-only.md`](./rca-use-cases-only.md)) | **1b** (joined classic-infra graph) + **4** (shared GT) Mandatory; **5** by design; **1a/2/3** Optional / out of scope | **Complete** — primary evaluation engine (ADR-001) |
 
 Roadblocks 2 and 3 are related but not nested: 2 is structural graph change; 3 is instance-identity churn under a stable logical graph. Workload-level keying (Section 2.4) lifts 3 to the abstraction layer where 2 already operates - relevant to the deferred microservice track, not ObserveOps VMs/hosts.
 
@@ -137,7 +137,7 @@ When search + temporal ordering cannot cleanly separate cause from bystander - t
 ### 2.4 Entity Identity & Blind-Spot Handling
 
 - **Workload-level keying (microservice track):** required so CARE spectrum does not fragment across short-lived pod IDs, and so a rotating root is one continuous cause. Precedent: AWS Container Insights aggregates at service/task-definition level [9].  
-- **Blind spots (1a):** when traversal hits a node with no internal telemetry, halt and flag `bounded_by_uninstrumented_dependency` rather than blaming the last visible node. lean path under evaluation UCs do not exercise true 1a (frozen bundles expose decisive signals); UC-5 is anti-FP (healthy infra), not missing telemetry.  
+- **Blind spots (1a):** when traversal hits a node with no internal telemetry, halt and flag `bounded_by_uninstrumented_dependency` rather than blaming the last visible node. ObserveOps evaluation path UCs do not exercise true 1a (frozen bundles expose decisive signals); UC-5 is anti-FP (healthy infra), not missing telemetry.  
 - **ObserveOps identity:** long-lived hosts/VMs/ports/datastores - Roadblock 3 out of scope.
 
 ### 2.5 Infrastructure Footprint
@@ -176,13 +176,13 @@ Nezha reasoned jointly over metrics, logs, and traces. Lean's original main path
 
 ### 2.8 Continuous Causal Learning (Future Work)
 
-Move causal-structure learning off the per-incident path: background learner updated from healthy traffic and past incidents; incident-time verification becomes a cheap lookup. Requires persistent model store, update cadence, and invalidation under Roadblock 2. **Not required** for lean path under evaluation packaging (optional B5).
+Move causal-structure learning off the per-incident path: background learner updated from healthy traffic and past incidents; incident-time verification becomes a cheap lookup. Requires persistent model store, update cadence, and invalidation under Roadblock 2. **Not required** for primary evaluation engine packaging (optional B5).
 
 ### 2.9 Classic Infrastructure Topology - ObserveOps Primary (SHIPPED)
 
 **Original PRD framing:** next major planned extension after a Kubernetes/microservice PoC.
 
-**Corrected framing:** ObserveOps **implemented and adopted** this extension as the **primary** product path. Microservice scenarios remain the deferred research track.
+**Corrected framing:** ObserveOps **implemented and adopted** this extension as the **primary evaluation engine** path (ADR-001; not a finalized product commitment). Microservice scenarios remain the deferred research track.
 
 | Part | Requirement | ObserveOps status |
 |------|-------------|-----------------|
@@ -284,7 +284,7 @@ Pattern: distinguish Category A (paper-validated) from Category B (proposed adap
 
 | Phase | Intent | Status |
 |-------|--------|--------|
-| **A** | Bakeoff close; four-axis compare; fusion fix; decision | **Done** - lean primary |
+| **A** | Bakeoff close; four-axis compare; fusion fix; decision | **Done** — primary evaluation engine (ADR-001) |
 | **B** | Lean PRD depth: tiers 1/2/3, CARE->causal, signatures, best-first vs BFS | **Done** (`bakeoff-phase-b-001` / `b-002`) |
 | **D** | Package lean CLI/HTTP/SRE report/systemd | **Done** (`lean_rca`, `lean-rca.service`) |
 | B5 | Continuous causal memory (Section 2.8) | Optional later |

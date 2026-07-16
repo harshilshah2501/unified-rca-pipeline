@@ -1,11 +1,24 @@
 # OpenObserve Option B — convention GT
 
-**Goal:** A **corpus-local scoring baseline** for Lean · Federated · OpenObserve on a stratified sample of the frozen 29.  
-**Not:** platform `suggested_root_cause` as GT · not physical certainty · not all 29 required.
+**Goal:** A **corpus-local Accuracy baseline** for the OpenObserve 29 scenarios (`root_layer` + `root_alert`).  
+**Not:** platform `suggested_root_cause` as GT · not physical certainty.
+
+## Framing
+
+| Term | Meaning |
+|------|---------|
+| **Corpus / scenarios** | ObserveOps UC-1..UC-5 and OpenObserve 29 — two scenario sets |
+| **Engines** | Lean and Federated (same code paths on both corpora when packs exist) |
+| **OpenObserve platform** | Third *method* (narrative) on the peer track — not an engine pack |
+
+Two OpenObserve evaluation surfaces (do **not** merge into one X/34 accuracy fraction):
+
+1. **Convention Accuracy (alert heuristics)** — `score_openobserve_gt.py` scores Lean/Fed/OO principle analyzers vs these labels.
+2. **Engine pack bakeoff** — project incidents → ObserveOps-shaped packs under [`../engine_packs/`](../engine_packs/), run real Lean/Federated, score `root_ci` vs Option B `root_alert` ([`ENGINE_SCOREBOARD.md`](../../../benchmarking/results/openobserve/ENGINE_SCOREBOARD.md)).
 
 ## Rubric (labelers)
 
-For each sampled incident, open `incidents/<id>.json` + optional peer hints in the GT draft file. Fill **Label A** and **Label B** independently, then adjudicate.
+For each incident, open `incidents/<id>.json` + optional peer hints in the GT file. Fill **Label A** and **Label B** independently, then adjudicate.
 
 | Field | Rule |
 |-------|------|
@@ -25,25 +38,20 @@ For each sampled incident, open `incidents/<id>.json` + optional peer hints in t
 
 ### Scoring policy (once `final`)
 
-| Method verdict | Hit if |
-|----------------|--------|
-| Layer accuracy | method `layer` == GT `root_layer` |
-| Root-alert accuracy | method `root_alert` == GT `root_alert` |
-| OpenObserve | same fields derived from platform narrative / title fallback (engine C) |
+| Track | Hit if |
+|-------|--------|
+| Heuristic Lean/Fed/OO | method `layer` / `root_alert` vs GT |
+| Engine packs Lean/Fed | `verdict.root_ci` == GT `root_alert` (pack maps it to `root_ci`) |
 
 Ambiguous / `include_in_accuracy=false` → report separately; do not fold into the main accuracy % without calling it out.
 
-## Sample (n=12)
-
-See [`SAMPLE.json`](./SAMPLE.json) and per-incident drafts under this folder.  
-Regenerate blank drafts: `python3 benchmarking/benchmark/init_oo_gt_sample.py`
-
-## Status of this track
+## Status
 
 | Track | Mode |
 |-------|------|
-| UC-1..UC-5 | Designed GT bakeoff (already) |
-| OpenObserve 29 peer | Agreement / behavior (no GT) |
-| **This sample (n=12)** | **Option B finals populated** — solo dual-pass (`labeling_mode: solo_dual_pass` in `SAMPLE.json`); 10 accuracy-eligible, 2 ambiguous. Prefer independent human A/B when available. |
+| UC-1..UC-5 | Designed GT bakeoff (4 pillars) |
+| OpenObserve 29 peer | Agreement / behavior (`compare_openobserve.py`) — no GT claim |
+| **Option B labels (n=29 · 24 eligible)** | Convention Accuracy + engine-pack Accuracy target |
+| Engine packs | [`../engine_packs/`](../engine_packs/) — regenerate with `project_oo_engine_packs.py` |
 
-See [`SAMPLE.json`](./SAMPLE.json) for status / roots. When ready: score Lean · Federated · OpenObserve vs top-level `root_layer` / `root_alert` where `include_in_accuracy: true`.
+See [`SAMPLE.json`](./SAMPLE.json) for status / roots.

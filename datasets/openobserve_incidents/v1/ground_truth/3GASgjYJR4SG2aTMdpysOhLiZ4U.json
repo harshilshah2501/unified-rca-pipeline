@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GASgjYJR4SG2aTMdpysOhLiZ4U",
+  "title": "ecom_payment_conn_exhaustion on payment-service",
+  "status": "final",
+  "stratum": "single_app_conn_exhaustion",
+  "root_layer": "application",
+  "root_alert": "ecom_payment_conn_exhaustion",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Single ecom_payment_conn_exhaustion trigger; payment connection pool exhaustion is the declared co-fired root (DNS not in triggers for this incident).",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "application",
+      "root_alert": "ecom_payment_conn_exhaustion",
+      "confidence": "confident",
+      "evidence_note": "Sole co-fired alert is payment pool exhaustion.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "application",
+      "root_alert": "ecom_payment_conn_exhaustion",
+      "confidence": "confident",
+      "evidence_note": "Narrative mentions DNS but DNS alert absent from triggers; score declared alert.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed application / ecom_payment_conn_exhaustion. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "ecom_payment_conn_exhaustion"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "application",
+    "lean_root": "ecom_payment_conn_exhaustion",
+    "federated_layer": "application",
+    "federated_root": "ecom_payment_conn_exhaustion",
+    "openobserve_layer": "application",
+    "openobserve_root": "ecom_payment_conn_exhaustion",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "Connection pool exhaustion on payment-service pods in node pool NP-17 caused by asymmetric, elevated latency (15-17s) to external payment provider (payments.provider.com) reachable only from NP-17. Evidence includes 40-50x slower DNS resolu",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

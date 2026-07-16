@@ -394,6 +394,7 @@
       <a href="#uc">UC Bakeoff</a>
       <a href="#openobserve">OpenObserve</a>
       <a href="#gt">Option B GT</a>
+      <a href="#oo-engine">OO engine bakeoff</a>
       <a href="#verdict">Verdict</a>
     </nav>
 
@@ -586,6 +587,33 @@
       </div>
     </section>
 
+    <section id="oo-engine">
+      <h2>OpenObserve — engine pack bakeoff</h2>
+      <p class="section-sub">
+        Real Lean/Federated runs on projected engine packs (29 incidents; n=24 scored for Option B root-alert accuracy).
+        Separate from UC 5/5 and from peer-only OpenObserve narratives.
+        Full report: <code>benchmarking/results/openobserve/ENGINE_SCOREBOARD.md</code>.
+      </p>
+      <div class="grid keep-2" style="display:grid; gap:1rem; grid-template-columns:1fr 1fr 1fr; margin-bottom:1rem">
+        <div class="panel kpi">
+          <span class="label">Root-alert accuracy</span>
+          <span class="value" id="kpi-oo-eng-acc">—</span>
+          <span class="sub">Lean / Federated (Option B)</span>
+        </div>
+        <div class="panel kpi">
+          <span class="label">Reproducibility</span>
+          <span class="value" id="kpi-oo-eng-repro">—</span>
+          <span class="sub">N-run bit-identical verdicts</span>
+        </div>
+        <div class="panel kpi">
+          <span class="label">Avg observations</span>
+          <span class="value" id="kpi-oo-eng-obs">—</span>
+          <span class="sub">Lean / Federated</span>
+        </div>
+      </div>
+      <p class="hint" id="oo-engine-meta"></p>
+    </section>
+
     <section id="verdict">
       <h2>Evaluation finding</h2>
       <p class="section-sub">Aligned with ADR-001 — bakeoff evidence favors lean for classic-infra evaluation; federated remains a valid comparator and hybrid candidate.</p>
@@ -615,7 +643,7 @@
       <p>
         Serve locally: <code>cd benchmarking/dashboard && python3 -m http.server 8765</code>
         · Rebuild data: <code>python3 build_data.py</code>
-        · Sources: <code>results/comparison/</code>, <code>results/openobserve/</code>
+        · Sources: <code>results/comparison/</code>, <code>results/openobserve/</code> (incl. engine_scoreboard.json)
       </p>
     </footer>
   </div>
@@ -713,6 +741,31 @@
       document.getElementById("kpi-gt-layer").textContent = "n/a";
       document.getElementById("kpi-gt-root").textContent = "n/a";
       document.getElementById("kpi-gt-best").textContent = "run score_openobserve_gt.py";
+    }
+
+    // OpenObserve engine pack bakeoff KPIs
+    const ooEng = D.openobserve_engine;
+    if (ooEng && ooEng.summary) {
+      const acc = ooEng.summary.accuracy || {};
+      const repro = ooEng.summary.reproducibility || {};
+      const eff = ooEng.summary.efficiency || {};
+      document.getElementById("kpi-oo-eng-acc").innerHTML =
+        `<span style="color:${LEAN}">${((acc.lean||0)*100).toFixed(0)}%</span> / ` +
+        `<span style="color:${FED}">${((acc.federated||0)*100).toFixed(0)}%</span>`;
+      document.getElementById("kpi-oo-eng-repro").innerHTML =
+        `<span style="color:${LEAN}">${(repro.lean_overall_pct||0).toFixed(0)}%</span> / ` +
+        `<span style="color:${FED}">${(repro.federated_overall_pct||0).toFixed(0)}%</span>`;
+      document.getElementById("kpi-oo-eng-obs").innerHTML =
+        `<span style="color:${LEAN}">${(eff.lean_avg_observations||0).toFixed(1)}</span> / ` +
+        `<span style="color:${FED}">${(eff.federated_avg_observations||0).toFixed(1)}</span>`;
+      document.getElementById("oo-engine-meta").textContent =
+        `Run ${ooEng.run_id || "—"} · n=${ooEng.summary.accuracy_n || "—"} scored · best on accuracy: ${ooEng.summary.best_on_accuracy || "—"}`;
+    } else {
+      document.getElementById("kpi-oo-eng-acc").textContent = "n/a";
+      document.getElementById("kpi-oo-eng-repro").textContent = "n/a";
+      document.getElementById("kpi-oo-eng-obs").textContent = "n/a";
+      document.getElementById("oo-engine-meta").textContent =
+        "Run project_oo_engine_packs.py → run_oo_engine_bakeoff.py → score_oo_engine_bakeoff.py";
     }
 
     // —— Axes ——

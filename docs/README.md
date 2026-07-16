@@ -14,6 +14,7 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | [`ADR-001-lean-primary-engine.md`](./ADR-001-lean-primary-engine.md) | Bakeoff evaluation finding (lean favored on this corpus; not a finalized product decision) |
 | [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) | **Standard evaluation checklist** for any RCA method (4 axes + 5 roadblocks + evidence provenance) — not lean-only |
 | [`GLOSSARY.md`](./GLOSSARY.md) | Disambiguates **tier** namespaces, corpus names, and verifiability vs main-path % |
+| Visual simulation guides | Lean: [`../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md`](../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md) · Federated: [`../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md`](../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md) |
 | [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) | Lean RCA product requirements (**canonical**; includes Appendix E) · [`.pdf`](./Lean_RCA_PRD.pdf) export · [`.docx`](./Lean_RCA_PRD.docx) |
 | [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md) | Lean RCA simple guide (**canonical**) · [`.pdf`](./Lean_RCA_Simple_Guide.pdf) export · [`.docx`](./Lean_RCA_Simple_Guide.docx) |
 
@@ -22,7 +23,7 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | Corpus | Location | Ground truth | Typical accuracy headline |
 |--------|----------|--------------|---------------------------|
 | **ObserveOps UC** (Corpus B) | `datasets/observeops/` v1.1.0 | Shared `ground_truth.json` per UC | **5/5** root-CI on UC-1..UC-5 (`bakeoff-phase-b-002`) |
-| **OpenObserve incidents** | `datasets/openobserve_incidents/v1/` | Alert-heuristic labels (Option B) | ~**88%** on n=24 scored incidents — **different contract** |
+| **OpenObserve incidents** | `datasets/openobserve_incidents/v1/` | Alert-heuristic labels (Option B) | Peer GT ~**88%** layer (n=24); engine-pack bakeoff **62.5%** root-alert — **different surfaces** |
 
 Reports: ObserveOps → [`benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md); OpenObserve → [`benchmarking/results/openobserve/`](../benchmarking/results/openobserve/). See [`benchmarking/README.md`](../benchmarking/README.md).
 
@@ -145,7 +146,7 @@ Use this as a product/architecture checklist (not a per-ticket router unless you
 | You need the strongest available structural/counterfactual localization | **Federated / Murphy** | Real CV edge — accept repro/cost tradeoffs |
 | Microservice gray failure + code-path drift (ZooKeeper / Boutique / TrainTicket) | **Federated** (Panorama + Nezha depth; Murphy as macro) | Event/observer graphs matter; classic CI walk is not the whole story |
 | Accuracy is the only KPI and you accept different answers across reruns | **Federated or LLM/stochastic** | Not ObserveOps’ preferred profile — raise Accuracy without killing Reproducibility when possible |
-| Hybrid roadmap | **Lean primary + federated optional** | ADR-001: ObserveOps → lean; microservice/code-path track → federated when that corpus is in scope |
+| Hybrid roadmap | **Primary evaluation engine + federated optional** | ADR-001: ObserveOps → lean (not a finalized product commitment); microservice track → federated when in scope |
 
 ### Quick chooser
 

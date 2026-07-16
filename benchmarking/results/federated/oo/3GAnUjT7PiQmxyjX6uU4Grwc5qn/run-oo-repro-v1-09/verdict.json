@@ -1,0 +1,62 @@
+{
+  "engine": "federated",
+  "uc_id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+  "root_ci": "pgw_checkout_tps_drop",
+  "signature": "link_failure",
+  "contributor_cis": [
+    "pgw_router_egress_down",
+    "pgw_switch_443_asymmetric",
+    "pgw_esxi_443_no_return",
+    "pgw_syn_sent_pileup",
+    "pgw_vcenter_net_alarm",
+    "pgw_checkout_tps_drop"
+  ],
+  "evidence": [
+    {
+      "ci": "pgw_checkout_tps_drop",
+      "signal": "checkout_transactions_per_sec",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:20:58Z"
+    },
+    {
+      "ci": "pgw_syn_sent_pileup",
+      "signal": "tcp_connections_syn_sent",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:00Z"
+    },
+    {
+      "ci": "pgw_esxi_443_no_return",
+      "signal": "esxi_vnic_443_rx_pps",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:02Z"
+    },
+    {
+      "ci": "pgw_vcenter_net_alarm",
+      "signal": "vcenter_portgroup_connectivity",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:04Z"
+    },
+    {
+      "ci": "pgw_switch_443_asymmetric",
+      "signal": "switch_uplink_443_in_pps",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:06Z"
+    },
+    {
+      "ci": "pgw_router_egress_down",
+      "signal": "router_outbound_443_forward_pps",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:08Z"
+    },
+    {
+      "ci": "pgw_fw_443_denies",
+      "signal": "firewall_denied_sessions",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:10Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 0.9684
+}

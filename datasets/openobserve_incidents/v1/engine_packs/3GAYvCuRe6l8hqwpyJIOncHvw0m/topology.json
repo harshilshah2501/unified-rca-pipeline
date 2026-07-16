@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "sc_latency_slo",
+      "type": "Service",
+      "name": "catalog-service"
+    },
+    {
+      "id": "sc_db_cpu",
+      "type": "Service",
+      "name": "catalog-service"
+    }
+  ],
+  "edges": [
+    {
+      "from": "sc_db_cpu",
+      "to": "sc_latency_slo",
+      "relation": "depends_on"
+    }
+  ]
+}

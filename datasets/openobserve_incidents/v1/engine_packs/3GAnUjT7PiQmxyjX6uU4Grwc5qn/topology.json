@@ -1,0 +1,72 @@
+{
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "pgw_checkout_tps_drop",
+      "type": "NetworkPort",
+      "name": "pgw_checkout_tps_drop"
+    },
+    {
+      "id": "pgw_syn_sent_pileup",
+      "type": "Service",
+      "name": "prod-checkout-vm01"
+    },
+    {
+      "id": "pgw_esxi_443_no_return",
+      "type": "NetworkPort",
+      "name": "esxi-node-04"
+    },
+    {
+      "id": "pgw_vcenter_net_alarm",
+      "type": "NetworkPort",
+      "name": "pgw_vcenter_net_alarm"
+    },
+    {
+      "id": "pgw_switch_443_asymmetric",
+      "type": "NetworkPort",
+      "name": "pgw_switch_443_asymmetric"
+    },
+    {
+      "id": "pgw_router_egress_down",
+      "type": "NetworkPort",
+      "name": "pgw_router_egress_down"
+    },
+    {
+      "id": "pgw_fw_443_denies",
+      "type": "NetworkPort",
+      "name": "pgw_fw_443_denies"
+    }
+  ],
+  "edges": [
+    {
+      "from": "pgw_syn_sent_pileup",
+      "to": "pgw_checkout_tps_drop",
+      "relation": "depends_on"
+    },
+    {
+      "from": "pgw_esxi_443_no_return",
+      "to": "pgw_syn_sent_pileup",
+      "relation": "depends_on"
+    },
+    {
+      "from": "pgw_vcenter_net_alarm",
+      "to": "pgw_esxi_443_no_return",
+      "relation": "depends_on"
+    },
+    {
+      "from": "pgw_switch_443_asymmetric",
+      "to": "pgw_vcenter_net_alarm",
+      "relation": "depends_on"
+    },
+    {
+      "from": "pgw_router_egress_down",
+      "to": "pgw_switch_443_asymmetric",
+      "relation": "depends_on"
+    },
+    {
+      "from": "pgw_fw_443_denies",
+      "to": "pgw_router_egress_down",
+      "relation": "depends_on"
+    }
+  ]
+}

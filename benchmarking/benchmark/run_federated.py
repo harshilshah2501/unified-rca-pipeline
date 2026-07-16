@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Step 2 — Run federated PoC on ObserveOps corpus bundles."""
+"""Step 2 — Run federated PoC on ObserveOps / OO engine-pack bundles."""
 
 from __future__ import annotations
 
@@ -33,14 +33,47 @@ from benchmark.adapters.observeops_federated import (  # noqa: E402
     _parse_ts,
 )
 
-CORPUS = REPO / "datasets" / "observeops"
+DEFAULT_CORPUS = REPO / "datasets" / "observeops"
+OO_PACKS = REPO / "datasets" / "openobserve_incidents" / "v1" / "engine_packs"
 RESULTS = REPO / "benchmarking" / "results" / "federated"
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
 
-def run_uc(uc_id: str, run_id: str | None = None) -> dict:
-    bundle = load_bundle(uc_id, CORPUS)
+def _is_oo_packs(corpus: Path) -> bool:
+    return corpus.resolve() == OO_PACKS.resolve() or corpus.name == "engine_packs"
+
+
+def _results_dir(corpus: Path, uc_id: str, run_id: str) -> Path:
+    if _is_oo_packs(corpus):
+        return RESULTS / "oo" / uc_id / f"run-{run_id}"
+    return RESULTS / uc_id / f"run-{run_id}"
+
+
+def _corpus_version(corpus: Path) -> str:
+    manifest = corpus / "manifest.json"
+    if manifest.exists():
+        return json.loads(manifest.read_text()).get("corpus_version", "unknown")
+    return "unknown"
+
+
+def _pack_ids(corpus: Path) -> list[str]:
+    if _is_oo_packs(corpus):
+        return sorted(
+            p.name
+            for p in corpus.iterdir()
+            if p.is_dir() and (p / "topology.json").exists()
+        )
+    return [f"UC-{i}" for i in range(1, 6)]
+
+
+def run_uc(
+    uc_id: str,
+    run_id: str | None = None,
+    corpus: Path | None = None,
+) -> dict:
+    corpus = corpus or DEFAULT_CORPUS
+    bundle = load_bundle(uc_id, corpus)
     store = build_metric_store(bundle)
     flag = build_detection_flag(bundle)
     incident_time = _parse_ts(bundle["symptom_seed"]["timestamp"])
@@ -81,12 +114,19 @@ def run_uc(uc_id: str, run_id: str | None = None) -> dict:
             theta_murphy=MURPHY_POSTERIOR_THRESHOLD,
         )
         murphy_posterior = float(
-            max(posterior_dist.values()) if posterior_dist else rca.evidence.get("murphy", {}).get("posterior", 0.0) or 0.0
+            max(posterior_dist.values())
+            if posterior_dist
+            else rca.evidence.get("murphy", {}).get("posterior", 0.0) or 0.0
         )
         signature = bundle["ground_truth"].get("signature", "unknown")
         crossed = [a for a in bundle["anomalies"]["anomalies"] if a["crossed"]]
         evidence = [
-            {"ci": a["ci"], "signal": a["signal"], "value": a["value"], "timestamp": a["timestamp"]}
+            {
+                "ci": a["ci"],
+                "signal": a["signal"],
+                "value": a["value"],
+                "timestamp": a["timestamp"],
+            }
             for a in crossed
         ]
         observations = len(orchestrator.hop_logs)
@@ -109,7 +149,7 @@ def run_uc(uc_id: str, run_id: str | None = None) -> dict:
     )
 
     ts = run_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    out_dir = RESULTS / uc_id / f"run-{ts}"
+    out_dir = _results_dir(corpus, uc_id, ts)
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "verdict.json").write_text(json.dumps(verdict, indent=2) + "\n")
     hop_logs = [asdict(h) for h in orchestrator.hop_logs]
@@ -117,7 +157,8 @@ def run_uc(uc_id: str, run_id: str | None = None) -> dict:
     meta = {
         "uc_id": uc_id,
         "run_id": ts,
-        "corpus_version": json.loads((CORPUS / "manifest.json").read_text())["corpus_version"],
+        "corpus": str(corpus),
+        "corpus_version": _corpus_version(corpus),
         "engine": "federated",
         "fallback_fired": fallback_fired,
         "murphy_posterior": murphy_posterior,
@@ -129,14 +170,23 @@ def run_uc(uc_id: str, run_id: str | None = None) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run federated RCA on ObserveOps corpus")
-    parser.add_argument("--uc", help="Single UC e.g. UC-1")
-    parser.add_argument("--all", action="store_true", help="Run all UCs")
+    parser = argparse.ArgumentParser(
+        description="Run federated RCA on ObserveOps / OO packs"
+    )
+    parser.add_argument("--uc", help="Single UC e.g. UC-1 or OO incident id")
+    parser.add_argument("--all", action="store_true", help="Run all packs/UCs")
     parser.add_argument("--run-id", help="Fixed run id for reproducibility")
+    parser.add_argument(
+        "--corpus",
+        type=Path,
+        default=DEFAULT_CORPUS,
+        help="Corpus root (ObserveOps or OO engine_packs)",
+    )
     args = parser.parse_args(argv)
+    corpus = args.corpus.resolve()
 
     if args.all:
-        ucs = [f"UC-{i}" for i in range(1, 6)]
+        ucs = _pack_ids(corpus)
     elif args.uc:
         ucs = [args.uc]
     else:
@@ -144,8 +194,8 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     for uc in ucs:
-        v = run_uc(uc, args.run_id)
-        match = v["root_ci"] == load_bundle(uc, CORPUS)["ground_truth"]["root_ci"]
+        v = run_uc(uc, args.run_id, corpus=corpus)
+        match = v["root_ci"] == load_bundle(uc, corpus)["ground_truth"]["root_ci"]
         fb = "fallback" if v.get("fallback_fired") else "fusion"
         print(f"{uc}: root_ci={v['root_ci']} {'PASS' if match else 'FAIL'} ({fb})")
     return 0

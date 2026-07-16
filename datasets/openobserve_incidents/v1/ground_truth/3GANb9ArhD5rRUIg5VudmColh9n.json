@@ -1,0 +1,55 @@
+{
+  "incident_id": "3GANb9ArhD5rRUIg5VudmColh9n",
+  "title": "net_link_saturation",
+  "status": "final",
+  "stratum": "multi_network_topo",
+  "root_layer": "network",
+  "root_alert": "net_link_saturation",
+  "contributor_alerts": [
+    "gateway_5xx_spike",
+    "checkout_db_timeouts"
+  ],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Twin of labeled net_link_saturation case: core-router link saturation drives gateway 5xx and checkout DB timeouts.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "network",
+      "root_alert": "net_link_saturation",
+      "confidence": "confident",
+      "evidence_note": "Network link is upstream of gateway and DB symptoms.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "network",
+      "root_alert": "net_link_saturation",
+      "confidence": "confident",
+      "evidence_note": "Title matches infra root; do not crown gateway or DB timeout.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed network / net_link_saturation. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "checkout_db_timeouts",
+    "gateway_5xx_spike",
+    "net_link_saturation"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "network",
+    "lean_root": "net_link_saturation",
+    "federated_layer": "network",
+    "federated_root": "net_link_saturation",
+    "openobserve_layer": "network",
+    "openobserve_root": "net_link_saturation",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "Network interface saturation on core-router-01/eth1 (app\u2192database path) caused sustained packet discards (2,975+ packets, ~7\u20138% above baseline). Dropped packets triggered TCP retransmissions, which consumed additional bandwidth and extended",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

@@ -1,0 +1,50 @@
+{
+  "incident_id": "3GAJqzTd0VQcpliTMIhK40HHQGo",
+  "title": "pg_primary_down on pg-prod-01",
+  "status": "final",
+  "stratum": "single_database_with_narrative",
+  "root_layer": "database",
+  "root_alert": "pg_primary_down",
+  "contributor_alerts": [],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "pg_primary_down on pg-prod-01; primary Postgres failure is the root (host in title is scope, not decoy).",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "database",
+      "root_alert": "pg_primary_down",
+      "confidence": "confident",
+      "evidence_note": "pg_primary_down trigger with host context.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "database",
+      "root_alert": "pg_primary_down",
+      "confidence": "confident",
+      "evidence_note": "Do not crown host name; alert is DB primary down.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed database / pg_primary_down. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "pg_primary_down"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "database",
+    "lean_root": "pg_primary_down",
+    "federated_layer": "database",
+    "federated_root": "pg_primary_down",
+    "openobserve_layer": "unknown",
+    "openobserve_root": "pg_primary_down",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "**Investigation halted** \u2014 the backend service required for RCA analysis is not responding. Please verify:  1. OpenObserve platform connectivity",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

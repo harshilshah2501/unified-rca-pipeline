@@ -1,0 +1,37 @@
+{
+  "incident_start": "2026-07-07T10:48:12Z",
+  "anomalies": [
+    {
+      "ci": "cio_host_cpu_high",
+      "signal": "host_cpu_usage_percent",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T10:48:12Z"
+    },
+    {
+      "ci": "cio_host_load_avg_high",
+      "signal": "host_load_average_5m",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T10:48:16Z"
+    },
+    {
+      "ci": "cio_disk_io_stall",
+      "signal": "disk_io_await_ms",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T10:48:19Z"
+    },
+    {
+      "ci": "cio_io_node_degraded",
+      "signal": "io_node_disk_latency_ms",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T10:48:22Z"
+    }
+  ]
+}

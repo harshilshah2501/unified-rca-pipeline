@@ -1,0 +1,19 @@
+{
+  "engine": "federated",
+  "uc_id": "3GA9Ehaso21qDpWNlx9B55mZWzZ",
+  "root_ci": "database_down",
+  "signature": "app_resource_exhaustion",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "database_down",
+      "signal": "db_up",
+      "value": 1.0,
+      "timestamp": "2026-07-07T05:49:56Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 1.0
+}

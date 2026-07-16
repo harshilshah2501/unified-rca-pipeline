@@ -1,0 +1,107 @@
+{
+  "engine": "lean",
+  "uc_id": "3GAnUjT7PiQmxyjX6uU4Grwc5qn",
+  "root_ci": "pgw_checkout_tps_drop",
+  "signature": "unknown",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "pgw_checkout_tps_drop",
+      "signal": "checkout_transactions_per_sec",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:20:58Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "pgw_syn_sent_pileup",
+      "signal": "tcp_connections_syn_sent",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:00Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "pgw_esxi_443_no_return",
+      "signal": "esxi_vnic_443_rx_pps",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:02Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "pgw_vcenter_net_alarm",
+      "signal": "vcenter_portgroup_connectivity",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:04Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "pgw_switch_443_asymmetric",
+      "signal": "switch_uplink_443_in_pps",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:06Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "pgw_router_egress_down",
+      "signal": "router_outbound_443_forward_pps",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:08Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "pgw_fw_443_denies",
+      "signal": "firewall_denied_sessions",
+      "value": 1.0,
+      "timestamp": "2026-07-07T11:21:10Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 7,
+  "evidentiary_tier": 3,
+  "fallback_fired": true,
+  "causal_verified": true,
+  "causal_log": [
+    {
+      "check": "root_anomalous",
+      "passed": true,
+      "root_ci": "pgw_checkout_tps_drop",
+      "onset": "2026-07-07T11:20:58+00:00"
+    },
+    {
+      "check": "topology_upstream_of_seed",
+      "passed": true,
+      "seed_ci": "pgw_checkout_tps_drop",
+      "root_ci": "pgw_checkout_tps_drop"
+    },
+    {
+      "check": "onset_precedes_connected_symptoms",
+      "passed": true,
+      "root_onset": "2026-07-07T11:20:58+00:00",
+      "connected_downstream_cis": [
+        "pgw_esxi_443_no_return",
+        "pgw_fw_443_denies",
+        "pgw_router_egress_down",
+        "pgw_switch_443_asymmetric",
+        "pgw_syn_sent_pileup",
+        "pgw_vcenter_net_alarm"
+      ]
+    }
+  ],
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "pgw_checkout_tps_drop"
+  ],
+  "blast_radius": [
+    "pgw_syn_sent_pileup",
+    "pgw_esxi_443_no_return",
+    "pgw_vcenter_net_alarm",
+    "pgw_switch_443_asymmetric",
+    "pgw_router_egress_down",
+    "pgw_fw_443_denies"
+  ],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

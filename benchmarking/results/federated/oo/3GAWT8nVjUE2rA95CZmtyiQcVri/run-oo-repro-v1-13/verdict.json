@@ -1,0 +1,35 @@
+{
+  "engine": "federated",
+  "uc_id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+  "root_ci": "ecom_checkout_slo_breach",
+  "signature": "app_resource_exhaustion",
+  "contributor_cis": [
+    "ecom_payment_conn_exhaustion",
+    "ecom_checkout_slo_breach"
+  ],
+  "evidence": [
+    {
+      "ci": "ecom_checkout_slo_breach",
+      "signal": "checkout_success_rate",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:00:58Z"
+    },
+    {
+      "ci": "ecom_payment_conn_exhaustion",
+      "signal": "payment_connection_acquire_ms",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:01:01Z"
+    },
+    {
+      "ci": "ecom_dns_aaaa_numa",
+      "signal": "dns_query_latency_p99_ms",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:01:04Z"
+    }
+  ],
+  "observations": 6,
+  "evidentiary_tier": 2,
+  "fallback_fired": true,
+  "fallback_reason": "earliest_onset_upstream:ecom_checkout_slo_breach",
+  "murphy_posterior": 1.0
+}

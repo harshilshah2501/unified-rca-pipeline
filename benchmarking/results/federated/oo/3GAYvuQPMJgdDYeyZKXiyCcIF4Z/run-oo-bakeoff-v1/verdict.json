@@ -1,0 +1,27 @@
+{
+  "engine": "federated",
+  "uc_id": "3GAYvuQPMJgdDYeyZKXiyCcIF4Z",
+  "root_ci": "sd_notif_slo",
+  "signature": "link_failure",
+  "contributor_cis": [
+    "sd_notif_slo"
+  ],
+  "evidence": [
+    {
+      "ci": "sd_notif_slo",
+      "signal": "notification_success_rate",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:14Z"
+    },
+    {
+      "ci": "sd_tls_fail",
+      "signal": "tls_handshake_failures",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:17Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 0.987
+}

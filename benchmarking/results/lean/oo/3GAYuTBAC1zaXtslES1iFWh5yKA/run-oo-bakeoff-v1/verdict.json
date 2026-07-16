@@ -1,0 +1,53 @@
+{
+  "engine": "lean",
+  "uc_id": "3GAYuTBAC1zaXtslES1iFWh5yKA",
+  "root_ci": "sa_inode_high",
+  "signature": "unknown",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "sa_upload_slo",
+      "signal": "upload_success_rate",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:02Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "sa_inode_high",
+      "signal": "node_filesystem_inodes_used_percent",
+      "value": 1.0,
+      "timestamp": "2026-07-07T09:21:05Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 2,
+  "evidentiary_tier": 2,
+  "fallback_fired": true,
+  "causal_verified": false,
+  "causal_log": [
+    {
+      "check": "root_anomalous",
+      "passed": true,
+      "root_ci": "sa_inode_high",
+      "onset": "2026-07-07T09:21:05+00:00"
+    },
+    {
+      "check": "topology_upstream_of_seed",
+      "passed": false,
+      "seed_ci": "sa_upload_slo",
+      "root_ci": "sa_inode_high"
+    }
+  ],
+  "obs_to_convergence": 0,
+  "naive_bfs_expansions": 0,
+  "efficiency_ratio": 0.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "sa_inode_high",
+    "sa_upload_slo"
+  ],
+  "blast_radius": [],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "engine": "lean",
+  "uc_id": "3G8HsK79FfddyepBxqtx6OmeTIQ",
+  "root_ci": "starter_high_cpu",
+  "signature": "unknown",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "starter_high_cpu",
+      "signal": "system_process_cpu_percent",
+      "value": 1.0,
+      "timestamp": "2026-07-06T14:01:21Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 1,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "causal_verified": null,
+  "causal_log": null,
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "starter_high_cpu"
+  ],
+  "blast_radius": [
+    "starter_high_cpu"
+  ],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

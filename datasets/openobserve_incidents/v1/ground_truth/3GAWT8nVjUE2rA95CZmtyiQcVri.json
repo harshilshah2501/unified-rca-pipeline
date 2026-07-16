@@ -1,0 +1,55 @@
+{
+  "incident_id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+  "title": "ecom_checkout_slo_breach",
+  "status": "final",
+  "stratum": "decoy_multi_slo_title_dns",
+  "root_layer": "dns",
+  "root_alert": "ecom_dns_aaaa_numa",
+  "contributor_alerts": [
+    "ecom_payment_conn_exhaustion",
+    "ecom_checkout_slo_breach"
+  ],
+  "confidence": "confident",
+  "include_in_accuracy": true,
+  "evidence_note": "Multi-trigger ecom chain: DNS AAAA NUMA issue drives payment exhaustion and checkout SLO drop. Title is symptom.",
+  "labels": {
+    "A": {
+      "labeler_id": "unified-rca-solo-passa",
+      "root_layer": "dns",
+      "root_alert": "ecom_dns_aaaa_numa",
+      "confidence": "confident",
+      "evidence_note": "Prefer DNS over application SLO title.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    },
+    "B": {
+      "labeler_id": "unified-rca-solo-passb",
+      "root_layer": "dns",
+      "root_alert": "ecom_dns_aaaa_numa",
+      "confidence": "confident",
+      "evidence_note": "Payment exhaustion is mid-chain; DNS is upstream root.",
+      "labeled_at": "2026-07-15T09:54:53Z"
+    }
+  },
+  "adjudication": {
+    "resolved_by": "unified-rca-solo",
+    "resolved_at": "2026-07-15T09:54:53Z",
+    "notes": "Solo dual-pass; agreed dns / ecom_dns_aaaa_numa. NOT independent human dual-label."
+  },
+  "candidate_alerts": [
+    "ecom_checkout_slo_breach",
+    "ecom_dns_aaaa_numa",
+    "ecom_payment_conn_exhaustion"
+  ],
+  "peer_hints_not_gt": {
+    "lean_layer": "dns",
+    "lean_root": "ecom_dns_aaaa_numa",
+    "federated_layer": "dns",
+    "federated_root": "ecom_checkout_slo_breach",
+    "openobserve_layer": "application",
+    "openobserve_root": "ecom_checkout_slo_breach",
+    "openobserve_has_narrative": true,
+    "openobserve_snippet": "Node image 2026.06.18 deployed to node pool NP-17 in prod-use1/Region-B on 2026-07-07 08:25:48 UTC with an IRQ affinity misconfiguration that pinned the RX-7 network interrupt to CPU48 (NUMA node 1) while NIC queue memory resides on NUMA no",
+    "note": "Hints only \u2014 do not copy as GT without independent judgment."
+  },
+  "labeling_mode": "solo_dual_pass"
+}

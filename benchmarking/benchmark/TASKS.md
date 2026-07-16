@@ -1,14 +1,14 @@
 # ObserveOps Benchmark — Task Status
 
-**Corpus version:** 1.0.0 (`datasets/observeops/` — manifest.yaml + 7-day time-series)  
-**Last updated:** 2026-07-13 (ObserveOps critical path A→B→D complete; lean primary)  
+**Corpus version:** 1.1.0 (`datasets/observeops/` — manifest.yaml + 7-day time-series; UC-3b + events.json)  
+**Last updated:** 2026-07-16 (ObserveOps critical path A→B→D complete; primary evaluation engine per ADR-001)  
 **Canonical roadmap:** [`docs/ROADMAP.md`](../../docs/ROADMAP.md) · decision: [`docs/ADR-001-lean-primary-engine.md`](../../docs/ADR-001-lean-primary-engine.md)
 
 ## Latest bakeoffs
 
 | Run | Result |
 |-----|--------|
-| `bakeoff-phase-a-001` | Both 5/5; lean primary called |
+| `bakeoff-phase-a-001` | Both 5/5; primary evaluation engine called (ADR-001) |
 | `bakeoff-phase-b-002` | Corpus v1.1.0; both 5/5; lean Tier 3 on UC-1/UC-3; four-axis + efficiency; **canonical scoreboard** |
 | `bakeoff-phase-b-001` | Historical; superseded by b-002 for headline numbers |
 
@@ -51,7 +51,7 @@ Reports: [`../results/comparison/COMPARISON.md`](../results/comparison/COMPARISO
 | Task | Status | Artifact |
 |------|--------|----------|
 | Compare + four-axis + efficiency | **done** | `benchmark/compare.py` → `results/comparison/` |
-| ObserveOps engine decision | **done** | Lean primary (ADR-001) |
+| ObserveOps engine decision | **done** | Primary evaluation engine (ADR-001); not a finalized product commitment |
 
 ## Optional / deferred
 

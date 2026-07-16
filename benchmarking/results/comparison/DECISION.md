@@ -43,8 +43,8 @@ Murphy’s causal-inference edge is real; it loses the ObserveOps cost–benefit
 
 | Phase | Status |
 |-------|--------|
-| A — Bakeoff close + lean primary | **Done** |
-| B — Lean PRD depth (tiers, CARE→causal, signatures, efficiency) | **Done** (`bakeoff-phase-b-001`) |
+| A — Bakeoff close + primary evaluation engine (ADR-001) | **Done** |
+| B — Lean PRD depth (tiers, CARE→causal, signatures, efficiency) | **Done** (`bakeoff-phase-b-002` canonical; `b-001` historical) |
 | D — Package lean API/CLI/SRE report/systemd | **Done** (`lean_rca`, `lean-rca.service`) |
 | C / E — Federated ingest & capacity | Deferred (microservice track) |
 | B5 — Continuous causal memory | Optional later |

@@ -161,7 +161,7 @@ An LLM can explain after the fact. It must **not** be the decision-maker: it can
 
 ### Future idea: continuous causal memory
 
-Learning stable cause patterns in the background (PRD §2.8) is optional later - not required for lean path under evaluation packaging.
+Learning stable cause patterns in the background (PRD §2.8) is optional later - not required for primary evaluation engine packaging.
 
 ---
 
@@ -200,7 +200,7 @@ Lean's main path uses metrics/anomalies + topology. We now also ingest **structu
 
 ### Circular dependencies (A <-> B service loops)
 
-Temporal "who first" is weaker on mutual loops. lean path under evaluation UCs are **layered classic infra**, not microservice cycles - so this is a real lean limit, **not** an ObserveOps bakeoff failure. Honest cyclic fixtures can document the limit later.
+Temporal "who first" is weaker on mutual loops. ObserveOps evaluation-path UCs are **layered classic infra**, not microservice cycles - so this is a real lean limit, **not** an ObserveOps bakeoff failure. Honest cyclic fixtures can document the limit later.
 
 ### Org silos (Roadblock 1b)
 

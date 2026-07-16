@@ -3,7 +3,7 @@
 **What this folder is for:** run **both** pipelines on the **same** ObserveOps corpus
 ([`docs/rca-use-cases-only.md`](../docs/rca-use-cases-only.md) → `datasets/observeops/`), keep per-engine run artifacts, then produce a **comparative analysis**.
 
-**ObserveOps UC bakeoff:** lean favored on UC-1..UC-5 ([ADR-001](../docs/ADR-001-lean-primary-engine.md), [DECISION.md](results/comparison/DECISION.md)) — primary **evaluation** engine; not a finalized product commitment. Latest scoreboard: **`bakeoff-phase-b-002`** → [`COMPARISON.md`](results/comparison/COMPARISON.md).
+**Canonical scoreboard:** [`results/comparison/COMPARISON.md`](results/comparison/COMPARISON.md) · run IDs: [`results/comparison/RUN_IDS.md`](results/comparison/RUN_IDS.md)
 
 **OpenObserve incidents (29) — same engines, different corpus:**
 

@@ -1,0 +1,19 @@
+{
+  "engine": "federated",
+  "uc_id": "3GASgKbtYcY7fqRBrAosCdWjOZK",
+  "root_ci": "ecom_checkout_slo_breach",
+  "signature": "app_resource_exhaustion",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "ecom_checkout_slo_breach",
+      "signal": "ecom_checkout_slo_breach",
+      "value": 1.0,
+      "timestamp": "2026-07-07T08:29:50Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 1.0
+}

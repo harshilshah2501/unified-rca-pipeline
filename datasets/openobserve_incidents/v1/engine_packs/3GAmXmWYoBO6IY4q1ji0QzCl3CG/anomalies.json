@@ -1,0 +1,61 @@
+{
+  "incident_start": "2026-07-07T11:13:09Z",
+  "anomalies": [
+    {
+      "ci": "pgw_checkout_tps_drop",
+      "signal": "pgw_checkout_tps_drop",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:13:09Z"
+    },
+    {
+      "ci": "pgw_syn_sent_pileup",
+      "signal": "pgw_syn_sent_pileup",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:13:12Z"
+    },
+    {
+      "ci": "pgw_esxi_443_no_return",
+      "signal": "pgw_esxi_443_no_return",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:13:14Z"
+    },
+    {
+      "ci": "pgw_vcenter_net_alarm",
+      "signal": "pgw_vcenter_net_alarm",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:13:16Z"
+    },
+    {
+      "ci": "pgw_switch_443_asymmetric",
+      "signal": "pgw_switch_443_asymmetric",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:13:18Z"
+    },
+    {
+      "ci": "pgw_router_egress_down",
+      "signal": "pgw_router_egress_down",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:13:20Z"
+    },
+    {
+      "ci": "pgw_fw_443_denies",
+      "signal": "pgw_fw_443_denies",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-07T11:13:22Z"
+    }
+  ]
+}

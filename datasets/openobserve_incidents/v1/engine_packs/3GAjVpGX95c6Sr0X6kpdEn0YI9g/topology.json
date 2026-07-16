@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "cio_host_cpu_high",
+      "type": "Datastore",
+      "name": "app-node-07"
+    },
+    {
+      "id": "cio_host_load_avg_high",
+      "type": "Service",
+      "name": "app-node-07"
+    },
+    {
+      "id": "cio_disk_io_stall",
+      "type": "Datastore",
+      "name": "app-node-07"
+    },
+    {
+      "id": "cio_io_node_degraded",
+      "type": "Datastore",
+      "name": "io-node-02"
+    }
+  ],
+  "edges": [
+    {
+      "from": "cio_host_load_avg_high",
+      "to": "cio_host_cpu_high",
+      "relation": "depends_on"
+    },
+    {
+      "from": "cio_disk_io_stall",
+      "to": "cio_host_load_avg_high",
+      "relation": "depends_on"
+    },
+    {
+      "from": "cio_io_node_degraded",
+      "to": "cio_disk_io_stall",
+      "relation": "depends_on"
+    }
+  ]
+}

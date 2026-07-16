@@ -10,6 +10,7 @@ REPO = Path(__file__).resolve().parents[2]
 UC = REPO / "benchmarking" / "results" / "comparison" / "comparison.json"
 OO = REPO / "benchmarking" / "results" / "openobserve" / "comparison.json"
 OO_GT = REPO / "benchmarking" / "results" / "openobserve" / "gt_scoreboard.json"
+OO_ENGINE = REPO / "benchmarking" / "results" / "openobserve" / "engine_scoreboard.json"
 OUT = REPO / "benchmarking" / "dashboard" / "data.json"
 
 
@@ -60,6 +61,7 @@ def main() -> int:
             }
         )
     oo_gt = json.loads(OO_GT.read_text()) if OO_GT.exists() else None
+    oo_engine = json.loads(OO_ENGINE.read_text()) if OO_ENGINE.exists() else None
     payload = {
         "uc": {
             "generated_at": uc.get("generated_at"),
@@ -105,6 +107,15 @@ def main() -> int:
             ],
         }
         if oo_gt
+        else None,
+        "openobserve_engine": {
+            "generated_at": oo_engine.get("generated_at"),
+            "run_id": oo_engine.get("run_id_filter"),
+            "evaluation": oo_engine.get("evaluation"),
+            "summary": oo_engine.get("summary"),
+            "reproducibility_sources": oo_engine.get("reproducibility_sources"),
+        }
+        if oo_engine
         else None,
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)

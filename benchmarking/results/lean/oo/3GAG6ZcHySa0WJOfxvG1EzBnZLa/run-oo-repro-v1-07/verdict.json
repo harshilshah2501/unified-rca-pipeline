@@ -1,0 +1,34 @@
+{
+  "engine": "lean",
+  "uc_id": "3GAG6ZcHySa0WJOfxvG1EzBnZLa",
+  "root_ci": "pg_svc_down2",
+  "signature": "unknown",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "pg_svc_down2",
+      "signal": "db_up",
+      "value": 1.0,
+      "timestamp": "2026-07-07T06:46:25Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 1,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "causal_verified": null,
+  "causal_log": null,
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "pg_svc_down2"
+  ],
+  "blast_radius": [
+    "pg_svc_down2"
+  ],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

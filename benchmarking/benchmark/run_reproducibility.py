@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""N-run reproducibility harness for federated and lean engines."""
+"""
+N-run reproducibility harness for Lean / Federated.
+
+For each scenario pack: run the engine N times with distinct --run-id,
+hash verdict.json, score bit-stability.
+
+  reproducibility_pct = 100 if all N hashes identical else 0
+
+Works on ObserveOps (UC-1..UC-5) or OO engine_packs (--corpus).
+"""
 
 from __future__ import annotations
 
@@ -8,60 +17,183 @@ import hashlib
 import json
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 N_DEFAULT = 20
+DEFAULT_CORPUS = REPO / "datasets" / "observeops"
+OO_PACKS = REPO / "datasets" / "openobserve_incidents" / "v1" / "engine_packs"
+RESULTS = REPO / "benchmarking" / "results"
 
 
 def _hash_verdict(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def run_reproducibility(engine: str, n: int, run_prefix: str) -> dict:
-    script = REPO / "benchmarking" / "benchmark" / f"run_{engine}.py"
+def _is_oo_packs(corpus: Path) -> bool:
+    return corpus.resolve() == OO_PACKS.resolve() or corpus.name == "engine_packs"
+
+
+def _pack_ids(corpus: Path) -> list[str]:
+    if _is_oo_packs(corpus):
+        return sorted(
+            p.name
+            for p in corpus.iterdir()
+            if p.is_dir() and (p / "topology.json").exists()
+        )
+    return [f"UC-{i}" for i in range(1, 6)]
+
+
+def _results_root(engine: str, corpus: Path) -> Path:
+    base = RESULTS / engine
+    if _is_oo_packs(corpus):
+        return base / "oo"
+    return base
+
+
+def _python() -> Path:
     py = REPO / ".venv" / "bin" / "python"
-    if not py.exists():
-        py = Path(sys.executable)
-    hashes: dict[str, list[str]] = {f"UC-{i}": [] for i in range(1, 6)}
+    return py if py.exists() else Path(sys.executable)
+
+
+def run_reproducibility(
+    engine: str,
+    n: int,
+    run_prefix: str,
+    corpus: Path,
+    pack_ids: list[str] | None = None,
+) -> dict:
+    corpus = corpus.resolve()
+    ids = pack_ids or _pack_ids(corpus)
+    script = REPO / "benchmarking" / "benchmark" / f"run_{engine}.py"
+    py = _python()
+    results_root = _results_root(engine, corpus)
+
     for i in range(n):
         run_id = f"{run_prefix}-{i:02d}"
-        subprocess.run(
-            [str(py), str(script), "--all", "--run-id", run_id],
-            cwd=REPO,
-            check=True,
-        )
-    results_base = REPO / "benchmarking" / "results" / engine
-    summary: dict[str, dict] = {}
-    for uc in hashes:
-        uc_hashes = []
-        for run_dir in sorted((results_base / uc).glob(f"run-{run_prefix}-*/verdict.json")):
-            uc_hashes.append(_hash_verdict(run_dir))
-        unique = len(set(uc_hashes))
-        total = len(uc_hashes)
-        pct = (100.0 if total == 0 else (100.0 if unique == 1 else 0.0))
-        summary[uc] = {
+        for pid in ids:
+            cmd = [
+                str(py),
+                str(script),
+                "--corpus",
+                str(corpus),
+                "--uc",
+                pid,
+                "--run-id",
+                run_id,
+            ]
+            subprocess.run(cmd, cwd=REPO, check=True)
+
+    per_pack: dict[str, dict] = {}
+    bit_ok = 0
+    for pid in ids:
+        pack_hashes: list[str] = []
+        for run_dir in sorted(
+            (results_root / pid).glob(f"run-{run_prefix}-*/verdict.json")
+        ):
+            pack_hashes.append(_hash_verdict(run_dir))
+        unique = len(set(pack_hashes))
+        total = len(pack_hashes)
+        identical = unique == 1 and total > 0
+        if identical:
+            bit_ok += 1
+        per_pack[pid] = {
             "runs": total,
             "unique_hashes": unique,
-            "reproducibility_pct": pct,
-            "bit_identical": unique == 1 and total > 0,
+            "reproducibility_pct": 100.0 if identical else (0.0 if total else 0.0),
+            "bit_identical": identical,
+            "hashes": pack_hashes,
         }
-    out = REPO / "benchmarking" / "results" / f"reproducibility_{engine}_{run_prefix}.json"
-    out.write_text(json.dumps(summary, indent=2) + "\n")
-    return summary
+
+    overall_pct = (100.0 * bit_ok / len(ids)) if ids else 0.0
+    report = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "engine": engine,
+        "n": n,
+        "run_prefix": run_prefix,
+        "corpus": str(corpus),
+        "pack_count": len(ids),
+        "overall_reproducibility_pct": overall_pct,
+        "bit_identical_packs": bit_ok,
+        "definition": (
+            "Per pack: run engine N times; SHA-256(verdict.json). "
+            "pack reproducibility_pct = 100 iff all N hashes identical, else 0. "
+            "overall = fraction of packs that are bit-identical."
+        ),
+        "packs": per_pack,
+    }
+
+    tag = "oo" if _is_oo_packs(corpus) else "observeops"
+    out = RESULTS / f"reproducibility_{engine}_{tag}_{run_prefix}.json"
+    # Keep legacy ObserveOps filename when using default UC prefix layout
+    if not _is_oo_packs(corpus) and set(ids) == {f"UC-{i}" for i in range(1, 6)}:
+        legacy = RESULTS / f"reproducibility_{engine}_{run_prefix}.json"
+        # Flat UC summary for older consumers
+        flat = {pid: {k: v for k, v in d.items() if k != "hashes"} for pid, d in per_pack.items()}
+        legacy.write_text(json.dumps(flat, indent=2) + "\n")
+    out.write_text(json.dumps(report, indent=2) + "\n")
+    report["output"] = str(out)
+    return report
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Reproducibility harness N=20")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Reproducibility: N identical runs → bit-stable verdict hash. "
+            "Default N=20."
+        )
+    )
     parser.add_argument("--engine", choices=["federated", "lean"], required=True)
     parser.add_argument("--n", type=int, default=N_DEFAULT)
     parser.add_argument("--prefix", default="repro")
+    parser.add_argument(
+        "--corpus",
+        type=Path,
+        default=DEFAULT_CORPUS,
+        help="ObserveOps corpus or OO engine_packs directory",
+    )
+    parser.add_argument(
+        "--ids",
+        nargs="*",
+        help="Optional pack/UC ids (default: all under corpus)",
+    )
+    parser.add_argument(
+        "--eligible-only",
+        action="store_true",
+        help="OO packs: only include_in_accuracy=true (Option B)",
+    )
+    parser.add_argument("--limit", type=int, help="Cap number of packs (smoke)")
     args = parser.parse_args(argv)
-    summary = run_reproducibility(args.engine, args.n, args.prefix)
-    for uc, s in summary.items():
-        print(f"{uc}: {s['reproducibility_pct']}% ({s['unique_hashes']} unique / {s['runs']} runs)")
+
+    corpus = args.corpus.resolve()
+    ids = list(args.ids) if args.ids else _pack_ids(corpus)
+
+    if args.eligible_only and _is_oo_packs(corpus):
+        filtered = []
+        for pid in ids:
+            gt = json.loads((corpus / pid / "ground_truth.json").read_text())
+            if gt.get("include_in_accuracy"):
+                filtered.append(pid)
+        ids = filtered
+
+    if args.limit is not None:
+        ids = ids[: args.limit]
+
+    report = run_reproducibility(args.engine, args.n, args.prefix, corpus, ids)
+    print(
+        f"{args.engine} overall {report['overall_reproducibility_pct']:.0f}% "
+        f"({report['bit_identical_packs']}/{report['pack_count']} packs bit-identical) "
+        f"N={args.n}"
+    )
+    for pid, s in report["packs"].items():
+        print(
+            f"  {pid}: {s['reproducibility_pct']:.0f}% "
+            f"({s['unique_hashes']} unique / {s['runs']} runs)"
+        )
+    print(f"Wrote {report['output']}")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
