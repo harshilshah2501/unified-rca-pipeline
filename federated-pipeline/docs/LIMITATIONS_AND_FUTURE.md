@@ -104,6 +104,7 @@ If ObserveOps funds code-path RCA: freeze a Boutique/TrainTicket-style corpus wi
 |------------|--------|
 | Orchestrator 6-hop demo (crawler / hipster) | **Done** |
 | Dual-stream PoC ingest stub + optional Redis speed tier | **Done** (PoC) |
+| Vector shared ingest fabric (design) | **Designed** — [`../../docs/INGESTION_PIPELINE_VECTOR.md`](../../docs/INGESTION_PIPELINE_VECTOR.md) |
 | ObserveOps bakeoff adapter + matched compare | **Done** |
 | primary evaluation engine packaging | **N/A — lean** |
 | Phase C production ingest / OD resolution | **Deferred** |

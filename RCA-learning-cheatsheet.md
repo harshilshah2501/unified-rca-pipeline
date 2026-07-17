@@ -98,7 +98,8 @@ Total ops cost ≈ C_collect + C_normalize + C_store + C_query_feed + C_ops
 | Lean wins repro / verifiability / fewer obs | Collector and store ops headcount proxy |
 | Federated CV edge didn’t buy top-1 here | Break-even: when does Nezha-tier ingest pay for itself? |
 
-Full experiment plan: §3 below.
+Full experiment plan: §3 below.  
+**Vector ingest design (artifact contracts + L0/F1 sinks):** [`docs/INGESTION_PIPELINE_VECTOR.md`](docs/INGESTION_PIPELINE_VECTOR.md) · skeleton [`ingestion-poc/vector/`](ingestion-poc/vector/).
 
 ---
 
@@ -182,6 +183,14 @@ without mixing product claims.
 ---
 
 ## 3) Ingestion Pipeline Cost PoC (proposal)
+
+### 3.0 Vector as the shared ingest fabric
+
+Design (not full implementation): [`docs/INGESTION_PIPELINE_VECTOR.md`](docs/INGESTION_PIPELINE_VECTOR.md).
+
+- **One** Vector collect/normalize path; **Lean-only (L0)** vs **dual-sink (F1)** profiles for cost compare.  
+- Topology crawler stays **beside** Vector; post-Vector builders materialize Lean bundles and Federated speed-tier keys.  
+- Skeleton: [`ingestion-poc/vector/`](ingestion-poc/vector/).
 
 ### 3.1 Objective
 

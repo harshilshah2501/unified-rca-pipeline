@@ -16,6 +16,7 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | [`ADR-001-lean-primary-engine.md`](./ADR-001-lean-primary-engine.md) | Bakeoff evaluation finding (lean favored on this corpus; not a finalized product decision) |
 | [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) | **Standard evaluation checklist** for any RCA method (4 axes + 5 roadblocks + evidence provenance) — not lean-only |
 | [`GLOSSARY.md`](./GLOSSARY.md) | Disambiguates **tier** namespaces, corpus names, and verifiability vs main-path % |
+| [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) | **Ingestion design** — Vector shared fabric; RCA-ready artifacts for Lean vs Federated |
 | Visual simulation guides | Lean: [`../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md`](../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md) · Federated: [`../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md`](../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md) |
 | [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) | Lean RCA product requirements (**canonical**; includes Appendix E) · [`.pdf`](./Lean_RCA_PRD.pdf) export · [`.docx`](./Lean_RCA_PRD.docx) |
 | [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md) | Lean RCA simple guide (**canonical**) · [`.pdf`](./Lean_RCA_Simple_Guide.pdf) export · [`.docx`](./Lean_RCA_Simple_Guide.docx) |

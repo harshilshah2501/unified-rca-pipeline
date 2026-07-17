@@ -8,7 +8,8 @@ Root-cause analysis research workspace with two pipelines (federated + lean), sh
 
 | Path | Purpose |
 |------|---------|
-| [`docs/`](docs/) | **Common PoC docs** — use-cases, roadmap, ADR, RCA evaluation checklist, Lean PRD + Simple Guide, lean-vs-federated guide |
+| [`docs/`](docs/) | **Common PoC docs** — use-cases, roadmap, ADR, **[NAVIGATION](docs/NAVIGATION.md)**, ingestion design, Lean PRD + Simple Guide |
+| [`ingestion-poc/vector/`](ingestion-poc/vector/) | Vector ingest PoC skeleton (Lean-only vs dual-sink profiles) |
 | [`rca-use-cases-only.md`](rca-use-cases-only.md) | Symlink → `docs/` (sole evaluation corpus spec) |
 | [`ROADMAP.md`](ROADMAP.md) | Symlink → `docs/ROADMAP.md` |
 | [`datasets/observeops/`](datasets/observeops/) | Frozen bundles derived from the use-case spec |

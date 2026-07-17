@@ -1,0 +1,44 @@
+# Vector config — Profile L0 (Lean-only sinks)
+# Design: docs/INGESTION_PIPELINE_VECTOR.md
+#
+# Collect → normalize to ingest.v1 → Lean incident + anomaly sinks only.
+# No Federated speed-tier fan-out (lower ingest cost envelope).
+
+data_dir = "/tmp/unified-rca-vector-lean"
+
+[sources.replay_jsonl]
+type = "file"
+include = ["ingestion-poc/vector/samples/*.jsonl"]
+read_from = "beginning"
+fingerprint.strategy = "device_and_inode"
+
+[transforms.to_ingest_v1]
+type = "remap"
+inputs = ["replay_jsonl"]
+source = '''
+# Expect each line already near ingest.v1; coerce types and defaults.
+. = parse_json!(.message)
+.schema_version = "ingest.v1"
+.ts = string!(.ts)
+.tenant = string!(.tenant) ?? "default"
+.ci_id = string!(.ci_id)
+.signal_class = string!(.signal_class)
+'''
+
+[transforms.route_lean]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "anomaly" || .signal_class == "event" || .signal_class == "metric_sample"'
+
+# Demo sink: write normalized events for lean_bundle_writer to consume later.
+[sinks.lean_incident_dir]
+type = "file"
+inputs = ["route_lean"]
+path = "/tmp/unified-rca-ingest/lean/incidents/%Y-%m-%d/events.jsonl"
+encoding.codec = "json"
+
+[sinks.console_debug]
+type = "console"
+inputs = ["to_ingest_v1"]
+encoding.codec = "json"
+target = "stdout"

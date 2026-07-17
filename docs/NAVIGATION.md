@@ -10,6 +10,7 @@
 |------------|--------|
 | Understand the whole PoC in one read | [`POC_BRIEFING.md`](./POC_BRIEFING.md) |
 | See current status and phases | [`ROADMAP.md`](./ROADMAP.md) |
+| Design **ingestion** (Vector → graphs for RCA) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
 | Learn Lean vs Federated (study notes) | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) |
 | Run lean diagnose / API | [`../lean-pipeline/README.md`](../lean-pipeline/README.md) |
 | Run bakeoff or read scoreboard | [`../benchmarking/README.md`](../benchmarking/README.md) → [`../benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) |
@@ -146,7 +147,9 @@ Symlinks: [`../rca-use-cases-only.md`](../rca-use-cases-only.md), [`../ROADMAP.m
 
 | Topic | Where |
 |-------|--------|
-| PoC uses **frozen bundles**, not full live ingest | [`../datasets/observeops/README.md`](../datasets/observeops/README.md), [`Federated-decoded.md`](../Federated-decoded.md) §11, [`Lean-decoded.md`](../Lean-decoded.md) §4 |
+| **Vector ingestion design** (shared fabric → Lean / Federated artifacts) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
+| Skeleton configs (L0 lean-only / F1 dual-sink) | [`../ingestion-poc/vector/`](../ingestion-poc/vector/) |
+| PoC uses **frozen bundles**, not full live ingest (today) | [`../datasets/observeops/README.md`](../datasets/observeops/README.md), [`Federated-decoded.md`](../Federated-decoded.md) §11, [`Lean-decoded.md`](../Lean-decoded.md) §4 |
 | Federated ingest vision (Phase C deferred) | [`../federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md), [`LIMITATIONS_AND_FUTURE.md`](../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
 | Planned **ingestion cost comparison PoC** | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §3 |
 | **Learning links** (algorithms / papers / ingest primers) | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1d |

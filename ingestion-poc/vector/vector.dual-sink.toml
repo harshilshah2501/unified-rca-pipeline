@@ -1,0 +1,55 @@
+# Vector config — Profile F1 (dual-sink: Lean + Federated speed feed)
+# Design: docs/INGESTION_PIPELINE_VECTOR.md
+#
+# Same normalize path as L0, plus fan-out to a speed-tier feed sink.
+# Use identical replay input when comparing ingest cost vs lean-only.
+
+data_dir = "/tmp/unified-rca-vector-dual"
+
+[sources.replay_jsonl]
+type = "file"
+include = ["ingestion-poc/vector/samples/*.jsonl"]
+read_from = "beginning"
+fingerprint.strategy = "device_and_inode"
+
+[transforms.to_ingest_v1]
+type = "remap"
+inputs = ["replay_jsonl"]
+source = '''
+. = parse_json!(.message)
+.schema_version = "ingest.v1"
+.ts = string!(.ts)
+.tenant = string!(.tenant) ?? "default"
+.ci_id = string!(.ci_id)
+.signal_class = string!(.signal_class)
+'''
+
+[transforms.route_lean]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "anomaly" || .signal_class == "event" || .signal_class == "metric_sample"'
+
+# Broader feed for Nezha-oriented builders (events + optional trace-like samples).
+[transforms.route_speed]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+
+[sinks.lean_incident_dir]
+type = "file"
+inputs = ["route_lean"]
+path = "/tmp/unified-rca-ingest/dual/lean/incidents/%Y-%m-%d/events.jsonl"
+encoding.codec = "json"
+
+# Placeholder speed-tier feed: file stand-in for Redis/Kafka → speed_tier_builder.
+[sinks.speed_tier_feed]
+type = "file"
+inputs = ["route_speed"]
+path = "/tmp/unified-rca-ingest/dual/speed/feed-%Y-%m-%d.jsonl"
+encoding.codec = "json"
+
+[sinks.console_debug]
+type = "console"
+inputs = ["to_ingest_v1"]
+encoding.codec = "json"
+target = "stdout"
