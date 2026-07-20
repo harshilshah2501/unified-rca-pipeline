@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,6 +15,7 @@ sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "lean-pipeline"))
 sys.path.insert(0, str(REPO / "benchmarking"))
 
+from benchmark.parity import materialize_parity_corpus, run_shared_detect  # noqa: E402
 from core_engine.observeops.engine import diagnose  # noqa: E402
 
 DEFAULT_CORPUS = REPO / "datasets" / "observeops"
@@ -52,12 +54,27 @@ def run_uc(
     uc_id: str,
     run_id: str | None = None,
     corpus: Path | None = None,
+    *,
+    shared_detect: bool = True,
 ) -> dict:
     corpus = corpus or DEFAULT_CORPUS
-    verdict = diagnose(uc_id, corpus)
     ts = run_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out_dir = _results_dir(corpus, uc_id, ts)
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    detect_meta: dict = {}
+    diagnose_corpus = corpus
+    if shared_detect and not _is_oo_packs(corpus):
+        detect = run_shared_detect(uc_id, corpus)
+        detect_meta = detect.to_meta()
+        diagnose_corpus = materialize_parity_corpus(
+            uc_id, corpus, detect, out_dir / "parity_corpus"
+        )
+
+    t0 = time.perf_counter()
+    verdict = diagnose(uc_id, diagnose_corpus)
+    latency_ms = (time.perf_counter() - t0) * 1000.0
+
     (out_dir / "verdict.json").write_text(json.dumps(verdict, indent=2) + "\n")
     meta = {
         "uc_id": uc_id,
@@ -65,7 +82,15 @@ def run_uc(
         "corpus": str(corpus),
         "corpus_version": _corpus_version(corpus),
         "engine": "lean",
+        "latency_ms": round(latency_ms, 4),
+        "system_latency_ms": round(
+            latency_ms + float(detect_meta.get("detect_latency_ms") or 0.0), 4
+        ),
+        **detect_meta,
     }
+    if not detect_meta:
+        meta["pipeline_profile"] = "legacy-frozen-bundle"
+        meta["detect_source"] = "none"
     (out_dir / "run_meta.json").write_text(json.dumps(meta, indent=2) + "\n")
     return verdict
 
@@ -81,6 +106,11 @@ def main(argv: list[str] | None = None) -> int:
         default=DEFAULT_CORPUS,
         help="Corpus root (ObserveOps or OO engine_packs)",
     )
+    parser.add_argument(
+        "--no-shared-detect",
+        action="store_true",
+        help="Skip shared threshold detect (legacy frozen anomalies/seed)",
+    )
     args = parser.parse_args(argv)
     corpus = args.corpus.resolve()
 
@@ -93,8 +123,14 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     for uc in ucs:
-        v = run_uc(uc, args.run_id, corpus=corpus)
-        gt = json.loads((corpus / uc / "ground_truth.json").read_text())["root_ci"]
+        v = run_uc(
+            uc,
+            args.run_id,
+            corpus=corpus,
+            shared_detect=not args.no_shared_detect,
+        )
+        gt_path = corpus / uc / "ground_truth.json"
+        gt = json.loads(gt_path.read_text())["root_ci"]
         match = v["root_ci"] == gt
         print(
             f"{uc}: root_ci={v['root_ci']} sig={v['signature']} "

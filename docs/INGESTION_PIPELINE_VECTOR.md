@@ -1,8 +1,8 @@
 # Ingestion Pipeline Design — Vector as Shared Fabric
 
 **Status:** Design (not implemented end-to-end)  
-**Scope:** **Ingestion only** — builds RCA-ready graphs / incident windows. Does **not** implement Lean or Federated RCA.  
-**Related:** [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1c–§3 · [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`NAVIGATION.md`](./NAVIGATION.md)
+**Scope:** **Ingestion + detection front door** — builds RCA-ready graphs / incident windows **and** marks anomalies / seeds. Does **not** implement Lean or Federated localization.  
+**Related:** [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1c–§3 · [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`NAVIGATION.md`](./NAVIGATION.md)
 
 ---
 
@@ -15,33 +15,65 @@
 ┌─────────────────────────────────────────┐
 │         INGESTION PIPELINE              │
 │  Vector (collect → transform → route)   │
+│  + DETECTION front door (required)      │
+│      thresholds / alerts / optional     │
+│      richer detector (≠ Lean itself)    │
 │  + post-Vector graph builders           │
 │  + topology crawler (beside Vector)     │
 └─────────────────────────────────────────┘
               │
-              ▼  RCA-ready artifacts (graphs / windows)
+              ▼  RCA-ready artifacts (graphs / windows
+                 + symptom_seed + crossed anomalies)
      ┌────────┴────────┐
      ▼                 ▼
   Lean RCA         Federated RCA
-  (consumer)       (consumer)
+  (localize)       (detect-in-stack via Panorama
+                    + localize; or reuse shared
+                    detection front door)
 ```
 
 | Layer | Owns | Does not own |
 |-------|------|----------------|
-| **Ingestion** | Collect, normalize, enrich, route, materialize stores/slices | Root-cause decision |
-| **RCA (Lean or Federated)** | Diagnose over prepared graphs/windows | Fleet-wide collection |
+| **Ingestion + detection** | Collect, normalize, **mark anomalies / raise seeds**, route, materialize stores/slices | Root-cause decision (who is *the* root) |
+| **RCA — Lean** | Localize over prepared graphs/windows | Fleet-wide collection; **primary anomaly detection** |
+| **RCA — Federated** | May include Panorama as in-stack detector **or** consume shared front-door detections; then Murphy/Nezha | Replacing shared collect fabric |
 
-**Today’s PoC:** ingestion is largely **synthesized** (`datasets/observeops/*/`). This design replaces that synthesis with a real (or replay-driven) Vector-based path for cost measurement and later product.
+**Why detection must be in-system (product):** Lean never invents crossings. Without a detector/alerter, `diagnose` is never triggered. PoC hides this by pre-baking `anomalies.json` + `symptom_seed.json`.
+
+**Today’s PoC:** ingestion + detection are largely **synthesized** (`datasets/observeops/*/`). This design replaces that synthesis with a real (or replay-driven) Vector-based path **including an explicit detection stage** for cost measurement and later product.
+
+---
+
+## 1b) Detection front door (required; not Panorama-inside-Lean)
+
+| Option | What it is | Fits Lean | Fits Federated | Relative detect cost |
+|--------|------------|-----------|----------------|----------------------|
+| **A. Threshold / alert rules** | Metric/event vs threshold → `crossed` + seed | Default for classic infra | Usable as trigger | ★★ (usually cheapest) |
+| **B. Vector transform detect** | Remap/filter marks `signal_class: anomaly` | Good with ingest PoC | Same | ★★–★★★ |
+| **C. Existing ObserveOps alerter** | Product already raises tickets | Best reuse | Same | ★ (if already paid) |
+| **D. Panorama-class gray-failure detector** | Observer/majority voting | Optional later if thresholds miss gray failures | Native federated hop | ★★★★ |
+
+**Product recommendation:** ship **A/B/C as mandatory** for Lean path; treat **D as optional upgrade** (Federated track or Lean add-on), not a Lean prerequisite.
+
+**Cost impact (important):** detection runs on **streams** (continuous), while Lean RCA runs on **incidents** (sparse). So `C_detect` often dominates `C_rca_runtime` in steady state — especially if you choose Panorama-class detection for every ticket. That is why Lean’s advantage remains “cheap localization,” but **total system cost must include detection**.
+
+```
+Total ops cost ≈ C_collect + C_detect + C_normalize + C_store + C_query_feed + C_ops
+                 + C_rca_runtime
+```
+
+PoC bakeoff compared mainly `C_rca_runtime` (+ synthetic inputs). Ingestion PoC must measure **`C_detect` explicitly** (threshold path vs richer detector profile).
 
 ---
 
 ## 2. Design goals
 
 1. **One ingest fabric** for both RCA consumers (not two collector fleets).  
-2. **Lean-cheap by default** — optional Federated sinks add cost only when enabled.  
-3. **Measurable** — same profiles feed Lean-only vs dual-sink for the ingestion cost PoC.  
-4. **Schema-stable handoff** — RCA engines consume versioned artifact contracts, not raw vendor formats.  
-5. Align with deferred Phase C “normalizer / dual-stream” vision without locking to NATS-only.
+2. **Explicit detection stage** before Lean (and optionally shared with Federated).  
+3. **Lean-cheap by default** — optional Federated / Panorama-class sinks add cost only when enabled.  
+4. **Measurable** — same profiles feed Lean-only vs dual-sink; detection profile (threshold vs rich) is a separate cost axis.  
+5. **Schema-stable handoff** — RCA engines consume versioned artifact contracts, not raw vendor formats.  
+6. Align with deferred Phase C “normalizer / dual-stream” vision without locking to NATS-only.
 
 ---
 

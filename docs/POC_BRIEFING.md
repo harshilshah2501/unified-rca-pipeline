@@ -131,10 +131,12 @@ Aligned with the Lean RCA PRD / Simple Guide:
 ### 4.2 Out of scope (intentionally)
 
 - DeathStarBench / TrainTicket / Online Boutique as ObserveOps acceptance gates.
-- Live SNMP/NetFlow/APM ingest into ObserveOps production.
+- Live SNMP/NetFlow/APM ingest into ObserveOps production (PoC uses synthetic / replay bundles).
 - Automated remediation / runbook execution.
 - Fleet-wide Pearl-style counterfactuals on every metric.
 - 1B EPS production sizing as an ObserveOps gate (capacity measured partially on laptop only).
+
+**Product note (not a PoC bakeoff gap):** a real **detection front door** is **required** before Lean. Fair bakeoff now uses a **shared threshold detector** for both engines ([`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md), run `bakeoff-parity-001`). Later **real ingestion RCA** must replace synthetic streams and use **real Panorama** (or equivalent) where the Federated product path needs it.
 
 ### 4.3 Optional later (not blocking)
 
@@ -144,6 +146,7 @@ Aligned with the Lean RCA PRD / Simple Guide:
 | Phase C federated ingest/stores | Microservice track only |
 | Phase E capacity / 1B EPS vision | Needs server-class measurement |
 | Corpus A (microservices) | Different topology class |
+| Measure `C_detect` (threshold vs Panorama-class) | Ingestion cost PoC axis; product-critical |
 
 ---
 

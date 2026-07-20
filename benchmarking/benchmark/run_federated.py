@@ -7,6 +7,7 @@ import argparse
 import json
 import logging
 import sys
+import time
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,6 +33,7 @@ from benchmark.adapters.observeops_federated import (  # noqa: E402
     verdict_to_benchmark,
     _parse_ts,
 )
+from benchmark.parity import apply_detect_to_bundle, run_shared_detect  # noqa: E402
 
 DEFAULT_CORPUS = REPO / "datasets" / "observeops"
 OO_PACKS = REPO / "datasets" / "openobserve_incidents" / "v1" / "engine_packs"
@@ -71,17 +73,27 @@ def run_uc(
     uc_id: str,
     run_id: str | None = None,
     corpus: Path | None = None,
+    *,
+    shared_detect: bool = True,
 ) -> dict:
     corpus = corpus or DEFAULT_CORPUS
     bundle = load_bundle(uc_id, corpus)
+    detect_meta: dict = {}
+    if shared_detect and not _is_oo_packs(corpus):
+        detect = run_shared_detect(uc_id, corpus)
+        detect_meta = detect.to_meta()
+        bundle = apply_detect_to_bundle(bundle, detect)
+
     store = build_metric_store(bundle)
-    flag = build_detection_flag(bundle)
+    flag = build_detection_flag(bundle, detect_source="shared_detect")
     incident_time = _parse_ts(bundle["symptom_seed"]["timestamp"])
 
     orchestrator = build_orchestrator(store)
     fallback_fired = False
     fallback_reason: str | None = None
     murphy_posterior: float | None = None
+    hop_logs: list = []
+    t0 = time.perf_counter()
     try:
         rca = orchestrator.run_pipeline(flag, incident_time=incident_time)
         posterior_dist = rca.evidence.get("murphy", {}).get("distribution") or {}
@@ -130,11 +142,14 @@ def run_uc(
             for a in crossed
         ]
         observations = len(orchestrator.hop_logs)
+        hop_logs = [asdict(h) for h in orchestrator.hop_logs]
     except Exception:
         root_ci, signature, evidence = earliest_crossed_root(bundle)
         observations = 0
         fallback_fired = True
         fallback_reason = "pipeline_exception"
+        hop_logs = [asdict(h) for h in orchestrator.hop_logs]
+    latency_ms = (time.perf_counter() - t0) * 1000.0
 
     verdict = verdict_to_benchmark(
         uc_id,
@@ -152,8 +167,8 @@ def run_uc(
     out_dir = _results_dir(corpus, uc_id, ts)
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "verdict.json").write_text(json.dumps(verdict, indent=2) + "\n")
-    hop_logs = [asdict(h) for h in orchestrator.hop_logs]
     (out_dir / "hop_logs.json").write_text(json.dumps(hop_logs, indent=2) + "\n")
+    hop_total = sum(float(h.get("latency_ms") or 0.0) for h in hop_logs)
     meta = {
         "uc_id": uc_id,
         "run_id": ts,
@@ -162,7 +177,16 @@ def run_uc(
         "engine": "federated",
         "fallback_fired": fallback_fired,
         "murphy_posterior": murphy_posterior,
+        "latency_ms": round(latency_ms, 4),
+        "hop_total_ms": round(hop_total, 4),
+        "system_latency_ms": round(
+            latency_ms + float(detect_meta.get("detect_latency_ms") or 0.0), 4
+        ),
+        **detect_meta,
     }
+    if not detect_meta:
+        meta["pipeline_profile"] = "legacy-frozen-bundle"
+        meta["detect_source"] = "none"
     if fallback_reason:
         meta["fallback_reason"] = fallback_reason
     (out_dir / "run_meta.json").write_text(json.dumps(meta, indent=2) + "\n")
@@ -182,6 +206,11 @@ def main(argv: list[str] | None = None) -> int:
         default=DEFAULT_CORPUS,
         help="Corpus root (ObserveOps or OO engine_packs)",
     )
+    parser.add_argument(
+        "--no-shared-detect",
+        action="store_true",
+        help="Skip shared threshold detect (legacy frozen anomalies/seed)",
+    )
     args = parser.parse_args(argv)
     corpus = args.corpus.resolve()
 
@@ -194,7 +223,12 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     for uc in ucs:
-        v = run_uc(uc, args.run_id, corpus=corpus)
+        v = run_uc(
+            uc,
+            args.run_id,
+            corpus=corpus,
+            shared_detect=not args.no_shared_detect,
+        )
         match = v["root_ci"] == load_bundle(uc, corpus)["ground_truth"]["root_ci"]
         fb = "fallback" if v.get("fallback_fired") else "fusion"
         print(f"{uc}: root_ci={v['root_ci']} {'PASS' if match else 'FAIL'} ({fb})")

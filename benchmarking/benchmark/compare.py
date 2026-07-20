@@ -81,12 +81,31 @@ def _run_meta(verdict_path: Path | None) -> dict:
 
 
 def _latency_from_meta(meta: dict) -> tuple[float | None, str | None]:
-    """Return only explicitly recorded latency or hop-total values."""
+    """Return only explicitly recorded latency or hop-total values (RCA-only)."""
     for field in ("latency_ms", "total_latency_ms", "hop_total_ms", "hop_totals"):
         value = meta.get(field)
         if isinstance(value, (int, float)) and not isinstance(value, bool):
             return float(value), field
     return None, None
+
+
+def _detect_from_meta(meta: dict) -> tuple[float | None, float | None, str | None]:
+    """Return detect_latency_ms, system_latency_ms, detect_source."""
+    detect = meta.get("detect_latency_ms")
+    system = meta.get("system_latency_ms")
+    source = meta.get("detect_source")
+    detect_f = (
+        float(detect)
+        if isinstance(detect, (int, float)) and not isinstance(detect, bool)
+        else None
+    )
+    system_f = (
+        float(system)
+        if isinstance(system, (int, float)) and not isinstance(system, bool)
+        else None
+    )
+    src = source if isinstance(source, str) else None
+    return detect_f, system_f, src
 
 
 def score_uc(
@@ -116,6 +135,10 @@ def score_uc(
             "main_path": None,
             "latency_ms": None,
             "latency_source": None,
+            "detect_latency_ms": None,
+            "system_latency_ms": None,
+            "detect_source": None,
+            "pipeline_profile": None,
         }
 
     root_match = verdict.get("root_ci") == ground_truth["root_ci"]
@@ -133,7 +156,9 @@ def score_uc(
     status = "pass" if root_match and not uc5_fp and contributor_match else "fail"
     evidence = verdict.get("evidence")
     fallback_fired = verdict.get("fallback_fired")
-    latency_ms, latency_source = _latency_from_meta(_run_meta(verdict_path))
+    meta = _run_meta(verdict_path)
+    latency_ms, latency_source = _latency_from_meta(meta)
+    detect_latency_ms, system_latency_ms, detect_source = _detect_from_meta(meta)
     return {
         "status": status,
         "root_match": root_match,
@@ -154,6 +179,10 @@ def score_uc(
         "main_path": not fallback_fired if isinstance(fallback_fired, bool) else None,
         "latency_ms": latency_ms,
         "latency_source": latency_source,
+        "detect_latency_ms": detect_latency_ms,
+        "system_latency_ms": system_latency_ms,
+        "detect_source": detect_source,
+        "pipeline_profile": meta.get("pipeline_profile"),
         "engine": verdict.get("engine"),
     }
 
@@ -199,6 +228,16 @@ def _engine_axes(rows: list[dict], engine: str, repro: dict) -> dict:
         score["latency_ms"]
         for score in available
         if isinstance(score.get("latency_ms"), (int, float))
+    ]
+    detect_latencies = [
+        score["detect_latency_ms"]
+        for score in available
+        if isinstance(score.get("detect_latency_ms"), (int, float))
+    ]
+    system_latencies = [
+        score["system_latency_ms"]
+        for score in available
+        if isinstance(score.get("system_latency_ms"), (int, float))
     ]
     tier_counts: dict[str, int] = {}
     for score in available:
@@ -265,6 +304,15 @@ def _engine_axes(rows: list[dict], engine: str, repro: dict) -> dict:
                     score["latency_source"]
                     for score in available
                     if score.get("latency_source")
+                }
+            ),
+            "average_detect_latency_ms": _mean(detect_latencies),
+            "average_system_latency_ms": _mean(system_latencies),
+            "detect_sources": sorted(
+                {
+                    score["detect_source"]
+                    for score in available
+                    if score.get("detect_source")
                 }
             ),
         },
@@ -468,12 +516,16 @@ def to_markdown(report: dict) -> str:
             ),
             (
                 f"| Efficiency | avg observations {_display(fa['efficiency']['average_observations'])}; "
-                f"avg latency {_display(fa['efficiency']['average_latency_ms'], ' ms')} | "
+                f"avg RCA {_display(fa['efficiency']['average_latency_ms'], ' ms')}; "
+                f"avg detect {_display(fa['efficiency'].get('average_detect_latency_ms'), ' ms')}; "
+                f"avg system {_display(fa['efficiency'].get('average_system_latency_ms'), ' ms')} | "
                 f"avg observations {_display(la['efficiency']['average_observations'])}; "
                 f"best-first {_display(la['efficiency'].get('average_obs_to_convergence'))} vs "
                 f"naive BFS {_display(la['efficiency'].get('average_naive_bfs_expansions'))} "
                 f"(ratio {_display(la['efficiency'].get('average_efficiency_ratio'))}); "
-                f"avg latency {_display(la['efficiency']['average_latency_ms'], ' ms')} |"
+                f"avg RCA {_display(la['efficiency']['average_latency_ms'], ' ms')}; "
+                f"avg detect {_display(la['efficiency'].get('average_detect_latency_ms'), ' ms')}; "
+                f"avg system {_display(la['efficiency'].get('average_system_latency_ms'), ' ms')} |"
             ),
             "",
             (
@@ -483,7 +535,8 @@ def to_markdown(report: dict) -> str:
             ),
             "Main path means `fallback_fired: false`; CARE sets fallback and may promote to Tier 3 when `causal_verified`.",
             "Lean efficiency ratio = naive_bfs_expansions / max(obs_to_convergence, 1).",
-            "Latency is shown only when a run's `run_meta.json` explicitly records a latency or hop-total field.",
+            "Parity profile: shared threshold detect (`detect_latency_ms`) + RCA (`latency_ms`); "
+            "`system_latency_ms` = detect + RCA. See `docs/PIPELINE_PARITY.md`.",
             "",
             "## Per use-case",
             "",
@@ -525,6 +578,28 @@ def to_markdown(report: dict) -> str:
             f"{_display(f.get('latency_ms'), ' ms')} | {_display(l.get('latency_ms'), ' ms')} |"
         )
 
+    # Parity timing table (detect + RCA + system)
+    lines.extend(
+        [
+            "",
+            "## Parity timings (shared detect + RCA)",
+            "",
+            "| UC | Detect | Fed RCA | Lean RCA | Fed system | Lean system | Hop-1 component |",
+            "|----|--------|---------|----------|------------|-------------|-----------------|",
+        ]
+    )
+    for row in report["rows"]:
+        f, l = row["federated"], row["lean"]
+        detect = f.get("detect_latency_ms")
+        if detect is None:
+            detect = l.get("detect_latency_ms")
+        lines.append(
+            f"| {row['uc_id']} | {_display(detect, ' ms')} | "
+            f"{_display(f.get('latency_ms'), ' ms')} | {_display(l.get('latency_ms'), ' ms')} | "
+            f"{_display(f.get('system_latency_ms'), ' ms')} | {_display(l.get('system_latency_ms'), ' ms')} | "
+            f"`{f.get('detect_source') or l.get('detect_source') or '—'}` |"
+        )
+
     lines.extend(
         [
             "",
@@ -532,12 +607,14 @@ def to_markdown(report: dict) -> str:
             "",
             "```bash",
             "RUN_ID=bakeoff-$(date -u +%Y%m%dT%H%M%SZ)",
-            "python3 benchmarking/benchmark/run_federated.py --all --run-id \"$RUN_ID\"",
-            "python3 benchmarking/benchmark/run_lean.py --all --run-id \"$RUN_ID\"",
-            "python3 benchmarking/benchmark/compare.py --run-id \"$RUN_ID\"",
+            "# Prefer repo .venv (numpy + PyYAML). Shared threshold detect is on by default.",
+            ".venv/bin/python benchmarking/benchmark/run_lean.py --all --run-id \"$RUN_ID\"",
+            ".venv/bin/python benchmarking/benchmark/run_federated.py --all --run-id \"$RUN_ID\"",
+            ".venv/bin/python benchmarking/benchmark/compare.py --run-id \"$RUN_ID\"",
             "```",
             "",
-            "Contract: [COMPARISON_BENCHMARK.md](../../../datasets/observeops/COMPARISON_BENCHMARK.md)",
+            "Parity contract: [PIPELINE_PARITY.md](../../../docs/PIPELINE_PARITY.md)",
+            "Bakeoff metric contract: [COMPARISON_BENCHMARK.md](../../../datasets/observeops/COMPARISON_BENCHMARK.md)",
             "",
             "Machine-readable: `comparison.json` alongside this file.",
         ]

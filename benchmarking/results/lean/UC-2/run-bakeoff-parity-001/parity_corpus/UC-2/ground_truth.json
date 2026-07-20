@@ -1,0 +1,11 @@
+{
+  "root_ci": "switch-core-01:GigE0/2",
+  "signature": "link_failure",
+  "contributor_cis": [],
+  "blast_radius": [
+    "esxi-host-01",
+    "vm-app-01",
+    "vm-db-01",
+    "orders-api"
+  ]
+}

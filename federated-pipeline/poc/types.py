@@ -39,6 +39,8 @@ class DetectionFlag:
     timestamp: datetime = field(default_factory=_utc_now)
     symptom_entity: str | None = None
     symptom_metric: str | None = None
+    # Fair bakeoff: "shared_detect". Product Panorama path: "panorama".
+    detect_source: str = "shared_detect"
 
     def to_dict(self) -> dict[str, Any]:
         payload = {
@@ -49,6 +51,7 @@ class DetectionFlag:
             "observer_count": self.observer_count,
             "status": self.status,
             "metric": self.metric,
+            "detect_source": self.detect_source,
         }
         if self.symptom_entity:
             payload["symptom_entity"] = self.symptom_entity

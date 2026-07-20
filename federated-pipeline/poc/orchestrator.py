@@ -201,7 +201,8 @@ class UnifiedRCAOrchestrator:
         self.hop_logs.clear()
 
         t0 = time.perf_counter()
-        self._log_hop(1, "panorama", flag.incident_id, t0, {}, flag.to_dict())
+        hop1 = getattr(flag, "detect_source", None) or "shared_detect"
+        self._log_hop(1, hop1, flag.incident_id, t0, {}, flag.to_dict())
 
         t1 = time.perf_counter()
         murphy_request = self.flag_to_murphy_request(flag)

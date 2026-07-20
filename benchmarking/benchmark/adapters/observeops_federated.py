@@ -326,7 +326,16 @@ def build_orchestrator(store: SimulatedMetricStore) -> UnifiedRCAOrchestrator:
     return orchestrator
 
 
-def build_detection_flag(bundle: dict) -> DetectionFlag:
+def build_detection_flag(
+    bundle: dict,
+    *,
+    detect_source: str = "shared_detect",
+) -> DetectionFlag:
+    """Build DetectionFlag from shared detect seed (fair parity), not live Panorama.
+
+    Profile A: detect_source='shared_detect' — same anomalies/seed Lean consumes.
+    Later real-ingestion RCA may use detect_source='panorama' with real observers.
+    """
     seed = bundle["symptom_seed"]
     incident_time = _parse_ts(seed["timestamp"])
     flag = PanoramaAdapter().detect_simulated(
@@ -339,6 +348,7 @@ def build_detection_flag(bundle: dict) -> DetectionFlag:
     flag.timestamp = incident_time
     flag.symptom_entity = seed["ci"]
     flag.symptom_metric = seed["signal"]
+    flag.detect_source = detect_source
     return flag
 
 

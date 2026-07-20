@@ -1,0 +1,37 @@
+{
+  "incident_start": "2026-07-10T10:00:05Z",
+  "anomalies": [
+    {
+      "ci": "orders-api",
+      "signal": "db.conn_pool.active_ratio",
+      "value": 1.0,
+      "threshold": 0.95,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "jvm.heap.used_pct",
+      "value": 96.0,
+      "threshold": 90.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "error_rate_5xx",
+      "value": 0.18,
+      "threshold": 0.05,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:12Z"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "request.p95_latency_ms",
+      "value": 1800.0,
+      "threshold": 1000.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:12Z"
+    }
+  ]
+}

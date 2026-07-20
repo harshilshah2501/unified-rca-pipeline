@@ -68,13 +68,16 @@ Tag reminder for learning notes:
 ### Cost equation
 
 ```
-Total ops cost ≈ C_collect + C_normalize + C_store + C_query_feed + C_ops
+Total ops cost ≈ C_collect + C_detect + C_normalize + C_store + C_query_feed + C_ops
                  + C_rca_runtime   (separate — already bakeoff-comparable)
 ```
+
+**Detection (`C_detect`) is mandatory in product** — Lean does not include Panorama. Fair bakeoff now runs a **shared threshold detector** before both engines ([`docs/PIPELINE_PARITY.md`](docs/PIPELINE_PARITY.md)). Continuous detection often costs more than sparse RCA calls; real ingest + real Panorama come later. See also [`docs/INGESTION_PIPELINE_VECTOR.md`](docs/INGESTION_PIPELINE_VECTOR.md) §1b.
 
 | Cost bucket | What it pays for | Lean (classic infra default) | Federated (full vision) |
 |-------------|------------------|------------------------------|-------------------------|
 | **C_collect** | Agents, SNMP/vCenter/APM/trace exporters | Inventory + metric/event collectors for typed CIs — **moderate** | Same **plus** high-velocity traces/logs for Nezha — **high** |
+| **C_detect** | Mark crossed anomalies + raise symptom seeds | Thresholds / alerts / Vector detect — **moderate** (required) | Panorama-class observers **or** shared front door — **moderate → high** |
 | **C_normalize** | Schema mapping, identity joins, clock skew | One CI inventory + anomaly/event schema — **lower** | Multi-schema hop translation (Panorama/Murphy/Nezha) — **higher** |
 | **C_store** | Retention, hot/cold, indexing | Snapshot/graph + short anomaly windows — **lower** | Dual tier: structural KG + speed event store — **much higher** |
 | **C_query_feed** | Serving RCA-ready windows to the engine | Load bundle / incident slice — **cheap per ticket** | Slice KG + open event windows; Gibbs sampling load — **expensive per ticket** |
@@ -99,7 +102,8 @@ Total ops cost ≈ C_collect + C_normalize + C_store + C_query_feed + C_ops
 | Federated CV edge didn’t buy top-1 here | Break-even: when does Nezha-tier ingest pay for itself? |
 
 Full experiment plan: §3 below.  
-**Vector ingest design (artifact contracts + L0/F1 sinks):** [`docs/INGESTION_PIPELINE_VECTOR.md`](docs/INGESTION_PIPELINE_VECTOR.md) · skeleton [`ingestion-poc/vector/`](ingestion-poc/vector/).
+**Vector ingest design (artifact contracts + L0/F1 sinks):** [`docs/INGESTION_PIPELINE_VECTOR.md`](docs/INGESTION_PIPELINE_VECTOR.md) · skeleton [`ingestion-poc/vector/`](ingestion-poc/vector/).  
+**Fair pipeline parity (shared detect):** [`docs/PIPELINE_PARITY.md`](docs/PIPELINE_PARITY.md) · [`ingestion-poc/detect/`](ingestion-poc/detect/).
 
 ---
 
