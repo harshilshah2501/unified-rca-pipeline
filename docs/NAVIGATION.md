@@ -11,6 +11,7 @@
 | Understand the whole PoC in one read | [`POC_BRIEFING.md`](./POC_BRIEFING.md) |
 | See current status and phases | [`ROADMAP.md`](./ROADMAP.md) |
 | Design **ingestion** (Vector → graphs for RCA) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
+| **Ingestion PoC plan** (hardware + weeks + gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
 | Fair Lean vs Federated pipeline (shared detect) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
 | Learn Lean vs Federated (study notes) | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) |
 | Run lean diagnose / API | [`../lean-pipeline/README.md`](../lean-pipeline/README.md) |
@@ -149,12 +150,13 @@ Symlinks: [`../rca-use-cases-only.md`](../rca-use-cases-only.md), [`../ROADMAP.m
 | Topic | Where |
 |-------|--------|
 | **Vector ingestion design** (shared fabric → Lean / Federated artifacts) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
+| **Ingestion PoC plan** (M1–M3, hardware, weekly checklist) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
 | **Pipeline parity** (shared detect → diverge on RCA) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
 | Shared threshold detector | [`../ingestion-poc/detect/`](../ingestion-poc/detect/) |
 | Skeleton configs (L0 lean-only / F1 dual-sink) | [`../ingestion-poc/vector/`](../ingestion-poc/vector/) |
 | PoC uses **frozen bundles**, not full live ingest (today) | [`../datasets/observeops/README.md`](../datasets/observeops/README.md), [`Federated-decoded.md`](../Federated-decoded.md) §11, [`Lean-decoded.md`](../Lean-decoded.md) §4 |
 | Federated ingest vision (Phase C deferred) | [`../federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md), [`LIMITATIONS_AND_FUTURE.md`](../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
-| Planned **ingestion cost comparison PoC** | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §3 |
+| Planned **ingestion cost comparison PoC** | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · cheatsheet §3 |
 | **Learning links** (algorithms / papers / ingest primers) | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1d |
 
 ---

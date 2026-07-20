@@ -4,7 +4,7 @@
 
 **Goal:** decide which pipeline (federated vs lean) wins on ObserveOps layers, then harden the winner toward production readiness.
 
-**ObserveOps critical path status:** **Complete** (Phases A → B → D). Lean is the primary evaluation engine (ADR-001; not a finalized product commitment); packaged as CLI/HTTP API. Optional later: B5 / C* / E*.
+**ObserveOps critical path status:** **RCA eval complete** (Phases A → B → D + fair parity `bakeoff-parity-001`). **Next critical path: ingestion PoC** — see [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md). Lean is the primary evaluation engine (ADR-001); packaged as CLI/HTTP API. Optional later: B5 / C* / E*.
 
 ```
                     ┌─────────────────────────────────────┐
@@ -134,7 +134,8 @@ B1–B4 Lean PRD depth on same corpus     ✅ DONE
 D1–D4 Package lean RCA API/report       ✅ DONE
 M9  Common docs/ consolidation          ✅ DONE
         │
-        └─► optional next:
+        └─► **active next: ingestion PoC** → [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md)
+              optional later:
               B5 causal memory
               C* federated ingest (microservice track only)
               E* capacity / 1B EPS vision

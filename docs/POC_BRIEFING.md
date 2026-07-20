@@ -146,7 +146,7 @@ Aligned with the Lean RCA PRD / Simple Guide:
 | Phase C federated ingest/stores | Microservice track only |
 | Phase E capacity / 1B EPS vision | Needs server-class measurement |
 | Corpus A (microservices) | Different topology class |
-| Measure `C_detect` (threshold vs Panorama-class) | Ingestion cost PoC axis; product-critical |
+| Measure `C_detect` (threshold vs Panorama-class) | Ingestion PoC axis — [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) M2 |
 
 ---
 

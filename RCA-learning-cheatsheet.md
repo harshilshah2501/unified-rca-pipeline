@@ -188,6 +188,8 @@ without mixing product claims.
 
 ## 3) Ingestion Pipeline Cost PoC (proposal)
 
+**Canonical plan:** [`docs/INGESTION_POC_PLAN.md`](docs/INGESTION_POC_PLAN.md) — milestones M1–M3, hardware tiers A–C, week-by-week checklist, sign-off gates.
+
 ### 3.0 Vector as the shared ingest fabric
 
 Design (not full implementation): [`docs/INGESTION_PIPELINE_VECTOR.md`](docs/INGESTION_PIPELINE_VECTOR.md).

@@ -2,7 +2,7 @@
 
 **Status:** Design (not implemented end-to-end)  
 **Scope:** **Ingestion + detection front door** — builds RCA-ready graphs / incident windows **and** marks anomalies / seeds. Does **not** implement Lean or Federated localization.  
-**Related:** [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1c–§3 · [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`NAVIGATION.md`](./NAVIGATION.md)
+**Related:** [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1c–§3 · [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`NAVIGATION.md`](./NAVIGATION.md)
 
 ---
 
@@ -264,10 +264,10 @@ RCA bakeoff can stay on frozen bundles until ingest PoC proves parity; then opti
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
 | **D0** | This design + skeleton config | **Done (this doc)** |
-| **D1** | JSONL replay of one UC through Vector → lean bundle writer | Planned |
-| **D2** | Cost harness: L0 vs F1 profiles, `cost_report.md` | Planned |
-| **D3** | Topology crawler stub + CI bind table | Planned |
-| **D4** | Federated speed-tier builder from Vector Redis/Kafka sink | Planned |
+| **D1** | JSONL replay of one UC through Vector → lean bundle writer | Planned — see [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) M1 |
+| **D2** | Cost harness: L0 vs F1 profiles, `cost_report.md` | Planned — M2 |
+| **D3** | Topology crawler stub + CI bind table | Planned — M1/M2 |
+| **D4** | Federated speed-tier builder from Vector Redis/Kafka sink | Planned — M3 |
 | **D5** | Product hardening (HA aggregator, auth, DLQ) | Later |
 
 Skeleton config: [`../ingestion-poc/vector/`](../ingestion-poc/vector/).
