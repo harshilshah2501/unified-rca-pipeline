@@ -12,7 +12,7 @@
 | Verifiability style | Explicit evidentiary tiers + CARE flags + clear trail | Rich, but can be harder to narrate under pressure |
 | Ingestion dependency (default path) | Lower for classic infra use-cases | Higher in full vision (dual-tier + orchestration + optional micro path) |
 | Best-fit workload | Classic infra tickets needing stable/auditable RCA | Cases where deeper microservice/path/causal depth is worth complexity |
-| Current PoC ingestion | Mostly frozen bundles + structured events | Mostly adapterized/simulated ingest for ObserveOps evaluation |
+| Current PoC ingestion | Frozen bundles for bakeoff; **`ingest.v1`** replay + Motadata smoke for ingest track | Same shared streams when Vector wired; Federated still adapterized on ObserveOps eval |
 
 Tag reminder for learning notes:
 - `[Implemented]` repo-verified behavior
@@ -63,7 +63,7 @@ Tag reminder for learning notes:
 
 ## 1c) Ingestion pipeline cost breakdown
 
-**Remember:** this PoC mostly **simulates** ingest (frozen bundles). Numbers below are a **cost structure** for planning the ingestion-cost PoC — not measured production invoices.
+**Remember:** bakeoff RCA still uses **frozen** ObserveOps bundles. Ingest PoC has **normalized `ingest.v1`** (UC replay + Motadata smoke); Vector → writers still ahead — [`docs/INGESTION_POC_PLAN.md`](docs/INGESTION_POC_PLAN.md). Numbers below are a **cost structure** for planning — not measured production invoices.
 
 ### Cost equation
 
@@ -103,7 +103,9 @@ Total ops cost ≈ C_collect + C_detect + C_normalize + C_store + C_query_feed +
 
 Full experiment plan: §3 below.  
 **Vector ingest design (artifact contracts + L0/F1 sinks):** [`docs/INGESTION_PIPELINE_VECTOR.md`](docs/INGESTION_PIPELINE_VECTOR.md) · skeleton [`ingestion-poc/vector/`](ingestion-poc/vector/).  
-**Fair pipeline parity (shared detect):** [`docs/PIPELINE_PARITY.md`](docs/PIPELINE_PARITY.md) · [`ingestion-poc/detect/`](ingestion-poc/detect/).
+**Data format / converters:** [`docs/INGEST_DATA_FORMAT.md`](docs/INGEST_DATA_FORMAT.md) · Motadata adapter [`ingestion-poc/adapters/`](ingestion-poc/adapters/).  
+**Fair pipeline parity (shared detect):** [`docs/PIPELINE_PARITY.md`](docs/PIPELINE_PARITY.md) · [`ingestion-poc/detect/`](ingestion-poc/detect/).  
+**Next actions:** [`docs/RCA_WORKFLOW_AND_NEXT.md`](docs/RCA_WORKFLOW_AND_NEXT.md).
 
 ---
 

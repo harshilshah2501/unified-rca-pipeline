@@ -1,0 +1,65 @@
+{
+  "schema_version": "motadata_ingest.v1",
+  "source": "/root/Harshil-PoCs/Unified-RCA/datasets/ingest_samples/jsonl_resolved",
+  "output": "/root/Harshil-PoCs/Unified-RCA/datasets/ingest_samples/motadata-ingest/stream.jsonl",
+  "mode": "smoke",
+  "limits": {
+    "logs": 2000,
+    "metrics": 2000,
+    "traces": 1000,
+    "spans": 5000
+  },
+  "include": [
+    "logs",
+    "metrics",
+    "spans",
+    "traces"
+  ],
+  "stream_lines": 27855,
+  "by_signal_class": {
+    "event": 7855,
+    "trace_span": 6000,
+    "metric_sample": 14000
+  },
+  "by_signal_kind": {
+    "log": 2000,
+    "metric_string": 5855,
+    "trace_summary": 1000,
+    "metric_numeric": 14000,
+    "span": 5000
+  },
+  "unique_ci_ids": 427,
+  "ci_id_sample": [
+    "ProductCatalog_dotnet.",
+    "hibernatewithmysql",
+    "monitor-1",
+    "monitor-10",
+    "monitor-100",
+    "monitor-101",
+    "monitor-102",
+    "monitor-103",
+    "monitor-104",
+    "monitor-105",
+    "monitor-106",
+    "monitor-107",
+    "monitor-108",
+    "monitor-109",
+    "monitor-11",
+    "monitor-110",
+    "monitor-111",
+    "monitor-112",
+    "monitor-113",
+    "monitor-114",
+    "monitor-115",
+    "monitor-116",
+    "monitor-117",
+    "monitor-118",
+    "monitor-119",
+    "monitor-12",
+    "monitor-120",
+    "monitor-121",
+    "monitor-122",
+    "monitor-123"
+  ],
+  "note": "ci_id for metrics is monitor-{id}; logs use hostname/IP; traces/spans use service name. Topology/GT not yet attached."
+}

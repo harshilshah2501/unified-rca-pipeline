@@ -40,7 +40,7 @@
 
 **Why detection must be in-system (product):** Lean never invents crossings. Without a detector/alerter, `diagnose` is never triggered. PoC hides this by pre-baking `anomalies.json` + `symptom_seed.json`.
 
-**Today’s PoC:** ingestion + detection are largely **synthesized** (`datasets/observeops/*/`). This design replaces that synthesis with a real (or replay-driven) Vector-based path **including an explicit detection stage** for cost measurement and later product.
+**Today’s PoC:** bakeoff still uses **synthesized** ObserveOps bundles (`datasets/observeops/*/`). Normalized **`ingest.v1`** streams now exist for UC replay and Motadata smoke (`datasets/ingest_samples/`). This design replaces hand-edited anomalies/seed with a real (or replay-driven) Vector-based path **including an explicit detection stage** for cost measurement and later product.
 
 ---
 
@@ -264,9 +264,10 @@ RCA bakeoff can stay on frozen bundles until ingest PoC proves parity; then opti
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
 | **D0** | This design + skeleton config | **Done (this doc)** |
-| **D1** | JSONL replay of one UC through Vector → lean bundle writer | Planned — see [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) M1 |
+| **D0.5** | Corpus → `ingest.v1` converters | **Done** — ObserveOps replay + Motadata adapter smoke ([`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) §11) |
+| **D1** | JSONL through Vector → lean bundle writer | **Next** — see [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) M1 / N3–N5 |
 | **D2** | Cost harness: L0 vs F1 profiles, `cost_report.md` | Planned — M2 |
-| **D3** | Topology crawler stub + CI bind table | Planned — M1/M2 |
+| **D3** | Topology crawler stub + CI bind table | Planned — M1/M2 (Motadata bind separate) |
 | **D4** | Federated speed-tier builder from Vector Redis/Kafka sink | Planned — M3 |
 | **D5** | Product hardening (HA aggregator, auth, DLQ) | Later |
 

@@ -1,8 +1,8 @@
 # Unified RCA PoC — End-to-End Briefing
 
 **Audience:** brainstorming, stakeholder reviews, NotebookLM → slide decks  
-**Date:** 2026-07-16  
-**Status:** ObserveOps critical path **complete** (Phases A → B → D)  
+**Date:** 2026-07-21 (ingest progress note; bakeoff narrative still 2026-07-16)  
+**Status:** ObserveOps **RCA eval** critical path **complete** (Phases A → B → D). **Active next:** ingestion (`Ingest → Detect`…) — Motadata/`ingest.v1` smoke done; Vector F1 next — [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md)  
 **Evaluation finding (not a finalized product commitment):** On the classic ObserveOps UC corpus, bakeoff evidence **favors lean** as the primary evaluation engine ([ADR-001](./ADR-001-lean-primary-engine.md); matched run **`bakeoff-phase-b-002`**)  
 **Corpus:** ObserveOps UC-1..UC-5 primary bakeoff (classic infra typed CI graph). Spec + corpus also include **UC-3b** (adversarial early network noise) and synthetic **`events.json`** (required on UC-2/UC-4/UC-3b) — see [`rca-use-cases-only.md`](./rca-use-cases-only.md).
 
@@ -35,7 +35,7 @@ We built and compared **two engines on the exact same frozen corpus**:
 
 **Conclusion:** On ObserveOps classic-infra tickets, lean wins the cost–benefit. Murphy’s causal edge is real but does not buy extra accuracy on this corpus, and it loses on reproducibility, auditability, and compute/ops cost. Ship lean first; keep federated for a hybrid later if microservice/code-path RCA is in scope.
 
-**Canonical product workflow (next phase):** `Ingest → Detect → Localize → Identify → Verify` — see [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md). Vendor survey + Step-2 white space: [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf), [`two-step-rca-white-space.md`](./two-step-rca-white-space.md).
+**Canonical product workflow (next phase):** `Ingest → Detect → Localize → Identify → Verify` — see [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md). **Ingest progress (2026-07-21):** ObserveOps → `ingest.v1` replay + Motadata adapter smoke (local dumps); Vector F1 / Lean writers still open — [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md). Vendor survey + Step-2 white space: [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf), [`two-step-rca-white-space.md`](./two-step-rca-white-space.md).
 
 ---
 
@@ -133,12 +133,12 @@ Aligned with the Lean RCA PRD / Simple Guide:
 ### 4.2 Out of scope (intentionally)
 
 - DeathStarBench / TrainTicket / Online Boutique as ObserveOps acceptance gates.
-- Live SNMP/NetFlow/APM ingest into ObserveOps production (PoC uses synthetic / replay bundles).
+- Live SNMP/NetFlow/APM ingest into ObserveOps **production** (PoC uses synthetic / replay bundles for bakeoff; Motadata → `ingest.v1` is a separate local ingest track — not yet Vector→RCA).
 - Automated remediation / runbook execution.
 - Fleet-wide Pearl-style counterfactuals on every metric.
 - 1B EPS production sizing as an ObserveOps gate (capacity measured partially on laptop only).
 
-**Product note (not a PoC bakeoff gap):** a real **detection front door** is **required** before Lean. Fair bakeoff now uses a **shared threshold detector** for both engines ([`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md), run `bakeoff-parity-001`). Later **real ingestion RCA** must replace synthetic streams and use **real Panorama** (or equivalent) where the Federated product path needs it.
+**Product note (not a PoC bakeoff gap):** a real **detection front door** is **required** before Lean. Fair bakeoff now uses a **shared threshold detector** for both engines ([`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md), run `bakeoff-parity-001`). **Ingestion PoC** is replacing synthetic-only streams: UC + Motadata → `ingest.v1` exist; Vector → detect → Lean/Federated artifacts and **real Panorama** (where Federated needs it) are still ahead — [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md).
 
 ### 4.3 Optional later (not blocking)
 
@@ -314,6 +314,11 @@ Matched bakeoff + four-axis compare
 ADR-001: primary evaluation engine
         ↓
 Package lean_rca (CLI / HTTP / SRE / systemd)
+        ↓
+Ingest PoC (active): ingest.v1 streams → Vector F1 → writers
+  · observeops-replay/ ✅
+  · Motadata adapter smoke ✅ (local dumps)
+  · Vector / lean_bundle_writer ⏳
 ```
 
 ### Phases completed
@@ -324,6 +329,13 @@ Package lean_rca (CLI / HTTP / SRE / systemd)
 | **B** Lean PRD depth | Tiers 1/2/3; CARE→causal; signatures; best-first vs naive BFS efficiency | Done |
 | **D** Packaging | ADR-001; `lean_rca`; SRE report; `lean-rca.service` | Done |
 
+### Ingest phase (in progress — not bakeoff)
+
+| Item | Status |
+|------|--------|
+| ObserveOps → `ingest.v1` | Done — `datasets/ingest_samples/observeops-replay/` |
+| Motadata → `ingest.v1` | Smoke done — `motadata-ingest/`; source dumps local/`gitignored` |
+| Vector F1 + Lean/Federated writers | Next — see [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) N3–N5 |
 ### Key technical fixes that made comparison fair
 
 - Federated: Murphy posterior recovery on UC-2/UC-3 — removed lean-heuristic fallback from the fusion path.
@@ -487,7 +499,8 @@ Use these as generation prompts or section titles:
 13. **Decision** — Primary evaluation engine (ADR-001); federated optional hybrid  
 14. **Shipped** — `lean_rca` CLI/API/SRE report  
 15. **Open questions** — brainstorming (next section)  
-16. **Ask** — Align on hybrid boundary + next corpus size
+16. **Ask** — Align on hybrid boundary + next corpus size  
+17. **Ingest next** — Motadata/`ingest.v1` → Vector F1 (workflow doc)
 
 ---
 
@@ -533,6 +546,9 @@ Use these in NotebookLM chat or workshop discussions:
 | This briefing | `docs/POC_BRIEFING.md` (you are here) |
 | Qualities / decision guide | `docs/README.md` |
 | Roadmap / phases | `docs/ROADMAP.md` |
+| RCA workflow + ingest next actions | `docs/RCA_WORKFLOW_AND_NEXT.md` |
+| Ingestion PoC plan | `docs/INGESTION_POC_PLAN.md` |
+| Ingest data format / Motadata convert | `docs/INGEST_DATA_FORMAT.md` |
 | Engine ADR | `docs/ADR-001-lean-primary-engine.md` |
 | Use-cases | `docs/rca-use-cases-only.md` |
 | Bakeoff numbers | `benchmarking/results/comparison/COMPARISON.md` |

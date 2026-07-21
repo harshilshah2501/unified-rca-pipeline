@@ -84,7 +84,7 @@ We replay `stream.jsonl` through Vector → Federated F1 sinks → then Lean bun
 
 ### Option B — **Raw samples + we convert**
 
-Place native files under `raw/`; we add adapters in `ingestion-poc/adapters/`:
+Place native files under `raw/`; adapters live in [`ingestion-poc/adapters/`](../ingestion-poc/adapters/) (Motadata) and [`ingestion-poc/replay/`](../ingestion-poc/replay/) (ObserveOps):
 
 ```
 datasets/ingest_samples/<suite>/<incident_id>/
@@ -96,6 +96,7 @@ datasets/ingest_samples/<suite>/<incident_id>/
   ground_truth.json
 ```
 
+**Motadata exception (bulk export):** flat suite under `datasets/ingest_samples/jsonl_resolved/` (logs/metrics/traces/spans JSONL) → convert with `motadata_to_ingest_v1.py` → `motadata-ingest/stream.jsonl`. See §11.
 ---
 
 ## 4. Metrics — acceptable raw formats
@@ -235,9 +236,9 @@ For [`FEDERATED_JUSTIFICATION_REPORT.md`](./FEDERATED_JUSTIFICATION_REPORT.md), 
 
 ---
 
-## 11. Quick start from existing corpus (M1)
+## 11. Quick start — existing converters
 
-Convert ObserveOps UC metrics/events → `ingest.v1` JSONL:
+### ObserveOps UC → `ingest.v1` (M1 eval path)
 
 ```bash
 python3 ingestion-poc/replay/observeops_to_ingest_v1.py --all
@@ -245,9 +246,35 @@ python3 ingestion-poc/replay/observeops_to_ingest_v1.py --all
 ```
 
 Converter: [`ingestion-poc/replay/observeops_to_ingest_v1.py`](../ingestion-poc/replay/observeops_to_ingest_v1.py)  
-Output suite: [`datasets/ingest_samples/observeops-replay/`](../datasets/ingest_samples/observeops-replay/)
+Output: [`datasets/ingest_samples/observeops-replay/`](../datasets/ingest_samples/observeops-replay/)
 
-Your **new** microservice samples should follow §3 Option A when ready.
+### Motadata ClickHouse export → `ingest.v1` (product-shaped path)
+
+Local dumps live in [`datasets/ingest_samples/jsonl_resolved/`](../datasets/ingest_samples/jsonl_resolved/) (**gitignored** large `.jsonl`; do not push). Names are already resolved (no separate ID dictionary required for smoke).
+
+```bash
+# Smoke (default limits)
+python3 ingestion-poc/adapters/motadata_to_ingest_v1.py --smoke
+# → datasets/ingest_samples/motadata-ingest/stream.jsonl + manifest.json
+
+# Full corpus (multi-GB — local only)
+python3 ingestion-poc/adapters/motadata_to_ingest_v1.py --full --out-name stream.full.jsonl
+```
+
+Adapter: [`ingestion-poc/adapters/motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_ingest_v1.py) · [README](../ingestion-poc/adapters/README.md)
+
+| Motadata source | `signal_class` | `ci_id` |
+|-----------------|----------------|---------|
+| `log.jsonl` | `event` | hostname / `event_source` |
+| `metric_numeric.jsonl` | `metric_sample` (one per field) | `monitor-{id}` |
+| `metric_string.jsonl` | `event` | `monitor-{id}` |
+| `trace.jsonl` / `span.jsonl` | `trace_span` | service name |
+
+**Gaps (expected):** Motadata topology / GT / CI-bind (monitors ↔ services) not attached yet — needed before Localize bakeoff on this corpus.
+
+Optional alternate layout: place unresolved dumps under `motadata-raw/` (also gitignored); prefer `jsonl_resolved/` when names are already expanded.
+
+New microservice samples should follow §3 Option A when ready.
 
 ---
 

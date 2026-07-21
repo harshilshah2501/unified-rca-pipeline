@@ -37,7 +37,7 @@ Ingest → Detect → Localize → Identify → Verify
 | Localize + Identify (classic UC bakeoff) | **Mostly closed** | Lean + Federated 5/5 on ObserveOps; Lean packaged |
 | Verify (tiers / GT) | **PoC closed** | Bakeoff + CARE/Tier-3 scoped |
 | Detect (real front door) | **Partial** | Shared threshold on corpus; Motadata/live still open |
-| Ingest (product-shaped) | **Open** | UC JSONL bootstrap done; Motadata JSON next |
+| Ingest (product-shaped) | **Partial** | UC JSONL + Motadata adapter smoke (`motadata-ingest/`); Vector F1 / Lean L0 next |
 | Identify Step-2 path diff | **Open / stretch** | Needs traces + baseline + data gates |
 
 ---
@@ -48,8 +48,8 @@ Ingest → Detect → Localize → Identify → Verify
 
 | # | Action | Exit criteria | Owner focus |
 |---|--------|---------------|-------------|
-| N1 | Receive Motadata frozen JSON (logs, metrics, traces, spans + ID dictionaries) | Files under `datasets/ingest_samples/motadata-raw/` | Data |
-| N2 | Build `motadata_to_ingest_v1.py` | Valid `stream.jsonl` + CI-bind miss report | Eng |
+| N1 | Receive Motadata frozen JSON (logs, metrics, traces, spans + ID dictionaries) | **Done locally** — `datasets/ingest_samples/jsonl_resolved/` (gitignored; names already resolved) | Data |
+| N2 | Build `motadata_to_ingest_v1.py` | **Done** — [`ingestion-poc/adapters/motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_ingest_v1.py); smoke → `motadata-ingest/stream.jsonl` | Eng |
 | N3 | Vector F1 skeleton: read `stream.jsonl` → detect + structural sink | UC-1 / Motadata sample end-to-end smoke | Eng |
 | N4 | Federated-first store writers (metric slice; Dragonfly stub OK without traces) | Artifacts written; timing in meta | Eng |
 | N5 | Lean bundle writer on **same** stream (L0) | Lean diagnose PASS on converted Motadata or UC replay | Eng |
@@ -89,10 +89,16 @@ Ingest → Detect → Localize → Identify → Verify
 
 ---
 
-## 5. Immediate three tasks
+## 5. Immediate three tasks (current)
 
-1. Drop Motadata JSON under `datasets/ingest_samples/motadata-raw/` (include metric/log ID dictionaries if available).
-2. Implement Motadata → `ingest.v1` converter + CI-bind report.
-3. Wire Vector replay on one sample stream (Federated structural path first, then Lean writer).
+N1–N2 are done (local Motadata under `jsonl_resolved/` → smoke `ingest.v1` via adapter). Next:
+
+1. **N3** — Vector F1 skeleton: read `datasets/ingest_samples/motadata-ingest/stream.jsonl` (or ObserveOps replay) → detect + structural sink.
+2. **N4** — Federated-first store writers (metric slice; Dragonfly stub OK without full traces).
+3. **N5** — Lean `lean_bundle_writer` on the **same** stream; diagnose PASS on UC replay and/or Motadata subset.
+
+**Still open after N3–N5:** Motadata CI-bind / topology / GT (monitors ↔ services); Detect cheap wins (D2–D3). Large Motadata dumps stay **local only** (gitignored; do not push).
 
 Hardware: **pro6000-server** (16c / 125GiB) for N3–N5 load tests.
+
+*Doc status synced: 2026-07-21.*

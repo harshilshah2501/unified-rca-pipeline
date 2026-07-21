@@ -10,6 +10,7 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | Document | Purpose |
 |----------|---------|
 | [`POC_BRIEFING.md`](./POC_BRIEFING.md) | **End-to-end PoC briefing** (objective → design → bakeoff → conclusion) for NotebookLM / slides |
+| [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) | Canonical stages + **current next actions** (Ingest → … → Verify) |
 | [`rca-use-cases-only.md`](./rca-use-cases-only.md) | Sole evaluation corpus spec (ObserveOps UC-1..UC-5; UC-3b + events schema specified) |
 | [`UC_LEARNING_BRAINSTORM.md`](./UC_LEARNING_BRAINSTORM.md) | **Learning / brainstorm** — simplified UC frames (problem → RCA output); not bakeoff GT |
 | [`ROADMAP.md`](./ROADMAP.md) | End-to-end phases and status |
@@ -17,6 +18,9 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) | **Standard evaluation checklist** for any RCA method (4 axes + 5 roadblocks + evidence provenance) — not lean-only |
 | [`GLOSSARY.md`](./GLOSSARY.md) | Disambiguates **tier** namespaces, corpus names, and verifiability vs main-path % |
 | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) | **Ingestion design** — Vector shared fabric; RCA-ready artifacts for Lean vs Federated |
+| [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) | Ingestion PoC milestones, hardware, weekly checklist |
+| [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) | `ingest.v1` contract + ObserveOps/Motadata converters |
+| [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) | Fair Lean vs Federated compare (shared detect) |
 | Visual simulation guides | Lean: [`../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md`](../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md) · Federated: [`../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md`](../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md) |
 | [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) | Lean RCA product requirements (**canonical**; includes Appendix E) · [`.pdf`](./Lean_RCA_PRD.pdf) export · [`.docx`](./Lean_RCA_PRD.docx) |
 | [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md) | Lean RCA simple guide (**canonical**) · [`.pdf`](./Lean_RCA_Simple_Guide.pdf) export · [`.docx`](./Lean_RCA_Simple_Guide.docx) |
@@ -27,6 +31,8 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 |--------|----------|--------------|---------------------------|
 | **ObserveOps UC** (Corpus B) | `datasets/observeops/` v1.1.0 | Shared `ground_truth.json` per UC | **5/5** root-CI on UC-1..UC-5 (`bakeoff-phase-b-002`) |
 | **OpenObserve incidents** | `datasets/openobserve_incidents/v1/` | Alert-heuristic labels (Option B) | Peer GT ~**88%** layer (n=24); engine-pack bakeoff **62.5%** root-alert — **different surfaces** |
+
+**Ingest streams (not bakeoff scoreboards):** `datasets/ingest_samples/` — ObserveOps → `ingest.v1` replay + Motadata derived stream (large Motadata dumps local/gitignored). See [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md).
 
 Reports: ObserveOps → [`benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md); OpenObserve → [`benchmarking/results/openobserve/`](../benchmarking/results/openobserve/). See [`benchmarking/README.md`](../benchmarking/README.md).
 

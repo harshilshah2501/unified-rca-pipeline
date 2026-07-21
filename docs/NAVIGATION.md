@@ -12,6 +12,7 @@
 | See current status and phases | [`ROADMAP.md`](./ROADMAP.md) |
 | Design **ingestion** (Vector → graphs for RCA) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
 | **Ingestion PoC plan** (hardware + weeks + gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
+| **`ingest.v1` format** / Motadata & UC converters | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
 | Fair Lean vs Federated pipeline (shared detect) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
 | **RCA workflow + next actions** (Ingest→…→Verify) | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) |
 | Vendor landscape survey (PDF) | [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf) · [notes](./RCA_Vendor_Comparison_NOTES.md) |
@@ -71,6 +72,8 @@
 | [`../datasets/observeops/README.md`](../datasets/observeops/README.md) | Frozen bundle layout, v1.1.0, workflow |
 | [`../datasets/observeops/COMPARISON_BENCHMARK.md`](../datasets/observeops/COMPARISON_BENCHMARK.md) | Bakeoff metric contract |
 | [`../datasets/README.md`](../datasets/README.md) | Dataset area overview |
+| [`../datasets/ingest_samples/README.md`](../datasets/ingest_samples/README.md) | **Ingest streams** — ObserveOps replay + Motadata (local dumps) |
+| [`../ingestion-poc/adapters/README.md`](../ingestion-poc/adapters/README.md) | Motadata → `ingest.v1` adapter |
 | [`../datasets/openobserve_incidents/README.md`](../datasets/openobserve_incidents/README.md) | OpenObserve incident corpus (separate from ObserveOps UC) |
 | [`../datasets/openobserve_incidents/v1/ground_truth/README.md`](../datasets/openobserve_incidents/v1/ground_truth/README.md) | Option B GT convention |
 
@@ -155,13 +158,16 @@ Symlinks: [`../rca-use-cases-only.md`](../rca-use-cases-only.md), [`../ROADMAP.m
 | **Vector ingestion design** (shared fabric → Lean / Federated artifacts) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
 | **Ingestion PoC plan** (M1–M3, hardware, weekly checklist) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
 | **Ingest data format** (what to provide: logs/metrics/traces) | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
+| **RCA workflow + next actions** | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) |
 | **Federated justification report** (data gates template) | [`FEDERATED_JUSTIFICATION_REPORT.md`](./FEDERATED_JUSTIFICATION_REPORT.md) |
 | **Pipeline parity** (shared detect → diverge on RCA) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
 | Shared threshold detector | [`../ingestion-poc/detect/`](../ingestion-poc/detect/) |
 | Skeleton configs (L0 lean-only / F1 dual-sink) | [`../ingestion-poc/vector/`](../ingestion-poc/vector/) |
-| PoC uses **frozen bundles**, not full live ingest (today) | [`../datasets/observeops/README.md`](../datasets/observeops/README.md), [`Federated-decoded.md`](../Federated-decoded.md) §11, [`Lean-decoded.md`](../Lean-decoded.md) §4 |
+| ObserveOps → `ingest.v1` replay | [`../ingestion-poc/replay/`](../ingestion-poc/replay/) → [`../datasets/ingest_samples/observeops-replay/`](../datasets/ingest_samples/observeops-replay/) |
+| Motadata → `ingest.v1` adapter (smoke done; dumps local) | [`../ingestion-poc/adapters/`](../ingestion-poc/adapters/) → [`../datasets/ingest_samples/`](../datasets/ingest_samples/) |
+| Bakeoff still uses **frozen ObserveOps bundles**; ingest PoC adds normalized streams | [`../datasets/observeops/README.md`](../datasets/observeops/README.md), [`Federated-decoded.md`](../Federated-decoded.md) §11, [`Lean-decoded.md`](../Lean-decoded.md) §4 |
 | Federated ingest vision (Phase C deferred) | [`../federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md), [`LIMITATIONS_AND_FUTURE.md`](../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
-| Planned **ingestion cost comparison PoC** | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) · cheatsheet §3 |
+| **Ingestion cost comparison PoC** (active) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) · cheatsheet §3 |
 | **Learning links** (algorithms / papers / ingest primers) | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1d |
 
 ---
@@ -183,8 +189,10 @@ Unified-RCA/
 ├── Lean-decoded.md             ← study notes
 ├── Federated-decoded.md
 ├── RCA-learning-cheatsheet.md
-├── datasets/observeops/        ← ObserveOps frozen corpus
+├── datasets/observeops/        ← ObserveOps frozen corpus (bakeoff)
+├── datasets/ingest_samples/    ← ingest.v1 streams (UC replay + Motadata)
 ├── datasets/openobserve_incidents/
+├── ingestion-poc/              ← Vector / detect / replay / adapters
 ├── lean-pipeline/              ← primary evaluation engine packaging
 ├── federated-pipeline/         ← comparator + optional hybrid track
 ├── benchmarking/               ← runners, results, dashboard
@@ -199,5 +207,6 @@ Unified-RCA/
 - **Corpus v1.1.0:** UC-3b + `events.json` on UC-2/4/3b
 - **Verdict phrase:** primary **evaluation** engine on ObserveOps corpus; **not** a finalized GTM commitment
 - **Two corpora:** ObserveOps UC vs OpenObserve — **never merge** accuracy headlines
+- **Ingest progress:** Motadata dumps stay local (gitignored); next is Vector F1 — [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md)
 
-*Last indexed: 2026-07-16*
+*Last indexed: 2026-07-21*

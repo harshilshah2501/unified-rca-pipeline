@@ -4,7 +4,7 @@
 
 **Goal:** decide which pipeline (federated vs lean) wins on ObserveOps layers, then harden the winner toward production readiness.
 
-**ObserveOps critical path status:** **RCA eval complete** (Phases A → B → D + fair parity `bakeoff-parity-001`). **Canonical workflow:** Ingest → Detect → Localize → Identify → Verify — see [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md). **Next critical path: ingestion** — [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md). Lean is the primary evaluation engine (ADR-001); packaged as CLI/HTTP API. Optional later: B5 / C* / E* / Step-2 path diff.
+**ObserveOps critical path status:** **RCA eval complete** (Phases A → B → D + fair parity `bakeoff-parity-001`). **Canonical workflow:** Ingest → Detect → Localize → Identify → Verify — see [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md). **Next critical path: ingestion** — [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) (UC + Motadata → `ingest.v1` done; Vector F1 / writers next). Lean is the primary evaluation engine (ADR-001); packaged as CLI/HTTP API. Optional later: B5 / C* / E* / Step-2 path diff.
 
 ```
                     ┌─────────────────────────────────────┐
@@ -135,7 +135,8 @@ D1–D4 Package lean RCA API/report       ✅ DONE
 M9  Common docs/ consolidation          ✅ DONE
         │
         └─► **active next: Ingest → Detect** ([`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md))
-              Motadata JSON → ingest.v1 → Vector
+              Motadata / UC → `ingest.v1` ✅ smoke/replay done
+              → Vector F1 + writers (N3–N5) ← **here**
               then Localize/Identify re-score; Step-2 path diff = stretch
               optional later:
               B5 causal memory
@@ -143,6 +144,7 @@ M9  Common docs/ consolidation          ✅ DONE
               E* capacity / 1B EPS vision
 ```
 
+*Roadmap progress note: 2026-07-21 — Motadata local corpus + adapter smoke; large dumps gitignored.*
 ---
 
 ## Non-goals (keep out of the ObserveOps PoC path)
@@ -158,8 +160,10 @@ M9  Common docs/ consolidation          ✅ DONE
 
 | Need | Where |
 |------|-------|
-| Docs home | [`README.md`](./README.md) |
+| Docs home | [`README.md`](./README.md) · [`NAVIGATION.md`](./NAVIGATION.md) |
 | End-to-end PoC briefing | [`POC_BRIEFING.md`](./POC_BRIEFING.md) |
+| Current next actions | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) |
+| Ingestion PoC | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
 | Use-case definitions | [`rca-use-cases-only.md`](./rca-use-cases-only.md) |
 | Lean PRD | [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) (**canonical**) · [`.pdf`](./Lean_RCA_PRD.pdf) |
 | Lean Simple Guide | [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md) (**canonical**) · [`.pdf`](./Lean_RCA_Simple_Guide.pdf) |
