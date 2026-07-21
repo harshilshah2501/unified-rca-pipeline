@@ -35,6 +35,8 @@ We built and compared **two engines on the exact same frozen corpus**:
 
 **Conclusion:** On ObserveOps classic-infra tickets, lean wins the cost–benefit. Murphy’s causal edge is real but does not buy extra accuracy on this corpus, and it loses on reproducibility, auditability, and compute/ops cost. Ship lean first; keep federated for a hybrid later if microservice/code-path RCA is in scope.
 
+**Canonical product workflow (next phase):** `Ingest → Detect → Localize → Identify → Verify` — see [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md). Vendor survey + Step-2 white space: [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf), [`two-step-rca-white-space.md`](./two-step-rca-white-space.md).
+
 ---
 
 ## 2. Objective
@@ -276,6 +278,8 @@ Accuracy is a hard product KPI. Perfect **5/5 on five synthetic UCs** is a usefu
 | Accuracy on this corpus | 5/5 | 5/5 (**no accuracy premium for Murphy CV**) |
 
 Net: lean wins for classic infran ObserveOps. Federated wins when you **explicitly need** deeper structural CV or microservice event/code-path RCA and will pay for it.
+
+**Evidence policy:** that Federated claim must be proven by PoC data, not heuristics. Promotion requires passing the measured microservice gates (accuracy lift, gray-failure capture, reproducibility, FP, cost/SLO) in [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) §3b.
 
 ### 7.4 Decision guide (what to choose when)
 

@@ -17,3 +17,8 @@ datasets/nezha/construct_data/
 
 # Phase 0 capacity artifacts (regenerable)
 benchmarking/capacity/phase0_*.json
+
+# Motadata / large frozen dumps (local only; exceed GitHub 100MB)
+datasets/ingest_samples/jsonl_resolved/*.jsonl
+datasets/ingest_samples/motadata-raw/
+*:Zone.Identifier

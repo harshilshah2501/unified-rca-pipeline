@@ -2,7 +2,7 @@
 
 **Status:** Active plan (RCA eval path closed; ingestion is the critical path)  
 **Owner audience:** engineering + infra provisioning  
-**Related:** [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`ROADMAP.md`](./ROADMAP.md) · [`CAPACITY.md`](../federated-pipeline/docs/CAPACITY.md)
+**Related:** [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) · [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`ROADMAP.md`](./ROADMAP.md) · [`CAPACITY.md`](../federated-pipeline/docs/CAPACITY.md)
 
 ---
 
@@ -87,6 +87,65 @@ Only pursue if product needs Murphy/Nezha on live streams or microservice track 
 **Hardware:** Tier C.
 
 **Duration:** ~8+ weeks after M2.
+
+---
+
+## 3b. When Federated is justified over Lean
+
+For **high-volume microservice architectures**, Federated is generally more justified **when the problem requires continuous path-level reasoning**, not just incident-local topology walkbacks.
+
+| Environment / need | Prefer Lean | Prefer Federated |
+|--------------------|------------|------------------|
+| Classic infra chain (host/VM/network/storage) | Yes | Rarely needed |
+| High-cardinality traces + noisy retries + gray failures | Limited | Yes |
+| Need request-path pattern drift scoring (Nezha-style) | No | Yes |
+| Need observer-majority anomaly detect (Panorama-style LOS) | No | Yes |
+| Requirement is deterministic, low-ops, cheaper RCA | Yes | Usually no |
+| Requirement is deeper microservice causality despite higher ops/cost | Sometimes | Yes |
+
+### Practical decision rule
+
+Choose **Federated** for product path if most of these are true:
+
+1. Sustained service graph churn (frequent deploys, topology changes, ephemeral pods).
+2. Trace-heavy workload where symptoms depend on execution-path variants.
+3. Frequent gray failures where threshold alerts are insufficient.
+4. You can accept higher `C_detect + C_store + C_ops` for better microservice depth.
+
+Otherwise choose **Lean-first** with a lighter ingest front door and escalate to Federated only for scoped domains.
+
+### Data-backed promotion gate (no heuristics-only claims)
+
+Federated is promoted from optional to justified only if the PoC produces **measured** wins on a microservice-focused validation set.
+
+| Gate | Metric | Promote Federated when… |
+|------|--------|--------------------------|
+| G1 | Root-CI / signature accuracy | Federated exceeds Lean by **>= 8 percentage points** on microservice incidents |
+| G2 | Gray-failure capture | Federated catches **>= 20%** more gray-failure incidents than Lean |
+| G3 | False positives | Federated does not exceed Lean FP rate by more than **+3 points** |
+| G4 | Reproducibility floor | Federated reproducibility reaches **>= 85%** on N=20 reruns |
+| G5 | Cost efficiency | Incremental cost per correctly diagnosed incident is within approved budget cap |
+| G6 | Latency SLO | System p95 diagnose latency stays within product SLO under target EPS |
+
+All six gates are evaluated on the **same incidents and same input stream**; if G1/G2 fail, keep Lean-primary and Federated remains optional.
+
+### Required PoC dataset for this claim
+
+To avoid “classic infra bias,” M2/M3 must include a microservice-heavy suite (replay or live-captured) containing at least:
+
+1. Retry storms / partial dependency gray failures.
+2. Path-specific regressions (same service, different route behavior).
+3. High-churn deploy windows (pod/service identity churn).
+4. Cross-service contention where earliest-alert heuristics are misleading.
+
+Deliverable: `federated_justification_report.md` with per-incident scoreboard and aggregate pass/fail on G1–G6.  
+Template: [`FEDERATED_JUSTIFICATION_REPORT.md`](./FEDERATED_JUSTIFICATION_REPORT.md).  
+Sample ingest contract: [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md).
+
+### This PoC’s policy
+
+- **M1/M2 default:** Lean-primary path is the release gate.
+- **M3 trigger:** start Federated-heavy ingest only if M2 data shows Lean misses required microservice cases or product requirements explicitly demand Nezha/Panorama depth.
 
 ---
 
@@ -210,7 +269,7 @@ nproc && free -h && df -h && nvidia-smi
 | Week | Tasks | Owner output |
 |------|-------|--------------|
 | W1 | Provision Tier A; Docker Compose for Vector | `ingestion-poc/compose/` |
-| W1 | Corpus metrics → JSONL replay generator (UC-1) | `ingestion-poc/replay/uc1.jsonl` |
+| W1 | Corpus metrics → JSONL replay generator (UC-1..5) | **Done** — `ingestion-poc/replay/` → `datasets/ingest_samples/observeops-replay/` |
 | W2 | Vector L0: file source → `ingest.v1` remap | `vector.lean-only.toml` validated |
 | W2 | CI bind lookup from frozen `topology.json` | bind table + DLQ on miss |
 
@@ -250,6 +309,8 @@ nproc && free -h && df -h && nvidia-smi
 ---
 
 ## 6. Repository mapping
+
+**Build order (frozen corpus):** Federated ingest path **first** (F1: Vector → Dragonfly speed tier + structural feed), then Lean `lean_bundle_writer` from the **same** `ingest.v1` stream. See [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md).
 
 | Path | Role |
 |------|------|

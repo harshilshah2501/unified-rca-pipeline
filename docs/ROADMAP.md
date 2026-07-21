@@ -4,7 +4,7 @@
 
 **Goal:** decide which pipeline (federated vs lean) wins on ObserveOps layers, then harden the winner toward production readiness.
 
-**ObserveOps critical path status:** **RCA eval complete** (Phases A → B → D + fair parity `bakeoff-parity-001`). **Next critical path: ingestion PoC** — see [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md). Lean is the primary evaluation engine (ADR-001); packaged as CLI/HTTP API. Optional later: B5 / C* / E*.
+**ObserveOps critical path status:** **RCA eval complete** (Phases A → B → D + fair parity `bakeoff-parity-001`). **Canonical workflow:** Ingest → Detect → Localize → Identify → Verify — see [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md). **Next critical path: ingestion** — [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md). Lean is the primary evaluation engine (ADR-001); packaged as CLI/HTTP API. Optional later: B5 / C* / E* / Step-2 path diff.
 
 ```
                     ┌─────────────────────────────────────┐
@@ -134,7 +134,9 @@ B1–B4 Lean PRD depth on same corpus     ✅ DONE
 D1–D4 Package lean RCA API/report       ✅ DONE
 M9  Common docs/ consolidation          ✅ DONE
         │
-        └─► **active next: ingestion PoC** → [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md)
+        └─► **active next: Ingest → Detect** ([`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md))
+              Motadata JSON → ingest.v1 → Vector
+              then Localize/Identify re-score; Step-2 path diff = stretch
               optional later:
               B5 causal memory
               C* federated ingest (microservice track only)

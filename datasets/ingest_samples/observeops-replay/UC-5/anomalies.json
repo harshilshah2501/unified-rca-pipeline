@@ -1,0 +1,77 @@
+{
+  "incident_start": "2026-07-10T10:00:00Z",
+  "anomalies": [
+    {
+      "ci": "orders-api",
+      "signal": "jvm.heap.used_pct",
+      "value": 96.0,
+      "threshold": 90.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "db.conn_pool.active_ratio",
+      "value": 1.0,
+      "threshold": 0.95,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "request.p95_latency_ms",
+      "value": 1800.0,
+      "threshold": 1000.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:12Z"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "error_rate_5xx",
+      "value": 0.18,
+      "threshold": 0.05,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:12Z"
+    },
+    {
+      "ci": "guest-os-vm-app-01",
+      "signal": "filesystem.used_pct",
+      "value": 55.0,
+      "threshold": 95.0,
+      "crossed": false,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "esxi-host-01",
+      "signal": "cpu.usage",
+      "value": 38.0,
+      "threshold": 85.0,
+      "crossed": false,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "esxi-host-01",
+      "signal": "cpu.ready",
+      "value": 1.2,
+      "threshold": 5.0,
+      "crossed": false,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "datastore-01",
+      "signal": "gavg_latency_ms",
+      "value": 8.0,
+      "threshold": 30.0,
+      "crossed": false,
+      "timestamp": "2026-07-10T10:00:05Z"
+    },
+    {
+      "ci": "switch-core-01:GigE0/2",
+      "signal": "linkDown",
+      "value": 0.0,
+      "threshold": 0.5,
+      "crossed": false,
+      "timestamp": "2026-07-10T10:00:05Z"
+    }
+  ]
+}

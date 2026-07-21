@@ -1,0 +1,18 @@
+{
+  "uc_id": "UC-5",
+  "schema_version": "ingest.v1",
+  "source_corpus": "/root/Harshil-PoCs/Unified-RCA/datasets/observeops",
+  "stream_file": "stream.jsonl",
+  "stream_lines": 3037,
+  "metric_series_files": 9,
+  "event_lines": 0,
+  "emit_anomaly_rows": true,
+  "incident_window_only": false,
+  "incident_start": "2026-07-10T10:00:00Z",
+  "symptom_seed": {
+    "ci": "orders-api",
+    "signal": "request.p95_latency_ms",
+    "timestamp": "2026-07-10T10:00:12Z"
+  },
+  "ground_truth_root_ci": "orders-api"
+}
