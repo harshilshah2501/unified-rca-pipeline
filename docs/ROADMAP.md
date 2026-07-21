@@ -135,8 +135,11 @@ D1–D4 Package lean RCA API/report       ✅ DONE
 M9  Common docs/ consolidation          ✅ DONE
         │
         └─► **active next: Ingest → Detect** ([`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md))
-              Motadata / UC → `ingest.v1` ✅ smoke/replay done
-              → Vector F1 + writers (N3–N5) ← **here**
+              Motadata / UC → `ingest.v1` ✅
+              → Vector F1 sinks + shared detect ✅ (N3)
+              → Federated/Lean writers ✅ (N4–N5; UC diagnose PASS)
+              → D2/D3 detect cheap wins ✅
+              → Motadata GT / bakeoff C_detect / pro6000 ← **here**
               then Localize/Identify re-score; Step-2 path diff = stretch
               optional later:
               B5 causal memory

@@ -211,6 +211,37 @@ CI bind failure → dead-letter sink (do not invent roots in RCA).
 
 **Vector stops at delivery to sinks.** Graph materialization (especially Nezha keys and CSR/KG) is **post-Vector**.
 
+### 5.4 One shared F1 fabric (not three product paths)
+
+Lean and Federated **share** the same front half. The rows people see in smoke runs are **layers**, not competing architectures:
+
+```
+ingest.v1 JSONL
+      │
+      ▼
+ ┌─────────────────────────────────────────┐
+ │  F1 fan-out (same sink contract)        │
+ │    • default: Python fan-out (WSL smoke)│
+ │    • optional: Docker Vector (--vector) │
+ └─────────────────────────────────────────┘
+      │
+      ├─ lean/events.jsonl      ──► N5 lean_bundle_writer ──► Lean diagnose
+      ├─ structural/stream.jsonl ──► N4 federated_store_writer ──► metric slice / stub
+      └─ speed_tier/feed.jsonl  ──► (later) live Dragonfly
+      │
+ shared threshold detect ──► anomalies.json + symptom_seed.json
+```
+
+| Smoke row | Role |
+|-----------|------|
+| Python fan-out (`f1_run.py` default) | Dev/smoke stand-in for the Vector box — **same** three sink files |
+| `--vector` | Real Vector producing that sink layout |
+| N4 / N5 | **Post-sink builders** — always required; not a third ingest path |
+
+**Lab note (2026-07-21):** N3–N5 UC diagnose PASS ran on **WSL** with Python fan-out by default. Vector Docker was validated once for UC-1 sinks. **pro6000-server** remains the Tier A+B host for EPS / standing Vector+Dragonfly — not used for these smokes yet. N4 Dragonfly output is a **file stub** (`speed_tier_stub.jsonl`), not live Redis.
+
+Chain: [`ingestion-poc/builders/n45_chain.py`](../ingestion-poc/builders/n45_chain.py).
+
 ---
 
 ## 6. Profiles: Lean-only vs dual-sink (cost PoC)
@@ -265,7 +296,7 @@ RCA bakeoff can stay on frozen bundles until ingest PoC proves parity; then opti
 |-------|-------------|--------|
 | **D0** | This design + skeleton config | **Done (this doc)** |
 | **D0.5** | Corpus → `ingest.v1` converters | **Done** — ObserveOps replay + Motadata adapter smoke ([`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) §11) |
-| **D1** | JSONL through Vector → lean bundle writer | **Next** — see [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) M1 / N3–N5 |
+| **D1** | JSONL through Vector → sinks + detect | **Done (smoke)** — [`f1_run.py`](../ingestion-poc/pipeline/f1_run.py); Lean bundle writer still N5 |
 | **D2** | Cost harness: L0 vs F1 profiles, `cost_report.md` | Planned — M2 |
 | **D3** | Topology crawler stub + CI bind table | Planned — M1/M2 (Motadata bind separate) |
 | **D4** | Federated speed-tier builder from Vector Redis/Kafka sink | Planned — M3 |

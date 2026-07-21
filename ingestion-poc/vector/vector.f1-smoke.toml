@@ -1,0 +1,62 @@
+# Vector config — Profile F1 smoke (UC-1 / Motadata ingest.v1 replay)
+# Design: docs/INGESTION_PIPELINE_VECTOR.md · N3: stream → detect + structural sink
+#
+# Paths are container/absolute defaults used by compose + f1_run.py.
+# Override with env: INGEST_STREAM, F1_OUT_DIR
+
+data_dir = "${VECTOR_DATA_DIR:-/tmp/unified-rca-vector-f1}"
+
+[sources.replay_jsonl]
+type = "file"
+include = ["${INGEST_STREAM}"]
+read_from = "beginning"
+ignore_checkpoints = true
+fingerprint.strategy = "device_and_inode"
+
+[transforms.to_ingest_v1]
+type = "remap"
+inputs = ["replay_jsonl"]
+source = '''
+. = parse_json!(.message)
+.schema_version = string(.schema_version) ?? "ingest.v1"
+.ts = string!(.ts)
+.tenant = string(.tenant) ?? "default"
+.ci_id = string!(.ci_id)
+.signal_class = string!(.signal_class)
+'''
+
+# Lean path: metrics + events + pre-marked anomalies
+[transforms.route_lean]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "anomaly" || .signal_class == "event" || .signal_class == "metric_sample"'
+
+# Structural store feed (Federated Murphy / metric slice)
+[transforms.route_structural]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "metric_sample" || .signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+
+# Speed-tier feed (Nezha-oriented: events + traces + anomalies)
+[transforms.route_speed]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+
+[sinks.lean_feed]
+type = "file"
+inputs = ["route_lean"]
+path = "${F1_OUT_DIR}/lean/events.jsonl"
+encoding.codec = "json"
+
+[sinks.structural_feed]
+type = "file"
+inputs = ["route_structural"]
+path = "${F1_OUT_DIR}/structural/stream.jsonl"
+encoding.codec = "json"
+
+[sinks.speed_tier_feed]
+type = "file"
+inputs = ["route_speed"]
+path = "${F1_OUT_DIR}/speed_tier/feed.jsonl"
+encoding.codec = "json"

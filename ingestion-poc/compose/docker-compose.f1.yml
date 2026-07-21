@@ -1,0 +1,28 @@
+# F1 smoke — Vector dual-sink + shared detect sidecar
+# Usage (from repo root):
+#   docker compose -f ingestion-poc/compose/docker-compose.f1.yml run --rm vector-f1
+#
+# Usually prefer: python3 ingestion-poc/pipeline/f1_run.py --suite UC-1
+
+services:
+  vector-f1:
+    image: timberio/vector:0.41.1-alpine
+    working_dir: /workspace
+    volumes:
+      - ../..:/workspace:ro
+      - ../vector:/etc/vector:ro
+      - f1_out:/out
+      - f1_data:/var/lib/vector
+    environment:
+      INGEST_STREAM: /workspace/datasets/ingest_samples/observeops-replay/UC-1/stream.jsonl
+      F1_OUT_DIR: /out
+      VECTOR_DATA_DIR: /var/lib/vector
+    command:
+      - --config
+      - /etc/vector/vector.f1-smoke.toml
+      - --require-healthy
+      - false
+
+volumes:
+  f1_out:
+  f1_data:

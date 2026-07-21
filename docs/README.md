@@ -11,6 +11,7 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 |----------|---------|
 | [`POC_BRIEFING.md`](./POC_BRIEFING.md) | **End-to-end PoC briefing** (objective → design → bakeoff → conclusion) for NotebookLM / slides |
 | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) | Canonical stages + **current next actions** (Ingest → … → Verify) |
+| [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) | Fault-type buckets vs Dynatrace/Datadog (coverage gaps) |
 | [`rca-use-cases-only.md`](./rca-use-cases-only.md) | Sole evaluation corpus spec (ObserveOps UC-1..UC-5; UC-3b + events schema specified) |
 | [`UC_LEARNING_BRAINSTORM.md`](./UC_LEARNING_BRAINSTORM.md) | **Learning / brainstorm** — simplified UC frames (problem → RCA output); not bakeoff GT |
 | [`ROADMAP.md`](./ROADMAP.md) | End-to-end phases and status |

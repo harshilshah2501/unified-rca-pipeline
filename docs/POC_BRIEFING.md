@@ -335,7 +335,9 @@ Ingest PoC (active): ingest.v1 streams → Vector F1 → writers
 |------|--------|
 | ObserveOps → `ingest.v1` | Done — `datasets/ingest_samples/observeops-replay/` |
 | Motadata → `ingest.v1` | Smoke done — `motadata-ingest/`; source dumps local/`gitignored` |
-| Vector F1 + Lean/Federated writers | Next — see [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) N3–N5 |
+| F1 sinks + shared detect | Done — `ingestion-poc/pipeline/f1_run.py` (N3) |
+| Lean/Federated writers | Done — `ingestion-poc/builders/` (N4–N5); UC diagnose on ingested bundles |
+| Detect coverage (change / error-rate) | Next — D2/D3 · [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) |
 ### Key technical fixes that made comparison fair
 
 - Federated: Murphy posterior recovery on UC-2/UC-3 — removed lean-heuristic fallback from the fusion path.

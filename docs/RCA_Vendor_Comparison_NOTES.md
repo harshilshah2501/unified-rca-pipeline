@@ -2,6 +2,7 @@
 
 **PDF survey:** [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf)  
 **White-space thesis (edited):** [`two-step-rca-white-space.md`](./two-step-rca-white-space.md)  
+**Bucket rollup vs Dynatrace/Datadog:** [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md)  
 **Status:** Soft corrections only — do not treat the PDF as obsolete; use this note when wording decks or PRDs.
 
 ---
@@ -27,3 +28,5 @@
 See [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md):
 
 `Ingest → Detect → Localize → Identify → Verify`
+
+Fault-type spectrum (symptom → infra → app → external) and coverage vs Dynatrace/Datadog: [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md).

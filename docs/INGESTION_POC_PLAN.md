@@ -1,7 +1,7 @@
 # Ingestion PoC Plan — Near Product-Match
 
 **Status:** Active plan (RCA eval path closed; ingestion is the critical path)  
-**Progress (2026-07-21):** ObserveOps → `ingest.v1` replay **done**; Motadata → `ingest.v1` adapter **smoke done** (local corpus). Next: Vector F1 + writers (N3–N5).  
+**Progress (2026-07-21):** ObserveOps → `ingest.v1` + Motadata smoke + **F1 + N4/N5 writers** done (UC-1..5 diagnose PASS). Next: Detect D2/D3 + Motadata GT.  
 **Owner audience:** engineering + infra provisioning  
 **Related:** [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) · [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) · [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`ROADMAP.md`](./ROADMAP.md) · [`CAPACITY.md`](../federated-pipeline/docs/CAPACITY.md)
 
@@ -273,17 +273,17 @@ nproc && free -h && df -h && nvidia-smi
 | W1 | Provision Tier A; Docker Compose for Vector | `ingestion-poc/compose/` |
 | W1 | Corpus metrics → JSONL replay generator (UC-1..5) | **Done** — `ingestion-poc/replay/` → `datasets/ingest_samples/observeops-replay/` |
 | W1 | Motadata → `ingest.v1` adapter (smoke) | **Done** — `ingestion-poc/adapters/motadata_to_ingest_v1.py` → `motadata-ingest/` (local dumps gitignored) |
-| W2 | Vector F1/L0: file source → remap / detect / sink | `vector.*.toml` validated on UC or Motadata smoke stream |
-| W2 | CI bind lookup from frozen `topology.json` (UC); Motadata bind later | bind table + DLQ on miss |
+| W2 | Vector F1/L0: file source → remap / detect / sink | **Done (smoke)** — `ingestion-poc/pipeline/f1_run.py` + `vector.f1-smoke.toml` (Python fan-out default; `--vector` Docker) |
+| W2 | CI bind lookup from frozen `topology.json` (UC); Motadata bind later | **Partial** — UC topology copied into F1 out; Motadata bind open |
 
 ### Weeks 3–4 — Bundle writer + detect (M1 core)
 
 | Week | Tasks | Owner output |
 |------|-------|--------------|
-| W3 | `lean_bundle_writer`: stream → `anomalies.json`, `symptom_seed.json` | Python sidecar |
-| W3 | Integrate `threshold_detect` on writer path OR inline in Vector | timed `detect_meta.json` |
-| W4 | UC-1 end-to-end: replay → Vector → writer → Lean diagnose | PASS on UC-1 |
-| W4 | `--ingested-corpus` flag in bakeoff runners | harness doc in README |
+| W3 | `lean_bundle_writer`: stream → `anomalies.json`, `symptom_seed.json` | **Done** — `ingestion-poc/builders/lean_bundle_writer.py` |
+| W3 | Integrate `threshold_detect` on writer path OR inline in Vector | **Done** — F1 + `detect_meta.json` |
+| W4 | UC-1 end-to-end: replay → Vector → writer → Lean diagnose | **Done** — `n45_chain.py` UC-1..5 root match |
+| W4 | `--ingested-corpus` flag in bakeoff runners | Still open (harness) |
 
 ### Weeks 5–6 — M1 exit (all UCs)
 
@@ -320,9 +320,10 @@ nproc && free -h && df -h && nvidia-smi
 | [`ingestion-poc/vector/`](../ingestion-poc/vector/) | Vector configs (L0 / F1 skeleton) |
 | [`ingestion-poc/detect/`](../ingestion-poc/detect/) | Shared threshold detect (M1); Panorama later (M2) |
 | [`ingestion-poc/replay/`](../ingestion-poc/replay/) | **Done** — ObserveOps → `ingest.v1` |
+| [`ingestion-poc/pipeline/`](../ingestion-poc/pipeline/) | **Done (N3)** — F1 smoke runner |
+| [`ingestion-poc/builders/`](../ingestion-poc/builders/) | **Done (N4–N5)** — Federated store + Lean bundle writers + `n45_chain.py` |
 | [`ingestion-poc/adapters/`](../ingestion-poc/adapters/) | **Done (smoke)** — Motadata → `ingest.v1` |
-| `ingestion-poc/builders/` | **Planned** — `lean_bundle_writer`, topo builder |
-| `ingestion-poc/compose/` | **Planned** — Docker Compose for lab |
+| [`ingestion-poc/compose/`](../ingestion-poc/compose/) | **Partial** — `docker-compose.f1.yml` |
 | [`benchmarking/benchmark/parity.py`](../benchmarking/benchmark/parity.py) | Shared detect helpers; extend for ingested corpus |
 | [`datasets/observeops/`](../datasets/observeops/) | GT + reference bundles (eval only after M1) |
 | [`datasets/ingest_samples/`](../datasets/ingest_samples/) | Normalized streams: `observeops-replay/`, `motadata-ingest/`; raw Motadata in `jsonl_resolved/` (local) |
@@ -380,11 +381,11 @@ Headline compare: **L0 (Lean-only sinks)** vs **F1 (dual-sink)** on **identical 
 
 ## 10. Immediate next three actions
 
-Already done: ObserveOps replay JSONL; Motadata adapter smoke (local corpus — do not commit/push large dumps).
+Already done: ObserveOps replay; Motadata adapter smoke; F1 smoke; **N4 Federated stores**; **N5 Lean bundles** (UC diagnose PASS via `n45_chain.py`).
 
-1. **Wire Vector on one sample stream** — F1 first (detect + structural sink) on `observeops-replay/UC-1` or `motadata-ingest/stream.jsonl` ([`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) N3).
-2. **Implement `lean_bundle_writer`** — same stream → Lean bundle dir; UC-1 diagnose PASS (N5).
-3. **Use `pro6000-server` as Tier A+B lab** — confirm CPU/RAM; Docker Compose for Vector + artifact volume; re-measure EPS there (not WSL laptop).
+1. **D2 change-near-onset** — close External-trigger bucket ([`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md)).
+2. **D3 explicit error-rate detect class** — Bucket-1 parity with Dynatrace/Datadog.
+3. **Motadata CI-bind / thresholds / GT** — enable Localize scoring on product dumps; optional Federated read of N4 `metric_slice`.
 
 ---
 

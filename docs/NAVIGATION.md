@@ -16,6 +16,7 @@
 | Fair Lean vs Federated pipeline (shared detect) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
 | **RCA workflow + next actions** (Ingest→…→Verify) | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) |
 | Vendor landscape survey (PDF) | [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf) · [notes](./RCA_Vendor_Comparison_NOTES.md) |
+| **Fault buckets vs Dynatrace/Datadog** | [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) |
 | Two-step RCA white space (Step 2 path diff) | [`two-step-rca-white-space.md`](./two-step-rca-white-space.md) |
 | Learn Lean vs Federated (study notes) | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) |
 | Run lean diagnose / API | [`../lean-pipeline/README.md`](../lean-pipeline/README.md) |
@@ -165,6 +166,8 @@ Symlinks: [`../rca-use-cases-only.md`](../rca-use-cases-only.md), [`../ROADMAP.m
 | Skeleton configs (L0 lean-only / F1 dual-sink) | [`../ingestion-poc/vector/`](../ingestion-poc/vector/) |
 | ObserveOps → `ingest.v1` replay | [`../ingestion-poc/replay/`](../ingestion-poc/replay/) → [`../datasets/ingest_samples/observeops-replay/`](../datasets/ingest_samples/observeops-replay/) |
 | Motadata → `ingest.v1` adapter (smoke done; dumps local) | [`../ingestion-poc/adapters/`](../ingestion-poc/adapters/) → [`../datasets/ingest_samples/`](../datasets/ingest_samples/) |
+| **F1 smoke** (sinks + shared detect) | [`../ingestion-poc/pipeline/f1_run.py`](../ingestion-poc/pipeline/f1_run.py) |
+| **N4/N5 writers** (Federated stores + Lean bundles) | [`../ingestion-poc/builders/`](../ingestion-poc/builders/) |
 | Bakeoff still uses **frozen ObserveOps bundles**; ingest PoC adds normalized streams | [`../datasets/observeops/README.md`](../datasets/observeops/README.md), [`Federated-decoded.md`](../Federated-decoded.md) §11, [`Lean-decoded.md`](../Lean-decoded.md) §4 |
 | Federated ingest vision (Phase C deferred) | [`../federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md), [`LIMITATIONS_AND_FUTURE.md`](../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
 | **Ingestion cost comparison PoC** (active) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) · cheatsheet §3 |
@@ -209,4 +212,4 @@ Unified-RCA/
 - **Two corpora:** ObserveOps UC vs OpenObserve — **never merge** accuracy headlines
 - **Ingest progress:** Motadata dumps stay local (gitignored); next is Vector F1 — [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md)
 
-*Last indexed: 2026-07-21*
+*Last indexed: 2026-07-21 (N4–N5 + fault buckets)*

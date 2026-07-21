@@ -95,3 +95,5 @@ This isn't free — it needs a healthy-traffic **path** baseline maintained per 
 ## Bottom Line
 
 Every vendor we checked automates “which service is broken” well; deeper “why, at the execution-path level” usually stays a **manual or assisted** follow-up. Nezha proved that *specific* second step can be automated as expected-vs-actual path comparison — we could not verify that exact fused automation as a commercial product feature. Building a **scoped**, narrow version of it — applied only after Localize, with an honest new baseline cost, and only after data-backed gates — would close a real gap **without** abandoning the cost discipline the rest of our design is built around.
+
+

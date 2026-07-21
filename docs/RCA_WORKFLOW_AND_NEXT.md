@@ -1,7 +1,7 @@
 # RCA Workflow & Next Action Items
 
 **Status:** Active plan after vendor survey + white-space review (2026-07-21)  
-**Related:** [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`two-step-rca-white-space.md`](./two-step-rca-white-space.md) · [`RCA_Vendor_Comparison_NOTES.md`](./RCA_Vendor_Comparison_NOTES.md)
+**Related:** [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) §5.4 · [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) · [`two-step-rca-white-space.md`](./two-step-rca-white-space.md)
 
 ---
 
@@ -36,8 +36,8 @@ Ingest → Detect → Localize → Identify → Verify
 |-------|---------|----------------|
 | Localize + Identify (classic UC bakeoff) | **Mostly closed** | Lean + Federated 5/5 on ObserveOps; Lean packaged |
 | Verify (tiers / GT) | **PoC closed** | Bakeoff + CARE/Tier-3 scoped |
-| Detect (real front door) | **Partial** | Shared threshold on corpus; Motadata/live still open |
-| Ingest (product-shaped) | **Partial** | UC JSONL + Motadata adapter smoke (`motadata-ingest/`); Vector F1 / Lean L0 next |
+| Detect (real front door) | **Partial** | Shared threshold + **D2/D3**; Motadata thresholds / live Panorama still open |
+| Ingest (product-shaped) | **Partial** | UC + Motadata → `ingest.v1` + F1 + **N4/N5 writers**; Motadata GT/CI-bind + live detect still open |
 | Identify Step-2 path diff | **Open / stretch** | Needs traces + baseline + data gates |
 
 ---
@@ -50,17 +50,17 @@ Ingest → Detect → Localize → Identify → Verify
 |---|--------|---------------|-------------|
 | N1 | Receive Motadata frozen JSON (logs, metrics, traces, spans + ID dictionaries) | **Done locally** — `datasets/ingest_samples/jsonl_resolved/` (gitignored; names already resolved) | Data |
 | N2 | Build `motadata_to_ingest_v1.py` | **Done** — [`ingestion-poc/adapters/motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_ingest_v1.py); smoke → `motadata-ingest/stream.jsonl` | Eng |
-| N3 | Vector F1 skeleton: read `stream.jsonl` → detect + structural sink | UC-1 / Motadata sample end-to-end smoke | Eng |
-| N4 | Federated-first store writers (metric slice; Dragonfly stub OK without traces) | Artifacts written; timing in meta | Eng |
-| N5 | Lean bundle writer on **same** stream (L0) | Lean diagnose PASS on converted Motadata or UC replay | Eng |
+| N3 | Vector F1 skeleton: read `stream.jsonl` → detect + structural sink | **Done** — [`ingestion-poc/pipeline/f1_run.py`](../ingestion-poc/pipeline/f1_run.py); UC-1 seed/anomaly match frozen; Motadata fan-out OK | Eng |
+| N4 | Federated-first store writers (metric slice; Dragonfly stub OK without traces) | **Done** — [`federated_store_writer.py`](../ingestion-poc/builders/federated_store_writer.py); `metric_slice.jsonl` + `speed_tier_stub.jsonl` + timing | Eng |
+| N5 | Lean bundle writer on **same** stream (L0) | **Done** — [`lean_bundle_writer.py`](../ingestion-poc/builders/lean_bundle_writer.py); UC-1..5 diagnose root match via `n45_chain.py` | Eng |
 
 ### Next — Detect (cheap wins from vendor survey)
 
 | # | Action | Exit criteria |
 |---|--------|---------------|
-| D1 | Keep shared threshold detect as mandatory front door | Timed `C_detect` on scoreboard |
-| D2 | **Change-induced signal** (deploy/config near onset) | “Change in window?” feature on candidates |
-| D3 | Explicit **error-rate** anomaly class (distinct from latency) | Detect emits error-rate crossings |
+| D1 | Keep shared threshold detect as mandatory front door | Timed `C_detect` on scoreboard (in progress via F1 `detect_meta`) |
+| D2 | **Change-induced signal** (deploy/config near onset) | **Done** — [`change_near_onset.py`](../ingestion-poc/detect/change_near_onset.py) → `change_context.json`; samples under `detect/samples/` |
+| D3 | Explicit **error-rate** anomaly class (distinct from latency) | **Done** — `anomaly_class` on crossings (`error_rate` / `performance` / `resource` / …) |
 | D4 | Optional Panorama only when gray-failure corpus exists | `detect_source=panorama` measured |
 
 ### Then — Localize / Identify / Verify (only if ingest regresses or micro track)
@@ -83,7 +83,7 @@ Ingest → Detect → Localize → Identify → Verify
 ## 4. Decision rules (carry forward)
 
 1. **Lean-primary** for classic infra until data says otherwise ([ADR-001](./ADR-001-lean-primary-engine.md)).
-2. **Same ingest stream** for both engines ([PIPELINE_PARITY.md](./PIPELINE_PARITY.md)).
+2. **Same ingest stream / F1 sinks for both engines** ([PIPELINE_PARITY.md](./PIPELINE_PARITY.md); Vector **or** Python fan-out → N4 + N5 — [INGESTION_PIPELINE_VECTOR.md](./INGESTION_PIPELINE_VECTOR.md) §5.4).
 3. **Federated / Step-2 path diff** only after [`FEDERATED_JUSTIFICATION_REPORT.md`](./FEDERATED_JUSTIFICATION_REPORT.md) gates.
 4. Prefer **Detect cheap wins** (change signal, error-rate) before expensive Identify depth.
 
@@ -91,14 +91,16 @@ Ingest → Detect → Localize → Identify → Verify
 
 ## 5. Immediate three tasks (current)
 
-N1–N2 are done (local Motadata under `jsonl_resolved/` → smoke `ingest.v1` via adapter). Next:
+N1–N5 ingest smoke + **D2/D3 detect cheap wins** are done on **WSL** (Python F1 fan-out by default; Vector optional). Next:
 
-1. **N3** — Vector F1 skeleton: read `datasets/ingest_samples/motadata-ingest/stream.jsonl` (or ObserveOps replay) → detect + structural sink.
-2. **N4** — Federated-first store writers (metric slice; Dragonfly stub OK without full traces).
-3. **N5** — Lean `lean_bundle_writer` on the **same** stream; diagnose PASS on UC replay and/or Motadata subset.
+1. **Motadata depth** — thresholds / CI-bind / topology / GT so product dumps can Localize (not only fan-out).
+2. **D1 scoreboard** — surface timed `C_detect` + `by_anomaly_class` / `change_near_onset` on bakeoff `run_meta`.
+3. **Lab** — pro6000 standing Vector+Dragonfly EPS; optional Federated bakeoff reading N4 `metric_slice`.
 
-**Still open after N3–N5:** Motadata CI-bind / topology / GT (monitors ↔ services); Detect cheap wins (D2–D3). Large Motadata dumps stay **local only** (gitignored; do not push).
+```bash
+# Shared fabric reminder: one F1 → N4 + N5 (see INGESTION_PIPELINE_VECTOR §5.4)
+python3 ingestion-poc/builders/n45_chain.py --suite UC-1 \
+  --changes ingestion-poc/detect/samples/changes_uc1_near.jsonl
+```
 
-Hardware: **pro6000-server** (16c / 125GiB) for N3–N5 load tests.
-
-*Doc status synced: 2026-07-21.*
+*Doc status synced: 2026-07-21 (F1 fabric note + D2/D3).*
