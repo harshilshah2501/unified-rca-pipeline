@@ -1,0 +1,42 @@
+[
+  {
+    "stream": "app_logs",
+    "ts": "2026-07-10T10:00:05Z",
+    "level": "ERROR",
+    "logger": "app.thread_pool",
+    "message": "RejectedExecutionException: thread pool saturated",
+    "labels": {
+      "ci": "orders-api"
+    }
+  },
+  {
+    "stream": "app_logs",
+    "ts": "2026-07-10T10:00:08Z",
+    "level": "WARN",
+    "logger": "app.heap",
+    "message": "GC overhead limit approaching; heap nearly full",
+    "labels": {
+      "ci": "orders-api"
+    }
+  },
+  {
+    "stream": "app_logs",
+    "ts": "2026-07-10T10:00:12Z",
+    "level": "ERROR",
+    "logger": "app.error_rate",
+    "message": "5xx rate spike \u2014 no infra anomaly on host/guest/network",
+    "labels": {
+      "ci": "orders-api"
+    }
+  },
+  {
+    "stream": "esx_logs",
+    "ts": "2026-07-10T10:00:05Z",
+    "level": "INFO",
+    "logger": "esx.health",
+    "message": "esxi-host-01 cpu/mem within baseline (upstream_healthy=true)",
+    "labels": {
+      "ci": "esxi-host-01"
+    }
+  }
+]

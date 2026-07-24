@@ -32,6 +32,11 @@ REMEDIATION_BY_SIGNATURE = {
         "Tune connection and worker pools.",
         "Autoscale and check downstream dependencies.",
     ],
+    "cross_numa_irq_affinity": [
+        "Roll back NP-17 node image 2026.06.18 → 2026.05.30.",
+        "Pin RX-queue IRQs to CPUs on the same NUMA node as NIC queue memory.",
+        "Confirm AAAA DNS and checkout p99 return to baseline after rollback.",
+    ],
 }
 
 

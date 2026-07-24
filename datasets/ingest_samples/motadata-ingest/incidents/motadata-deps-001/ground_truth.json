@@ -1,0 +1,24 @@
+{
+  "root_ci": "ProductCatalog_dotnet.",
+  "signature": "app_error_rate",
+  "contributor_cis": [
+    "hibernatewithmysql"
+  ],
+  "blast_radius": [
+    "ProductCatalog_dotnet.",
+    "hibernatewithmysql"
+  ],
+  "note": "Bucket 3 (application/dependency): dual-service span error_rate pack with ProductCatalog \u2192 hibernatewithmysql depends_on edge. Authored GT root = ProductCatalog (symptom service Lean/Fed Localize today); hibernate listed as contributor. Confirm on #samples. Promoting root to hibernate is a future dependency-Localize stretch \u2014 do not auto-invent that GT.",
+  "tags": [
+    "motadata",
+    "apm",
+    "dependency",
+    "bucket3",
+    "broaden",
+    "gt_authored"
+  ],
+  "gt_status": "authored_pending_samples",
+  "fault_bucket": "3_application",
+  "fault_type": "dependency_downstream",
+  "fault_title": "ProductCatalog app error-rate with hibernate dependency graph"
+}

@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "nodes": [
+    { "id": "switch-core-01:GigE0/2", "type": "NetworkPort", "name": "Core Switch Uplink Port" },
+    { "id": "esxi-host-01", "type": "HypervisorHost", "name": "ESXi Host 01" },
+    { "id": "datastore-01", "type": "Datastore", "name": "Shared Datastore 01" },
+    { "id": "vm-app-01", "type": "VirtualMachine", "name": "VM App 01" },
+    { "id": "vm-db-01", "type": "VirtualMachine", "name": "VM DB 01" },
+    { "id": "vm-neighbor-01", "type": "VirtualMachine", "name": "Noisy Neighbor VM" },
+    { "id": "guest-os-vm-app-01", "type": "GuestOS", "name": "Guest OS VM App 01" },
+    { "id": "guest-os-vm-db-01", "type": "GuestOS", "name": "Guest OS VM DB 01" },
+    { "id": "orders-api", "type": "Service", "name": "Orders API" }
+  ],
+  "edges": [
+    { "from": "orders-api", "to": "guest-os-vm-app-01", "relation": "runs_on" },
+    { "from": "guest-os-vm-app-01", "to": "vm-app-01", "relation": "hosted_by" },
+    { "from": "guest-os-vm-db-01", "to": "vm-db-01", "relation": "hosted_by" },
+    { "from": "vm-app-01", "to": "esxi-host-01", "relation": "hosted_by" },
+    { "from": "vm-db-01", "to": "esxi-host-01", "relation": "hosted_by" },
+    { "from": "vm-neighbor-01", "to": "esxi-host-01", "relation": "hosted_by" },
+    { "from": "vm-db-01", "to": "datastore-01", "relation": "stored_on" },
+    { "from": "vm-neighbor-01", "to": "datastore-01", "relation": "stored_on" },
+    { "from": "vm-app-01", "to": "datastore-01", "relation": "stored_on" },
+    { "from": "esxi-host-01", "to": "switch-core-01:GigE0/2", "relation": "uplink_to" }
+  ]
+}

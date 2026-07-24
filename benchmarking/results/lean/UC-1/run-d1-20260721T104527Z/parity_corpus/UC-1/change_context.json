@@ -1,0 +1,25 @@
+{
+  "change_near_onset": true,
+  "window_minutes": 30,
+  "incident_start": "2026-07-10T10:00:05Z",
+  "changes_in_window": [
+    {
+      "ts": "2026-07-10T09:50:00Z",
+      "change_type": "config",
+      "ref": "cfg-cpu-share",
+      "ci_id": "esxi-host-01",
+      "summary": "CPU share change near onset",
+      "minutes_before_onset": 10.08
+    },
+    {
+      "ts": "2026-07-10T09:55:00Z",
+      "change_type": "deploy",
+      "ref": "deploy-orders-api-bad",
+      "ci_id": "orders-api",
+      "summary": "Deploy 5 minutes before UC-1 incident_start (inside 30m window)",
+      "minutes_before_onset": 5.08
+    }
+  ],
+  "change_count_in_window": 2,
+  "detect_feature": "change_near_onset"
+}

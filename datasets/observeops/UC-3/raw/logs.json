@@ -1,0 +1,42 @@
+[
+  {
+    "stream": "storage_logs",
+    "ts": "2026-07-10T10:00:05Z",
+    "level": "ERROR",
+    "logger": "storage.latency",
+    "message": "datastore-01 GAVG=45ms DAVG=38ms",
+    "labels": {
+      "ci": "datastore-01"
+    }
+  },
+  {
+    "stream": "vmware_logs",
+    "ts": "2026-07-10T10:00:08Z",
+    "level": "WARN",
+    "logger": "storage.iops",
+    "message": "vm-neighbor-01 saturating datastore-01 with fio-like workload",
+    "labels": {
+      "ci": "vm-neighbor-01"
+    }
+  },
+  {
+    "stream": "vmware_logs",
+    "ts": "2026-07-10T10:00:12Z",
+    "level": "ERROR",
+    "logger": "vmware.disk.latency",
+    "message": "vm-db-01 disk latency spike \u2014 victim of shared datastore",
+    "labels": {
+      "ci": "vm-db-01"
+    }
+  },
+  {
+    "stream": "app_logs",
+    "ts": "2026-07-10T10:00:18Z",
+    "level": "ERROR",
+    "logger": "app.db_slow",
+    "message": "SQL query timeout waiting on datastore-backed volume",
+    "labels": {
+      "ci": "orders-api"
+    }
+  }
+]

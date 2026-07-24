@@ -1,0 +1,99 @@
+{
+  "incident_start": "2026-07-22T10:31:44Z",
+  "anomalies": [
+    {
+      "ci": "np17-irq-affinity",
+      "signal": "irq_affinity_numa_mismatch",
+      "value": 1.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-22T10:31:44Z",
+      "anomaly_class": "infra"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel_rx_queue_latency_ms",
+      "value": 2936.6,
+      "threshold": 10.0,
+      "crossed": true,
+      "timestamp": "2026-07-22T10:31:44Z",
+      "anomaly_class": "infra"
+    },
+    {
+      "ci": "dns-aaaa-np17",
+      "signal": "dns_query_latency_p99_ms",
+      "value": 3359.3,
+      "threshold": 50.0,
+      "crossed": true,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "anomaly_class": "network"
+    },
+    {
+      "ci": "payment-service",
+      "signal": "payment_connection_acquire_ms",
+      "value": 4737.1,
+      "threshold": 100.0,
+      "crossed": true,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "anomaly_class": "app"
+    },
+    {
+      "ci": "payment-provider",
+      "signal": "payment_provider_latency_ms",
+      "value": 17845.2,
+      "threshold": 200.0,
+      "crossed": true,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "anomaly_class": "external",
+      "note": "FALSE LEAD \u2014 only this app's NP-17 pods; provider is healthy for others"
+    },
+    {
+      "ci": "checkout-service",
+      "signal": "checkout_latency_p99_ms",
+      "value": 18779.8,
+      "threshold": 1000.0,
+      "crossed": true,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "anomaly_class": "symptom"
+    },
+    {
+      "ci": "checkout-service",
+      "signal": "checkout_success_rate",
+      "value": 97.2,
+      "threshold": 99.5,
+      "crossed": true,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "anomaly_class": "symptom"
+    },
+    {
+      "ci": "api-gateway",
+      "signal": "api_gateway_error_rate_pct",
+      "value": 48.06,
+      "threshold": 20.0,
+      "crossed": true,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "anomaly_class": "symptom",
+      "note": "api-gateway \u2192 checkout path error escalation"
+    },
+    {
+      "ci": "checkout-service",
+      "signal": "checkout_error_rate_pct",
+      "value": 17.6,
+      "threshold": 5.0,
+      "crossed": true,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "anomaly_class": "symptom",
+      "note": "checkout-service error rate (blast / escalation mid-tier)"
+    },
+    {
+      "ci": "payment-service",
+      "signal": "payment_service_error_rate_pct",
+      "value": 0.2,
+      "threshold": 5.0,
+      "crossed": false,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "anomaly_class": "app",
+      "note": "payment-service HTTP error rate stays low; blast is latency/pool"
+    }
+  ]
+}

@@ -2,7 +2,8 @@
 
 Root-cause analysis research workspace with two pipelines (federated + lean), shared datasets, and benchmarking.
 
-**Documentation:** **[`docs/NAVIGATION.md`](docs/NAVIGATION.md)** — single index for all docs (PoC, learning, pipelines, bakeoff, datasets).
+**Documentation:** **[`docs/NAVIGATION.md`](docs/NAVIGATION.md)** — doc reading path.  
+**Code (newcomers):** **[`docs/CODE_GUIDE.md`](docs/CODE_GUIDE.md)** — folders, data→verdict flow, what to run.
 
 ## Layout
 
@@ -17,13 +18,18 @@ Root-cause analysis research workspace with two pipelines (federated + lean), sh
 | [`federated-pipeline/`](federated-pipeline/) | Panorama → Murphy → Nezha + federated-specific docs (under evaluation) |
 | [`lean-pipeline/`](lean-pipeline/) | Lean engine/API + docs (primary evaluation engine on ObserveOps bakeoffs; ADR-001; not finalized) |
 | [`benchmarking/`](benchmarking/) | Same-corpus bakeoff runners and results |
-| [`benchmarking/dashboard/`](benchmarking/dashboard/) | **Comparative Web UI** — 4 axes, 5 roadblocks, UC + OpenObserve |
+| [`benchmarking/dashboard/`](benchmarking/dashboard/) | **PoC console** — Guide, Samples (manual verify), Conduct, UC bakeoff UI (OO peer hidden) |
 | [`repo_paths.py`](repo_paths.py) | Shared path constants + `sys.path` bootstrap |
 
 ## Quick start
 
 ```bash
-# ObserveOps Lean RCA (evaluation packaging) — SRE report
+# PoC console (best explore / demo surface)
+.venv/bin/python benchmarking/dashboard/server.py
+# → http://127.0.0.1:8765/  (#guide · #samples · #conduct)
+# Full walkthrough: docs/POC_DEMO_GUIDE.md
+
+# ObserveOps Lean RCA — SRE report
 PYTHONPATH=lean-pipeline:. .venv/bin/python -m lean_rca diagnose UC-1 --format report
 
 # HTTP API on :8780
@@ -34,7 +40,7 @@ PYTHONPATH=lean-pipeline:. .venv/bin/python -m lean_rca diagnose UC-1 --format r
 ./benchmarking/benchmark/run_bakeoff.sh
 ```
 
-See [`docs/NAVIGATION.md`](docs/NAVIGATION.md) for the full doc map. Short path: [`docs/POC_BRIEFING.md`](docs/POC_BRIEFING.md) (narrative), [`docs/RCA_WORKFLOW_AND_NEXT.md`](docs/RCA_WORKFLOW_AND_NEXT.md) (current next actions), [`RCA-learning-cheatsheet.md`](RCA-learning-cheatsheet.md) (study + cost PoC plan), [`docs/ADR-001-lean-primary-engine.md`](docs/ADR-001-lean-primary-engine.md), [`benchmarking/README.md`](benchmarking/README.md).
+See [`docs/NAVIGATION.md`](docs/NAVIGATION.md) for the full doc map. Short path: [`docs/CODE_GUIDE.md`](docs/CODE_GUIDE.md) (code), [`docs/POC_DEMO_GUIDE.md`](docs/POC_DEMO_GUIDE.md) (explore/demo), [`docs/POC_BRIEFING.md`](docs/POC_BRIEFING.md) (narrative), [`docs/RCA_WORKFLOW_AND_NEXT.md`](docs/RCA_WORKFLOW_AND_NEXT.md) (current next actions), [`RCA-learning-cheatsheet.md`](RCA-learning-cheatsheet.md) (study + cost PoC plan), [`docs/ADR-001-lean-primary-engine.md`](docs/ADR-001-lean-primary-engine.md), [`benchmarking/README.md`](benchmarking/README.md).
 
 ## Learning UI (federated prototypes)
 

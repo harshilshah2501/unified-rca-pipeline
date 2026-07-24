@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-07-22T12:18:37.465720+00:00",
+  "engine": "federated",
+  "n": 20,
+  "run_prefix": "ecom-repro-v1",
+  "corpus": "/root/Harshil-PoCs/Unified-RCA/datasets/ecom_checkout/incidents",
+  "pack_count": 1,
+  "overall_reproducibility_pct": 0.0,
+  "bit_identical_packs": 0,
+  "definition": "Per pack: run engine N times; SHA-256(verdict.json). pack reproducibility_pct = 100 iff all N hashes identical, else 0. overall = fraction of packs that are bit-identical.",
+  "packs": {
+    "ecom-numa-001": {
+      "runs": 20,
+      "unique_hashes": 2,
+      "reproducibility_pct": 0.0,
+      "bit_identical": false,
+      "hashes": [
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "6a0aa8ad007198f77b825dcc4f305feddd03f1e566a599a749b6aae11760c24f",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "6a0aa8ad007198f77b825dcc4f305feddd03f1e566a599a749b6aae11760c24f",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "6a0aa8ad007198f77b825dcc4f305feddd03f1e566a599a749b6aae11760c24f",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08",
+        "1b816214c792961ba1998378e909cc67beb95a6571c21f68c99ec18729d7ea08"
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "root_ci": "ProductCatalog_dotnet.",
+  "signature": "app_error_rate",
+  "contributor_cis": [],
+  "blast_radius": [
+    "ProductCatalog_dotnet."
+  ],
+  "note": "Motadata APM: ProductCatalog span-derived http.error_rate elevated; host not blamed in this slice.",
+  "tags": [
+    "motadata",
+    "apm",
+    "broaden"
+  ],
+  "fault_bucket": "1_symptom",
+  "fault_type": "error_rate",
+  "fault_title": "ProductCatalog HTTP error rate"
+}

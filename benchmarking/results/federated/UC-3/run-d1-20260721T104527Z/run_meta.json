@@ -1,0 +1,25 @@
+{
+  "uc_id": "UC-3",
+  "run_id": "d1-20260721T104527Z",
+  "corpus": "/root/Harshil-PoCs/Unified-RCA/datasets/observeops",
+  "corpus_version": "1.1.0",
+  "engine": "federated",
+  "fallback_fired": true,
+  "murphy_posterior": 1.0,
+  "latency_ms": 7540.2314,
+  "hop_total_ms": 7539.37,
+  "system_latency_ms": 7541.2771,
+  "detect_source": "shared_threshold",
+  "pipeline_profile": "parity-shared-detect",
+  "detect_latency_ms": 1.0457,
+  "points_scanned": 2022,
+  "series_scanned": 6,
+  "by_anomaly_class": {
+    "performance": 4,
+    "resource": 2
+  },
+  "C_detect_ms": 1.0457,
+  "change_near_onset": false,
+  "change_count_in_window": 0,
+  "fallback_reason": "earliest_onset_upstream:datastore-01"
+}

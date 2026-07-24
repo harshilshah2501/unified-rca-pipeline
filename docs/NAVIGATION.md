@@ -1,185 +1,243 @@
 # Unified RCA — Documentation Navigation
 
-**Start here.** One map for the whole repo. Canonical deep dives stay in linked files; this page is the index only.
+**Start here** if you are opening the repo cold. This page is a **reading path**, not a dump of links. Deep dives stay in the linked files; follow the stages below in order until you have a mental model, then use [Quick routes](#10-quick-routes-lookup) as a lookup.
 
 ---
 
-## Quick routes (pick your goal)
+## Cognitive path (read this first)
 
-| I want to… | Go to |
-|------------|--------|
-| Understand the whole PoC in one read | [`POC_BRIEFING.md`](./POC_BRIEFING.md) |
-| See current status and phases | [`ROADMAP.md`](./ROADMAP.md) |
-| Design **ingestion** (Vector → graphs for RCA) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
-| **Ingestion PoC plan** (hardware + weeks + gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
-| **`ingest.v1` format** / Motadata & UC converters | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
-| Fair Lean vs Federated pipeline (shared detect) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
-| **RCA workflow + next actions** (Ingest→…→Verify) | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) |
-| Vendor landscape survey (PDF) | [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf) · [notes](./RCA_Vendor_Comparison_NOTES.md) |
-| **Fault buckets vs Dynatrace/Datadog** | [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) |
-| Two-step RCA white space (Step 2 path diff) | [`two-step-rca-white-space.md`](./two-step-rca-white-space.md) |
-| Learn Lean vs Federated (study notes) | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) |
-| Run lean diagnose / API | [`../lean-pipeline/README.md`](../lean-pipeline/README.md) |
-| Run bakeoff or read scoreboard | [`../benchmarking/README.md`](../benchmarking/README.md) → [`../benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) |
-| Open comparative dashboard | [`../benchmarking/dashboard/README.md`](../benchmarking/dashboard/README.md) |
-| Evaluate any RCA method fairly | [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) |
-| Resolve terminology drift | [`GLOSSARY.md`](./GLOSSARY.md) |
+```
+What is this? → How does RCA work here? → See it run → What evidence exists?
+      → Shared ingest fabric → Two engines → Code map → Where next? → Lookup
+```
+
+| Stage | Question in your head | Go to |
+|-------|----------------------|--------|
+| **1. Orient** | What does this PoC claim? | §1 below |
+| **2. Workflow** | Ingest → … → Verify — where do we sit? | §2 |
+| **3. Demo** | Can I *see* it without reading every design doc? | §3 |
+| **4. Evidence** | What was measured, on what corpus? | §4 |
+| **5. Ingest** | How does telemetry become RCA-ready? | §5 |
+| **6. Engines** | Lean vs Federated — roles and docs | §6 |
+| **7. Code** | Where is the code, and what do I run? | §7 · [`CODE_GUIDE.md`](./CODE_GUIDE.md) |
+| **8. Depth** | Study notes, PRDs, vendor context | §8 |
+| **9. Next** | What is open *now*? | §9 |
+| **10. Lookup** | I already know what I want | [Quick routes](#10-quick-routes-lookup) |
+
+**One-line product contract:** same incidents, two engines; shared Detect; Lean primary on classic infra; human GT stays authoritative.
 
 ---
 
-## 1) PoC narrative & decisions (common)
+## 1) Orient — what this PoC is
+
+Read these before diving into folders.
+
+| Document | Why first |
+|----------|-----------|
+| [`POC_BRIEFING.md`](./POC_BRIEFING.md) | End-to-end story: objective → design → bakeoff → conclusion (slides / NotebookLM) |
+| [`ROADMAP.md`](./ROADMAP.md) | PoC **journey**: Compare → Deepen → Ship → Transfer → Connect (+ later Federate/Scale) |
+| [`ADR-001-lean-primary-engine.md`](./ADR-001-lean-primary-engine.md) | Lean favored on ObserveOps — **evaluation finding**, not a finalized GTM lock |
+| [`GLOSSARY.md`](./GLOSSARY.md) | Tier namespaces, corpus names, verifiability vs “main-path %” — stop terminology drift early |
+| [`README.md`](./README.md) | Four qualities, five roadblocks, lean vs federated decision guide (long-form) |
+
+**Do not merge scoreboards:** ObserveOps UC bakeoff ≠ OpenObserve peer track ≠ Motadata L1 ≠ e-com checkout scenario. Treat them as separate surfaces.
+
+---
+
+## 2) Workflow — the mental model to keep
+
+Canonical stages (product + PoC):
+
+```
+Ingest → Detect → Localize → Identify → Verify
+```
 
 | Document | Purpose |
 |----------|---------|
-| [`POC_BRIEFING.md`](./POC_BRIEFING.md) | End-to-end briefing (objective → design → bakeoff → conclusion); NotebookLM / slides |
-| [`ROADMAP.md`](./ROADMAP.md) | Phases A–E, milestones, what is done vs deferred |
-| [`ADR-001-lean-primary-engine.md`](./ADR-001-lean-primary-engine.md) | Evaluation finding: lean favored on ObserveOps corpus (**not** a finalized product commitment) |
-| [`README.md`](./README.md) | Four qualities, five roadblocks, **lean vs federated decision guide** (long-form) |
-| [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) | Standard checklist for any RCA method (4 axes + 5 roadblocks + provenance) |
-| [`GLOSSARY.md`](./GLOSSARY.md) | Tier namespaces, corpus names, verifiability vs main-path % |
+| [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) | Workflow stages + stage readiness + **current next** (`LIVE` → `CHANGE`) |
+| [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) | Fair compare: shared Detect, then engines diverge on Localize/Identify |
+| [`two-step-rca-white-space.md`](./two-step-rca-white-space.md) | Vendor gap: Step 1 “where” vs Step 2 “what happened there” (path / signature depth) |
+| [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) | How we score *any* RCA method (4 axes + 5 roadblocks + provenance) |
 
-**Product / algorithm depth (canonical Markdown):**
-
-| Document | Purpose |
-|----------|---------|
-| [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) | Lean PRD (+ Appendix E: Dynatrace/Netdata placement) · [PDF](./Lean_RCA_PRD.pdf) · [DOCX](./Lean_RCA_PRD.docx) |
-| [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md) | Plain-language lean guide · [PDF](./Lean_RCA_Simple_Guide.pdf) · [DOCX](./Lean_RCA_Simple_Guide.docx) |
+Vendor landscape (context, not scoreboard): [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf) · [notes](./RCA_Vendor_Comparison_NOTES.md) · [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) · [`VENDOR_BENCHMARKS.md`](./VENDOR_BENCHMARKS.md)
 
 ---
 
-## 2) Learning & study notes (repo root)
+## 3) See it — demo & PoC console
 
-| Document | Purpose |
-|----------|---------|
-| [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) | **Side-by-side revision** + ingestion cost PoC plan |
-| [`Lean-decoded.md`](../Lean-decoded.md) | Lean study notes ([Implemented] / [Simulated] / [Aspirational]) |
-| [`Federated-decoded.md`](../Federated-decoded.md) | Federated study notes (same tag system) |
-| [`UC_LEARNING_BRAINSTORM.md`](./UC_LEARNING_BRAINSTORM.md) | UC-1..UC-5 + UC-3b learning frames (**not** bakeoff GT) |
+Best cold-start surface after you know the five stages.
 
-**Visual simulation (sub-step guides):**
+| Document / surface | Purpose |
+|--------------------|---------|
+| [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md) | Walkthrough: console hashes, 15–20 min demo script, bakeoff / Motadata / lab commands |
+| [`../benchmarking/dashboard/README.md`](../benchmarking/dashboard/README.md) | PoC console — `http://127.0.0.1:8765/` |
 
-| Engine | Guide |
-|--------|--------|
-| Lean | [`../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md`](../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md) |
-| Federated | [`../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md`](../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md) |
+Suggested console order: `#guide` (pipeline widget) → `#samples` (manual verify) → `#conduct` / `#overview` / `#verdict`.
+
+```bash
+.venv/bin/python benchmarking/dashboard/server.py
+# → http://127.0.0.1:8765/
+```
 
 ---
 
-## 3) Corpus & use-cases
+## 4) Evidence — corpora, bakeoffs, results
+
+Understand **what** was measured before reading engine internals.
+
+### Corpora
 
 | Document | Purpose |
 |----------|---------|
 | [`rca-use-cases-only.md`](./rca-use-cases-only.md) | **Sole ObserveOps eval spec** (UC-1..UC-5, UC-3b, events schema) |
-| [`../datasets/observeops/README.md`](../datasets/observeops/README.md) | Frozen bundle layout, v1.1.0, workflow |
+| [`../datasets/observeops/README.md`](../datasets/observeops/README.md) | Frozen bundle layout (v1.1.0) |
 | [`../datasets/observeops/COMPARISON_BENCHMARK.md`](../datasets/observeops/COMPARISON_BENCHMARK.md) | Bakeoff metric contract |
 | [`../datasets/README.md`](../datasets/README.md) | Dataset area overview |
-| [`../datasets/ingest_samples/README.md`](../datasets/ingest_samples/README.md) | **Ingest streams** — ObserveOps replay + Motadata (local dumps) |
-| [`../ingestion-poc/adapters/README.md`](../ingestion-poc/adapters/README.md) | Motadata → `ingest.v1` adapter |
-| [`../datasets/openobserve_incidents/README.md`](../datasets/openobserve_incidents/README.md) | OpenObserve incident corpus (separate from ObserveOps UC) |
+| [`../datasets/ingest_samples/README.md`](../datasets/ingest_samples/README.md) | Ingest streams — ObserveOps replay + Motadata (local dumps) |
+| [`../datasets/openobserve_incidents/README.md`](../datasets/openobserve_incidents/README.md) | OpenObserve corpus (**separate** from ObserveOps UC) |
 | [`../datasets/openobserve_incidents/v1/ground_truth/README.md`](../datasets/openobserve_incidents/v1/ground_truth/README.md) | Option B GT convention |
+| [`../datasets/scenario.md`](../datasets/scenario.md) | E-com cross-NUMA checkout scenario (design + Postgres dump) |
+| [`ECOM_CHECKOUT_RCA_ANALYSIS.md`](./ECOM_CHECKOUT_RCA_ANALYSIS.md) | **Lean vs Federated write-up** for `ecom-numa-001` |
 
-Symlinks: [`../rca-use-cases-only.md`](../rca-use-cases-only.md), [`../ROADMAP.md`](../ROADMAP.md) → this folder.
-
----
-
-## 4) Benchmarking & results
+### Benchmarking & scoreboards
 
 | Document | Purpose |
 |----------|---------|
 | [`../benchmarking/README.md`](../benchmarking/README.md) | Runners, two corpora, how to reproduce |
-| [`../benchmarking/benchmark/TASKS.md`](../benchmarking/benchmark/TASKS.md) | ObserveOps benchmark task status |
-| [`../benchmarking/benchmark/AGENTS.md`](../benchmarking/benchmark/AGENTS.md) | Agent continuation notes |
-| [`../benchmarking/benchmark/FULLFLEDGED.md`](../benchmarking/benchmark/FULLFLEDGED.md) | Full-fledged benchmark checklist |
-
-**ObserveOps UC bakeoff (canonical: `bakeoff-phase-b-002`):**
-
-| Document | Purpose |
-|----------|---------|
-| [`../benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) | **Scoreboard** |
+| [`../benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) | **ObserveOps scoreboard** (cite `bakeoff-phase-b-002`) |
 | [`../benchmarking/results/comparison/DECISION.md`](../benchmarking/results/comparison/DECISION.md) | Decision memo |
 | [`../benchmarking/results/comparison/RUN_IDS.md`](../benchmarking/results/comparison/RUN_IDS.md) | Which run IDs to cite vs ignore |
+| [`../benchmarking/results/openobserve/COMPARISON.md`](../benchmarking/results/openobserve/COMPARISON.md) | OO peer agreement — do **not** merge with UC 5/5 |
+| [`../_adhoc/ecom-gold-report-compare/COMPARISON.md`](../_adhoc/ecom-gold-report-compare/COMPARISON.md) | E-com pack scoreboard (ad-hoc) — analysis in [`ECOM_CHECKOUT_RCA_ANALYSIS.md`](./ECOM_CHECKOUT_RCA_ANALYSIS.md) |
+| [`../benchmarking/results/costing/cost-pro6000-20260721Tfinal/cost_report.md`](../benchmarking/results/costing/cost-pro6000-20260721Tfinal/cost_report.md) | L0 vs F1 cost / EPS (pro6000) |
 
-**OpenObserve (do not merge with ObserveOps 5/5):**
+Task trackers (optional): [`TASKS.md`](../benchmarking/benchmark/TASKS.md) · [`AGENTS.md`](../benchmarking/benchmark/AGENTS.md) · [`FULLFLEDGED.md`](../benchmarking/benchmark/FULLFLEDGED.md)
 
-| Document | Purpose |
-|----------|---------|
-| [`../benchmarking/results/openobserve/COMPARISON.md`](../benchmarking/results/openobserve/COMPARISON.md) | Peer agreement (Lean · Fed · OpenObserve) |
-| [`../benchmarking/results/openobserve/GT_SCOREBOARD.md`](../benchmarking/results/openobserve/GT_SCOREBOARD.md) | Option B accuracy |
-| [`../benchmarking/results/openobserve/ENGINE_SCOREBOARD.md`](../benchmarking/results/openobserve/ENGINE_SCOREBOARD.md) | Engine-pack bakeoff |
-| [`../benchmarking/results/openobserve/GT_ANALYSIS.md`](../benchmarking/results/openobserve/GT_ANALYSIS.md) | GT methodology write-up |
-
-**Dashboard:** [`../benchmarking/dashboard/README.md`](../benchmarking/dashboard/README.md) · serve on `:8765`
+Symlinks at repo root: [`../rca-use-cases-only.md`](../rca-use-cases-only.md), [`../ROADMAP.md`](../ROADMAP.md) → this folder.
 
 ---
 
-## 5) Lean pipeline
+## 5) Ingest — telemetry → RCA-ready artifacts
 
-| Document | Purpose |
-|----------|---------|
-| [`../lean-pipeline/README.md`](../lean-pipeline/README.md) | CLI, HTTP API, layout, quick commands |
-| [`../lean-pipeline/docs/README.md`](../lean-pipeline/docs/README.md) | Doc index for lean tree |
-| [`../lean-pipeline/docs/ARCHITECTURE.md`](../lean-pipeline/docs/ARCHITECTURE.md) | Architecture, workflow, components |
-| [`../lean-pipeline/docs/LIMITATIONS_AND_FUTURE.md`](../lean-pipeline/docs/LIMITATIONS_AND_FUTURE.md) | Limits, non-goals, deferred work |
-| [`../lean-pipeline/core_engine/observeops/README.md`](../lean-pipeline/core_engine/observeops/README.md) | Engine-local quick reference |
-| [`../lean-pipeline/deploy/README.md`](../lean-pipeline/deploy/README.md) | systemd / deploy |
-
----
-
-## 6) Federated pipeline
-
-| Document | Purpose |
-|----------|---------|
-| [`../federated-pipeline/README.md`](../federated-pipeline/README.md) | Repo layout, learning UI |
-| [`../federated-pipeline/docs/README.md`](../federated-pipeline/docs/README.md) | Doc index for federated tree |
-| [`../federated-pipeline/docs/ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md) | Panorama → Murphy → Nezha architecture |
-| [`../federated-pipeline/docs/ORCHESTRATOR.md`](../federated-pipeline/docs/ORCHESTRATOR.md) | Hop contracts, fusion, open decisions |
-| [`../federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) | Speed vs structural tier **design vision** |
-| [`../federated-pipeline/docs/CAPACITY.md`](../federated-pipeline/docs/CAPACITY.md) | PoC EPS measurements |
-| [`../federated-pipeline/docs/REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md) | Federated PoC goals / status |
-| [`../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md`](../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md) | Limits, Phase C/E deferrals |
-| [`../federated-pipeline/docs/ARCHITECTURE_RATIONALE.md`](../federated-pipeline/docs/ARCHITECTURE_RATIONALE.md) | Novelty / paper gaps |
-
-**Algorithm dissections:**
-
-| Algorithm | Doc |
-|-----------|-----|
-| Panorama | [`../federated-pipeline/docs/dissections/Panorama_dissection.md`](../federated-pipeline/docs/dissections/Panorama_dissection.md) |
-| Murphy | [`../federated-pipeline/docs/dissections/Murphy_dissection.md`](../federated-pipeline/docs/dissections/Murphy_dissection.md) |
-| Nezha | [`../federated-pipeline/docs/dissections/Nezha-dissection.md`](../federated-pipeline/docs/dissections/Nezha-dissection.md) |
-| Papers (PDFs) | [`../federated-pipeline/docs/papers/README.md`](../federated-pipeline/docs/papers/README.md) |
-
-**Upstream algorithm READMEs:** [`murphy/`](../federated-pipeline/murphy/README.md) · [`Nezha/`](../federated-pipeline/Nezha/README.md) · [`panorama/`](../federated-pipeline/panorama/README.md)
-
----
-
-## 7) Ingestion vs RCA (conceptual boundary)
+Conceptual boundary: **ingestion is not RCA**. Shared fabric feeds both engines.
 
 | Topic | Where |
 |-------|--------|
-| **Vector ingestion design** (shared fabric → Lean / Federated artifacts) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
-| **Ingestion PoC plan** (M1–M3, hardware, weekly checklist) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
-| **Ingest data format** (what to provide: logs/metrics/traces) | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
-| **RCA workflow + next actions** | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) |
-| **Federated justification report** (data gates template) | [`FEDERATED_JUSTIFICATION_REPORT.md`](./FEDERATED_JUSTIFICATION_REPORT.md) |
-| **Pipeline parity** (shared detect → diverge on RCA) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
-| Shared threshold detector | [`../ingestion-poc/detect/`](../ingestion-poc/detect/) |
-| Skeleton configs (L0 lean-only / F1 dual-sink) | [`../ingestion-poc/vector/`](../ingestion-poc/vector/) |
-| ObserveOps → `ingest.v1` replay | [`../ingestion-poc/replay/`](../ingestion-poc/replay/) → [`../datasets/ingest_samples/observeops-replay/`](../datasets/ingest_samples/observeops-replay/) |
-| Motadata → `ingest.v1` adapter (smoke done; dumps local) | [`../ingestion-poc/adapters/`](../ingestion-poc/adapters/) → [`../datasets/ingest_samples/`](../datasets/ingest_samples/) |
-| **F1 smoke** (sinks + shared detect) | [`../ingestion-poc/pipeline/f1_run.py`](../ingestion-poc/pipeline/f1_run.py) |
-| **N4/N5 writers** (Federated stores + Lean bundles) | [`../ingestion-poc/builders/`](../ingestion-poc/builders/) |
-| Bakeoff still uses **frozen ObserveOps bundles**; ingest PoC adds normalized streams | [`../datasets/observeops/README.md`](../datasets/observeops/README.md), [`Federated-decoded.md`](../Federated-decoded.md) §11, [`Lean-decoded.md`](../Lean-decoded.md) §4 |
-| Federated ingest vision (Phase C deferred) | [`../federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md), [`LIMITATIONS_AND_FUTURE.md`](../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
-| **Ingestion cost comparison PoC** (active) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) · cheatsheet §3 |
-| **Learning links** (algorithms / papers / ingest primers) | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1d |
+| Vector design (shared fabric → Lean / Federated artifacts) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
+| PoC plan (M1–M3, hardware, weekly gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
+| `ingest.v1` contract + converters | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
+| Motadata → `ingest.v1` adapter | [`../ingestion-poc/adapters/`](../ingestion-poc/adapters/) |
+| Shared threshold Detect | [`../ingestion-poc/detect/`](../ingestion-poc/detect/) |
+| Vector skeletons (L0 / F1) | [`../ingestion-poc/vector/`](../ingestion-poc/vector/) |
+| ObserveOps → `ingest.v1` replay | [`../ingestion-poc/replay/`](../ingestion-poc/replay/) |
+| F1 smoke (sinks + shared detect) | [`../ingestion-poc/pipeline/f1_run.py`](../ingestion-poc/pipeline/f1_run.py) |
+| N4/N5 writers (Fed stores + Lean bundles) | [`../ingestion-poc/builders/`](../ingestion-poc/builders/) |
+| Federated justification / data gates | [`FEDERATED_JUSTIFICATION_REPORT.md`](./FEDERATED_JUSTIFICATION_REPORT.md) |
+
+**Status snapshot:** Motadata L1 **7/7** · pro6000 cost/soak · Samples — details in [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md).
 
 ---
 
-## 8) Historical / archive (do not use for current status)
+## 6) Engines — Lean (primary) & Federated (comparator)
 
-| Document | Note |
-|----------|------|
-| [`../lean-pipeline/docs/lean_rca_prd_insights_ae5f991e.plan.md`](../lean-pipeline/docs/lean_rca_prd_insights_ae5f991e.plan.md) | Early PRD plan — superseded by ROADMAP + ARCHITECTURE |
+### Lean
+
+| Document | Purpose |
+|----------|---------|
+| [`../lean-pipeline/README.md`](../lean-pipeline/README.md) | CLI, HTTP API, quick commands |
+| [`../lean-pipeline/docs/ARCHITECTURE.md`](../lean-pipeline/docs/ARCHITECTURE.md) | Architecture & workflow |
+| [`../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md`](../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md) | Visual simulation of tiers |
+| [`../lean-pipeline/docs/LIMITATIONS_AND_FUTURE.md`](../lean-pipeline/docs/LIMITATIONS_AND_FUTURE.md) | Limits & deferred work |
+| [`../lean-pipeline/docs/README.md`](../lean-pipeline/docs/README.md) | Lean doc index |
+| [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) | Product requirements · [PDF](./Lean_RCA_PRD.pdf) · [DOCX](./Lean_RCA_PRD.docx) |
+| [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md) | Plain-language guide · [PDF](./Lean_RCA_Simple_Guide.pdf) · [DOCX](./Lean_RCA_Simple_Guide.docx) |
+
+### Federated
+
+| Document | Purpose |
+|----------|---------|
+| [`../federated-pipeline/README.md`](../federated-pipeline/README.md) | Layout, learning UI |
+| [`../federated-pipeline/docs/ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md) | Panorama → Murphy → Nezha |
+| [`../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md`](../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md) | Visual simulation |
+| [`../federated-pipeline/docs/ORCHESTRATOR.md`](../federated-pipeline/docs/ORCHESTRATOR.md) | Hop contracts, fusion |
+| [`../federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) | Speed vs structural tier (design vision) |
+| [`../federated-pipeline/docs/CAPACITY.md`](../federated-pipeline/docs/CAPACITY.md) | PoC EPS measurements |
+| [`../federated-pipeline/docs/README.md`](../federated-pipeline/docs/README.md) | Federated doc index |
+
+**Algorithm dissections:** [Panorama](../federated-pipeline/docs/dissections/Panorama_dissection.md) · [Murphy](../federated-pipeline/docs/dissections/Murphy_dissection.md) · [Nezha](../federated-pipeline/docs/dissections/Nezha-dissection.md) · [papers](../federated-pipeline/docs/papers/README.md)
+
+Upstream READMEs: [`murphy/`](../federated-pipeline/murphy/README.md) · [`Nezha/`](../federated-pipeline/Nezha/README.md) · [`panorama/`](../federated-pipeline/panorama/README.md)
+
+Also useful: [`REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md) · [`LIMITATIONS_AND_FUTURE.md`](../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md) · [`ARCHITECTURE_RATIONALE.md`](../federated-pipeline/docs/ARCHITECTURE_RATIONALE.md)
+
+---
+
+## 7) Code — where to look and what to run
+
+Newcomers who will *change or run* code: start here after §§1–3 (or jump straight if you already know the product story).
+
+| Document | Purpose |
+|----------|---------|
+| [`CODE_GUIDE.md`](./CODE_GUIDE.md) | **Code map** — folders, data→verdict flow, first-5 files per area, task recipes, env, pitfalls |
+
+Area READMEs (after the guide): [`lean-pipeline/README.md`](../lean-pipeline/README.md) · [`federated-pipeline/README.md`](../federated-pipeline/README.md) · [`benchmarking/README.md`](../benchmarking/README.md) · [`ingestion-poc/*/README.md`](../ingestion-poc/)
+
+---
+
+## 8) Depth — learning & study notes
+
+After the path above, these fill algorithm intuition (not status).
+
+| Document | Purpose |
+|----------|---------|
+| [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) | Side-by-side revision + ingest cost PoC notes |
+| [`Lean-decoded.md`](../Lean-decoded.md) | Lean study notes (`[Implemented]` / `[Simulated]` / `[Aspirational]`) |
+| [`Federated-decoded.md`](../Federated-decoded.md) | Federated study notes (same tags) |
+| [`UC_LEARNING_BRAINSTORM.md`](./UC_LEARNING_BRAINSTORM.md) | UC learning frames — **not** bakeoff GT |
+
+---
+
+## 9) Where next
+
+| Document | Purpose |
+|----------|---------|
+| [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) §3 | **`LIVE`** (runbook ready — execute next week) → **`CHANGE`** · Motadata Bucket-3 `motadata-deps-001` authored |
+
+Parked / stretch (same doc): gray-failure Panorama corpus, I2 path-diff, V1 maintain-only.
+
+Also: [`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md) · [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md) · Lean/Fed/OO UC compare [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md)
+
+---
+
+## 10) Quick routes (lookup)
+
+Use this **after** you have the map — or when you already know the goal.
+
+| I want to… | Go to |
+|------------|--------|
+| **Understand the code layout** | [`CODE_GUIDE.md`](./CODE_GUIDE.md) |
+| Explore / demo the PoC | [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md) |
+| Understand the whole PoC in one read | [`POC_BRIEFING.md`](./POC_BRIEFING.md) |
+| See current status and phases | [`ROADMAP.md`](./ROADMAP.md) (journey stages) |
+| RCA workflow + next actions | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) |
+| **LIVE ingest runbook** | [`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md) |
+| **OO UC fairness checklist** | [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md) |
+| Lean × Fed × OO UC compare | [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) |
+| Design ingestion (Vector → graphs) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
+| Ingestion PoC plan (hardware + gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
+| `ingest.v1` format / converters | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
+| Fair Lean vs Federated (shared Detect) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
+| Fault buckets vs Dynatrace/Datadog | [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) · [`fault_taxonomy.py`](../benchmarking/benchmark/fault_taxonomy.py) |
+| Vendor RCA public eval (DD/DT) | [`VENDOR_BENCHMARKS.md`](./VENDOR_BENCHMARKS.md) |
+| L0 vs F1 cost report (pro6000) | [`cost_report.md`](../benchmarking/results/costing/cost-pro6000-20260721Tfinal/cost_report.md) |
+| Two-step RCA white space | [`two-step-rca-white-space.md`](./two-step-rca-white-space.md) |
+| Learn Lean vs Federated | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) |
+| Run lean diagnose / API | [`../lean-pipeline/README.md`](../lean-pipeline/README.md) |
+| Run bakeoff / scoreboard | [`../benchmarking/README.md`](../benchmarking/README.md) → [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) |
+| Open PoC console | [`dashboard/README.md`](../benchmarking/dashboard/README.md) → `:8765` (`#guide` · `#samples` · `#conduct`) |
+| Evaluate any RCA method fairly | [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) |
+| Resolve terminology drift | [`GLOSSARY.md`](./GLOSSARY.md) |
+| Vendor landscape survey (PDF) | [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf) · [notes](./RCA_Vendor_Comparison_NOTES.md) |
 
 ---
 
@@ -187,7 +245,8 @@ Symlinks: [`../rca-use-cases-only.md`](../rca-use-cases-only.md), [`../ROADMAP.m
 
 ```
 Unified-RCA/
-├── docs/NAVIGATION.md          ← you are here
+├── docs/NAVIGATION.md          ← you are here (doc path)
+├── docs/CODE_GUIDE.md          ← code path for newcomers
 ├── docs/                       ← common PoC docs
 ├── Lean-decoded.md             ← study notes
 ├── Federated-decoded.md
@@ -208,8 +267,14 @@ Unified-RCA/
 
 - **Canonical scoreboard:** `bakeoff-phase-b-002` → [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md)
 - **Corpus v1.1.0:** UC-3b + `events.json` on UC-2/4/3b
-- **Verdict phrase:** primary **evaluation** engine on ObserveOps corpus; **not** a finalized GTM commitment
+- **Verdict phrase:** primary **evaluation** engine on ObserveOps; **not** a finalized GTM commitment
 - **Two corpora:** ObserveOps UC vs OpenObserve — **never merge** accuracy headlines
-- **Ingest progress:** Motadata dumps stay local (gitignored); next is Vector F1 — [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md)
+- **Ingest progress:** Motadata L1 **7/7** · cost_report · Samples — [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) · [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md)
 
-*Last indexed: 2026-07-21 (N4–N5 + fault buckets)*
+### Historical / archive (do not use for current status)
+
+| Document | Note |
+|----------|------|
+| [`lean_rca_prd_insights_ae5f991e.plan.md`](../lean-pipeline/docs/lean_rca_prd_insights_ae5f991e.plan.md) | Early PRD plan — superseded by ROADMAP + ARCHITECTURE |
+
+*Last indexed: 2026-07-24 (LIVE runbook · OO fairness · Motadata deps-001 Bucket-3)*

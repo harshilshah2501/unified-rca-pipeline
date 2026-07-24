@@ -1,0 +1,32 @@
+{
+  "incident_start": "2026-07-21T02:59:38Z",
+  "anomalies": [
+    {
+      "ci": "proxmox-ve-129",
+      "signal": "ping.latency.ms",
+      "value": 190.0,
+      "threshold": 100.0,
+      "crossed": true,
+      "timestamp": "2026-07-21T02:59:38Z",
+      "anomaly_class": "performance"
+    },
+    {
+      "ci": "proxmox-ve-129",
+      "signal": "ping.max.latency.ms",
+      "value": 568.0,
+      "threshold": 200.0,
+      "crossed": true,
+      "timestamp": "2026-07-21T02:59:38Z",
+      "anomaly_class": "performance"
+    },
+    {
+      "ci": "proxmox-ve-129",
+      "signal": "ping.packet.lost.percent",
+      "value": 33.0,
+      "threshold": 5.0,
+      "crossed": true,
+      "timestamp": "2026-07-21T05:15:38Z",
+      "anomaly_class": "network"
+    }
+  ]
+}

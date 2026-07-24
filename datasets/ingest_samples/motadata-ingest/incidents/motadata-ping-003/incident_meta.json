@@ -1,0 +1,36 @@
+{
+  "incident_id": "motadata-ping-003",
+  "anomaly_count": 3,
+  "by_anomaly_class": {
+    "performance": 2,
+    "network": 1
+  },
+  "symptom_seed": {
+    "ci": "proxmox-ve-129",
+    "signal": "ping.packet.lost.percent",
+    "timestamp": "2026-07-21T05:15:38Z",
+    "anomaly_class": "network"
+  },
+  "ground_truth_root_ci": "proxmox-ve-129",
+  "ground_truth_signature": "ping_degradation",
+  "detect": {
+    "detect_source": "shared_threshold",
+    "pipeline_profile": "parity-shared-detect",
+    "detect_latency_ms": 0.3417,
+    "points_scanned": 46,
+    "series_scanned": 3,
+    "by_anomaly_class": {
+      "performance": 2,
+      "network": 1
+    }
+  },
+  "stream_rows": 46,
+  "diagnose": {
+    "incident_id": "motadata-ping-003",
+    "root_ci": "proxmox-ve-129",
+    "signature": "ping_degradation",
+    "root_match": true,
+    "signature_match": true,
+    "pass": true
+  }
+}

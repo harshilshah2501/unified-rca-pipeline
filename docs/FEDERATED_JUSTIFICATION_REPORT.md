@@ -126,7 +126,7 @@ cost_per_correct = system_total_cost / correct_diagnoses
 ## 10. Artifacts to attach
 
 - [ ] `comparison.json` / COMPARISON.md for microservice run id
-- [ ] `cost_report.md` (L0 vs F1)
+- [x] `cost_report.md` (L0 vs F1) — [`cost-pro6000-20260721Tfinal`](../benchmarking/results/costing/cost-pro6000-20260721Tfinal/)
 - [ ] `hop_logs.json` per incident (Federated)
 - [ ] `run_meta.json` (detect + RCA timings both engines)
 - [ ] Ingest manifest: [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) compliance checklist

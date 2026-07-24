@@ -1,0 +1,12 @@
+{
+  "root_ci": "datastore-01",
+  "signature": "storage_contention",
+  "contributor_cis": [
+    "vm-neighbor-01"
+  ],
+  "blast_radius": [
+    "vm-db-01",
+    "guest-os-vm-db-01",
+    "orders-api"
+  ]
+}

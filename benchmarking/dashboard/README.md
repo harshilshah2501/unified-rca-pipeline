@@ -1,37 +1,46 @@
-# Comparative evaluation dashboard
+# Comparative evaluation + PoC console
 
-Static Web UI for comparative evaluation across **corpora** (ObserveOps UC · OpenObserve 29) and **engines** (Lean · Federated). OpenObserve platform narrative is a third *method* on the peer track.
+Static Web UI for **ObserveOps UC** and **Motadata** bakeoffs (Lean · Federated), plus a **PoC Conduct** control plane to run Motadata broaden, UC bakeoff, lab EPS, and Motadata L1.
 
-1. **UC-1..UC-5** — designed GT bakeoff (Lean vs Federated): Accuracy, Repro, Verifiability, Efficiency
-2. **OpenObserve 29** — peer agreement (Lean · Federated · OpenObserve); Option B convention Accuracy
-3. **OpenObserve engine-pack bakeoff** — Lean vs Federated real engine runs on projected packs (wired to dashboard KPIs from `results/openobserve/engine_scoreboard.json`)
+1. **Guide** — newcomer overview + interactive ingest / Lean·Federated pipeline widget
+2. **Samples** — manual-verify strip (fault buckets · GT vs Lean vs Fed)
+3. **PoC Conduct** — status rail + run jobs + live logs (requires `server.py`)
+4. **Overview** — UC / Motadata L1 / lab EPS KPIs
+5. **4 Axes · 5 Roadblocks · UC Bakeoff · Verdict** — comparative evaluation panels
 
-## Serve
+Motadata L1 is a **Conduct job** and Overview KPI (not a separate TOC section).
 
-**systemd (preferred):**
+OpenObserve peer / Option B metrics are **out of scope** for this PoC console (DOM retained but CSS-hidden; not part of the Motadata ingest story).
+
+**Walkthrough:** [`../../docs/POC_DEMO_GUIDE.md`](../../docs/POC_DEMO_GUIDE.md)
+
+## Serve (control plane)
+
+**systemd (preferred — starts on boot):**
 
 ```bash
+sudo cp benchmarking/dashboard/deploy/unified-rca-dashboard.service \
+  /etc/systemd/system/unified-rca-dashboard.service
+sudo systemctl daemon-reload
 sudo systemctl enable --now unified-rca-dashboard.service
 # open http://127.0.0.1:8765/
-sudo systemctl restart unified-rca-dashboard.service   # after rebuild
+sudo systemctl restart unified-rca-dashboard.service   # after code updates
 ```
 
 **Ad-hoc:**
 
 ```bash
-cd benchmarking/dashboard
-python3 -m http.server 8765
+# From repo root — binds 127.0.0.1:8765
+.venv/bin/python benchmarking/dashboard/server.py
 # open http://127.0.0.1:8765/
 ```
 
-## Refresh data
+Optional env:
 
-```bash
-python3 benchmarking/benchmark/compare_openobserve.py
-python3 benchmarking/benchmark/score_openobserve_gt.py   # Option B heuristic Accuracy
-python3 benchmarking/benchmark/project_oo_engine_packs.py
-.venv/bin/python benchmarking/benchmark/run_oo_engine_bakeoff.py
-python3 benchmarking/benchmark/score_oo_engine_bakeoff.py
-python3 benchmarking/dashboard/build_data.py
-sudo systemctl restart unified-rca-dashboard.service
-```
+| Var | Meaning |
+|-----|---------|
+| `POC_DASHBOARD_TOKEN` | If set, require `X-PoC-Token` (or `?token=`) |
+| `POC_SSH_HOST` | Default `pro6000-server` |
+| `POC_REMOTE_REPO` | Default `/home/harshil/Projects/Unified-RCA` |
+
+**API:** `GET /api/status` · `POST /api/jobs` · `GET /api/jobs/{id}/log` (SSE) · `GET /api/results/{motadata\|lab\|uc}`

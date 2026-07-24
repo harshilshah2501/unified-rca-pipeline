@@ -4,18 +4,215 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 UC = REPO / "benchmarking" / "results" / "comparison" / "comparison.json"
+MOTADATA = REPO / "benchmarking" / "results" / "motadata" / "comparison.json"
 OO = REPO / "benchmarking" / "results" / "openobserve" / "comparison.json"
 OO_GT = REPO / "benchmarking" / "results" / "openobserve" / "gt_scoreboard.json"
 OO_ENGINE = REPO / "benchmarking" / "results" / "openobserve" / "engine_scoreboard.json"
 OUT = REPO / "benchmarking" / "dashboard" / "data.json"
+OBSERVEOPS = REPO / "datasets" / "observeops"
+MOTADATA_INCIDENTS = (
+    REPO / "datasets" / "ingest_samples" / "motadata-ingest" / "incidents"
+)
+LEAN_RESULTS = REPO / "benchmarking" / "results" / "lean"
+
+sys.path.insert(0, str(REPO / "benchmarking" / "benchmark"))
+from fault_taxonomy import BUCKET_LABELS, resolve_taxonomy  # noqa: E402
+
+
+def _read_json(path: Path) -> dict | None:
+    if not path.is_file():
+        return None
+    try:
+        return json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _latest_lean_verdict(sample_id: str, corpus: str) -> dict | None:
+    """Prefer newest lean verdict.json for this pack."""
+    if corpus == "motadata":
+        base = LEAN_RESULTS / "motadata" / sample_id
+    else:
+        base = LEAN_RESULTS / sample_id
+    if not base.is_dir():
+        return None
+    verdicts = sorted(base.glob("run-*/verdict.json"), key=lambda p: p.stat().st_mtime)
+    return _read_json(verdicts[-1]) if verdicts else None
+
+
+def _pack_dir(sample_id: str, corpus: str) -> Path | None:
+    if corpus == "motadata":
+        p = MOTADATA_INCIDENTS / sample_id
+    else:
+        p = OBSERVEOPS / sample_id
+    return p if p.is_dir() else None
+
+
+def _fmt_evidence_line(ev: dict) -> str:
+    ci = ev.get("ci") or "?"
+    signal = ev.get("signal") or "?"
+    val = ev.get("value")
+    ts = (ev.get("timestamp") or "")[:19]
+    src = ev.get("source") or ""
+    extra = f" = {val}" if val is not None else ""
+    tail = f" @ {ts}" if ts else ""
+    src_s = f" ({src})" if src else ""
+    return f"{ci} · {signal}{extra}{tail}{src_s}"
+
+
+def _review_bundle(sample_id: str, corpus: str, gt: dict) -> dict:
+    """Seed + anomalies + Lean evidence for the Samples detail panel."""
+    pack = _pack_dir(sample_id, corpus)
+    seed = _read_json(pack / "symptom_seed.json") if pack else None
+    anomalies_doc = _read_json(pack / "anomalies.json") if pack else None
+    pack_gt = _read_json(pack / "ground_truth.json") if pack else None
+    # Prefer live pack GT for status/note (comparison JSON may be a slim copy)
+    merged_gt = {**(gt or {}), **(pack_gt or {})}
+    anoms = list((anomalies_doc or {}).get("anomalies") or [])[:8]
+    verdict = _latest_lean_verdict(sample_id, corpus) or {}
+    evidence = list(verdict.get("evidence") or [])[:5]
+    if not evidence and anoms:
+        evidence = [
+            {
+                "ci": a.get("ci"),
+                "signal": a.get("signal"),
+                "value": a.get("value"),
+                "timestamp": a.get("timestamp"),
+                "source": "anomaly",
+            }
+            for a in anoms[:5]
+        ]
+    seed_line = None
+    if seed:
+        seed_line = (
+            f"{seed.get('ci')} · {seed.get('signal')} "
+            f"@ {(seed.get('timestamp') or '')[:19]} "
+            f"[{seed.get('anomaly_class') or '?'}]"
+        ).strip()
+    return {
+        "seed_line": seed_line,
+        "seed": seed,
+        "anomaly_lines": [
+            f"{a.get('ci')} · {a.get('signal')} = {a.get('value')} "
+            f"(thr {a.get('threshold')}) @ {(a.get('timestamp') or '')[:19]}"
+            for a in anoms
+        ],
+        "evidence_lines": [_fmt_evidence_line(e) for e in evidence],
+        "causal_chain": list(verdict.get("causal_chain") or [])[:6],
+        "evidentiary_tier": verdict.get("evidentiary_tier"),
+        "gt_note": merged_gt.get("note"),
+        "gt_status": merged_gt.get("gt_status"),
+    }
+
+
+def _sample_row(
+    *,
+    sample_id: str,
+    corpus: str,
+    gt: dict,
+    lean: dict | None,
+    fed: dict | None,
+    winner: str | None,
+) -> dict:
+    sig = (gt or {}).get("signature")
+    tax = resolve_taxonomy(sample_id, signature=sig)
+    lean = lean or {}
+    fed = fed or {}
+    lean_ok = bool(lean.get("root_match")) and bool(
+        lean.get("signature_match") or lean.get("status") == "pass"
+    )
+    # UC rows use status=pass; prefer explicit matches when present
+    if "root_match" in lean:
+        lean_ok = bool(lean.get("root_match") and lean.get("signature_match"))
+    fed_ok = False
+    if fed:
+        if "root_match" in fed:
+            fed_ok = bool(fed.get("root_match") and fed.get("signature_match"))
+        else:
+            fed_ok = fed.get("status") == "pass"
+    review = _review_bundle(sample_id, corpus, gt or {})
+    return {
+        "id": sample_id,
+        "corpus": corpus,
+        "fault_bucket": tax["fault_bucket"],
+        "fault_bucket_label": tax["fault_bucket_label"],
+        "fault_type": tax["fault_type"],
+        "fault_title": tax["fault_title"],
+        "gt_root": (gt or {}).get("root_ci"),
+        "gt_sig": sig,
+        "lean_root": lean.get("root_ci"),
+        "lean_sig": lean.get("signature"),
+        "lean_ok": lean_ok,
+        "fed_root": fed.get("root_ci"),
+        "fed_sig": fed.get("signature"),
+        "fed_ok": fed_ok,
+        "winner": winner,
+        "review": review,
+        "manual_check": [
+            "Confirm symptom seed CI matches the blast you expect "
+            "(see Seed below)",
+            f"Lean root `{lean.get('root_ci')}` vs GT `{gt.get('root_ci')}`",
+            f"Signature `{lean.get('signature')}` vs GT `{sig}`",
+            "Skim evidence lines below (Lean verdict / anomalies)",
+        ],
+    }
+
+
+def build_samples(uc: dict, motadata: dict | None) -> dict:
+    rows: list[dict] = []
+    for r in uc.get("rows") or []:
+        uid = r.get("uc_id")
+        if not uid:
+            continue
+        rows.append(
+            _sample_row(
+                sample_id=uid,
+                corpus="observeops",
+                gt=r.get("ground_truth") or {},
+                lean=r.get("lean"),
+                fed=r.get("federated"),
+                winner=r.get("winner"),
+            )
+        )
+    if motadata:
+        for r in motadata.get("rows") or []:
+            iid = r.get("incident_id")
+            if not iid:
+                continue
+            rows.append(
+                _sample_row(
+                    sample_id=iid,
+                    corpus="motadata",
+                    gt=r.get("ground_truth") or {},
+                    lean=r.get("lean"),
+                    fed=r.get("federated"),
+                    winner=r.get("winner"),
+                )
+            )
+    by_bucket: dict[str, int] = {}
+    for r in rows:
+        by_bucket[r["fault_bucket"]] = by_bucket.get(r["fault_bucket"], 0) + 1
+    return {
+        "note": (
+            "Manual-verify strip: GT vs Lean vs Federated on diverse fault types. "
+            "Automation flags mismatches; human review remains authoritative."
+        ),
+        "buckets": [
+            {"id": k, "label": BUCKET_LABELS.get(k, k), "count": by_bucket.get(k, 0)}
+            for k in ("1_symptom", "2_infra", "3_application", "4_external")
+        ],
+        "rows": rows,
+    }
 
 
 def main() -> int:
     uc = json.loads(UC.read_text())
+    motadata = json.loads(MOTADATA.read_text()) if MOTADATA.is_file() else None
     oo = json.loads(OO.read_text())
     oo_rows = []
     for r in oo["rows"]:
@@ -47,10 +244,17 @@ def main() -> int:
         )
     uc_rows = []
     for r in uc.get("rows", []):
+        uid = r.get("uc_id")
+        gt = r.get("ground_truth") or {}
+        tax = resolve_taxonomy(uid or "", signature=gt.get("signature"))
         uc_rows.append(
             {
-                "uc_id": r.get("uc_id"),
-                "gt": (r.get("ground_truth") or {}).get("root_ci"),
+                "uc_id": uid,
+                "gt": gt.get("root_ci"),
+                "gt_sig": gt.get("signature"),
+                "fault_bucket": tax["fault_bucket"],
+                "fault_bucket_label": tax["fault_bucket_label"],
+                "fault_type": tax["fault_type"],
                 "fed": (r.get("federated") or {}).get("root_ci"),
                 "lean": (r.get("lean") or {}).get("root_ci"),
                 "winner": r.get("winner"),
@@ -70,6 +274,14 @@ def main() -> int:
             "summary": uc.get("summary"),
             "rows": uc_rows,
         },
+        "samples": build_samples(uc, motadata),
+        "motadata": {
+            "generated_at": (motadata or {}).get("generated_at"),
+            "run_id": (motadata or {}).get("run_id_filter"),
+            "summary": (motadata or {}).get("summary"),
+        }
+        if motadata
+        else None,
         "openobserve": {
             "generated_at": oo.get("generated_at"),
             "evaluation": oo.get("evaluation"),
@@ -118,6 +330,15 @@ def main() -> int:
         if oo_engine
         else None,
     }
+    # Snapshot PoC status for static viewers (live SSH still via /api/status).
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from poc_status import build_status  # noqa: WPS433
+
+        payload["poc"] = build_status(check_ssh=False)
+    except Exception as exc:  # noqa: BLE001
+        payload["poc"] = {"error": str(exc)}
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(payload, indent=2) + "\n"
     OUT.write_text(text)
@@ -125,6 +346,7 @@ def main() -> int:
     js.write_text("window.RCA_DASHBOARD_DATA = " + json.dumps(payload) + ";\n")
     print(f"Wrote {OUT}")
     print(f"Wrote {js}")
+    print(f"samples={len(payload['samples']['rows'])}")
     return 0
 
 

@@ -93,3 +93,70 @@ def test_link_saturation_needs_discards_on_the_same_port() -> None:
     ]
 
     assert infer_signature(crossed) != "link_failure"
+
+
+def test_motadata_app_error_rate() -> None:
+    crossed = [
+        {
+            "ci": "ProductCatalog_dotnet.",
+            "signal": "http.error_rate",
+            "value": 0.2,
+            "crossed": True,
+        }
+    ]
+    assert infer_signature(crossed) == "app_error_rate"
+
+
+def test_motadata_ping_degradation() -> None:
+    crossed = [
+        {
+            "ci": "dlink-48",
+            "signal": "ping.latency.ms",
+            "value": 400,
+            "crossed": True,
+        }
+    ]
+    assert infer_signature(crossed) == "ping_degradation"
+
+
+def test_motadata_host_cpu_saturation() -> None:
+    crossed = [
+        {
+            "ci": "Fluentbit",
+            "signal": "system.cpu.percent",
+            "value": 98,
+            "crossed": True,
+        }
+    ]
+    assert infer_signature(crossed) == "host_cpu_saturation"
+
+
+def test_motadata_multi_signal_prefers_host_cpu_over_ping() -> None:
+    """Same-host CPU+ping window: resource signature wins (multi pack)."""
+    crossed = [
+        {
+            "ci": "HB1-host",
+            "signal": "system.cpu.percent",
+            "value": 94,
+            "crossed": True,
+        },
+        {
+            "ci": "HB1-host",
+            "signal": "ping.packet.lost.percent",
+            "value": 33,
+            "crossed": True,
+        },
+    ]
+    assert infer_signature(crossed) == "host_cpu_saturation"
+
+
+def test_motadata_cpu_does_not_steal_observeops_cpu_contention() -> None:
+    """VMware contention still wins when classic signals are present."""
+    crossed = [
+        {"ci": "esxi-host-01", "signal": "cpu.usage", "crossed": True},
+        {"ci": "esxi-host-01", "signal": "cpu.ready", "crossed": True},
+        {"ci": "vm-a", "signal": "cpu.ready", "crossed": True},
+        {"ci": "vm-b", "signal": "cpu.ready", "crossed": True},
+        {"ci": "Fluentbit", "signal": "system.cpu.percent", "crossed": True},
+    ]
+    assert infer_signature(crossed) == "cpu_contention"

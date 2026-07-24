@@ -1,0 +1,50 @@
+{
+  "incident_start": "2026-07-10T10:00:00Z",
+  "anomalies": [
+    {
+      "ci": "switch-core-01:GigE0/2",
+      "signal": "linkDown",
+      "value": 1.0,
+      "threshold": 0.5,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:00Z",
+      "anomaly_class": "network"
+    },
+    {
+      "ci": "switch-core-01:GigE0/2",
+      "signal": "ifOutDiscards",
+      "value": 450.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "anomaly_class": "network"
+    },
+    {
+      "ci": "esxi-host-01",
+      "signal": "vmnic.dropped_packets",
+      "value": 120.0,
+      "threshold": 0.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:12Z",
+      "anomaly_class": "network"
+    },
+    {
+      "ci": "vm-app-01",
+      "signal": "tcp.retransmits",
+      "value": 85.0,
+      "threshold": 10.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:12Z",
+      "anomaly_class": "threshold"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "tcp.timeouts",
+      "value": 42.0,
+      "threshold": 5.0,
+      "crossed": true,
+      "timestamp": "2026-07-10T10:00:18Z",
+      "anomaly_class": "threshold"
+    }
+  ]
+}

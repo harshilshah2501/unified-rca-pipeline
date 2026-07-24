@@ -1,0 +1,19 @@
+{
+  "engine": "federated",
+  "uc_id": "motadata-ping-004",
+  "root_ci": "localhost.localdomain",
+  "signature": "ping_degradation",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "localhost.localdomain",
+      "signal": "ping.packet.lost.percent",
+      "value": 100.0,
+      "timestamp": "2026-07-21T05:57:38Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 1.0
+}

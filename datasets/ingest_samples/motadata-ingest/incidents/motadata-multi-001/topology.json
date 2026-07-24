@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "source": "motadata_inventory_subgraph",
+  "nodes": [
+    {
+      "id": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+      "type": "NetworkDevice",
+      "name": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+      "monitor_id": "391",
+      "plugin_id": 157,
+      "bind_source": "object.name"
+    }
+  ],
+  "edges": [],
+  "note": "Subgraph for CIs ['HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com']",
+  "parent_stats": {
+    "node_count": 427,
+    "edge_count": 3,
+    "host_count": 425,
+    "service_count": 2,
+    "span_service_host_pairs": {
+      "ProductCatalog_dotnet.|apmagentanant": 177857,
+      "hibernatewithmysql|apmagentanant": 122143
+    }
+  }
+}

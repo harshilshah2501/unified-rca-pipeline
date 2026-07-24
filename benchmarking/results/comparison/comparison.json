@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-20T06:58:01.891134Z",
+  "generated_at": "2026-07-23T10:24:47.075332Z",
   "corpus": "datasets/observeops",
-  "run_id_filter": "bakeoff-parity-001",
+  "run_id_filter": "adr001-rerun-20260723",
   "reproducibility_sources": {
     "federated": "benchmarking/results/reproducibility_federated_full-repro.json",
     "lean": "benchmarking/results/reproducibility_lean_full-repro.json"
@@ -46,16 +46,25 @@
         "average_obs_to_convergence": null,
         "average_naive_bfs_expansions": null,
         "average_efficiency_ratio": null,
-        "average_latency_ms": 4128.07,
+        "average_latency_ms": 4109.73,
         "latency_samples": 5,
         "latency_sources": [
           "latency_ms"
         ],
-        "average_detect_latency_ms": 1.22,
-        "average_system_latency_ms": 4129.29,
+        "average_detect_latency_ms": 1.03,
+        "average_C_detect_ms": 1.03,
+        "average_system_latency_ms": 4110.75,
         "detect_sources": [
           "shared_threshold"
-        ]
+        ],
+        "by_anomaly_class_totals": {
+          "error_rate": 2,
+          "network": 3,
+          "performance": 6,
+          "resource": 10,
+          "threshold": 3
+        },
+        "change_near_onset_count": 1
       }
     },
     "lean": {
@@ -97,16 +106,25 @@
         "average_obs_to_convergence": 2.4,
         "average_naive_bfs_expansions": 2.8,
         "average_efficiency_ratio": 1.12,
-        "average_latency_ms": 0.8,
+        "average_latency_ms": 0.96,
         "latency_samples": 5,
         "latency_sources": [
           "latency_ms"
         ],
-        "average_detect_latency_ms": 1.03,
-        "average_system_latency_ms": 1.83,
+        "average_detect_latency_ms": 1.1,
+        "average_C_detect_ms": 1.1,
+        "average_system_latency_ms": 2.06,
         "detect_sources": [
           "shared_threshold"
-        ]
+        ],
+        "by_anomaly_class_totals": {
+          "error_rate": 2,
+          "network": 3,
+          "performance": 6,
+          "resource": 10,
+          "threshold": 3
+        },
+        "change_near_onset_count": 1
       }
     }
   },
@@ -151,14 +169,21 @@
         "evidence_count": 6,
         "has_evidence": true,
         "main_path": true,
-        "latency_ms": 9999.7067,
+        "latency_ms": 9827.4785,
         "latency_source": "latency_ms",
-        "detect_latency_ms": 1.506,
-        "system_latency_ms": 10001.2127,
+        "detect_latency_ms": 1.2252,
+        "C_detect_ms": 1.2252,
+        "system_latency_ms": 9828.7037,
         "detect_source": "shared_threshold",
         "pipeline_profile": "parity-shared-detect",
+        "by_anomaly_class": {
+          "resource": 5,
+          "performance": 1
+        },
+        "change_near_onset": true,
+        "change_count_in_window": 2,
         "engine": "federated",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-1/run-bakeoff-parity-001/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-1/run-adr001-rerun-20260723/verdict.json"
       },
       "lean": {
         "status": "pass",
@@ -178,14 +203,21 @@
         "evidence_count": 6,
         "has_evidence": true,
         "main_path": false,
-        "latency_ms": 3.0344,
+        "latency_ms": 3.4968,
         "latency_source": "latency_ms",
-        "detect_latency_ms": 1.1112,
-        "system_latency_ms": 4.1456,
+        "detect_latency_ms": 1.4184,
+        "C_detect_ms": 1.4184,
+        "system_latency_ms": 4.9152,
         "detect_source": "shared_threshold",
         "pipeline_profile": "parity-shared-detect",
+        "by_anomaly_class": {
+          "resource": 5,
+          "performance": 1
+        },
+        "change_near_onset": true,
+        "change_count_in_window": 2,
         "engine": "lean",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-1/run-bakeoff-parity-001/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-1/run-adr001-rerun-20260723/verdict.json"
       },
       "winner": "lean"
     },
@@ -213,14 +245,21 @@
         "evidence_count": 5,
         "has_evidence": true,
         "main_path": false,
-        "latency_ms": 2837.4059,
+        "latency_ms": 2909.9101,
         "latency_source": "latency_ms",
-        "detect_latency_ms": 0.6965,
-        "system_latency_ms": 2838.1024,
+        "detect_latency_ms": 0.6892,
+        "C_detect_ms": 0.6892,
+        "system_latency_ms": 2910.5993,
         "detect_source": "shared_threshold",
         "pipeline_profile": "parity-shared-detect",
+        "by_anomaly_class": {
+          "network": 3,
+          "threshold": 2
+        },
+        "change_near_onset": false,
+        "change_count_in_window": 0,
         "engine": "federated",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-2/run-bakeoff-parity-001/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-2/run-adr001-rerun-20260723/verdict.json"
       },
       "lean": {
         "status": "pass",
@@ -240,14 +279,21 @@
         "evidence_count": 7,
         "has_evidence": true,
         "main_path": true,
-        "latency_ms": 0.2508,
+        "latency_ms": 0.2816,
         "latency_source": "latency_ms",
-        "detect_latency_ms": 0.7621,
-        "system_latency_ms": 1.0129,
+        "detect_latency_ms": 0.7774,
+        "C_detect_ms": 0.7774,
+        "system_latency_ms": 1.059,
         "detect_source": "shared_threshold",
         "pipeline_profile": "parity-shared-detect",
+        "by_anomaly_class": {
+          "network": 3,
+          "threshold": 2
+        },
+        "change_near_onset": false,
+        "change_count_in_window": 0,
         "engine": "lean",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-2/run-bakeoff-parity-001/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-2/run-adr001-rerun-20260723/verdict.json"
       },
       "winner": "lean"
     },
@@ -275,14 +321,21 @@
         "evidence_count": 6,
         "has_evidence": true,
         "main_path": true,
-        "latency_ms": 6719.9268,
+        "latency_ms": 6874.2039,
         "latency_source": "latency_ms",
-        "detect_latency_ms": 1.2379,
-        "system_latency_ms": 6721.1647,
+        "detect_latency_ms": 0.8517,
+        "C_detect_ms": 0.8517,
+        "system_latency_ms": 6875.0556,
         "detect_source": "shared_threshold",
         "pipeline_profile": "parity-shared-detect",
+        "by_anomaly_class": {
+          "performance": 4,
+          "resource": 2
+        },
+        "change_near_onset": false,
+        "change_count_in_window": 0,
         "engine": "federated",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-3/run-bakeoff-parity-001/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-3/run-adr001-rerun-20260723/verdict.json"
       },
       "lean": {
         "status": "pass",
@@ -302,14 +355,21 @@
         "evidence_count": 6,
         "has_evidence": true,
         "main_path": false,
-        "latency_ms": 0.2828,
+        "latency_ms": 0.266,
         "latency_source": "latency_ms",
-        "detect_latency_ms": 0.7878,
-        "system_latency_ms": 1.0706,
+        "detect_latency_ms": 0.8088,
+        "C_detect_ms": 0.8088,
+        "system_latency_ms": 1.0748,
         "detect_source": "shared_threshold",
         "pipeline_profile": "parity-shared-detect",
+        "by_anomaly_class": {
+          "performance": 4,
+          "resource": 2
+        },
+        "change_near_onset": false,
+        "change_count_in_window": 0,
         "engine": "lean",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-3/run-bakeoff-parity-001/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-3/run-adr001-rerun-20260723/verdict.json"
       },
       "winner": "federated"
     },
@@ -337,14 +397,21 @@
         "evidence_count": 3,
         "has_evidence": true,
         "main_path": true,
-        "latency_ms": 1079.3856,
+        "latency_ms": 934.3251,
         "latency_source": "latency_ms",
-        "detect_latency_ms": 1.0271,
-        "system_latency_ms": 1080.4127,
+        "detect_latency_ms": 1.031,
+        "C_detect_ms": 1.031,
+        "system_latency_ms": 935.3561,
         "detect_source": "shared_threshold",
         "pipeline_profile": "parity-shared-detect",
+        "by_anomaly_class": {
+          "resource": 2,
+          "error_rate": 1
+        },
+        "change_near_onset": false,
+        "change_count_in_window": 0,
         "engine": "federated",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-4/run-bakeoff-parity-001/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-4/run-adr001-rerun-20260723/verdict.json"
       },
       "lean": {
         "status": "pass",
@@ -364,14 +431,21 @@
         "evidence_count": 5,
         "has_evidence": true,
         "main_path": true,
-        "latency_ms": 0.2408,
+        "latency_ms": 0.2072,
         "latency_source": "latency_ms",
-        "detect_latency_ms": 1.2005,
-        "system_latency_ms": 1.4413,
+        "detect_latency_ms": 0.8531,
+        "C_detect_ms": 0.8531,
+        "system_latency_ms": 1.0603,
         "detect_source": "shared_threshold",
         "pipeline_profile": "parity-shared-detect",
+        "by_anomaly_class": {
+          "resource": 2,
+          "error_rate": 1
+        },
+        "change_near_onset": false,
+        "change_count_in_window": 0,
         "engine": "lean",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-4/run-bakeoff-parity-001/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-4/run-adr001-rerun-20260723/verdict.json"
       },
       "winner": "lean"
     },
@@ -399,14 +473,23 @@
         "evidence_count": 4,
         "has_evidence": true,
         "main_path": true,
-        "latency_ms": 3.9084,
+        "latency_ms": 2.7147,
         "latency_source": "latency_ms",
-        "detect_latency_ms": 1.6264,
-        "system_latency_ms": 5.5348,
+        "detect_latency_ms": 1.3453,
+        "C_detect_ms": 1.3453,
+        "system_latency_ms": 4.06,
         "detect_source": "shared_threshold",
         "pipeline_profile": "parity-shared-detect",
+        "by_anomaly_class": {
+          "threshold": 1,
+          "resource": 1,
+          "error_rate": 1,
+          "performance": 1
+        },
+        "change_near_onset": false,
+        "change_count_in_window": 0,
         "engine": "federated",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-5/run-bakeoff-parity-001/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/federated/UC-5/run-adr001-rerun-20260723/verdict.json"
       },
       "lean": {
         "status": "pass",
@@ -426,14 +509,23 @@
         "evidence_count": 4,
         "has_evidence": true,
         "main_path": true,
-        "latency_ms": 0.21,
+        "latency_ms": 0.5524,
         "latency_source": "latency_ms",
-        "detect_latency_ms": 1.2657,
-        "system_latency_ms": 1.4757,
+        "detect_latency_ms": 1.6224,
+        "C_detect_ms": 1.6224,
+        "system_latency_ms": 2.1748,
         "detect_source": "shared_threshold",
         "pipeline_profile": "parity-shared-detect",
+        "by_anomaly_class": {
+          "threshold": 1,
+          "resource": 1,
+          "error_rate": 1,
+          "performance": 1
+        },
+        "change_near_onset": false,
+        "change_count_in_window": 0,
         "engine": "lean",
-        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-5/run-bakeoff-parity-001/verdict.json"
+        "verdict_path": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-5/run-adr001-rerun-20260723/verdict.json"
       },
       "winner": "lean"
     }

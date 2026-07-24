@@ -1,8 +1,8 @@
 # Ingestion Pipeline Design — Vector as Shared Fabric
 
-**Status:** Design (not implemented end-to-end)  
+**Status:** Design + D0–D2 implemented (smoke/lab); D3–D5 planned  
 **Scope:** **Ingestion + detection front door** — builds RCA-ready graphs / incident windows **and** marks anomalies / seeds. Does **not** implement Lean or Federated localization.  
-**Related:** [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1c–§3 · [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`NAVIGATION.md`](./NAVIGATION.md)
+**Related:** [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1c–§3 · [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`NAVIGATION.md`](./NAVIGATION.md) · [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md)
 
 ---
 
@@ -73,7 +73,7 @@ PoC bakeoff compared mainly `C_rca_runtime` (+ synthetic inputs). Ingestion PoC 
 3. **Lean-cheap by default** — optional Federated / Panorama-class sinks add cost only when enabled.  
 4. **Measurable** — same profiles feed Lean-only vs dual-sink; detection profile (threshold vs rich) is a separate cost axis.  
 5. **Schema-stable handoff** — RCA engines consume versioned artifact contracts, not raw vendor formats.  
-6. Align with deferred Phase C “normalizer / dual-stream” vision without locking to NATS-only.
+6. Align with deferred **Later · Federate** “normalizer / dual-stream” vision without locking to NATS-only.
 
 ---
 
@@ -238,7 +238,7 @@ ingest.v1 JSONL
 | `--vector` | Real Vector producing that sink layout |
 | N4 / N5 | **Post-sink builders** — always required; not a third ingest path |
 
-**Lab note (2026-07-21):** N3–N5 UC diagnose PASS ran on **WSL** with Python fan-out by default. Vector Docker was validated once for UC-1 sinks. **pro6000-server** remains the Tier A+B host for EPS / standing Vector+Dragonfly — not used for these smokes yet. N4 Dragonfly output is a **file stub** (`speed_tier_stub.jsonl`), not live Redis.
+**Lab note (2026-07-21):** N3–N5 UC diagnose PASS ran on **WSL** with Python fan-out by default. Vector Docker was validated once for UC-1 sinks. Standing lab harness: [`ingestion-poc/lab/`](../ingestion-poc/lab/) (Dragonfly compose + phase0 + F1 fan-out + N4 `metric_slice` read). **pro6000-server** remains the Tier B+ host for **headline** EPS — WSL ~24K Dragonfly is floor only. N4 Dragonfly output can be file stub **or** live load via `metric_slice_read.py --load-dragonfly`.
 
 Chain: [`ingestion-poc/builders/n45_chain.py`](../ingestion-poc/builders/n45_chain.py).
 
@@ -296,8 +296,8 @@ RCA bakeoff can stay on frozen bundles until ingest PoC proves parity; then opti
 |-------|-------------|--------|
 | **D0** | This design + skeleton config | **Done (this doc)** |
 | **D0.5** | Corpus → `ingest.v1` converters | **Done** — ObserveOps replay + Motadata adapter smoke ([`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) §11) |
-| **D1** | JSONL through Vector → sinks + detect | **Done (smoke)** — [`f1_run.py`](../ingestion-poc/pipeline/f1_run.py); Lean bundle writer still N5 |
-| **D2** | Cost harness: L0 vs F1 profiles, `cost_report.md` | Planned — M2 |
+| **D1** | JSONL through Vector → sinks + detect | **Done (smoke)** — [`f1_run.py`](../ingestion-poc/pipeline/f1_run.py); N5 lean bundle writer Done |
+| **D2** | Cost harness: L0 vs F1 profiles, `cost_report.md` | **Done (pro6000)** — [`run_cost_harness.py`](../ingestion-poc/lab/run_cost_harness.py) → [`cost-pro6000-20260721Tfinal`](../benchmarking/results/costing/cost-pro6000-20260721Tfinal/) |
 | **D3** | Topology crawler stub + CI bind table | Planned — M1/M2 (Motadata bind separate) |
 | **D4** | Federated speed-tier builder from Vector Redis/Kafka sink | Planned — M3 |
 | **D5** | Product hardening (HA aggregator, auth, DLQ) | Later |

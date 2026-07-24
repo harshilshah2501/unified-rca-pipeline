@@ -33,13 +33,19 @@ Before scaling math, run a **single-node Dragonfly benchmark**:
 2. Lua script performing pattern hash → ZSET/HSET write + score update.
 3. Measure sustained EPS until p99 latency exceeds threshold.
 
-Record the result here once measured (laptop floor already filled below):
+Recorded PoC measurements:
 
 | Metric | Value | Date |
 |--------|-------|------|
-| Single-node sustained EPS (Lua path) | **~21K Dragonfly / ~20K Redis** on 2-core WSL | 2026-07-13 |
-| p99 write latency at sustained load | **~0.35 ms** (Dragonfly best) | 2026-07-13 |
-| Hardware spec | WSL2 · 2 CPUs · 7.8 GiB — not server-class | 2026-07-13 |
+| **pro6000-server sustained EPS (Lua)** | **~67.1K Dragonfly** (8 proactor / 16 workers / pipe 128) | 2026-07-21 |
+| pro6000 p99 write latency | **0.39 ms** (30s) · **0.379 ms** (120s soak) | 2026-07-21 |
+| pro6000 hardware | 16 CPU · 125 GiB · Tier B+ | 2026-07-21 |
+| L0 vs F1 cost report | [`benchmarking/results/costing/cost-pro6000-20260721Tfinal/`](../../benchmarking/results/costing/cost-pro6000-20260721Tfinal/) | 2026-07-21 |
+| WSL floor (reference) | **~21–24K Dragonfly** on 2-core / 7.8 GiB | 2026-07-13 / 2026-07-21 |
+| Standing lab harness | [`ingestion-poc/lab/`](../../ingestion-poc/lab/) → `benchmarking/capacity/lab/` | 2026-07-21 |
+| Headline artifact | [`benchmarking/capacity/lab/pro6000-20260721T112925Z/`](../../benchmarking/capacity/lab/pro6000-20260721T112925Z/) | 2026-07-21 |
+
+**PoC gate:** ≥50K EPS sustained — **met** on pro6000 (~67K).
 
 ---
 
@@ -106,7 +112,17 @@ Hardware: WSL2 · **2 CPUs** (i7-1185G7) · 7.8 GiB RAM — not server-class.
 4. **Do not** size a 1B EPS fleet from these numbers (`1B/21K ≈ 48K nodes` would be nonsense). Keep the **1,250–5,000** design range until a **64-core bare-metal/VM Dragonfly** run exists.
 5. Use ~21K as the validated **2-core Dragonfly floor** for local PoC work.
 
-**How to reproduce:**
+**How to reproduce (standing lab):**
+
+```bash
+# Auto host-tier + Dragonfly compose + phase0 + F1 fan-out + N4 metric_slice
+python3 ingestion-poc/lab/run_lab_eps.py
+
+# pro6000-server
+DF_PROACTOR_THREADS=8 python3 ingestion-poc/lab/run_lab_eps.py --seconds 30 --workers 16
+```
+
+Manual Dragonfly-only (legacy):
 
 ```bash
 # Dragonfly (2 threads, host network)

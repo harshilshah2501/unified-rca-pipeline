@@ -36,9 +36,15 @@ Head-to-head Lean vs Federated is decided by the RCA step. Detect is timed and s
 |-------|---------|
 | `pipeline_profile` | `parity-shared-detect` (fair baseline) |
 | `detect_source` | `shared_threshold` |
-| `detect_latency_ms` | Shared detector wall time |
+| `detect_latency_ms` | Shared detector wall time (= **`C_detect`**) |
+| `C_detect_ms` | Explicit cost-model alias of `detect_latency_ms` |
 | `latency_ms` | RCA-only wall time (localize) |
 | `system_latency_ms` | `detect_latency_ms + latency_ms` |
+| `by_anomaly_class` | Counts by class (`error_rate` / `performance` / `resource` / …) — D3 |
+| `change_near_onset` | True if a change feed hit the onset window — D2 |
+| `change_count_in_window` | Number of changes in that window (0 if no feed) |
+
+Optional per-UC change feed: `datasets/observeops/UC-N/changes.jsonl` (see UC-1 sample).
 
 ---
 

@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "source": "motadata_inventory_subgraph",
+  "nodes": [
+    {
+      "id": "localhost.localdomain",
+      "type": "Host",
+      "name": "localhost.localdomain",
+      "monitor_id": "24",
+      "plugin_id": 88,
+      "bind_source": "string_name"
+    }
+  ],
+  "edges": [],
+  "note": "Subgraph for CIs ['localhost.localdomain']",
+  "parent_stats": {
+    "node_count": 427,
+    "edge_count": 3,
+    "host_count": 425,
+    "service_count": 2,
+    "span_service_host_pairs": {
+      "ProductCatalog_dotnet.|apmagentanant": 177857,
+      "hibernatewithmysql|apmagentanant": 122143
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "engine": "federated",
+  "uc_id": "motadata-cpu-001",
+  "root_ci": "Fluentbit",
+  "signature": "host_cpu_saturation",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "Fluentbit",
+      "signal": "system.cpu.percent",
+      "value": 99.0,
+      "timestamp": "2026-07-21T00:35:38Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 1.0
+}

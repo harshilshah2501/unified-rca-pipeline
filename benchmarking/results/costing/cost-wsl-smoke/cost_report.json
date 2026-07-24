@@ -1,0 +1,59 @@
+{
+  "schema_version": "cost_report.v1",
+  "run_id": "cost-wsl-smoke",
+  "captured_at": "2026-07-21T12:08:12Z",
+  "host": {
+    "hostname": "DESKTOP-MBPAQK1",
+    "cpu_count": 2,
+    "mem_gib": null,
+    "tier": "laptop"
+  },
+  "stream": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/costing/cost-wsl-smoke/replay_stream.jsonl",
+  "stream_events": 50000,
+  "profiles": [
+    {
+      "profile": "L0",
+      "engine": "python_fanout",
+      "events": 50000,
+      "sink_counts": {
+        "total": 50000,
+        "lean": 50000,
+        "structural": 0,
+        "speed": 0
+      },
+      "elapsed_s": 0.4009,
+      "eps": 124706.44,
+      "cpu_seconds": 0.4113,
+      "cpu_seconds_per_1m_events": 8.2264,
+      "sink_bytes": 11684997,
+      "gb_per_day_extrapolated": 2518.0318,
+      "mean_ingest_ms": 0.008,
+      "p99_ingest_ms": null,
+      "p99_note": "Python fan-out is bulk file write; p99 not instrumented (see Dragonfly soak)",
+      "out_dir": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/costing/cost-wsl-smoke/work/py-L0"
+    },
+    {
+      "profile": "F1",
+      "engine": "python_fanout",
+      "events": 50000,
+      "sink_counts": {
+        "total": 50000,
+        "lean": 50000,
+        "structural": 50000,
+        "speed": 16667
+      },
+      "elapsed_s": 0.4316,
+      "eps": 115840.11,
+      "cpu_seconds": 0.4443,
+      "cpu_seconds_per_1m_events": 8.886,
+      "sink_bytes": 27165069,
+      "gb_per_day_extrapolated": 5437.6782,
+      "mean_ingest_ms": 0.0086,
+      "p99_ingest_ms": null,
+      "p99_note": "Python fan-out is bulk file write; p99 not instrumented (see Dragonfly soak)",
+      "out_dir": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/costing/cost-wsl-smoke/work/py-F1"
+    }
+  ],
+  "dragonfly_soak": null,
+  "gate_note": "\u226550K EPS sustained gate refers to Dragonfly soak / phase0, not Python/Vector fan-out EPS"
+}

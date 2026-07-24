@@ -1,0 +1,14 @@
+{
+  "incident_start": "2026-07-21T00:35:38Z",
+  "anomalies": [
+    {
+      "ci": "Fluentbit",
+      "signal": "system.cpu.percent",
+      "value": 99.0,
+      "threshold": 90.0,
+      "crossed": true,
+      "timestamp": "2026-07-21T00:35:38Z",
+      "anomaly_class": "resource"
+    }
+  ]
+}

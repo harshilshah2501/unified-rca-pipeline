@@ -21,7 +21,7 @@ When a doc says “Tier 3” without qualification, assume **lean evidentiary ti
 | **OpenObserve incidents** | `datasets/openobserve_incidents/v1/` | Real incident packs; different GT contract — **do not merge** with ObserveOps 5/5 scoreboard. |
 | **ObserveOps replay (`ingest.v1`)** | `datasets/ingest_samples/observeops-replay/` | Normalized JSONL from frozen UCs for Vector / writers — not a second bakeoff corpus. |
 | **Motadata resolved dump** | `datasets/ingest_samples/jsonl_resolved/` | Local ClickHouse export (gitignored large files); product-shaped ingest source. |
-| **Motadata ingest stream** | `datasets/ingest_samples/motadata-ingest/` | Derived `ingest.v1` from Motadata adapter (smoke/full); topology/GT not yet attached. |
+| **Motadata ingest stream** | `datasets/ingest_samples/motadata-ingest/` | Derived `ingest.v1` + **depth**: `ci_bind.json`, `incidents/motadata-apm-001/` (Lean Localize smoke). |
 
 ## Verifiability vs main-path %
 

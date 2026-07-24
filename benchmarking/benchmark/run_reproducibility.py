@@ -26,6 +26,15 @@ DEFAULT_CORPUS = REPO / "datasets" / "observeops"
 OO_PACKS = REPO / "datasets" / "openobserve_incidents" / "v1" / "engine_packs"
 RESULTS = REPO / "benchmarking" / "results"
 
+# Allow importing corpus helpers
+sys.path.insert(0, str(REPO / "benchmarking"))
+from benchmark.corpus_util import (  # noqa: E402
+    is_frozen_pack_corpus,
+    is_observeops_uc_corpus,
+    pack_ids as corpus_pack_ids,
+    results_subdir,
+)
+
 
 def _hash_verdict(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -36,20 +45,25 @@ def _is_oo_packs(corpus: Path) -> bool:
 
 
 def _pack_ids(corpus: Path) -> list[str]:
-    if _is_oo_packs(corpus):
-        return sorted(
-            p.name
-            for p in corpus.iterdir()
-            if p.is_dir() and (p / "topology.json").exists()
-        )
-    return [f"UC-{i}" for i in range(1, 6)]
+    return corpus_pack_ids(corpus)
 
 
 def _results_root(engine: str, corpus: Path) -> Path:
     base = RESULTS / engine
-    if _is_oo_packs(corpus):
-        return base / "oo"
+    sub = results_subdir(corpus)
+    if sub:
+        return base / sub
     return base
+
+
+def _corpus_tag(corpus: Path) -> str:
+    if _is_oo_packs(corpus):
+        return "oo"
+    if is_observeops_uc_corpus(corpus):
+        return "observeops"
+    if corpus.name == "incidents" and corpus.parent.name == "ecom_checkout":
+        return "ecom"
+    return corpus.parent.name if corpus.name == "incidents" else corpus.name
 
 
 def _python() -> Path:
@@ -69,6 +83,7 @@ def run_reproducibility(
     script = REPO / "benchmarking" / "benchmark" / f"run_{engine}.py"
     py = _python()
     results_root = _results_root(engine, corpus)
+    frozen = is_frozen_pack_corpus(corpus)
 
     for i in range(n):
         run_id = f"{run_prefix}-{i:02d}"
@@ -83,6 +98,8 @@ def run_reproducibility(
                 "--run-id",
                 run_id,
             ]
+            if frozen:
+                cmd.append("--no-shared-detect")
             subprocess.run(cmd, cwd=REPO, check=True)
 
     per_pack: dict[str, dict] = {}
@@ -124,10 +141,10 @@ def run_reproducibility(
         "packs": per_pack,
     }
 
-    tag = "oo" if _is_oo_packs(corpus) else "observeops"
+    tag = _corpus_tag(corpus)
     out = RESULTS / f"reproducibility_{engine}_{tag}_{run_prefix}.json"
     # Keep legacy ObserveOps filename when using default UC prefix layout
-    if not _is_oo_packs(corpus) and set(ids) == {f"UC-{i}" for i in range(1, 6)}:
+    if is_observeops_uc_corpus(corpus) and set(ids) == {f"UC-{i}" for i in range(1, 6)}:
         legacy = RESULTS / f"reproducibility_{engine}_{run_prefix}.json"
         # Flat UC summary for older consumers
         flat = {pid: {k: v for k, v in d.items() if k != "hashes"} for pid, d in per_pack.items()}

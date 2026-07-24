@@ -1,0 +1,25 @@
+{
+  "engine": "federated",
+  "uc_id": "motadata-apm-001",
+  "root_ci": "ProductCatalog_dotnet.",
+  "signature": "app_error_rate",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "ProductCatalog_dotnet.",
+      "signal": "http.error_rate",
+      "value": 0.201954,
+      "timestamp": "2026-07-21T05:59:00Z"
+    },
+    {
+      "ci": "ProductCatalog_dotnet.",
+      "signal": "http.error_rate_4xx",
+      "value": 0.201954,
+      "timestamp": "2026-07-21T05:59:00Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 1.0
+}

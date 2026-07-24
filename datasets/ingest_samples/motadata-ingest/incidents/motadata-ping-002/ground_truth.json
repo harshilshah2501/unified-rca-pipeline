@@ -1,0 +1,21 @@
+{
+  "root_ci": "Netgear Switch",
+  "signature": "ping_degradation",
+  "contributor_cis": [],
+  "blast_radius": [
+    "Netgear Switch"
+  ],
+  "note": "A1 clear network variant: monitor 421 (Netgear Switch) ping.packet.lost.percent crossings. Human-confirmed GT: root=symptom CI (Samples review).",
+  "tags": [
+    "motadata",
+    "infra",
+    "ping",
+    "broaden",
+    "gt_confirmed",
+    "a1"
+  ],
+  "gt_status": "human_confirmed",
+  "fault_bucket": "2_infra",
+  "fault_type": "network_fault",
+  "fault_title": "Netgear Switch ping / packet loss"
+}

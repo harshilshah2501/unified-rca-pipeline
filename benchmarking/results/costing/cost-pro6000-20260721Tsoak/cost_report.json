@@ -1,0 +1,120 @@
+{
+  "schema_version": "cost_report.v1",
+  "run_id": "cost-pro6000-20260721Tsoak",
+  "captured_at": "2026-07-21T12:14:44Z",
+  "host": {
+    "hostname": "pro6000-server",
+    "cpu_count": 16,
+    "mem_gib": 125.79,
+    "memory": {
+      "total_gib": 125.79,
+      "available_gib": 120.6
+    },
+    "tier": "B+"
+  },
+  "stream": "/home/harshil/Projects/Unified-RCA/benchmarking/results/costing/cost-pro6000-20260721Tsoak/replay_stream.jsonl",
+  "stream_events": 500000,
+  "profiles": [
+    {
+      "profile": "L0",
+      "engine": "python_fanout",
+      "events": 500000,
+      "sink_counts": {
+        "total": 500000,
+        "lean": 500000,
+        "structural": 0,
+        "speed": 0
+      },
+      "elapsed_s": 3.1792,
+      "eps": 157273.34,
+      "cpu_seconds": 3.1792,
+      "cpu_seconds_per_1m_events": 6.3584,
+      "sink_bytes": 116849997,
+      "gb_per_day_extrapolated": 3175.613,
+      "mean_ingest_ms": 0.0064,
+      "p99_ingest_ms": null,
+      "p99_note": "Python fan-out is bulk file write; p99 not instrumented (see Dragonfly soak)",
+      "out_dir": "/home/harshil/Projects/Unified-RCA/benchmarking/results/costing/cost-pro6000-20260721Tsoak/work/py-L0"
+    },
+    {
+      "profile": "F1",
+      "engine": "python_fanout",
+      "events": 500000,
+      "sink_counts": {
+        "total": 500000,
+        "lean": 500000,
+        "structural": 500000,
+        "speed": 166667
+      },
+      "elapsed_s": 3.3894,
+      "eps": 147517.83,
+      "cpu_seconds": 3.3892,
+      "cpu_seconds_per_1m_events": 6.7783,
+      "sink_bytes": 271650069,
+      "gb_per_day_extrapolated": 6924.6541,
+      "mean_ingest_ms": 0.0068,
+      "p99_ingest_ms": null,
+      "p99_note": "Python fan-out is bulk file write; p99 not instrumented (see Dragonfly soak)",
+      "out_dir": "/home/harshil/Projects/Unified-RCA/benchmarking/results/costing/cost-pro6000-20260721Tsoak/work/py-F1"
+    },
+    {
+      "profile": "L0",
+      "engine": "vector_docker",
+      "image": "timberio/vector:0.41.1-alpine",
+      "config": "vector.l0-smoke.toml",
+      "events": 500000,
+      "sink_counts": {
+        "total": 500000,
+        "lean": 500000,
+        "structural": 0,
+        "speed": 0
+      },
+      "elapsed_s": 120.0127,
+      "eps": 4166.23,
+      "cpu_seconds": null,
+      "cpu_seconds_per_1m_events": null,
+      "sink_bytes": 116849997,
+      "gb_per_day_extrapolated": 84.1231,
+      "mean_ingest_ms": 0.24,
+      "p99_ingest_ms": null,
+      "timed_out_ok": true,
+      "returncode": 0,
+      "out_dir": "/home/harshil/Projects/Unified-RCA/benchmarking/results/costing/cost-pro6000-20260721Tsoak/work/vec-L0",
+      "note": "Wall includes Vector container startup; EPS is conservative vs steady-state"
+    },
+    {
+      "profile": "F1",
+      "engine": "vector_docker",
+      "image": "timberio/vector:0.41.1-alpine",
+      "config": "vector.f1-smoke.toml",
+      "events": 500000,
+      "sink_counts": {
+        "total": 500000,
+        "lean": 500000,
+        "structural": 500000,
+        "speed": 166667
+      },
+      "elapsed_s": 120.0123,
+      "eps": 4166.24,
+      "cpu_seconds": null,
+      "cpu_seconds_per_1m_events": null,
+      "sink_bytes": 271650069,
+      "gb_per_day_extrapolated": 195.568,
+      "mean_ingest_ms": 0.24,
+      "p99_ingest_ms": null,
+      "timed_out_ok": true,
+      "returncode": 0,
+      "out_dir": "/home/harshil/Projects/Unified-RCA/benchmarking/results/costing/cost-pro6000-20260721Tsoak/work/vec-F1",
+      "note": "Wall includes Vector container startup; EPS is conservative vs steady-state"
+    }
+  ],
+  "dragonfly_soak": {
+    "eps": 67084.8,
+    "p99_ms": 0.379,
+    "seconds": 120,
+    "workers": 16,
+    "proactor_threads": 8,
+    "artifact": "benchmarking/results/costing/cost-pro6000-20260721Tsoak/phase0_soak.json"
+  },
+  "gate_note": "\u226550K EPS sustained gate refers to Dragonfly soak / phase0, not Python/Vector fan-out EPS"
+}

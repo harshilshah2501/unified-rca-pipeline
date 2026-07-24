@@ -1,0 +1,486 @@
+{
+  "base_url": "http://172.16.14.77:5080",
+  "org": "default",
+  "dry_run": false,
+  "shift_to_now": true,
+  "retain_hours": 4.5,
+  "generated_at": "2026-07-23T11:00:06.369168+00:00",
+  "results": [
+    {
+      "uc_id": "UC-1",
+      "log_stream": "observeops_uc_uc1",
+      "time_shift": {
+        "shift_ms": 1125580134,
+        "original_max_ts": "2026-07-10T10:00:25+00:00",
+        "shifted_max_ts": "2026-07-23T10:40:05.134000+00:00",
+        "end_offset_minutes": 20.0,
+        "retain_hours": 4.5
+      },
+      "logs": {
+        "count": 11,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_uc_uc1",
+                "successful": 11,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "metrics": {
+        "count": 60,
+        "dropped_outside_retain": 1968,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_request_p95_latency_ms",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_cpu_ready",
+                "successful": 30,
+                "failed": 0
+              },
+              {
+                "name": "observeops_load_avg",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_cpu_usage",
+                "successful": 10,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "traces": {
+        "span_count": 4,
+        "result": {
+          "status": 200,
+          "body": {
+            "partialSuccess": null
+          }
+        },
+        "ok": true
+      },
+      "ok": true,
+      "gt": {
+        "root_ci": "esxi-host-01",
+        "signature": "cpu_contention",
+        "fault_title": "CPU contention on ESXi host",
+        "seed": {
+          "ci": "orders-api",
+          "signal": "request.p95_latency_ms",
+          "timestamp": "2026-07-10T10:00:25Z"
+        }
+      }
+    },
+    {
+      "uc_id": "UC-2",
+      "log_stream": "observeops_uc_uc2",
+      "time_shift": {
+        "shift_ms": 1125587381,
+        "original_max_ts": "2026-07-10T10:00:18+00:00",
+        "shifted_max_ts": "2026-07-23T10:40:05.381000+00:00",
+        "end_offset_minutes": 20.0,
+        "retain_hours": 4.5
+      },
+      "logs": {
+        "count": 9,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_uc_uc2",
+                "successful": 9,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "metrics": {
+        "count": 50,
+        "dropped_outside_retain": 1640,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_ifoutdiscards",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_tcp_timeouts",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_linkdown",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_vmnic_dropped_packets",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_tcp_retransmits",
+                "successful": 10,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "traces": {
+        "span_count": 3,
+        "result": {
+          "status": 200,
+          "body": {
+            "partialSuccess": null
+          }
+        },
+        "ok": true
+      },
+      "ok": true,
+      "gt": {
+        "root_ci": "switch-core-01:GigE0/2",
+        "signature": "link_failure",
+        "fault_title": "Core switch link failure",
+        "seed": {
+          "ci": "orders-api",
+          "signal": "tcp.timeouts",
+          "timestamp": "2026-07-10T10:00:18Z"
+        }
+      }
+    },
+    {
+      "uc_id": "UC-3",
+      "log_stream": "observeops_uc_uc3",
+      "time_shift": {
+        "shift_ms": 1125580624,
+        "original_max_ts": "2026-07-10T10:00:25+00:00",
+        "shifted_max_ts": "2026-07-23T10:40:05.624000+00:00",
+        "end_offset_minutes": 20.0,
+        "retain_hours": 4.5
+      },
+      "logs": {
+        "count": 9,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_uc_uc3",
+                "successful": 9,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "metrics": {
+        "count": 60,
+        "dropped_outside_retain": 1968,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_gavg_latency_ms",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_request_p95_latency_ms",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_virtualdisk_iops",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_disk_iowait_pct",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_virtualdisk_totallatency_ms",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_davg_latency_ms",
+                "successful": 10,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "traces": {
+        "span_count": 3,
+        "result": {
+          "status": 200,
+          "body": {
+            "partialSuccess": null
+          }
+        },
+        "ok": true
+      },
+      "ok": true,
+      "gt": {
+        "root_ci": "datastore-01",
+        "signature": "storage_contention",
+        "fault_title": "Datastore storage contention",
+        "seed": {
+          "ci": "orders-api",
+          "signal": "request.p95_latency_ms",
+          "timestamp": "2026-07-10T10:00:25Z"
+        }
+      }
+    },
+    {
+      "uc_id": "UC-4",
+      "log_stream": "observeops_uc_uc4",
+      "time_shift": {
+        "shift_ms": 1125587870,
+        "original_max_ts": "2026-07-10T10:00:18+00:00",
+        "shifted_max_ts": "2026-07-23T10:40:05.870000+00:00",
+        "end_offset_minutes": 20.0,
+        "retain_hours": 4.5
+      },
+      "logs": {
+        "count": 7,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_uc_uc4",
+                "successful": 7,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "metrics": {
+        "count": 58,
+        "dropped_outside_retain": 1968,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_linkdown",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_oom_killer_event",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_error_rate_5xx",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_filesystem_used_pct",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_cpu_usage",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_health_check",
+                "successful": 10,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "traces": {
+        "span_count": 2,
+        "result": {
+          "status": 200,
+          "body": {
+            "partialSuccess": null
+          }
+        },
+        "ok": true
+      },
+      "ok": true,
+      "gt": {
+        "root_ci": "guest-os-vm-app-01",
+        "signature": "os_resource_exhaustion",
+        "fault_title": "Guest OS resource exhaustion",
+        "seed": {
+          "ci": "orders-api",
+          "signal": "error_rate_5xx",
+          "timestamp": "2026-07-10T10:00:18Z"
+        }
+      }
+    },
+    {
+      "uc_id": "UC-5",
+      "log_stream": "observeops_uc_uc5",
+      "time_shift": {
+        "shift_ms": 1125594118,
+        "original_max_ts": "2026-07-10T10:00:12+00:00",
+        "shifted_max_ts": "2026-07-23T10:40:06.118000+00:00",
+        "end_offset_minutes": 20.0,
+        "retain_hours": 4.5
+      },
+      "logs": {
+        "count": 8,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_uc_uc5",
+                "successful": 8,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "metrics": {
+        "count": 85,
+        "dropped_outside_retain": 2952,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_db_conn_pool_active_ratio",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_gavg_latency_ms",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_cpu_ready",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_linkdown",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_filesystem_used_pct",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_error_rate_5xx",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_cpu_usage",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_request_p95_latency_ms",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_jvm_heap_used_pct",
+                "successful": 10,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "traces": {
+        "span_count": 3,
+        "result": {
+          "status": 200,
+          "body": {
+            "partialSuccess": null
+          }
+        },
+        "ok": true
+      },
+      "ok": true,
+      "gt": {
+        "root_ci": "orders-api",
+        "signature": "app_resource_exhaustion",
+        "fault_title": "Orders-api resource exhaustion",
+        "seed": {
+          "ci": "orders-api",
+          "signal": "request.p95_latency_ms",
+          "timestamp": "2026-07-10T10:00:12Z"
+        }
+      }
+    }
+  ],
+  "totals": {
+    "logs": 44,
+    "metrics": 313,
+    "spans": 15
+  },
+  "note": "OO streams: observeops_uc_uc1..uc5 (logs); metrics via ingest/metrics/_json; traces via /api/{org}/v1/traces. Filter by uc_id / corpus=observeops. Timestamps are shifted into the last ~5h (OO ZO_INGEST_ALLOWED_UPTO); original_ts kept on log records; GT seed times remain in pack files."
+}

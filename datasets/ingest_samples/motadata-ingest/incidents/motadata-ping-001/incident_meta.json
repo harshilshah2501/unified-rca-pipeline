@@ -1,0 +1,36 @@
+{
+  "incident_id": "motadata-ping-001",
+  "anomaly_count": 3,
+  "by_anomaly_class": {
+    "network": 1,
+    "performance": 2
+  },
+  "symptom_seed": {
+    "ci": "dlink-48",
+    "signal": "ping.max.latency.ms",
+    "timestamp": "2026-07-21T05:30:38Z",
+    "anomaly_class": "performance"
+  },
+  "ground_truth_root_ci": "dlink-48",
+  "ground_truth_signature": "ping_degradation",
+  "detect": {
+    "detect_source": "shared_threshold",
+    "pipeline_profile": "parity-shared-detect",
+    "detect_latency_ms": 0.3266,
+    "points_scanned": 50,
+    "series_scanned": 3,
+    "by_anomaly_class": {
+      "network": 1,
+      "performance": 2
+    }
+  },
+  "stream_rows": 50,
+  "diagnose": {
+    "incident_id": "motadata-ping-001",
+    "root_ci": "dlink-48",
+    "signature": "ping_degradation",
+    "root_match": true,
+    "signature_match": true,
+    "pass": true
+  }
+}

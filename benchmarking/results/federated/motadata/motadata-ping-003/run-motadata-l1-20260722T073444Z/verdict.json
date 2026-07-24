@@ -1,0 +1,31 @@
+{
+  "engine": "federated",
+  "uc_id": "motadata-ping-003",
+  "root_ci": "proxmox-ve-129",
+  "signature": "ping_degradation",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "proxmox-ve-129",
+      "signal": "ping.latency.ms",
+      "value": 190.0,
+      "timestamp": "2026-07-21T02:59:38Z"
+    },
+    {
+      "ci": "proxmox-ve-129",
+      "signal": "ping.max.latency.ms",
+      "value": 568.0,
+      "timestamp": "2026-07-21T02:59:38Z"
+    },
+    {
+      "ci": "proxmox-ve-129",
+      "signal": "ping.packet.lost.percent",
+      "value": 33.0,
+      "timestamp": "2026-07-21T05:15:38Z"
+    }
+  ],
+  "observations": 5,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "murphy_posterior": 1.0
+}

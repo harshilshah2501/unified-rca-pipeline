@@ -1,3 +1,46 @@
 {
-  "events": []
+  "events": [
+    {
+      "timestamp": "2026-07-10T09:55:00Z",
+      "ci": "esxi-host-01",
+      "event_type": "infra.change",
+      "severity": "info",
+      "message": "DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "ci": "esxi-host-01",
+      "event_type": "esx.cpu.ready",
+      "severity": "critical",
+      "message": "ESXi cpu.ready elevated on esxi-host-01 (12% > 5% threshold)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "ci": "esxi-host-01",
+      "event_type": "esx.cpu.usage",
+      "severity": "warning",
+      "message": "ESXi cpu.usage 92% sustained on esxi-host-01"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "ci": "vm-app-01",
+      "event_type": "vmware.cpu.ready",
+      "severity": "warning",
+      "message": "VM cpu.ready 11% on vm-app-01 (host scheduler starvation)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:18Z",
+      "ci": "guest-os-vm-app-01",
+      "event_type": "syslog.loadavg",
+      "severity": "warning",
+      "message": "load average 8.0 on guest-os-vm-app-01 (run-queue backlog)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:25Z",
+      "ci": "orders-api",
+      "event_type": "app.latency",
+      "severity": "critical",
+      "message": "orders-api p95 latency 1450ms (SLO threshold 1000ms)"
+    }
+  ]
 }

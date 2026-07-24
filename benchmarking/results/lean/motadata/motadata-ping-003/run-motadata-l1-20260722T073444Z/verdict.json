@@ -1,0 +1,46 @@
+{
+  "engine": "lean",
+  "uc_id": "motadata-ping-003",
+  "root_ci": "proxmox-ve-129",
+  "signature": "ping_degradation",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "proxmox-ve-129",
+      "signal": "ping.latency.ms",
+      "value": 190.0,
+      "timestamp": "2026-07-21T02:59:38Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "proxmox-ve-129",
+      "signal": "ping.max.latency.ms",
+      "value": 568.0,
+      "timestamp": "2026-07-21T02:59:38Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "proxmox-ve-129",
+      "signal": "ping.packet.lost.percent",
+      "value": 33.0,
+      "timestamp": "2026-07-21T05:15:38Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 3,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "causal_verified": null,
+  "causal_log": null,
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "proxmox-ve-129"
+  ],
+  "blast_radius": [],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

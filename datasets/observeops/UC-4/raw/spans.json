@@ -1,0 +1,32 @@
+[
+  {
+    "trace_id": "uc4-t1",
+    "span_id": "s1",
+    "parent_span_id": null,
+    "service_name": "orders-api",
+    "span_name": "POST /orders",
+    "kind": "SERVER",
+    "start_time": "2026-07-10T10:00:18Z",
+    "duration_ms": 50.0,
+    "attributes": {
+      "ci": "orders-api",
+      "error": true,
+      "status": "unavailable"
+    }
+  },
+  {
+    "trace_id": "uc4-t2",
+    "span_id": "s2",
+    "parent_span_id": null,
+    "service_name": "orders-api",
+    "span_name": "GET /health",
+    "kind": "SERVER",
+    "start_time": "2026-07-10T10:00:18Z",
+    "duration_ms": 30.0,
+    "attributes": {
+      "ci": "orders-api",
+      "error": true,
+      "status": "unavailable"
+    }
+  }
+]

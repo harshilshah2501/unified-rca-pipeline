@@ -1,0 +1,436 @@
+{
+  "schema_version": "comprehensive_rca.v1",
+  "incident_id": "UC-4",
+  "source_incident_id": null,
+  "engine": "lean",
+  "generated_at": "2026-07-23T10:35:25Z",
+  "pack_meta": {
+    "incident_start": "2026-07-10T10:00:00Z",
+    "symptom_onset": "2026-07-10T10:00:18Z",
+    "detected_at": "2026-07-10T10:00:18Z",
+    "change_at": "2026-07-10T10:00:00Z",
+    "raw_dir": "datasets/observeops/UC-4/raw",
+    "source_incident_id": null,
+    "impact_source": null
+  },
+  "localization": {
+    "root_ci": "guest-os-vm-app-01",
+    "signature": "os_resource_exhaustion",
+    "contributor_cis": [],
+    "false_leads_ruled_out": [],
+    "matches_pack_gt": true
+  },
+  "incident_summary": {
+    "severity": "P2",
+    "detected": "2026-07-10T10:00:18Z",
+    "affected_services": [
+      "orders-api"
+    ],
+    "customer_impact": "Symptom `error_rate_5xx` on `orders-api` (Guest OS resource exhaustion)",
+    "dimension_slice": "ObserveOps classic-infra \u00b7 `2_infra` / `resource_contention`",
+    "gt_fault_title": "Guest OS resource exhaustion"
+  },
+  "impact": {
+    "services_affected": [
+      "orders-api"
+    ],
+    "sla_breach": true,
+    "data_loss": false,
+    "failed_requests": null,
+    "total_requests": null,
+    "peak_path_error_rate_pct": null,
+    "path_error_label": "api-gateway \u2192 checkout-service",
+    "checkout_error_rate_pct": null,
+    "payment_service_error_rate_pct": null,
+    "error_escalation": null,
+    "estimated_fail_fraction": "\u22482.8% of checkouts in the affected dimension",
+    "source": null,
+    "notes": null
+  },
+  "service_dependencies": {
+    "critical_path": [
+      "guest-os-vm-app-01",
+      "vm-app-01",
+      "esxi-host-01",
+      "switch-core-01:GigE0/2"
+    ],
+    "topology_edges": [
+      {
+        "from": "orders-api",
+        "to": "guest-os-vm-app-01",
+        "relation": "runs_on"
+      },
+      {
+        "from": "guest-os-vm-app-01",
+        "to": "vm-app-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "guest-os-vm-db-01",
+        "to": "vm-db-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-app-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-db-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-neighbor-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-db-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "vm-neighbor-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "vm-app-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "esxi-host-01",
+        "to": "switch-core-01:GigE0/2",
+        "relation": "uplink_to"
+      }
+    ],
+    "isolation_note": "Healthy siblings (pricing/inventory/token/fraud) are not on the failing payment path; errors escalate api-gateway \u2190 checkout \u2190 payment \u2190 (DNS/RX/IRQ), with payment-provider as a decoy leaf."
+  },
+  "distributed_traces": {
+    "available": true,
+    "analyzed_spans": 2,
+    "slow_spans": 0,
+    "slow_provider_spans": 0,
+    "provider_duration_ms_p50": null,
+    "provider_duration_ms_max": null,
+    "span_duration_ms_p50": 40.0,
+    "span_duration_ms_max": 50.0,
+    "healthy_sibling_spans_under_200ms": 0,
+    "false_lead_assessment": "Analyzed 2 spans; 0 exceed 500ms. Use span CI attributes with topology to separate symptom from root.",
+    "samples": [
+      {
+        "trace_id": "uc4-t1",
+        "service_name": "orders-api",
+        "span_name": "POST /orders",
+        "duration_ms": 50.0,
+        "ci": "orders-api",
+        "note": null
+      },
+      {
+        "trace_id": "uc4-t2",
+        "service_name": "orders-api",
+        "span_name": "GET /health",
+        "duration_ms": 30.0,
+        "ci": "orders-api",
+        "note": null
+      }
+    ]
+  },
+  "log_patterns": {
+    "pack_event_types": {
+      "app.crash": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:18Z",
+            "ci": "orders-api",
+            "severity": "critical",
+            "message": "orders-api service down after OOM / filesystem-full on guest OS"
+          }
+        ]
+      },
+      "infra.change": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T09:56:00Z",
+            "ci": "guest-os-vm-app-01",
+            "severity": "info",
+            "message": "Log retention / disk fill activity on guest-os-vm-app-01 filesystem"
+          }
+        ]
+      },
+      "syslog.filesystem_full": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:05Z",
+            "ci": "guest-os-vm-app-01",
+            "severity": "critical",
+            "message": "No space left on device writing /var/log/orders-api"
+          }
+        ]
+      },
+      "syslog.oom_killer": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:12Z",
+            "ci": "guest-os-vm-app-01",
+            "severity": "critical",
+            "message": "kernel: Out of memory: Killed process 1842 (orders-api)"
+          }
+        ]
+      }
+    },
+    "raw_logger_counts": {
+      "syslog.filesystem_full": 1,
+      "syslog.oom_killer": 1,
+      "app.crash": 1
+    },
+    "key_findings": [
+      "Log retention / disk fill activity on guest-os-vm-app-01 filesystem",
+      "No space left on device writing /var/log/orders-api",
+      "kernel: Out of memory: Killed process 1842 (orders-api)",
+      "orders-api service down after OOM / filesystem-full on guest OS"
+    ]
+  },
+  "metrics_analysis": {
+    "crossed_anomalies": [
+      {
+        "ci": "guest-os-vm-app-01",
+        "signal": "filesystem.used_pct",
+        "value": 99.0,
+        "threshold": 95.0,
+        "timestamp": "2026-07-10T10:00:05Z",
+        "note": null
+      },
+      {
+        "ci": "guest-os-vm-app-01",
+        "signal": "oom_killer_event",
+        "value": 1.0,
+        "threshold": 0.5,
+        "timestamp": "2026-07-10T10:00:12Z",
+        "note": null
+      },
+      {
+        "ci": "orders-api",
+        "signal": "error_rate_5xx",
+        "value": 0.42,
+        "threshold": 0.05,
+        "timestamp": "2026-07-10T10:00:18Z",
+        "note": null
+      },
+      {
+        "ci": "orders-api",
+        "signal": "health_check",
+        "value": 0.0,
+        "threshold": 1.0,
+        "timestamp": "2026-07-10T10:00:18Z",
+        "note": null
+      }
+    ],
+    "raw_metric_peaks": null
+  },
+  "recent_changes": {
+    "change_events": [
+      {
+        "timestamp": "2026-07-10T09:56:00Z",
+        "ci": "guest-os-vm-app-01",
+        "event_type": "infra.change",
+        "severity": "info",
+        "message": "Log retention / disk fill activity on guest-os-vm-app-01 filesystem"
+      }
+    ],
+    "root_cause_change": {
+      "timestamp": "2026-07-10T09:56:00Z",
+      "ci": "guest-os-vm-app-01",
+      "event_type": "infra.change",
+      "severity": "info",
+      "message": "Log retention / disk fill activity on guest-os-vm-app-01 filesystem"
+    }
+  },
+  "causal_chain": {
+    "steps": [
+      "guest-os-vm-app-01",
+      "orders-api"
+    ],
+    "topology_path": [
+      "guest-os-vm-app-01",
+      "orders-api"
+    ],
+    "narrative_steps": [
+      {
+        "step": "infra.change",
+        "summary": "Log retention / disk fill activity on guest-os-vm-app-01 filesystem",
+        "evidence": "event",
+        "timestamp": "2026-07-10T09:56:00Z"
+      },
+      {
+        "step": "syslog.filesystem_full",
+        "summary": "No space left on device writing /var/log/orders-api",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:05Z"
+      },
+      {
+        "step": "syslog.oom_killer",
+        "summary": "kernel: Out of memory: Killed process 1842 (orders-api)",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:12Z"
+      },
+      {
+        "step": "app.crash",
+        "summary": "orders-api service down after OOM / filesystem-full on guest OS",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:18Z"
+      },
+      {
+        "step": "anomaly_filesystem.used_pct",
+        "summary": "`guest-os-vm-app-01` filesystem.used_pct=99.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:05Z"
+      },
+      {
+        "step": "anomaly_oom_killer_event",
+        "summary": "`guest-os-vm-app-01` oom_killer_event=1.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:12Z"
+      },
+      {
+        "step": "anomaly_error_rate_5xx",
+        "summary": "`orders-api` error_rate_5xx=0.42",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:18Z"
+      },
+      {
+        "step": "anomaly_health_check",
+        "summary": "`orders-api` health_check=0.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:18Z"
+      },
+      {
+        "step": "trace_symptom_spans",
+        "summary": "2 spans (p50\u224840.0ms) corroborate the cascade",
+        "evidence": "trace",
+        "timestamp": null
+      }
+    ],
+    "narrative": "guest-os-vm-app-01 \u2192 orders-api. Amplifier: high-cardinality request pattern."
+  },
+  "contributing_factors": {
+    "primary": "Guest OS resource exhaustion",
+    "amplifier": null,
+    "false_leads": []
+  },
+  "timeline": [
+    {
+      "timestamp": "2026-07-10T09:56:00Z",
+      "kind": "event",
+      "summary": "infra.change: Log retention / disk fill activity on guest-os-vm-app-01 filesystem"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "kind": "event",
+      "summary": "syslog.filesystem_full: No space left on device writing /var/log/orders-api"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "kind": "anomaly",
+      "summary": "guest-os-vm-app-01 `filesystem.used_pct`=99.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "event",
+      "summary": "syslog.oom_killer: kernel: Out of memory: Killed process 1842 (orders-api)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "anomaly",
+      "summary": "guest-os-vm-app-01 `oom_killer_event`=1.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:18Z",
+      "kind": "event",
+      "summary": "app.crash: orders-api service down after OOM / filesystem-full on guest OS"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:18Z",
+      "kind": "anomaly",
+      "summary": "orders-api `error_rate_5xx`=0.42"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:18Z",
+      "kind": "anomaly",
+      "summary": "orders-api `health_check`=0.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:18Z",
+      "kind": "symptom_seed",
+      "summary": "Symptom seed orders-api / error_rate_5xx"
+    }
+  ],
+  "actions": {
+    "immediate": [
+      "Free or extend filesystem space; restart the app after OOM/fs-full is cleared.",
+      "Kill or limit runaway processes on the guest OS."
+    ],
+    "future": [
+      "Alert on guest fs>90% and OOM-killer events; disk quota / log rotation hygiene."
+    ]
+  },
+  "rca_summary": {
+    "narrative": "RCA localizes the incident to `guest-os-vm-app-01` (os_resource_exhaustion): Guest OS resource exhaustion. Causal path: guest-os-vm-app-01 \u2192 orders-api. Customer impact: Symptom `error_rate_5xx` on `orders-api` (Guest OS resource exhaustion). Amplifier: classic-infra cascade (shared upstream fault \u2192 app symptom). Root-cause change evidence: Log retention / disk fill activity on guest-os-vm-app-01 filesystem",
+    "narrative_md": "**Root cause:** `guest-os-vm-app-01` (`os_resource_exhaustion`)\nGuest OS resource exhaustion\n\n**Causal path:** `guest-os-vm-app-01` \u2192 `orders-api`\n\n**Customer impact:** Symptom `error_rate_5xx` on `orders-api` (Guest OS resource exhaustion)\n\n**Amplifier:** classic-infra cascade (shared upstream fault \u2192 app symptom)\n\n**False leads ruled out:** none identified\n\n**Change evidence:** Log retention / disk fill activity on guest-os-vm-app-01 filesystem",
+    "root_ci": "guest-os-vm-app-01",
+    "signature": "os_resource_exhaustion",
+    "causal_path": [
+      "guest-os-vm-app-01",
+      "orders-api"
+    ],
+    "fault_title": "Guest OS resource exhaustion",
+    "customer_impact": "Symptom `error_rate_5xx` on `orders-api` (Guest OS resource exhaustion)",
+    "amplifier": "classic-infra cascade (shared upstream fault \u2192 app symptom)",
+    "false_leads": [],
+    "change_evidence": "Log retention / disk fill activity on guest-os-vm-app-01 filesystem"
+  },
+  "remediation": {
+    "guidance": "Guest OS disk/memory exhaustion killed or blocked the app. Free filesystem space / address OOM, then restart the service. Infra below the OS should remain healthy.",
+    "immediate": [
+      "Free or extend filesystem space; restart the app after OOM/fs-full is cleared.",
+      "Kill or limit runaway processes on the guest OS."
+    ],
+    "future": [
+      "Alert on guest fs>90% and OOM-killer events; disk quota / log rotation hygiene."
+    ],
+    "source": "signature_template"
+  },
+  "executive_summary": {
+    "potential_cause": "Log retention / disk fill activity on guest-os-vm-app-01 filesystem",
+    "impact": "Symptom `error_rate_5xx` on `orders-api` (Guest OS resource exhaustion)",
+    "resolution": "Free or extend filesystem space; restart the app after OOM/fs-full is cleared.; Kill or limit runaway processes on the guest OS."
+  },
+  "completeness": {
+    "checks": {
+      "incident_summary": true,
+      "rca_summary": true,
+      "impact": true,
+      "service_dependencies": true,
+      "distributed_traces": true,
+      "log_patterns": true,
+      "metrics_analysis": true,
+      "recent_changes": true,
+      "causal_chain": true,
+      "contributing_factors": true,
+      "timeline": true,
+      "actions": true,
+      "remediation": true,
+      "executive_summary": true,
+      "localization_root": true
+    },
+    "score": "15/15",
+    "pct": 100.0,
+    "ready_for_gold_parity": true
+  }
+}

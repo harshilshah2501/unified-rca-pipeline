@@ -10,8 +10,11 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | Document | Purpose |
 |----------|---------|
 | [`POC_BRIEFING.md`](./POC_BRIEFING.md) | **End-to-end PoC briefing** (objective → design → bakeoff → conclusion) for NotebookLM / slides |
+| [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md) | **Explore & demo** the PoC console, bakeoffs, ingest/lab |
+| [`CODE_GUIDE.md`](./CODE_GUIDE.md) | **Code map for newcomers** — folders, flow, first files, task recipes |
 | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) | Canonical stages + **current next actions** (Ingest → … → Verify) |
 | [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) | Fault-type buckets vs Dynatrace/Datadog (coverage gaps) |
+| [`VENDOR_BENCHMARKS.md`](./VENDOR_BENCHMARKS.md) | Datadog/Dynatrace: no public RCA scoreboard; our GT contract |
 | [`rca-use-cases-only.md`](./rca-use-cases-only.md) | Sole evaluation corpus spec (ObserveOps UC-1..UC-5; UC-3b + events schema specified) |
 | [`UC_LEARNING_BRAINSTORM.md`](./UC_LEARNING_BRAINSTORM.md) | **Learning / brainstorm** — simplified UC frames (problem → RCA output); not bakeoff GT |
 | [`ROADMAP.md`](./ROADMAP.md) | End-to-end phases and status |

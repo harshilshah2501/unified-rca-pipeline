@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AD-HOC · Gold vs Lean vs Federated RCA report compare</title>
+  <style>
+    :root {
+      --bg:#f7f6f3; --fg:#1c1b19; --muted:#5c5954; --line:#d9d5cc; --card:#fffefb;
+      --match:#1f6b3a; --match-bg:#e6f2ea; --partial:#8a5b00; --partial-bg:#f7efd9;
+      --gap:#8b2e2e; --gap-bg:#f6e4e4; --note:#3a4a6b; --note-bg:#e8eef7;
+      --warn-banner:#5c4a12; --warn-banner-bg:#f3ead0;
+      --font:"IBM Plex Sans","Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:var(--font); color:var(--fg); background:var(--bg); line-height:1.45; }
+    header { padding:1.25rem 1.5rem 1rem; border-bottom:1px solid var(--line); background:var(--card); }
+    .banner { display:inline-block; font-size:.75rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+      color:var(--warn-banner); background:var(--warn-banner-bg); border:1px solid #e0d2a8; padding:.25rem .55rem; margin:0 .4rem .5rem 0; }
+    h1 { font-size:1.45rem; margin:0 0 .35rem; font-weight:650; }
+    .sub { color:var(--muted); font-size:.95rem; max-width:72rem; }
+    .callout { margin:1rem 1.5rem 0; padding:.85rem 1rem; background:#e8eef7; border:1px solid #c5d0e4; font-size:.9rem; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.75rem; padding:1rem 1.5rem; }
+    .stat { background:var(--card); border:1px solid var(--line); padding:.85rem 1rem; }
+    .stat h2 { margin:0 0 .35rem; font-size:.8rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.03em; }
+    .stat .val { font-size:1.6rem; font-weight:700; }
+    .stat .hint { font-size:.82rem; color:var(--muted); margin-top:.25rem; }
+    main { padding:0 1.5rem 2.5rem; }
+    table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); font-size:.82rem; }
+    th,td { border-bottom:1px solid var(--line); border-right:1px solid var(--line); padding:.55rem .6rem; vertical-align:top; text-align:left; }
+    th:last-child,td:last-child { border-right:none; }
+    thead th { position:sticky; top:0; background:#efece4; z-index:2; font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; }
+    td.tag { text-align:center; white-space:nowrap; }
+    .sec { font-weight:650; color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; }
+    .crit { font-weight:600; } .ev { color:var(--muted); font-size:.78rem; }
+    .pill { display:inline-block; font-size:.7rem; font-weight:700; padding:.12rem .4rem; border-radius:2px; }
+    .match { color:var(--match); background:var(--match-bg); }
+    .partial { color:var(--partial); background:var(--partial-bg); }
+    .gap { color:var(--gap); background:var(--gap-bg); }
+    .note { color:var(--note); background:var(--note-bg); }
+    .gaps { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-top:1.25rem; }
+    .gap-card { background:var(--card); border:1px solid var(--line); padding:.9rem 1rem; }
+    .gap-card h3 { margin:0 0 .4rem; font-size:.95rem; }
+    footer { padding:1rem 1.5rem 2rem; color:var(--muted); font-size:.8rem; border-top:1px solid var(--line); }
+    code { font-family:var(--mono); font-size:.84em; }
+    @media (max-width:960px) { .stats,.gaps { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="banner">Independent ad-hoc test · not a product scoreboard</div>
+    <h1>Gold vs Lean vs Federated — RCA report compare</h1>
+    <p class="sub">Provenance-aware substance check of <code>comprehensive_rca.v1</code> reports against gold OO
+      incident <code>3GAWT8nVjUE2rA95CZmtyiQcVri</code> (pack <code>ecom-numa-001</code>, run <code>ecom-parity-v2</code>).</p>
+  </header>
+  <div class="callout"><strong>Provenance-aware grades:</strong> Impact is
+    <code>derived_from_telemetry</code>; narrative causal steps sit beside topology_path;
+    alert.fire is a pack event remapped once; Federated excludes symptom CIs from Murphy roots.</div>
+  <section class="stats">
+    <div class="stat"><h2>Gold report</h2><div class="val">Reference</div><div class="hint">OO multimodal · Jul 7</div></div>
+    <div class="stat"><h2>Lean</h2><div class="val">99%</div><div class="hint">Section alignment · 15/15 checklist</div></div>
+    <div class="stat"><h2>Federated</h2><div class="val">99%</div><div class="hint">fusion · fallback_fired=False</div></div>
+  </section>
+  <main>
+    <table>
+      <thead><tr><th>Section</th><th>Criterion</th><th>Gold</th><th>Lean</th><th>L</th><th>Federated</th><th>F</th><th>Evidence</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="gaps" id="gaps"></div>
+  </main>
+  <footer>Quarantined under <code>_adhoc/ecom-gold-report-compare/</code>. Reports:
+    <code>reports/{gold,lean,federated}/incident_report.md</code></footer>
+  <script>
+    const ROWS = [
+      ["Correctness", "Root CI", "NP-17 IRQ / node-image 2026.06.18", "np17-irq-affinity", "match", "np17-irq-affinity", "match", "Both engines localize to pack GT root"],
+      ["Correctness", "Signature", "cross-NUMA IRQ misconfiguration", "cross_numa_irq_affinity (inferred)", "match", "cross_numa_irq_affinity (infer_signature)", "match", "Fed does not stamp GT signature"],
+      ["Correctness", "Provider false lead", "Provider not guilty", "FALSE LEAD + spans", "match", "Same", "match", "24\u00d717s spans + sibling isolation"],
+      ["Report", "RCA summary", "Narrative cause + impact + chain", "rca_summary.narrative present", "match", "Same", "match", "comprehensive_rca.v1 section"],
+      ["Report", "Remediation guidance", "Rollback + verify + prevent", "Prose + immediate/future", "match", "Same", "match", "signature_template (LLM-replaceable)"],
+      ["Identity", "OO incident link", "3GAWT8nVjUE2rA95CZmtyiQcVri", "source_incident_id set", "match", "Same", "match", "Linked; pack id primary"],
+      ["Identity", "Detected / alert fire", "2026-07-07 09:00:58 UTC", "summary.detected=09:00:58Z", "match", "Same", "match", "Pack alert.fire + single canonical_clock remap"],
+      ["Impact", "Failed request counts", "~186 / 387", "186/387 source=derived_from_telemetry", "match", "Same", "match", "Dump counters \u2192 pack impact; fail_fraction from SLO 2.8%"],
+      ["Impact", "Service error rates", "payment\u2192checkout\u2192gateway escalation", "0.2 / 17.6 / 48.06 in impact+metrics", "match", "Same", "match", "Deterministic SYM peaks"],
+      ["Impact", "Path error consistency", "48.06% api-gw\u2192checkout", "Impact peak = measured gateway anomaly", "match", "Same", "match", "Objective Impact\u2194Metrics alignment"],
+      ["Dependencies", "api-gateway on path", "api-gw\u2192checkout\u2192\u2026", "critical_path starts api-gateway", "match", "Same", "match", "Topology + blast"],
+      ["Traces", "17s provider spans", "~30 @ 17s", "24 slow @ 17000ms", "match", "Same", "match", "Duration + false-lead match"],
+      ["Logs", "Kernel cross-NUMA", "cpu=48 numa=1 mem=0", "key_findings + kernel.net", "match", "Same", "match", "Smoking-gun present"],
+      ["Logs", "Payment/checkout WARN", "In gold narrative", "payment/checkout streams packed", "match", "Same", "match", "App WARNs in events + key_findings"],
+      ["Causal chain", "Cascade steps", "Image\u2192IRQ\u2192RX\u2192AAAA\u2192pool\u2192payment\u2192checkout", "topology_path + narrative_steps", "match", "Same", "match", "Evidence-backed narrative; topology stays real CIs"],
+      ["Timeline", "Alert on timeline body", "09:00:58 listed", "alert.fire @ 09:00:58Z", "match", "Same", "match", "Matches incident_summary.detected"],
+      ["Meta", "Lean \u2261 Fed body", "n/a", "Identical multimodal body", "note", "Identical excl engine", "note", "Shared assembler"],
+      ["Meta", "Fed localization path", "n/a", "CARE path", "match", "fusion; fallback_fired=False", "match", "Symptom CIs excluded from Murphy root candidates"]
+    ];
+    const labelOf = {"match": "Match", "partial": "Partial", "gap": "Gap", "note": "Note"};
+    const tb = document.getElementById('tbody');
+    for (const r of ROWS) {
+      const [sec,crit,g,lean,lt,fed,ft,ev] = r;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="sec">${sec}</td><td class="crit">${crit}</td><td>${g}</td>
+        <td>${lean}</td><td class="tag"><span class="pill ${lt}">${labelOf[lt]}</span></td>
+        <td>${fed}</td><td class="tag"><span class="pill ${ft}">${labelOf[ft]}</span></td>
+        <td class="ev">${ev}</td>`;
+      tb.appendChild(tr);
+    }
+    document.getElementById('gaps').innerHTML = `
+      <div class="gap-card"><h3><span class="pill match">Match</span> Derived impact 186/387</h3>
+        <p>Dump counters + SYM peaks → pack impact with <code>source=derived_from_telemetry</code>.</p></div>
+      <div class="gap-card"><h3><span class="pill match">Match</span> App WARNs + alert timeline</h3>
+        <p>Payment/checkout packed; alert.fire at 09:00:58 matches detected after one clock remap.</p></div>
+      <div class="gap-card"><h3><span class="pill match">Match</span> Narrative causal steps</h3>
+        <p><code>topology_path</code> for localization; <code>narrative_steps</code> cover gold cascade substance.</p></div>
+      <div class="gap-card"><h3><span class="pill match">Match</span> Fed fusion path</h3>
+        <p>Symptom CIs excluded from Murphy roots — IRQ via fusion, <code>fallback_fired=False</code>.</p></div>`;
+  </script>
+</body>
+</html>

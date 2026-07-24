@@ -42,4 +42,22 @@ Post-Vector builders (N4–N5):
 
 ## Cost PoC note
 
-Compare L0 vs F1 with **identical** replay volume; only sink fan-out changes. See cheatsheet §3 and design doc §6.
+Compare L0 vs F1 with **identical** replay volume; only sink fan-out changes.
+
+```bash
+python3 ingestion-poc/lab/run_cost_harness.py --events 500000 --vector --seconds-soak 120
+# → benchmarking/results/costing/<run_id>/cost_report.md
+```
+
+Configs: `vector.l0-smoke.toml` (Lean-only) · `vector.f1-smoke.toml` (dual-sink).
+
+## LIVE Connect smoke (next week)
+
+Runbook: [`../../docs/LIVE_INGEST_RUNBOOK.md`](../../docs/LIVE_INGEST_RUNBOOK.md)
+
+| Config | Source |
+|--------|--------|
+| `vector.live-syslog.toml` | UDP syslog `:5140` |
+| `vector.live-prometheus.toml` | `prometheus_scrape` |
+| Compose | `../compose/docker-compose.live.yml` (`--profile syslog` \| `prometheus`) |
+| Verify | `../lab/live_smoke_verify.py --out-dir …` |

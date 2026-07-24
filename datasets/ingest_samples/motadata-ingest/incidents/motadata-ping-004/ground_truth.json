@@ -1,0 +1,21 @@
+{
+  "root_ci": "localhost.localdomain",
+  "signature": "ping_degradation",
+  "contributor_cis": [],
+  "blast_radius": [
+    "localhost.localdomain"
+  ],
+  "note": "A1 network window: monitor 24 (localhost.localdomain) short burst of 100% packet loss (~2h). Human-confirmed on #samples (seed\u2192root\u2192sig\u2192evidence).",
+  "tags": [
+    "motadata",
+    "infra",
+    "ping",
+    "broaden",
+    "gt_confirmed",
+    "a1"
+  ],
+  "gt_status": "human_confirmed",
+  "fault_bucket": "2_infra",
+  "fault_type": "network_fault",
+  "fault_title": "localhost.localdomain packet loss burst"
+}

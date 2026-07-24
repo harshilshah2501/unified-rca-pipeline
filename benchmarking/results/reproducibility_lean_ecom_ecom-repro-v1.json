@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-07-22T12:13:00.867361+00:00",
+  "engine": "lean",
+  "n": 20,
+  "run_prefix": "ecom-repro-v1",
+  "corpus": "/root/Harshil-PoCs/Unified-RCA/datasets/ecom_checkout/incidents",
+  "pack_count": 1,
+  "overall_reproducibility_pct": 100.0,
+  "bit_identical_packs": 1,
+  "definition": "Per pack: run engine N times; SHA-256(verdict.json). pack reproducibility_pct = 100 iff all N hashes identical, else 0. overall = fraction of packs that are bit-identical.",
+  "packs": {
+    "ecom-numa-001": {
+      "runs": 20,
+      "unique_hashes": 1,
+      "reproducibility_pct": 100.0,
+      "bit_identical": true,
+      "hashes": [
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358",
+        "736004176b6532872bdb807b3f56d54a0f236c00661a65c9e2a66d3a77b35358"
+      ]
+    }
+  }
+}

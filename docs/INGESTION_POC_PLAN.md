@@ -1,7 +1,7 @@
 # Ingestion PoC Plan — Near Product-Match
 
 **Status:** Active plan (RCA eval path closed; ingestion is the critical path)  
-**Progress (2026-07-21):** ObserveOps → `ingest.v1` + Motadata smoke + **F1 + N4/N5 writers** done (UC-1..5 diagnose PASS). Next: Detect D2/D3 + Motadata GT.  
+**Progress (2026-07-24):** ObserveOps ingest + Motadata L1 (+ Bucket-3 `motadata-deps-001`) + F1/N4/N5 + cost_report + Samples. **LIVE prep Done** — [`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md); **execute** collector smoke next week → then `CHANGE`.
 **Owner audience:** engineering + infra provisioning  
 **Related:** [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) · [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) · [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`ROADMAP.md`](./ROADMAP.md) · [`CAPACITY.md`](../federated-pipeline/docs/CAPACITY.md)
 
@@ -27,10 +27,10 @@ Collect → Detect → Artifacts → RCA (Lean primary)
 |-------|---------|----------|
 | Lean vs Federated accuracy (UC-1..5) | Yes | 5/5 both; `bakeoff-parity-001` |
 | Fair pipeline (shared detect) | Yes | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
-| Lean packaging (CLI / HTTP / systemd) | Yes | Phase D complete |
-| **Normalized `ingest.v1` streams** | **Partial** | UC replay + Motadata smoke done; Vector → RCA artifacts still open |
-| **Real ingested front door** (Vector → detect → bundles/stores) | **No** | N3–N5 / M1 core still open |
-| **Real Panorama detect** | **No** | Required for Federated product path; M2 |
+| Lean packaging (CLI / HTTP / systemd) | Yes | ROADMAP **Ship** complete |
+| **Normalized `ingest.v1` streams** | **Partial** | UC replay + Motadata smoke + F1 sinks + N4/N5 writers **Done**; live collectors still open |
+| **Real ingested front door** (Vector → detect → bundles/stores) | **Partial** | N3–N5 smoke **Done** on replay; **LIVE prep Done** ([`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md)); execute lab smoke next week; real Panorama (D4) still open |
+| **Real Panorama detect** | **No** | Needs gray-failure corpus (D4); M2 |
 | Federated repro 40% | Open | Not blocking Lean-primary track |
 
 **Handoff rule:** No further RCA algorithm work unless ingested artifacts regress accuracy or a new corpus is added.
@@ -198,7 +198,7 @@ Aligns with [`CAPACITY.md`](../federated-pipeline/docs/CAPACITY.md) PoC row (~10
 | 2–3 nodes × (16 vCPU, 64 GB) | Vector fan-out + Dragonfly cluster + orchestrator |
 | Target | 100K–200K EPS with F1 dual-sink |
 
-**Explicit non-goal:** 1B EPS fleet sizing (Phase E).
+**Explicit non-goal:** 1B EPS fleet sizing (ROADMAP **Later · Scale**).
 
 ---
 
@@ -227,7 +227,13 @@ pro6000-server
 └── load generator  (replay JSONL for EPS tests)
 ```
 
-**Capacity expectation on this host:** **50K–100K EPS** ingest replay is realistic; run `phase0_dragonfly.py` here to set the measured ceiling (expect well above laptop ~21K EPS).
+**Capacity expectation on this host:** **50K–100K EPS** ingest replay is realistic; run [`ingestion-poc/lab/run_lab_eps.py`](../ingestion-poc/lab/run_lab_eps.py) here to set the measured ceiling (expect well above laptop ~24K EPS).
+
+```bash
+# On pro6000-server
+DF_PROACTOR_THREADS=8 python3 ingestion-poc/lab/run_lab_eps.py --seconds 30 --workers 16
+# → benchmarking/capacity/lab/<run_id>/LAB_REPORT.md — paste phase0 into CAPACITY.md
+```
 
 If **`pro6000-server`** has **≥16 CPU cores and ≥64 GB system RAM** (typical for an RTX PRO 6000 workstation), use it as **both Tier A and Tier B** — no separate cloud VM required for M1–M2.
 
@@ -274,7 +280,7 @@ nproc && free -h && df -h && nvidia-smi
 | W1 | Corpus metrics → JSONL replay generator (UC-1..5) | **Done** — `ingestion-poc/replay/` → `datasets/ingest_samples/observeops-replay/` |
 | W1 | Motadata → `ingest.v1` adapter (smoke) | **Done** — `ingestion-poc/adapters/motadata_to_ingest_v1.py` → `motadata-ingest/` (local dumps gitignored) |
 | W2 | Vector F1/L0: file source → remap / detect / sink | **Done (smoke)** — `ingestion-poc/pipeline/f1_run.py` + `vector.f1-smoke.toml` (Python fan-out default; `--vector` Docker) |
-| W2 | CI bind lookup from frozen `topology.json` (UC); Motadata bind later | **Partial** — UC topology copied into F1 out; Motadata bind open |
+| W2 | CI bind lookup from frozen `topology.json` (UC); Motadata bind | **Done** — UC topology in F1 out; Motadata `ci_bind.json` + inventory topology |
 
 ### Weeks 3–4 — Bundle writer + detect (M1 core)
 
@@ -300,7 +306,7 @@ nproc && free -h && df -h && nvidia-smi
 | W7 | Topology crawler stub (static export / cron) | `A-TOPO` refresh job |
 | W8 | Live collector smoke (choose one: syslog or Prometheus) | non-replay events in Vector |
 | W9 | Panorama service wired; Federated profile with real detect | hop-1 `panorama` on lab |
-| W10 | Cost harness: L0 vs F1 replay; Tier B benchmark | `cost_report.md` |
+| W10 | Cost harness: L0 vs F1 replay; Tier B benchmark | **Done (pro6000)** — `benchmarking/results/costing/cost-pro6000-20260721Tfinal/` |
 
 ### Weeks 11+ — M3 (if approved)
 
@@ -381,11 +387,13 @@ Headline compare: **L0 (Lean-only sinks)** vs **F1 (dual-sink)** on **identical 
 
 ## 10. Immediate next three actions
 
-Already done: ObserveOps replay; Motadata adapter smoke; F1 smoke; **N4 Federated stores**; **N5 Lean bundles** (UC diagnose PASS via `n45_chain.py`).
+Already done: ObserveOps replay; Motadata adapter; F1 + N4/N5; D1–D3; Motadata L1 (+ Bucket-3 `motadata-deps-001` authored); inventory; pro6000 cost/soak; Samples; **LIVE runbook + live Vector configs**.
 
-1. **D2 change-near-onset** — close External-trigger bucket ([`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md)).
-2. **D3 explicit error-rate detect class** — Bucket-1 parity with Dynatrace/Datadog.
-3. **Motadata CI-bind / thresholds / GT** — enable Localize scoring on product dumps; optional Federated read of N4 `metric_slice`.
+1. **LIVE — execute** syslog or Prometheus → Vector → F1 ([`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md)) — scheduled next week.  
+2. **CHANGE — real change feed** into D2 `change_near_onset`.  
+3. **Samples confirm** `motadata-deps-001` (+ optional OO alert scrub per [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md)).
+
+Park D4/I2 until gray-failure / path-baseline data exists. See [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) §3.
 
 ---
 

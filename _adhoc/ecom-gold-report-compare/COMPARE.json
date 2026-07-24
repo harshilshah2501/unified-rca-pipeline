@@ -1,0 +1,189 @@
+{
+  "lean_pct": 99,
+  "fed_pct": 99,
+  "grading": "provenance-aware",
+  "run_id": "ecom-parity-v2",
+  "notes": "Scores reflect real telemetry→pack→report evidence; Match requires derived impact, packed app WARNs, narrative_steps, timeline alert, and Fed fusion without onset override.",
+  "rows": [
+    {
+      "section": "Correctness",
+      "criterion": "Root CI",
+      "gold": "NP-17 IRQ / node-image 2026.06.18",
+      "lean": "np17-irq-affinity",
+      "lean_tone": "match",
+      "fed": "np17-irq-affinity",
+      "fed_tone": "match",
+      "evidence": "Both engines localize to pack GT root"
+    },
+    {
+      "section": "Correctness",
+      "criterion": "Signature",
+      "gold": "cross-NUMA IRQ misconfiguration",
+      "lean": "cross_numa_irq_affinity (inferred)",
+      "lean_tone": "match",
+      "fed": "cross_numa_irq_affinity (infer_signature)",
+      "fed_tone": "match",
+      "evidence": "Fed does not stamp GT signature"
+    },
+    {
+      "section": "Correctness",
+      "criterion": "Provider false lead",
+      "gold": "Provider not guilty",
+      "lean": "FALSE LEAD + spans",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "24\u00d717s spans + sibling isolation"
+    },
+    {
+      "section": "Report",
+      "criterion": "RCA summary",
+      "gold": "Narrative cause + impact + chain",
+      "lean": "rca_summary.narrative present",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "comprehensive_rca.v1 section"
+    },
+    {
+      "section": "Report",
+      "criterion": "Remediation guidance",
+      "gold": "Rollback + verify + prevent",
+      "lean": "Prose + immediate/future",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "signature_template (LLM-replaceable)"
+    },
+    {
+      "section": "Identity",
+      "criterion": "OO incident link",
+      "gold": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+      "lean": "source_incident_id set",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "Linked; pack id primary"
+    },
+    {
+      "section": "Identity",
+      "criterion": "Detected / alert fire",
+      "gold": "2026-07-07 09:00:58 UTC",
+      "lean": "summary.detected=09:00:58Z",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "Pack alert.fire + single canonical_clock remap"
+    },
+    {
+      "section": "Impact",
+      "criterion": "Failed request counts",
+      "gold": "~186 / 387",
+      "lean": "186/387 source=derived_from_telemetry",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "Dump counters → pack impact; fail_fraction from SLO 2.8%"
+    },
+    {
+      "section": "Impact",
+      "criterion": "Service error rates",
+      "gold": "payment\u2192checkout\u2192gateway escalation",
+      "lean": "0.2 / 17.6 / 48.06 in impact+metrics",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "Deterministic SYM peaks"
+    },
+    {
+      "section": "Impact",
+      "criterion": "Path error consistency",
+      "gold": "48.06% api-gw\u2192checkout",
+      "lean": "Impact peak = measured gateway anomaly",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "Objective Impact\u2194Metrics alignment"
+    },
+    {
+      "section": "Dependencies",
+      "criterion": "api-gateway on path",
+      "gold": "api-gw\u2192checkout\u2192\u2026",
+      "lean": "critical_path starts api-gateway",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "Topology + blast"
+    },
+    {
+      "section": "Traces",
+      "criterion": "17s provider spans",
+      "gold": "~30 @ 17s",
+      "lean": "24 slow @ 17000ms",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "Duration + false-lead match"
+    },
+    {
+      "section": "Logs",
+      "criterion": "Kernel cross-NUMA",
+      "gold": "cpu=48 numa=1 mem=0",
+      "lean": "key_findings + kernel.net",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "Smoking-gun present"
+    },
+    {
+      "section": "Logs",
+      "criterion": "Payment/checkout WARN",
+      "gold": "In gold narrative",
+      "lean": "payment/checkout streams packed",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "App WARNs in events + key_findings"
+    },
+    {
+      "section": "Causal chain",
+      "criterion": "Cascade steps",
+      "gold": "Image\u2192IRQ\u2192RX\u2192AAAA\u2192pool\u2192payment\u2192checkout",
+      "lean": "topology_path + narrative_steps",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "Evidence-backed narrative; topology stays real CIs"
+    },
+    {
+      "section": "Timeline",
+      "criterion": "Alert on timeline body",
+      "gold": "09:00:58 listed",
+      "lean": "alert.fire @ 09:00:58Z",
+      "lean_tone": "match",
+      "fed": "Same",
+      "fed_tone": "match",
+      "evidence": "Matches incident_summary.detected"
+    },
+    {
+      "section": "Meta",
+      "criterion": "Lean \u2261 Fed body",
+      "gold": "n/a",
+      "lean": "Identical multimodal body",
+      "lean_tone": "note",
+      "fed": "Identical excl engine",
+      "fed_tone": "note",
+      "evidence": "Shared assembler"
+    },
+    {
+      "section": "Meta",
+      "criterion": "Fed localization path",
+      "gold": "n/a",
+      "lean": "CARE path",
+      "lean_tone": "match",
+      "fed": "fusion; fallback_fired=False",
+      "fed_tone": "match",
+      "evidence": "Symptom CIs excluded from Murphy root candidates"
+    }
+  ]
+}

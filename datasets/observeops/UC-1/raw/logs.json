@@ -1,0 +1,53 @@
+[
+  {
+    "stream": "esx_logs",
+    "ts": "2026-07-10T10:00:05Z",
+    "level": "ERROR",
+    "logger": "esx.cpu.ready",
+    "message": "cpu.ready=12% on esxi-host-01 \u2014 vCPUs waiting for physical cores",
+    "labels": {
+      "ci": "esxi-host-01"
+    }
+  },
+  {
+    "stream": "esx_logs",
+    "ts": "2026-07-10T10:00:05Z",
+    "level": "WARN",
+    "logger": "esx.cpu.usage",
+    "message": "cpu.usage=92% on esxi-host-01",
+    "labels": {
+      "ci": "esxi-host-01"
+    }
+  },
+  {
+    "stream": "vmware_logs",
+    "ts": "2026-07-10T10:00:12Z",
+    "level": "WARN",
+    "logger": "vmware.cpu.ready",
+    "message": "vm-app-01 cpu.ready=11% (co-located with other VMs on esxi-host-01)",
+    "labels": {
+      "ci": "vm-app-01",
+      "host": "esxi-host-01"
+    }
+  },
+  {
+    "stream": "syslog",
+    "ts": "2026-07-10T10:00:18Z",
+    "level": "WARN",
+    "logger": "syslog.loadavg",
+    "message": "loadavg=8.0 on guest-os-vm-app-01",
+    "labels": {
+      "ci": "guest-os-vm-app-01"
+    }
+  },
+  {
+    "stream": "app_logs",
+    "ts": "2026-07-10T10:00:25Z",
+    "level": "ERROR",
+    "logger": "app.latency",
+    "message": "request p95=1450ms endpoint=/orders",
+    "labels": {
+      "ci": "orders-api"
+    }
+  }
+]

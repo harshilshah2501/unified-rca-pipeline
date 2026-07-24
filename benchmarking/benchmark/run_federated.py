@@ -33,23 +33,28 @@ from benchmark.adapters.observeops_federated import (  # noqa: E402
     verdict_to_benchmark,
     _parse_ts,
 )
-from benchmark.parity import apply_detect_to_bundle, run_shared_detect  # noqa: E402
+from benchmark.corpus_util import (  # noqa: E402
+    is_frozen_pack_corpus,
+    pack_ids,
+    results_dir,
+)
+from benchmark.parity import (  # noqa: E402
+    annotate_change_near_onset,
+    apply_detect_to_bundle,
+    detect_meta_for_scoreboard,
+    resolve_changes_path,
+    run_shared_detect,
+)
+from core_engine.lean.signature import infer_signature  # noqa: E402
 
 DEFAULT_CORPUS = REPO / "datasets" / "observeops"
-OO_PACKS = REPO / "datasets" / "openobserve_incidents" / "v1" / "engine_packs"
 RESULTS = REPO / "benchmarking" / "results" / "federated"
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
 
-def _is_oo_packs(corpus: Path) -> bool:
-    return corpus.resolve() == OO_PACKS.resolve() or corpus.name == "engine_packs"
-
-
 def _results_dir(corpus: Path, uc_id: str, run_id: str) -> Path:
-    if _is_oo_packs(corpus):
-        return RESULTS / "oo" / uc_id / f"run-{run_id}"
-    return RESULTS / uc_id / f"run-{run_id}"
+    return results_dir(RESULTS, corpus, uc_id, run_id)
 
 
 def _corpus_version(corpus: Path) -> str:
@@ -60,13 +65,7 @@ def _corpus_version(corpus: Path) -> str:
 
 
 def _pack_ids(corpus: Path) -> list[str]:
-    if _is_oo_packs(corpus):
-        return sorted(
-            p.name
-            for p in corpus.iterdir()
-            if p.is_dir() and (p / "topology.json").exists()
-        )
-    return [f"UC-{i}" for i in range(1, 6)]
+    return pack_ids(corpus)
 
 
 def run_uc(
@@ -79,9 +78,10 @@ def run_uc(
     corpus = corpus or DEFAULT_CORPUS
     bundle = load_bundle(uc_id, corpus)
     detect_meta: dict = {}
-    if shared_detect and not _is_oo_packs(corpus):
+    if shared_detect and not is_frozen_pack_corpus(corpus):
         detect = run_shared_detect(uc_id, corpus)
-        detect_meta = detect.to_meta()
+        annotate_change_near_onset(detect, resolve_changes_path(uc_id, corpus))
+        detect_meta = detect_meta_for_scoreboard(detect)
         bundle = apply_detect_to_bundle(bundle, detect)
 
     store = build_metric_store(bundle)
@@ -106,6 +106,7 @@ def run_uc(
                 direct_symptom_fault=has_direct_symptom_fault(
                     bundle, flag.symptom_entity or flag.entity
                 ),
+                bundle=bundle,
             )
             if posterior_dist:
                 rca.evidence["murphy"]["distribution"] = posterior_dist
@@ -130,8 +131,8 @@ def run_uc(
             if posterior_dist
             else rca.evidence.get("murphy", {}).get("posterior", 0.0) or 0.0
         )
-        signature = bundle["ground_truth"].get("signature", "unknown")
         crossed = [a for a in bundle["anomalies"]["anomalies"] if a["crossed"]]
+        signature = infer_signature(crossed)
         evidence = [
             {
                 "ci": a["ci"],
@@ -144,7 +145,9 @@ def run_uc(
         observations = len(orchestrator.hop_logs)
         hop_logs = [asdict(h) for h in orchestrator.hop_logs]
     except Exception:
-        root_ci, signature, evidence = earliest_crossed_root(bundle)
+        root_ci, _gt_sig, evidence = earliest_crossed_root(bundle)
+        crossed = [a for a in bundle["anomalies"]["anomalies"] if a["crossed"]]
+        signature = infer_signature(crossed)
         observations = 0
         fallback_fired = True
         fallback_reason = "pipeline_exception"
@@ -204,7 +207,7 @@ def main(argv: list[str] | None = None) -> int:
         "--corpus",
         type=Path,
         default=DEFAULT_CORPUS,
-        help="Corpus root (ObserveOps or OO engine_packs)",
+        help="Corpus root (ObserveOps, OO engine_packs, or Motadata incidents)",
     )
     parser.add_argument(
         "--no-shared-detect",

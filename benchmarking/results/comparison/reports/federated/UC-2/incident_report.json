@@ -1,0 +1,500 @@
+{
+  "schema_version": "comprehensive_rca.v1",
+  "incident_id": "UC-2",
+  "source_incident_id": null,
+  "engine": "federated",
+  "generated_at": "2026-07-23T10:35:25Z",
+  "pack_meta": {
+    "incident_start": "2026-07-10T10:00:00Z",
+    "symptom_onset": "2026-07-10T10:00:18Z",
+    "detected_at": "2026-07-10T10:00:18Z",
+    "change_at": "2026-07-10T10:00:00Z",
+    "raw_dir": "datasets/observeops/UC-2/raw",
+    "source_incident_id": null,
+    "impact_source": null
+  },
+  "localization": {
+    "root_ci": "switch-core-01:GigE0/2",
+    "signature": "link_failure",
+    "contributor_cis": [],
+    "false_leads_ruled_out": [],
+    "matches_pack_gt": true
+  },
+  "incident_summary": {
+    "severity": "P2",
+    "detected": "2026-07-10T10:00:18Z",
+    "affected_services": [
+      "orders-api"
+    ],
+    "customer_impact": "Symptom `tcp.timeouts` on `orders-api` (Core switch link failure)",
+    "dimension_slice": "ObserveOps classic-infra \u00b7 `2_infra` / `network_fault`",
+    "gt_fault_title": "Core switch link failure"
+  },
+  "impact": {
+    "services_affected": [
+      "esxi-host-01",
+      "vm-app-01",
+      "vm-db-01",
+      "orders-api"
+    ],
+    "sla_breach": true,
+    "data_loss": false,
+    "failed_requests": null,
+    "total_requests": null,
+    "peak_path_error_rate_pct": null,
+    "path_error_label": "api-gateway \u2192 checkout-service",
+    "checkout_error_rate_pct": null,
+    "payment_service_error_rate_pct": null,
+    "error_escalation": null,
+    "estimated_fail_fraction": "\u22482.8% of checkouts in the affected dimension",
+    "source": null,
+    "notes": null
+  },
+  "service_dependencies": {
+    "critical_path": [
+      "orders-api",
+      "guest-os-vm-app-01",
+      "vm-app-01",
+      "esxi-host-01",
+      "switch-core-01:GigE0/2"
+    ],
+    "topology_edges": [
+      {
+        "from": "orders-api",
+        "to": "guest-os-vm-app-01",
+        "relation": "runs_on"
+      },
+      {
+        "from": "guest-os-vm-app-01",
+        "to": "vm-app-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "guest-os-vm-db-01",
+        "to": "vm-db-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-app-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-db-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-neighbor-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-db-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "vm-neighbor-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "vm-app-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "esxi-host-01",
+        "to": "switch-core-01:GigE0/2",
+        "relation": "uplink_to"
+      }
+    ],
+    "isolation_note": "Healthy siblings (pricing/inventory/token/fraud) are not on the failing payment path; errors escalate api-gateway \u2190 checkout \u2190 payment \u2190 (DNS/RX/IRQ), with payment-provider as a decoy leaf."
+  },
+  "distributed_traces": {
+    "available": true,
+    "analyzed_spans": 3,
+    "slow_spans": 3,
+    "slow_provider_spans": 0,
+    "provider_duration_ms_p50": null,
+    "provider_duration_ms_max": null,
+    "span_duration_ms_p50": 4366.7,
+    "span_duration_ms_max": 5200.0,
+    "healthy_sibling_spans_under_200ms": 0,
+    "false_lead_assessment": "App spans show connect/timeout failures consistent with an upstream network path break; treat app errors as blast-radius symptoms.",
+    "samples": [
+      {
+        "trace_id": "uc2-t1",
+        "service_name": "orders-api",
+        "span_name": "POST /checkout",
+        "duration_ms": 5200.0,
+        "ci": "orders-api",
+        "note": null
+      },
+      {
+        "trace_id": "uc2-t1",
+        "service_name": "orders-api",
+        "span_name": "tcp.connect",
+        "duration_ms": 4800.0,
+        "ci": "orders-api",
+        "note": "network_path_failure"
+      },
+      {
+        "trace_id": "uc2-t2",
+        "service_name": "orders-api",
+        "span_name": "GET /health",
+        "duration_ms": 3100.0,
+        "ci": "orders-api",
+        "note": null
+      }
+    ]
+  },
+  "log_patterns": {
+    "pack_event_types": {
+      "app.timeout": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:12Z",
+            "ci": "orders-api",
+            "severity": "critical",
+            "message": "orders-api TCP timeouts / elevated error rate behind failed uplink"
+          }
+        ]
+      },
+      "esx.net.drop": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:08Z",
+            "ci": "esxi-host-01",
+            "severity": "warning",
+            "message": "vmnic packet drops / link-down detected on esxi-host-01 uplink"
+          }
+        ]
+      },
+      "infra.change": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T09:58:00Z",
+            "ci": "switch-core-01:GigE0/2",
+            "severity": "info",
+            "message": "Network change window: uplink maintenance on switch-core-01 GigE0/2"
+          }
+        ]
+      },
+      "snmp.ifOutDiscards": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:05Z",
+            "ci": "switch-core-01:GigE0/2",
+            "severity": "warning",
+            "message": "ifOutDiscards rising on GigE0/2"
+          }
+        ]
+      },
+      "snmp.linkDown": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:00Z",
+            "ci": "switch-core-01:GigE0/2",
+            "severity": "critical",
+            "message": "SNMP TRAP linkDown: ifDescr=GigE0/2 ifOperStatus=down"
+          }
+        ]
+      }
+    },
+    "raw_logger_counts": {
+      "snmp.linkDown": 1,
+      "snmp.ifOutDiscards": 1,
+      "esx.net.drop": 1,
+      "app.timeout": 1
+    },
+    "key_findings": [
+      "Network change window: uplink maintenance on switch-core-01 GigE0/2",
+      "SNMP TRAP linkDown: ifDescr=GigE0/2 ifOperStatus=down",
+      "ifOutDiscards rising on GigE0/2",
+      "vmnic packet drops / link-down detected on esxi-host-01 uplink",
+      "orders-api TCP timeouts / elevated error rate behind failed uplink"
+    ]
+  },
+  "metrics_analysis": {
+    "crossed_anomalies": [
+      {
+        "ci": "switch-core-01:GigE0/2",
+        "signal": "linkDown",
+        "value": 1.0,
+        "threshold": 0.5,
+        "timestamp": "2026-07-10T10:00:00Z",
+        "note": null
+      },
+      {
+        "ci": "switch-core-01:GigE0/2",
+        "signal": "ifOutDiscards",
+        "value": 450.0,
+        "threshold": 0.0,
+        "timestamp": "2026-07-10T10:00:05Z",
+        "note": null
+      },
+      {
+        "ci": "esxi-host-01",
+        "signal": "vmnic.dropped_packets",
+        "value": 120.0,
+        "threshold": 0.0,
+        "timestamp": "2026-07-10T10:00:12Z",
+        "note": null
+      },
+      {
+        "ci": "vm-app-01",
+        "signal": "tcp.retransmits",
+        "value": 85.0,
+        "threshold": 10.0,
+        "timestamp": "2026-07-10T10:00:12Z",
+        "note": null
+      },
+      {
+        "ci": "orders-api",
+        "signal": "tcp.timeouts",
+        "value": 42.0,
+        "threshold": 5.0,
+        "timestamp": "2026-07-10T10:00:18Z",
+        "note": null
+      }
+    ],
+    "raw_metric_peaks": null
+  },
+  "recent_changes": {
+    "change_events": [
+      {
+        "timestamp": "2026-07-10T09:58:00Z",
+        "ci": "switch-core-01:GigE0/2",
+        "event_type": "infra.change",
+        "severity": "info",
+        "message": "Network change window: uplink maintenance on switch-core-01 GigE0/2"
+      }
+    ],
+    "root_cause_change": {
+      "timestamp": "2026-07-10T09:58:00Z",
+      "ci": "switch-core-01:GigE0/2",
+      "event_type": "infra.change",
+      "severity": "info",
+      "message": "Network change window: uplink maintenance on switch-core-01 GigE0/2"
+    }
+  },
+  "causal_chain": {
+    "steps": [
+      "switch-core-01:GigE0/2",
+      "esxi-host-01",
+      "vm-app-01",
+      "guest-os-vm-app-01",
+      "orders-api"
+    ],
+    "topology_path": [
+      "switch-core-01:GigE0/2",
+      "esxi-host-01",
+      "vm-app-01",
+      "guest-os-vm-app-01",
+      "orders-api"
+    ],
+    "narrative_steps": [
+      {
+        "step": "infra.change",
+        "summary": "Network change window: uplink maintenance on switch-core-01 GigE0/2",
+        "evidence": "event",
+        "timestamp": "2026-07-10T09:58:00Z"
+      },
+      {
+        "step": "snmp.linkDown",
+        "summary": "SNMP TRAP linkDown: ifDescr=GigE0/2 ifOperStatus=down",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:00Z"
+      },
+      {
+        "step": "snmp.ifOutDiscards",
+        "summary": "ifOutDiscards rising on GigE0/2",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:05Z"
+      },
+      {
+        "step": "esx.net.drop",
+        "summary": "vmnic packet drops / link-down detected on esxi-host-01 uplink",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:08Z"
+      },
+      {
+        "step": "app.timeout",
+        "summary": "orders-api TCP timeouts / elevated error rate behind failed uplink",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:12Z"
+      },
+      {
+        "step": "anomaly_linkDown",
+        "summary": "`switch-core-01:GigE0/2` linkDown=1.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:00Z"
+      },
+      {
+        "step": "anomaly_ifOutDiscards",
+        "summary": "`switch-core-01:GigE0/2` ifOutDiscards=450.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:05Z"
+      },
+      {
+        "step": "anomaly_vmnic.dropped_packets",
+        "summary": "`esxi-host-01` vmnic.dropped_packets=120.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:12Z"
+      },
+      {
+        "step": "anomaly_tcp.retransmits",
+        "summary": "`vm-app-01` tcp.retransmits=85.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:12Z"
+      },
+      {
+        "step": "anomaly_tcp.timeouts",
+        "summary": "`orders-api` tcp.timeouts=42.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:18Z"
+      },
+      {
+        "step": "trace_symptom_spans",
+        "summary": "3 spans (p50\u22484366.7ms) corroborate the cascade",
+        "evidence": "trace",
+        "timestamp": null
+      }
+    ],
+    "narrative": "switch-core-01:GigE0/2 \u2192 esxi-host-01 \u2192 vm-app-01 \u2192 guest-os-vm-app-01 \u2192 orders-api. Amplifier: high-cardinality request pattern."
+  },
+  "contributing_factors": {
+    "primary": "Core switch link failure",
+    "amplifier": null,
+    "false_leads": []
+  },
+  "timeline": [
+    {
+      "timestamp": "2026-07-10T09:58:00Z",
+      "kind": "event",
+      "summary": "infra.change: Network change window: uplink maintenance on switch-core-01 GigE0/2"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:00Z",
+      "kind": "event",
+      "summary": "snmp.linkDown: SNMP TRAP linkDown: ifDescr=GigE0/2 ifOperStatus=down"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:00Z",
+      "kind": "anomaly",
+      "summary": "switch-core-01:GigE0/2 `linkDown`=1.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "kind": "event",
+      "summary": "snmp.ifOutDiscards: ifOutDiscards rising on GigE0/2"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "kind": "anomaly",
+      "summary": "switch-core-01:GigE0/2 `ifOutDiscards`=450.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:08Z",
+      "kind": "event",
+      "summary": "esx.net.drop: vmnic packet drops / link-down detected on esxi-host-01 uplink"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "event",
+      "summary": "app.timeout: orders-api TCP timeouts / elevated error rate behind failed uplink"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "anomaly",
+      "summary": "esxi-host-01 `vmnic.dropped_packets`=120.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "anomaly",
+      "summary": "vm-app-01 `tcp.retransmits`=85.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:18Z",
+      "kind": "anomaly",
+      "summary": "orders-api `tcp.timeouts`=42.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:18Z",
+      "kind": "symptom_seed",
+      "summary": "Symptom seed orders-api / tcp.timeouts"
+    }
+  ],
+  "actions": {
+    "immediate": [
+      "Restore or replace the failed switch uplink / port.",
+      "Verify redundant NIC teaming and clear discards/errors."
+    ],
+    "future": [
+      "Alert on SNMP linkDown + rising discards; validate dual-homed uplinks in change windows."
+    ]
+  },
+  "rca_summary": {
+    "narrative": "RCA localizes the incident to `switch-core-01:GigE0/2` (link_failure): Core switch link failure. Causal path: switch-core-01:GigE0/2 \u2192 esxi-host-01 \u2192 vm-app-01 \u2192 guest-os-vm-app-01 \u2192 orders-api. Customer impact: Symptom `tcp.timeouts` on `orders-api` (Core switch link failure). Amplifier: classic-infra cascade (shared upstream fault \u2192 app symptom). Root-cause change evidence: Network change window: uplink maintenance on switch-core-01 GigE0/2",
+    "narrative_md": "**Root cause:** `switch-core-01:GigE0/2` (`link_failure`)\nCore switch link failure\n\n**Causal path:** `switch-core-01:GigE0/2` \u2192 `esxi-host-01` \u2192 `vm-app-01` \u2192 `guest-os-vm-app-01` \u2192 `orders-api`\n\n**Customer impact:** Symptom `tcp.timeouts` on `orders-api` (Core switch link failure)\n\n**Amplifier:** classic-infra cascade (shared upstream fault \u2192 app symptom)\n\n**False leads ruled out:** none identified\n\n**Change evidence:** Network change window: uplink maintenance on switch-core-01 GigE0/2",
+    "root_ci": "switch-core-01:GigE0/2",
+    "signature": "link_failure",
+    "causal_path": [
+      "switch-core-01:GigE0/2",
+      "esxi-host-01",
+      "vm-app-01",
+      "guest-os-vm-app-01",
+      "orders-api"
+    ],
+    "fault_title": "Core switch link failure",
+    "customer_impact": "Symptom `tcp.timeouts` on `orders-api` (Core switch link failure)",
+    "amplifier": "classic-infra cascade (shared upstream fault \u2192 app symptom)",
+    "false_leads": [],
+    "change_evidence": "Network change window: uplink maintenance on switch-core-01 GigE0/2"
+  },
+  "remediation": {
+    "guidance": "Restore the failed uplink/port first. App timeouts are effects of the network break; verify redundant paths and clear interface discards before restarting services.",
+    "immediate": [
+      "Restore or replace the failed switch uplink / port.",
+      "Verify redundant NIC teaming and clear discards/errors."
+    ],
+    "future": [
+      "Alert on SNMP linkDown + rising discards; validate dual-homed uplinks in change windows."
+    ],
+    "source": "signature_template"
+  },
+  "executive_summary": {
+    "potential_cause": "Network change window: uplink maintenance on switch-core-01 GigE0/2",
+    "impact": "Symptom `tcp.timeouts` on `orders-api` (Core switch link failure)",
+    "resolution": "Restore or replace the failed switch uplink / port.; Verify redundant NIC teaming and clear discards/errors."
+  },
+  "completeness": {
+    "checks": {
+      "incident_summary": true,
+      "rca_summary": true,
+      "impact": true,
+      "service_dependencies": true,
+      "distributed_traces": true,
+      "log_patterns": true,
+      "metrics_analysis": true,
+      "recent_changes": true,
+      "causal_chain": true,
+      "contributing_factors": true,
+      "timeline": true,
+      "actions": true,
+      "remediation": true,
+      "executive_summary": true,
+      "localization_root": true
+    },
+    "score": "15/15",
+    "pct": 100.0,
+    "ready_for_gold_parity": true
+  }
+}

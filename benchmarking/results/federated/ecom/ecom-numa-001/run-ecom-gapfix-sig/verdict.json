@@ -1,0 +1,65 @@
+{
+  "engine": "federated",
+  "uc_id": "ecom-numa-001",
+  "root_ci": "np17-irq-affinity",
+  "signature": "cross_numa_irq_affinity",
+  "contributor_cis": [
+    "nic-rx-queue-7",
+    "dns-aaaa-np17"
+  ],
+  "evidence": [
+    {
+      "ci": "np17-irq-affinity",
+      "signal": "irq_affinity_numa_mismatch",
+      "value": 1.0,
+      "timestamp": "2026-07-22T10:31:44Z"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel_rx_queue_latency_ms",
+      "value": 2936.6,
+      "timestamp": "2026-07-22T10:31:44Z"
+    },
+    {
+      "ci": "dns-aaaa-np17",
+      "signal": "dns_query_latency_p99_ms",
+      "value": 3359.3,
+      "timestamp": "2026-07-22T10:33:44Z"
+    },
+    {
+      "ci": "payment-service",
+      "signal": "payment_connection_acquire_ms",
+      "value": 4737.1,
+      "timestamp": "2026-07-22T10:33:44Z"
+    },
+    {
+      "ci": "payment-provider",
+      "signal": "payment_provider_latency_ms",
+      "value": 17845.2,
+      "timestamp": "2026-07-22T10:33:44Z"
+    },
+    {
+      "ci": "checkout-service",
+      "signal": "checkout_latency_p99_ms",
+      "value": 18779.8,
+      "timestamp": "2026-07-22T10:33:44Z"
+    },
+    {
+      "ci": "checkout-service",
+      "signal": "checkout_success_rate",
+      "value": 96.901,
+      "timestamp": "2026-07-22T10:33:44Z"
+    },
+    {
+      "ci": "api-gateway",
+      "signal": "api_gateway_error_rate_pct",
+      "value": 50.33,
+      "timestamp": "2026-07-22T10:33:44Z"
+    }
+  ],
+  "observations": 6,
+  "evidentiary_tier": 2,
+  "fallback_fired": true,
+  "fallback_reason": "earliest_onset_upstream:np17-irq-affinity",
+  "murphy_posterior": 1.0
+}

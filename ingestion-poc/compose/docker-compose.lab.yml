@@ -1,0 +1,49 @@
+# Lab stack — Dragonfly (+ optional Vector) for EPS probes
+#
+# From repo root:
+#   docker compose -f ingestion-poc/compose/docker-compose.lab.yml up -d dragonfly
+#   python3 ingestion-poc/lab/run_lab_eps.py
+#
+# On pro6000-server prefer host networking + more proactor threads:
+#   DF_PROACTOR_THREADS=8 DF_PORT=6380 docker compose -f ... up -d
+
+services:
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.25.1
+    container_name: rca-lab-dragonfly
+    # bridge is portable on WSL; on pro6000 use --network host via override if needed
+    ports:
+      - "${DF_PORT:-6380}:6379"
+    command:
+      - "--proactor_threads=${DF_PROACTOR_THREADS:-2}"
+      - "--port=6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 3s
+
+  # Optional: Vector F1 smoke against a stream (not required for Dragonfly phase0).
+  vector-f1:
+    profiles: ["vector"]
+    image: timberio/vector:0.41.1-alpine
+    working_dir: /workspace
+    volumes:
+      - ../..:/workspace:ro
+      - ../vector:/etc/vector:ro
+      - lab_vector_out:/out
+      - lab_vector_data:/var/lib/vector
+    environment:
+      INGEST_STREAM: /workspace/datasets/ingest_samples/observeops-replay/UC-1/stream.jsonl
+      F1_OUT_DIR: /out
+      VECTOR_DATA_DIR: /var/lib/vector
+    command:
+      - --config
+      - /etc/vector/vector.f1-smoke.toml
+      - --require-healthy
+      - "false"
+
+volumes:
+  lab_vector_out:
+  lab_vector_data:

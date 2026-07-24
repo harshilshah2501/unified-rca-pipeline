@@ -1,0 +1,52 @@
+# LIVE Connect smoke — syslog or Prometheus → F1 sinks
+# Docs: docs/LIVE_INGEST_RUNBOOK.md
+#
+#   F1_OUT_DIR=$PWD/ingestion-poc/out/live-demo \
+#     docker compose -f ingestion-poc/compose/docker-compose.live.yml --profile syslog up
+#   PROM_TARGETS='["http://host.docker.internal:9090/metrics"]' \
+#     docker compose -f ingestion-poc/compose/docker-compose.live.yml --profile prometheus up
+
+services:
+  vector-live-syslog:
+    profiles: ["syslog"]
+    image: timberio/vector:0.41.1-alpine
+    ports:
+      - "5140:5140/udp"
+    volumes:
+      - ../..:/workspace:ro
+      - ../vector:/etc/vector:ro
+      - ${F1_OUT_DIR:-../out/live-default}:/out
+      - live_vector_data:/var/lib/vector
+    environment:
+      F1_OUT_DIR: /out
+      VECTOR_DATA_DIR: /var/lib/vector
+      LIVE_TENANT: ${LIVE_TENANT:-lab}
+    command:
+      - --config
+      - /etc/vector/vector.live-syslog.toml
+      - --require-healthy
+      - false
+
+  vector-live-prom:
+    profiles: ["prometheus"]
+    image: timberio/vector:0.41.1-alpine
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../..:/workspace:ro
+      - ../vector:/etc/vector:ro
+      - ${F1_OUT_DIR:-../out/live-default}:/out
+      - live_vector_data:/var/lib/vector
+    environment:
+      F1_OUT_DIR: /out
+      VECTOR_DATA_DIR: /var/lib/vector
+      LIVE_TENANT: ${LIVE_TENANT:-lab}
+      PROM_TARGETS: ${PROM_TARGETS:-["http://host.docker.internal:9090/metrics"]}
+    command:
+      - --config
+      - /etc/vector/vector.live-prometheus.toml
+      - --require-healthy
+      - false
+
+volumes:
+  live_vector_data:

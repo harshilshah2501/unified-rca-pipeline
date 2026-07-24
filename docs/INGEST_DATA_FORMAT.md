@@ -250,31 +250,35 @@ Output: [`datasets/ingest_samples/observeops-replay/`](../datasets/ingest_sample
 
 ### Motadata ClickHouse export → `ingest.v1` (product-shaped path)
 
-Local dumps live in [`datasets/ingest_samples/jsonl_resolved/`](../datasets/ingest_samples/jsonl_resolved/) (**gitignored** large `.jsonl`; do not push). Names are already resolved (no separate ID dictionary required for smoke).
+Local dumps live in [`datasets/ingest_samples/jsonl_resolved/`](../datasets/ingest_samples/jsonl_resolved/) (**gitignored** large `.jsonl`; do not push).
+
+**Depth (2026-07-21):** CI-bind + threshold catalog + span-derived `http.error_rate` → Localize smoke `motadata-apm-001`.
 
 ```bash
-# Smoke (default limits)
-python3 ingestion-poc/adapters/motadata_to_ingest_v1.py --smoke
-# → datasets/ingest_samples/motadata-ingest/stream.jsonl + manifest.json
+# CI-bind + APM incident (Lean root match)
+python3 ingestion-poc/adapters/build_motadata_incident.py
 
-# Full corpus (multi-GB — local only)
-python3 ingestion-poc/adapters/motadata_to_ingest_v1.py --full --out-name stream.full.jsonl
+# Base convert (applies ci_bind + thresholds when present)
+python3 ingestion-poc/adapters/motadata_to_ingest_v1.py --smoke
 ```
 
-Adapter: [`ingestion-poc/adapters/motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_ingest_v1.py) · [README](../ingestion-poc/adapters/README.md)
+| Artifact | Path |
+|----------|------|
+| CI bind | `motadata-ingest/ci_bind.json` |
+| Thresholds | `ingestion-poc/adapters/motadata_threshold_catalog.json` |
+| APM incident | `motadata-ingest/incidents/motadata-apm-001/` |
+
+Adapter: [`motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_ingest_v1.py) · [README](../ingestion-poc/adapters/README.md)
 
 | Motadata source | `signal_class` | `ci_id` |
 |-----------------|----------------|---------|
 | `log.jsonl` | `event` | hostname / `event_source` |
-| `metric_numeric.jsonl` | `metric_sample` (one per field) | `monitor-{id}` |
-| `metric_string.jsonl` | `event` | `monitor-{id}` |
+| `metric_numeric.jsonl` | `metric_sample` (+ threshold) | bound name or `monitor-{id}` |
+| `metric_string.jsonl` | `event` | bound name or `monitor-{id}` |
 | `trace.jsonl` / `span.jsonl` | `trace_span` | service name |
+| span-derived | `metric_sample` | service name |
 
-**Gaps (expected):** Motadata topology / GT / CI-bind (monitors ↔ services) not attached yet — needed before Localize bakeoff on this corpus.
-
-Optional alternate layout: place unresolved dumps under `motadata-raw/` (also gitignored); prefer `jsonl_resolved/` when names are already expanded.
-
-New microservice samples should follow §3 Option A when ready.
+**Gaps:** Broader Motadata GT (human-labeled packs beyond the current 3) and live change feed still open. Motadata signatures `app_error_rate` / `ping_degradation` / `host_cpu_saturation` + inventory topology are **Done** for the smoke packs.
 
 ---
 

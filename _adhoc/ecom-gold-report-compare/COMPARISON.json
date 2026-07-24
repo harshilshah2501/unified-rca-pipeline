@@ -1,0 +1,33 @@
+{
+  "run_id": "ecom-20260722T110736Z",
+  "pack_id": "ecom-numa-001",
+  "ground_truth": {
+    "root_ci": "np17-irq-affinity",
+    "signature": "cross_numa_irq_affinity"
+  },
+  "lean": {
+    "status": "pass",
+    "root_match": true,
+    "signature_match": true,
+    "root_ci": "np17-irq-affinity",
+    "signature": "cross_numa_irq_affinity",
+    "latency_ms": 6.5794,
+    "fallback_fired": true,
+    "observations": 7,
+    "evidentiary_tier": 3,
+    "engine": "lean"
+  },
+  "federated": {
+    "status": "pass",
+    "root_match": true,
+    "signature_match": true,
+    "root_ci": "np17-irq-affinity",
+    "signature": "cross_numa_irq_affinity",
+    "latency_ms": 17603.5953,
+    "fallback_fired": true,
+    "observations": 6,
+    "evidentiary_tier": 2,
+    "engine": "federated"
+  },
+  "note": "Federated copies GT signature into the verdict today; Lean infers signature from crossed signals (fairer signature axis)."
+}

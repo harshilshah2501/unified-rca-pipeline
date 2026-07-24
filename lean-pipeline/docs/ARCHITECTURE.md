@@ -121,13 +121,16 @@ Pass → **Tier 3**. Fail → remain Tier 2. This is intentionally lightweight (
 
 **`infer_signature(crossed)`** — deterministic first-match on crossed metrics (no GT leak):
 
-| Signature | Typical ObserveOps UC |
-|-----------|---------------------|
+| Signature | Typical ObserveOps UC / Motadata |
+|-----------|----------------------------------|
 | `cpu_contention` | UC-1 |
 | `link_failure` | UC-2 |
 | `storage_contention` | UC-3 / UC-3b |
 | `os_resource_exhaustion` | UC-4 |
 | `app_resource_exhaustion` | UC-5 |
+| `app_error_rate` | Motadata APM (`http.error_rate*`) |
+| `ping_degradation` | Motadata infra (`ping.latency*` / packet loss) |
+| `host_cpu_saturation` | Motadata infra (`system.cpu.percent`) |
 | `unknown` | fallback |
 
 ### 3.7 Ingest (`observeops/ingest/bundle.py`)

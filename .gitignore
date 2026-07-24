@@ -18,11 +18,33 @@ datasets/nezha/construct_data/
 # Phase 0 capacity artifacts (regenerable)
 benchmarking/capacity/phase0_*.json
 
+# Lab EPS run trees (regenerable); keep LATEST.md / small reports if committed intentionally
+benchmarking/capacity/lab/*/
+!benchmarking/capacity/lab/LATEST.md
+
 # Motadata / large frozen dumps (local only; exceed GitHub 100MB)
 datasets/ingest_samples/jsonl_resolved/*.jsonl
 datasets/ingest_samples/motadata-raw/
 datasets/ingest_samples/motadata-ingest/*.jsonl
 *:Zone.Identifier
 
+# Quarantined ad-hoc experiments (optional local; not product path)
+# Keep _adhoc/ tracked if you want the gold-compare dashboard in-repo;
+# uncomment next line to ignore entirely:
+# _adhoc/
+
+# E-com scenario raw Postgres→JSON export (regenerable; keep engine pack)
+datasets/ecom_checkout/raw/
+
 # Ingestion PoC runtime outputs (regenerable)
 ingestion-poc/out/
+
+# Cost harness runtime sinks / Vector checkpoints / replay blobs (keep cost_report.*)
+benchmarking/results/costing/**/work/
+benchmarking/results/costing/**/.vector-data/
+benchmarking/results/costing/**/replay_stream.jsonl
+benchmarking/results/costing/_vtest*/
+**/.vector-data/
+
+# Personal / off-record learning notes (not project docs)
+notes/

@@ -1,0 +1,540 @@
+{
+  "schema_version": "comprehensive_rca.v1",
+  "incident_id": "UC-1",
+  "source_incident_id": null,
+  "engine": "federated",
+  "generated_at": "2026-07-23T10:35:25Z",
+  "pack_meta": {
+    "incident_start": "2026-07-10T10:00:00Z",
+    "symptom_onset": "2026-07-10T10:00:25Z",
+    "detected_at": "2026-07-10T10:00:25Z",
+    "change_at": "2026-07-10T10:00:00Z",
+    "raw_dir": "datasets/observeops/UC-1/raw",
+    "source_incident_id": null,
+    "impact_source": null
+  },
+  "localization": {
+    "root_ci": "esxi-host-01",
+    "signature": "cpu_contention",
+    "contributor_cis": [],
+    "false_leads_ruled_out": [],
+    "matches_pack_gt": true
+  },
+  "incident_summary": {
+    "severity": "P2",
+    "detected": "2026-07-10T10:00:25Z",
+    "affected_services": [
+      "orders-api"
+    ],
+    "customer_impact": "Symptom `request.p95_latency_ms` on `orders-api` (CPU contention on ESXi host)",
+    "dimension_slice": "ObserveOps classic-infra \u00b7 `2_infra` / `resource_contention`",
+    "gt_fault_title": "CPU contention on ESXi host"
+  },
+  "impact": {
+    "services_affected": [
+      "vm-app-01",
+      "vm-db-01",
+      "guest-os-vm-app-01",
+      "orders-api"
+    ],
+    "sla_breach": true,
+    "data_loss": false,
+    "failed_requests": null,
+    "total_requests": null,
+    "peak_path_error_rate_pct": null,
+    "path_error_label": "api-gateway \u2192 checkout-service",
+    "checkout_error_rate_pct": null,
+    "payment_service_error_rate_pct": null,
+    "error_escalation": null,
+    "estimated_fail_fraction": "\u22482.8% of checkouts in the affected dimension",
+    "source": null,
+    "notes": null
+  },
+  "service_dependencies": {
+    "critical_path": [
+      "esxi-host-01",
+      "switch-core-01:GigE0/2"
+    ],
+    "topology_edges": [
+      {
+        "from": "orders-api",
+        "to": "guest-os-vm-app-01",
+        "relation": "runs_on"
+      },
+      {
+        "from": "guest-os-vm-app-01",
+        "to": "vm-app-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "guest-os-vm-db-01",
+        "to": "vm-db-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-app-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-db-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-neighbor-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-db-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "vm-neighbor-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "vm-app-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "esxi-host-01",
+        "to": "switch-core-01:GigE0/2",
+        "relation": "uplink_to"
+      }
+    ],
+    "isolation_note": "Healthy siblings (pricing/inventory/token/fraud) are not on the failing payment path; errors escalate api-gateway \u2190 checkout \u2190 payment \u2190 (DNS/RX/IRQ), with payment-provider as a decoy leaf."
+  },
+  "distributed_traces": {
+    "available": true,
+    "analyzed_spans": 4,
+    "slow_spans": 4,
+    "slow_provider_spans": 0,
+    "provider_duration_ms_p50": null,
+    "provider_duration_ms_max": null,
+    "span_duration_ms_p50": 1100.0,
+    "span_duration_ms_max": 1480.0,
+    "healthy_sibling_spans_under_200ms": 0,
+    "false_lead_assessment": "Trace samples include infra/root-layer spans that corroborate the localized root CI; app spans show elevated latency as a downstream symptom.",
+    "samples": [
+      {
+        "trace_id": "uc1-t1",
+        "service_name": "orders-api",
+        "span_name": "POST /orders",
+        "duration_ms": 1480.0,
+        "ci": "orders-api",
+        "note": null
+      },
+      {
+        "trace_id": "uc1-t2",
+        "service_name": "orders-api",
+        "span_name": "GET /orders/{id}",
+        "duration_ms": 1320.0,
+        "ci": "orders-api",
+        "note": null
+      },
+      {
+        "trace_id": "uc1-t1",
+        "service_name": "guest-os-vm-app-01",
+        "span_name": "os.sched.wait",
+        "duration_ms": 900.0,
+        "ci": "guest-os-vm-app-01",
+        "note": null
+      },
+      {
+        "trace_id": "uc1-t1",
+        "service_name": "esxi-host-01",
+        "span_name": "hypervisor.cpu.ready",
+        "duration_ms": 700.0,
+        "ci": "esxi-host-01",
+        "note": "root_evidence"
+      }
+    ]
+  },
+  "log_patterns": {
+    "pack_event_types": {
+      "app.latency": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:25Z",
+            "ci": "orders-api",
+            "severity": "critical",
+            "message": "orders-api p95 latency 1450ms (SLO threshold 1000ms)"
+          }
+        ]
+      },
+      "esx.cpu.ready": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:05Z",
+            "ci": "esxi-host-01",
+            "severity": "critical",
+            "message": "ESXi cpu.ready elevated on esxi-host-01 (12% > 5% threshold)"
+          }
+        ]
+      },
+      "esx.cpu.usage": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:05Z",
+            "ci": "esxi-host-01",
+            "severity": "warning",
+            "message": "ESXi cpu.usage 92% sustained on esxi-host-01"
+          }
+        ]
+      },
+      "infra.change": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T09:55:00Z",
+            "ci": "esxi-host-01",
+            "severity": "info",
+            "message": "DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01"
+          }
+        ]
+      },
+      "syslog.loadavg": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:18Z",
+            "ci": "guest-os-vm-app-01",
+            "severity": "warning",
+            "message": "load average 8.0 on guest-os-vm-app-01 (run-queue backlog)"
+          }
+        ]
+      },
+      "vmware.cpu.ready": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:12Z",
+            "ci": "vm-app-01",
+            "severity": "warning",
+            "message": "VM cpu.ready 11% on vm-app-01 (host scheduler starvation)"
+          }
+        ]
+      }
+    },
+    "raw_logger_counts": {
+      "esx.cpu.ready": 1,
+      "esx.cpu.usage": 1,
+      "vmware.cpu.ready": 1,
+      "syslog.loadavg": 1,
+      "app.latency": 1
+    },
+    "key_findings": [
+      "DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01",
+      "ESXi cpu.ready elevated on esxi-host-01 (12% > 5% threshold)",
+      "ESXi cpu.usage 92% sustained on esxi-host-01",
+      "VM cpu.ready 11% on vm-app-01 (host scheduler starvation)",
+      "load average 8.0 on guest-os-vm-app-01 (run-queue backlog)",
+      "orders-api p95 latency 1450ms (SLO threshold 1000ms)"
+    ]
+  },
+  "metrics_analysis": {
+    "crossed_anomalies": [
+      {
+        "ci": "esxi-host-01",
+        "signal": "cpu.usage",
+        "value": 92.0,
+        "threshold": 85.0,
+        "timestamp": "2026-07-10T10:00:05Z",
+        "note": null
+      },
+      {
+        "ci": "esxi-host-01",
+        "signal": "cpu.ready",
+        "value": 12.0,
+        "threshold": 5.0,
+        "timestamp": "2026-07-10T10:00:05Z",
+        "note": null
+      },
+      {
+        "ci": "vm-app-01",
+        "signal": "cpu.ready",
+        "value": 11.0,
+        "threshold": 5.0,
+        "timestamp": "2026-07-10T10:00:12Z",
+        "note": null
+      },
+      {
+        "ci": "vm-db-01",
+        "signal": "cpu.ready",
+        "value": 10.0,
+        "threshold": 5.0,
+        "timestamp": "2026-07-10T10:00:12Z",
+        "note": null
+      },
+      {
+        "ci": "guest-os-vm-app-01",
+        "signal": "load.avg",
+        "value": 8.0,
+        "threshold": 4.0,
+        "timestamp": "2026-07-10T10:00:18Z",
+        "note": null
+      },
+      {
+        "ci": "orders-api",
+        "signal": "request.p95_latency_ms",
+        "value": 1450.0,
+        "threshold": 1000.0,
+        "timestamp": "2026-07-10T10:00:25Z",
+        "note": null
+      }
+    ],
+    "raw_metric_peaks": null
+  },
+  "recent_changes": {
+    "change_events": [
+      {
+        "timestamp": "2026-07-10T09:55:00Z",
+        "ci": "esxi-host-01",
+        "event_type": "infra.change",
+        "severity": "info",
+        "message": "DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01"
+      },
+      {
+        "timestamp": "2026-07-10T09:50:00Z",
+        "ci": null,
+        "event_type": "config",
+        "severity": "info",
+        "message": "CPU share change near onset"
+      }
+    ],
+    "root_cause_change": {
+      "timestamp": "2026-07-10T09:55:00Z",
+      "ci": "esxi-host-01",
+      "event_type": "infra.change",
+      "severity": "info",
+      "message": "DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01"
+    }
+  },
+  "causal_chain": {
+    "steps": [
+      "esxi-host-01",
+      "vm-app-01",
+      "guest-os-vm-app-01",
+      "orders-api"
+    ],
+    "topology_path": [
+      "esxi-host-01",
+      "vm-app-01",
+      "guest-os-vm-app-01",
+      "orders-api"
+    ],
+    "narrative_steps": [
+      {
+        "step": "infra.change",
+        "summary": "DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01",
+        "evidence": "event",
+        "timestamp": "2026-07-10T09:55:00Z"
+      },
+      {
+        "step": "esx.cpu.ready",
+        "summary": "ESXi cpu.ready elevated on esxi-host-01 (12% > 5% threshold)",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:05Z"
+      },
+      {
+        "step": "esx.cpu.usage",
+        "summary": "ESXi cpu.usage 92% sustained on esxi-host-01",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:05Z"
+      },
+      {
+        "step": "vmware.cpu.ready",
+        "summary": "VM cpu.ready 11% on vm-app-01 (host scheduler starvation)",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:12Z"
+      },
+      {
+        "step": "syslog.loadavg",
+        "summary": "load average 8.0 on guest-os-vm-app-01 (run-queue backlog)",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:18Z"
+      },
+      {
+        "step": "app.latency",
+        "summary": "orders-api p95 latency 1450ms (SLO threshold 1000ms)",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:25Z"
+      },
+      {
+        "step": "anomaly_cpu.usage",
+        "summary": "`esxi-host-01` cpu.usage=92.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:05Z"
+      },
+      {
+        "step": "anomaly_cpu.ready",
+        "summary": "`esxi-host-01` cpu.ready=12.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:05Z"
+      },
+      {
+        "step": "anomaly_cpu.ready",
+        "summary": "`vm-app-01` cpu.ready=11.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:12Z"
+      },
+      {
+        "step": "anomaly_cpu.ready",
+        "summary": "`vm-db-01` cpu.ready=10.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:12Z"
+      },
+      {
+        "step": "trace_symptom_spans",
+        "summary": "4 spans (p50\u22481100.0ms) corroborate the cascade",
+        "evidence": "trace",
+        "timestamp": null
+      }
+    ],
+    "narrative": "esxi-host-01 \u2192 vm-app-01 \u2192 guest-os-vm-app-01 \u2192 orders-api. Amplifier: high-cardinality request pattern."
+  },
+  "contributing_factors": {
+    "primary": "CPU contention on ESXi host",
+    "amplifier": null,
+    "false_leads": []
+  },
+  "timeline": [
+    {
+      "timestamp": "2026-07-10T09:55:00Z",
+      "kind": "event",
+      "summary": "infra.change: DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "kind": "event",
+      "summary": "esx.cpu.ready: ESXi cpu.ready elevated on esxi-host-01 (12% > 5% threshold)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "kind": "event",
+      "summary": "esx.cpu.usage: ESXi cpu.usage 92% sustained on esxi-host-01"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "kind": "anomaly",
+      "summary": "esxi-host-01 `cpu.usage`=92.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "kind": "anomaly",
+      "summary": "esxi-host-01 `cpu.ready`=12.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "event",
+      "summary": "vmware.cpu.ready: VM cpu.ready 11% on vm-app-01 (host scheduler starvation)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "anomaly",
+      "summary": "vm-app-01 `cpu.ready`=11.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "anomaly",
+      "summary": "vm-db-01 `cpu.ready`=10.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:18Z",
+      "kind": "event",
+      "summary": "syslog.loadavg: load average 8.0 on guest-os-vm-app-01 (run-queue backlog)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:18Z",
+      "kind": "anomaly",
+      "summary": "guest-os-vm-app-01 `load.avg`=8.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:25Z",
+      "kind": "event",
+      "summary": "app.latency: orders-api p95 latency 1450ms (SLO threshold 1000ms)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:25Z",
+      "kind": "anomaly",
+      "summary": "orders-api `request.p95_latency_ms`=1450.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:25Z",
+      "kind": "symptom_seed",
+      "summary": "Symptom seed orders-api / request.p95_latency_ms"
+    }
+  ],
+  "actions": {
+    "immediate": [
+      "Rebalance or vMotion overloaded VMs off the contended ESXi host.",
+      "Identify runaway / over-provisioned vCPU consumers; reduce host overcommit."
+    ],
+    "future": [
+      "Tune DRS / right-size vCPU reservations; alert on host cpu.ready across \u22652 VMs."
+    ]
+  },
+  "rca_summary": {
+    "narrative": "RCA localizes the incident to `esxi-host-01` (cpu_contention): CPU contention on ESXi host. Causal path: esxi-host-01 \u2192 vm-app-01 \u2192 guest-os-vm-app-01 \u2192 orders-api. Customer impact: Symptom `request.p95_latency_ms` on `orders-api` (CPU contention on ESXi host). Amplifier: classic-infra cascade (shared upstream fault \u2192 app symptom). Root-cause change evidence: DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01",
+    "narrative_md": "**Root cause:** `esxi-host-01` (`cpu_contention`)\nCPU contention on ESXi host\n\n**Causal path:** `esxi-host-01` \u2192 `vm-app-01` \u2192 `guest-os-vm-app-01` \u2192 `orders-api`\n\n**Customer impact:** Symptom `request.p95_latency_ms` on `orders-api` (CPU contention on ESXi host)\n\n**Amplifier:** classic-infra cascade (shared upstream fault \u2192 app symptom)\n\n**False leads ruled out:** none identified\n\n**Change evidence:** DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01",
+    "root_ci": "esxi-host-01",
+    "signature": "cpu_contention",
+    "causal_path": [
+      "esxi-host-01",
+      "vm-app-01",
+      "guest-os-vm-app-01",
+      "orders-api"
+    ],
+    "fault_title": "CPU contention on ESXi host",
+    "customer_impact": "Symptom `request.p95_latency_ms` on `orders-api` (CPU contention on ESXi host)",
+    "amplifier": "classic-infra cascade (shared upstream fault \u2192 app symptom)",
+    "false_leads": [],
+    "change_evidence": "DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01"
+  },
+  "remediation": {
+    "guidance": "Host CPU Ready / usage shows the hypervisor is oversubscribed. Rebalance VMs, reduce vCPU overcommit, then confirm app p95 recovers \u2014 do not scale the app alone.",
+    "immediate": [
+      "Rebalance or vMotion overloaded VMs off the contended ESXi host.",
+      "Identify runaway / over-provisioned vCPU consumers; reduce host overcommit."
+    ],
+    "future": [
+      "Tune DRS / right-size vCPU reservations; alert on host cpu.ready across \u22652 VMs."
+    ],
+    "source": "signature_template"
+  },
+  "executive_summary": {
+    "potential_cause": "DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01",
+    "impact": "Symptom `request.p95_latency_ms` on `orders-api` (CPU contention on ESXi host)",
+    "resolution": "Rebalance or vMotion overloaded VMs off the contended ESXi host.; Identify runaway / over-provisioned vCPU consumers; reduce host overcommit."
+  },
+  "completeness": {
+    "checks": {
+      "incident_summary": true,
+      "rca_summary": true,
+      "impact": true,
+      "service_dependencies": true,
+      "distributed_traces": true,
+      "log_patterns": true,
+      "metrics_analysis": true,
+      "recent_changes": true,
+      "causal_chain": true,
+      "contributing_factors": true,
+      "timeline": true,
+      "actions": true,
+      "remediation": true,
+      "executive_summary": true,
+      "localization_root": true
+    },
+    "score": "15/15",
+    "pct": 100.0,
+    "ready_for_gold_parity": true
+  }
+}

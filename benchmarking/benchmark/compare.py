@@ -90,8 +90,10 @@ def _latency_from_meta(meta: dict) -> tuple[float | None, str | None]:
 
 
 def _detect_from_meta(meta: dict) -> tuple[float | None, float | None, str | None]:
-    """Return detect_latency_ms, system_latency_ms, detect_source."""
+    """Return detect_latency_ms (C_detect), system_latency_ms, detect_source."""
     detect = meta.get("detect_latency_ms")
+    if detect is None:
+        detect = meta.get("C_detect_ms")
     system = meta.get("system_latency_ms")
     source = meta.get("detect_source")
     detect_f = (
@@ -106,6 +108,32 @@ def _detect_from_meta(meta: dict) -> tuple[float | None, float | None, str | Non
     )
     src = source if isinstance(source, str) else None
     return detect_f, system_f, src
+
+
+def _anomaly_class_from_meta(meta: dict) -> dict[str, int] | None:
+    raw = meta.get("by_anomaly_class")
+    if not isinstance(raw, dict):
+        return None
+    out: dict[str, int] = {}
+    for key, value in raw.items():
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            out[str(key)] = int(value)
+    return out or None
+
+
+def _change_near_onset_from_meta(meta: dict) -> tuple[bool | None, int | None]:
+    flag = meta.get("change_near_onset")
+    if isinstance(flag, bool):
+        near = flag
+    else:
+        near = None
+    count = meta.get("change_count_in_window")
+    count_i = (
+        int(count)
+        if isinstance(count, (int, float)) and not isinstance(count, bool)
+        else None
+    )
+    return near, count_i
 
 
 def score_uc(
@@ -136,9 +164,13 @@ def score_uc(
             "latency_ms": None,
             "latency_source": None,
             "detect_latency_ms": None,
+            "C_detect_ms": None,
             "system_latency_ms": None,
             "detect_source": None,
             "pipeline_profile": None,
+            "by_anomaly_class": None,
+            "change_near_onset": None,
+            "change_count_in_window": None,
         }
 
     root_match = verdict.get("root_ci") == ground_truth["root_ci"]
@@ -159,6 +191,8 @@ def score_uc(
     meta = _run_meta(verdict_path)
     latency_ms, latency_source = _latency_from_meta(meta)
     detect_latency_ms, system_latency_ms, detect_source = _detect_from_meta(meta)
+    by_class = _anomaly_class_from_meta(meta)
+    change_near, change_count = _change_near_onset_from_meta(meta)
     return {
         "status": status,
         "root_match": root_match,
@@ -180,9 +214,13 @@ def score_uc(
         "latency_ms": latency_ms,
         "latency_source": latency_source,
         "detect_latency_ms": detect_latency_ms,
+        "C_detect_ms": detect_latency_ms,
         "system_latency_ms": system_latency_ms,
         "detect_source": detect_source,
         "pipeline_profile": meta.get("pipeline_profile"),
+        "by_anomaly_class": by_class,
+        "change_near_onset": change_near,
+        "change_count_in_window": change_count,
         "engine": verdict.get("engine"),
     }
 
@@ -307,6 +345,7 @@ def _engine_axes(rows: list[dict], engine: str, repro: dict) -> dict:
                 }
             ),
             "average_detect_latency_ms": _mean(detect_latencies),
+            "average_C_detect_ms": _mean(detect_latencies),
             "average_system_latency_ms": _mean(system_latencies),
             "detect_sources": sorted(
                 {
@@ -315,8 +354,30 @@ def _engine_axes(rows: list[dict], engine: str, repro: dict) -> dict:
                     if score.get("detect_source")
                 }
             ),
+            "by_anomaly_class_totals": _merge_anomaly_classes(available),
+            "change_near_onset_count": sum(
+                1 for score in available if score.get("change_near_onset") is True
+            ),
         },
     }
+
+
+def _merge_anomaly_classes(scores: list[dict]) -> dict[str, int]:
+    totals: dict[str, int] = {}
+    for score in scores:
+        classes = score.get("by_anomaly_class") or {}
+        if not isinstance(classes, dict):
+            continue
+        for key, value in classes.items():
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                totals[str(key)] = totals.get(str(key), 0) + int(value)
+    return dict(sorted(totals.items()))
+
+
+def _format_anomaly_classes(classes: dict[str, int] | None) -> str:
+    if not classes:
+        return "—"
+    return ", ".join(f"{k}={v}" for k, v in sorted(classes.items()))
 
 
 def build_report(run_id: str | None) -> dict:
@@ -535,7 +596,7 @@ def to_markdown(report: dict) -> str:
             ),
             "Main path means `fallback_fired: false`; CARE sets fallback and may promote to Tier 3 when `causal_verified`.",
             "Lean efficiency ratio = naive_bfs_expansions / max(obs_to_convergence, 1).",
-            "Parity profile: shared threshold detect (`detect_latency_ms`) + RCA (`latency_ms`); "
+            "Parity profile: shared threshold detect (`detect_latency_ms` / `C_detect_ms`) + RCA (`latency_ms`); "
             "`system_latency_ms` = detect + RCA. See `docs/PIPELINE_PARITY.md`.",
             "",
             "## Per use-case",
@@ -584,8 +645,8 @@ def to_markdown(report: dict) -> str:
             "",
             "## Parity timings (shared detect + RCA)",
             "",
-            "| UC | Detect | Fed RCA | Lean RCA | Fed system | Lean system | Hop-1 component |",
-            "|----|--------|---------|----------|------------|-------------|-----------------|",
+            "| UC | C_detect | Fed RCA | Lean RCA | Fed system | Lean system | Hop-1 component |",
+            "|----|----------|---------|----------|------------|-------------|-----------------|",
         ]
     )
     for row in report["rows"]:
@@ -599,6 +660,40 @@ def to_markdown(report: dict) -> str:
             f"{_display(f.get('system_latency_ms'), ' ms')} | {_display(l.get('system_latency_ms'), ' ms')} | "
             f"`{f.get('detect_source') or l.get('detect_source') or '—'}` |"
         )
+
+    lines.extend(
+        [
+            "",
+            "## Detect classes + change near onset (D1/D2/D3)",
+            "",
+            "| UC | by_anomaly_class | change_near_onset | changes in window |",
+            "|----|------------------|-------------------|-------------------|",
+        ]
+    )
+    for row in report["rows"]:
+        f, l = row["federated"], row["lean"]
+        classes = f.get("by_anomaly_class") or l.get("by_anomaly_class")
+        near = f.get("change_near_onset")
+        if near is None:
+            near = l.get("change_near_onset")
+        count = f.get("change_count_in_window")
+        if count is None:
+            count = l.get("change_count_in_window")
+        near_s = "Y" if near is True else ("N" if near is False else "—")
+        lines.append(
+            f"| {row['uc_id']} | {_format_anomaly_classes(classes)} | {near_s} | "
+            f"{_display(count)} |"
+        )
+    lines.extend(
+        [
+            "",
+            (
+                "Class totals (Lean axis): "
+                f"`{_format_anomaly_classes(la['efficiency'].get('by_anomaly_class_totals'))}`; "
+                f"change_near_onset UCs: {la['efficiency'].get('change_near_onset_count', 0)}."
+            ),
+        ]
+    )
 
     lines.extend(
         [

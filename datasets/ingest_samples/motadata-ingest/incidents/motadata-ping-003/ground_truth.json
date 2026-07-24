@@ -1,0 +1,21 @@
+{
+  "root_ci": "proxmox-ve-129",
+  "signature": "ping_degradation",
+  "contributor_cis": [],
+  "blast_radius": [
+    "proxmox-ve-129"
+  ],
+  "note": "A1 clear network variant: monitor 129 (proxmox-ve-129) ping latency and/or packet loss. Human-confirmed GT: root=symptom CI (Samples review).",
+  "tags": [
+    "motadata",
+    "infra",
+    "ping",
+    "broaden",
+    "gt_confirmed",
+    "a1"
+  ],
+  "gt_status": "human_confirmed",
+  "fault_bucket": "2_infra",
+  "fault_type": "network_fault",
+  "fault_title": "proxmox-ve-129 ping / packet loss"
+}

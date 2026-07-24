@@ -1,0 +1,14 @@
+{
+  "root_ci": "esxi-host-01",
+  "signature": "cpu_contention",
+  "contributor_cis": [],
+  "blast_radius": [
+    "vm-app-01",
+    "vm-db-01",
+    "guest-os-vm-app-01",
+    "orders-api"
+  ],
+  "fault_bucket": "2_infra",
+  "fault_type": "resource_contention",
+  "fault_title": "CPU contention on ESXi host"
+}

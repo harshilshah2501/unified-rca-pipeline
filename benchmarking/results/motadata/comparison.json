@@ -1,0 +1,298 @@
+{
+  "generated_at": "2026-07-22T09:30:22.455558+00:00",
+  "corpus": "/root/Harshil-PoCs/Unified-RCA/datasets/ingest_samples/motadata-ingest/incidents",
+  "run_id_filter": "motadata-l1-20260722T093021Z",
+  "summary": {
+    "overall_better": "tie",
+    "lean_pass": "7/7",
+    "federated_pass": "7/7",
+    "lean_root_match": "7/7",
+    "federated_root_match": "7/7",
+    "lean_signature_match": "7/7",
+    "federated_signature_match": "7/7",
+    "per_incident_winners": {
+      "lean": 7,
+      "federated": 0,
+      "tie": 0,
+      "tie-fail": 0,
+      "none": 0
+    },
+    "rationale": "Full pass (root+signature): Lean 7/7, Federated 7/7. Root-only: Lean 7/7, Federated 7/7."
+  },
+  "rows": [
+    {
+      "incident_id": "motadata-apm-001",
+      "ground_truth": {
+        "root_ci": "ProductCatalog_dotnet.",
+        "signature": "app_error_rate",
+        "tags": [
+          "motadata",
+          "apm",
+          "broaden"
+        ]
+      },
+      "lean": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "ProductCatalog_dotnet.",
+        "signature": "app_error_rate",
+        "latency_ms": 2.8037,
+        "fallback_fired": false,
+        "observations": 2,
+        "evidentiary_tier": 1,
+        "engine": "lean"
+      },
+      "federated": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "ProductCatalog_dotnet.",
+        "signature": "app_error_rate",
+        "latency_ms": 6.3767,
+        "fallback_fired": false,
+        "observations": 5,
+        "evidentiary_tier": 1,
+        "engine": "federated"
+      },
+      "winner": "lean"
+    },
+    {
+      "incident_id": "motadata-cpu-001",
+      "ground_truth": {
+        "root_ci": "Fluentbit",
+        "signature": "host_cpu_saturation",
+        "tags": [
+          "motadata",
+          "infra",
+          "cpu",
+          "broaden"
+        ]
+      },
+      "lean": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "Fluentbit",
+        "signature": "host_cpu_saturation",
+        "latency_ms": 0.3117,
+        "fallback_fired": false,
+        "observations": 1,
+        "evidentiary_tier": 1,
+        "engine": "lean"
+      },
+      "federated": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "Fluentbit",
+        "signature": "host_cpu_saturation",
+        "latency_ms": 0.8462,
+        "fallback_fired": false,
+        "observations": 5,
+        "evidentiary_tier": 1,
+        "engine": "federated"
+      },
+      "winner": "lean"
+    },
+    {
+      "incident_id": "motadata-multi-001",
+      "ground_truth": {
+        "root_ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+        "signature": "host_cpu_saturation",
+        "tags": [
+          "motadata",
+          "infra",
+          "multi",
+          "broaden",
+          "a1",
+          "gt_provisional",
+          "harder"
+        ]
+      },
+      "lean": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+        "signature": "host_cpu_saturation",
+        "latency_ms": 0.376,
+        "fallback_fired": false,
+        "observations": 4,
+        "evidentiary_tier": 1,
+        "engine": "lean"
+      },
+      "federated": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+        "signature": "host_cpu_saturation",
+        "latency_ms": 2.1404,
+        "fallback_fired": false,
+        "observations": 5,
+        "evidentiary_tier": 1,
+        "engine": "federated"
+      },
+      "winner": "lean"
+    },
+    {
+      "incident_id": "motadata-ping-001",
+      "ground_truth": {
+        "root_ci": "dlink-48",
+        "signature": "ping_degradation",
+        "tags": [
+          "motadata",
+          "infra",
+          "ping",
+          "broaden"
+        ]
+      },
+      "lean": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "dlink-48",
+        "signature": "ping_degradation",
+        "latency_ms": 0.3514,
+        "fallback_fired": false,
+        "observations": 3,
+        "evidentiary_tier": 1,
+        "engine": "lean"
+      },
+      "federated": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "dlink-48",
+        "signature": "ping_degradation",
+        "latency_ms": 2.0378,
+        "fallback_fired": false,
+        "observations": 5,
+        "evidentiary_tier": 1,
+        "engine": "federated"
+      },
+      "winner": "lean"
+    },
+    {
+      "incident_id": "motadata-ping-002",
+      "ground_truth": {
+        "root_ci": "Netgear Switch",
+        "signature": "ping_degradation",
+        "tags": [
+          "motadata",
+          "infra",
+          "ping",
+          "broaden",
+          "gt_confirmed",
+          "a1"
+        ]
+      },
+      "lean": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "Netgear Switch",
+        "signature": "ping_degradation",
+        "latency_ms": 0.1963,
+        "fallback_fired": false,
+        "observations": 1,
+        "evidentiary_tier": 1,
+        "engine": "lean"
+      },
+      "federated": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "Netgear Switch",
+        "signature": "ping_degradation",
+        "latency_ms": 0.9909,
+        "fallback_fired": false,
+        "observations": 5,
+        "evidentiary_tier": 1,
+        "engine": "federated"
+      },
+      "winner": "lean"
+    },
+    {
+      "incident_id": "motadata-ping-003",
+      "ground_truth": {
+        "root_ci": "proxmox-ve-129",
+        "signature": "ping_degradation",
+        "tags": [
+          "motadata",
+          "infra",
+          "ping",
+          "broaden",
+          "gt_confirmed",
+          "a1"
+        ]
+      },
+      "lean": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "proxmox-ve-129",
+        "signature": "ping_degradation",
+        "latency_ms": 0.2149,
+        "fallback_fired": false,
+        "observations": 3,
+        "evidentiary_tier": 1,
+        "engine": "lean"
+      },
+      "federated": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "proxmox-ve-129",
+        "signature": "ping_degradation",
+        "latency_ms": 2.1853,
+        "fallback_fired": false,
+        "observations": 5,
+        "evidentiary_tier": 1,
+        "engine": "federated"
+      },
+      "winner": "lean"
+    },
+    {
+      "incident_id": "motadata-ping-004",
+      "ground_truth": {
+        "root_ci": "localhost.localdomain",
+        "signature": "ping_degradation",
+        "tags": [
+          "motadata",
+          "infra",
+          "ping",
+          "broaden",
+          "gt_confirmed",
+          "a1"
+        ]
+      },
+      "lean": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "localhost.localdomain",
+        "signature": "ping_degradation",
+        "latency_ms": 0.1797,
+        "fallback_fired": false,
+        "observations": 1,
+        "evidentiary_tier": 1,
+        "engine": "lean"
+      },
+      "federated": {
+        "status": "pass",
+        "root_match": true,
+        "signature_match": true,
+        "root_ci": "localhost.localdomain",
+        "signature": "ping_degradation",
+        "latency_ms": 0.9255,
+        "fallback_fired": false,
+        "observations": 5,
+        "evidentiary_tier": 1,
+        "engine": "federated"
+      },
+      "winner": "lean"
+    }
+  ]
+}

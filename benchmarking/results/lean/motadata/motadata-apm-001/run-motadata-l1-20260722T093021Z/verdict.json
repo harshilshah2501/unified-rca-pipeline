@@ -1,0 +1,41 @@
+{
+  "engine": "lean",
+  "uc_id": "motadata-apm-001",
+  "root_ci": "ProductCatalog_dotnet.",
+  "signature": "app_error_rate",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "ProductCatalog_dotnet.",
+      "signal": "http.error_rate",
+      "value": 0.201954,
+      "timestamp": "2026-07-21T05:59:00Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "ProductCatalog_dotnet.",
+      "signal": "http.error_rate_4xx",
+      "value": 0.201954,
+      "timestamp": "2026-07-21T05:59:00Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 2,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "causal_verified": null,
+  "causal_log": null,
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "ProductCatalog_dotnet."
+  ],
+  "blast_radius": [
+    "ProductCatalog_dotnet."
+  ],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

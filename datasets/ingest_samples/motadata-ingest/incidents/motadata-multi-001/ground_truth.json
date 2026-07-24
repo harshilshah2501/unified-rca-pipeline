@@ -1,0 +1,22 @@
+{
+  "root_ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+  "signature": "host_cpu_saturation",
+  "contributor_cis": [],
+  "blast_radius": [
+    "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com"
+  ],
+  "note": "A1 harder multi-signal: monitor 391 (HB1-\u2026-735) co-occurring CPU (~95%), memory (~95%), and ping loss (33%). Human-confirmed GT: root=host, primary signature=host_cpu_saturation (CPU/mem dominate; ping treated as co-symptom). Samples review.",
+  "tags": [
+    "motadata",
+    "infra",
+    "multi",
+    "broaden",
+    "a1",
+    "harder",
+    "gt_confirmed"
+  ],
+  "gt_status": "human_confirmed",
+  "fault_bucket": "2_infra",
+  "fault_type": "resource_contention",
+  "fault_title": "HB1 host multi-signal (CPU+mem+ping)"
+}

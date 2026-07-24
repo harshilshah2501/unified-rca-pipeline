@@ -1,0 +1,503 @@
+{
+  "engine": "lean",
+  "uc_id": "ecom-numa-001",
+  "root_ci": "np17-irq-affinity",
+  "signature": "cross_numa_irq_affinity",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "np17-irq-affinity",
+      "signal": "irq_affinity_numa_mismatch",
+      "value": 1.0,
+      "timestamp": "2026-07-22T10:31:44Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel_rx_queue_latency_ms",
+      "value": 2936.6,
+      "timestamp": "2026-07-22T10:31:44Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "dns-aaaa-np17",
+      "signal": "dns_query_latency_p99_ms",
+      "value": 3359.3,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "payment-service",
+      "signal": "payment_connection_acquire_ms",
+      "value": 4737.1,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "payment-provider",
+      "signal": "payment_provider_latency_ms",
+      "value": 17845.2,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "checkout-service",
+      "signal": "checkout_latency_p99_ms",
+      "value": 18779.8,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "checkout-service",
+      "signal": "checkout_success_rate",
+      "value": 96.901,
+      "timestamp": "2026-07-22T10:33:44Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "np17-irq-affinity",
+      "signal": "deploy.app",
+      "value": "Deployed payment-risk feature: extra risk check for CARD+INR+cart_items>12 (adds device-intelligence + risk provider DNS lookups)",
+      "timestamp": "2026-07-08T11:06:44Z",
+      "source": "event",
+      "severity": "info",
+      "message": "Deployed payment-risk feature: extra risk check for CARD+INR+cart_items>12 (adds device-intelligence + risk provider DNS lookups)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2740ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:31:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2740ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "np17-irq-affinity",
+      "signal": "infra.automation",
+      "value": "Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)",
+      "timestamp": "2026-07-22T10:31:44Z",
+      "source": "event",
+      "severity": "info",
+      "message": "Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)"
+    },
+    {
+      "ci": "np17-irq-affinity",
+      "signal": "infra.automation",
+      "value": "IRQ affinity set: RX-7 -> CPU48 (NUMA node 1); NIC queue memory on NUMA node 0",
+      "timestamp": "2026-07-22T10:31:49Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "IRQ affinity set: RX-7 -> CPU48 (NUMA node 1); NIC queue memory on NUMA node 0"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2769ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:32:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2769ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2666ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:33:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2666ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2727ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:34:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2727ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "dns-aaaa-np17",
+      "signal": "dns.resolver",
+      "value": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3159ms",
+      "timestamp": "2026-07-22T10:35:20Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3159ms"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2881ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:35:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2881ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2838ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:36:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2838ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2858ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:37:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2858ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2811ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:38:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2811ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "dns-aaaa-np17",
+      "signal": "dns.resolver",
+      "value": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3047ms",
+      "timestamp": "2026-07-22T10:39:18Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3047ms"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2799ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:39:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2799ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2700ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:40:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2700ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2684ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:41:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2684ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2621ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:42:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2621ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2780ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:43:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2780ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2808ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:44:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2808ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "dns-aaaa-np17",
+      "signal": "dns.resolver",
+      "value": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3108ms",
+      "timestamp": "2026-07-22T10:45:35Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3108ms"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2859ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:45:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2859ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2787ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:46:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2787ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2659ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:47:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2659ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2890ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:48:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2890ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "dns-aaaa-np17",
+      "signal": "dns.resolver",
+      "value": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3251ms",
+      "timestamp": "2026-07-22T10:49:01Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3251ms"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2797ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:49:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2797ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2648ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:50:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2648ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2639ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:51:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2639ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2871ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:52:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2871ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2700ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:53:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2700ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2758ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:54:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2758ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "dns-aaaa-np17",
+      "signal": "dns.resolver",
+      "value": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3049ms",
+      "timestamp": "2026-07-22T10:55:28Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3049ms"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2858ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:55:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2858ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2626ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:56:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2626ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2836ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:57:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2836ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2659ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:58:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2659ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2745ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T10:59:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2745ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "dns-aaaa-np17",
+      "signal": "dns.resolver",
+      "value": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3079ms",
+      "timestamp": "2026-07-22T10:59:54Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3079ms"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2627ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T11:00:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2627ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2612ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T11:01:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2612ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2864ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T11:02:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2864ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2675ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T11:03:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2675ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2690ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T11:04:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2690ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "ci": "nic-rx-queue-7",
+      "signal": "kernel.net",
+      "value": "RX queue 7 processing latency high (2832ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "timestamp": "2026-07-22T11:05:44Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2832ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    }
+  ],
+  "observations": 7,
+  "evidentiary_tier": 3,
+  "fallback_fired": true,
+  "causal_verified": true,
+  "causal_log": [
+    {
+      "check": "root_anomalous",
+      "passed": true,
+      "root_ci": "np17-irq-affinity",
+      "onset": "2026-07-22T10:31:44+00:00"
+    },
+    {
+      "check": "topology_upstream_of_seed",
+      "passed": true,
+      "seed_ci": "checkout-service",
+      "root_ci": "np17-irq-affinity"
+    },
+    {
+      "check": "onset_precedes_connected_symptoms",
+      "passed": true,
+      "root_onset": "2026-07-22T10:31:44+00:00",
+      "connected_downstream_cis": [
+        "checkout-service",
+        "dns-aaaa-np17",
+        "nic-rx-queue-7",
+        "payment-service"
+      ]
+    }
+  ],
+  "obs_to_convergence": 5,
+  "naive_bfs_expansions": 5,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "np17-irq-affinity",
+    "nic-rx-queue-7",
+    "dns-aaaa-np17",
+    "payment-service",
+    "checkout-service"
+  ],
+  "blast_radius": [
+    "nic-rx-queue-7",
+    "dns-aaaa-np17",
+    "payment-service",
+    "checkout-service"
+  ],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

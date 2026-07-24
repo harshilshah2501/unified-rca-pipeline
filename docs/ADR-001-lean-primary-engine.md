@@ -29,8 +29,8 @@ Nothing here freezes a go-to-market or shipping decision.
 ## Consequences (evaluation)
 
 Packaging artifacts exist so the lean path can be exercised end-to-end
-(`lean_rca` CLI/HTTP, SRE report fields, `lean-rca.service`). Federated Phase C
-ingest/stores and Phase E scale work stay deferred until a microservice track
+(`lean_rca` CLI/HTTP, SRE report fields, `lean-rca.service`). Federated **Later · Federate**
+ingest/stores and **Later · Scale** work stay deferred until a microservice track
 (or renewed bakeoff criteria) is prioritized. Optional later: B5 continuous
 causal memory.
 
@@ -44,6 +44,8 @@ causal memory.
 
 Evidence: [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md)
 and [`DECISION.md`](../benchmarking/results/comparison/DECISION.md).
+
+**Rerun (2026-07-23):** matched run `adr001-rerun-20260723` — both engines still **5/5** root+signature; overall better: lean. Per-UC comprehensive reports (no OO gold): [`comparison/reports/`](../benchmarking/results/comparison/reports/README.md).
 
 Related: [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) ([`.pdf`](./Lean_RCA_PRD.pdf)) · [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md) ([`.pdf`](./Lean_RCA_Simple_Guide.pdf)).
 

@@ -1,0 +1,42 @@
+[
+  {
+    "stream": "snmp_traps",
+    "ts": "2026-07-10T10:00:00Z",
+    "level": "CRITICAL",
+    "logger": "snmp.linkDown",
+    "message": "SNMP TRAP linkDown: ifDescr=GigE0/2 ifOperStatus=down",
+    "labels": {
+      "ci": "switch-core-01:GigE0/2"
+    }
+  },
+  {
+    "stream": "snmp_traps",
+    "ts": "2026-07-10T10:00:05Z",
+    "level": "WARN",
+    "logger": "snmp.ifOutDiscards",
+    "message": "ifOutDiscards rising on GigE0/2",
+    "labels": {
+      "ci": "switch-core-01:GigE0/2"
+    }
+  },
+  {
+    "stream": "esx_logs",
+    "ts": "2026-07-10T10:00:08Z",
+    "level": "WARN",
+    "logger": "esx.net.drop",
+    "message": "Uplink redundancy lost \u2014 host path via GigE0/2 down",
+    "labels": {
+      "ci": "esxi-host-01"
+    }
+  },
+  {
+    "stream": "app_logs",
+    "ts": "2026-07-10T10:00:12Z",
+    "level": "ERROR",
+    "logger": "app.timeout",
+    "message": "downstream call timeout after uplink failure",
+    "labels": {
+      "ci": "orders-api"
+    }
+  }
+]

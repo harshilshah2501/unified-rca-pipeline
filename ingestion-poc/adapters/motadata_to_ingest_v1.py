@@ -19,6 +19,8 @@ from typing import Any, Iterable, Iterator
 REPO = Path(__file__).resolve().parents[2]
 DEFAULT_SRC = REPO / "datasets" / "ingest_samples" / "jsonl_resolved"
 DEFAULT_OUT = REPO / "datasets" / "ingest_samples" / "motadata-ingest"
+DEFAULT_THRESHOLDS = Path(__file__).resolve().parent / "motadata_threshold_catalog.json"
+DEFAULT_CI_BIND = DEFAULT_OUT / "ci_bind.json"
 
 SEVERITY = {
     "critical": 1.0,
@@ -29,6 +31,43 @@ SEVERITY = {
     "debug": 0.1,
     "ok": 0.0,
 }
+
+
+def load_threshold_catalog(path: Path | None) -> dict[str, Any]:
+    p = path or DEFAULT_THRESHOLDS
+    if not p.is_file():
+        return {"by_metric_name": {}, "prefix_rules": []}
+    return json.loads(p.read_text())
+
+
+def resolve_threshold(name: str, catalog: dict[str, Any]) -> float | None:
+    by_name = catalog.get("by_metric_name") or {}
+    if name in by_name:
+        return float(by_name[name])
+    for rule in catalog.get("prefix_rules") or []:
+        prefix = rule.get("prefix") or ""
+        if prefix and name.startswith(prefix):
+            return float(rule["threshold"])
+    return None
+
+
+def load_ci_bind(path: Path | None) -> dict[str, dict[str, Any]]:
+    p = path or DEFAULT_CI_BIND
+    if not p.is_file():
+        return {}
+    doc = json.loads(p.read_text())
+    return dict(doc.get("monitors") or {})
+
+
+def resolve_monitor_ci(
+    monitor_id: Any, bind: dict[str, dict[str, Any]]
+) -> tuple[str, str]:
+    """Return (ci_id, ci_type) for a Motadata monitor id."""
+    mid = str(monitor_id)
+    entry = bind.get(mid)
+    if entry and entry.get("ci_id"):
+        return str(entry["ci_id"]), str(entry.get("ci_type") or "Host")
+    return f"monitor-{mid}", "Monitor"
 
 
 def _to_iso(ts: Any) -> str:
@@ -93,11 +132,17 @@ def convert_log(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def convert_metric_numeric(row: dict[str, Any]) -> list[dict[str, Any]]:
+def convert_metric_numeric(
+    row: dict[str, Any],
+    *,
+    bind: dict[str, dict[str, Any]] | None = None,
+    catalog: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     obj_id = row.get("id")
-    ci_id = f"monitor-{obj_id}"
+    ci_id, ci_type = resolve_monitor_ci(obj_id, bind or {})
     ts = _to_iso(row.get("timestamp"))
     plugin_id = row.get("plugin_id")
+    cat = catalog or {}
     out: list[dict[str, Any]] = []
     for name, value in (row.get("fields") or {}).items():
         if isinstance(value, bool):
@@ -106,32 +151,41 @@ def convert_metric_numeric(row: dict[str, Any]) -> list[dict[str, Any]]:
             num = float(value)
         else:
             continue  # non-numeric → skip (string metrics handled separately)
+        thr = resolve_threshold(str(name), cat)
+        sev = None
+        if thr is not None and num > thr:
+            sev = min(1.0, num / thr) if thr else 1.0
         out.append(
             {
                 "schema_version": "ingest.v1",
                 "ts": ts,
                 "tenant": "default",
                 "ci_id": ci_id,
-                "ci_type": "Monitor",
+                "ci_type": ci_type,
                 "signal_class": "metric_sample",
                 "name": str(name),
                 "value": num,
-                "threshold": None,
-                "severity": None,
+                "threshold": thr,
+                "severity": sev,
                 "labels": {
                     "source": "motadata",
                     "signal_kind": "metric_numeric",
                     "monitor_id": obj_id,
                     "plugin_id": plugin_id,
+                    "bound": ci_id != f"monitor-{obj_id}",
                 },
             }
         )
     return out
 
 
-def convert_metric_string(row: dict[str, Any]) -> list[dict[str, Any]]:
+def convert_metric_string(
+    row: dict[str, Any],
+    *,
+    bind: dict[str, dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
     obj_id = row.get("id")
-    ci_id = f"monitor-{obj_id}"
+    ci_id, ci_type = resolve_monitor_ci(obj_id, bind or {})
     ts = _to_iso(row.get("timestamp"))
     plugin_id = row.get("plugin_id")
     out: list[dict[str, Any]] = []
@@ -142,7 +196,7 @@ def convert_metric_string(row: dict[str, Any]) -> list[dict[str, Any]]:
                 "ts": ts,
                 "tenant": "default",
                 "ci_id": ci_id,
-                "ci_type": "Monitor",
+                "ci_type": ci_type,
                 "signal_class": "event",
                 "name": str(name),
                 "value": 1.0,
@@ -154,6 +208,7 @@ def convert_metric_string(row: dict[str, Any]) -> list[dict[str, Any]]:
                     "monitor_id": obj_id,
                     "plugin_id": plugin_id,
                     "string_value": str(value),
+                    "bound": ci_id != f"monitor-{obj_id}",
                 },
             }
         )
@@ -246,15 +301,19 @@ def convert_sources(
     limit_traces: int | None,
     limit_spans: int | None,
     include: set[str],
+    bind: dict[str, dict[str, Any]] | None = None,
+    catalog: dict[str, Any] | None = None,
 ) -> Iterable[dict[str, Any]]:
+    bind = bind or {}
+    catalog = catalog or {}
     if "logs" in include:
         for row in _iter_jsonl(src / "log.jsonl", limit_logs):
             yield convert_log(row)
     if "metrics" in include:
         for row in _iter_jsonl(src / "metric_numeric.jsonl", limit_metrics):
-            yield from convert_metric_numeric(row)
+            yield from convert_metric_numeric(row, bind=bind, catalog=catalog)
         for row in _iter_jsonl(src / "metric_string.jsonl", limit_metrics):
-            yield from convert_metric_string(row)
+            yield from convert_metric_string(row, bind=bind)
     if "traces" in include:
         for row in _iter_jsonl(src / "trace.jsonl", limit_traces):
             yield convert_trace(row)
@@ -296,6 +355,24 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Sort by ts in memory (only for small/smoke runs)",
     )
+    parser.add_argument(
+        "--ci-bind",
+        type=Path,
+        default=None,
+        help="CI bind JSON (default: motadata-ingest/ci_bind.json if present)",
+    )
+    parser.add_argument(
+        "--thresholds",
+        type=Path,
+        default=None,
+        help="Threshold catalog JSON (default: adapters/motadata_threshold_catalog.json)",
+    )
+    parser.add_argument(
+        "--append-span-metrics",
+        type=Path,
+        default=None,
+        help="Optional span_metrics.jsonl to append (from motadata_span_metrics.py)",
+    )
     args = parser.parse_args(argv)
 
     include = {x.strip() for x in args.include.split(",") if x.strip()}
@@ -315,6 +392,11 @@ def main(argv: list[str] | None = None) -> int:
         lim_traces = args.limit_traces if args.limit_traces is not None else 1000
         lim_spans = args.limit_spans if args.limit_spans is not None else 5000
 
+    bind = load_ci_bind(args.ci_bind.resolve() if args.ci_bind else None)
+    catalog = load_threshold_catalog(
+        args.thresholds.resolve() if args.thresholds else None
+    )
+
     rows = list(
         convert_sources(
             src,
@@ -323,8 +405,17 @@ def main(argv: list[str] | None = None) -> int:
             limit_traces=lim_traces,
             limit_spans=lim_spans,
             include=include,
+            bind=bind,
+            catalog=catalog,
         )
     )
+
+    if args.append_span_metrics and args.append_span_metrics.is_file():
+        for line in args.append_span_metrics.open(encoding="utf-8"):
+            line = line.strip()
+            if line:
+                rows.append(json.loads(line))
+
     if args.sort or not args.full:
         rows.sort(key=lambda r: (r.get("ts") or "", r.get("ci_id") or "", r.get("name") or ""))
 
@@ -336,11 +427,22 @@ def main(argv: list[str] | None = None) -> int:
     by_class: dict[str, int] = {}
     by_kind: dict[str, int] = {}
     cis: set[str] = set()
+    bound = 0
+    unbound_monitors: set[str] = set()
+    thr_set = 0
     for r in rows:
         by_class[r["signal_class"]] = by_class.get(r["signal_class"], 0) + 1
         kind = (r.get("labels") or {}).get("signal_kind") or "?"
         by_kind[kind] = by_kind.get(kind, 0) + 1
         cis.add(r["ci_id"])
+        labels = r.get("labels") or {}
+        if labels.get("bound") is True:
+            bound += 1
+        mid = labels.get("monitor_id")
+        if mid is not None and not labels.get("bound"):
+            unbound_monitors.add(str(mid))
+        if r.get("threshold") is not None and r.get("signal_class") == "metric_sample":
+            thr_set += 1
 
     manifest = {
         "schema_version": "motadata_ingest.v1",
@@ -359,7 +461,18 @@ def main(argv: list[str] | None = None) -> int:
         "by_signal_kind": by_kind,
         "unique_ci_ids": len(cis),
         "ci_id_sample": sorted(cis)[:30],
-        "note": "ci_id for metrics is monitor-{id}; logs use hostname/IP; traces/spans use service name. Topology/GT not yet attached.",
+        "ci_bind_monitors": len(bind),
+        "metric_rows_bound": bound,
+        "ci_bind_miss_monitors": len(unbound_monitors),
+        "ci_bind_miss_sample": sorted(unbound_monitors)[:20],
+        "metric_samples_with_threshold": thr_set,
+        "span_metrics_appended": bool(
+            args.append_span_metrics and args.append_span_metrics.is_file()
+        ),
+        "note": (
+            "Depth: CI-bind from metric_string names; thresholds from catalog; "
+            "optional span-derived http.error_rate metrics for Detect."
+        ),
     }
     (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps(manifest, indent=2))

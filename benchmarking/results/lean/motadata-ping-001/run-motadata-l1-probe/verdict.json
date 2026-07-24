@@ -1,0 +1,46 @@
+{
+  "engine": "lean",
+  "uc_id": "motadata-ping-001",
+  "root_ci": "dlink-48",
+  "signature": "ping_degradation",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "dlink-48",
+      "signal": "ping.packet.lost.percent",
+      "value": 33.0,
+      "timestamp": "2026-07-21T01:55:38Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "dlink-48",
+      "signal": "ping.latency.ms",
+      "value": 356.0,
+      "timestamp": "2026-07-21T05:30:38Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "dlink-48",
+      "signal": "ping.max.latency.ms",
+      "value": 1007.0,
+      "timestamp": "2026-07-21T05:30:38Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 3,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "causal_verified": null,
+  "causal_log": null,
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "dlink-48"
+  ],
+  "blast_radius": [],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

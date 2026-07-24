@@ -1,0 +1,2013 @@
+{
+  "events": [
+    {
+      "timestamp": "2026-07-08T11:06:44Z",
+      "ci": "np17-irq-affinity",
+      "event_type": "deploy.app",
+      "severity": "info",
+      "message": "Deployed payment-risk feature: extra risk check for CARD+INR+cart_items>12 (adds device-intelligence + risk provider DNS lookups)"
+    },
+    {
+      "timestamp": "2026-07-22T10:31:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2740ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:31:44Z",
+      "ci": "np17-irq-affinity",
+      "event_type": "infra.automation",
+      "severity": "info",
+      "message": "Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)"
+    },
+    {
+      "timestamp": "2026-07-22T10:31:49Z",
+      "ci": "np17-irq-affinity",
+      "event_type": "infra.automation",
+      "severity": "warning",
+      "message": "IRQ affinity set: RX-7 -> CPU48 (NUMA node 1); NIC queue memory on NUMA node 0"
+    },
+    {
+      "timestamp": "2026-07-22T10:32:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2769ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:33:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:33:44Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (14793ms) region=Region-B currency=INR cart_items=21"
+    },
+    {
+      "timestamp": "2026-07-22T10:33:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2666ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:33:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:33:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4560ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:34:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:34:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:34:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4041ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:34:29Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (16067ms) region=Region-B currency=INR cart_items=22"
+    },
+    {
+      "timestamp": "2026-07-22T10:34:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2727ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:34:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:34:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:34:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4216ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:35:14Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (11132ms) region=Region-B currency=INR cart_items=18"
+    },
+    {
+      "timestamp": "2026-07-22T10:35:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:35:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:35:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4080ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:35:20Z",
+      "ci": "payment-service",
+      "event_type": "dns.resolver",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3159ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:35:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2881ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:35:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:35:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:35:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4168ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:35:59Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (17051ms) region=Region-B currency=INR cart_items=17"
+    },
+    {
+      "timestamp": "2026-07-22T10:36:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:36:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:36:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4400ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:36:44Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (9266ms) region=Region-B currency=INR cart_items=18"
+    },
+    {
+      "timestamp": "2026-07-22T10:36:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2838ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:36:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:36:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:36:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3925ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:37:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:37:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:37:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4175ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:37:29Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (16277ms) region=Region-B currency=INR cart_items=21"
+    },
+    {
+      "timestamp": "2026-07-22T10:37:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2858ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:37:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:37:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:37:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4020ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:38:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:38:14Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (12403ms) region=Region-B currency=INR cart_items=16"
+    },
+    {
+      "timestamp": "2026-07-22T10:38:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:38:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4563ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:38:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:38:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2811ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:38:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:38:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3812ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:38:59Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (11826ms) region=Region-B currency=INR cart_items=21"
+    },
+    {
+      "timestamp": "2026-07-22T10:39:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:39:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:39:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4096ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:39:18Z",
+      "ci": "payment-service",
+      "event_type": "dns.resolver",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3047ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:39:44Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (17821ms) region=Region-B currency=INR cart_items=16"
+    },
+    {
+      "timestamp": "2026-07-22T10:39:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2799ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:39:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:39:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:39:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3860ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:40:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:40:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:40:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3863ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:40:29Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (14423ms) region=Region-B currency=INR cart_items=17"
+    },
+    {
+      "timestamp": "2026-07-22T10:40:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:40:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2700ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:40:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:40:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4383ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:41:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:41:14Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (15062ms) region=Region-B currency=INR cart_items=14"
+    },
+    {
+      "timestamp": "2026-07-22T10:41:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:41:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3904ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:41:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:41:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2684ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:41:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:41:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4429ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:41:59Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (13712ms) region=Region-B currency=INR cart_items=14"
+    },
+    {
+      "timestamp": "2026-07-22T10:42:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:42:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:42:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4077ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:42:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:42:44Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (9664ms) region=Region-B currency=INR cart_items=22"
+    },
+    {
+      "timestamp": "2026-07-22T10:42:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2621ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:42:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:42:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4251ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:43:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:43:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:43:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4078ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:43:29Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (13323ms) region=Region-B currency=INR cart_items=20"
+    },
+    {
+      "timestamp": "2026-07-22T10:43:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2780ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:43:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:43:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:43:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4330ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:44:14Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (10171ms) region=Region-B currency=INR cart_items=22"
+    },
+    {
+      "timestamp": "2026-07-22T10:44:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:44:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:44:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3825ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:44:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2808ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:44:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:44:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:44:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4295ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:44:59Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (10667ms) region=Region-B currency=INR cart_items=21"
+    },
+    {
+      "timestamp": "2026-07-22T10:45:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:45:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:45:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4399ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:45:35Z",
+      "ci": "payment-service",
+      "event_type": "dns.resolver",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3108ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:45:44Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (12782ms) region=Region-B currency=INR cart_items=17"
+    },
+    {
+      "timestamp": "2026-07-22T10:45:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2859ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:45:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:45:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:45:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3930ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:46:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:46:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:46:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4262ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:46:29Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (13992ms) region=Region-B currency=INR cart_items=22"
+    },
+    {
+      "timestamp": "2026-07-22T10:46:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:46:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2787ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:46:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:46:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3980ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:47:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:47:14Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (17282ms) region=Region-B currency=INR cart_items=15"
+    },
+    {
+      "timestamp": "2026-07-22T10:47:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:47:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3987ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:47:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:47:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2659ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:47:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:47:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4560ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:47:59Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (11284ms) region=Region-B currency=INR cart_items=19"
+    },
+    {
+      "timestamp": "2026-07-22T10:48:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:48:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:48:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4519ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:48:44Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (14265ms) region=Region-B currency=INR cart_items=22"
+    },
+    {
+      "timestamp": "2026-07-22T10:48:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:48:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2890ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:48:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:48:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4272ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:49:01Z",
+      "ci": "payment-service",
+      "event_type": "dns.resolver",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3251ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:49:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:49:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:49:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4044ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:49:29Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (9380ms) region=Region-B currency=INR cart_items=15"
+    },
+    {
+      "timestamp": "2026-07-22T10:49:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2797ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:49:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:49:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:49:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3910ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:50:14Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (10475ms) region=Region-B currency=INR cart_items=20"
+    },
+    {
+      "timestamp": "2026-07-22T10:50:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:50:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:50:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3914ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:50:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:50:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2648ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:50:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:50:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4314ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:50:59Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (16270ms) region=Region-B currency=INR cart_items=15"
+    },
+    {
+      "timestamp": "2026-07-22T10:51:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:51:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:51:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3962ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:51:44Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (17813ms) region=Region-B currency=INR cart_items=18"
+    },
+    {
+      "timestamp": "2026-07-22T10:51:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2639ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:51:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:51:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:51:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4092ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:52:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:52:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:52:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4219ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:52:29Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (15505ms) region=Region-B currency=INR cart_items=13"
+    },
+    {
+      "timestamp": "2026-07-22T10:52:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2871ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:52:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:52:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:52:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4327ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:53:14Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (12483ms) region=Region-B currency=INR cart_items=19"
+    },
+    {
+      "timestamp": "2026-07-22T10:53:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:53:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:53:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3803ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:53:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:53:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2700ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:53:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:53:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4208ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:53:59Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (16865ms) region=Region-B currency=INR cart_items=15"
+    },
+    {
+      "timestamp": "2026-07-22T10:54:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:54:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:54:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4102ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:54:44Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (12040ms) region=Region-B currency=INR cart_items=19"
+    },
+    {
+      "timestamp": "2026-07-22T10:54:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2758ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:54:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:54:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:54:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4208ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:55:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:55:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:55:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4537ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:55:28Z",
+      "ci": "payment-service",
+      "event_type": "dns.resolver",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3049ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:55:29Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (17157ms) region=Region-B currency=INR cart_items=20"
+    },
+    {
+      "timestamp": "2026-07-22T10:55:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2858ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:55:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:55:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:55:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4035ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:56:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:56:14Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (17391ms) region=Region-B currency=INR cart_items=16"
+    },
+    {
+      "timestamp": "2026-07-22T10:56:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:56:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4143ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:56:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:56:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2626ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:56:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:56:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4039ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:56:59Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (11266ms) region=Region-B currency=INR cart_items=16"
+    },
+    {
+      "timestamp": "2026-07-22T10:57:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:57:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:57:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4501ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:57:44Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (14115ms) region=Region-B currency=INR cart_items=15"
+    },
+    {
+      "timestamp": "2026-07-22T10:57:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:57:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2836ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:57:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:57:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4256ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:58:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:58:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:58:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3842ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:58:29Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (15902ms) region=Region-B currency=INR cart_items=13"
+    },
+    {
+      "timestamp": "2026-07-22T10:58:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:58:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2659ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:58:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:58:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4230ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:59:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:59:14Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (9162ms) region=Region-B currency=INR cart_items=17"
+    },
+    {
+      "timestamp": "2026-07-22T10:59:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:59:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3857ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:59:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2745ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T10:59:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T10:59:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T10:59:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4101ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:59:54Z",
+      "ci": "payment-service",
+      "event_type": "dns.resolver",
+      "severity": "warning",
+      "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3079ms"
+    },
+    {
+      "timestamp": "2026-07-22T10:59:59Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (12939ms) region=Region-B currency=INR cart_items=21"
+    },
+    {
+      "timestamp": "2026-07-22T11:00:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:00:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:00:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4051ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:00:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:00:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2627ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T11:00:44Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (15527ms) region=Region-B currency=INR cart_items=13"
+    },
+    {
+      "timestamp": "2026-07-22T11:00:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:00:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4293ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:01:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:01:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:01:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4088ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:01:29Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (15017ms) region=Region-B currency=INR cart_items=19"
+    },
+    {
+      "timestamp": "2026-07-22T11:01:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:01:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2612ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T11:01:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:01:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3880ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:02:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:02:14Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (9056ms) region=Region-B currency=INR cart_items=22"
+    },
+    {
+      "timestamp": "2026-07-22T11:02:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:02:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4039ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:02:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2864ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T11:02:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:02:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:02:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3895ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:02:59Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (13795ms) region=Region-B currency=INR cart_items=19"
+    },
+    {
+      "timestamp": "2026-07-22T11:03:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:03:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:03:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4434ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:03:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:03:44Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (10987ms) region=Region-B currency=INR cart_items=14"
+    },
+    {
+      "timestamp": "2026-07-22T11:03:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2675ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T11:03:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:03:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4433ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:04:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:04:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:04:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 3820ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:04:29Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (15254ms) region=Region-B currency=INR cart_items=17"
+    },
+    {
+      "timestamp": "2026-07-22T11:04:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2690ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T11:04:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:04:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:04:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4299ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:05:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:05:14Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (9233ms) region=Region-B currency=INR cart_items=22"
+    },
+    {
+      "timestamp": "2026-07-22T11:05:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:05:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4379ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:05:44Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:05:44Z",
+      "ci": "nic-rx-queue-7",
+      "event_type": "kernel.net",
+      "severity": "warning",
+      "message": "RX queue 7 processing latency high (2832ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-22T11:05:46Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:05:48Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4088ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:05:59Z",
+      "ci": "checkout-service",
+      "event_type": "checkout.orchestrator",
+      "severity": "warning",
+      "message": "Downstream payment call slow (17170ms) region=Region-B currency=INR cart_items=20"
+    },
+    {
+      "timestamp": "2026-07-22T11:06:14Z",
+      "ci": "payment-service",
+      "event_type": "payment.client",
+      "severity": "warning",
+      "message": "Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-22T11:06:16Z",
+      "ci": "payment-service",
+      "event_type": "payment.retry",
+      "severity": "critical",
+      "message": "Retry attempt 2/3"
+    },
+    {
+      "timestamp": "2026-07-22T11:06:18Z",
+      "ci": "payment-service",
+      "event_type": "http.connection",
+      "severity": "warning",
+      "message": "Connection acquisition took 4159ms"
+    },
+    {
+      "timestamp": "2026-07-22T11:06:54Z",
+      "ci": "checkout-service",
+      "event_type": "alert.fire",
+      "severity": "critical",
+      "message": "Alert ecom_checkout_slo_breach fired: checkout success rate < 99.5"
+    }
+  ]
+}

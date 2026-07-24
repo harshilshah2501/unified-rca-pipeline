@@ -1,0 +1,32 @@
+{
+  "engine": "lean",
+  "uc_id": "motadata-ping-002",
+  "root_ci": "Netgear Switch",
+  "signature": "ping_degradation",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "Netgear Switch",
+      "signal": "ping.packet.lost.percent",
+      "value": 33.0,
+      "timestamp": "2026-07-21T05:43:38Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 1,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "causal_verified": null,
+  "causal_log": null,
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "Netgear Switch"
+  ],
+  "blast_radius": [],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

@@ -1,0 +1,22 @@
+[Unit]
+Description=Unified RCA PoC Console + Comparative Dashboard (:8765)
+Documentation=file:///root/Harshil-PoCs/Unified-RCA/benchmarking/dashboard/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/Harshil-PoCs/Unified-RCA
+Environment=POC_DASHBOARD_HOST=127.0.0.1
+Environment=POC_DASHBOARD_PORT=8765
+Environment=POC_SSH_HOST=pro6000-server
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/root/Harshil-PoCs/Unified-RCA/.venv/bin/python benchmarking/dashboard/server.py
+Restart=on-failure
+RestartSec=3
+
+# Job runners (Motadata / bakeoff / lab) need Docker + SSH as the service user.
+# Runs as root in this WSL lab; tighten User= on shared hosts.
+
+[Install]
+WantedBy=multi-user.target

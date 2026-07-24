@@ -1,0 +1,73 @@
+{
+  "version": "1.0.0",
+  "source": "ecom_checkout_scenario",
+  "nodes": [
+    {
+      "id": "api-gateway",
+      "type": "Service",
+      "name": "API Gateway"
+    },
+    {
+      "id": "checkout-service",
+      "type": "Service",
+      "name": "Checkout Service"
+    },
+    {
+      "id": "payment-service",
+      "type": "Service",
+      "name": "Payment Service"
+    },
+    {
+      "id": "payment-provider",
+      "type": "Service",
+      "name": "External Payment Provider"
+    },
+    {
+      "id": "dns-aaaa-np17",
+      "type": "Service",
+      "name": "DNS AAAA (NP-17)"
+    },
+    {
+      "id": "nic-rx-queue-7",
+      "type": "NetworkPort",
+      "name": "NIC RX Queue 7 (NP-17)"
+    },
+    {
+      "id": "np17-irq-affinity",
+      "type": "Host",
+      "name": "NP-17 IRQ affinity / node image"
+    }
+  ],
+  "edges": [
+    {
+      "from": "api-gateway",
+      "to": "checkout-service",
+      "relation": "depends_on"
+    },
+    {
+      "from": "checkout-service",
+      "to": "payment-service",
+      "relation": "depends_on"
+    },
+    {
+      "from": "payment-service",
+      "to": "payment-provider",
+      "relation": "depends_on"
+    },
+    {
+      "from": "payment-service",
+      "to": "dns-aaaa-np17",
+      "relation": "depends_on"
+    },
+    {
+      "from": "dns-aaaa-np17",
+      "to": "nic-rx-queue-7",
+      "relation": "depends_on"
+    },
+    {
+      "from": "nic-rx-queue-7",
+      "to": "np17-irq-affinity",
+      "relation": "depends_on"
+    }
+  ]
+}

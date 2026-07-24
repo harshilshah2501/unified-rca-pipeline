@@ -1,0 +1,41 @@
+{
+  "incident_start": "2026-07-21T04:01:38Z",
+  "anomalies": [
+    {
+      "ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+      "signal": "ping.packet.lost.percent",
+      "value": 33.0,
+      "threshold": 5.0,
+      "crossed": true,
+      "timestamp": "2026-07-21T04:01:38Z",
+      "anomaly_class": "network"
+    },
+    {
+      "ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+      "signal": "system.1min.avg.cpu.percent",
+      "value": 95.0,
+      "threshold": 90.0,
+      "crossed": true,
+      "timestamp": "2026-07-21T05:55:38Z",
+      "anomaly_class": "resource"
+    },
+    {
+      "ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+      "signal": "system.cpu.percent",
+      "value": 94.0,
+      "threshold": 90.0,
+      "crossed": true,
+      "timestamp": "2026-07-21T05:55:38Z",
+      "anomaly_class": "resource"
+    },
+    {
+      "ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+      "signal": "system.memory.used.percent",
+      "value": 95.0,
+      "threshold": 90.0,
+      "crossed": true,
+      "timestamp": "2026-07-21T05:55:38Z",
+      "anomaly_class": "resource"
+    }
+  ]
+}

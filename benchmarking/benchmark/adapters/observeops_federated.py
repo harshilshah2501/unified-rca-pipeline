@@ -29,6 +29,8 @@ MURPHY_POSTERIOR_THRESHOLD = 0.3
 TYPE_MAP = {
     "NetworkPort": "nic",
     "HypervisorHost": "host",
+    "Host": "host",
+    "NetworkDevice": "nic",
     "Datastore": "datastore",
     "VirtualMachine": "vm",
     "GuestOS": "container",
@@ -387,7 +389,11 @@ def fusion_root_from_posterior(
     """Pick the most-upstream entity among high-posterior Murphy candidates."""
     if not posterior:
         return ""
-    ranked = sorted(posterior.items(), key=lambda item: item[1], reverse=True)
+    block = _non_root_symptom_cis(bundle) | {symptom_entity}
+    filtered = {e: s for e, s in posterior.items() if e not in block}
+    if not filtered:
+        filtered = posterior
+    ranked = sorted(filtered.items(), key=lambda item: item[1], reverse=True)
     top_score = ranked[0][1]
     candidates = [entity for entity, score in ranked if score >= top_score * 0.2]
     best_entity = candidates[0]
@@ -397,6 +403,22 @@ def fusion_root_from_posterior(
     return best_entity
 
 
+def _non_root_symptom_cis(bundle: dict) -> set[str]:
+    """CIs whose crossed anomalies are only symptom/external — not root candidates."""
+    by_ci: dict[str, set[str]] = {}
+    for anomaly in bundle.get("anomalies", {}).get("anomalies") or []:
+        if not anomaly.get("crossed"):
+            continue
+        by_ci.setdefault(anomaly["ci"], set()).add(
+            anomaly.get("anomaly_class") or "unknown"
+        )
+    blocked: set[str] = set()
+    for ci, classes in by_ci.items():
+        if classes and classes.issubset({"symptom", "external"}):
+            blocked.add(ci)
+    return blocked
+
+
 def recover_murphy_causal_posterior(
     store: SimulatedMetricStore,
     murphy: Murphy,
@@ -404,6 +426,7 @@ def recover_murphy_causal_posterior(
     incident_time: datetime,
     *,
     direct_symptom_fault: bool = False,
+    bundle: dict | None = None,
 ) -> dict[str, float]:
     """Return a Murphy graph-localized posterior when its significance gate is empty.
 
@@ -430,6 +453,8 @@ def recover_murphy_causal_posterior(
         symptom_entity, current_metrics, historical_stats
     )
     candidates.discard(symptom_entity)
+    if bundle is not None:
+        candidates -= _non_root_symptom_cis(bundle)
 
     scores: dict[str, float] = {}
     for entity_id in candidates:
@@ -505,6 +530,15 @@ def resolve_root_ci(
 
     if max_posterior >= theta_murphy:
         mapped = map_root_cause_entity(bundle, federated_root)
+        block = _non_root_symptom_cis(bundle)
+        if mapped in block and distribution:
+            remapped = fusion_root_from_posterior(
+                bundle,
+                {k: float(v) for k, v in distribution.items()},
+                bundle["symptom_seed"]["ci"],
+            )
+            if remapped:
+                mapped = map_root_cause_entity(bundle, remapped)
         crossed = [a for a in bundle["anomalies"]["anomalies"] if a["crossed"]]
         if crossed:
             earliest = min(crossed, key=lambda a: parse_ts(a["timestamp"]))

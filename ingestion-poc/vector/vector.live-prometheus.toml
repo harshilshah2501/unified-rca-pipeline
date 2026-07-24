@@ -1,0 +1,74 @@
+# LIVE Prometheus scrape → ingest.v1 metric_sample → F1 sinks
+# Runbook: docs/LIVE_INGEST_RUNBOOK.md
+#
+# PROM_TARGETS env: JSON array of URLs, e.g.
+#   ["http://host.docker.internal:9090/metrics"]
+
+data_dir = "${VECTOR_DATA_DIR:-/tmp/unified-rca-vector-live-prom}"
+
+[sources.live_prom]
+type = "prometheus_scrape"
+endpoints = ${PROM_TARGETS:-["http://127.0.0.1:9090/metrics"]}
+scrape_interval_secs = 15
+instance_tag = "instance"
+endpoint_tag = "endpoint"
+
+[transforms.to_ingest_v1]
+type = "remap"
+inputs = ["live_prom"]
+source = '''
+tenant = get_env_var("LIVE_TENANT") ?? "lab"
+ts = format_timestamp!(now(), format: "%Y-%m-%dT%H:%M:%SZ")
+name = string(.name) ?? "prom_metric"
+val = float(.value) ?? float(.gauge.value) ?? float(.counter.value) ?? 0.0
+instance = string(.tags.instance) ?? string(.instance) ?? "prom-unknown"
+. = {
+  "schema_version": "ingest.v1",
+  "ts": ts,
+  "tenant": tenant,
+  "ci_id": instance,
+  "ci_type": "Host",
+  "signal_class": "metric_sample",
+  "name": name,
+  "value": val,
+  "threshold": null,
+  "severity": null,
+  "labels": {
+    "source": "live_prometheus",
+    "endpoint": string(.tags.endpoint) ?? null
+  }
+}
+'''
+
+[transforms.route_lean]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "anomaly" || .signal_class == "event" || .signal_class == "metric_sample"'
+
+[transforms.route_structural]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "metric_sample" || .signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+
+[transforms.route_speed]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+
+[sinks.lean_feed]
+type = "file"
+inputs = ["route_lean"]
+path = "${F1_OUT_DIR}/lean/events.jsonl"
+encoding.codec = "json"
+
+[sinks.structural_feed]
+type = "file"
+inputs = ["route_structural"]
+path = "${F1_OUT_DIR}/structural/stream.jsonl"
+encoding.codec = "json"
+
+[sinks.speed_tier_feed]
+type = "file"
+inputs = ["route_speed"]
+path = "${F1_OUT_DIR}/speed_tier/feed.jsonl"
+encoding.codec = "json"

@@ -15,22 +15,25 @@ sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "lean-pipeline"))
 sys.path.insert(0, str(REPO / "benchmarking"))
 
-from benchmark.parity import materialize_parity_corpus, run_shared_detect  # noqa: E402
+from benchmark.corpus_util import (  # noqa: E402
+    is_frozen_pack_corpus,
+    pack_ids,
+    results_dir,
+)
+from benchmark.parity import (  # noqa: E402
+    detect_meta_for_scoreboard,
+    materialize_parity_corpus,
+    resolve_changes_path,
+    run_shared_detect,
+)
 from core_engine.observeops.engine import diagnose  # noqa: E402
 
 DEFAULT_CORPUS = REPO / "datasets" / "observeops"
-OO_PACKS = REPO / "datasets" / "openobserve_incidents" / "v1" / "engine_packs"
 RESULTS = REPO / "benchmarking" / "results" / "lean"
 
 
-def _is_oo_packs(corpus: Path) -> bool:
-    return corpus.resolve() == OO_PACKS.resolve() or corpus.name == "engine_packs"
-
-
 def _results_dir(corpus: Path, uc_id: str, run_id: str) -> Path:
-    if _is_oo_packs(corpus):
-        return RESULTS / "oo" / uc_id / f"run-{run_id}"
-    return RESULTS / uc_id / f"run-{run_id}"
+    return results_dir(RESULTS, corpus, uc_id, run_id)
 
 
 def _corpus_version(corpus: Path) -> str:
@@ -41,13 +44,7 @@ def _corpus_version(corpus: Path) -> str:
 
 
 def _pack_ids(corpus: Path) -> list[str]:
-    if _is_oo_packs(corpus):
-        return sorted(
-            p.name
-            for p in corpus.iterdir()
-            if p.is_dir() and (p / "topology.json").exists()
-        )
-    return [f"UC-{i}" for i in range(1, 6)]
+    return pack_ids(corpus)
 
 
 def run_uc(
@@ -64,12 +61,18 @@ def run_uc(
 
     detect_meta: dict = {}
     diagnose_corpus = corpus
-    if shared_detect and not _is_oo_packs(corpus):
+    # Frozen packs (OO / Motadata) already carry anomalies + seed — skip metrics/ detect.
+    if shared_detect and not is_frozen_pack_corpus(corpus):
         detect = run_shared_detect(uc_id, corpus)
-        detect_meta = detect.to_meta()
+        changes = resolve_changes_path(uc_id, corpus)
         diagnose_corpus = materialize_parity_corpus(
-            uc_id, corpus, detect, out_dir / "parity_corpus"
+            uc_id,
+            corpus,
+            detect,
+            out_dir / "parity_corpus",
+            changes_path=changes,
         )
+        detect_meta = detect_meta_for_scoreboard(detect)
 
     t0 = time.perf_counter()
     verdict = diagnose(uc_id, diagnose_corpus)
@@ -104,7 +107,7 @@ def main(argv: list[str] | None = None) -> int:
         "--corpus",
         type=Path,
         default=DEFAULT_CORPUS,
-        help="Corpus root (ObserveOps or OO engine_packs)",
+        help="Corpus root (ObserveOps, OO engine_packs, or Motadata incidents)",
     )
     parser.add_argument(
         "--no-shared-detect",

@@ -1,10 +1,10 @@
 # Unified RCA PoC — End-to-End Briefing
 
 **Audience:** brainstorming, stakeholder reviews, NotebookLM → slide decks  
-**Date:** 2026-07-21 (ingest progress note; bakeoff narrative still 2026-07-16)  
-**Status:** ObserveOps **RCA eval** critical path **complete** (Phases A → B → D). **Active next:** ingestion (`Ingest → Detect`…) — Motadata/`ingest.v1` smoke done; Vector F1 next — [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md)  
-**Evaluation finding (not a finalized product commitment):** On the classic ObserveOps UC corpus, bakeoff evidence **favors lean** as the primary evaluation engine ([ADR-001](./ADR-001-lean-primary-engine.md); matched run **`bakeoff-phase-b-002`**)  
-**Corpus:** ObserveOps UC-1..UC-5 primary bakeoff (classic infra typed CI graph). Spec + corpus also include **UC-3b** (adversarial early network noise) and synthetic **`events.json`** (required on UC-2/UC-4/UC-3b) — see [`rca-use-cases-only.md`](./rca-use-cases-only.md).
+**Date:** 2026-07-22 (Motadata L1 7/7 human-confirmed; UC ADR narrative still `bakeoff-phase-b-002`)  
+**Status:** ObserveOps **UC RCA eval** critical path **complete** (journey: Compare → Deepen → Ship + ADR-001). **Motadata Transfer** L1 **7/7** both engines (human GT on `#samples`). **Active next (Connect):** `LIVE` ingest smoke → `CHANGE` feed — [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) §3 · **Demo:** [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md) · **Journey map:** [`ROADMAP.md`](./ROADMAP.md)  
+**Evaluation finding (not a finalized product commitment):** On the classic ObserveOps UC corpus, bakeoff evidence **favors lean** as the primary evaluation engine ([ADR-001](./ADR-001-lean-primary-engine.md); matched run **`bakeoff-phase-b-002`**). Motadata L1 is a **separate** scoreboard (do not merge %).  
+**Two corpora (do not merge):** (1) **UC-1..UC-5** — controlled pre-eval / engine decision. (2) **Motadata L1** — real Motadata export packs with human GT — transfer PoC after the engine call. Spec also has **UC-3b** + `events.json` — [`rca-use-cases-only.md`](./rca-use-cases-only.md).
 
 ---
 
@@ -14,14 +14,23 @@ ObserveOps needs automatic root-cause analysis across a VMware-style stack:
 
 **Network → ESXi host → VM → Guest OS → Application (+ shared Datastore).**
 
-We built and compared **two engines on the exact same frozen corpus**:
+**How we evaluated (two stages — keep scoreboards separate):**
+
+| Stage | Corpus | Job | Headline |
+|-------|--------|-----|----------|
+| **1 · Controlled pre-eval** | ObserveOps **UC-1..UC-5** (synthetic, frozen, shared GT) | Fair Lean vs Federated compare → **which engine?** | `bakeoff-phase-b-002`: accuracy **5/5** both; Lean wins repro / audit / cost → [ADR-001](./ADR-001-lean-primary-engine.md) |
+| **2 · Real-export PoC** | **Motadata L1** packs cut from a real Motadata dump | Does Localize/Identify transfer after ingest + **human** GT? | **7/7** Lean & Federated (tie) on confirmed packs — *not* merged with UC 5/5 |
+
+UC is **not** “fake work before the real PoC.” It is the **controlled bakeoff** that locked the engine call under fair conditions. Motadata is the **subsequent field-transfer PoC**: same engines, real telemetry lake → labeled packs → `#samples` human confirm.
+
+We built and compared **two engines** (first on UC, then re-scored on Motadata):
 
 | Approach | What it is | ObserveOps role |
 |----------|------------|---------------|
 | **Federated** | Panorama (detect) → Murphy (macro causal) → Nezha (micro patterns) | Optional / future microservice & gray-failure track |
 | **Lean** | Best-first + temporal + info-gain walk; CARE when Δt is ambiguous; scoped Tier-3 causal only when needed | **Primary evaluation engine** (ADR-001; not a finalized GTM commitment) |
 
-**Bakeoff headline (`bakeoff-phase-b-002`, corpus v1.1.0):**
+**UC bakeoff headline (`bakeoff-phase-b-002`, corpus v1.1.0):**
 
 | Axis | Federated | Lean | Winner |
 |------|-----------|------|--------|
@@ -33,9 +42,11 @@ We built and compared **two engines on the exact same frozen corpus**:
 
 \*Do **not** read “main path” as lean’s Tier 1/2/3 — that ladder is **lean-only**. The bakeoff’s shared `main_path %` only means `fallback_fired: false` for both engines: for lean = CARE did not fire; for federated = fusion did not fall back to lean rules. On `b-002`, federated is 5/5 “no-fallback” while lean fires CARE on UC-1/UC-3 (intentional Tier 2→3 depth). **Verifiability still favors lean** for SRE auditability of the evidence chain. See [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) and [`GLOSSARY.md`](./GLOSSARY.md).
 
-**Conclusion:** On ObserveOps classic-infra tickets, lean wins the cost–benefit. Murphy’s causal edge is real but does not buy extra accuracy on this corpus, and it loses on reproducibility, auditability, and compute/ops cost. Ship lean first; keep federated for a hybrid later if microservice/code-path RCA is in scope.
+**Motadata L1 headline (separate scoreboard):** Lean **7/7** · Federated **7/7** (root+sig) on human-confirmed packs (APM, ping×4, CPU, multi-signal HB1). Proves transfer on real export slices — **not** “production handles anything.” Details: §5.2 · [`results/motadata/COMPARISON.md`](../benchmarking/results/motadata/COMPARISON.md).
 
-**Canonical product workflow (next phase):** `Ingest → Detect → Localize → Identify → Verify` — see [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md). **Ingest progress (2026-07-21):** ObserveOps → `ingest.v1` replay + Motadata adapter smoke (local dumps); Vector F1 / Lean writers still open — [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md). Vendor survey + Step-2 white space: [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf), [`two-step-rca-white-space.md`](./two-step-rca-white-space.md).
+**Conclusion:** On ObserveOps classic-infra tickets, lean wins the cost–benefit. Murphy’s causal edge is real but does not buy extra accuracy on the UC corpus, and it loses on reproducibility, auditability, and compute/ops cost. Ship lean first; keep federated for a hybrid later if microservice/code-path RCA is in scope. Motadata L1 so far **ties** both engines on labeled real packs — it supports the ingest path, it does **not** reopen ADR-001 by itself.
+
+**Canonical product workflow:** `Ingest → Detect → Localize → Identify → Verify` — see [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md). **Progress (2026-07-22):** UC ADR ✅ · Motadata → `ingest.v1` + F1/N4/N5 + L1 **7/7** human-confirmed ✅ · inventory + pro6000 cost/soak ✅. **Next:** `LIVE` collector smoke → `CHANGE` feed — [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md). Vendor survey + Step-2 white space: [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf), [`two-step-rca-white-space.md`](./two-step-rca-white-space.md).
 
 ---
 
@@ -53,12 +64,16 @@ Deliver ObserveOps RCA that:
 
 ### 2.2 PoC objective
 
-Decide, with evidence, which pipeline should be ObserveOps’ **primary brain** for classic infrastructure RCA:
+Two linked questions (same engines, **different corpora**):
 
-- Run **both** engines on **identical** UC-1..UC-5 bundles.
-- Score them with a shared contract (accuracy, reproducibility, verifiability, efficiency, causal stance).
-- Harden the winner to a callable API/CLI with SRE report fields.
-- Document an explicit hybrid boundary (when federated still makes sense).
+1. **Controlled pre-eval (UC):** Which pipeline should be ObserveOps’ **primary brain** for classic infrastructure RCA?
+   - Run **both** engines on **identical** UC-1..UC-5 bundles.
+   - Score them with a shared contract (accuracy, reproducibility, verifiability, efficiency, causal stance).
+   - Harden the winner to a callable API/CLI with SRE report fields.
+   - Document an explicit hybrid boundary (when federated still makes sense).
+2. **Real-export PoC (Motadata):** After that engine call, do Localize/Identify **transfer** when packs are cut from a real Motadata dump with **human** GT?
+   - Shared ingest (`ingest.v1` → Detect → packs) + Motadata L1 bakeoff + `#samples` confirm.
+   - **Do not** merge Motadata % into the UC ADR scoreboard.
 
 ### 2.3 Success criteria (ObserveOps critical path)
 
@@ -133,26 +148,30 @@ Aligned with the Lean RCA PRD / Simple Guide:
 ### 4.2 Out of scope (intentionally)
 
 - DeathStarBench / TrainTicket / Online Boutique as ObserveOps acceptance gates.
-- Live SNMP/NetFlow/APM ingest into ObserveOps **production** (PoC uses synthetic / replay bundles for bakeoff; Motadata → `ingest.v1` is a separate local ingest track — not yet Vector→RCA).
+- Live SNMP/NetFlow/APM ingest into ObserveOps **production** (PoC uses synthetic / replay for UC bakeoff; Motadata → `ingest.v1` → F1/N4/N5 exists as a **lab ingest track** — live collectors still A2).
 - Automated remediation / runbook execution.
 - Fleet-wide Pearl-style counterfactuals on every metric.
 - 1B EPS production sizing as an ObserveOps gate (capacity measured partially on laptop only).
 
-**Product note (not a PoC bakeoff gap):** a real **detection front door** is **required** before Lean. Fair bakeoff now uses a **shared threshold detector** for both engines ([`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md), run `bakeoff-parity-001`). **Ingestion PoC** is replacing synthetic-only streams: UC + Motadata → `ingest.v1` exist; Vector → detect → Lean/Federated artifacts and **real Panorama** (where Federated needs it) are still ahead — [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md).
+**Product note (not a PoC bakeoff gap):** a real **detection front door** is **required** before Lean. Fair bakeoff uses a **shared threshold detector** for both engines ([`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md)). **Ingestion / Motadata track:** UC replay + Motadata → `ingest.v1` → F1/N4/N5 + Motadata L1 **7/7** human-confirmed **Done**. Still ahead: live collectors (A2), real change feed (A3), and **real Panorama** when a gray-failure corpus exists (D4) — [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) · [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md).
 
 ### 4.3 Optional later (not blocking)
 
 | Item | Why later |
 |------|-----------|
 | B5 continuous causal memory | Learning loop after packaging |
-| Phase C federated ingest/stores | Microservice track only |
-| Phase E capacity / 1B EPS vision | Needs server-class measurement |
+| Later · Federate (ingest/stores) | Microservice track only |
+| Later · Scale (1B EPS vision) | Needs server-class measurement |
 | Corpus A (microservices) | Different topology class |
 | Measure `C_detect` (threshold vs Panorama-class) | Ingestion PoC axis — [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) M2 |
 
 ---
 
-## 5. Evaluation corpus (UC-1..UC-5)
+## 5. Evaluation corpora (two scoreboards)
+
+### 5.1 Stage 1 — ObserveOps UC-1..UC-5 (controlled pre-eval)
+
+**Role:** Fair Lean vs Federated compare under frozen, synthetic-but-realistic tickets → **engine decision** (ADR-001).
 
 **Topology model:** classic infrastructure typed CI graph  
 Network device → ESXi → VM → Guest OS → App (+ Datastore)  
@@ -171,6 +190,26 @@ Edges like `uplink_to` / `hosted_by` / `stored_on` / `runs_on`.
 Each UC specifies: fault injection idea, decisive telemetry thresholds, per-layer symptoms, correlation logic, and auto-RCA output (root, chain, evidence, blast radius, remediation).
 
 **Corpus packaging:** frozen bundles under `datasets/observeops/` (topology, anomalies, ground truth, metrics, schema + manifest). Both engines consume the **same** bundles.
+
+### 5.2 Stage 2 — Motadata L1 (real-export PoC)
+
+**Role:** After the UC engine call, prove **transfer** on packs cut from a real Motadata telemetry dump (lake ≠ scenarios). Human GT + `#samples` confirm; automation only scores.
+
+**Dump vs packs:** ~GB of Motadata JSONL is the quarry; each L1 incident is one labeled slice (stream + Detect + topology + `ground_truth.json`).
+
+| Pack | Root CI (human GT) | Signature | Notes |
+|------|--------------------|-----------|--------|
+| `motadata-apm-001` | `ProductCatalog_dotnet.` | `app_error_rate` | Span-derived error rate |
+| `motadata-ping-001` | `dlink-48` | `ping_degradation` | Clear network smoke |
+| `motadata-ping-002` | `Netgear Switch` | `ping_degradation` | Network breadth (confirmed) |
+| `motadata-ping-003` | `proxmox-ve-129` | `ping_degradation` | Network breadth (confirmed) |
+| `motadata-ping-004` | `localhost.localdomain` | `ping_degradation` | Packet-loss burst (confirmed) |
+| `motadata-cpu-001` | `Fluentbit` | `host_cpu_saturation` | Episodic host CPU |
+| `motadata-multi-001` | `HB1-…-735.hb1.com` | `host_cpu_saturation` | Harder multi-signal CPU+mem+ping (confirmed) |
+
+**L1 scoreboard (separate from UC):** Lean **7/7** · Federated **7/7** (root+sig) — [`COMPARISON.md`](../benchmarking/results/motadata/COMPARISON.md). Console: `#samples` · [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md).
+
+**What Motadata L1 does *not* claim:** exhaustive coverage of the dump; production “handles anything”; gray-failure / path-diff Identify; or a redo of ADR-001.
 
 ---
 
@@ -300,44 +339,58 @@ Net: lean wins for classic infran ObserveOps. Federated wins when you **explicit
 ## 8. PoC method & journey
 
 ```
-Use-case spec (UC-1..UC-5)
-        ↓
-Frozen corpus datasets/observeops/
-        ↓
-   ┌────┴────┐
-   ↓         ↓
-Federated   Lean
-   └────┬────┘
-        ↓
-Matched bakeoff + four-axis compare
-        ↓
-ADR-001: primary evaluation engine
-        ↓
-Package lean_rca (CLI / HTTP / SRE / systemd)
-        ↓
-Ingest PoC (active): ingest.v1 streams → Vector F1 → writers
-  · observeops-replay/ ✅
-  · Motadata adapter smoke ✅ (local dumps)
-  · Vector / lean_bundle_writer ⏳
+Stage 1 — Controlled pre-eval (engine decision)
+  Use-case spec (UC-1..UC-5)
+          ↓
+  Frozen corpus datasets/observeops/
+          ↓
+     ┌────┴────┐
+     ↓         ↓
+  Federated   Lean
+     └────┬────┘
+          ↓
+  Matched bakeoff + four-axis compare
+          ↓
+  ADR-001: primary evaluation engine
+          ↓
+  Package lean_rca (CLI / HTTP / SRE / systemd)
+
+Stage 2 — Real-export PoC (transfer after engine call)
+  Motadata dump (lake) → cut packs + human GT
+          ↓
+  ingest.v1 → Detect → F1 / N4 / N5 ✅
+          ↓
+  Motadata L1 bakeoff (Lean + Fed) ✅ 7/7
+          ↓
+  #samples human confirm ✅
+          ↓
+  Next: LIVE collector smoke · CHANGE feed
+        (+ optional more Motadata Bucket-3 packs)
 ```
 
-### Phases completed
+### Journey stages completed
 
-| Phase | What | Status |
+| Stage | What | Status |
 |-------|------|--------|
-| **A** Bakeoff close | Fix federated fusion; four-axis compare; matched runs; decision memo | Done |
-| **B** Lean PRD depth | Tiers 1/2/3; CARE→causal; signatures; best-first vs naive BFS efficiency | Done |
-| **D** Packaging | ADR-001; `lean_rca`; SRE report; `lean-rca.service` | Done |
+| **Compare** | Fair UC bakeoff; fusion fix; four-axis compare; ADR-001 | Done |
+| **Deepen** | Lean tiers / CARE→causal / signatures / efficiency | Done |
+| **Ship** | `lean_rca` CLI/HTTP; SRE report; systemd | Done |
+| **Transfer** | Motadata L1 **7/7** + human `#samples` confirm | Done |
 
-### Ingest phase (in progress — not bakeoff)
+See full journey: [`ROADMAP.md`](./ROADMAP.md).
+
+### Real-export / ingest track (Motadata)
 
 | Item | Status |
 |------|--------|
 | ObserveOps → `ingest.v1` | Done — `datasets/ingest_samples/observeops-replay/` |
-| Motadata → `ingest.v1` | Smoke done — `motadata-ingest/`; source dumps local/`gitignored` |
-| F1 sinks + shared detect | Done — `ingestion-poc/pipeline/f1_run.py` (N3) |
-| Lean/Federated writers | Done — `ingestion-poc/builders/` (N4–N5); UC diagnose on ingested bundles |
-| Detect coverage (change / error-rate) | Next — D2/D3 · [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) |
+| Motadata → `ingest.v1` | Done — `motadata-ingest/`; source dumps local/`gitignored` |
+| F1 sinks + shared detect | Done — `ingestion-poc/pipeline/f1_run.py` |
+| Lean/Federated writers | Done — `ingestion-poc/builders/` |
+| Detect coverage (change / error-rate) | Done — [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) |
+| Motadata L1 bakeoff | Done — **7/7** both engines · [`results/motadata/COMPARISON.md`](../benchmarking/results/motadata/COMPARISON.md) |
+| Human GT + `#samples` | Done — ping-002/003/004 + multi-001 confirmed (plus original APM/ping-001/cpu) |
+| Next (**Connect**) | **`LIVE`** smoke · **`CHANGE`** feed — [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) §3 |
 ### Key technical fixes that made comparison fair
 
 - Federated: Murphy posterior recovery on UC-2/UC-3 — removed lean-heuristic fallback from the fusion path.
@@ -488,21 +541,22 @@ Use these as generation prompts or section titles:
 
 1. **Title** — Unified RCA PoC: Lean vs Federated for ObserveOps  
 2. **Problem** — Symptom apps hide upstream infra roots  
-3. **Objective** — Pick primary engine with same-corpus evidence  
-4. **Corpus** — Five layers, five traps (UC-1..UC-5 table)  
+3. **Objective** — Two stages: UC engine decision → Motadata real-export transfer  
+4. **Corpus A (UC)** — Five layers, five traps (UC-1..UC-5 table) — controlled pre-eval  
 5. **Qualities & roadblocks** — Repro + Verifiability Mandatory; Accuracy thresholded; CV Recommended; Mandatories **1b** + **4** (do not skip GT)  
 6. **Approach A** — Federated Panorama→Murphy→Nezha  
 7. **Approach B** — Lean walk + CARE + scoped Tier 3  
 8. **Design choice** — Why not fleet-wide counterfactuals  
-9. **Method** — Frozen bundles → matched bakeoff → ADR  
-10. **Results scoreboard** — 5/5 vs 5/5; 40% vs 100% repro  
+9. **Method** — Frozen UC bundles → matched bakeoff → ADR  
+10. **UC results** — 5/5 vs 5/5; 40% vs 100% repro  
 11. **Per-UC story** — Host / net / storage / OS / app anti-FP  
 12. **Cost–benefit** — Murphy CV vs ObserveOps ops fit  
 13. **Decision** — Primary evaluation engine (ADR-001); federated optional hybrid  
 14. **Shipped** — `lean_rca` CLI/API/SRE report  
-15. **Open questions** — brainstorming (next section)  
-16. **Ask** — Align on hybrid boundary + next corpus size  
-17. **Ingest next** — Motadata/`ingest.v1` → Vector F1 (workflow doc)
+15. **Corpus B (Motadata)** — Lake → packs; L1 **7/7** both; human `#samples` confirm (separate scoreboard)  
+16. **Open questions** — brainstorming (next section)  
+17. **Ask** — Align on hybrid boundary + next Motadata / live ingest  
+18. **Next** — `LIVE` smoke → `CHANGE` feed ([`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) §3)
 
 ---
 
@@ -514,12 +568,12 @@ Use these in NotebookLM chat or workshop discussions:
 2. Should ObserveOps UI **expose evidentiary tiers** to customers, or only internally?
 3. When (if ever) do we **invoke Murphy** from lean as a paid Tier-3/4 escalation on ambiguous tickets?
 4. How do we productize **blast radius + remediation** into ObserveOps incident workflows without auto-remediation?
-5. What is the first **non-synthetic** ObserveOps customer topology we should freeze as Corpus B.1?
-6. Do we need a **microservice corpus** this year, or is classic infra enough for the ObserveOps roadmap?
+5. Motadata L1 is live (**7/7** confirmed) — what is the next **hard Motadata** pack (Bucket 3 app/deps) vs jumping to a customer topology freeze?
+6. Do we need a **microservice corpus** this year, or is classic infra + Motadata transfer enough for the ObserveOps roadmap?
 7. How should reproducibility be **regression-tested in CI** (N=20 harness on every engine change)?
 8. Is lightweight Tier 3 “good enough” CV messaging, or do we risk overclaiming “causal” in marketing?
 9. Where does **log/event multimodal** fusion fit if lean misses OS signals that Nezha would catch?
-10. What capacity SLO (EPS / p99 diagnose latency) makes lean “production-adjacent” without Phase E fantasy numbers?
+10. What capacity SLO (EPS / p99 diagnose latency) makes lean “production-adjacent” without Later·Scale fantasy numbers?
 
 ---
 

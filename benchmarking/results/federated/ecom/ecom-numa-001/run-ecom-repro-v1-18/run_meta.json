@@ -1,0 +1,15 @@
+{
+  "uc_id": "ecom-numa-001",
+  "run_id": "ecom-repro-v1-18",
+  "corpus": "/root/Harshil-PoCs/Unified-RCA/datasets/ecom_checkout/incidents",
+  "corpus_version": "unknown",
+  "engine": "federated",
+  "fallback_fired": true,
+  "murphy_posterior": 1.0,
+  "latency_ms": 16636.8638,
+  "hop_total_ms": 16636.05,
+  "system_latency_ms": 16636.8638,
+  "pipeline_profile": "legacy-frozen-bundle",
+  "detect_source": "none",
+  "fallback_reason": "earliest_onset_upstream:np17-irq-affinity"
+}

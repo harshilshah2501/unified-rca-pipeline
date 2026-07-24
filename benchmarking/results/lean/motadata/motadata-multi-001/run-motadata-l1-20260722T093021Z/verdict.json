@@ -1,0 +1,53 @@
+{
+  "engine": "lean",
+  "uc_id": "motadata-multi-001",
+  "root_ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+  "signature": "host_cpu_saturation",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+      "signal": "ping.packet.lost.percent",
+      "value": 33.0,
+      "timestamp": "2026-07-21T04:01:38Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+      "signal": "system.1min.avg.cpu.percent",
+      "value": 95.0,
+      "timestamp": "2026-07-21T05:55:38Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+      "signal": "system.cpu.percent",
+      "value": 94.0,
+      "timestamp": "2026-07-21T05:55:38Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+      "signal": "system.memory.used.percent",
+      "value": 95.0,
+      "timestamp": "2026-07-21T05:55:38Z",
+      "source": "anomaly"
+    }
+  ],
+  "observations": 4,
+  "evidentiary_tier": 1,
+  "fallback_fired": false,
+  "causal_verified": null,
+  "causal_log": null,
+  "obs_to_convergence": 1,
+  "naive_bfs_expansions": 1,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": true,
+  "causal_chain": [
+    "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com"
+  ],
+  "blast_radius": [],
+  "remediation": [
+    "Inspect correlated evidence and mitigate the earliest failing CI."
+  ]
+}

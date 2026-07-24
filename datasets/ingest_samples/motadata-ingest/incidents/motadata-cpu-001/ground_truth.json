@@ -1,0 +1,18 @@
+{
+  "root_ci": "Fluentbit",
+  "signature": "host_cpu_saturation",
+  "contributor_cis": [],
+  "blast_radius": [
+    "Fluentbit"
+  ],
+  "note": "Motadata infra: monitor 27 (Fluentbit) system.cpu.percent crossings (episodic, not chronically pegged fleet-wide).",
+  "tags": [
+    "motadata",
+    "infra",
+    "cpu",
+    "broaden"
+  ],
+  "fault_bucket": "2_infra",
+  "fault_type": "resource_contention",
+  "fault_title": "Fluentbit host CPU saturation"
+}

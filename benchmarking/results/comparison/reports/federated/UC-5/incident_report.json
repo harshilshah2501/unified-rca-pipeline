@@ -1,0 +1,441 @@
+{
+  "schema_version": "comprehensive_rca.v1",
+  "incident_id": "UC-5",
+  "source_incident_id": null,
+  "engine": "federated",
+  "generated_at": "2026-07-23T10:35:25Z",
+  "pack_meta": {
+    "incident_start": "2026-07-10T10:00:00Z",
+    "symptom_onset": "2026-07-10T10:00:12Z",
+    "detected_at": "2026-07-10T10:00:12Z",
+    "change_at": "2026-07-10T10:00:00Z",
+    "raw_dir": "datasets/observeops/UC-5/raw",
+    "source_incident_id": null,
+    "impact_source": null
+  },
+  "localization": {
+    "root_ci": "orders-api",
+    "signature": "app_resource_exhaustion",
+    "contributor_cis": [],
+    "false_leads_ruled_out": [],
+    "matches_pack_gt": true
+  },
+  "incident_summary": {
+    "severity": "P2",
+    "detected": "2026-07-10T10:00:12Z",
+    "affected_services": [
+      "orders-api"
+    ],
+    "customer_impact": "Symptom `request.p95_latency_ms` on `orders-api` (Orders-api resource exhaustion)",
+    "dimension_slice": "ObserveOps classic-infra \u00b7 `3_application` / `dependency_downstream`",
+    "gt_fault_title": "Orders-api resource exhaustion"
+  },
+  "impact": {
+    "services_affected": [
+      "orders-api"
+    ],
+    "sla_breach": true,
+    "data_loss": false,
+    "failed_requests": null,
+    "total_requests": null,
+    "peak_path_error_rate_pct": null,
+    "path_error_label": "api-gateway \u2192 checkout-service",
+    "checkout_error_rate_pct": null,
+    "payment_service_error_rate_pct": null,
+    "error_escalation": null,
+    "estimated_fail_fraction": "\u22482.8% of checkouts in the affected dimension",
+    "source": null,
+    "notes": null
+  },
+  "service_dependencies": {
+    "critical_path": [
+      "vm-db-01",
+      "esxi-host-01",
+      "switch-core-01:GigE0/2"
+    ],
+    "topology_edges": [
+      {
+        "from": "orders-api",
+        "to": "guest-os-vm-app-01",
+        "relation": "runs_on"
+      },
+      {
+        "from": "guest-os-vm-app-01",
+        "to": "vm-app-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "guest-os-vm-db-01",
+        "to": "vm-db-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-app-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-db-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-neighbor-01",
+        "to": "esxi-host-01",
+        "relation": "hosted_by"
+      },
+      {
+        "from": "vm-db-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "vm-neighbor-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "vm-app-01",
+        "to": "datastore-01",
+        "relation": "stored_on"
+      },
+      {
+        "from": "esxi-host-01",
+        "to": "switch-core-01:GigE0/2",
+        "relation": "uplink_to"
+      }
+    ],
+    "isolation_note": "Healthy siblings (pricing/inventory/token/fraud) are not on the failing payment path; errors escalate api-gateway \u2190 checkout \u2190 payment \u2190 (DNS/RX/IRQ), with payment-provider as a decoy leaf."
+  },
+  "distributed_traces": {
+    "available": true,
+    "analyzed_spans": 3,
+    "slow_spans": 3,
+    "slow_provider_spans": 0,
+    "provider_duration_ms_p50": null,
+    "provider_duration_ms_max": null,
+    "span_duration_ms_p50": 2466.7,
+    "span_duration_ms_max": 2800.0,
+    "healthy_sibling_spans_under_200ms": 0,
+    "false_lead_assessment": "Slow spans are confined to the application service with pool/queue waits \u2014 consistent with app-tier exhaustion and healthy upstream infra.",
+    "samples": [
+      {
+        "trace_id": "uc5-t1",
+        "service_name": "orders-api",
+        "span_name": "POST /orders",
+        "duration_ms": 2800.0,
+        "ci": "orders-api",
+        "note": "app_pool_exhaustion"
+      },
+      {
+        "trace_id": "uc5-t1",
+        "service_name": "orders-api",
+        "span_name": "internal.worker",
+        "duration_ms": 2500.0,
+        "ci": "orders-api",
+        "note": null
+      },
+      {
+        "trace_id": "uc5-t2",
+        "service_name": "orders-api",
+        "span_name": "GET /orders",
+        "duration_ms": 2100.0,
+        "ci": "orders-api",
+        "note": null
+      }
+    ]
+  },
+  "log_patterns": {
+    "pack_event_types": {
+      "app.error_rate": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:12Z",
+            "ci": "orders-api",
+            "severity": "critical",
+            "message": "orders-api error rate elevated \u2014 root is application resource exhaustion"
+          }
+        ]
+      },
+      "app.heap": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:08Z",
+            "ci": "orders-api",
+            "severity": "warning",
+            "message": "JVM heap pressure / GC thrash on orders-api"
+          }
+        ]
+      },
+      "app.thread_pool": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T10:00:05Z",
+            "ci": "orders-api",
+            "severity": "critical",
+            "message": "orders-api thread pool exhausted (app-tier fault; infra healthy)"
+          }
+        ]
+      },
+      "config.change": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-10T09:59:00Z",
+            "ci": "orders-api",
+            "severity": "info",
+            "message": "App deploy / pool-size config change on orders-api (infra below unchanged)"
+          }
+        ]
+      }
+    },
+    "raw_logger_counts": {
+      "app.thread_pool": 1,
+      "app.heap": 1,
+      "app.error_rate": 1,
+      "esx.health": 1
+    },
+    "key_findings": [
+      "App deploy / pool-size config change on orders-api (infra below unchanged)",
+      "orders-api thread pool exhausted (app-tier fault; infra healthy)",
+      "JVM heap pressure / GC thrash on orders-api",
+      "orders-api error rate elevated \u2014 root is application resource exhaustion"
+    ]
+  },
+  "metrics_analysis": {
+    "crossed_anomalies": [
+      {
+        "ci": "orders-api",
+        "signal": "jvm.heap.used_pct",
+        "value": 96.0,
+        "threshold": 90.0,
+        "timestamp": "2026-07-10T10:00:05Z",
+        "note": null
+      },
+      {
+        "ci": "orders-api",
+        "signal": "db.conn_pool.active_ratio",
+        "value": 1.0,
+        "threshold": 0.95,
+        "timestamp": "2026-07-10T10:00:05Z",
+        "note": null
+      },
+      {
+        "ci": "orders-api",
+        "signal": "request.p95_latency_ms",
+        "value": 1800.0,
+        "threshold": 1000.0,
+        "timestamp": "2026-07-10T10:00:12Z",
+        "note": null
+      },
+      {
+        "ci": "orders-api",
+        "signal": "error_rate_5xx",
+        "value": 0.18,
+        "threshold": 0.05,
+        "timestamp": "2026-07-10T10:00:12Z",
+        "note": null
+      }
+    ],
+    "raw_metric_peaks": null
+  },
+  "recent_changes": {
+    "change_events": [
+      {
+        "timestamp": "2026-07-10T09:59:00Z",
+        "ci": "orders-api",
+        "event_type": "config.change",
+        "severity": "info",
+        "message": "App deploy / pool-size config change on orders-api (infra below unchanged)"
+      }
+    ],
+    "root_cause_change": {
+      "timestamp": "2026-07-10T09:59:00Z",
+      "ci": "orders-api",
+      "event_type": "config.change",
+      "severity": "info",
+      "message": "App deploy / pool-size config change on orders-api (infra below unchanged)"
+    }
+  },
+  "causal_chain": {
+    "steps": [
+      "orders-api"
+    ],
+    "topology_path": [
+      "orders-api"
+    ],
+    "narrative_steps": [
+      {
+        "step": "config.change",
+        "summary": "App deploy / pool-size config change on orders-api (infra below unchanged)",
+        "evidence": "event",
+        "timestamp": "2026-07-10T09:59:00Z"
+      },
+      {
+        "step": "app.thread_pool",
+        "summary": "orders-api thread pool exhausted (app-tier fault; infra healthy)",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:05Z"
+      },
+      {
+        "step": "app.heap",
+        "summary": "JVM heap pressure / GC thrash on orders-api",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:08Z"
+      },
+      {
+        "step": "app.error_rate",
+        "summary": "orders-api error rate elevated \u2014 root is application resource exhaustion",
+        "evidence": "event",
+        "timestamp": "2026-07-10T10:00:12Z"
+      },
+      {
+        "step": "anomaly_jvm.heap.used_pct",
+        "summary": "`orders-api` jvm.heap.used_pct=96.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:05Z"
+      },
+      {
+        "step": "anomaly_db.conn_pool.active_ratio",
+        "summary": "`orders-api` db.conn_pool.active_ratio=1.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:05Z"
+      },
+      {
+        "step": "anomaly_request.p95_latency_ms",
+        "summary": "`orders-api` request.p95_latency_ms=1800.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:12Z"
+      },
+      {
+        "step": "anomaly_error_rate_5xx",
+        "summary": "`orders-api` error_rate_5xx=0.18",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-10T10:00:12Z"
+      },
+      {
+        "step": "trace_symptom_spans",
+        "summary": "3 spans (p50\u22482466.7ms) corroborate the cascade",
+        "evidence": "trace",
+        "timestamp": null
+      }
+    ],
+    "narrative": "orders-api. Amplifier: high-cardinality request pattern."
+  },
+  "contributing_factors": {
+    "primary": "Orders-api resource exhaustion",
+    "amplifier": null,
+    "false_leads": []
+  },
+  "timeline": [
+    {
+      "timestamp": "2026-07-10T09:59:00Z",
+      "kind": "event",
+      "summary": "config.change: App deploy / pool-size config change on orders-api (infra below unchanged)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "kind": "event",
+      "summary": "app.thread_pool: orders-api thread pool exhausted (app-tier fault; infra healthy)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "kind": "anomaly",
+      "summary": "orders-api `jvm.heap.used_pct`=96.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "kind": "anomaly",
+      "summary": "orders-api `db.conn_pool.active_ratio`=1.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:08Z",
+      "kind": "event",
+      "summary": "app.heap: JVM heap pressure / GC thrash on orders-api"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "event",
+      "summary": "app.error_rate: orders-api error rate elevated \u2014 root is application resource exhaustion"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "anomaly",
+      "summary": "orders-api `request.p95_latency_ms`=1800.0"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "anomaly",
+      "summary": "orders-api `error_rate_5xx`=0.18"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "kind": "symptom_seed",
+      "summary": "Symptom seed orders-api / request.p95_latency_ms"
+    }
+  ],
+  "actions": {
+    "immediate": [
+      "Scale or restart the app tier; raise thread/heap/connection pool limits carefully.",
+      "Confirm upstream infra remains healthy (do not restart hosts)."
+    ],
+    "future": [
+      "Capacity alerts on pool saturation / GC pressure; load-test pool sizing."
+    ]
+  },
+  "rca_summary": {
+    "narrative": "RCA localizes the incident to `orders-api` (app_resource_exhaustion): Orders-api resource exhaustion. Causal path: orders-api. Customer impact: Symptom `request.p95_latency_ms` on `orders-api` (Orders-api resource exhaustion). Amplifier: classic-infra cascade (shared upstream fault \u2192 app symptom). Root-cause change evidence: App deploy / pool-size config change on orders-api (infra below unchanged)",
+    "narrative_md": "**Root cause:** `orders-api` (`app_resource_exhaustion`)\nOrders-api resource exhaustion\n\n**Causal path:** `orders-api`\n\n**Customer impact:** Symptom `request.p95_latency_ms` on `orders-api` (Orders-api resource exhaustion)\n\n**Amplifier:** classic-infra cascade (shared upstream fault \u2192 app symptom)\n\n**False leads ruled out:** none identified\n\n**Change evidence:** App deploy / pool-size config change on orders-api (infra below unchanged)",
+    "root_ci": "orders-api",
+    "signature": "app_resource_exhaustion",
+    "causal_path": [
+      "orders-api"
+    ],
+    "fault_title": "Orders-api resource exhaustion",
+    "customer_impact": "Symptom `request.p95_latency_ms` on `orders-api` (Orders-api resource exhaustion)",
+    "amplifier": "classic-infra cascade (shared upstream fault \u2192 app symptom)",
+    "false_leads": [],
+    "change_evidence": "App deploy / pool-size config change on orders-api (infra below unchanged)"
+  },
+  "remediation": {
+    "guidance": "Application pool/heap exhaustion with healthy upstream infra. Fix app capacity (threads, heap, connections); avoid blaming host/network/storage.",
+    "immediate": [
+      "Scale or restart the app tier; raise thread/heap/connection pool limits carefully.",
+      "Confirm upstream infra remains healthy (do not restart hosts)."
+    ],
+    "future": [
+      "Capacity alerts on pool saturation / GC pressure; load-test pool sizing."
+    ],
+    "source": "signature_template"
+  },
+  "executive_summary": {
+    "potential_cause": "App deploy / pool-size config change on orders-api (infra below unchanged)",
+    "impact": "Symptom `request.p95_latency_ms` on `orders-api` (Orders-api resource exhaustion)",
+    "resolution": "Scale or restart the app tier; raise thread/heap/connection pool limits carefully.; Confirm upstream infra remains healthy (do not restart hosts)."
+  },
+  "completeness": {
+    "checks": {
+      "incident_summary": true,
+      "rca_summary": true,
+      "impact": true,
+      "service_dependencies": true,
+      "distributed_traces": true,
+      "log_patterns": true,
+      "metrics_analysis": true,
+      "recent_changes": true,
+      "causal_chain": true,
+      "contributing_factors": true,
+      "timeline": true,
+      "actions": true,
+      "remediation": true,
+      "executive_summary": true,
+      "localization_root": true
+    },
+    "score": "15/15",
+    "pct": 100.0,
+    "ready_for_gold_parity": true
+  }
+}

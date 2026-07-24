@@ -1,0 +1,23 @@
+{
+  "schema_version": "motadata_thresholds.v1",
+  "note": "Default thresholds for Motadata depth (Detect). Override per-tenant later.",
+  "by_metric_name": {
+    "ping.latency.ms": 100.0,
+    "ping.max.latency.ms": 200.0,
+    "ping.packet.lost.percent": 5.0,
+    "system.cpu.percent": 90.0,
+    "system.1min.avg.cpu.percent": 90.0,
+    "system.memory.used.percent": 90.0,
+    "system.overall.memory.used.percent": 90.0,
+    "http.error_rate": 0.05,
+    "http.error_rate_4xx": 0.15,
+    "http.error_rate_5xx": 0.02,
+    "span.duration_ms": 500.0
+  },
+  "prefix_rules": [
+    {"prefix": "ping.latency", "threshold": 100.0},
+    {"prefix": "ping.packet.lost", "threshold": 5.0},
+    {"prefix": "system.cpu", "threshold": 90.0},
+    {"prefix": "system.memory.used", "threshold": 90.0}
+  ]
+}

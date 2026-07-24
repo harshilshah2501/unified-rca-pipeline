@@ -1,0 +1,41 @@
+{
+  "incident_start": "2026-07-21T05:59:00Z",
+  "anomalies": [
+    {
+      "ci": "ProductCatalog_dotnet.",
+      "signal": "http.error_rate",
+      "value": 0.201954,
+      "threshold": 0.05,
+      "crossed": true,
+      "timestamp": "2026-07-21T05:59:00Z",
+      "anomaly_class": "error_rate"
+    },
+    {
+      "ci": "ProductCatalog_dotnet.",
+      "signal": "http.error_rate_4xx",
+      "value": 0.201954,
+      "threshold": 0.15,
+      "crossed": true,
+      "timestamp": "2026-07-21T05:59:00Z",
+      "anomaly_class": "error_rate"
+    },
+    {
+      "ci": "hibernatewithmysql",
+      "signal": "http.error_rate",
+      "value": 0.1,
+      "threshold": 0.05,
+      "crossed": true,
+      "timestamp": "2026-07-21T05:59:00Z",
+      "anomaly_class": "error_rate"
+    },
+    {
+      "ci": "hibernatewithmysql",
+      "signal": "http.error_rate_5xx",
+      "value": 0.05,
+      "threshold": 0.02,
+      "crossed": true,
+      "timestamp": "2026-07-21T05:59:00Z",
+      "anomaly_class": "error_rate"
+    }
+  ]
+}

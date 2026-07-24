@@ -1,0 +1,11 @@
+{
+  "root_ci": "guest-os-vm-app-01",
+  "signature": "os_resource_exhaustion",
+  "contributor_cis": [],
+  "blast_radius": [
+    "orders-api"
+  ],
+  "fault_bucket": "2_infra",
+  "fault_type": "resource_contention",
+  "fault_title": "Guest OS resource exhaustion"
+}

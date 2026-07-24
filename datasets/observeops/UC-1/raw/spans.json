@@ -1,0 +1,59 @@
+[
+  {
+    "trace_id": "uc1-t1",
+    "span_id": "s1",
+    "parent_span_id": null,
+    "service_name": "orders-api",
+    "span_name": "POST /orders",
+    "kind": "SERVER",
+    "start_time": "2026-07-10T10:00:25Z",
+    "duration_ms": 1480.0,
+    "attributes": {
+      "ci": "orders-api",
+      "layer": "app"
+    }
+  },
+  {
+    "trace_id": "uc1-t1",
+    "span_id": "s2",
+    "parent_span_id": "s1",
+    "service_name": "guest-os-vm-app-01",
+    "span_name": "os.sched.wait",
+    "kind": "CLIENT",
+    "start_time": "2026-07-10T10:00:25Z",
+    "duration_ms": 900.0,
+    "attributes": {
+      "ci": "guest-os-vm-app-01",
+      "layer": "os"
+    }
+  },
+  {
+    "trace_id": "uc1-t1",
+    "span_id": "s3",
+    "parent_span_id": "s2",
+    "service_name": "esxi-host-01",
+    "span_name": "hypervisor.cpu.ready",
+    "kind": "CLIENT",
+    "start_time": "2026-07-10T10:00:25Z",
+    "duration_ms": 700.0,
+    "attributes": {
+      "ci": "esxi-host-01",
+      "layer": "hypervisor",
+      "note": "root_evidence"
+    }
+  },
+  {
+    "trace_id": "uc1-t2",
+    "span_id": "s4",
+    "parent_span_id": null,
+    "service_name": "orders-api",
+    "span_name": "GET /orders/{id}",
+    "kind": "SERVER",
+    "start_time": "2026-07-10T10:00:25Z",
+    "duration_ms": 1320.0,
+    "attributes": {
+      "ci": "orders-api",
+      "layer": "app"
+    }
+  }
+]

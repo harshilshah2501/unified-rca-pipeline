@@ -1,0 +1,34 @@
+{
+  "incident_id": "motadata-deps-001",
+  "anomaly_count": 4,
+  "by_anomaly_class": {
+    "error_rate": 4
+  },
+  "symptom_seed": {
+    "ci": "ProductCatalog_dotnet.",
+    "signal": "http.error_rate_4xx",
+    "timestamp": "2026-07-21T05:59:00Z",
+    "anomaly_class": "error_rate"
+  },
+  "ground_truth_root_ci": "ProductCatalog_dotnet.",
+  "ground_truth_signature": "app_error_rate",
+  "detect": {
+    "detect_source": "shared_threshold",
+    "pipeline_profile": "parity-shared-detect",
+    "detect_latency_ms": 2.1032,
+    "points_scanned": 416,
+    "series_scanned": 4,
+    "by_anomaly_class": {
+      "error_rate": 4
+    }
+  },
+  "stream_rows": 416,
+  "diagnose": {
+    "incident_id": "motadata-deps-001",
+    "root_ci": "ProductCatalog_dotnet.",
+    "signature": "app_error_rate",
+    "root_match": true,
+    "signature_match": true,
+    "pass": true
+  }
+}

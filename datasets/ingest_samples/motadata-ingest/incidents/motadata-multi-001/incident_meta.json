@@ -1,0 +1,36 @@
+{
+  "incident_id": "motadata-multi-001",
+  "anomaly_count": 4,
+  "by_anomaly_class": {
+    "network": 1,
+    "resource": 3
+  },
+  "symptom_seed": {
+    "ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+    "signal": "system.cpu.percent",
+    "timestamp": "2026-07-21T05:55:38Z",
+    "anomaly_class": "resource"
+  },
+  "ground_truth_root_ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+  "ground_truth_signature": "host_cpu_saturation",
+  "detect": {
+    "detect_source": "shared_threshold",
+    "pipeline_profile": "parity-shared-detect",
+    "detect_latency_ms": 3.3865,
+    "points_scanned": 837,
+    "series_scanned": 4,
+    "by_anomaly_class": {
+      "network": 1,
+      "resource": 3
+    }
+  },
+  "stream_rows": 837,
+  "diagnose": {
+    "incident_id": "motadata-multi-001",
+    "root_ci": "HB1-2328-26-4992-4512-4320-4869-76-735.hb1.com",
+    "signature": "host_cpu_saturation",
+    "root_match": true,
+    "signature_match": true,
+    "pass": true
+  }
+}

@@ -1,0 +1,35 @@
+# Vector config — Profile L0 smoke (Lean-only sinks)
+# Same ingest.v1 replay as vector.f1-smoke.toml; no structural / speed fan-out.
+# Cost harness: compare L0 vs F1 with identical input bytes.
+
+data_dir = "${VECTOR_DATA_DIR:-/tmp/unified-rca-vector-l0}"
+
+[sources.replay_jsonl]
+type = "file"
+include = ["${INGEST_STREAM}"]
+read_from = "beginning"
+ignore_checkpoints = true
+fingerprint.strategy = "device_and_inode"
+
+[transforms.to_ingest_v1]
+type = "remap"
+inputs = ["replay_jsonl"]
+source = '''
+. = parse_json!(.message)
+.schema_version = string(.schema_version) ?? "ingest.v1"
+.ts = string!(.ts)
+.tenant = string(.tenant) ?? "default"
+.ci_id = string!(.ci_id)
+.signal_class = string!(.signal_class)
+'''
+
+[transforms.route_lean]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "anomaly" || .signal_class == "event" || .signal_class == "metric_sample"'
+
+[sinks.lean_feed]
+type = "file"
+inputs = ["route_lean"]
+path = "${F1_OUT_DIR}/lean/events.jsonl"
+encoding.codec = "json"

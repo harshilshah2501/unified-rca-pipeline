@@ -1,0 +1,18 @@
+{
+  "root_ci": "dlink-48",
+  "signature": "ping_degradation",
+  "contributor_cis": [],
+  "blast_radius": [
+    "dlink-48"
+  ],
+  "note": "Motadata infra: monitor 422 (dlink-48) ping.latency / max.latency above catalog thresholds.",
+  "tags": [
+    "motadata",
+    "infra",
+    "ping",
+    "broaden"
+  ],
+  "fault_bucket": "2_infra",
+  "fault_type": "network_fault",
+  "fault_title": "dlink-48 ping degradation"
+}

@@ -1,0 +1,55 @@
+{
+  "pack_id": "ecom-numa-001",
+  "scenario": "ecom_checkout_cross_numa_irq",
+  "source_incident_id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+  "source_raw": "datasets/ecom_checkout/raw",
+  "postgres_manifest": {
+    "source": "postgres",
+    "export_method": "psql",
+    "tenant_id": "acme",
+    "schema": "public",
+    "host": "127.0.0.1",
+    "db": "observability",
+    "counts": {
+      "metrics": 12726,
+      "logs": 287,
+      "spans": 840
+    },
+    "exported_at": "2026-07-22T11:06:51Z"
+  },
+  "row_counts": {
+    "metrics": 12726,
+    "logs": 287,
+    "spans": 840,
+    "slow_spans": 96,
+    "events": 287
+  },
+  "incident_start": "2026-07-22T10:31:44Z",
+  "symptom_onset": "2026-07-22T10:33:44Z",
+  "detected_at": "2026-07-22T11:06:54Z",
+  "canonical_clock": {
+    "detected_at": "2026-07-07T09:00:58Z",
+    "change_at": "2026-07-07T08:25:48Z",
+    "window_start": "2026-07-07T08:25:00Z",
+    "window_end": "2026-07-07T09:00:58Z"
+  },
+  "alerts": [
+    {
+      "name": "ecom_checkout_slo_breach",
+      "timestamp": "2026-07-22T11:06:54Z",
+      "ci": "checkout-service",
+      "severity": "P3"
+    }
+  ],
+  "impact": {
+    "failed_requests": 186,
+    "total_requests": 387,
+    "peak_path_error_rate_pct": 48.06,
+    "checkout_error_rate_pct": 17.6,
+    "payment_service_error_rate_pct": 0.2,
+    "path": "api-gateway \u2192 checkout-service",
+    "fail_fraction_pct": 2.8,
+    "source": "derived_from_telemetry"
+  },
+  "built_at": "2026-07-23T06:49:54Z"
+}

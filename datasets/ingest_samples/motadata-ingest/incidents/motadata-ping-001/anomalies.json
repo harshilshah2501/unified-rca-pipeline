@@ -1,0 +1,32 @@
+{
+  "incident_start": "2026-07-21T01:55:38Z",
+  "anomalies": [
+    {
+      "ci": "dlink-48",
+      "signal": "ping.packet.lost.percent",
+      "value": 33.0,
+      "threshold": 5.0,
+      "crossed": true,
+      "timestamp": "2026-07-21T01:55:38Z",
+      "anomaly_class": "network"
+    },
+    {
+      "ci": "dlink-48",
+      "signal": "ping.latency.ms",
+      "value": 356.0,
+      "threshold": 100.0,
+      "crossed": true,
+      "timestamp": "2026-07-21T05:30:38Z",
+      "anomaly_class": "performance"
+    },
+    {
+      "ci": "dlink-48",
+      "signal": "ping.max.latency.ms",
+      "value": 1007.0,
+      "threshold": 200.0,
+      "crossed": true,
+      "timestamp": "2026-07-21T05:30:38Z",
+      "anomaly_class": "performance"
+    }
+  ]
+}

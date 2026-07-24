@@ -37,7 +37,7 @@ datasets/observeops/UC-1..UC-5     ← shared frozen dataset
 | [`results/federated/`](results/federated/) | Individual federated verdicts per UC/run |
 | [`results/lean/`](results/lean/) | Individual lean verdicts per UC/run |
 | [`results/comparison/`](results/comparison/) | Side-by-side analysis + winner |
-| [`capacity/`](capacity/) | Infra EPS probes (Dragonfly/Redis) — separate from UC bakeoff |
+| [`capacity/`](capacity/) | Infra EPS probes (Dragonfly/Redis) — see [`../ingestion-poc/lab/`](../ingestion-poc/lab/) + `capacity/lab/` |
 | [`dashboard/`](dashboard/) | **Comparative Web UI** (4 axes · 5 roadblocks · UC · OpenObserve) |
 
 ## One-command bakeoff

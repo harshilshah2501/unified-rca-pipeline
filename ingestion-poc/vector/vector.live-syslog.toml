@@ -1,0 +1,75 @@
+# LIVE syslog → ingest.v1 → F1 sinks (Connect / LIVE smoke)
+# Runbook: docs/LIVE_INGEST_RUNBOOK.md
+#
+# Listen UDP 5140. Remap is best-effort: always emit an event; parse
+# "name=value" tokens into metric_sample when present.
+
+data_dir = "${VECTOR_DATA_DIR:-/tmp/unified-rca-vector-live-syslog}"
+
+[sources.live_syslog]
+type = "syslog"
+mode = "udp"
+address = "0.0.0.0:5140"
+
+[transforms.to_ingest_v1]
+type = "remap"
+inputs = ["live_syslog"]
+source = '''
+tenant = get_env_var("LIVE_TENANT") ?? "lab"
+host = string(.hostname) ?? string(.host) ?? "syslog-unknown"
+msg = string(.message) ?? string(.appname) ?? ""
+ts = format_timestamp!(now(), format: "%Y-%m-%dT%H:%M:%SZ")
+
+# Always one event line for sink smoke
+. = {
+  "schema_version": "ingest.v1",
+  "ts": ts,
+  "tenant": tenant,
+  "ci_id": host,
+  "ci_type": "Host",
+  "signal_class": "event",
+  "name": "syslog.message",
+  "value": 1.0,
+  "threshold": null,
+  "severity": 0.3,
+  "labels": {
+    "source": "live_syslog",
+    "message": msg,
+    "appname": string(.appname) ?? null,
+    "facility": string(.facility) ?? null
+  }
+}
+'''
+
+[transforms.route_lean]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "anomaly" || .signal_class == "event" || .signal_class == "metric_sample"'
+
+[transforms.route_structural]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "metric_sample" || .signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+
+[transforms.route_speed]
+type = "filter"
+inputs = ["to_ingest_v1"]
+condition = '.signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+
+[sinks.lean_feed]
+type = "file"
+inputs = ["route_lean"]
+path = "${F1_OUT_DIR}/lean/events.jsonl"
+encoding.codec = "json"
+
+[sinks.structural_feed]
+type = "file"
+inputs = ["route_structural"]
+path = "${F1_OUT_DIR}/structural/stream.jsonl"
+encoding.codec = "json"
+
+[sinks.speed_tier_feed]
+type = "file"
+inputs = ["route_speed"]
+path = "${F1_OUT_DIR}/speed_tier/feed.jsonl"
+encoding.codec = "json"

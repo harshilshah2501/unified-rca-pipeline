@@ -1,11 +1,23 @@
-# RCA Workflow & Next Action Items
+# RCA Workflow & Next Actions
 
-**Status:** Active plan after vendor survey + white-space review (2026-07-21)  
-**Related:** [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) §5.4 · [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) · [`two-step-rca-white-space.md`](./two-step-rca-white-space.md)
+**Doc ownership (read this first)**
+
+| Doc | Owns |
+|-----|------|
+| **This file** | Product **workflow stages** + **current next** (`LIVE`, `CHANGE`) — Connect stage |
+| [`ROADMAP.md`](./ROADMAP.md) | PoC **journey** (Compare → Deepen → Ship → Transfer → Connect) |
+| [`POC_BRIEFING.md`](./POC_BRIEFING.md) | Engine-decision narrative → [`ADR-001`](./ADR-001-lean-primary-engine.md) |
+| [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) · [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) | Ingest design deep-dives |
+
+**Naming:** `LIVE` / `CHANGE` are Connect-stage actions here. They are **not** old “Phase A” bakeoff IDs (retired — see ROADMAP [legacy map](./ROADMAP.md#legacy-map-old-letter-phases)).
+
+**Related:** [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md) · [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md)
+
+*Last synced: 2026-07-24 — LIVE prep (runbook + Vector live configs); Motadata `motadata-deps-001` Bucket-3; OO fairness checklist; ecom WARN→events closed. Connect execute: `LIVE` next week → `CHANGE`.*
 
 ---
 
-## 1. Canonical workflow (product + PoC)
+## 1. Canonical workflow (stable)
 
 ```
 Ingest → Detect → Localize → Identify → Verify
@@ -13,94 +25,57 @@ Ingest → Detect → Localize → Identify → Verify
 
 | Stage | Job (one sentence) | Lean path (current) | Federated path (current / optional) |
 |-------|--------------------|---------------------|-------------------------------------|
-| **Ingest** | Collect & normalize telemetry into RCA-ready artifacts | Bundle / future Vector L0 | Same stream → F1 speed + structural sinks |
+| **Ingest** | Collect & normalize telemetry into RCA-ready artifacts | Bundle / Vector L0 | Same stream → F1 speed + structural sinks |
 | **Detect** | Decide *something is wrong* and raise a seed | Threshold / events / alerts → `A-ANOM` + `A-SEED` | Shared detect **or** Panorama gray-failure |
 | **Localize** | Decide *which CI / service* | Best-first walk + rules | Murphy (+ fusion) |
 | **Identify** | Name *what kind of failure* (and optionally *which path*) | Signature / rules | Signature + optional **Nezha / execution-pattern diff** (Step 2) |
 | **Verify** | Decide how strongly we claim cause | Evidentiary Tier 1/2/3 + CARE → scoped causal | Murphy posterior / fusion confidence; bakeoff GT |
 
-**Vendor survey mapping:** most commercial tools automate **Detect + Localize** well and leave deep **Identify** (execution-path) partly manual. Our white-space thesis is scoped automated Identify after Localize — see [`two-step-rca-white-space.md`](./two-step-rca-white-space.md).
-
-**Two-step shorthand vs five-stage:**
+**Vendor survey:** most commercial tools automate **Detect + Localize** well; deep **Identify** (execution-path) stays partly manual — [`two-step-rca-white-space.md`](./two-step-rca-white-space.md).
 
 | Two-step language | Five-stage stages |
 |-------------------|-------------------|
 | Step 1 “where” | Detect → Localize |
 | Step 2 “what happened there” | Identify → (optional deep path) Verify |
 
----
-
-## 2. What is already closed vs open
-
-| Stage | Closed? | Evidence / gap |
-|-------|---------|----------------|
-| Localize + Identify (classic UC bakeoff) | **Mostly closed** | Lean + Federated 5/5 on ObserveOps; Lean packaged |
-| Verify (tiers / GT) | **PoC closed** | Bakeoff + CARE/Tier-3 scoped |
-| Detect (real front door) | **Partial** | Shared threshold + **D2/D3**; Motadata thresholds / live Panorama still open |
-| Ingest (product-shaped) | **Partial** | UC + Motadata → `ingest.v1` + F1 + **N4/N5 writers**; Motadata GT/CI-bind + live detect still open |
-| Identify Step-2 path diff | **Open / stretch** | Needs traces + baseline + data gates |
-
----
-
-## 3. Next action items (ordered)
-
-### Now — Ingest (critical path)
-
-| # | Action | Exit criteria | Owner focus |
-|---|--------|---------------|-------------|
-| N1 | Receive Motadata frozen JSON (logs, metrics, traces, spans + ID dictionaries) | **Done locally** — `datasets/ingest_samples/jsonl_resolved/` (gitignored; names already resolved) | Data |
-| N2 | Build `motadata_to_ingest_v1.py` | **Done** — [`ingestion-poc/adapters/motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_ingest_v1.py); smoke → `motadata-ingest/stream.jsonl` | Eng |
-| N3 | Vector F1 skeleton: read `stream.jsonl` → detect + structural sink | **Done** — [`ingestion-poc/pipeline/f1_run.py`](../ingestion-poc/pipeline/f1_run.py); UC-1 seed/anomaly match frozen; Motadata fan-out OK | Eng |
-| N4 | Federated-first store writers (metric slice; Dragonfly stub OK without traces) | **Done** — [`federated_store_writer.py`](../ingestion-poc/builders/federated_store_writer.py); `metric_slice.jsonl` + `speed_tier_stub.jsonl` + timing | Eng |
-| N5 | Lean bundle writer on **same** stream (L0) | **Done** — [`lean_bundle_writer.py`](../ingestion-poc/builders/lean_bundle_writer.py); UC-1..5 diagnose root match via `n45_chain.py` | Eng |
-
-### Next — Detect (cheap wins from vendor survey)
-
-| # | Action | Exit criteria |
-|---|--------|---------------|
-| D1 | Keep shared threshold detect as mandatory front door | Timed `C_detect` on scoreboard (in progress via F1 `detect_meta`) |
-| D2 | **Change-induced signal** (deploy/config near onset) | **Done** — [`change_near_onset.py`](../ingestion-poc/detect/change_near_onset.py) → `change_context.json`; samples under `detect/samples/` |
-| D3 | Explicit **error-rate** anomaly class (distinct from latency) | **Done** — `anomaly_class` on crossings (`error_rate` / `performance` / `resource` / …) |
-| D4 | Optional Panorama only when gray-failure corpus exists | `detect_source=panorama` measured |
-
-### Then — Localize / Identify / Verify (only if ingest regresses or micro track)
-
-| # | Action | Exit criteria |
-|---|--------|---------------|
-| L1 | Re-score Lean vs Federated on Motadata-normalized incidents | COMPARISON + GT convention |
-| I1 | Signature coverage for Motadata fault vocabulary | Signature match contract |
-| I2 | **Stretch:** scoped execution-pattern diff after Localize | White-space doc mechanism; justification gates |
-| V1 | Keep evidentiary tiers; version baselines for repro | Replay bit-stability |
-
-### Explicitly later (do not block ingest)
-
-- Cyclic-dependency solver (industry-wide open; measure pain first).
-- Full Nezha fleet path materialization before Localize.
-- 1B EPS / hyperscaler sizing.
-
----
-
-## 4. Decision rules (carry forward)
+**Decision rules**
 
 1. **Lean-primary** for classic infra until data says otherwise ([ADR-001](./ADR-001-lean-primary-engine.md)).
-2. **Same ingest stream / F1 sinks for both engines** ([PIPELINE_PARITY.md](./PIPELINE_PARITY.md); Vector **or** Python fan-out → N4 + N5 — [INGESTION_PIPELINE_VECTOR.md](./INGESTION_PIPELINE_VECTOR.md) §5.4).
+2. **Same ingest stream / F1 sinks** for both engines ([PIPELINE_PARITY.md](./PIPELINE_PARITY.md)).
 3. **Federated / Step-2 path diff** only after [`FEDERATED_JUSTIFICATION_REPORT.md`](./FEDERATED_JUSTIFICATION_REPORT.md) gates.
-4. Prefer **Detect cheap wins** (change signal, error-rate) before expensive Identify depth.
+4. Prefer **Detect cheap wins** before expensive Identify depth.
 
 ---
 
-## 5. Immediate three tasks (current)
+## 2. Stage readiness (workflow lens only)
 
-N1–N5 ingest smoke + **D2/D3 detect cheap wins** are done on **WSL** (Python F1 fan-out by default; Vector optional). Next:
+How ready each **workflow stage** is — not a duplicate of the ROADMAP journey. For Compare → Connect status → [`ROADMAP.md`](./ROADMAP.md).
 
-1. **Motadata depth** — thresholds / CI-bind / topology / GT so product dumps can Localize (not only fan-out).
-2. **D1 scoreboard** — surface timed `C_detect` + `by_anomaly_class` / `change_near_onset` on bakeoff `run_meta`.
-3. **Lab** — pro6000 standing Vector+Dragonfly EPS; optional Federated bakeoff reading N4 `metric_slice`.
+| Stage | Ready? | One-line evidence |
+|-------|--------|-------------------|
+| **Localize + Identify** (UC) | **Yes (PoC)** | UC 5/5 both engines; Lean packaged; ADR-001 |
+| **Verify** (UC tiers / GT) | **Yes (PoC)** | Bakeoff + CARE / Tier-3; maintain run IDs |
+| **Detect** | **Partial** | Shared threshold + change/error-rate classes; live collectors → **LIVE**; Panorama → data-gated |
+| **Ingest** | **Partial (lab strong)** | `ingest.v1` + F1/N4/N5 + Motadata L1 **7/7** human-confirmed; live non-replay → **LIVE** |
+| **Identify Step-2** (path diff) | **No (stretch)** | Needs traces + baselines — see ROADMAP deferred / white-space doc |
+
+**Motadata L1** (separate from UC): 7 packs · Lean/Fed **7/7** · GT confirmed on `#samples`. Do not merge with UC 5/5.
+
+---
+
+## 3. Next actions (open only)
+
+| ID | Action | Verify | Exit |
+|----|--------|--------|------|
+| **LIVE** | Live ingest smoke — syslog or Prometheus → Vector → same F1 sinks | Lab once; seed + sink counts | Noted in Conduct / lab artifact · **prep Done** — [`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md); execute next week |
+| **CHANGE** | Real change feed → `change_near_onset` (D2 product gap) | Human confirms `change_context` on ≥1 pack | Bucket 4 usable on Motadata or UC-linked sample |
+
+**Prep closed 2026-07-24 (not LIVE itself):** LIVE runbook + Vector live configs · OO fairness checklist · ecom WARN→events guard · Motadata Bucket-3 pack `motadata-deps-001` (authored GT; confirm on `#samples`).
+
+**Already met (do not re-plan here):** Motadata network breadth + harder multi GT (ping-002/003/004 + multi-001). Optional further Bucket-3 packs remain stretch after Samples confirm on deps-001.
+
+**Blocked on data (listed in ROADMAP as deferred / stretch):** Panorama gray-failure · path-diff Identify · cyclic deps · fleet Nezha · 1B EPS.
 
 ```bash
-# Shared fabric reminder: one F1 → N4 + N5 (see INGESTION_PIPELINE_VECTOR §5.4)
-python3 ingestion-poc/builders/n45_chain.py --suite UC-1 \
-  --changes ingestion-poc/detect/samples/changes_uc1_near.jsonl
+.venv/bin/python benchmarking/dashboard/server.py   # → :8765/#samples
 ```
-
-*Doc status synced: 2026-07-21 (F1 fabric note + D2/D3).*

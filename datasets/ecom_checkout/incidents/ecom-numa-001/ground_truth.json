@@ -1,0 +1,44 @@
+{
+  "root_ci": "np17-irq-affinity",
+  "signature": "cross_numa_irq_affinity",
+  "contributor_cis": [
+    "nic-rx-queue-7",
+    "dns-aaaa-np17"
+  ],
+  "blast_radius": [
+    "api-gateway",
+    "checkout-service",
+    "payment-service",
+    "payment-pod-118",
+    "payment-pod-124",
+    "payment-pod-131",
+    "payment-pod-144"
+  ],
+  "note": "Root cause: node-image 2026.06.18 on NP-17 pinned RX-7 IRQ to CPU48 (NUMA1) while queue memory is on NUMA0 \u2192 AAAA DNS stall \u2192 payment pool exhaustion \u2192 checkout SLO \u2192 api-gateway errors. payment-provider latency is a false lead.",
+  "tags": [
+    "ecom",
+    "multi-signal",
+    "cross-numa",
+    "false-leads"
+  ],
+  "gt_status": "scenario_authored",
+  "fault_bucket": "2_infra",
+  "fault_type": "misconfiguration",
+  "fault_title": "NP-17 cross-NUMA IRQ affinity (node image 2026.06.18)",
+  "false_leads": [
+    "payment-provider",
+    "node_nic_mtu (NP-17 jumbo frames \u2014 in raw metrics, not pack anomalies)"
+  ],
+  "amplifier": "CARD+INR+cart>12 payment-risk feature (extra AAAA DNS lookups)",
+  "impact": {
+    "failed_requests": 186,
+    "total_requests": 387,
+    "peak_path_error_rate_pct": 48.06,
+    "checkout_error_rate_pct": 17.6,
+    "payment_service_error_rate_pct": 0.2,
+    "path": "api-gateway \u2192 checkout-service",
+    "fail_fraction_pct": 2.8,
+    "source": "derived_from_telemetry"
+  },
+  "source_incident_id": "3GAWT8nVjUE2rA95CZmtyiQcVri"
+}

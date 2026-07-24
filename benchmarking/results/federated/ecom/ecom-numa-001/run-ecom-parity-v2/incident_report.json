@@ -1,0 +1,810 @@
+{
+  "schema_version": "comprehensive_rca.v1",
+  "incident_id": "ecom-numa-001",
+  "source_incident_id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+  "engine": "federated",
+  "generated_at": "2026-07-23T09:52:01Z",
+  "pack_meta": {
+    "incident_start": "2026-07-07T08:25:48Z",
+    "symptom_onset": "2026-07-07T08:27:48Z",
+    "detected_at": "2026-07-07T09:00:58Z",
+    "change_at": "2026-07-07T08:25:48Z",
+    "raw_dir": "datasets/ecom_checkout/raw",
+    "source_incident_id": "3GAWT8nVjUE2rA95CZmtyiQcVri",
+    "impact_source": "derived_from_telemetry"
+  },
+  "localization": {
+    "root_ci": "np17-irq-affinity",
+    "signature": "cross_numa_irq_affinity",
+    "contributor_cis": [
+      "nic-rx-queue-7",
+      "dns-aaaa-np17"
+    ],
+    "false_leads_ruled_out": [
+      "payment-provider",
+      "node_nic_mtu (NP-17 jumbo frames \u2014 in raw metrics, not pack anomalies)"
+    ],
+    "matches_pack_gt": true
+  },
+  "incident_summary": {
+    "severity": "P3 (Medium)",
+    "detected": "2026-07-07T09:00:58Z",
+    "affected_services": [
+      "api-gateway",
+      "checkout-service",
+      "payment-service",
+      "dns-aaaa-np17"
+    ],
+    "customer_impact": "Checkout success \u224897.2% (threshold 99.5) on `checkout-service` / `checkout_success_rate`; \u2248186/387 failed checkouts in the incident window (\u22482.8% of the affected dimension)",
+    "dimension_slice": "Region-B \u00b7 CARD \u00b7 MOBILE \u00b7 INR \u00b7 cart_items>12 (payment-risk amplifier)",
+    "gt_fault_title": "NP-17 cross-NUMA IRQ affinity (node image 2026.06.18)"
+  },
+  "impact": {
+    "services_affected": [
+      "api-gateway",
+      "checkout-service",
+      "payment-service",
+      "payment-pod-118",
+      "payment-pod-124",
+      "payment-pod-131",
+      "payment-pod-144"
+    ],
+    "sla_breach": true,
+    "data_loss": false,
+    "failed_requests": 186,
+    "total_requests": 387,
+    "peak_path_error_rate_pct": 48.06,
+    "path_error_label": "api-gateway \u2192 checkout-service",
+    "checkout_error_rate_pct": 17.6,
+    "payment_service_error_rate_pct": 0.2,
+    "error_escalation": "payment-service 0.2% \u2192 checkout-service 17.6% \u2192 api-gateway 48.06%",
+    "estimated_fail_fraction": "\u2248186 failed / 387 checkout transactions (\u22482.8% of affected dimension)",
+    "source": "derived_from_telemetry",
+    "notes": "Root cause: node-image 2026.06.18 on NP-17 pinned RX-7 IRQ to CPU48 (NUMA1) while queue memory is on NUMA0 \u2192 AAAA DNS stall \u2192 payment pool exhaustion \u2192 checkout SLO \u2192 api-gateway errors. payment-provider latency is a false lead."
+  },
+  "service_dependencies": {
+    "critical_path": [
+      "api-gateway",
+      "checkout-service",
+      "payment-service",
+      "dns-aaaa-np17",
+      "nic-rx-queue-7",
+      "np17-irq-affinity"
+    ],
+    "topology_edges": [
+      {
+        "from": "api-gateway",
+        "to": "checkout-service",
+        "relation": "depends_on"
+      },
+      {
+        "from": "checkout-service",
+        "to": "payment-service",
+        "relation": "depends_on"
+      },
+      {
+        "from": "payment-service",
+        "to": "payment-provider",
+        "relation": "depends_on"
+      },
+      {
+        "from": "payment-service",
+        "to": "dns-aaaa-np17",
+        "relation": "depends_on"
+      },
+      {
+        "from": "dns-aaaa-np17",
+        "to": "nic-rx-queue-7",
+        "relation": "depends_on"
+      },
+      {
+        "from": "nic-rx-queue-7",
+        "to": "np17-irq-affinity",
+        "relation": "depends_on"
+      }
+    ],
+    "isolation_note": "Healthy siblings (pricing/inventory/token/fraud) are not on the failing payment path; errors escalate api-gateway \u2190 checkout \u2190 payment \u2190 (DNS/RX/IRQ), with payment-provider as a decoy leaf."
+  },
+  "distributed_traces": {
+    "available": true,
+    "analyzed_spans": 840,
+    "slow_provider_spans": 24,
+    "provider_duration_ms_p50": 17000.0,
+    "provider_duration_ms_max": 17000.0,
+    "healthy_sibling_spans_under_200ms": 252,
+    "false_lead_assessment": "Payment-provider CLIENT/SERVER spans show \u224817s duration on affected traces, but sibling services remain fast and only NP-17 payment pods correlate \u2014 treat external provider as a false lead; latency is consistent with pre-provider DNS/connection stall (AAAA / pool).",
+    "samples": [
+      {
+        "trace_id": "56335ca16178db0e997d3feb3a87c0db",
+        "service_name": "payment-provider",
+        "span_name": "HTTP POST payments.provider.com",
+        "duration_ms": 17000,
+        "dns_query_type": "AAAA",
+        "node_pool": "NP-17"
+      },
+      {
+        "trace_id": "d7e58b1c02127571f44e0e538e0a4e57",
+        "service_name": "payment-provider",
+        "span_name": "HTTP POST payments.provider.com",
+        "duration_ms": 17000,
+        "dns_query_type": "AAAA",
+        "node_pool": "NP-17"
+      },
+      {
+        "trace_id": "7543a28dd72c2a40405e553a5adacf16",
+        "service_name": "payment-provider",
+        "span_name": "HTTP POST payments.provider.com",
+        "duration_ms": 17000,
+        "dns_query_type": "AAAA",
+        "node_pool": "NP-17"
+      },
+      {
+        "trace_id": "b4b714950b427307fbc83bdefb79a46f",
+        "service_name": "payment-provider",
+        "span_name": "HTTP POST payments.provider.com",
+        "duration_ms": 17000,
+        "dns_query_type": "AAAA",
+        "node_pool": "NP-17"
+      },
+      {
+        "trace_id": "a0e00b32ea160ef8fd6ff32a0439aa86",
+        "service_name": "payment-provider",
+        "span_name": "HTTP POST payments.provider.com",
+        "duration_ms": 17000,
+        "dns_query_type": "AAAA",
+        "node_pool": "NP-17"
+      }
+    ]
+  },
+  "log_patterns": {
+    "pack_event_types": {
+      "alert.fire": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-07-07T09:00:58Z",
+            "ci": "checkout-service",
+            "severity": "critical",
+            "message": "Alert ecom_checkout_slo_breach fired: checkout success rate < 99.5"
+          }
+        ]
+      },
+      "checkout.orchestrator": {
+        "count": 44,
+        "examples": [
+          {
+            "timestamp": "2026-07-07T08:27:48Z",
+            "ci": "checkout-service",
+            "severity": "warning",
+            "message": "Downstream payment call slow (14793ms) region=Region-B currency=INR cart_items=21"
+          },
+          {
+            "timestamp": "2026-07-07T08:28:33Z",
+            "ci": "checkout-service",
+            "severity": "warning",
+            "message": "Downstream payment call slow (16067ms) region=Region-B currency=INR cart_items=22"
+          },
+          {
+            "timestamp": "2026-07-07T08:29:18Z",
+            "ci": "checkout-service",
+            "severity": "warning",
+            "message": "Downstream payment call slow (11132ms) region=Region-B currency=INR cart_items=18"
+          }
+        ]
+      },
+      "deploy.app": {
+        "count": 1,
+        "examples": [
+          {
+            "timestamp": "2026-06-23T09:00:48Z",
+            "ci": "np17-irq-affinity",
+            "severity": "info",
+            "message": "Deployed payment-risk feature: extra risk check for CARD+INR+cart_items>12 (adds device-intelligence + risk provider DNS lookups)"
+          }
+        ]
+      },
+      "dns.resolver": {
+        "count": 6,
+        "examples": [
+          {
+            "timestamp": "2026-07-07T08:29:24Z",
+            "ci": "payment-service",
+            "severity": "warning",
+            "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3159ms"
+          },
+          {
+            "timestamp": "2026-07-07T08:33:22Z",
+            "ci": "payment-service",
+            "severity": "warning",
+            "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3047ms"
+          },
+          {
+            "timestamp": "2026-07-07T08:39:39Z",
+            "ci": "payment-service",
+            "severity": "warning",
+            "message": "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3108ms"
+          }
+        ]
+      },
+      "http.connection": {
+        "count": 66,
+        "examples": [
+          {
+            "timestamp": "2026-07-07T08:27:52Z",
+            "ci": "payment-service",
+            "severity": "warning",
+            "message": "Connection acquisition took 4560ms"
+          },
+          {
+            "timestamp": "2026-07-07T08:28:22Z",
+            "ci": "payment-service",
+            "severity": "warning",
+            "message": "Connection acquisition took 4041ms"
+          },
+          {
+            "timestamp": "2026-07-07T08:28:52Z",
+            "ci": "payment-service",
+            "severity": "warning",
+            "message": "Connection acquisition took 4216ms"
+          }
+        ]
+      },
+      "infra.automation": {
+        "count": 2,
+        "examples": [
+          {
+            "timestamp": "2026-07-07T08:25:48Z",
+            "ci": "np17-irq-affinity",
+            "severity": "info",
+            "message": "Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)"
+          },
+          {
+            "timestamp": "2026-07-07T08:25:53Z",
+            "ci": "np17-irq-affinity",
+            "severity": "warning",
+            "message": "IRQ affinity set: RX-7 -> CPU48 (NUMA node 1); NIC queue memory on NUMA node 0"
+          }
+        ]
+      },
+      "kernel.net": {
+        "count": 35,
+        "examples": [
+          {
+            "timestamp": "2026-07-07T08:25:48Z",
+            "ci": "nic-rx-queue-7",
+            "severity": "warning",
+            "message": "RX queue 7 processing latency high (2740ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+          },
+          {
+            "timestamp": "2026-07-07T08:26:48Z",
+            "ci": "nic-rx-queue-7",
+            "severity": "warning",
+            "message": "RX queue 7 processing latency high (2769ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+          },
+          {
+            "timestamp": "2026-07-07T08:27:48Z",
+            "ci": "nic-rx-queue-7",
+            "severity": "warning",
+            "message": "RX queue 7 processing latency high (2666ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+          }
+        ]
+      },
+      "payment.client": {
+        "count": 66,
+        "examples": [
+          {
+            "timestamp": "2026-07-07T08:27:48Z",
+            "ci": "payment-service",
+            "severity": "warning",
+            "message": "Payment provider request timeout"
+          },
+          {
+            "timestamp": "2026-07-07T08:28:18Z",
+            "ci": "payment-service",
+            "severity": "warning",
+            "message": "Payment provider request timeout"
+          },
+          {
+            "timestamp": "2026-07-07T08:28:48Z",
+            "ci": "payment-service",
+            "severity": "warning",
+            "message": "Payment provider request timeout"
+          }
+        ]
+      },
+      "payment.retry": {
+        "count": 66,
+        "examples": [
+          {
+            "timestamp": "2026-07-07T08:27:50Z",
+            "ci": "payment-service",
+            "severity": "critical",
+            "message": "Retry attempt 2/3"
+          },
+          {
+            "timestamp": "2026-07-07T08:28:20Z",
+            "ci": "payment-service",
+            "severity": "critical",
+            "message": "Retry attempt 2/3"
+          },
+          {
+            "timestamp": "2026-07-07T08:28:50Z",
+            "ci": "payment-service",
+            "severity": "critical",
+            "message": "Retry attempt 2/3"
+          }
+        ]
+      }
+    },
+    "raw_logger_counts": {
+      "deploy.app": 1,
+      "kernel.net": 35,
+      "infra.automation": 2,
+      "payment.client": 66,
+      "checkout.orchestrator": 44,
+      "payment.retry": 66,
+      "http.connection": 66,
+      "dns.resolver": 6,
+      "alert.fire": 1
+    },
+    "key_findings": [
+      "Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)",
+      "RX queue 7 processing latency high (2740ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)",
+      "DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3159ms",
+      "Payment provider request timeout",
+      "Connection acquisition took 4560ms",
+      "Downstream payment call slow (14793ms) region=Region-B currency=INR cart_items=21",
+      "Retry attempt 2/3",
+      "Alert ecom_checkout_slo_breach fired: checkout success rate < 99.5"
+    ]
+  },
+  "metrics_analysis": {
+    "crossed_anomalies": [
+      {
+        "ci": "np17-irq-affinity",
+        "signal": "irq_affinity_numa_mismatch",
+        "value": 1.0,
+        "threshold": 0.0,
+        "timestamp": "2026-07-07T08:25:48Z",
+        "note": null
+      },
+      {
+        "ci": "nic-rx-queue-7",
+        "signal": "kernel_rx_queue_latency_ms",
+        "value": 2936.6,
+        "threshold": 10.0,
+        "timestamp": "2026-07-07T08:25:48Z",
+        "note": null
+      },
+      {
+        "ci": "dns-aaaa-np17",
+        "signal": "dns_query_latency_p99_ms",
+        "value": 3359.3,
+        "threshold": 50.0,
+        "timestamp": "2026-07-07T08:27:48Z",
+        "note": null
+      },
+      {
+        "ci": "payment-service",
+        "signal": "payment_connection_acquire_ms",
+        "value": 4737.1,
+        "threshold": 100.0,
+        "timestamp": "2026-07-07T08:27:48Z",
+        "note": null
+      },
+      {
+        "ci": "payment-provider",
+        "signal": "payment_provider_latency_ms",
+        "value": 17845.2,
+        "threshold": 200.0,
+        "timestamp": "2026-07-07T08:27:48Z",
+        "note": "FALSE LEAD \u2014 only this app's NP-17 pods; provider is healthy for others"
+      },
+      {
+        "ci": "checkout-service",
+        "signal": "checkout_latency_p99_ms",
+        "value": 18779.8,
+        "threshold": 1000.0,
+        "timestamp": "2026-07-07T08:27:48Z",
+        "note": null
+      },
+      {
+        "ci": "checkout-service",
+        "signal": "checkout_success_rate",
+        "value": 97.2,
+        "threshold": 99.5,
+        "timestamp": "2026-07-07T08:27:48Z",
+        "note": null
+      },
+      {
+        "ci": "api-gateway",
+        "signal": "api_gateway_error_rate_pct",
+        "value": 48.06,
+        "threshold": 20.0,
+        "timestamp": "2026-07-07T08:27:48Z",
+        "note": "api-gateway \u2192 checkout path error escalation"
+      },
+      {
+        "ci": "checkout-service",
+        "signal": "checkout_error_rate_pct",
+        "value": 17.6,
+        "threshold": 5.0,
+        "timestamp": "2026-07-07T08:27:48Z",
+        "note": "checkout-service error rate (blast / escalation mid-tier)"
+      }
+    ],
+    "raw_metric_peaks": {
+      "checkout_latency_p99_ms": 18779.8,
+      "checkout_success_rate": 97.009,
+      "dns_query_latency_p99_ms": 3359.3,
+      "irq_affinity_numa_mismatch": 1.0,
+      "kernel_rx_queue_latency_ms": 2936.6,
+      "payment_connection_acquire_ms": 4737.1,
+      "api_gateway_error_rate_pct": 49.46,
+      "checkout_error_rate_pct": 18.12,
+      "payment_service_error_rate_pct": 0.3,
+      "checkout_requests_total": 387,
+      "checkout_failures_total": 186
+    }
+  },
+  "recent_changes": {
+    "change_events": [
+      {
+        "timestamp": "2026-06-23T09:00:48Z",
+        "ci": "np17-irq-affinity",
+        "event_type": "deploy.app",
+        "severity": "info",
+        "message": "Deployed payment-risk feature: extra risk check for CARD+INR+cart_items>12 (adds device-intelligence + risk provider DNS lookups)"
+      },
+      {
+        "timestamp": "2026-07-07T08:25:48Z",
+        "ci": "np17-irq-affinity",
+        "event_type": "infra.automation",
+        "severity": "info",
+        "message": "Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)"
+      },
+      {
+        "timestamp": "2026-07-07T08:25:53Z",
+        "ci": "np17-irq-affinity",
+        "event_type": "infra.automation",
+        "severity": "warning",
+        "message": "IRQ affinity set: RX-7 -> CPU48 (NUMA node 1); NIC queue memory on NUMA node 0"
+      }
+    ],
+    "root_cause_change": {
+      "timestamp": "2026-07-07T08:25:48Z",
+      "ci": "np17-irq-affinity",
+      "event_type": "infra.automation",
+      "severity": "info",
+      "message": "Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)"
+    }
+  },
+  "causal_chain": {
+    "steps": [
+      "np17-irq-affinity",
+      "nic-rx-queue-7",
+      "dns-aaaa-np17",
+      "payment-service",
+      "checkout-service"
+    ],
+    "topology_path": [
+      "np17-irq-affinity",
+      "nic-rx-queue-7",
+      "dns-aaaa-np17",
+      "payment-service",
+      "checkout-service"
+    ],
+    "narrative_steps": [
+      {
+        "step": "node_image_irq_change",
+        "summary": "Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)",
+        "evidence": "event",
+        "timestamp": "2026-07-07T08:25:48Z"
+      },
+      {
+        "step": "cross_numa_irq",
+        "summary": "IRQ affinity mismatch on `np17-irq-affinity` value=1.0",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-07T08:25:48Z"
+      },
+      {
+        "step": "rx_queue_stall",
+        "summary": "RX-7 latency `kernel_rx_queue_latency_ms`=2936.6ms",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-07T08:25:48Z"
+      },
+      {
+        "step": "aaaa_dns_stall",
+        "summary": "AAAA DNS p99 `dns_query_latency_p99_ms`=3359.3ms",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-07T08:27:48Z"
+      },
+      {
+        "step": "payment_pool_stall",
+        "summary": "Payment acquire `payment_connection_acquire_ms`=4737.1ms",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-07T08:27:48Z"
+      },
+      {
+        "step": "provider_span_false_lead",
+        "summary": "Payment-provider spans \u224817000.0ms \u00d724 \u2014 false lead",
+        "evidence": "trace",
+        "timestamp": null
+      },
+      {
+        "step": "checkout_gateway_symptom",
+        "summary": "checkout success=97.2%; api-gateway error=48.06%",
+        "evidence": "anomaly",
+        "timestamp": "2026-07-07T08:27:48Z"
+      },
+      {
+        "step": "amplifier",
+        "summary": "CARD+INR+cart>12 payment-risk feature (extra AAAA DNS lookups)",
+        "evidence": "ground_truth_amplifier",
+        "timestamp": null
+      }
+    ],
+    "narrative": "np17-irq-affinity \u2192 nic-rx-queue-7 \u2192 dns-aaaa-np17 \u2192 payment-service \u2192 checkout-service. Amplifier: CARD+INR+cart>12 payment-risk feature (extra AAAA DNS lookups)"
+  },
+  "contributing_factors": {
+    "primary": "NP-17 cross-NUMA IRQ affinity (node image 2026.06.18)",
+    "amplifier": "CARD+INR+cart>12 payment-risk feature (extra AAAA DNS lookups)",
+    "false_leads": [
+      "payment-provider",
+      "node_nic_mtu (NP-17 jumbo frames \u2014 in raw metrics, not pack anomalies)"
+    ]
+  },
+  "timeline": [
+    {
+      "timestamp": "2026-06-23T09:00:48Z",
+      "kind": "event",
+      "summary": "deploy.app: Deployed payment-risk feature: extra risk check for CARD+INR+cart_items>12 (adds device-intelligence + risk provider DNS"
+    },
+    {
+      "timestamp": "2026-07-07T08:25:48Z",
+      "kind": "event",
+      "summary": "kernel.net: RX queue 7 processing latency high (2740ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-07T08:25:48Z",
+      "kind": "event",
+      "summary": "infra.automation: Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)"
+    },
+    {
+      "timestamp": "2026-07-07T08:25:48Z",
+      "kind": "anomaly",
+      "summary": "np17-irq-affinity `irq_affinity_numa_mismatch`=1.0"
+    },
+    {
+      "timestamp": "2026-07-07T08:25:48Z",
+      "kind": "anomaly",
+      "summary": "nic-rx-queue-7 `kernel_rx_queue_latency_ms`=2936.6"
+    },
+    {
+      "timestamp": "2026-07-07T08:25:53Z",
+      "kind": "event",
+      "summary": "infra.automation: IRQ affinity set: RX-7 -> CPU48 (NUMA node 1); NIC queue memory on NUMA node 0"
+    },
+    {
+      "timestamp": "2026-07-07T08:26:48Z",
+      "kind": "event",
+      "summary": "kernel.net: RX queue 7 processing latency high (2769ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:48Z",
+      "kind": "event",
+      "summary": "payment.client: Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:48Z",
+      "kind": "event",
+      "summary": "checkout.orchestrator: Downstream payment call slow (14793ms) region=Region-B currency=INR cart_items=21"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:48Z",
+      "kind": "event",
+      "summary": "kernel.net: RX queue 7 processing latency high (2666ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:48Z",
+      "kind": "anomaly",
+      "summary": "dns-aaaa-np17 `dns_query_latency_p99_ms`=3359.3"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:48Z",
+      "kind": "anomaly",
+      "summary": "payment-service `payment_connection_acquire_ms`=4737.1"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:48Z",
+      "kind": "anomaly",
+      "summary": "payment-provider `payment_provider_latency_ms`=17845.2"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:48Z",
+      "kind": "anomaly",
+      "summary": "checkout-service `checkout_latency_p99_ms`=18779.8"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:48Z",
+      "kind": "anomaly",
+      "summary": "checkout-service `checkout_success_rate`=97.2"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:48Z",
+      "kind": "anomaly",
+      "summary": "api-gateway `api_gateway_error_rate_pct`=48.06"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:48Z",
+      "kind": "anomaly",
+      "summary": "checkout-service `checkout_error_rate_pct`=17.6"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:48Z",
+      "kind": "symptom_seed",
+      "summary": "Symptom seed checkout-service / checkout_success_rate"
+    },
+    {
+      "timestamp": "2026-07-07T08:27:52Z",
+      "kind": "event",
+      "summary": "http.connection: Connection acquisition took 4560ms"
+    },
+    {
+      "timestamp": "2026-07-07T08:28:18Z",
+      "kind": "event",
+      "summary": "payment.client: Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-07T08:28:22Z",
+      "kind": "event",
+      "summary": "http.connection: Connection acquisition took 4041ms"
+    },
+    {
+      "timestamp": "2026-07-07T08:28:33Z",
+      "kind": "event",
+      "summary": "checkout.orchestrator: Downstream payment call slow (16067ms) region=Region-B currency=INR cart_items=22"
+    },
+    {
+      "timestamp": "2026-07-07T08:28:48Z",
+      "kind": "event",
+      "summary": "kernel.net: RX queue 7 processing latency high (2727ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-07T08:28:48Z",
+      "kind": "event",
+      "summary": "payment.client: Payment provider request timeout"
+    },
+    {
+      "timestamp": "2026-07-07T08:28:52Z",
+      "kind": "event",
+      "summary": "http.connection: Connection acquisition took 4216ms"
+    },
+    {
+      "timestamp": "2026-07-07T08:29:18Z",
+      "kind": "event",
+      "summary": "checkout.orchestrator: Downstream payment call slow (11132ms) region=Region-B currency=INR cart_items=18"
+    },
+    {
+      "timestamp": "2026-07-07T08:29:24Z",
+      "kind": "event",
+      "summary": "dns.resolver: DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3159ms"
+    },
+    {
+      "timestamp": "2026-07-07T08:29:48Z",
+      "kind": "event",
+      "summary": "kernel.net: RX queue 7 processing latency high (2881ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-07T08:30:48Z",
+      "kind": "event",
+      "summary": "kernel.net: RX queue 7 processing latency high (2838ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-07T08:31:48Z",
+      "kind": "event",
+      "summary": "kernel.net: RX queue 7 processing latency high (2858ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-07T08:32:48Z",
+      "kind": "event",
+      "summary": "kernel.net: RX queue 7 processing latency high (2811ms) cpu=48 numa=1 (queue memory numa=0 cross-NUMA)"
+    },
+    {
+      "timestamp": "2026-07-07T08:33:22Z",
+      "kind": "event",
+      "summary": "dns.resolver: DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3047ms"
+    },
+    {
+      "timestamp": "2026-07-07T08:39:39Z",
+      "kind": "event",
+      "summary": "dns.resolver: DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3108ms"
+    },
+    {
+      "timestamp": "2026-07-07T08:43:05Z",
+      "kind": "event",
+      "summary": "dns.resolver: DNS resolution exceeded expected latency hostname=payments.provider.com query=AAAA latency=3251ms"
+    },
+    {
+      "timestamp": "2026-07-07T09:00:58Z",
+      "kind": "alert",
+      "summary": "alert.fire: Alert ecom_checkout_slo_breach fired: checkout success rate < 99.5"
+    }
+  ],
+  "actions": {
+    "immediate": [
+      "Revert NP-17 node image 2026.06.18 \u2192 2026.05.30 to restore IRQ affinity.",
+      "Confirm RX queue IRQs are pinned to CPUs on the same NUMA node as NIC queue memory.",
+      "Verify checkout p99 and RX-queue latency return to baseline after rollback."
+    ],
+    "future": [
+      "Add pre-deploy NUMA topology validation; fail builds that assign IRQ across NUMA.",
+      "Stage node-image rollouts (1\u20132 nodes, watch RX/DNS latency 10+ min) before full pool.",
+      "Alert on kernel cross-NUMA RX processing / irq_affinity_numa_mismatch.",
+      "Harden payment-risk path: pool pre-warm + DNS timeout backoff with jitter."
+    ]
+  },
+  "rca_summary": {
+    "narrative": "RCA localizes the incident to `np17-irq-affinity` (cross_numa_irq_affinity): NP-17 cross-NUMA IRQ affinity (node image 2026.06.18). Causal path: np17-irq-affinity \u2192 nic-rx-queue-7 \u2192 dns-aaaa-np17 \u2192 payment-service \u2192 checkout-service. Customer impact: Checkout success \u224897.2% (threshold 99.5) on `checkout-service` / `checkout_success_rate`; \u2248186/387 failed checkouts in the incident window (\u22482.8% of the affected dimension). Amplifier: CARD+INR+cart>12 payment-risk feature (extra AAAA DNS lookups). Ruled out false leads: payment-provider, node_nic_mtu (NP-17 jumbo frames \u2014 in raw metrics, not pack anomalies). Root-cause change evidence: Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)",
+    "narrative_md": "**Root cause:** `np17-irq-affinity` (`cross_numa_irq_affinity`)\nNP-17 cross-NUMA IRQ affinity (node image 2026.06.18)\n\n**Causal path:** `np17-irq-affinity` \u2192 `nic-rx-queue-7` \u2192 `dns-aaaa-np17` \u2192 `payment-service` \u2192 `checkout-service`\n\n**Customer impact:** Checkout success \u224897.2% (threshold 99.5) on `checkout-service` / `checkout_success_rate`; \u2248186/387 failed checkouts in the incident window (\u22482.8% of the affected dimension)\n\n**Amplifier:** CARD+INR+cart>12 payment-risk feature (extra AAAA DNS lookups)\n\n**False leads ruled out:** `payment-provider`, `node_nic_mtu (NP-17 jumbo frames \u2014 in raw metrics, not pack anomalies)`\n\n**Change evidence:** Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)",
+    "root_ci": "np17-irq-affinity",
+    "signature": "cross_numa_irq_affinity",
+    "causal_path": [
+      "np17-irq-affinity",
+      "nic-rx-queue-7",
+      "dns-aaaa-np17",
+      "payment-service",
+      "checkout-service"
+    ],
+    "fault_title": "NP-17 cross-NUMA IRQ affinity (node image 2026.06.18)",
+    "customer_impact": "Checkout success \u224897.2% (threshold 99.5) on `checkout-service` / `checkout_success_rate`; \u2248186/387 failed checkouts in the incident window (\u22482.8% of the affected dimension)",
+    "amplifier": "CARD+INR+cart>12 payment-risk feature (extra AAAA DNS lookups)",
+    "false_leads": [
+      "payment-provider",
+      "node_nic_mtu (NP-17 jumbo frames \u2014 in raw metrics, not pack anomalies)"
+    ],
+    "change_evidence": "Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)"
+  },
+  "remediation": {
+    "guidance": "Treat this as an infrastructure misconfiguration incident, not a payment-provider outage. Immediately roll NP-17 back from node image 2026.06.18 to 2026.05.30 so RX-7 IRQs pin to the same NUMA node as queue memory, then confirm kernel RX-queue latency, AAAA DNS p99, checkout p99, and checkout success rate return to baseline on the Region-B \u00b7 CARD \u00b7 MOBILE \u00b7 INR \u00b7 cart>12 slice. Do not restart payment pods as the primary fix \u2014 that only masks pool pressure. After mitigation, block cross-NUMA IRQ assignments in the node-image pipeline and stage future NP-17 rollouts on 1\u20132 nodes with RX/DNS watch windows before full pool promotion.",
+    "immediate": [
+      "Revert NP-17 node image 2026.06.18 \u2192 2026.05.30 to restore IRQ affinity.",
+      "Confirm RX queue IRQs are pinned to CPUs on the same NUMA node as NIC queue memory.",
+      "Verify checkout p99 and RX-queue latency return to baseline after rollback."
+    ],
+    "future": [
+      "Add pre-deploy NUMA topology validation; fail builds that assign IRQ across NUMA.",
+      "Stage node-image rollouts (1\u20132 nodes, watch RX/DNS latency 10+ min) before full pool.",
+      "Alert on kernel cross-NUMA RX processing / irq_affinity_numa_mismatch.",
+      "Harden payment-risk path: pool pre-warm + DNS timeout backoff with jitter."
+    ],
+    "source": "signature_template"
+  },
+  "executive_summary": {
+    "potential_cause": "Node pool NP-17 rolled to node image 2026.06.18 (IRQ balancing configuration applied)",
+    "impact": "Checkout success \u224897.2% (threshold 99.5) on `checkout-service` / `checkout_success_rate`; \u2248186/387 failed checkouts in the incident window (\u22482.8% of the affected dimension)",
+    "resolution": "Revert NP-17 node image 2026.06.18 \u2192 2026.05.30 to restore IRQ affinity.; Confirm RX queue IRQs are pinned to CPUs on the same NUMA node as NIC queue memory.; Verify checkout p99 and RX-queue latency return to baseline after rollback."
+  },
+  "completeness": {
+    "checks": {
+      "incident_summary": true,
+      "rca_summary": true,
+      "impact": true,
+      "service_dependencies": true,
+      "distributed_traces": true,
+      "log_patterns": true,
+      "metrics_analysis": true,
+      "recent_changes": true,
+      "causal_chain": true,
+      "contributing_factors": true,
+      "timeline": true,
+      "actions": true,
+      "remediation": true,
+      "executive_summary": true,
+      "localization_root": true
+    },
+    "score": "15/15",
+    "pct": 100.0,
+    "ready_for_gold_parity": true
+  }
+}
