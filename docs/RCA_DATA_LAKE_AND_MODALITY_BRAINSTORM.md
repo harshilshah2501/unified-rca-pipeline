@@ -271,6 +271,25 @@ These are **old** problems (ITIL CMDB + events; ETL + DQ), reframed for multimod
 
 People often map Clock A/B onto Federated’s two graph tiers. The intuition is useful; the **1:1 equation is wrong**.
 
+#### Plain reading (team shareable)
+
+**Tier 1 / Tier 2** ≈ **where data lives** (Federated storage split: Event Graph vs Knowledge Graph), and therefore **which hop reads which store**. Storage-first axis.
+
+**Clock A / Clock B** ≈ **workflow / job cadence**, not another storage layer:
+
+- **Clock A** — continuous platform work: collect → normalize → topo → fan-out → maintain → curate → tailor (preprocess + lake ops)  
+- **Clock B** — per-incident RCA: Detect → Localize → Identify → Verify  
+
+Together, A then B (with **Tailor** as the bridge) is the end-to-end story. The clocks **use** the tiers; they aren’t the same kind of split.
+
+```
+Tier axis  →  Dragonfly (T1)  |  Vortex/DashMap (T2)     [storage / data plane]
+Clock axis →  A: write/maintain both continuously
+              B: Panorama/Murphy read T2; Nezha reads T1
+```
+
+**Bottom line:** tiers = data-plane layout; clocks = when work runs and which RCA/preprocess jobs run on that data. **Orthogonal, intersecting.**
+
 **Docs:** [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md).  
 **Honesty:** Vortex/DashMap/NATS-Rust at 1B EPS is **design vision**; PoC today uses in-memory structural + optional Dragonfly/Redis speed tier.
 

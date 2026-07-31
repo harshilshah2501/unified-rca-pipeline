@@ -1,8 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>RCA data plane — team reference</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -55,14 +52,9 @@ footer { margin-top:2rem; padding-top:1rem; border-top:1px solid var(--stroke); 
   .menu-btn { display:block; }
   main { padding:3rem 1rem 3rem; }
 }
-</style>
-</head>
-<body>
+</style></head><body>
 <button class="menu-btn" type="button" id="menuBtn">Sections</button>
-<div class="shell">
-<nav class="toc" id="toc" aria-label="Sections">
-<div class="brand">Team reference</div>
-<a href="#how-to-read-this-document">How to read this document</a>
+<div class="shell"><nav class="toc" id="toc"><div class="brand">Team reference</div><a href="#how-to-read-this-document">How to read this document</a>
 <a href="#s0">0. Document map</a>
 <a href="#glossary">G. Glossary (read this first)</a>
 <a href="#s1">1. What is the problem?</a>
@@ -75,14 +67,8 @@ footer { margin-top:2rem; padding-top:1rem; border-top:1px solid var(--stroke); 
 <a href="#s8">8. Questions each data type answers</a>
 <a href="#s9">9. Detect vs symptom seed</a>
 <a href="#s10">10. Lake lifecycle — create → maintain → curate → ta</a>
-<a href="#s11">11. Open questions · takeaway</a>
-</nav>
-<main>
-<div class="meta">
-  <span class="pill info">Team reference</span>
-  <span class="pill">Working hypotheses</span>
-  <span class="pill warn">Not a measured survey</span>
-</div>
+<a href="#s11">11. Open questions · takeaway</a></nav>
+<main><div class="meta"><span class="pill info">Team reference</span><span class="pill">Working hypotheses</span><span class="pill warn">Not a measured survey</span></div>
 <h1>RCA data plane — team reference (problem, clocks, modalities, competitors)</h1>
 <p><strong>Audience:</strong> engineers and PMs who need a shared vocabulary for ingest + RCA design (no prior PoC context required).  </p>
 <p><strong>Status:</strong> working hypotheses / design reference — <strong>not</strong> a measured industry survey or accuracy claim.  </p>
@@ -287,6 +273,18 @@ CLOCK B (this incident)
 </tbody></table>
 <h3>3.6 Clocks vs Federated two-tier design</h3>
 <p>People often map Clock A/B onto Federated’s two graph tiers. The intuition is useful; the <strong>1:1 equation is wrong</strong>.</p>
+<h4>Plain reading (team shareable)</h4>
+<p><strong>Tier 1 / Tier 2</strong> ≈ <strong>where data lives</strong> (Federated storage split: Event Graph vs Knowledge Graph), and therefore <strong>which hop reads which store</strong>. Storage-first axis.</p>
+<p><strong>Clock A / Clock B</strong> ≈ <strong>workflow / job cadence</strong>, not another storage layer:</p>
+<ul>
+<li><strong>Clock A</strong> — continuous platform work: collect → normalize → topo → fan-out → maintain → curate → tailor (preprocess + lake ops)  </li>
+<li><strong>Clock B</strong> — per-incident RCA: Detect → Localize → Identify → Verify  </li>
+</ul>
+<p>Together, A then B (with <strong>Tailor</strong> as the bridge) is the end-to-end story. The clocks <strong>use</strong> the tiers; they aren’t the same kind of split.</p>
+<pre class="flow">Tier axis  →  Dragonfly (T1)  |  Vortex/DashMap (T2)     [storage / data plane]
+Clock axis →  A: write/maintain both continuously
+              B: Panorama/Murphy read T2; Nezha reads T1</pre>
+<p><strong>Bottom line:</strong> tiers = data-plane layout; clocks = when work runs and which RCA/preprocess jobs run on that data. <strong>Orthogonal, intersecting.</strong></p>
 <p><strong>Docs:</strong> <a href="../federated-pipeline/docs/STORAGE_TIERS.md"><code>federated-pipeline/docs/STORAGE_TIERS.md</code></a> · <a href="../federated-pipeline/docs/ARCHITECTURE.md"><code>ARCHITECTURE.md</code></a>.  </p>
 <p><strong>Honesty:</strong> Vortex/DashMap/NATS-Rust at 1B EPS is <strong>design vision</strong>; PoC today uses in-memory structural + optional Dragonfly/Redis speed tier.</p>
 <h4>Two axes (do not collapse)</h4>
@@ -624,20 +622,13 @@ Ours:       Sources ──► Vector (+ topo sibling) ─► Detect/seed ─► 
 </ol>
 <hr />
 <p><em>Design reference / brainstorm — do not cite competitor accuracy or §7 bands externally without measurement / primary sources.</em></p></section>
-<footer>Generated from docs/RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md — clocks ≠ Federated tiers (§3.6).</footer>
-</main>
-</div>
+<footer>Generated from docs/RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md</footer></main></div>
 <script>
 const btn=document.getElementById('menuBtn'), toc=document.getElementById('toc');
 btn.addEventListener('click',()=>toc.classList.toggle('open'));
 toc.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toc.classList.remove('open')));
 const links=[...toc.querySelectorAll('a')];
 const sections=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
-const io=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{ if(!e.isIntersecting) return; const id='#'+e.target.id;
-    links.forEach(l=>l.classList.toggle('active', l.getAttribute('href')===id)); });
-}, {rootMargin:'-20% 0px -65% 0px', threshold:0});
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(!e.isIntersecting)return;const id='#'+e.target.id;links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')===id));});},{rootMargin:'-20% 0px -65% 0px',threshold:0});
 sections.forEach(s=>io.observe(s));
-</script>
-</body>
-</html>
+</script></body></html>
