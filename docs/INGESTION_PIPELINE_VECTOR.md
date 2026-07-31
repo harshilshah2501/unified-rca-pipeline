@@ -2,7 +2,7 @@
 
 **Status:** Design + D0–D2 implemented (smoke/lab); D3–D5 planned  
 **Scope:** **Ingestion + detection front door** — builds RCA-ready graphs / incident windows **and** marks anomalies / seeds. Does **not** implement Lean or Federated localization.  
-**Related:** [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1c–§3 · [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`NAVIGATION.md`](./NAVIGATION.md) · [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md)
+**Related:** [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`RCA-learning-cheatsheet.md`](./learning/RCA-learning-cheatsheet.md) §1c–§3 · [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`NAVIGATION.md`](./NAVIGATION.md) · [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md)
 
 ---
 
@@ -323,5 +323,5 @@ Skeleton config: [`../ingestion-poc/vector/`](../ingestion-poc/vector/).
 - Vector: https://github.com/vectordotdev/vector · https://vector.dev/docs/  
 - Repo storage vision: [`../federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md)  
 - Lean bundle layout: [`../datasets/observeops/README.md`](../datasets/observeops/README.md)  
-- Cost PoC plan: [`../RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §3  
+- Cost PoC plan: [`./learning/RCA-learning-cheatsheet.md`](./learning/RCA-learning-cheatsheet.md) §3  
 - Federated Phase C deferral: [`../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md`](../federated-pipeline/docs/LIMITATIONS_AND_FUTURE.md)

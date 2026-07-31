@@ -12,7 +12,7 @@
 
 **Corpora (do not merge scoreboards):** UC-1..UC-5 → [`rca-use-cases-only.md`](./rca-use-cases-only.md). Motadata L1 → briefing §5.2 · WORKFLOW §2.
 
-**Status (2026-07-24):** **Compare → Deepen → Ship → Transfer** ✅. **Connect:** LIVE **prep Done** ([`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md)) — **execute lab smoke next week**; then **CHANGE**. Lean = primary evaluation engine ([ADR-001](./ADR-001-lean-primary-engine.md)). Optional later: Federate · Scale · Step-2 path diff · Panorama.
+**Status (2026-07-27):** **Compare → Deepen → Ship → Transfer** ✅. **Fair Lean×Fed×OO** on UC: Lean/Fed **5/5**, OO **1/5** ([`LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md)). **Connect:** LIVE **prep Done** ([`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md)) — **execute lab smoke next week**; then **CHANGE**. Lean = primary evaluation engine ([ADR-001](./ADR-001-lean-primary-engine.md)). Optional later: Federate · Scale · Step-2 path diff · Panorama.
 
 ---
 
@@ -72,7 +72,7 @@
 | Observation efficiency vs naive BFS | Done | Fields on verdict + compare |
 | Continuous causal memory | Deferred | Optional after Ship |
 
-**Canonical scoreboard:** `bakeoff-phase-b-002` — [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md).
+**Canonical scoreboard:** `adr001-rerun-20260723` — [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md). ADR-era decision snapshot: `bakeoff-phase-b-002`.
 
 ---
 

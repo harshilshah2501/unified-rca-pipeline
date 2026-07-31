@@ -9,7 +9,7 @@
 
 ## 1. Executive summary
 
-**RCA is eval-complete** for ObserveOps classic infra (Lean primary per ADR-001; fair shared-detect bakeoff `bakeoff-parity-001`). The next work is **ingestion**: replace frozen/synthetic bundles with a real collect → detect → artifact pipeline, then point Lean (and optionally Federated) at **live-produced** `A-TOPO` / `A-ANOM` / `A-SEED`.
+**RCA is eval-complete** for ObserveOps classic infra (Lean primary per ADR-001; current scoreboard `adr001-rerun-20260723`). The next work is **ingestion**: replace frozen/synthetic bundles with a real collect → detect → artifact pipeline, then point Lean (and optionally Federated) at **live-produced** `A-TOPO` / `A-ANOM` / `A-SEED`.
 
 This plan defines three milestones (M1–M3), hardware tiers (A–C), week-by-week checklist, and exit gates. It does **not** target 1B EPS or full hyperscaler sizing.
 
@@ -25,7 +25,7 @@ Collect → Detect → Artifacts → RCA (Lean primary)
 
 | Layer | Closed? | Evidence |
 |-------|---------|----------|
-| Lean vs Federated accuracy (UC-1..5) | Yes | 5/5 both; `bakeoff-parity-001` |
+| Lean vs Federated accuracy (UC-1..5) | Yes | 5/5 both; `adr001-rerun-20260723` |
 | Fair pipeline (shared detect) | Yes | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
 | Lean packaging (CLI / HTTP / systemd) | Yes | ROADMAP **Ship** complete |
 | **Normalized `ingest.v1` streams** | **Partial** | UC replay + Motadata smoke + F1 sinks + N4/N5 writers **Done**; live collectors still open |
@@ -357,7 +357,7 @@ Total ≈ C_collect + C_detect + C_normalize + C_store + C_query_feed + C_ops + 
 | C_collect | Replay only | + live smoke |
 | C_detect | Shared threshold (timed) | + real Panorama (Federated profile) |
 | C_store | File artifacts | + hot index / Dragonfly window |
-| C_rca_runtime | Already measured (`bakeoff-parity-001`) | Same |
+| C_rca_runtime | Already measured (`adr001-rerun-20260723`) | Same |
 
 Headline compare: **L0 (Lean-only sinks)** vs **F1 (dual-sink)** on **identical replay bytes**.
 
@@ -391,7 +391,7 @@ Already done: ObserveOps replay; Motadata adapter; F1 + N4/N5; D1–D3; Motadata
 
 1. **LIVE — execute** syslog or Prometheus → Vector → F1 ([`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md)) — scheduled next week.  
 2. **CHANGE — real change feed** into D2 `change_near_onset`.  
-3. **Samples confirm** `motadata-deps-001` (+ optional OO alert scrub per [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md)).
+3. **Samples confirm** `motadata-deps-001`. Fair OO UC Slice A is **done** (OO root 1/5) — [`LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md); checklist [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md) retained as operator reference.
 
 Park D4/I2 until gray-failure / path-baseline data exists. See [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) §3.
 
@@ -415,6 +415,6 @@ Park D4/I2 until gray-failure / path-baseline data exists. See [`RCA_WORKFLOW_AN
 - Vector design: [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md)
 - Data format / converters: [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md)
 - Fair RCA compare: [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md)
-- Cost structure: [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) §1c–§3
+- Cost structure: [`RCA-learning-cheatsheet.md`](./learning/RCA-learning-cheatsheet.md) §1c–§3
 - Capacity: [`federated-pipeline/docs/CAPACITY.md`](../federated-pipeline/docs/CAPACITY.md)
 - Canonical RCA scoreboard: [`benchmarking/results/comparison/RUN_IDS.md`](../benchmarking/results/comparison/RUN_IDS.md)

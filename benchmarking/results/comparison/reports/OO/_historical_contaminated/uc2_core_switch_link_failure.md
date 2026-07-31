@@ -1,0 +1,103 @@
+HISTORICAL / CONTAMINATED (2026-07-24) — do not cite for OO accuracy. Canonical fair write-up: OO/fair/
+
+Incident Summary
+Field	Value
+Incident ID	3GwHs9UVapGslDpVF4N0Ex9Ioz8
+Severity	P3 (Medium)
+Detected	2025-05-23 06:11:54 UTC (06:11:54 UTC)
+Resolved	Ongoing
+Duration	Incident detected and not yet resolved
+Affected Services	orders-api, vm-app-01, esxi-host-01, switch-core-01
+Customer Impact	Orders API experiencing TCP connection timeouts due to packet loss at the network layer
+Impact Assessment
+Field	Value
+Services Affected	1 (orders-api and its upstream infrastructure)
+Peak Error Rate	TCP timeouts at 42 (threshold: 5)
+Failed Requests	Connection timeouts affecting all requests routing through UC-2 (orders-api)
+Users Impacted	Unknown, but entire orders processing functionality affected
+Data Loss	No confirmed data loss
+SLA Breach	Yes - orders-api unavailability
+Evidence
+Service Dependencies
+The incident is scoped to UC-2 (Use Case 2) orders-api cluster. The service dependency chain is:
+
+Affected Application: orders-api
+Upstream Infrastructure: vm-app-01 (application VM) → esxi-host-01 (hypervisor) → switch-core-01:GigE0/2 (core switch port)
+Service topology queries returned empty results, indicating either no traced services or topology data not populated. Network-layer telemetry is the primary source of correlation.
+
+Distributed Traces
+Distributed trace queries failed due to connection issues. However, the incident alert provides evidence of trace correlation across the infrastructure stack:
+
+TCP connection timeouts originate from orders-api
+Retransmit patterns visible at vm-app-01 (transport layer)
+Packet discard patterns at esxi-host-01 (hypervisor level)
+Interface discard and link status changes at switch-core-01:GigE0/2 (network interface level)
+Log Patterns
+No logs returned from observeops_uc_uc2 stream (logs type). The alert description indicates expected SNMP trap events:
+
+snmp.linkDown event type with ifDescr=GigE0/2 and ifOperStatus=down
+snmp.ifOutDiscards event type tracking egress packet discards
+Log patterns extraction was blocked by connection timeouts to the metrics streams, suggesting either cluster connectivity issues or backend service degradation during the incident window.
+
+Metrics Analysis
+TCP Timeouts (orders-api):
+
+Stream: observeops_tcp_timeouts
+Query returned: 0 hits in the 15-minute post-alert window (1784875614–1784876514 microseconds)
+Note: StreamSchema shows 338 historical documents with doc_time_max at 1783677618000000 (older than incident timestamp), indicating fresh data may not yet be indexed or query window does not overlap with live data.
+Network Interface Discards (switch-core-01:GigE0/2):
+
+Stream: observeops_ifoutdiscards
+Query returned: 0 hits, but alert description explicitly states threshold exceeded (450.0, threshold 0.0)
+This suggests metrics were recorded but not queryable in the tested window
+Link Status (switch-core-01:GigE0/2):
+
+Stream: observeops_linkdown
+Query returned: 0 hits, but alert context indicates linkDown event (threshold 0.5, value 1.0)
+Connection Retransmit Metrics (vm-app-01):
+
+Stream: observeops_tcp_retransmits
+Query connection failed ("Not connected"), but alert context indicates 85.0 retransmits (threshold 10.0)
+Hypervisor Dropped Packets (esxi-host-01):
+
+Stream: observeops_vmnic_dropped_packets
+Query connection failed, but alert context indicates 120.0 dropped packets (threshold 0.0)
+Recent Changes
+Change history tool not available in the current environment. No Git repositories or deployment audit logs were accessible for investigation. This is a gap in the analysis—no recent code or infrastructure changes could be verified or ruled out.
+
+Contributing Factors
+Core Switch Port Failure (GigE0/2) — The interface went down, causing immediate egress discard events. This is the root network failure point.
+
+Egress Packet Discards — The switch port failure resulted in 450 egress discards on switch-core-01:GigE0/2, exceeding the threshold (0.0).
+
+Hypervisor Uplink Packet Loss — Discards propagated through the ESXi hypervisor's vmnic, with 120 dropped packets detected at esxi-host-01, indicating loss at the uplink layer.
+
+VM-Level Retransmit Cascade — TCP retransmits increased to 85 on vm-app-01 as applications inside the VM encountered dropped packets and retried connections.
+
+Application Connection Timeouts — With 85 retransmits occurring at the transport layer and packets being lost upstream, TCP connections to orders-api experienced timeouts. The alert measured 42 timeout events, exceeding the threshold of 5.
+
+Timeline
+06:11:54 UTC (1784875914019634 microseconds) — Alert uc2_core_switch_link_failure triggered. Core switch interface GigE0/2 transitioned to link-down state.
+06:11:54 UTC (same timestamp) — observeops_ifoutdiscards metric recorded 450 egress discards on switch-core-01:GigE0/2.
+06:11:54 UTC (same timestamp) — observeops_vmnic_dropped_packets metric recorded 120 dropped packets on esxi-host-01 vmnic, propagating the loss up the stack.
+06:11:54 UTC (same timestamp) — observeops_tcp_retransmits metric recorded 85 retransmits on vm-app-01 as TCP stacks inside the VM began handling packet loss.
+06:11:54 UTC (same timestamp) — observeops_tcp_timeouts metric recorded 42 timeout events on orders-api, exceeding threshold of 5.
+Incident Created: 06:11:54 UTC — Platform grouped all metrics into single incident based on alert_id correlation and time window.
+Actions
+Immediate
+Inspect switch-core-01:GigE0/2 — Check physical interface status, cable connections, and optical signal quality. Verify no hardware errors or port faults.
+Check switch port configuration — Validate MTU settings, duplex mode, and flow control settings match upstream device expectations.
+Restart or reset port — Perform a controlled port bounce (disable/enable) to clear any stuck state.
+Verify fabric redundancy — Confirm whether alternate uplinks or port channels exist for orders-api traffic. If failover is available, activate to restore service while investigating.
+Monitor retransmit and timeout metrics — Once port is restored, confirm TCP retransmits on vm-app-01 and timeouts on orders-api return to baseline.
+Future
+Implement network fault-tolerance — Configure link aggregation (LAG/EtherChannel) or redundant paths to avoid single-point-of-failure on core switch ports.
+Add port-health alerting — Create alerts on observeops_ifoutdiscards and observeops_linkdown at lower thresholds to catch degradation before it cascades to application timeouts.
+Establish runbook — Document the causal chain from interface discards → vmnic loss → retransmits → timeouts so on-call teams can rapidly identify and isolate the root layer.
+Upgrade monitoring latency — Current alert latency appears to be within seconds of the failure. Reduce alerting evaluation period to catch transient events before they accumulate into customer-facing impact.
+Executive Summary
+Potential Cause: Core switch interface GigE0/2 on switch-core-01 transitioned to link-down state, causing immediate egress packet discards (450) on the interface. The failure cascaded through the network path: packet loss at the switch → dropped packets at the ESXi hypervisor vmnic (120) → TCP retransmits at the application VM level (85) → connection timeouts at orders-api (42, exceeding threshold of 5). The root cause is a network layer fault on the core switch port; no application or hypervisor-level issues are indicated.
+
+Impact: Orders-api is unable to accept new connections or maintain existing TCP sessions due to packet loss in the upstream network. This blocks all order processing functionality for end users, constituting a critical service outage.
+
+Resolution: Restore connectivity on switch-core-01:GigE0/2 by investigating the interface status (cable, optics, configuration), performing a port reset if needed, and validating traffic flow. If the port cannot be quickly restored, failover orders-api traffic to a redundant uplink if one exists. Once the port is restored or traffic is rerouted, verify TCP metrics return to baseline and confirm orders-api accepts connections normally.

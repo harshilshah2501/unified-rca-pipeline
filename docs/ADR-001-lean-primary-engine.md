@@ -2,7 +2,7 @@
 
 ## Status
 
-**Evaluation finding** (2026-07-16) — bakeoff recommendation for the classical ObserveOps UC corpus (`bakeoff-phase-b-002`, corpus v1.1.0). **Lean is the primary evaluation engine on this corpus; not a finalized product or GTM commitment.**
+**Evaluation finding** (2026-07-16; measurement refreshed 2026-07-23) — bakeoff recommendation for the classical ObserveOps UC corpus. **Current scoreboard cite:** `adr001-rerun-20260723` ([`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md)). **ADR-era decision evidence:** `bakeoff-phase-b-002` (corpus v1.1.0). **Lean is the primary evaluation engine on this corpus; not a finalized product or GTM commitment.**
 
 ## Context
 
@@ -11,8 +11,9 @@ derived from [`rca-use-cases-only.md`](./rca-use-cases-only.md) in
 `datasets/observeops/`. That corpus enforces **Roadblock 4** by convention
 (shared `ground_truth.json` + same-bundle bakeoff) and **Roadblock 1b** as a
 joined typed multi-domain CI graph. The matched bakeoffs `bakeoff-phase-a-001`
-and `bakeoff-phase-b-001` / **`bakeoff-phase-b-002`** measured accuracy, reproducibility,
-evidence depth, and efficiency.
+and `bakeoff-phase-b-001` / **`bakeoff-phase-b-002`** established the ADR decision;
+current measurement continues on **`adr001-rerun-20260723`** (parity shared-detect)
+for accuracy, reproducibility, evidence depth, and efficiency.
 
 ## Evaluation recommendation (corpus-scoped)
 

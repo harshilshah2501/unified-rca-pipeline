@@ -14,12 +14,19 @@ from __future__ import annotations
 
 from typing import Any
 
-# Display labels for dashboard / docs
+# Display labels for dashboard / docs (human-facing; ids stay 1_symptom …)
 BUCKET_LABELS = {
-    "1_symptom": "1 · Symptom",
-    "2_infra": "2 · Infrastructure",
-    "3_application": "3 · Application",
-    "4_external": "4 · External",
+    "1_symptom": "Symptom-layer",
+    "2_infra": "Infrastructure",
+    "3_application": "Application",
+    "4_external": "External / change",
+}
+
+BUCKET_BLURBS = {
+    "1_symptom": "What users notice first (errors, slowdown) — root may still be elsewhere",
+    "2_infra": "Shared host, network, storage, or OS layer",
+    "3_application": "App / service dependency or resource issue",
+    "4_external": "Change, deploy, or outside organic ops",
 }
 
 # signature → (fault_bucket, fault_type, short title)
@@ -81,6 +88,7 @@ def resolve_taxonomy(
         "fault_type": ftype,
         "fault_title": title,
         "fault_bucket_label": BUCKET_LABELS.get(bucket, bucket),
+        "fault_bucket_blurb": BUCKET_BLURBS.get(bucket, ""),
     }
 
 

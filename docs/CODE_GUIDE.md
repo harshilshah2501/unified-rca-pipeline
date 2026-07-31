@@ -87,7 +87,7 @@ From repo root, with `.venv` already present:
 ```bash
 # 1) PoC console — best overview of what the code produces
 .venv/bin/python benchmarking/dashboard/server.py
-# → http://127.0.0.1:8765/   (#guide · #samples · #verdict)
+# → http://127.0.0.1:8765/   (#guide · #incident · #samples · #verdict)
 
 # 2) One Lean diagnose (frozen UC pack)
 PYTHONPATH=lean-pipeline:. .venv/bin/python -m lean_rca diagnose UC-1 --format report
@@ -227,7 +227,7 @@ cd federated-pipeline && python3 -m http.server 8770   # learning UI
 4. `benchmarking/benchmark/compare.py`
 5. `benchmarking/dashboard/server.py`
 
-**Cite:** ObserveOps accuracy → `bakeoff-phase-b-002` in [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md). Never merge with OpenObserve peer %.
+**Cite:** ObserveOps accuracy → `adr001-rerun-20260723` in [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md). Never merge with OpenObserve peer %.
 
 ---
 
@@ -307,7 +307,7 @@ No root `.env` is required for the basic UC path. Motadata dumps must exist loca
 | Workflow + open work | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) |
 | Ingest design | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
 | Terms | [`GLOSSARY.md`](./GLOSSARY.md) |
-| Lean study notes | [`../Lean-decoded.md`](../Lean-decoded.md) |
-| Federated study notes | [`../Federated-decoded.md`](../Federated-decoded.md) |
+| Lean study notes | [`./learning/Lean-decoded.md`](./learning/Lean-decoded.md) |
+| Federated study notes | [`./learning/Federated-decoded.md`](./learning/Federated-decoded.md) |
 
 *Last updated: 2026-07-22*

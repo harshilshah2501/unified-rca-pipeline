@@ -9,8 +9,9 @@
 | Run | Result |
 |-----|--------|
 | `bakeoff-phase-a-001` | Both 5/5; primary evaluation engine called (ADR-001) |
-| `bakeoff-phase-b-002` | Corpus v1.1.0; both 5/5; lean Tier 3 on UC-1/UC-3; four-axis + efficiency; **canonical scoreboard** |
-| `bakeoff-phase-b-001` | Historical; superseded by b-002 for headline numbers |
+| `bakeoff-phase-b-002` | Corpus v1.1.0; both 5/5; lean Tier 3 on UC-1/UC-3; four-axis + efficiency; **ADR-era decision snapshot** |
+| **`adr001-rerun-20260723`** | Parity shared-detect; both 5/5; **current scoreboard cite** ([`COMPARISON.md`](../results/comparison/COMPARISON.md), [`RUN_IDS.md`](../results/comparison/RUN_IDS.md)) |
+| `bakeoff-phase-b-001` | Historical; superseded by b-002 for ADR-era headline numbers |
 
 Reports: [`../results/comparison/COMPARISON.md`](../results/comparison/COMPARISON.md), [`../results/comparison/DECISION.md`](../results/comparison/DECISION.md)
 

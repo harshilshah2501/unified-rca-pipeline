@@ -1,0 +1,12 @@
+{
+  "root_ci": "orders-api",
+  "signature": "app_resource_exhaustion",
+  "contributor_cis": [],
+  "blast_radius": [
+    "orders-api"
+  ],
+  "upstream_healthy": true,
+  "fault_bucket": "3_application",
+  "fault_type": "dependency_downstream",
+  "fault_title": "Orders-api resource exhaustion"
+}

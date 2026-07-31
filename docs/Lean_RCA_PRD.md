@@ -18,7 +18,7 @@ This document specifies a lean Root Cause Analysis (RCA) architecture, scored ex
 
 | Track | Status |
 |-------|--------|
-| **ObserveOps (classic infra typed CI graph)** | **Primary evaluation engine** per bakeoff ([ADR-001](./ADR-001-lean-primary-engine.md)); **not a finalized product commitment**. Journey **Compare → Deepen → Ship** exercised: `bakeoff-phase-a-001`, `bakeoff-phase-b-001`, **`bakeoff-phase-b-002`** (corpus v1.1.0). |
+| **ObserveOps (classic infra typed CI graph)** | **Primary evaluation engine** per bakeoff ([ADR-001](./ADR-001-lean-primary-engine.md)); **not a finalized product commitment**. Journey **Compare → Deepen → Ship** exercised: `bakeoff-phase-a-001`, `bakeoff-phase-b-001`, `bakeoff-phase-b-002` (ADR-era); current cite **`adr001-rerun-20260723`**. |
 | **Microservice / DeathStarBench-style PoC (original Sections 3 + Appendix B)** | **Deferred / optional.** Still a valid research track for Roadblocks 1a / 2 / 3; not the primary evaluation engine packaging path. |
 | **Federated pipeline** | **Optional hybrid** for microservice code-path / gray-failure / pair-mining once a dedicated microservice corpus is in scope. |
 

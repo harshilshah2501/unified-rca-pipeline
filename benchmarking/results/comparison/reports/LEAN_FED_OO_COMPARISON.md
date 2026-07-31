@@ -2,35 +2,28 @@
 
 **Corpus:** ObserveOps UC-1..UC-5 (same synthetic classic-infra stories)  
 **Lean / Federated cite:** run `adr001-rerun-20260723` · reports under [`lean/`](./lean/) · [`federated/`](./federated/) · scoreboard [`../COMPARISON.md`](../COMPARISON.md)  
-**OpenObserve cite:** operator-collected incident analyses under [`OO/`](./OO/) (synthetic data pushed into OO; alerts → incidents → RCA write-ups)  
-**Date indexed:** 2026-07-24  
+**OpenObserve cite (fair):** Slice A 2026-07-27 — symptom-only alerts + `--fair` shift-to-now push · extracts [`OO/_fair_extracts/`](./OO/_fair_extracts/) · write-ups [`OO/fair/`](./OO/fair/)  
+**Charter:** [`docs/SLICE_A_OO_UC_FAIRNESS.md`](../../../docs/SLICE_A_OO_UC_FAIRNESS.md)  
+**Date indexed:** 2026-07-27  
 
-**Do not merge** this three-way surface with Motadata L1, ecom-numa gold, or prior OpenObserve peer % scoreboards.
+**Do not merge** this three-way surface with Motadata L1, ecom-numa gold, or OpenObserve peer (29) scoreboards.
 
 ---
 
-## 0. Fairness contract (read first)
+## 0. Fairness contract
 
 | Engine | How the case starts | What we score |
 |--------|---------------------|---------------|
-| **Lean / Federated** | Frozen pack (topology + anomalies + seed + GT); shared threshold Detect in bakeoff | Machine `root_ci` / signature vs GT; N=20 repro; latency; comprehensive report 15/15 |
-| **OpenObserve** | **Alert required** to form an incident; no automatic RCA without alerts. Past-data incident creation was disabled for ~14‑day‑old telemetry, so the operator **forced past-window incident trigger** after preparing alerts | Human-readable OO incident analysis (executive “Potential Cause”) vs same GT |
+| **Lean / Federated** | Frozen pack + shared Detect (`adr001-rerun-20260723`) | Machine `root_ci` / signature vs pack GT |
+| **OpenObserve (fair)** | Symptom-only alert → incident → AI SRE Analysis; telemetry via `--fair --shift-to-now` (no `root_ci_gt` / `signature_gt` on records or alerts) | Blind map of Executive “Potential Cause” → root CI vs pack GT |
 
-### Operator notes (OO run — authoritative caveats)
+### Fair-run process notes (2026-07-27)
 
-1. **Automatic RCA is not available in OpenObserve** — alert creation is compulsory before any incident/RCA exists.  
-2. Alerts were not present initially → no incidents until alerts were prepared.  
-3. Incident creation from past data was disabled → changed so **past** synthetic windows could be triggered (data was ~14 days old).  
-
-These steps are **part of the OO cost of entry**, not a Lean/Fed step. Treat OO results as **alert-gated, operator-assisted** analysis on the same synthetic story — not a drop-in same-API bakeoff.
-
-### Contamination flag (UC-1)
-
-OO UC-1 analysis quotes alert text that embeds GT literally:
-
-`root_ci_gt=esxi-host-01, signature_gt=cpu_contention`
-
-So UC-1 OO “correctness” is **weak evidence** for independent Localize; the alert may have handed the answer. Prefer UC-2..UC-5 for OO accuracy claims unless alerts are rewritten without GT strings.
+1. Fair push: `push_observeops_uc_to_openobserve.py --parity-run-id adr001-rerun-20260723 --fair --shift-to-now --end-offset-minutes 2`.  
+2. Alerts: `orders_api_*_UC{1..5}` — symptom SQL only (`oo_slice_a_alerts.json`).  
+3. **Shift required:** OO incident clock is “now”; absolute Jul-10 parity timestamps do not land in the Analysis window. Score sheet marks `shift: yes`.  
+4. Old morning incidents absorbed re-fires → resolved; scoring used **new** open incidents after r3/r4 push.  
+5. Prior [`OO/_historical_contaminated/`](./OO/_historical_contaminated/) write-ups (2026-07-24) are **contaminated / historical** — do not cite for accuracy.
 
 ---
 
@@ -46,65 +39,71 @@ So UC-1 OO “correctness” is **weak evidence** for independent Localize; the 
 
 ---
 
-## 2. Root / Identify scoreboard
+## 2. Root / Identify scoreboard (fair Slice A)
 
-| UC | GT root | Lean | Federated | OpenObserve (from executive / potential cause) | OO notes |
-|----|---------|------|-----------|------------------------------------------------|----------|
-| UC-1 | `esxi-host-01` | ✓ | ✓ | ✓ names `esxi-host-01` / CPU contention | **GT string in alert** — discount |
-| UC-2 | `switch-core-01:GigE0/2` | ✓ | ✓ | ✓ core switch GigE0/2 link-down | Metric/log query gaps; still correct narrative |
-| UC-3 | `datastore-01` | ✓ | ✓ | ✓ datastore queue + `vm-neighbor-01` noisy neighbor | Strong multimodal reasoning in prose |
-| UC-4 | `guest-os-vm-app-01` | ✓ | ✓ | ✓ guest FS full → OOM → app | Correct layer; hypervisors ruled out |
-| UC-5 | `orders-api` | ✓ | ✓ | ✓ app heap + pool; infra healthy | **Anti-FP pass** (critical) |
+| UC | GT root | Lean | Federated | OpenObserve (blind Potential Cause) | OO ✓? |
+|----|---------|------|-----------|-------------------------------------|-------|
+| UC-1 | `esxi-host-01` | ✓ | ✓ | `payment-db (db-01)` / checkout TCP + slow product queries | **No** |
+| UC-2 | `switch-core-01:GigE0/2` | ✓ | ✓ | _(none)_ — OO API unavailable at analysis | **No** |
+| UC-3 | `datastore-01` | ✓ | ✓ | unidentified shared downstream bottleneck | **No** |
+| UC-4 | `guest-os-vm-app-01` | ✓ | ✓ | unidentified deploy/config/upstream | **No** |
+| UC-5 | `orders-api` | ✓ | ✓ | orders-api pool saturation + JVM heap ~96% | **Yes** |
 
-**Headline accuracy (root story):**
+**Headline accuracy (root vs pack GT):**
 
-| Engine | Root vs GT | Caveat |
-|--------|------------|--------|
-| Lean | **5/5** | Machine-scored vs pack GT |
-| Federated | **5/5** | Machine-scored vs pack GT |
-| OpenObserve | **5/5 narrative** (operator judgment) | UC-1 contaminated; process not automatic |
+| Engine | Root | Caveat |
+|--------|------|--------|
+| Lean | **5/5** | Machine-scored |
+| Federated | **5/5** | Machine-scored |
+| OpenObserve (fair) | **1/5** | UC-5 only; UC-2 = platform failure (no RCA) |
 
-Signatures: Lean/Fed machine-match GT on this rerun. OO uses prose (“CPU contention”, “link-down”, “datastore contention”, “guest OS exhaustion”, “JVM/pool exhaustion”) — aligned in meaning, not the same enum field.
+Incidents scored: UC-1 `3H538eGN…` · UC-2 `3H5422Dw…` · UC-3 `3H541z1b…` · UC-4 `3H543H5F…` · UC-5 `3H540hUY…`.
 
----
+Signatures: Lean/Fed machine-match GT. OO prose — only UC-5 clearly aligns with `app_resource_exhaustion` on `orders-api`.
 
-## 3. Four-axis + ops axes (UC corpus)
+### Historical (contaminated) OO row — do not use for claims
 
-| Axis | Lean | Federated | OpenObserve |
-|------|------|-----------|-------------|
-| **Accuracy (root)** | 5/5 | 5/5 | 5/5 narrative (see §0 UC-1) |
-| **UC-5 anti-FP** | Pass | Pass | Pass (infra ruled healthy) |
-| **Reproducibility** | **100%** N=20 bit-identical | **40%** packs bit-identical | Not on this contract (LLM/operator write-up) |
-| **Verifiability** | High — tier / CARE / causal_log + structured report | Medium — fusion/posterior; report assembled | High **prose** audit; weaker **machine** replay of Localize path |
-| **Efficiency (diagnose)** | ~**1–5 ms** RCA | ~**0.003–10 s** RCA | Human + platform (alerts, past trigger, investigation) — **minutes**, not ms |
-| **Report completeness** | 15/15 `comprehensive_rca.v1` | 15/15 | Rich OO sections; some **tool gaps** (traces/logs/changes empty on UC-2/3/5) |
-| **Front-door cost** | Pack / Detect in bakeoff | Same | **Must author alerts** + enable past incident path |
-
-Sources: Lean/Fed — [`../COMPARISON.md`](../COMPARISON.md). OO — [`OO/`](./OO/) + operator notes above.
+| Engine | Claimed root | Why invalid |
+|--------|--------------|-------------|
+| OO 2026-07-24 | 5/5 narrative | UC-1 alert embedded `root_ci_gt` / `signature_gt`; other UCs not re-proven under fair alerts |
 
 ---
 
-## 4. Per-UC qualitative (what each got right / struggled)
+## 3. Four-axis + ops axes (UC corpus, fair OO)
+
+| Axis | Lean | Federated | OpenObserve (fair) |
+|------|------|-----------|---------------------|
+| **Accuracy (root)** | 5/5 | 5/5 | **1/5** |
+| **UC-5 anti-FP** | Pass | Pass | **Pass** (stayed on app; no healthy-infra blame) |
+| **Reproducibility** | **100%** N=20 | **40%** packs | Not on contract (LLM Analysis) |
+| **Verifiability** | High — structured report | Medium — fusion | Prose audit; mixed evidence (ecom stream bleed on UC-1) |
+| **Efficiency (diagnose)** | ~1–5 ms RCA | ~0.003–10 s | Minutes (alerts + Analysis); hung delta jobs observed |
+| **Report completeness** | 15/15 | 15/15 | Variable; UC-2 empty; UC-3/4 “unknown”; UC-5 strong app story |
+| **Front-door cost** | Pack / Detect | Same | Must author alerts + shift data into “now” window |
+
+---
+
+## 4. Per-UC qualitative (fair run)
 
 ### UC-1 — ESXi CPU contention
-- **Lean / Fed:** Correct root; Lean Tier 3 + CARE on this rerun path.  
-- **OO:** Correct story (hypervisor contention → guest ready → app latency) **but** alert embeds GT — do not cite as independent discovery.
+- **Lean / Fed:** Correct `esxi-host-01`.  
+- **OO:** Saw observeops p95=1450 but blamed **checkout / payment-db** using unrelated org streams (`api_gateway_logs`, `checkout_service_logs`). Missed `cpu_ready` / ESXi.
 
 ### UC-2 — Core switch link failure
-- **Lean / Fed:** Correct root port.  
-- **OO:** Correct root port + cascade (discards → vmnic → retransmits → timeouts). Live queries often **0 hits** / “Not connected”; analysis leaned on **alert context**. Shows OO strength when alert text is rich, and fragility when streams don’t query.
+- **Lean / Fed:** Correct switch port.  
+- **OO:** Analysis failed (“OpenObserve API unavailable”). No root produced → score miss.
 
 ### UC-3 — Datastore noisy neighbor
 - **Lean / Fed:** Correct `datastore-01`.  
-- **OO:** Excellent explanation of **gavg ≫ davg** and `vm-neighbor-01` — matches GT teaching intent. Topology tool empty; still recovered chain from alert/metrics.
+- **OO:** Noted 400→2100 ms and co-spikes with UC-1/UC-5; could not name datastore / storage contention.
 
 ### UC-4 — Guest OS exhaustion
-- **Lean / Fed:** Correct guest OS root.  
-- **OO:** Correct FS full → OOM kill → 5xx; correctly keeps ESXi out of blame.
+- **Lean / Fed:** Correct `guest-os-vm-app-01`.  
+- **OO:** Saw 2%→42% 5xx; blamed vague deploy/upstream; logs stream flaky during push. Did not name guest OS / OOM path.
 
 ### UC-5 — App resource exhaustion (anti-FP)
-- **Lean / Fed:** Correct `orders-api`; no infra false blame.  
-- **OO:** Correct app heap + DB pool; explicitly marks infra layers NORMAL — **same anti-FP win**.
+- **Lean / Fed:** Correct `orders-api`.  
+- **OO:** Correct app-layer story (pool 100% + JVM heap 96% → p95 1800 / 18% errors). **Anti-FP pass.**
 
 ---
 
@@ -114,20 +113,20 @@ Sources: Lean/Fed — [`../COMPARISON.md`](../COMPARISON.md). OO — [`OO/`](./O
 |--------------------|--------|
 | Bit-stable, ms Localize on classic infra packs | **Lean** |
 | Structured GT bakeoff + SRE tier labels | **Lean** (Fed as comparator) |
-| Heavy causal sampling / future micro path-diff | **Federated** (not winning this UC ops profile) |
-| Rich incident narrative inside an observability product | **OpenObserve** (after alerts exist) |
-| Zero-alert automatic RCA from frozen pack | **Lean / Fed** — OO **cannot** start without alerts |
-| Independent Localize without GT in alert text | **Lean / Fed**; scrub OO alerts before claiming OO accuracy |
+| Upstream infra roots (ESXi / switch / datastore / guest OS) on fair symptom alerts | **Lean / Fed** (OO 0/4 on those in this fair pass) |
+| App-local resource exhaustion when symptom is on the app | Lean / Fed / **OO** (OO hit UC-5) |
+| Rich productized incident narrative | **OO** (when Analysis completes) — not a substitute for fair root accuracy |
+| Zero-alert automatic RCA from frozen pack | **Lean / Fed** |
 
 ---
 
-## 6. Verdict (this three-way only)
+## 6. Verdict (fair three-way)
 
-1. **All three can tell the correct UC story** on this synthetic push — including UC-5 anti-FP.  
-2. **Lean remains the stronger *engine* for ObserveOps UC ops profile:** reproducibility, latency, machine GT scoring, no alert prerequisite.  
-3. **OO’s leverage is productized multimodal prose** once incidents exist — not automatic RCA, and not a fair ms bakeoff opponent.  
-4. **Do not overclaim OO Localize wins** until alerts are free of `root_ci_gt` / `signature_gt` coaching (especially UC-1). See [`OO_UC_FAIRNESS_CHECKLIST.md`](../../../docs/OO_UC_FAIRNESS_CHECKLIST.md).  
-5. Federated ties accuracy here but loses Lean on cost/repro; OO does not change ADR-001 for classic infra.
+1. **Lean and Federated remain 5/5** on pack GT for UC-1..UC-5.  
+2. **Fair OO root accuracy is 1/5** — only UC-5 (app-local). Upstream-infra UCs were wrong, vague, or unscorable.  
+3. Contaminated 2026-07-24 OO “5/5” is **withdrawn** for Localize claims.  
+4. **ADR-001 lean-primary on ObserveOps UC is reinforced**, not weakened, by fair OO.  
+5. OO still useful as a **product narrative** surface; do not treat fair UC root % as peer to Lean/Fed machine scoring without stating the 1/5 caveat.
 
 ---
 
@@ -135,10 +134,13 @@ Sources: Lean/Fed — [`../COMPARISON.md`](../COMPARISON.md). OO — [`OO/`](./O
 
 | Path | Role |
 |------|------|
-| [`OO/uc1_esxi_cpu_contention`](./OO/uc1_esxi_cpu_contention) … [`uc5_…`](./OO/uc5_orders_api_resource_exhaustion) | OO write-ups |
+| [`OO/uc1_…`](./OO/_historical_contaminated/uc1_esxi_cpu_contention.md) … [`uc5_…`](./OO/_historical_contaminated/uc5_orders_api_resource_exhaustion.md) | **Historical contaminated** (2026-07-24) |
+| [`OO/fair/`](./OO/fair/) | Fair Slice A write-ups + scoreboard JSON |
+| [`openobserve/UC-N/`](./openobserve/) | OO portal Analysis as `incident_report.json` (same shape as Lean/Fed) |
+| [`OO/_fair_extracts/`](./OO/_fair_extracts/) | Blind extract JSON + raw Analysis markdown |
 | [`lean/UC-N/incident_report.md`](./lean/UC-1/incident_report.md) | Lean comprehensive reports |
 | [`federated/UC-N/incident_report.md`](./federated/UC-1/incident_report.md) | Federated comprehensive reports |
 | [`../COMPARISON.md`](../COMPARISON.md) | Lean vs Fed machine scoreboard |
-| [`../../../docs/ADR-001-lean-primary-engine.md`](../../../docs/ADR-001-lean-primary-engine.md) | Lean-primary evaluation finding (UC-scoped) |
+| [`../../../docs/SLICE_A_OO_UC_FAIRNESS.md`](../../../docs/SLICE_A_OO_UC_FAIRNESS.md) | Fairness charter + live score sheet |
 
-*Last updated: 2026-07-24 — first Lean/Fed/OO UC three-way with OO process caveats.*
+*Last updated: 2026-07-27 — fair Slice A OO re-score (1/5); contaminated OO narrative retired for accuracy claims.*

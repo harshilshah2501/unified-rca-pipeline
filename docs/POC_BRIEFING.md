@@ -1,9 +1,9 @@
 # Unified RCA PoC — End-to-End Briefing
 
 **Audience:** brainstorming, stakeholder reviews, NotebookLM → slide decks  
-**Date:** 2026-07-22 (Motadata L1 7/7 human-confirmed; UC ADR narrative still `bakeoff-phase-b-002`)  
-**Status:** ObserveOps **UC RCA eval** critical path **complete** (journey: Compare → Deepen → Ship + ADR-001). **Motadata Transfer** L1 **7/7** both engines (human GT on `#samples`). **Active next (Connect):** `LIVE` ingest smoke → `CHANGE` feed — [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) §3 · **Demo:** [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md) · **Journey map:** [`ROADMAP.md`](./ROADMAP.md)  
-**Evaluation finding (not a finalized product commitment):** On the classic ObserveOps UC corpus, bakeoff evidence **favors lean** as the primary evaluation engine ([ADR-001](./ADR-001-lean-primary-engine.md); matched run **`bakeoff-phase-b-002`**). Motadata L1 is a **separate** scoreboard (do not merge %).  
+**Date:** 2026-07-27 (Motadata L1 7/7; UC scoreboard `adr001-rerun-20260723`; fair OO Slice A **1/5**)  
+**Status:** ObserveOps **UC RCA eval** critical path **complete** (journey: Compare → Deepen → Ship + ADR-001). **Motadata Transfer** L1 **7/7** both engines (human GT on `#samples`). **Fair Lean×Fed×OO** on UC-1..UC-5: Lean/Fed **5/5**, OO **1/5** ([`LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md)). **Active next (Connect):** `LIVE` ingest smoke → `CHANGE` feed — [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) §3 · **Demo:** [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md) · **Journey map:** [`ROADMAP.md`](./ROADMAP.md)  
+**Evaluation finding (not a finalized product commitment):** On the classic ObserveOps UC corpus, bakeoff evidence **favors lean** as the primary evaluation engine ([ADR-001](./ADR-001-lean-primary-engine.md); current cite **`adr001-rerun-20260723`**; ADR-era evidence `bakeoff-phase-b-002`). Motadata L1 and fair OO UC are **separate** scoreboards (do not merge %).  
 **Two corpora (do not merge):** (1) **UC-1..UC-5** — controlled pre-eval / engine decision. (2) **Motadata L1** — real Motadata export packs with human GT — transfer PoC after the engine call. Spec also has **UC-3b** + `events.json` — [`rca-use-cases-only.md`](./rca-use-cases-only.md).
 
 ---
@@ -18,7 +18,7 @@ ObserveOps needs automatic root-cause analysis across a VMware-style stack:
 
 | Stage | Corpus | Job | Headline |
 |-------|--------|-----|----------|
-| **1 · Controlled pre-eval** | ObserveOps **UC-1..UC-5** (synthetic, frozen, shared GT) | Fair Lean vs Federated compare → **which engine?** | `bakeoff-phase-b-002`: accuracy **5/5** both; Lean wins repro / audit / cost → [ADR-001](./ADR-001-lean-primary-engine.md) |
+| **1 · Controlled pre-eval** | ObserveOps **UC-1..UC-5** (synthetic, frozen, shared GT) | Fair Lean vs Federated compare → **which engine?** | `adr001-rerun-20260723`: accuracy **5/5** both; Lean wins repro / audit / cost → [ADR-001](./ADR-001-lean-primary-engine.md) |
 | **2 · Real-export PoC** | **Motadata L1** packs cut from a real Motadata dump | Does Localize/Identify transfer after ingest + **human** GT? | **7/7** Lean & Federated (tie) on confirmed packs — *not* merged with UC 5/5 |
 
 UC is **not** “fake work before the real PoC.” It is the **controlled bakeoff** that locked the engine call under fair conditions. Motadata is the **subsequent field-transfer PoC**: same engines, real telemetry lake → labeled packs → `#samples` human confirm.
@@ -30,7 +30,7 @@ We built and compared **two engines** (first on UC, then re-scored on Motadata):
 | **Federated** | Panorama (detect) → Murphy (macro causal) → Nezha (micro patterns) | Optional / future microservice & gray-failure track |
 | **Lean** | Best-first + temporal + info-gain walk; CARE when Δt is ambiguous; scoped Tier-3 causal only when needed | **Primary evaluation engine** (ADR-001; not a finalized GTM commitment) |
 
-**UC bakeoff headline (`bakeoff-phase-b-002`, corpus v1.1.0):**
+**UC bakeoff headline (`adr001-rerun-20260723`; ADR-era `bakeoff-phase-b-002`):**
 
 | Axis | Federated | Lean | Winner |
 |------|-----------|------|--------|
@@ -43,6 +43,8 @@ We built and compared **two engines** (first on UC, then re-scored on Motadata):
 \*Do **not** read “main path” as lean’s Tier 1/2/3 — that ladder is **lean-only**. The bakeoff’s shared `main_path %` only means `fallback_fired: false` for both engines: for lean = CARE did not fire; for federated = fusion did not fall back to lean rules. On `b-002`, federated is 5/5 “no-fallback” while lean fires CARE on UC-1/UC-3 (intentional Tier 2→3 depth). **Verifiability still favors lean** for SRE auditability of the evidence chain. See [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) and [`GLOSSARY.md`](./GLOSSARY.md).
 
 **Motadata L1 headline (separate scoreboard):** Lean **7/7** · Federated **7/7** (root+sig) on human-confirmed packs (APM, ping×4, CPU, multi-signal HB1). Proves transfer on real export slices — **not** “production handles anything.” Details: §5.2 · [`results/motadata/COMPARISON.md`](../benchmarking/results/motadata/COMPARISON.md).
+
+**Fair Lean × Federated × OO (UC-1..UC-5, separate surface):** Lean **5/5** · Federated **5/5** · OO fair **1/5** (UC-5 only; contaminated 2026-07-24 OO “5/5” withdrawn). Write-ups: [`reports/OO/fair/`](../benchmarking/results/comparison/reports/OO/fair/) · [`LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md).
 
 **Conclusion:** On ObserveOps classic-infra tickets, lean wins the cost–benefit. Murphy’s causal edge is real but does not buy extra accuracy on the UC corpus, and it loses on reproducibility, auditability, and compute/ops cost. Ship lean first; keep federated for a hybrid later if microservice/code-path RCA is in scope. Motadata L1 so far **ties** both engines on labeled real packs — it supports the ingest path, it does **not** reopen ADR-001 by itself.
 
@@ -207,7 +209,7 @@ Each UC specifies: fault injection idea, decisive telemetry thresholds, per-laye
 | `motadata-cpu-001` | `Fluentbit` | `host_cpu_saturation` | Episodic host CPU |
 | `motadata-multi-001` | `HB1-…-735.hb1.com` | `host_cpu_saturation` | Harder multi-signal CPU+mem+ping (confirmed) |
 
-**L1 scoreboard (separate from UC):** Lean **7/7** · Federated **7/7** (root+sig) — [`COMPARISON.md`](../benchmarking/results/motadata/COMPARISON.md). Console: `#samples` · [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md).
+**L1 scoreboard (separate from UC):** Lean **7/7** · Federated **7/7** (root+sig) — [`COMPARISON.md`](../benchmarking/results/motadata/COMPARISON.md). Console: `#incident` · `#samples` · [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md).
 
 **What Motadata L1 does *not* claim:** exhaustive coverage of the dump; production “handles anything”; gray-failure / path-diff Identify; or a redo of ADR-001.
 
@@ -427,11 +429,11 @@ Scored **identically** for both engines against `datasets/observeops/*/ground_tr
 
 **Winner policy (per UC):** accuracy first (with UC-5 guard), then fewer observations, then explicit latency; else tie.
 
-**Matched run ids:** `bakeoff-phase-a-001` (decision call), **`bakeoff-phase-b-002`** (latest scoreboard; corpus v1.1.0). Historical: `bakeoff-phase-b-001`.
+**Matched run ids:** current scoreboard **`adr001-rerun-20260723`**; ADR-era **`bakeoff-phase-b-002`**; decision call `bakeoff-phase-a-001`. Historical: `bakeoff-phase-b-001`. Index: [`RUN_IDS.md`](../benchmarking/results/comparison/RUN_IDS.md).
 
 ---
 
-## 10. Results (`bakeoff-phase-b-002`)
+## 10. Results (`adr001-rerun-20260723`)
 
 ### 10.1 Overall scoreboard
 

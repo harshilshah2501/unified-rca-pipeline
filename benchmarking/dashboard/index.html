@@ -799,6 +799,36 @@
       display: none;
     }
     .sample-detail.open { display: block; }
+    .sample-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+      gap: 0.55rem 0.85rem;
+      margin: 0.55rem 0 0.75rem;
+      padding: 0.75rem 0.9rem;
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .sample-meta-grid .k {
+      display: block;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 0.15rem;
+    }
+    .sample-meta-grid .v {
+      font-size: 0.86rem;
+      color: var(--text);
+      line-height: 1.35;
+    }
+    .sample-hint-line {
+      margin: 0 0 0.65rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
     .check-list {
       margin: 0.4rem 0 0;
       padding-left: 1.1rem;
@@ -860,6 +890,139 @@
       background: var(--bg-soft);
     }
     .bucket-chip b { color: var(--text); }
+
+    /* Incident Analysis — human report (OO-style) */
+    .inc-toolbar {
+      display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; align-items: center;
+      margin-bottom: 0.85rem;
+    }
+    .inc-toolbar label { font-size: 0.82rem; color: var(--muted); }
+    .inc-toolbar select {
+      background: var(--bg-soft); color: var(--text); border: 1px solid var(--line);
+      border-radius: 8px; padding: 0.45rem 0.7rem; font: inherit; font-size: 0.9rem;
+    }
+    .inc-engine-seg {
+      display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden;
+    }
+    .inc-engine-seg button {
+      background: transparent; border: 0; color: var(--muted); font: inherit; font-size: 0.8rem;
+      font-weight: 600; padding: 0.4rem 0.85rem; cursor: pointer;
+    }
+    .inc-engine-seg button.on { background: var(--bg-soft); color: var(--text); }
+    .inc-engine-seg button[data-eng="lean"].on { color: var(--lean); }
+    .inc-engine-seg button[data-eng="federated"].on { color: var(--fed); }
+    .inc-engine-seg button:disabled {
+      opacity: 0.35; cursor: not-allowed;
+    }
+    .inc-alert-plain {
+      font-size: 0.88rem; color: var(--muted); margin: 0 0 0.85rem; max-width: 52rem;
+    }
+    .inc-report {
+      background: #f4f1ea;
+      color: #1c1917;
+      border-radius: 12px;
+      border: 1px solid #ddd6c8;
+      overflow: hidden;
+      font-family: "DM Sans", system-ui, sans-serif;
+    }
+    .inc-report-bar {
+      background: #2563eb;
+      color: #fff;
+      padding: 0.7rem 1.15rem;
+      font-weight: 650;
+      font-size: 1.02rem;
+      letter-spacing: -0.01em;
+    }
+    .inc-report-body { padding: 1rem 1.15rem 1.35rem; }
+    .inc-hero {
+      margin: 0 0 1rem;
+      padding: 0.85rem 1rem;
+      background: #fff;
+      border: 1px solid #e7e0d4;
+      border-radius: 10px;
+    }
+    .inc-hero .label {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: #78716c; font-weight: 700; margin: 0 0 0.35rem;
+    }
+    .inc-hero h3 {
+      margin: 0 0 0.4rem; font-family: var(--display); font-size: 1.25rem;
+      font-weight: 600; color: #1c1917; line-height: 1.25;
+    }
+    .inc-hero p { margin: 0; font-size: 0.92rem; color: #44403c; line-height: 1.45; }
+    .inc-badge-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.55rem; }
+    .inc-pill {
+      font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px;
+      border: 1px solid #d6d3d1;
+    }
+    .inc-pill.ok { background: #dcfce7; color: #166534; border-color: #86efac; }
+    .inc-pill.bad { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+    .inc-pill.muted { background: #f5f5f4; color: #57534e; }
+    .inc-sec { margin: 1.15rem 0 0; }
+    .inc-sec h4 {
+      margin: 0 0 0.55rem; font-size: 0.95rem; font-weight: 700; color: #1e3a8a;
+      display: flex; align-items: center; gap: 0.35rem;
+    }
+    .inc-sec h4::before { content: "»"; color: #2563eb; font-weight: 700; }
+    .inc-sec h5 {
+      margin: 0.75rem 0 0.35rem; font-size: 0.82rem; font-weight: 700; color: #44403c;
+    }
+    .inc-table {
+      width: 100%; border-collapse: collapse; font-size: 0.86rem;
+      background: #fff; border: 1px solid #e7e0d4; border-radius: 8px; overflow: hidden;
+    }
+    .inc-table th, .inc-table td {
+      text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid #efeae1;
+      vertical-align: top;
+    }
+    .inc-table tr:last-child th, .inc-table tr:last-child td { border-bottom: 0; }
+    .inc-table th {
+      width: 32%; color: #57534e; font-weight: 600; background: #faf8f4;
+    }
+    .inc-table td { color: #1c1917; }
+    .inc-prose {
+      margin: 0; font-size: 0.88rem; color: #292524; line-height: 1.5;
+      background: #fff; border: 1px solid #e7e0d4; border-radius: 8px; padding: 0.7rem 0.85rem;
+    }
+    .inc-list {
+      margin: 0; padding: 0.55rem 0.85rem 0.55rem 1.4rem;
+      background: #fff; border: 1px solid #e7e0d4; border-radius: 8px;
+      font-size: 0.86rem; color: #292524; line-height: 1.45;
+    }
+    .inc-list li { margin: 0.25rem 0; }
+    .inc-tl { margin: 0; padding: 0; list-style: none; }
+    .inc-tl li {
+      display: grid; grid-template-columns: 9.5rem 1fr; gap: 0.75rem;
+      padding: 0.4rem 0; border-bottom: 1px solid #efeae1; font-size: 0.84rem;
+    }
+    .inc-tl li:last-child { border-bottom: 0; }
+    .inc-tl time { color: #78716c; font-variant-numeric: tabular-nums; }
+    .inc-foot {
+      margin-top: 1rem; font-size: 0.78rem; color: #78716c;
+    }
+    .inc-foot a { color: #1d4ed8; }
+    .inc-deduce {
+      margin: 0.35rem 0 0; padding: 0; list-style: none;
+      display: flex; flex-direction: column; gap: 0.55rem;
+    }
+    .inc-deduce li {
+      display: grid; grid-template-columns: 1.75rem 1fr; gap: 0.55rem;
+      align-items: start; font-size: 0.86rem; line-height: 1.45; color: #292524;
+    }
+    .inc-deduce li > span:last-child {
+      white-space: pre-line;
+      font-variant-numeric: tabular-nums;
+    }
+    .inc-deduce .n {
+      width: 1.55rem; height: 1.55rem; border-radius: 999px;
+      background: #1e3a5f; color: #fff; font-size: 0.72rem; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .inc-deduce-note {
+      margin: 0.65rem 0 0; font-size: 0.78rem; color: #78716c;
+    }
+    .inc-deduce-note a { color: #1d4ed8; }
   </style>
 </head>
 <body>
@@ -876,6 +1039,7 @@
 
     <nav class="toc" id="toc">
       <a href="#guide">Guide</a>
+      <a href="#incident">Incident room</a>
       <a href="#samples">Samples</a>
       <a href="#conduct">PoC Conduct</a>
       <a href="#overview">Overview</a>
@@ -919,8 +1083,10 @@
             </li>
           </ul>
           <p class="hint" style="margin-top:0.85rem">
-            Glossary: <strong>CI</strong> = configuration item · <strong>L0</strong> = Lean sinks only ·
-            <strong>F1</strong> = Lean + structural + speed · <strong>EPS</strong> = events/sec (capacity, not accuracy).
+            Glossary: <strong>CI</strong> = a thing we monitor (host, VM, app, …) ·
+            <strong>L0</strong> = write data only for Lean ·
+            <strong>F1</strong> = write data for Lean <em>and</em> Federated ·
+            <strong>EPS</strong> = how many events/sec the pipe can handle (speed test, not accuracy).
           </p>
         </div>
 
@@ -966,6 +1132,12 @@
             </div>
           </div>
 
+          <p class="hint" style="margin:0.35rem 0 0.75rem">
+            Demo portal compare:
+            <a href="#incident">Incident room</a>
+            · algorithm narration:
+            <a href="/rca-workflow-sim.html">RCA workflow sim</a>
+          </p>
           <div class="pipe-detail" id="pipe-detail">
             <h4 id="pipe-detail-title">Select a stage</h4>
             <p id="pipe-detail-body">Click any node, or press <strong>Play flow</strong> to watch an event move through ingest → detect → both RCA engines.</p>
@@ -975,20 +1147,44 @@
       </div>
     </section>
 
+    <section id="incident">
+      <h2>Incident Analysis</h2>
+      <p class="section-sub">
+        Stakeholder-friendly report — same shape as an OpenObserve Incident Analysis page.
+        <strong>ObserveOps UC-1..UC-5</strong> + <strong>Motadata L1</strong> (7 human-confirmed packs).
+        Lab EPS synthetic is capacity-only (no RCA GT) — not listed.
+        Switch <strong>Lean</strong> / <strong>Federated</strong> / <strong>OpenObserve</strong> (OO disabled on Motadata).
+        Algorithm detail: <a href="/rca-workflow-sim.html">workflow sim</a>.
+      </p>
+      <div class="inc-toolbar">
+        <label for="inc-uc">Incident</label>
+        <select id="inc-uc" aria-label="Incident use case"></select>
+        <div class="inc-engine-seg" id="inc-eng" role="group" aria-label="Engine">
+          <button type="button" data-eng="lean" class="on">Lean</button>
+          <button type="button" data-eng="federated">Federated</button>
+          <button type="button" data-eng="openobserve">OpenObserve</button>
+        </div>
+      </div>
+      <p class="inc-alert-plain" id="inc-alert"></p>
+      <div class="inc-report" id="inc-report"></div>
+    </section>
+
     <section id="samples">
       <h2>Sample incidents · manual verify</h2>
       <p class="section-sub">
         Diverse fault types with human GT. Automation scores root + signature;
         <strong>you</strong> confirm RCA happened by checking seed → root → signature → evidence.
-        Filter by fault bucket (see <code>docs/FAULT_BUCKET_COVERAGE.md</code>).
+        Buckets group <em>where the labeled root lives</em> (not how hard the ticket felt).
+        See <code>docs/FAULT_BUCKET_COVERAGE.md</code>.
       </p>
       <div class="bucket-bar" id="sample-bucket-bar"></div>
       <div class="sample-filters" id="sample-filters"></div>
       <div class="sample-grid" id="sample-grid"></div>
       <div class="panel sample-detail" id="sample-detail">
-        <p class="sample-hint">Click a card above. Checklist + seed / anomalies / Lean evidence appear here.</p>
+        <p class="sample-hint">Click a card above. Checklist and evidence appear here.</p>
         <h3 id="sample-detail-title">Select a sample</h3>
-        <p class="section-sub" id="sample-detail-body" style="margin-bottom:0.4rem"></p>
+        <div id="sample-detail-body"></div>
+        <p class="sample-hint-line" id="sample-detail-hint" hidden></p>
         <ol class="check-list" id="sample-detail-checks"></ol>
         <div class="sample-review" id="sample-detail-review" hidden></div>
       </div>
@@ -1285,7 +1481,7 @@
             <li>Bit-stable reproducibility on UC bakeoff (100% vs ~40%)</li>
             <li>Auditable tiers / CARE / SRE trail (Verifiability)</li>
             <li>Respects Roadblock 5 — cheap main path</li>
-            <li>Motadata L1: same 3/3 root+sig pass as Federated on inventory packs</li>
+            <li>Motadata L1: same 7/7 root+sig pass as Federated on L1 human-confirmed packs</li>
           </ul>
         </div>
         <div class="panel">
@@ -1456,7 +1652,7 @@
         },
         fanout: {
           title: "Fan-out L0 / F1",
-          body: "L0 writes Lean sinks only (cheaper). F1 also writes structural + speed-tier feeds for Federated stores. Vector Docker or Python fan-out — same sink contract.",
+          body: "L0 = store only what Lean needs (cheaper). F1 = also store what Federated needs. Same incoming telemetry; different how widely we write it out.",
           tags: ["L0 lean-only", "F1 dual-sink", "Vector"],
           tone: "lean",
         },
@@ -1663,6 +1859,194 @@
 
     const LEAN = "#3fb59e";
     const FED = "#d08a52";
+
+    (function renderIncidentRoom() {
+      const ir = D.incident_room;
+      const sel = document.getElementById("inc-uc");
+      const reportEl = document.getElementById("inc-report");
+      const alertEl = document.getElementById("inc-alert");
+      const engBar = document.getElementById("inc-eng");
+      if (!ir || !sel || !reportEl) return;
+      const cases = ir.cases || [];
+      if (!cases.length) {
+        reportEl.innerHTML = `<div class="inc-report-body"><p>No incidents — rebuild data.js.</p></div>`;
+        return;
+      }
+      let eng = "lean";
+      const byGroup = {};
+      cases.forEach(c => {
+        const g = c.group || "Other";
+        (byGroup[g] = byGroup[g] || []).push(c);
+      });
+      sel.innerHTML = Object.keys(byGroup).map(g =>
+        `<optgroup label="${g}">` +
+        byGroup[g].map(c =>
+          `<option value="${c.id || c.uc_id}">${c.id || c.uc_id} — ${c.fault_title || ""}</option>`
+        ).join("") +
+        `</optgroup>`
+      ).join("");
+      if (ir.note) {
+        const note = document.createElement("p");
+        note.className = "inc-alert-plain";
+        note.id = "inc-corpus-note";
+        note.textContent = ir.note;
+        const existing = document.getElementById("inc-corpus-note");
+        if (existing) existing.remove();
+        alertEl.parentNode.insertBefore(note, alertEl);
+      }
+      function esc(s) {
+        return String(s ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function rowsTable(rows) {
+        if (!rows || !rows.length) return "";
+        return `<table class="inc-table"><tbody>${rows.map(([k, v]) =>
+          `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`
+        ).join("")}</tbody></table>`;
+      }
+
+      function listBlock(items) {
+        if (!items || !items.length) return `<p class="inc-prose">Nothing notable in this pack.</p>`;
+        return `<ul class="inc-list">${items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`;
+      }
+
+      function paint() {
+        const c = cases.find(x => (x.id || x.uc_id) === sel.value) || cases[0];
+        const ooOk = c.oo_available !== false;
+        engBar.querySelectorAll("button").forEach(b => {
+          const isOo = b.getAttribute("data-eng") === "openobserve";
+          b.disabled = isOo && !ooOk;
+          b.title = (isOo && !ooOk)
+            ? "Fair OO scoreboard is ObserveOps UC only"
+            : "";
+        });
+        if (!ooOk && eng === "openobserve") {
+          eng = "lean";
+          engBar.querySelectorAll("button").forEach(b =>
+            b.classList.toggle("on", b.getAttribute("data-eng") === "lean")
+          );
+        }
+        const s = (c.stories && c.stories[eng]) || {};
+        alertEl.textContent = c.alert_plain || "";
+        const matchPill = s.matches_gt === true
+          ? `<span class="inc-pill ok">Matches pack truth</span>`
+          : s.matches_gt === false
+            ? `<span class="inc-pill bad">Does not match pack truth</span>`
+            : `<span class="inc-pill muted">Not scored</span>`;
+        const engPill = `<span class="inc-pill muted">${esc(
+          eng === "lean" ? "Lean" : eng === "federated" ? "Federated" : "OpenObserve"
+        )}</span>`;
+        const corpusPill = `<span class="inc-pill muted">${esc(c.group || c.corpus || "")}</span>`;
+
+        const tl = (s.timeline || []);
+        const tlHtml = tl.length
+          ? `<ol class="inc-tl">${tl.map(t =>
+              `<li><time>${esc(t.when)}</time><span>${esc(t.what)}</span></li>`
+            ).join("")}</ol>`
+          : `<p class="inc-prose">No timeline in this view.</p>`;
+
+        const deps = s.dependencies || {};
+        const exe = s.executive || {};
+        const howSteps = (s.how_steps && s.how_steps.length)
+          ? s.how_steps
+          : (s.how_we_found_it ? [s.how_we_found_it] : []);
+        const howHtml = howSteps.length
+          ? `<ol class="inc-deduce">${howSteps.map((step, i) =>
+              `<li><span class="n">${i + 1}</span><span>${esc(step)}</span></li>`
+            ).join("")}</ol>
+            <p class="inc-deduce-note">
+              Interactive walk: <a href="/rca-workflow-sim.html">RCA workflow sim</a>
+              · Pack truth for scoring:
+              <strong>${esc((c.gt && c.gt.fault_title) || "")}</strong>
+              (${esc((c.gt && c.gt.root_ci) || "")}).
+            </p>`
+          : `<p class="inc-prose">No deduction trail for this view.</p>`;
+
+        reportEl.innerHTML = `
+          <div class="inc-report-bar">Incident Analysis Report</div>
+          <div class="inc-report-body">
+            <div class="inc-hero">
+              <p class="label">What went wrong</p>
+              <h3>${esc(s.headline || c.fault_title || c.uc_id)}</h3>
+              <p>${esc(s.one_liner || "")}</p>
+              <div class="inc-badge-row">${corpusPill}${engPill}${matchPill}</div>
+            </div>
+
+            <div class="inc-sec">
+              <h4>Incident Summary</h4>
+              ${rowsTable(s.summary_rows)}
+            </div>
+
+            <div class="inc-sec">
+              <h4>How this engine found it</h4>
+              ${howHtml}
+            </div>
+
+            <div class="inc-sec">
+              <h4>Impact Assessment</h4>
+              ${rowsTable(s.impact_rows)}
+            </div>
+
+            <div class="inc-sec">
+              <h4>Evidence</h4>
+              <h5>Service dependencies</h5>
+              <p class="inc-prose">${esc(deps.plain || deps.note || "—")}</p>
+              <p class="inc-prose">
+                <strong>How the fault spread:</strong> ${esc(deps.critical_path || "—")}
+              </p>
+              <h5>Distributed traces</h5>
+              <p class="inc-prose">${esc(s.traces || "—")}</p>
+              <h5>Log patterns</h5>
+              <p class="inc-prose">What showed up in events / syslog — explained in operator language:</p>
+              ${listBlock(s.logs)}
+              <h5>Metrics analysis</h5>
+              <p class="inc-prose">Threshold crossings on the pack, in plain language:</p>
+              ${listBlock(s.metrics)}
+            </div>
+
+            <div class="inc-sec">
+              <h4>Timeline</h4>
+              ${tlHtml}
+            </div>
+
+            <div class="inc-sec">
+              <h4>Actions</h4>
+              <h5>Do now</h5>
+              ${listBlock(s.actions_now)}
+              <h5>Follow up</h5>
+              ${listBlock(s.actions_later)}
+            </div>
+
+            <div class="inc-sec">
+              <h4>Executive Summary</h4>
+              ${rowsTable([
+                ["Likely cause", exe.cause || "—"],
+                ["Impact", exe.impact || "—"],
+                ["Suggested fix", exe.fix || "—"],
+              ])}
+            </div>
+          </div>`;
+      }
+
+      engBar.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          eng = btn.getAttribute("data-eng") || "lean";
+          engBar.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+          paint();
+        });
+      });
+      sel.addEventListener("change", paint);
+      const hash = location.hash || "";
+      const m = hash.match(/uc=(UC-\d)/i) || hash.match(/#(UC-\d)/i);
+      const initial = (m && m[1].toUpperCase()) || "UC-4";
+      if ([...sel.options].some(o => o.value === initial)) sel.value = initial;
+      paint();
+    })();
+
     const ucA = D.uc.axes;
     const ucS = D.uc.summary;
     const poc = D.poc || {};
@@ -1716,20 +2100,22 @@
       const detail = document.getElementById("sample-detail");
       if (!bar || !grid) return;
 
-      bar.innerHTML = (S.buckets || []).map(b =>
-        `<span class="bucket-chip"><b>${b.count}</b> · ${b.label}</span>`
-      ).join("") || `<span class="bucket-chip">No samples — rebuild data.js</span>`;
+      bar.innerHTML = (S.buckets || []).map(b => {
+        const n = b.count || 0;
+        const packWord = n === 1 ? "pack" : "packs";
+        const tip = b.blurb ? ` title="${b.blurb.replace(/"/g, "&quot;")}"` : "";
+        return `<span class="bucket-chip"${tip}><b>${n}</b> ${packWord} · ${b.label}</span>`;
+      }).join("") || `<span class="bucket-chip">No samples — rebuild data.js</span>`;
 
       const opts = [
         { id: "all", label: "All" },
-        { id: "1_symptom", label: "Symptom" },
-        { id: "2_infra", label: "Infra" },
+        { id: "1_symptom", label: "Symptom-layer" },
+        { id: "2_infra", label: "Infrastructure" },
         { id: "3_application", label: "Application" },
-        { id: "4_external", label: "External" },
+        { id: "4_external", label: "External / change" },
         { id: "observeops", label: "ObserveOps" },
         { id: "motadata", label: "Motadata" },
-      ];
-      let filter = "all";
+      ];      let filter = "all";
 
       function paint() {
         filters.innerHTML = opts.map(o =>
@@ -1768,10 +2154,35 @@
         detail.classList.add("open");
         document.getElementById("sample-detail-title").textContent =
           `${r.id} · ${r.fault_title}`;
-        document.getElementById("sample-detail-body").textContent =
-          `Corpus ${r.corpus} · bucket ${r.fault_bucket_label} · type ${r.fault_type}. ` +
-          `Winner on scoreboard: ${r.winner || "—"}. ` +
-          (S.note || "");
+
+        const corpusLabel = r.corpus === "motadata"
+          ? "Motadata (real export)"
+          : r.corpus === "observeops"
+            ? "ObserveOps UC pack"
+            : (r.corpus || "—");
+        const winnerLabel = !r.winner || r.winner === "tie"
+          ? "Tie (both look good)"
+          : r.winner === "lean"
+            ? "Lean"
+            : r.winner === "federated"
+              ? "Federated"
+              : String(r.winner);
+        const faultType = (r.fault_type || "—").replace(/_/g, " ");
+
+        document.getElementById("sample-detail-body").innerHTML = `
+          <div class="sample-meta-grid">
+            <div><span class="k">Source</span><span class="v">${corpusLabel}</span></div>
+            <div><span class="k">Fault layer</span><span class="v">${r.fault_bucket_label || "—"}</span></div>
+            <div><span class="k">Fault kind</span><span class="v">${faultType}</span></div>
+            <div><span class="k">Scoreboard edge</span><span class="v">${winnerLabel}</span></div>
+            <div><span class="k">Lean</span><span class="v">${r.lean_ok ? "Matches GT" : "Miss vs GT"}</span></div>
+            <div><span class="k">Federated</span><span class="v">${r.fed_ok ? "Matches GT" : "Miss vs GT"}</span></div>
+          </div>`;
+        const hint = document.getElementById("sample-detail-hint");
+        hint.hidden = false;
+        hint.textContent =
+          "Walk the checklist: confirm the symptom, then root and signature vs ground truth. Automation only flags mismatches — you stay the authority.";
+
         document.getElementById("sample-detail-checks").innerHTML =
           (r.manual_check || []).map(c => `<li>${c}</li>`).join("");
 
@@ -1780,35 +2191,37 @@
         const parts = [];
         if (rev.gt_status) {
           parts.push(
-            `<div><h4>GT status</h4><div class="mono-block">${rev.gt_status}` +
+            `<div><h4>Ground truth</h4><div class="mono-block">${rev.gt_status}` +
             (rev.gt_note ? `\n${rev.gt_note}` : "") +
             `</div></div>`
           );
         }
         if (rev.seed_line) {
           parts.push(
-            `<div><h4>Symptom seed</h4><div class="mono-block">${rev.seed_line}</div></div>`
+            `<div><h4>Where pain showed (symptom seed)</h4>` +
+            `<p class="sample-hint-line" style="margin:0 0 0.35rem">Start of the search — usually not the root.</p>` +
+            `<div class="mono-block">${rev.seed_line}</div></div>`
           );
         }
         if ((rev.anomaly_lines || []).length) {
           parts.push(
-            `<div><h4>Anomalies (Detect)</h4><ul>` +
+            `<div><h4>What Detect saw (threshold crossings)</h4><ul>` +
             rev.anomaly_lines.map(l => `<li>${l}</li>`).join("") +
             `</ul></div>`
           );
         }
         if ((rev.evidence_lines || []).length) {
           parts.push(
-            `<div><h4>Lean evidence (skim these)</h4><ul>` +
+            `<div><h4>What Lean cited</h4><ul>` +
             rev.evidence_lines.map(l => `<li>${l}</li>`).join("") +
             `</ul></div>`
           );
         }
         if ((rev.causal_chain || []).length) {
           parts.push(
-            `<div><h4>Causal chain</h4><div class="mono-block">` +
+            `<div><h4>Fault path</h4><div class="mono-block">` +
             rev.causal_chain.join(" → ") +
-            (rev.evidentiary_tier != null ? `  · tier ${rev.evidentiary_tier}` : "") +
+            (rev.evidentiary_tier != null ? `\n(Lean path depth: tier ${rev.evidentiary_tier})` : "") +
             `</div></div>`
           );
         }

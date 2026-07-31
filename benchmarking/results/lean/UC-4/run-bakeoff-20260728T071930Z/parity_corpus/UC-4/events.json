@@ -1,0 +1,32 @@
+{
+  "events": [
+    {
+      "timestamp": "2026-07-10T09:56:00Z",
+      "ci": "guest-os-vm-app-01",
+      "event_type": "infra.change",
+      "severity": "info",
+      "message": "Log retention / disk fill activity on guest-os-vm-app-01 filesystem"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "ci": "guest-os-vm-app-01",
+      "event_type": "syslog.filesystem_full",
+      "severity": "critical",
+      "message": "No space left on device writing /var/log/orders-api"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "ci": "guest-os-vm-app-01",
+      "event_type": "syslog.oom_killer",
+      "severity": "critical",
+      "message": "kernel: Out of memory: Killed process 1842 (orders-api)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:18Z",
+      "ci": "orders-api",
+      "event_type": "app.crash",
+      "severity": "critical",
+      "message": "orders-api service down after OOM / filesystem-full on guest OS"
+    }
+  ]
+}

@@ -3,6 +3,8 @@
 **Status:** PoC contract (shared detect + divergent RCA)  
 **Related:** [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) · [`ingestion-poc/detect/`](../ingestion-poc/detect/)
 
+**In plain words:** both engines get the **same alerts** from one threshold detector. We only compare who finds the **root** — Federated does **not** use Panorama as its own detector on this scoreboard.
+
 ---
 
 ## One-sentence rule

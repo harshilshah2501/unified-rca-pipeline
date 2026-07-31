@@ -1,0 +1,32 @@
+{
+  "events": [
+    {
+      "timestamp": "2026-07-10T09:59:00Z",
+      "ci": "orders-api",
+      "event_type": "config.change",
+      "severity": "info",
+      "message": "App deploy / pool-size config change on orders-api (infra below unchanged)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "ci": "orders-api",
+      "event_type": "app.thread_pool",
+      "severity": "critical",
+      "message": "orders-api thread pool exhausted (app-tier fault; infra healthy)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:08Z",
+      "ci": "orders-api",
+      "event_type": "app.heap",
+      "severity": "warning",
+      "message": "JVM heap pressure / GC thrash on orders-api"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "ci": "orders-api",
+      "event_type": "app.error_rate",
+      "severity": "critical",
+      "message": "orders-api error rate elevated \u2014 root is application resource exhaustion"
+    }
+  ]
+}

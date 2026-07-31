@@ -13,7 +13,7 @@
 
 **Related:** [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md) · [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md)
 
-*Last synced: 2026-07-24 — LIVE prep (runbook + Vector live configs); Motadata `motadata-deps-001` Bucket-3; OO fairness checklist; ecom WARN→events closed. Connect execute: `LIVE` next week → `CHANGE`.*
+*Last synced: 2026-07-27 — fair OO Slice A complete (OO 1/5); LIVE prep (runbook + Vector live configs); Motadata `motadata-deps-001` Bucket-3; ecom WARN→events closed. Connect execute: `LIVE` next week → `CHANGE`.*
 
 ---
 
@@ -70,7 +70,7 @@ How ready each **workflow stage** is — not a duplicate of the ROADMAP journey.
 | **LIVE** | Live ingest smoke — syslog or Prometheus → Vector → same F1 sinks | Lab once; seed + sink counts | Noted in Conduct / lab artifact · **prep Done** — [`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md); execute next week |
 | **CHANGE** | Real change feed → `change_near_onset` (D2 product gap) | Human confirms `change_context` on ≥1 pack | Bucket 4 usable on Motadata or UC-linked sample |
 
-**Prep closed 2026-07-24 (not LIVE itself):** LIVE runbook + Vector live configs · OO fairness checklist · ecom WARN→events guard · Motadata Bucket-3 pack `motadata-deps-001` (authored GT; confirm on `#samples`).
+**Prep closed 2026-07-27 (not LIVE itself):** LIVE runbook + Vector live configs · fair OO UC Slice A (**1/5**) · ecom WARN→events guard · Motadata Bucket-3 pack `motadata-deps-001` (authored GT; confirm on `#samples`).
 
 **Already met (do not re-plan here):** Motadata network breadth + harder multi GT (ping-002/003/004 + multi-001). Optional further Bucket-3 packs remain stretch after Samples confirm on deps-001.
 

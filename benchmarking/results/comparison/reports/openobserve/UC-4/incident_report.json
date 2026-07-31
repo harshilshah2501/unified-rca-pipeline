@@ -1,0 +1,156 @@
+{
+  "schema_version": "comprehensive_rca.v1",
+  "incident_id": "3H543H5FOsjMsNlfp197LYU8FqJ",
+  "source_incident_id": "3H543H5FOsjMsNlfp197LYU8FqJ",
+  "engine": "openobserve",
+  "generated_at": "2026-07-28T10:32:11Z",
+  "pack_meta": {
+    "uc_id": "UC-4",
+    "fair_slice": "A_fair",
+    "parity_run_id": "adr001-rerun-20260723",
+    "detected_at": "2026-07-27 09:26:34 UTC",
+    "source": "oo_portal_fair_extract",
+    "analysis_source": "live_fetch",
+    "live_refreshed": true
+  },
+  "localization": {
+    "root_ci": "unidentified",
+    "signature": null,
+    "oo_claimed_root": "unidentified (deploy/config/infra or upstream); no precise failure point",
+    "contributor_cis": [],
+    "false_leads_ruled_out": [],
+    "matches_pack_gt": false
+  },
+  "incident_summary": {
+    "severity": "P3",
+    "detected": "2026-07-27 09:26:34 UTC",
+    "affected_services": [
+      "orders-api (UC-4 slice)"
+    ],
+    "customer_impact": "Elevated 5xx error rate on orders API endpoint",
+    "dimension_slice": "OpenObserve fair Slice A \u00b7 ObserveOps UC",
+    "gt_fault_title": "Guest OS resource exhaustion"
+  },
+  "impact": {
+    "services_affected": [
+      "orders-api (UC-4 slice)"
+    ],
+    "sla_breach": true,
+    "data_loss": false,
+    "estimated_fail_fraction": null,
+    "notes": null
+  },
+  "service_dependencies": {
+    "critical_path": [
+      "unidentified"
+    ],
+    "topology_edges": [],
+    "isolation_note": "Service topology returned empty, indicating either no distributed traces captured or services not instrumented for topology mapping. Manual correlation suggests orders-api is a critical service in the ecommerce stack, likely with dependencies on:\n- Database service (checkout service depends on db_call_latency)\n- Payment processing services\n- Other backend services in the ecommerce pipeline"
+  },
+  "distributed_traces": {
+    "available": true,
+    "analyzed_spans": 0,
+    "slow_spans": 0,
+    "assessment": "No distributed traces were captured for the ecom_traces stream during the incident window (2026-07-27 09:23:51 UTC onward). This indicates either:\n1. Tracing was not enabled for requests during the incident\n2. Trace sampling filtered out the error requests\n3. Traces were not successfully propagated to the backend"
+  },
+  "log_patterns": {
+    "key_findings": [
+      "Application error logging was not configured",
+      "Logs were not reaching the observability backend during the incident",
+      "The incident did not generate sufficient application-level logging events"
+    ],
+    "pack_event_types": {}
+  },
+  "metrics_analysis": {
+    "crossed_anomalies": [],
+    "assessment": "**Error Rate Timeline:**\n- **Baseline (prior to 09:23:51 UTC)**: Consistent 0.02 (2%) error rate for orders-api\n- **First spike (09:23:51 UTC)**: Error rate jumped to 0.42 (42%) - 21x above baseline\n- **Sustained spike (09:24:25 UTC)**: Error rate remained elevated at 0.42 (42%)\n- **Secondary spike (09:24:31 UTC)**: Brief dip to 0.18 (18%) then returned to 0.42 (42%)\n- **Last observation (09:26:34 UTC)**: Alert triggered, incident created, error rate sustained at 0.42\n\n**System Resource Metrics:"
+  },
+  "timeline": [
+    {
+      "timestamp": "09:23:51 UTC",
+      "summary": "Error rate first breaches 0.05 threshold, reaching 0.42 (42%)"
+    },
+    {
+      "timestamp": "09:24:25 UTC",
+      "summary": "Secondary metric collection confirms sustained elevation at 0.42"
+    },
+    {
+      "timestamp": "09:24:31 UTC",
+      "summary": "Brief dip to 0.18, rapid recovery to 0.42"
+    },
+    {
+      "timestamp": "09:26:34 UTC",
+      "summary": "Alert `orders_api_5xx_error_rate_high_UC4` triggers, incident created"
+    },
+    {
+      "timestamp": "09:26:34 UTC",
+      "summary": "Incident enters `open` status, marked as P3 severity"
+    }
+  ],
+  "actions": {
+    "immediate": [
+      "**Acknowledge the incident** and page the orders-api on-call engineer",
+      "**Check deployment logs** for any recent code or configuration changes to orders-api deployed between 09:15\u201309:24 UTC",
+      "**Verify database connectivity** \u2014 database timeouts or connection pool exhaustion are common causes of cascading 5xx errors",
+      "**Inspect orders-api application logs** directly on the service host to capture error context not reaching the observability backend",
+      "**Check resource constraints** on the orders-api host (disk space, file descriptor limits, memory)",
+      "**Consider rollback** if a recent deploy is identified as the change vector"
+    ],
+    "future": [
+      "**Enable distributed tracing** for orders-api if not already enabled; sampling should include error traces",
+      "**Configure application-level structured logging** to capture error context, stack traces, and upstream request/response details",
+      "**Add metrics for upstream service health** \u2014 latency and error rates from database, payment service, and other dependencies",
+      "**Implement automated runbook** that checks for recent deployments when orders-api error rate spikes >5x baseline",
+      "**Test alert response procedure** \u2014 verify that the alert routing and escalation path reaches the on-call engineer within SLA"
+    ]
+  },
+  "remediation": {
+    "immediate": [
+      "**Acknowledge the incident** and page the orders-api on-call engineer",
+      "**Check deployment logs** for any recent code or configuration changes to orders-api deployed between 09:15\u201309:24 UTC",
+      "**Verify database connectivity** \u2014 database timeouts or connection pool exhaustion are common causes of cascading 5xx errors",
+      "**Inspect orders-api application logs** directly on the service host to capture error context not reaching the observability backend",
+      "**Check resource constraints** on the orders-api host (disk space, file descriptor limits, memory)",
+      "**Consider rollback** if a recent deploy is identified as the change vector"
+    ],
+    "future": [
+      "**Enable distributed tracing** for orders-api if not already enabled; sampling should include error traces",
+      "**Configure application-level structured logging** to capture error context, stack traces, and upstream request/response details",
+      "**Add metrics for upstream service health** \u2014 latency and error rates from database, payment service, and other dependencies",
+      "**Implement automated runbook** that checks for recent deployments when orders-api error rate spikes >5x baseline",
+      "**Test alert response procedure** \u2014 verify that the alert routing and escalation path reaches the on-call engineer within SLA"
+    ]
+  },
+  "rca_summary": {
+    "fault_title": "Guest OS resource exhaustion",
+    "root_ci": "unidentified",
+    "signature": null,
+    "causal_path": [
+      "unidentified"
+    ],
+    "customer_impact": "Elevated 5xx error rate on orders API endpoint",
+    "change_evidence": null,
+    "narrative": "Sudden and sustained elevation of orders-api error rate from 2% to 42% at 2026-07-27 09:23:51 UTC, coinciding with either a recent application deployment, infrastructure change, or upstream service failure. Distributed traces and application logs were not captured during the incident, preventing precise identification of the failure point."
+  },
+  "executive_summary": {
+    "potential_cause": "Sudden and sustained elevation of orders-api error rate from 2% to 42% at 2026-07-27 09:23:51 UTC, coinciding with either a recent application deployment, infrastructure change, or upstream service failure. Distributed traces and application logs were not captured during the incident, preventing precise identification of the failure point.",
+    "impact": "42% of orders-api requests returned 5xx errors during the incident window, impacting all customers placing orders and breaching the 5% error rate SLA for the UC-4 slice.",
+    "resolution": "Identify and correlate with recent changes (deploy, config, infrastructure); verify database and upstream service health; inspect application logs directly on the orders-api host to determine the failure mechanism; implement rollback if a recent change is implicated. ---"
+  },
+  "fair_score": {
+    "oo_correct": false,
+    "pack_gt_root": "guest-os-vm-app-01",
+    "pack_gt_signature": "os_resource_exhaustion",
+    "oo_note": null
+  },
+  "portal_analysis_markdown": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3H543H5FOsjMsNlfp197LYU8FqJ\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-27 09:26:34 UTC\n- **Resolved**: Ongoing\n- **Duration**: Still active (incident remains open)\n- **Affected Services**: orders-api (UC-4 slice)\n- **Customer Impact**: Elevated 5xx error rate on orders API endpoint\n\n## Impact Assessment\n\n- **Services Affected**: 1 service (orders-api)\n- **Peak Error Rate**: 42% (0.42 error rate, >2000% above threshold of 0.05)\n- **Failed Requests**: Significant portion of orders-api traffic during spike window\n- **Users Impacted**: All users executing orders during the incident window\n- **Data Loss**: No\n- **SLA Breach**: Yes (error threshold 5% breached, actual 42% observed)\n\n## Evidence\n\n### Service Dependencies\nService topology returned empty, indicating either no distributed traces captured or services not instrumented for topology mapping. Manual correlation suggests orders-api is a critical service in the ecommerce stack, likely with dependencies on:\n- Database service (checkout service depends on db_call_latency)\n- Payment processing services\n- Other backend services in the ecommerce pipeline\n\n### Distributed Traces\nNo distributed traces were captured for the ecom_traces stream during the incident window (2026-07-27 09:23:51 UTC onward). This indicates either:\n1. Tracing was not enabled for requests during the incident\n2. Trace sampling filtered out the error requests\n3. Traces were not successfully propagated to the backend\n\n### Log Patterns\nLog pattern extraction from app_logs stream returned zero patterns. The checkout_app_logs stream also contained no events in the incident window. This suggests either:\n1. Application error logging was not configured\n2. Logs were not reaching the observability backend during the incident\n3. The incident did not generate sufficient application-level logging events\n\n### Metrics Analysis\n\n**Error Rate Timeline:**\n- **Baseline (prior to 09:23:51 UTC)**: Consistent 0.02 (2%) error rate for orders-api\n- **First spike (09:23:51 UTC)**: Error rate jumped to 0.42 (42%) - 21x above baseline\n- **Sustained spike (09:24:25 UTC)**: Error rate remained elevated at 0.42 (42%)\n- **Secondary spike (09:24:31 UTC)**: Brief dip to 0.18 (18%) then returned to 0.42 (42%)\n- **Last observation (09:26:34 UTC)**: Alert triggered, incident created, error rate sustained at 0.42\n\n**System Resource Metrics:**\n- System memory utilization showed high variability (ranging 9-100%) throughout the observation period but no clear correlation with the exact incident window (memory at 35%, 81%, and 80% at 09:24:25 UTC)\n- No Prometheus metrics returned for CPU, latency, or gateway request metrics, suggesting those metrics may not be available or not indexed for this time period\n\n### Recent Changes\n**Change history not investigated \u2014 no tool access to git repositories, deployment systems, or configuration management audit logs.** To properly assess whether a recent code deploy, configuration change, or infrastructure modification triggered the incident, correlation with the following would be required:\n- Git commit history and diffs for orders-api service\n- Deployment audit logs (CI/CD system)\n- Infrastructure/IaC changes (Terraform, Helm, Kubernetes manifests)\n- Application configuration changes\n\n### Contributing Factors\n1. **Sudden error rate spike at 09:23:51 UTC** \u2014 error rate increased from 2% baseline to 42% peak, suggesting a discrete event rather than gradual degradation\n2. **Spike sustained for at least 3 minutes** \u2014 error rate remained elevated across multiple metric collection intervals (09:23:51 through 09:26:34 UTC), indicating a persistent condition\n3. **Incomplete observability** \u2014 absence of distributed traces and application logs during the incident window limits root cause identification to metrics alone; error rate spike is visible but the underlying cause is not\n\n## Timeline\n\n- **09:23:51 UTC** - Error rate first breaches 0.05 threshold, reaching 0.42 (42%)\n- **09:24:25 UTC** - Secondary metric collection confirms sustained elevation at 0.42\n- **09:24:31 UTC** - Brief dip to 0.18, rapid recovery to 0.42\n- **09:26:34 UTC** - Alert `orders_api_5xx_error_rate_high_UC4` triggers, incident created\n- **09:26:34 UTC** - Incident enters `open` status, marked as P3 severity\n\n## Actions\n\n### Immediate\n- **Acknowledge the incident** and page the orders-api on-call engineer\n- **Check deployment logs** for any recent code or configuration changes to orders-api deployed between 09:15\u201309:24 UTC\n- **Verify database connectivity** \u2014 database timeouts or connection pool exhaustion are common causes of cascading 5xx errors\n- **Inspect orders-api application logs** directly on the service host to capture error context not reaching the observability backend\n- **Check resource constraints** on the orders-api host (disk space, file descriptor limits, memory)\n- **Consider rollback** if a recent deploy is identified as the change vector\n\n### Future\n- **Enable distributed tracing** for orders-api if not already enabled; sampling should include error traces\n- **Configure application-level structured logging** to capture error context, stack traces, and upstream request/response details\n- **Add metrics for upstream service health** \u2014 latency and error rates from database, payment service, and other dependencies\n- **Implement automated runbook** that checks for recent deployments when orders-api error rate spikes >5x baseline\n- **Test alert response procedure** \u2014 verify that the alert routing and escalation path reaches the on-call engineer within SLA\n\n## Executive Summary\n\n**Potential Cause**: Sudden and sustained elevation of orders-api error rate from 2% to 42% at 2026-07-27 09:23:51 UTC, coinciding with either a recent application deployment, infrastructure change, or upstream service failure. Distributed traces and application logs were not captured during the incident, preventing precise identification of the failure point. The discrete nature of the spike (not gradual) and its persistence across 3+ minutes suggests a configuration change, deployment event, or upstream dependency failure rather than organic load increase.\n\n**Impact**: 42% of orders-api requests returned 5xx errors during the incident window, impacting all customers placing orders and breaching the 5% error rate SLA for the UC-4 slice.\n\n**Resolution**: Identify and correlate with recent changes (deploy, config, infrastructure); verify database and upstream service health; inspect application logs directly on the orders-api host to determine the failure mechanism; implement rollback if a recent change is implicated.\n\n---\n",
+  "live_incident": {
+    "id": "3H543H5FOsjMsNlfp197LYU8FqJ",
+    "title": "orders_api_5xx_error_rate_high_UC4",
+    "status": "resolved"
+  },
+  "completeness": {
+    "score": 0.86,
+    "source": "oo_portal_fair"
+  }
+}

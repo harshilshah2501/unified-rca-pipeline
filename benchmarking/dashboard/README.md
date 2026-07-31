@@ -3,10 +3,12 @@
 Static Web UI for **ObserveOps UC** and **Motadata** bakeoffs (Lean · Federated), plus a **PoC Conduct** control plane to run Motadata broaden, UC bakeoff, lab EPS, and Motadata L1.
 
 1. **Guide** — newcomer overview + interactive ingest / Lean·Federated pipeline widget
-2. **Samples** — manual-verify strip (fault buckets · GT vs Lean vs Fed)
-3. **PoC Conduct** — status rail + run jobs + live logs (requires `server.py`)
-4. **Overview** — UC / Motadata L1 / lab EPS KPIs
-5. **4 Axes · 5 Roadblocks · UC Bakeoff · Verdict** — comparative evaluation panels
+2. **Incident Analysis** — `#incident` — ObserveOps UC + Motadata L1 human reports (Lean / Fed / OO tabs)
+3. **RCA workflow sim** — [`rca-workflow-sim.html`](./rca-workflow-sim.html) — shared Detect → Lean vs Federated (for “how”)
+4. **Samples** — manual-verify strip (fault buckets · GT vs Lean vs Fed)
+5. **PoC Conduct** — status rail + run jobs + live logs (requires `server.py`)
+6. **Overview** — UC / Motadata L1 / lab EPS KPIs
+7. **4 Axes · 5 Roadblocks · UC Bakeoff · Verdict** — comparative evaluation panels
 
 Motadata L1 is a **Conduct job** and Overview KPI (not a separate TOC section).
 

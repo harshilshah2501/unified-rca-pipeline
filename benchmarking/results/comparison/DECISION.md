@@ -2,8 +2,8 @@
 
 **Date:** 2026-07-16  
 **Corpus:** [`rca-use-cases-only.md`](../../../docs/rca-use-cases-only.md) → `datasets/observeops/`  
-**Matched runs:** `bakeoff-phase-a-001`, `bakeoff-phase-b-001`, **`bakeoff-phase-b-002`** (corpus v1.1.0 — events + shared-upstream-under-ambiguity)  
-**Report:** [`COMPARISON.md`](./COMPARISON.md) (latest: `bakeoff-phase-b-002`)  
+**Matched runs:** `bakeoff-phase-a-001`, `bakeoff-phase-b-001`, **`bakeoff-phase-b-002`** (corpus v1.1.0 — ADR-era decision evidence)  
+**Current scoreboard:** [`COMPARISON.md`](./COMPARISON.md) (latest: **`adr001-rerun-20260723`**) · run index [`RUN_IDS.md`](./RUN_IDS.md)  
 **ADR:** [`docs/ADR-001-lean-primary-engine.md`](../../../docs/ADR-001-lean-primary-engine.md)  
 **Decision guide:** [`docs/README.md`](../../../docs/README.md#lean-vs-federated--design-choice--decision-guide)
 

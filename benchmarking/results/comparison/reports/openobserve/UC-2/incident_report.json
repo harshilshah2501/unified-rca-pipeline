@@ -1,0 +1,117 @@
+{
+  "schema_version": "comprehensive_rca.v1",
+  "incident_id": "3H5422DwKJLI1NtoagESqnaoZ3v",
+  "source_incident_id": "3H5422DwKJLI1NtoagESqnaoZ3v",
+  "engine": "openobserve",
+  "generated_at": "2026-07-28T10:32:10Z",
+  "pack_meta": {
+    "uc_id": "UC-2",
+    "fair_slice": "A_fair",
+    "parity_run_id": "adr001-rerun-20260723",
+    "detected_at": "Unable to retrieve",
+    "source": "oo_portal_fair_extract",
+    "analysis_source": "live_fetch",
+    "live_refreshed": true
+  },
+  "localization": {
+    "root_ci": null,
+    "signature": null,
+    "oo_claimed_root": "OO API unavailable at analysis \u2014 no RCA",
+    "contributor_cis": [],
+    "false_leads_ruled_out": [],
+    "matches_pack_gt": false
+  },
+  "incident_summary": {
+    "severity": "Unknown",
+    "detected": "Unable to retrieve",
+    "affected_services": [
+      "Unable to determine"
+    ],
+    "customer_impact": "Unable to assess",
+    "dimension_slice": "OpenObserve fair Slice A \u00b7 ObserveOps UC",
+    "gt_fault_title": "Core switch link failure"
+  },
+  "impact": {
+    "services_affected": [
+      "Unable to determine"
+    ],
+    "sla_breach": false,
+    "data_loss": false,
+    "estimated_fail_fraction": null,
+    "notes": null
+  },
+  "service_dependencies": {
+    "critical_path": [],
+    "topology_edges": [],
+    "isolation_note": "Unable to retrieve service topology \u2014 OpenObserve API connectivity unavailable."
+  },
+  "distributed_traces": {
+    "available": false,
+    "analyzed_spans": 0,
+    "slow_spans": 0,
+    "assessment": "Unable to retrieve traces \u2014 OpenObserve API connectivity unavailable."
+  },
+  "log_patterns": {
+    "key_findings": [
+      "Unable to extract log patterns \u2014 OpenObserve API connectivity unavailable."
+    ],
+    "pack_event_types": {}
+  },
+  "metrics_analysis": {
+    "crossed_anomalies": [],
+    "assessment": "Unable to query metrics \u2014 OpenObserve API connectivity unavailable."
+  },
+  "timeline": [],
+  "actions": {
+    "immediate": [
+      "Restore OpenObserve API connectivity",
+      "Verify system health and availability",
+      "Retry incident analysis once connectivity is restored"
+    ],
+    "future": [
+      "Implement connectivity monitoring for the analysis system",
+      "Establish fallback data collection mechanisms"
+    ]
+  },
+  "remediation": {
+    "immediate": [
+      "Restore OpenObserve API connectivity",
+      "Verify system health and availability",
+      "Retry incident analysis once connectivity is restored"
+    ],
+    "future": [
+      "Implement connectivity monitoring for the analysis system",
+      "Establish fallback data collection mechanisms"
+    ]
+  },
+  "rca_summary": {
+    "fault_title": "Core switch link failure",
+    "root_ci": null,
+    "signature": null,
+    "causal_path": [],
+    "customer_impact": "Unable to assess",
+    "change_evidence": null,
+    "narrative": "OpenObserve API service unavailable at time of analysis."
+  },
+  "executive_summary": {
+    "potential_cause": "OpenObserve API service unavailable at time of analysis.",
+    "impact": "Incident analysis cannot be performed; root cause unknown.",
+    "resolution": "Restore API connectivity and re-run analysis."
+  },
+  "fair_score": {
+    "oo_correct": false,
+    "pack_gt_root": "switch-core-01:GigE0/2",
+    "pack_gt_signature": "link_failure",
+    "oo_note": "OO API unavailable at analysis \u2014 no RCA"
+  },
+  "portal_analysis_markdown": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3H5422DwKJLI1NtoagESqnaoZ3v\n- **Severity**: Unknown\n- **Detected**: Unable to retrieve\n- **Resolved**: Unable to retrieve\n- **Duration**: Unable to determine\n- **Affected Services**: Unable to determine\n- **Customer Impact**: Unable to assess\n\n## Impact Assessment\n\n- **Services Affected**: Unknown\n- **Peak Error Rate**: Unable to measure\n- **Failed Requests**: Unable to quantify\n- **Users Impacted**: Unknown\n- **Data Loss**: Unknown\n- **SLA Breach**: Unknown\n\n## Evidence\n\n### Service Dependencies\nUnable to retrieve service topology \u2014 OpenObserve API connectivity unavailable.\n\n### Distributed Traces\nUnable to retrieve traces \u2014 OpenObserve API connectivity unavailable.\n\n### Log Patterns\nUnable to extract log patterns \u2014 OpenObserve API connectivity unavailable.\n\n### Metrics Analysis\nUnable to query metrics \u2014 OpenObserve API connectivity unavailable.\n\n### Recent Changes\nChange history not investigated \u2014 OpenObserve API connectivity unavailable.\n\n### Contributing Factors\nAnalysis cannot proceed due to system unavailability.\n\n## Timeline\n\nUnable to construct timeline \u2014 incident data not accessible.\n\n## Actions\n\n### Immediate\n- Restore OpenObserve API connectivity\n- Verify system health and availability\n- Retry incident analysis once connectivity is restored\n\n### Future\n- Implement connectivity monitoring for the analysis system\n- Establish fallback data collection mechanisms\n\n## Executive Summary\n\n**Potential Cause**: OpenObserve API service unavailable at time of analysis.\n\n**Impact**: Incident analysis cannot be performed; root cause unknown.\n\n**Resolution**: Restore API connectivity and re-run analysis.\n",
+  "live_incident": {
+    "id": "3H5422DwKJLI1NtoagESqnaoZ3v",
+    "title": "orders_api_tcp_timeouts_high_UC2",
+    "status": "resolved"
+  },
+  "completeness": {
+    "score": 0.72,
+    "source": "oo_portal_fair"
+  }
+}

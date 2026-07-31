@@ -33,8 +33,10 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 
 | Corpus | Location | Ground truth | Typical accuracy headline |
 |--------|----------|--------------|---------------------------|
-| **ObserveOps UC** (Corpus B) | `datasets/observeops/` v1.1.0 | Shared `ground_truth.json` per UC | **5/5** root-CI on UC-1..UC-5 (`bakeoff-phase-b-002`) |
+| **ObserveOps UC** (Corpus B) | `datasets/observeops/` v1.1.0 | Shared `ground_truth.json` per UC | **5/5** root-CI on UC-1..UC-5 (`adr001-rerun-20260723`) |
+| **Lean × Fed × OO (fair UC)** | Same ObserveOps UC-1..UC-5 | Pack GT; OO blind Potential Cause | Lean/Fed **5/5** · OO fair **1/5** — [`LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) |
 | **OpenObserve incidents** | `datasets/openobserve_incidents/v1/` | Alert-heuristic labels (Option B) | Peer GT ~**88%** layer (n=24); engine-pack bakeoff **62.5%** root-alert — **different surfaces** |
+
 
 **Ingest streams (not bakeoff scoreboards):** `datasets/ingest_samples/` — ObserveOps → `ingest.v1` replay + Motadata derived stream (large Motadata dumps local/gitignored). See [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md).
 

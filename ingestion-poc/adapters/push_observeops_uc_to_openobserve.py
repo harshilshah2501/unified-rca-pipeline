@@ -309,9 +309,31 @@ def purge_stale_observeops_streams(
     return {"deleted": deleted, "skipped": skipped}
 
 
-def build_log_records(uc: dict, *, shift_ms: int = 0) -> list[dict]:
+def _scenario_label(uc: dict, *, fair: bool) -> str:
+    """Human scenario tag on records. Fair mode: symptom only (no GT fault title)."""
+    if fair:
+        seed = uc.get("seed") or {}
+        ci = seed.get("ci") or "unknown"
+        sig = seed.get("signal") or "symptom"
+        return f"{uc['uc_id']} symptom {ci}/{sig}"
+    return uc["gt"].get("fault_title") or uc["uc_id"]
+
+
+def _gt_leak_fields(uc: dict, *, fair: bool) -> dict:
+    """GT fields for eval convenience — omit in fair Slice-A pushes."""
+    if fair:
+        return {}
+    return {
+        "root_ci_gt": uc["gt"].get("root_ci"),
+        "signature_gt": uc["gt"].get("signature"),
+    }
+
+
+def build_log_records(uc: dict, *, shift_ms: int = 0, fair: bool = False) -> list[dict]:
     """Logs + events (+ parity anomalies/changes as log rows) → OO log JSON."""
     uc_id = uc["uc_id"]
+    scenario = _scenario_label(uc, fair=fair)
+    gt = _gt_leak_fields(uc, fair=fair)
     out: list[dict] = []
     for row in uc["logs"]:
         labels = dict(row.get("labels") or {})
@@ -327,9 +349,9 @@ def build_log_records(uc: dict, *, shift_ms: int = 0) -> list[dict]:
                 "corpus": "observeops",
                 "source": "synthetic",
                 "parity_input": True,
-                "scenario": uc["gt"].get("fault_title") or uc_id,
-                "root_ci_gt": uc["gt"].get("root_ci"),
-                "signature_gt": uc["gt"].get("signature"),
+                "fair_push": fair,
+                "scenario": scenario,
+                **gt,
                 "original_ts": row.get("ts"),
                 **{f"label_{k}": v for k, v in labels.items() if k != "ci"},
             }
@@ -346,9 +368,9 @@ def build_log_records(uc: dict, *, shift_ms: int = 0) -> list[dict]:
                 "corpus": "observeops",
                 "source": "parity_event",
                 "parity_input": True,
-                "scenario": uc["gt"].get("fault_title") or uc_id,
-                "root_ci_gt": uc["gt"].get("root_ci"),
-                "signature_gt": uc["gt"].get("signature"),
+                "fair_push": fair,
+                "scenario": scenario,
+                **gt,
                 "original_ts": ev.get("timestamp"),
             }
         )
@@ -373,9 +395,9 @@ def build_log_records(uc: dict, *, shift_ms: int = 0) -> list[dict]:
                 "corpus": "observeops",
                 "source": "parity_anomaly",
                 "parity_input": True,
-                "scenario": uc["gt"].get("fault_title") or uc_id,
-                "root_ci_gt": uc["gt"].get("root_ci"),
-                "signature_gt": uc["gt"].get("signature"),
+                "fair_push": fair,
+                "scenario": scenario,
+                **gt,
                 "original_ts": a.get("timestamp"),
             }
         )
@@ -392,9 +414,9 @@ def build_log_records(uc: dict, *, shift_ms: int = 0) -> list[dict]:
                 "corpus": "observeops",
                 "source": "parity_change",
                 "parity_input": True,
-                "scenario": uc["gt"].get("fault_title") or uc_id,
-                "root_ci_gt": uc["gt"].get("root_ci"),
-                "signature_gt": uc["gt"].get("signature"),
+                "fair_push": fair,
+                "scenario": scenario,
+                **gt,
                 "original_ts": ts,
             }
         )
@@ -415,9 +437,9 @@ def build_log_records(uc: dict, *, shift_ms: int = 0) -> list[dict]:
                 "corpus": "observeops",
                 "source": "parity_seed",
                 "parity_input": True,
-                "scenario": uc["gt"].get("fault_title") or uc_id,
-                "root_ci_gt": uc["gt"].get("root_ci"),
-                "signature_gt": uc["gt"].get("signature"),
+                "fair_push": fair,
+                "scenario": scenario,
+                **gt,
                 "original_ts": seed.get("timestamp"),
             }
         )
@@ -429,6 +451,7 @@ def build_metric_records(
     *,
     shift_ms: int = 0,
     retain_hours: float | None = 4.5,
+    fair: bool = False,
 ) -> list[dict]:
     """Pack metrics/ series + crossed anomaly peaks → OO metrics JSON.
 
@@ -436,6 +459,7 @@ def build_metric_records(
     latest timestamp (pre-shift). OO typically rejects ingest older than ~5h.
     """
     uc_id = uc["uc_id"]
+    gt = _gt_leak_fields(uc, fair=fair)
     max_ms = None
     if retain_hours is not None:
         stamps = _collect_pack_timestamps(uc)
@@ -468,8 +492,8 @@ def build_metric_records(
                     "corpus": "observeops",
                     "source": "parity_metric",
                     "parity_input": True,
-                    "root_ci_gt": uc["gt"].get("root_ci"),
-                    "signature_gt": uc["gt"].get("signature"),
+                    "fair_push": fair,
+                    **gt,
                 }
             )
     # Ensure incident-window peaks exist even if series lookback is long
@@ -491,8 +515,8 @@ def build_metric_records(
                 "corpus": "observeops",
                 "source": "parity_anomaly_peak",
                 "parity_input": True,
-                "root_ci_gt": uc["gt"].get("root_ci"),
-                "signature_gt": uc["gt"].get("signature"),
+                "fair_push": fair,
+                **gt,
             }
         )
     # stash for callers that want drop stats (optional)
@@ -516,7 +540,7 @@ def _hex_id(raw: str, nbytes: int) -> str:
     return h
 
 
-def build_otlp_traces(uc: dict, *, shift_ms: int = 0) -> dict:
+def build_otlp_traces(uc: dict, *, shift_ms: int = 0, fair: bool = False) -> dict:
     """Convert pack spans → OTLP/HTTP JSON resourceSpans."""
     uc_id = uc["uc_id"]
     by_service: dict[str, list[dict]] = {}
@@ -537,15 +561,25 @@ def build_otlp_traces(uc: dict, *, shift_ms: int = 0) -> dict:
                 {"key": "uc_id", "value": {"stringValue": uc_id}},
                 {"key": "corpus", "value": {"stringValue": "observeops"}},
                 {"key": "source", "value": {"stringValue": "synthetic"}},
-                {
-                    "key": "root_ci_gt",
-                    "value": {"stringValue": str(uc["gt"].get("root_ci") or "")},
-                },
-                {
-                    "key": "signature_gt",
-                    "value": {"stringValue": str(uc["gt"].get("signature") or "")},
-                },
+                {"key": "fair_push", "value": {"boolValue": fair}},
             ]
+            if not fair:
+                attrs.extend(
+                    [
+                        {
+                            "key": "root_ci_gt",
+                            "value": {
+                                "stringValue": str(uc["gt"].get("root_ci") or "")
+                            },
+                        },
+                        {
+                            "key": "signature_gt",
+                            "value": {
+                                "stringValue": str(uc["gt"].get("signature") or "")
+                            },
+                        },
+                    ]
+                )
             for k, v in (sp.get("attributes") or {}).items():
                 attrs.append(
                     {"key": str(k), "value": {"stringValue": str(v)}}
@@ -632,6 +666,7 @@ def push_uc(
     shift_to_now: bool,
     end_offset_minutes: float,
     retain_hours: float | None,
+    fair: bool = False,
 ) -> dict:
     uc_id = uc["uc_id"]
     stream = f"{LOG_STREAM_PREFIX}_{uc_id.lower().replace('-', '')}"
@@ -639,6 +674,7 @@ def push_uc(
         "uc_id": uc_id,
         "log_stream": stream,
         "pack_dir": uc.get("pack_dir"),
+        "fair_push": fair,
     }
 
     shift_ms = 0
@@ -654,11 +690,11 @@ def push_uc(
             "retain_hours": retain_hours,
         }
 
-    logs = build_log_records(uc, shift_ms=shift_ms)
+    logs = build_log_records(uc, shift_ms=shift_ms, fair=fair)
     metrics = build_metric_records(
-        uc, shift_ms=shift_ms, retain_hours=retain_hours
+        uc, shift_ms=shift_ms, retain_hours=retain_hours, fair=fair
     )
-    traces = build_otlp_traces(uc, shift_ms=shift_ms)
+    traces = build_otlp_traces(uc, shift_ms=shift_ms, fair=fair)
     span_n = sum(
         len(ss.get("spans") or [])
         for rs in traces.get("resourceSpans") or []
@@ -714,10 +750,18 @@ def push_uc(
     return summary
 
 
-def preview_samples(uc: dict, *, shift_ms: int = 0, retain_hours: float | None = None) -> dict:
-    logs = build_log_records(uc, shift_ms=shift_ms)
-    metrics = build_metric_records(uc, shift_ms=shift_ms, retain_hours=retain_hours)
-    traces = build_otlp_traces(uc, shift_ms=shift_ms)
+def preview_samples(
+    uc: dict,
+    *,
+    shift_ms: int = 0,
+    retain_hours: float | None = None,
+    fair: bool = False,
+) -> dict:
+    logs = build_log_records(uc, shift_ms=shift_ms, fair=fair)
+    metrics = build_metric_records(
+        uc, shift_ms=shift_ms, retain_hours=retain_hours, fair=fair
+    )
+    traces = build_otlp_traces(uc, shift_ms=shift_ms, fair=fair)
     return {
         "uc_id": uc["uc_id"],
         "pack_dir": uc.get("pack_dir"),
@@ -785,6 +829,14 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=REPO / "benchmarking/results/comparison/oo_push_summary.json",
     )
+    p.add_argument(
+        "--fair",
+        action="store_true",
+        help=(
+            "Slice-A fair push: omit root_ci_gt / signature_gt / GT fault titles "
+            "from log/metric/trace tags (symptom scenario labels only)."
+        ),
+    )
     args = p.parse_args(argv)
 
     # Parity mode defaults: original timestamps, full metrics
@@ -820,7 +872,9 @@ def main(argv: list[str] | None = None) -> int:
                     uc, end_offset_minutes=args.end_offset_minutes
                 )
             previews.append(
-                preview_samples(uc, shift_ms=shift, retain_hours=retain)
+                preview_samples(
+                    uc, shift_ms=shift, retain_hours=retain, fair=args.fair
+                )
             )
         print(json.dumps({"mode": "preview" if args.preview else "dry_run", "ucs": previews}, indent=2))
         if args.preview and not args.dry_run:
@@ -875,6 +929,7 @@ def main(argv: list[str] | None = None) -> int:
             shift_to_now=args.shift_to_now,
             end_offset_minutes=args.end_offset_minutes,
             retain_hours=retain,
+            fair=args.fair,
         )
         for uc in packs
     ]
@@ -882,6 +937,7 @@ def main(argv: list[str] | None = None) -> int:
         "base_url": base,
         "org": args.org,
         "dry_run": args.dry_run,
+        "fair_push": args.fair,
         "parity_run_id": args.parity_run_id,
         "shift_to_now": args.shift_to_now,
         "retain_hours": retain,

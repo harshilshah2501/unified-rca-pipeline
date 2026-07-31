@@ -1,0 +1,39 @@
+{
+  "events": [
+    {
+      "timestamp": "2026-07-10T09:58:00Z",
+      "ci": "switch-core-01:GigE0/2",
+      "event_type": "infra.change",
+      "severity": "info",
+      "message": "Network change window: uplink maintenance on switch-core-01 GigE0/2"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:00Z",
+      "ci": "switch-core-01:GigE0/2",
+      "event_type": "snmp.linkDown",
+      "severity": "critical",
+      "message": "SNMP TRAP linkDown: ifDescr=GigE0/2 ifOperStatus=down"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "ci": "switch-core-01:GigE0/2",
+      "event_type": "snmp.ifOutDiscards",
+      "severity": "warning",
+      "message": "ifOutDiscards rising on GigE0/2"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:08Z",
+      "ci": "esxi-host-01",
+      "event_type": "esx.net.drop",
+      "severity": "warning",
+      "message": "vmnic packet drops / link-down detected on esxi-host-01 uplink"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "ci": "orders-api",
+      "event_type": "app.timeout",
+      "severity": "critical",
+      "message": "orders-api TCP timeouts / elevated error rate behind failed uplink"
+    }
+  ]
+}

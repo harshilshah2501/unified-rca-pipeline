@@ -25,7 +25,22 @@
       "type": "array",
       "items": { "type": "string" }
     },
-    "upstream_healthy": { "type": "boolean" }
+    "upstream_healthy": { "type": "boolean" },
+    "fault_bucket": {
+      "type": "string",
+      "enum": ["1_symptom", "2_infra", "3_application", "4_external"],
+      "description": "Coverage bucket (docs/FAULT_BUCKET_COVERAGE.md); optional for dashboard Samples"
+    },
+    "fault_type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Fine-grained fault class within the bucket"
+    },
+    "fault_title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Short human label for Samples / Incident Analysis"
+    }
   },
   "additionalProperties": false
 }

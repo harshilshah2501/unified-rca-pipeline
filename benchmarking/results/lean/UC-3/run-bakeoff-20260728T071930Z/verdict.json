@@ -1,0 +1,150 @@
+{
+  "engine": "lean",
+  "uc_id": "UC-3",
+  "root_ci": "datastore-01",
+  "signature": "storage_contention",
+  "contributor_cis": [
+    "vm-neighbor-01"
+  ],
+  "evidence": [
+    {
+      "ci": "datastore-01",
+      "signal": "davg_latency_ms",
+      "value": 28.0,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "datastore-01",
+      "signal": "gavg_latency_ms",
+      "value": 45.0,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "vm-neighbor-01",
+      "signal": "virtualDisk.iops",
+      "value": 12000.0,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "vm-db-01",
+      "signal": "virtualDisk.totalLatency_ms",
+      "value": 38.0,
+      "timestamp": "2026-07-10T10:00:12Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "guest-os-vm-db-01",
+      "signal": "disk.iowait_pct",
+      "value": 72.0,
+      "timestamp": "2026-07-10T10:00:18Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "request.p95_latency_ms",
+      "value": 2100.0,
+      "timestamp": "2026-07-10T10:00:25Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "vm-neighbor-01",
+      "signal": "infra.change",
+      "value": "Batch / fio workload started on vm-neighbor-01 (shared datastore-01)",
+      "timestamp": "2026-07-10T09:57:00Z",
+      "source": "event",
+      "severity": "info",
+      "message": "Batch / fio workload started on vm-neighbor-01 (shared datastore-01)"
+    },
+    {
+      "ci": "datastore-01",
+      "signal": "storage.latency",
+      "value": "datastore-01 GAVG latency > 30ms (shared storage contention)",
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "event",
+      "severity": "critical",
+      "message": "datastore-01 GAVG latency > 30ms (shared storage contention)"
+    },
+    {
+      "ci": "vm-neighbor-01",
+      "signal": "storage.iops",
+      "value": "vm-neighbor-01 heavy random I/O on datastore-01 (noisy neighbor)",
+      "timestamp": "2026-07-10T10:00:08Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "vm-neighbor-01 heavy random I/O on datastore-01 (noisy neighbor)"
+    },
+    {
+      "ci": "vm-db-01",
+      "signal": "vmware.disk.latency",
+      "value": "vm-db-01 virtualDisk.totalLatency elevated (victim VM)",
+      "timestamp": "2026-07-10T10:00:12Z",
+      "source": "event",
+      "severity": "critical",
+      "message": "vm-db-01 virtualDisk.totalLatency elevated (victim VM)"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "app.db_slow",
+      "value": "orders-api slow DB queries / timeouts (storage-backed)",
+      "timestamp": "2026-07-10T10:00:18Z",
+      "source": "event",
+      "severity": "critical",
+      "message": "orders-api slow DB queries / timeouts (storage-backed)"
+    }
+  ],
+  "observations": 6,
+  "evidentiary_tier": 3,
+  "fallback_fired": true,
+  "causal_verified": true,
+  "causal_log": [
+    {
+      "check": "root_anomalous",
+      "passed": true,
+      "root_ci": "datastore-01",
+      "onset": "2026-07-10T10:00:05+00:00"
+    },
+    {
+      "check": "topology_upstream_of_seed",
+      "passed": true,
+      "seed_ci": "orders-api",
+      "root_ci": "datastore-01"
+    },
+    {
+      "check": "onset_precedes_connected_symptoms",
+      "passed": true,
+      "root_onset": "2026-07-10T10:00:05+00:00",
+      "connected_downstream_cis": [
+        "guest-os-vm-db-01",
+        "orders-api",
+        "vm-db-01",
+        "vm-neighbor-01"
+      ]
+    }
+  ],
+  "obs_to_convergence": 3,
+  "naive_bfs_expansions": 4,
+  "efficiency_ratio": 1.3333333333333333,
+  "upstream_healthy_verified": false,
+  "causal_chain": [
+    "datastore-01",
+    "vm-app-01",
+    "guest-os-vm-app-01",
+    "orders-api"
+  ],
+  "blast_radius": [
+    "vm-app-01",
+    "vm-db-01",
+    "vm-neighbor-01",
+    "guest-os-vm-app-01",
+    "guest-os-vm-db-01",
+    "orders-api"
+  ],
+  "remediation": [
+    "Storage vMotion the noisy VM or database workload.",
+    "Apply SIOC or I/O limits to competing workloads.",
+    "Check latency on the backing storage array."
+  ]
+}

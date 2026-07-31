@@ -1,8 +1,8 @@
 # Federated vs Lean — Comparative Analysis
 
 **Corpus:** `datasets/observeops` (identical bundles for both engines)
-**Generated:** `2026-07-23T10:24:47.075332Z`
-**Matched run id:** `adr001-rerun-20260723`
+**Generated:** `2026-07-28T07:19:56.919146Z`
+**Matched run id:** `bakeoff-20260728T071930Z`
 
 ## Verdict
 
@@ -24,7 +24,7 @@ Both engines are 5/5 on root-CI accuracy and signatures; lean wins more per-UC t
 | Accuracy | 5/5 root-CI; UC-5 infra FP 0 | 5/5 root-CI; UC-5 infra FP 0 |
 | Reproducibility | 40.00% (5/5 reported) | 100.00% (5/5 reported) |
 | Verifiability | main 4/5; fallback 1; evidence 5/5 | main 3/5; fallback 2; evidence 5/5 |
-| Efficiency | avg observations 5.40; avg RCA 4109.73 ms; avg detect 1.03 ms; avg system 4110.75 ms | avg observations 4.80; best-first 2.40 vs naive BFS 2.80 (ratio 1.12); avg RCA 0.96 ms; avg detect 1.10 ms; avg system 2.06 ms |
+| Efficiency | avg observations 5.40; avg RCA 4108.38 ms; avg detect 1.18 ms; avg system 4109.56 ms | avg observations 4.80; best-first 2.40 vs naive BFS 2.80 (ratio 1.12); avg RCA 1.05 ms; avg detect 1.65 ms; avg system 2.70 ms |
 
 Reproducibility inputs: federated `benchmarking/results/reproducibility_federated_full-repro.json`; lean `benchmarking/results/reproducibility_lean_full-repro.json`.
 Main path means `fallback_fired: false`; CARE sets fallback and may promote to Tier 3 when `causal_verified`.
@@ -35,11 +35,11 @@ Parity profile: shared threshold detect (`detect_latency_ms` / `C_detect_ms`) + 
 
 | UC | Ground truth | Federated | Lean | Repro F/L | Verifiability F/L | Winner |
 |----|--------------|-----------|------|-----------|---------------------|--------|
-| UC-1 | `esxi-host-01` | `esxi-host-01` | `esxi-host-01` | 100.00%/100.00% | tier 1; main; evidence 6; sig Y / tier 3; CARE; causal Y; evidence 6; sig Y | **lean** |
-| UC-2 | `switch-core-01:GigE0/2` | `switch-core-01:GigE0/2` | `switch-core-01:GigE0/2` | 0.00%/100.00% | tier 2; CARE; evidence 5; sig Y / tier 1; main; evidence 7; sig Y | **lean** |
-| UC-3 | `datastore-01` | `datastore-01` | `datastore-01` | 0.00%/100.00% | tier 1; main; evidence 6; sig Y / tier 3; CARE; causal Y; evidence 6; sig Y | **federated** |
-| UC-4 | `guest-os-vm-app-01` | `guest-os-vm-app-01` | `guest-os-vm-app-01` | 100.00%/100.00% | tier 1; main; evidence 3; sig Y / tier 1; main; evidence 5; sig Y | **lean** |
-| UC-5 | `orders-api` | `orders-api` | `orders-api` | 0.00%/100.00% | tier 1; main; evidence 4; sig Y / tier 1; main; evidence 4; sig Y | **lean** |
+| UC-1 | `esxi-host-01` | `esxi-host-01` | `esxi-host-01` | 100.00%/100.00% | tier 1; main; evidence 6; sig Y / tier 3; CARE; causal Y; evidence 12; sig Y | **lean** |
+| UC-2 | `switch-core-01:GigE0/2` | `switch-core-01:GigE0/2` | `switch-core-01:GigE0/2` | 0.00%/100.00% | tier 2; CARE; evidence 5; sig Y / tier 1; main; evidence 10; sig Y | **lean** |
+| UC-3 | `datastore-01` | `datastore-01` | `datastore-01` | 0.00%/100.00% | tier 1; main; evidence 6; sig Y / tier 3; CARE; causal Y; evidence 11; sig Y | **federated** |
+| UC-4 | `guest-os-vm-app-01` | `guest-os-vm-app-01` | `guest-os-vm-app-01` | 100.00%/100.00% | tier 1; main; evidence 3; sig Y / tier 1; main; evidence 7; sig Y | **lean** |
+| UC-5 | `orders-api` | `orders-api` | `orders-api` | 0.00%/100.00% | tier 1; main; evidence 4; sig Y / tier 1; main; evidence 8; sig Y | **lean** |
 
 ## Efficiency and winner policy
 
@@ -47,21 +47,21 @@ Accuracy (root-CI match with UC-5 infrastructure false-positive guard), then few
 
 | UC | Fed observations | Lean observations | Lean best-first | Lean naive BFS | Ratio | Fed latency | Lean latency |
 |----|------------------|-------------------|-----------------|----------------|-------|-------------|--------------|
-| UC-1 | 6 | 6 | 3 | 3 | 1.00 | 9827.48 ms | 3.50 ms |
-| UC-2 | 5 | 5 | 4 | 5 | 1.25 | 2909.91 ms | 0.28 ms |
-| UC-3 | 5 | 6 | 3 | 4 | 1.33 | 6874.20 ms | 0.27 ms |
-| UC-4 | 6 | 3 | 1 | 1 | 1.00 | 934.33 ms | 0.21 ms |
-| UC-5 | 5 | 4 | 1 | 1 | 1.00 | 2.71 ms | 0.55 ms |
+| UC-1 | 6 | 6 | 3 | 3 | 1.00 | 9756.58 ms | 3.74 ms |
+| UC-2 | 5 | 5 | 4 | 5 | 1.25 | 3229.13 ms | 0.44 ms |
+| UC-3 | 5 | 6 | 3 | 4 | 1.33 | 6656.68 ms | 0.43 ms |
+| UC-4 | 6 | 3 | 1 | 1 | 1.00 | 896.54 ms | 0.29 ms |
+| UC-5 | 5 | 4 | 1 | 1 | 1.00 | 2.96 ms | 0.35 ms |
 
 ## Parity timings (shared detect + RCA)
 
 | UC | C_detect | Fed RCA | Lean RCA | Fed system | Lean system | Hop-1 component |
 |----|----------|---------|----------|------------|-------------|-----------------|
-| UC-1 | 1.23 ms | 9827.48 ms | 3.50 ms | 9828.70 ms | 4.92 ms | `shared_threshold` |
-| UC-2 | 0.69 ms | 2909.91 ms | 0.28 ms | 2910.60 ms | 1.06 ms | `shared_threshold` |
-| UC-3 | 0.85 ms | 6874.20 ms | 0.27 ms | 6875.06 ms | 1.07 ms | `shared_threshold` |
-| UC-4 | 1.03 ms | 934.33 ms | 0.21 ms | 935.36 ms | 1.06 ms | `shared_threshold` |
-| UC-5 | 1.35 ms | 2.71 ms | 0.55 ms | 4.06 ms | 2.17 ms | `shared_threshold` |
+| UC-1 | 1.60 ms | 9756.58 ms | 3.74 ms | 9758.18 ms | 5.27 ms | `shared_threshold` |
+| UC-2 | 0.83 ms | 3229.13 ms | 0.44 ms | 3229.96 ms | 2.07 ms | `shared_threshold` |
+| UC-3 | 1.08 ms | 6656.68 ms | 0.43 ms | 6657.76 ms | 2.22 ms | `shared_threshold` |
+| UC-4 | 1.10 ms | 896.54 ms | 0.29 ms | 897.64 ms | 1.61 ms | `shared_threshold` |
+| UC-5 | 1.31 ms | 2.96 ms | 0.35 ms | 4.26 ms | 2.31 ms | `shared_threshold` |
 
 ## Detect classes + change near onset (D1/D2/D3)
 

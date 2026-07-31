@@ -278,7 +278,7 @@ Adapter: [`motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_inge
 | `trace.jsonl` / `span.jsonl` | `trace_span` | service name |
 | span-derived | `metric_sample` | service name |
 
-**Gaps:** Broader Motadata GT (human-labeled packs beyond the current 3) and live change feed still open. Motadata signatures `app_error_rate` / `ping_degradation` / `host_cpu_saturation` + inventory topology are **Done** for the smoke packs.
+**Gaps:** Broader Motadata GT (human-labeled packs beyond the current L1 **7**, plus pending `motadata-deps-001`) and live change feed still open. Motadata signatures `app_error_rate` / `ping_degradation` / `host_cpu_saturation` + inventory topology are **Done** for the L1 packs.
 
 ---
 

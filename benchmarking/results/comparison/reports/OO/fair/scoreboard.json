@@ -1,0 +1,72 @@
+{
+  "slice": "A_fair",
+  "date": "2026-07-27",
+  "parity_run_id": "adr001-rerun-20260723",
+  "oo_mode": "fair_shift_to_now",
+  "shift_to_now": true,
+  "end_offset_minutes": 2,
+  "fair_alerts": true,
+  "lean_root_accuracy": "5/5",
+  "federated_root_accuracy": "5/5",
+  "oo_root_accuracy": "1/5",
+  "oo_uc5_anti_fp": "pass",
+  "cases": [
+    {
+      "uc": "UC-1",
+      "gt_root": "esxi-host-01",
+      "gt_signature": "cpu_contention",
+      "lean": true,
+      "federated": true,
+      "oo_correct": false,
+      "oo_root": "payment-db (db-01) / checkout TCP + slow product queries",
+      "incident_id": "3H538eGNAa0meaFoJwB2o8NnQMO"
+    },
+    {
+      "uc": "UC-2",
+      "gt_root": "switch-core-01:GigE0/2",
+      "gt_signature": "link_failure",
+      "lean": true,
+      "federated": true,
+      "oo_correct": false,
+      "oo_root": null,
+      "oo_note": "OO API unavailable at analysis — no RCA",
+      "incident_id": "3H5422DwKJLI1NtoagESqnaoZ3v"
+    },
+    {
+      "uc": "UC-3",
+      "gt_root": "datastore-01",
+      "gt_signature": "storage_contention",
+      "lean": true,
+      "federated": true,
+      "oo_correct": false,
+      "oo_root": "unidentified shared downstream bottleneck",
+      "incident_id": "3H541z1bJNXfExUagp4l5AyAdGg"
+    },
+    {
+      "uc": "UC-4",
+      "gt_root": "guest-os-vm-app-01",
+      "gt_signature": "os_resource_exhaustion",
+      "lean": true,
+      "federated": true,
+      "oo_correct": false,
+      "oo_root": "unidentified deploy/config/upstream",
+      "incident_id": "3H543H5FOsjMsNlfp197LYU8FqJ"
+    },
+    {
+      "uc": "UC-5",
+      "gt_root": "orders-api",
+      "gt_signature": "app_resource_exhaustion",
+      "lean": true,
+      "federated": true,
+      "oo_correct": true,
+      "oo_root": "orders-api (DB connection pool saturation + JVM heap pressure)",
+      "incident_id": "3H540hUYTQLWbBGwKuuJ52GTz2W"
+    }
+  ],
+  "contaminated_historical_oo": {
+    "date": "2026-07-24",
+    "claimed": "5/5 narrative",
+    "status": "withdrawn_for_localize_claims",
+    "reason": "GT coaching in alert text / tags"
+  }
+}

@@ -1232,6 +1232,23 @@ def build_comprehensive_report(
                 "Healthy siblings (pricing/inventory/token/fraud) are not on the "
                 "failing payment path; errors escalate api-gateway ← checkout ← "
                 "payment ← (DNS/RX/IRQ), with payment-provider as a decoy leaf."
+                if any(
+                    "payment" in str(n.get("id") or "").lower()
+                    or "checkout" in str(n.get("id") or "").lower()
+                    for n in (topology.get("nodes") or [])
+                )
+                or "ecom" in str(pack_dir).lower()
+                else (
+                    (
+                        f"Fault spreads { ' → '.join(path) } on this classic-infra pack map; "
+                        "other CIs on the small topology are not on this blast path."
+                    )
+                    if path and len(path) > 1
+                    else (
+                        f"Root CI {path[0] if path else verdict.get('root_ci') or gt.get('root_ci')} "
+                        "on the pack topology; customer symptom is usually downstream."
+                    )
+                )
             ),
         },
         "distributed_traces": traces,

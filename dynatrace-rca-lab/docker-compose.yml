@@ -1,0 +1,52 @@
+x-otel: &otel
+  OTEL_SDK_DISABLED: "${OTEL_SDK_DISABLED:-true}"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "${DT_ENV_URL}/api/v2/otlp"
+  OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Api-Token ${DT_API_TOKEN}"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}"
+  OTEL_TRACES_EXPORTER: "${OTEL_TRACES_EXPORTER:-otlp}"
+  OTEL_METRICS_EXPORTER: "${OTEL_METRICS_EXPORTER:-otlp}"
+  OTEL_LOGS_EXPORTER: "${OTEL_LOGS_EXPORTER:-none}"
+  OTEL_PROPAGATORS: "${OTEL_PROPAGATORS:-tracecontext,baggage}"
+  DT_TAGS: "lab=dynatrace-rca-lab"
+  DT_CUSTOM_PROP: "lab=dynatrace-rca-lab"
+  FAULT_DIR: /faults
+
+services:
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "18080:8080"
+    env_file: .env
+    volumes:
+      - ./faults:/faults:ro
+    environment:
+      <<: *otel
+      OTEL_SERVICE_NAME: frontend
+      DT_CLUSTER_ID: frontend
+      DT_RELEASE_PRODUCT: frontend
+      DT_RELEASE_STAGE: rca-lab
+
+  product:
+    build: ./product
+    env_file: .env
+    volumes:
+      - ./faults:/faults:ro
+    environment:
+      <<: *otel
+      OTEL_SERVICE_NAME: product
+      DT_CLUSTER_ID: product
+      DT_RELEASE_PRODUCT: product
+      DT_RELEASE_STAGE: rca-lab
+
+  inventory:
+    build: ./inventory
+    env_file: .env
+    volumes:
+      - ./faults:/faults:ro
+    environment:
+      <<: *otel
+      OTEL_SERVICE_NAME: inventory
+      DT_CLUSTER_ID: inventory
+      DT_RELEASE_PRODUCT: inventory
+      DT_RELEASE_STAGE: rca-lab

@@ -52,5 +52,5 @@ Do **not** invent a fake “Datadog scored X% on our corpus” claim without a l
 
 ## Tomorrow / follow-ups (optional)
 
-- One-slide table: Vendor public eval = none; Our eval = UC 5/5 + Motadata 3/3 + sample cards.
+- One-slide table: Vendor public eval = none; Our eval = UC 5/5 + Motadata 7/7 + sample cards.
 - If a customer later demands vendor parity numbers: design a **joint frozen lab** (same injects, same GT) — out of current PoC scope.

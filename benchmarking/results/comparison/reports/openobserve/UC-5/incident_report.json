@@ -1,0 +1,195 @@
+{
+  "schema_version": "comprehensive_rca.v1",
+  "incident_id": "3H540hUYTQLWbBGwKuuJ52GTz2W",
+  "source_incident_id": "3H540hUYTQLWbBGwKuuJ52GTz2W",
+  "engine": "openobserve",
+  "generated_at": "2026-07-28T10:32:11Z",
+  "pack_meta": {
+    "uc_id": "UC-5",
+    "fair_slice": "A_fair",
+    "parity_run_id": "adr001-rerun-20260723",
+    "detected_at": "2026-07-27 09:26:14 UTC",
+    "source": "oo_portal_fair_extract",
+    "analysis_source": "live_fetch",
+    "live_refreshed": true
+  },
+  "localization": {
+    "root_ci": "orders-api",
+    "signature": "app_resource_exhaustion",
+    "oo_claimed_root": "orders-api (DB connection pool saturation + JVM heap pressure)",
+    "contributor_cis": [],
+    "false_leads_ruled_out": [],
+    "matches_pack_gt": true
+  },
+  "incident_summary": {
+    "severity": "P3",
+    "detected": "2026-07-27 09:26:14 UTC",
+    "affected_services": [
+      "orders-api"
+    ],
+    "customer_impact": "Request latency increased to 1800ms (80% above threshold), 18% error rate in 5xx responses",
+    "dimension_slice": "OpenObserve fair Slice A \u00b7 ObserveOps UC",
+    "gt_fault_title": "Orders-api resource exhaustion"
+  },
+  "impact": {
+    "services_affected": [
+      "orders-api"
+    ],
+    "sla_breach": true,
+    "data_loss": false,
+    "estimated_fail_fraction": null,
+    "notes": null
+  },
+  "service_dependencies": {
+    "critical_path": [
+      "orders-api"
+    ],
+    "topology_edges": [],
+    "isolation_note": "Limited topological data available. orders-api identified as the primary affected component. No upstream/downstream service correlation data retrieved from topology service."
+  },
+  "distributed_traces": {
+    "available": false,
+    "analyzed_spans": 0,
+    "slow_spans": 0,
+    "assessment": "No trace data available in the default or ecom_traces streams for orders-api during the incident window. Trace correlation not possible."
+  },
+  "log_patterns": {
+    "key_findings": [
+      "JVM heap memory pressure: 96% utilization (threshold: 90%)",
+      "Database connection pool saturation: 100% active ratio (threshold: 95%)",
+      "Request latency degradation: p95 latency jumped to 1800ms (threshold: 1000ms)",
+      "Error rate spike: 18% 5xx error rate (threshold: 5%)",
+      "\"symptom seed: orders-api request.p95_latency_ms\" \u2014 indicates symptom detection at the application layer"
+    ],
+    "pack_event_types": {}
+  },
+  "metrics_analysis": {
+    "crossed_anomalies": [
+      {
+        "ci": "orders-api",
+        "signal": "jvm.heap.used_pct",
+        "value": 96.0,
+        "threshold": 90.0,
+        "raw_value": "96%",
+        "raw_threshold": "90%",
+        "crossed": true
+      },
+      {
+        "ci": "orders-api",
+        "signal": "db.conn_pool.active_ratio",
+        "value": 1.0,
+        "threshold": 0.95,
+        "raw_value": "1.0 (100%)",
+        "raw_threshold": "0.95 (95%)",
+        "crossed": true
+      },
+      {
+        "ci": "orders-api",
+        "signal": "request.p95_latency_ms",
+        "value": 1800.0,
+        "threshold": 1000.0,
+        "raw_value": "1800ms",
+        "raw_threshold": "1000ms",
+        "crossed": true
+      },
+      {
+        "ci": "orders-api",
+        "signal": "error_rate_5xx",
+        "value": 18.0,
+        "threshold": 5.0,
+        "raw_value": "18%",
+        "raw_threshold": "5%",
+        "crossed": true
+      }
+    ],
+    "assessment": "From observeops_uc_uc5 logs during UC-5 scenario execution:\n\n| Metric | Value | Threshold | Status |\n|--------|-------|-----------|--------|\n| jvm.heap.used_pct | 96% | 90% | BREACHED |\n| db.conn_pool.active_ratio | 1.0 (100%) | 0.95 (95%) | BREACHED |\n| request.p95_latency_ms | 1800ms | 1000ms | BREACHED |\n| error_rate_5xx | 18% | 5% | BREACHED |\n\nThe sequence indicates resource exhaustion cascading to application impact: JVM memory and database connection pool saturation preceded the latency s"
+  },
+  "timeline": [
+    {
+      "timestamp": "09:23:44 UTC",
+      "summary": "JVM heap memory reaches 96% utilization (anomaly crossed; threshold 90%)"
+    },
+    {
+      "timestamp": "09:23:44 UTC",
+      "summary": "Database connection pool reaches 100% active ratio (anomaly crossed; threshold 95%)"
+    },
+    {
+      "timestamp": "09:23:51 UTC",
+      "summary": "Request p95 latency spikes to 1800ms (anomaly crossed; threshold 1000ms)"
+    },
+    {
+      "timestamp": "09:23:51 UTC",
+      "summary": "Error rate jumps to 18% 5xx responses (anomaly crossed; threshold 5%)"
+    },
+    {
+      "timestamp": "09:23:51 UTC",
+      "summary": "Symptom seed triggered for orders-api request.p95_latency_ms"
+    },
+    {
+      "timestamp": "09:26:14 UTC",
+      "summary": "Incident created and correlated alert fired"
+    }
+  ],
+  "actions": {
+    "immediate": [
+      "**Identify the root cause of connection pool exhaustion** \u2014 Check database connection configuration (pool size, max wait time) and current active connection count to confirm saturation.",
+      "**Monitor memory pressure** \u2014 Check if GC pauses are contributing to latency. Review heap dump or GC logs to identify if there is a memory leak or excessive object allocation.",
+      "**Check database health** \u2014 Verify database server is responsive and not experiencing lock contention, slow queries, or resource exhaustion.",
+      "**Implement connection pool recovery** \u2014 Consider graceful draining and restart of the orders-api service to reset the connection pool and memory state."
+    ],
+    "future": [
+      "**Increase connection pool size** \u2014 If the current pool is undersized for peak load in UC-5 scenario, increase the pool max size to handle burst traffic.",
+      "**Implement circuit breaker** \u2014 Add circuit breaker pattern to fail fast and reduce queue buildup when the connection pool approaches saturation.",
+      "**JVM memory tuning** \u2014 Review heap size allocation and GC tuning parameters. If heap is consistently near 90%+, increase max heap size or optimize memory consumption.",
+      "**Add connection pool monitoring alerts** \u2014 Create proactive alerts for connection pool utilization at 70% and 80% thresholds to catch saturation earlier.",
+      "**Database query optimization** \u2014 Analyze slow queries to reduce connection hold time, allowing the pool to service more requests concurrently."
+    ]
+  },
+  "remediation": {
+    "immediate": [
+      "**Identify the root cause of connection pool exhaustion** \u2014 Check database connection configuration (pool size, max wait time) and current active connection count to confirm saturation.",
+      "**Monitor memory pressure** \u2014 Check if GC pauses are contributing to latency. Review heap dump or GC logs to identify if there is a memory leak or excessive object allocation.",
+      "**Check database health** \u2014 Verify database server is responsive and not experiencing lock contention, slow queries, or resource exhaustion.",
+      "**Implement connection pool recovery** \u2014 Consider graceful draining and restart of the orders-api service to reset the connection pool and memory state."
+    ],
+    "future": [
+      "**Increase connection pool size** \u2014 If the current pool is undersized for peak load in UC-5 scenario, increase the pool max size to handle burst traffic.",
+      "**Implement circuit breaker** \u2014 Add circuit breaker pattern to fail fast and reduce queue buildup when the connection pool approaches saturation.",
+      "**JVM memory tuning** \u2014 Review heap size allocation and GC tuning parameters. If heap is consistently near 90%+, increase max heap size or optimize memory consumption.",
+      "**Add connection pool monitoring alerts** \u2014 Create proactive alerts for connection pool utilization at 70% and 80% thresholds to catch saturation earlier.",
+      "**Database query optimization** \u2014 Analyze slow queries to reduce connection hold time, allowing the pool to service more requests concurrently."
+    ]
+  },
+  "rca_summary": {
+    "fault_title": "Orders-api resource exhaustion",
+    "root_ci": "orders-api",
+    "signature": "app_resource_exhaustion",
+    "causal_path": [
+      "orders-api"
+    ],
+    "customer_impact": "Request latency increased to 1800ms (80% above threshold), 18% error rate in 5xx responses",
+    "change_evidence": null,
+    "narrative": "Database connection pool saturation (100% active ratio) combined with JVM heap memory pressure (96% utilization) caused cascading resource exhaustion in orders-api. The saturated connection pool created request queueing, directly resulting in the observed p95 latency increase to 1800ms and 18% error rate."
+  },
+  "executive_summary": {
+    "potential_cause": "Database connection pool saturation (100% active ratio) combined with JVM heap memory pressure (96% utilization) caused cascading resource exhaustion in orders-api. The saturated connection pool created request queueing, directly resulting in the observed p95 latency increase to 1800ms and 18% error rate.",
+    "impact": "All orders-api requests during UC-5 scenario experienced significant latency (1800ms vs 1000ms threshold) and an 18% failure rate, breaking SLA commitments.",
+    "resolution": "Immediate investigation into connection pool configuration and database health required; short-term fix is service restart to flush the pool and memory state. Long-term remediation includes pool sizing analysis, memory optimization, and earlier detection through 70-80% utilization alerts."
+  },
+  "fair_score": {
+    "oo_correct": true,
+    "pack_gt_root": "orders-api",
+    "pack_gt_signature": "app_resource_exhaustion",
+    "oo_note": null
+  },
+  "portal_analysis_markdown": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3H540hUYTQLWbBGwKuuJ52GTz2W\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-27 09:26:14 UTC\n- **Resolved**: Ongoing\n- **Duration**: ~2 minutes (continuing)\n- **Affected Services**: orders-api\n- **Customer Impact**: Request latency increased to 1800ms (80% above threshold), 18% error rate in 5xx responses\n\n## Impact Assessment\n\n- **Services Affected**: 1 (orders-api)\n- **Peak Error Rate**: 18% (5xx errors, threshold 5%)\n- **Failed Requests**: 18% of requests during the incident window\n- **Users Impacted**: All users accessing orders functionality in UC-5 slice\n- **Data Loss**: No\n- **SLA Breach**: Yes (p95 latency breach at 1800ms vs 1000ms threshold)\n\n## Evidence\n\n### Service Dependencies\nLimited topological data available. orders-api identified as the primary affected component. No upstream/downstream service correlation data retrieved from topology service.\n\n### Distributed Traces\nNo trace data available in the default or ecom_traces streams for orders-api during the incident window. Trace correlation not possible.\n\n### Log Patterns\nObserveops monitoring revealed cascading resource and performance anomalies:\n\n**Anomalies Detected (in chronological order):**\n1. JVM heap memory pressure: 96% utilization (threshold: 90%)\n2. Database connection pool saturation: 100% active ratio (threshold: 95%)\n3. Request latency degradation: p95 latency jumped to 1800ms (threshold: 1000ms)\n4. Error rate spike: 18% 5xx error rate (threshold: 5%)\n\n**Key Error Message:**\n- \"symptom seed: orders-api request.p95_latency_ms\" \u2014 indicates symptom detection at the application layer\n\n### Metrics Analysis\nFrom observeops_uc_uc5 logs during UC-5 scenario execution:\n\n| Metric | Value | Threshold | Status |\n|--------|-------|-----------|--------|\n| jvm.heap.used_pct | 96% | 90% | BREACHED |\n| db.conn_pool.active_ratio | 1.0 (100%) | 0.95 (95%) | BREACHED |\n| request.p95_latency_ms | 1800ms | 1000ms | BREACHED |\n| error_rate_5xx | 18% | 5% | BREACHED |\n\nThe sequence indicates resource exhaustion cascading to application impact: JVM memory and database connection pool saturation preceded the latency spike by 7 seconds.\n\n### Recent Changes\nChange history not investigated \u2014 no tool access to deployment or configuration change auditing systems. Alert configuration indicates this is UC-5 (Slice A fair) monitoring scenario with fair_push enabled.\n\n### Contributing Factors\n1. **Database connection pool exhaustion** \u2014 active ratio reached 100%, suggesting all available connections were in use and the pool could not service new requests. This is the immediate bottleneck for the latency increase.\n2. **JVM heap memory pressure** \u2014 96% utilization indicates the application was under memory stress, potentially causing GC pressure or memory allocation delays that compound connection wait times.\n3. **Request queue buildup** \u2014 with the connection pool saturated, incoming requests must wait in queue, directly explaining the 1800ms p95 latency (80% increase from the 1000ms threshold).\n\n## Timeline\n\n- **09:23:44 UTC** \u2014 JVM heap memory reaches 96% utilization (anomaly crossed; threshold 90%)\n- **09:23:44 UTC** \u2014 Database connection pool reaches 100% active ratio (anomaly crossed; threshold 95%)\n- **09:23:51 UTC** \u2014 Request p95 latency spikes to 1800ms (anomaly crossed; threshold 1000ms)\n- **09:23:51 UTC** \u2014 Error rate jumps to 18% 5xx responses (anomaly crossed; threshold 5%)\n- **09:23:51 UTC** \u2014 Symptom seed triggered for orders-api request.p95_latency_ms\n- **09:26:14 UTC** \u2014 Incident created and correlated alert fired\n\n## Actions\n\n### Immediate\n- **Identify the root cause of connection pool exhaustion** \u2014 Check database connection configuration (pool size, max wait time) and current active connection count to confirm saturation.\n- **Monitor memory pressure** \u2014 Check if GC pauses are contributing to latency. Review heap dump or GC logs to identify if there is a memory leak or excessive object allocation.\n- **Check database health** \u2014 Verify database server is responsive and not experiencing lock contention, slow queries, or resource exhaustion.\n- **Implement connection pool recovery** \u2014 Consider graceful draining and restart of the orders-api service to reset the connection pool and memory state.\n\n### Future\n- **Increase connection pool size** \u2014 If the current pool is undersized for peak load in UC-5 scenario, increase the pool max size to handle burst traffic.\n- **Implement circuit breaker** \u2014 Add circuit breaker pattern to fail fast and reduce queue buildup when the connection pool approaches saturation.\n- **JVM memory tuning** \u2014 Review heap size allocation and GC tuning parameters. If heap is consistently near 90%+, increase max heap size or optimize memory consumption.\n- **Add connection pool monitoring alerts** \u2014 Create proactive alerts for connection pool utilization at 70% and 80% thresholds to catch saturation earlier.\n- **Database query optimization** \u2014 Analyze slow queries to reduce connection hold time, allowing the pool to service more requests concurrently.\n\n## Executive Summary\n\n**Potential Cause**: Database connection pool saturation (100% active ratio) combined with JVM heap memory pressure (96% utilization) caused cascading resource exhaustion in orders-api. The saturated connection pool created request queueing, directly resulting in the observed p95 latency increase to 1800ms and 18% error rate.\n\n**Impact**: All orders-api requests during UC-5 scenario experienced significant latency (1800ms vs 1000ms threshold) and an 18% failure rate, breaking SLA commitments.\n\n**Resolution**: Immediate investigation into connection pool configuration and database health required; short-term fix is service restart to flush the pool and memory state. Long-term remediation includes pool sizing analysis, memory optimization, and earlier detection through 70-80% utilization alerts.\n",
+  "live_incident": {
+    "id": "3H540hUYTQLWbBGwKuuJ52GTz2W",
+    "title": "orders_api_p95_latency_high_UC5",
+    "status": "resolved"
+  },
+  "completeness": {
+    "score": 1.0,
+    "source": "oo_portal_fair"
+  }
+}

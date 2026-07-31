@@ -1,0 +1,157 @@
+{
+  "engine": "lean",
+  "uc_id": "UC-1",
+  "root_ci": "esxi-host-01",
+  "signature": "cpu_contention",
+  "contributor_cis": [],
+  "evidence": [
+    {
+      "ci": "esxi-host-01",
+      "signal": "cpu.ready",
+      "value": 12.0,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "esxi-host-01",
+      "signal": "cpu.usage",
+      "value": 92.0,
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "vm-app-01",
+      "signal": "cpu.ready",
+      "value": 11.0,
+      "timestamp": "2026-07-10T10:00:12Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "vm-db-01",
+      "signal": "cpu.ready",
+      "value": 10.0,
+      "timestamp": "2026-07-10T10:00:12Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "guest-os-vm-app-01",
+      "signal": "load.avg",
+      "value": 8.0,
+      "timestamp": "2026-07-10T10:00:18Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "request.p95_latency_ms",
+      "value": 1450.0,
+      "timestamp": "2026-07-10T10:00:25Z",
+      "source": "anomaly"
+    },
+    {
+      "ci": "esxi-host-01",
+      "signal": "infra.change",
+      "value": "DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01",
+      "timestamp": "2026-07-10T09:55:00Z",
+      "source": "event",
+      "severity": "info",
+      "message": "DRS / capacity change: additional vCPU-heavy VMs scheduled onto esxi-host-01"
+    },
+    {
+      "ci": "esxi-host-01",
+      "signal": "esx.cpu.ready",
+      "value": "ESXi cpu.ready elevated on esxi-host-01 (12% > 5% threshold)",
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "event",
+      "severity": "critical",
+      "message": "ESXi cpu.ready elevated on esxi-host-01 (12% > 5% threshold)"
+    },
+    {
+      "ci": "esxi-host-01",
+      "signal": "esx.cpu.usage",
+      "value": "ESXi cpu.usage 92% sustained on esxi-host-01",
+      "timestamp": "2026-07-10T10:00:05Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "ESXi cpu.usage 92% sustained on esxi-host-01"
+    },
+    {
+      "ci": "vm-app-01",
+      "signal": "vmware.cpu.ready",
+      "value": "VM cpu.ready 11% on vm-app-01 (host scheduler starvation)",
+      "timestamp": "2026-07-10T10:00:12Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "VM cpu.ready 11% on vm-app-01 (host scheduler starvation)"
+    },
+    {
+      "ci": "guest-os-vm-app-01",
+      "signal": "syslog.loadavg",
+      "value": "load average 8.0 on guest-os-vm-app-01 (run-queue backlog)",
+      "timestamp": "2026-07-10T10:00:18Z",
+      "source": "event",
+      "severity": "warning",
+      "message": "load average 8.0 on guest-os-vm-app-01 (run-queue backlog)"
+    },
+    {
+      "ci": "orders-api",
+      "signal": "app.latency",
+      "value": "orders-api p95 latency 1450ms (SLO threshold 1000ms)",
+      "timestamp": "2026-07-10T10:00:25Z",
+      "source": "event",
+      "severity": "critical",
+      "message": "orders-api p95 latency 1450ms (SLO threshold 1000ms)"
+    }
+  ],
+  "observations": 6,
+  "evidentiary_tier": 3,
+  "fallback_fired": true,
+  "causal_verified": true,
+  "causal_log": [
+    {
+      "check": "root_anomalous",
+      "passed": true,
+      "root_ci": "esxi-host-01",
+      "onset": "2026-07-10T10:00:05+00:00"
+    },
+    {
+      "check": "topology_upstream_of_seed",
+      "passed": true,
+      "seed_ci": "orders-api",
+      "root_ci": "esxi-host-01"
+    },
+    {
+      "check": "onset_precedes_connected_symptoms",
+      "passed": true,
+      "root_onset": "2026-07-10T10:00:05+00:00",
+      "connected_downstream_cis": [
+        "guest-os-vm-app-01",
+        "orders-api",
+        "vm-app-01",
+        "vm-db-01"
+      ]
+    }
+  ],
+  "obs_to_convergence": 3,
+  "naive_bfs_expansions": 3,
+  "efficiency_ratio": 1.0,
+  "upstream_healthy_verified": false,
+  "causal_chain": [
+    "esxi-host-01",
+    "vm-app-01",
+    "guest-os-vm-app-01",
+    "orders-api"
+  ],
+  "blast_radius": [
+    "vm-app-01",
+    "vm-db-01",
+    "vm-neighbor-01",
+    "guest-os-vm-app-01",
+    "guest-os-vm-db-01",
+    "orders-api"
+  ],
+  "remediation": [
+    "vMotion or rebalance affected VMs.",
+    "Check DRS placement and find runaway workloads.",
+    "Right-size vCPUs for contended VMs."
+  ]
+}

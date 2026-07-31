@@ -3,7 +3,7 @@
 Frozen input bundles for **UC-1..UC-5** (+ adversarial **UC-3b**) from [docs/rca-use-cases-only.md](../../docs/rca-use-cases-only.md).
 
 **Corpus version:** **v1.1.0** (`manifest.yaml`) — shared-upstream-under-ambiguity fixture, **`events.json`** on UC-2 / UC-4 / UC-3b.  
-**Canonical bakeoff:** **`bakeoff-phase-b-002`** (supersedes `bakeoff-phase-b-001` for headline numbers).
+**Canonical bakeoff / scoreboard cite:** **`adr001-rerun-20260723`**. ADR-era decision snapshot: `bakeoff-phase-b-002` (superseded `bakeoff-phase-b-001` for those headline numbers).
 
 Classic infra typed CI graph (Network → ESXi → VM → OS → App + Datastore) — not a microservice deployment-identity call graph. See [docs/README.md](../../docs/README.md).
 

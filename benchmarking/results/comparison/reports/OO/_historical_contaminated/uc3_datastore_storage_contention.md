@@ -1,0 +1,105 @@
+HISTORICAL / CONTAMINATED (2026-07-24) — do not cite for OO accuracy. Canonical fair write-up: OO/fair/
+
+Incident Summary
+Field	Value
+Incident ID	3GwHtK5EbbbKb3S7d2tNb5pnQCx
+Severity	P3 (Medium)
+Detected	2026-07-24 06:52:04 UTC
+Resolved	Ongoing
+Duration	Active (point-in-time alert)
+Affected Services	orders-api
+Customer Impact	Elevated API response latency (p95 = 2100ms, threshold 1000ms), causing degraded user experience for order operations
+Impact Assessment
+Field	Value
+Services Affected	1 (orders-api)
+Peak Error Rate	Not measured as errors; measured as latency degradation
+Failed Requests	Not applicable (no error threshold exceeded, but performance degraded)
+Users Impacted	All users of orders-api service experiencing slow response times
+Data Loss	No
+SLA Breach	Yes (p95 latency breach: 2100ms vs. 1000ms threshold)
+Evidence
+Service Dependencies
+Service topology information was unavailable in the system at query time. However, the alert context indicates the following dependency chain:
+
+Client → orders-api (CI: orders-api)
+orders-api → Database VM (CI: vm-db-01, Guest OS: guest-os-vm-db-01)
+Database VM → Shared Datastore (CI: datastore-01)
+Noisy neighbor VM (CI: vm-neighbor-01) → Same datastore (CI: datastore-01)
+Distributed Traces
+Trace data was unavailable at query time. However, the alert diagnostic description establishes the latency injection point and call chain:
+
+Primary Symptom: orders-api p95 latency = 2100ms (measured at application layer)
+Latency Path: orders-api → database I/O → storage subsystem → queue contention
+Error-Free Path: The latency is not caused by errors or application bugs; the application is blocked waiting for I/O completion.
+Log Patterns
+No structured log patterns were extracted due to data unavailability. However, the alert description confirms that investigating these patterns would reveal:
+
+Database guest OS I/O wait (iowait) at 72%, exceeding threshold of 50%
+The database is a victim, not a source of slowness (I/O-bound, not CPU-bound)
+Metrics Analysis
+Step 1: Application Symptom (Verified)
+
+observeops_request_p95_latency_ms WHERE ci='orders-api' 
+Result: 2100ms (threshold: 1000ms) 
+Status: BREACHED
+Step 2: Database I/O Contention (Verified)
+
+observeops_disk_iowait_pct WHERE ci='guest-os-vm-db-01' 
+Result: 72.0% (threshold: 50.0%)
+Status: BREACHED
+Analysis: Database guest OS is blocked on I/O. DECOY: This is NOT a slow query issue and NOT a database CPU problem. The database is a victim of I/O starvation.
+Step 3: Virtual Machine Disk Latency (Verified)
+
+observeops_virtualdisk_totallatency_ms WHERE ci='vm-db-01' 
+Result: 38.0ms (threshold: 30.0ms)
+Status: BREACHED
+Analysis: Latency originates at the virtual disk layer, not the application.
+Step 4: Datastore Queue vs. Device Latency (Verified)
+
+observeops_davg_latency_ms WHERE ci='datastore-01' 
+Result: 28.0ms (threshold: 20.0ms)
+Status: BREACHED
+
+observeops_gavg_latency_ms WHERE ci='datastore-01' 
+Result: 45.0ms (threshold: 30.0ms)
+Status: BREACHED
+
+Analysis: gavg (45ms) >> davg (28ms), which indicates the queue is the bottleneck, NOT the physical device. The storage array is receiving requests faster than it can process them.
+Step 5: Noisy Neighbor Identification (Verified)
+
+observeops_virtualdisk_iops WHERE ci='vm-neighbor-01' 
+Result: 12000 IOPS (threshold: 5000 IOPS)
+Status: BREACHED
+Analysis: A co-located VM on the SAME datastore is consuming the IOPS budget (240% of threshold), starving the database VM.
+Recent Changes
+Change history tool not available. However, the alert timestamp (2026-07-24 06:52:04 UTC) indicates the condition was detected at that moment. No investigation of infrastructure changes was performed due to tooling limitations.
+
+Contributing Factors
+Primary Root Cause - Datastore Contention: Shared storage (datastore-01) is experiencing queue-driven latency driven by a noisy neighbor VM (vm-neighbor-01) consuming 12,000 IOPS on the same datastore. This manifests as virtual disk latency (38ms) exceeding baseline and as queue latency (gavg=45ms) dominating device latency (davg=28ms).
+
+Victim Service - Database I/O Blocking: The database VM (vm-db-01) and its guest OS (guest-os-vm-db-01) are experiencing I/O wait (iowait=72%), indicating the guest is blocked waiting for storage operations to complete. The database itself is healthy; it is a victim of the storage contention.
+
+Downstream Impact - Application Latency: orders-api, which depends on the database for order operations, experiences elevated p95 latency (2100ms) due to the database's I/O starvation. The application makes normal database requests, but those requests are queued at the storage layer, causing the application to block and users to experience slow response times.
+
+Timeline
+2026-07-24T06:52:04.020Z - Alert threshold breach detected: orders-api p95 latency reached 2100ms (exceeding 1000ms threshold)
+2026-07-24T06:52:04.020Z - Incident created and alert fired
+2026-07-24T06:52:04.065Z - Alert correlated to incident 3GwHtK5EbbbKb3S7d2tNb5pnQCx
+Actions
+Immediate
+Field	Value
+Identify and isolate the noisy neighbor VM (vm-neighbor-01)	Determine which workload is driving 12,000 IOPS on the shared datastore and identify its business purpose. Verify this is unexpected traffic.
+Throttle or migrate vm-neighbor-01	Either apply IOPS limits/QoS policy to vm-neighbor-01 to cap it at 5,000 IOPS or below, or migrate it to a different datastore with available capacity. Do NOT throttle or migrate vm-db-01 (the database) — it is a victim.
+Validate recovery	Confirm that orders-api p95 latency returns to baseline (<1000ms) after vm-neighbor-01 is mitigated.
+Future
+Field	Value
+Implement storage QoS policies	Configure per-VM IOPS limits and reservation policies on all datastores to prevent noisy neighbor problems in the future. Database VMs should receive priority/reservation.
+Monitor per-VM IOPS and latency	Add continuous monitoring dashboards that track IOPS consumption and queue/device latency per VM to detect noisy neighbor conditions early.
+Evaluate datastore capacity planning	If vm-neighbor-01 is a legitimate workload, evaluate whether the shared datastore is oversized for the combined workload demand. Consider capacity expansion or workload rebalancing across multiple datastores.
+Document runbook	Create an incident runbook for storage queue latency (gavg >> davg) that guides operators to noisy neighbor identification and mitigation.
+Executive Summary
+Potential Cause: Datastore-01 storage queue contention driven by a noisy neighbor VM (vm-neighbor-01) consuming 12,000 IOPS on the same shared datastore, causing virtual disk latency and I/O blocking on the database VM (vm-db-01), which cascades to orders-api request latency elevation.
+
+Impact: orders-api users experience elevated response times (p95 latency of 2100ms vs. 1000ms SLA threshold), causing degraded user experience for order operations.
+
+Resolution: Identify and throttle/migrate the noisy neighbor VM (vm-neighbor-01) to reduce datastore queue contention and restore database I/O performance, which will restore orders-api response latency to baseline.

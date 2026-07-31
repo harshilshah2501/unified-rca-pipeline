@@ -48,3 +48,19 @@ benchmarking/results/costing/_vtest*/
 
 # Personal / off-record learning notes (not project docs)
 notes/
+
+# Secrets / credentials (never commit)
+.env
+.env.*
+*.pem
+*.key
+*credentials*
+**/secrets/
+
+# OO fair-push runtime summaries + alert IDs (regenerable; may embed lab URLs)
+benchmarking/results/comparison/oo_push_summary*.json
+benchmarking/results/comparison/oo_slice_a_alerts.json
+
+# OO raw Analysis dumps (canonical write-ups live in reports/OO/fair/)
+benchmarking/results/comparison/reports/OO/_fair_extracts/**
+!benchmarking/results/comparison/reports/OO/_fair_extracts/README.md

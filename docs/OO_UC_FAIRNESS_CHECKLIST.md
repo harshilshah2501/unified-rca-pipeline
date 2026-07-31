@@ -1,33 +1,37 @@
 # OpenObserve UC fairness checklist
 
 **Purpose:** Make Lean × Federated × OO citations **credible** on ObserveOps UC-1..UC-5.  
-**Related:** [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md)
+**Slice A playbook:** [`SLICE_A_OO_UC_FAIRNESS.md`](./SLICE_A_OO_UC_FAIRNESS.md)  
+**Fair results (2026-07-27):** [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) · [`../benchmarking/results/comparison/reports/OO/fair/`](../benchmarking/results/comparison/reports/OO/fair/)
 
-OO is **not** automatic RCA: alerts are compulsory; past-window incidents may need an explicit enable. That is allowed — but alerts must **not coach the answer**.
+OO is **not** automatic RCA: alerts are compulsory; shift-to-now may be required for Analysis windows. That is allowed — but alerts must **not coach the answer**.
+
+---
+
+## Fair Slice A outcome (done)
+
+| Engine | Root vs pack GT |
+|--------|-----------------|
+| Lean | **5/5** |
+| Federated | **5/5** |
+| OpenObserve (fair) | **1/5** (UC-5 only; UC-5 anti-FP pass) |
+
+Contaminated 2026-07-24 OO “5/5 narrative” is **withdrawn** for Localize claims.
 
 ---
 
 ## Before claiming OO Localize accuracy
 
-| # | Check | Pass criteria |
-|---|--------|---------------|
-| 1 | **No GT in alert text** | Alert title/description must **not** contain `root_ci_gt`, `signature_gt`, `ground_truth`, or the exact GT root CI / signature strings as “the answer” |
-| 2 | **Symptom-only alert** | Alert fires on the **symptom** metric (e.g. `orders-api` latency/errors), not on the root CI alone |
-| 3 | **Same synthetic story** | Same UC windows / thresholds as Lean/Fed packs (or document deltas) |
-| 4 | **Past-incident path documented** | Note if past-data trigger was required (age, flag flipped) |
-| 5 | **Extractable verdict** | Write down OO’s claimed root CI (+ fault class) in one line **before** reading Lean/Fed reports |
-| 6 | **UC-5 anti-FP** | OO must not blame healthy infra when GT is `orders-api` |
-| 7 | **Re-pull after scrub** | Especially **UC-1** (current export embeds GT in alert) — regenerate OO write-up after scrubbing |
-
----
-
-## UC-1 known contamination (current export)
-
-`reports/OO/uc1_esxi_cpu_contention` quotes alert text:
-
-`Root Cause (root_ci_gt=esxi-host-01, signature_gt=cpu_contention): …`
-
-→ Treat current UC-1 OO pass as **narrative alignment**, not independent Localize proof, until checklist #1/#7 are done.
+| # | Check | Pass criteria | Slice A 2026-07-27 |
+|---|--------|---------------|--------------------|
+| 1 | **No GT in alert text** | No `root_ci_gt`, `signature_gt`, or GT root as “the answer” | ✓ fair alerts |
+| 2 | **Symptom-only alert** | Fires on symptom metric | ✓ |
+| 3 | **Same synthetic story** | Same UC packs / thresholds (or document deltas) | ✓ parity + shift noted |
+| 4 | **Past/shift path documented** | Note past-trigger or `shift-to-now` | ✓ shift-to-now |
+| 5 | **Extractable verdict** | Blind one-line OO root before Lean/Fed | ✓ |
+| 6 | **UC-5 anti-FP** | Must not blame healthy infra | ✓ pass |
+| 7 | **Re-pull after scrub** | New write-ups after fair alerts | ✓ `OO/fair/` |
+| 8 | **Fair push** | `--fair` (no GT tags on records) | ✓ |
 
 ---
 
@@ -39,7 +43,7 @@ OO is **not** automatic RCA: alerts are compulsory; past-window incidents may ne
 | Signature | enum match | Optional prose class match |
 | Repro / latency | Machine | Out of scope unless OO exposes stable API |
 
-Keep **report richness** as a separate axis (OO often wins prose); do not merge into Motadata or ADR scoreboards.
+Keep **report richness** as a separate axis; do not merge into Motadata or ADR scoreboards.
 
 ---
 
@@ -47,4 +51,4 @@ Keep **report richness** as a separate axis (OO often wins prose); do not merge 
 
 > Alerts raise the incident; **RCA must discover the root** — never paste GT into the alert body.
 
-*Added: 2026-07-24*
+*Updated: 2026-07-27 — fair Slice A complete (OO 1/5)*

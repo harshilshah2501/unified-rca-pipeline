@@ -231,7 +231,7 @@ Frozen bundles UC-1..UC-5 (+ UC-3b adversarial):
 | UC-4 | Guest OS | OS resource fault (+ event evidence), not app code |
 | UC-5 | App | Must **not** false-blame healthy infra |
 
-Same bundle -> both engines -> compare (Accuracy, Reproducibility N=20, Verifiability, Efficiency). Latest matched run: `bakeoff-phase-b-002`. **Evaluation finding:** lean is the primary evaluation engine on this corpus (ADR-001); not a finalized product commitment.
+Same bundle -> both engines -> compare (Accuracy, Reproducibility N=20, Verifiability, Efficiency). Latest matched run: `adr001-rerun-20260723`. **Evaluation finding:** lean is the primary evaluation engine on this corpus (ADR-001); not a finalized product commitment.
 
 ### Older PRD scenarios (pod churn / blind spot)
 

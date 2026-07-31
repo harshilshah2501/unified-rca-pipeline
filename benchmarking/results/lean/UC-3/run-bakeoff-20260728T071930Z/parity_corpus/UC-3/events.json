@@ -1,0 +1,39 @@
+{
+  "events": [
+    {
+      "timestamp": "2026-07-10T09:57:00Z",
+      "ci": "vm-neighbor-01",
+      "event_type": "infra.change",
+      "severity": "info",
+      "message": "Batch / fio workload started on vm-neighbor-01 (shared datastore-01)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:05Z",
+      "ci": "datastore-01",
+      "event_type": "storage.latency",
+      "severity": "critical",
+      "message": "datastore-01 GAVG latency > 30ms (shared storage contention)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:08Z",
+      "ci": "vm-neighbor-01",
+      "event_type": "storage.iops",
+      "severity": "warning",
+      "message": "vm-neighbor-01 heavy random I/O on datastore-01 (noisy neighbor)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:12Z",
+      "ci": "vm-db-01",
+      "event_type": "vmware.disk.latency",
+      "severity": "critical",
+      "message": "vm-db-01 virtualDisk.totalLatency elevated (victim VM)"
+    },
+    {
+      "timestamp": "2026-07-10T10:00:18Z",
+      "ci": "orders-api",
+      "event_type": "app.db_slow",
+      "severity": "critical",
+      "message": "orders-api slow DB queries / timeouts (storage-backed)"
+    }
+  ]
+}

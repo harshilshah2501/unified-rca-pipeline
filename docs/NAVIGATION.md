@@ -72,7 +72,7 @@ Best cold-start surface after you know the five stages.
 | [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md) | Walkthrough: console hashes, 15–20 min demo script, bakeoff / Motadata / lab commands |
 | [`../benchmarking/dashboard/README.md`](../benchmarking/dashboard/README.md) | PoC console — `http://127.0.0.1:8765/` |
 
-Suggested console order: `#guide` (pipeline widget) → `#samples` (manual verify) → `#conduct` / `#overview` / `#verdict`.
+Suggested console order: `#guide` → `#incident` (human report) → `#samples` → `#conduct` / `#overview` / `#verdict`. Optional: [`rca-workflow-sim.html`](../benchmarking/dashboard/rca-workflow-sim.html) if they ask *how* Localize differs.
 
 ```bash
 .venv/bin/python benchmarking/dashboard/server.py
@@ -98,13 +98,15 @@ Understand **what** was measured before reading engine internals.
 | [`../datasets/openobserve_incidents/v1/ground_truth/README.md`](../datasets/openobserve_incidents/v1/ground_truth/README.md) | Option B GT convention |
 | [`../datasets/scenario.md`](../datasets/scenario.md) | E-com cross-NUMA checkout scenario (design + Postgres dump) |
 | [`ECOM_CHECKOUT_RCA_ANALYSIS.md`](./ECOM_CHECKOUT_RCA_ANALYSIS.md) | **Lean vs Federated write-up** for `ecom-numa-001` |
+| [`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) | **Team reference:** Clock A/B · classes A–E · Grail/Smartscape/Vector · solution path |
+| [`rca-data-lake-brainstorm.html`](./rca-data-lake-brainstorm.html) | Same — browser / [`:8765/rca-data-lake-brainstorm.html`](http://127.0.0.1:8765/rca-data-lake-brainstorm.html) |
 
 ### Benchmarking & scoreboards
 
 | Document | Purpose |
 |----------|---------|
 | [`../benchmarking/README.md`](../benchmarking/README.md) | Runners, two corpora, how to reproduce |
-| [`../benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) | **ObserveOps scoreboard** (cite `bakeoff-phase-b-002`) |
+| [`../benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) | **ObserveOps scoreboard** (cite `adr001-rerun-20260723`) |
 | [`../benchmarking/results/comparison/DECISION.md`](../benchmarking/results/comparison/DECISION.md) | Decision memo |
 | [`../benchmarking/results/comparison/RUN_IDS.md`](../benchmarking/results/comparison/RUN_IDS.md) | Which run IDs to cite vs ignore |
 | [`../benchmarking/results/openobserve/COMPARISON.md`](../benchmarking/results/openobserve/COMPARISON.md) | OO peer agreement — do **not** merge with UC 5/5 |
@@ -190,9 +192,9 @@ After the path above, these fill algorithm intuition (not status).
 
 | Document | Purpose |
 |----------|---------|
-| [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) | Side-by-side revision + ingest cost PoC notes |
-| [`Lean-decoded.md`](../Lean-decoded.md) | Lean study notes (`[Implemented]` / `[Simulated]` / `[Aspirational]`) |
-| [`Federated-decoded.md`](../Federated-decoded.md) | Federated study notes (same tags) |
+| [`RCA-learning-cheatsheet.md`](./learning/RCA-learning-cheatsheet.md) | Side-by-side revision + ingest cost PoC notes (study only) |
+| [`Lean-decoded.md`](./learning/Lean-decoded.md) | Lean study notes (`[Implemented]` / `[Simulated]` / `[Aspirational]`) |
+| [`Federated-decoded.md`](./learning/Federated-decoded.md) | Federated study notes (same tags) |
 | [`UC_LEARNING_BRAINSTORM.md`](./UC_LEARNING_BRAINSTORM.md) | UC learning frames — **not** bakeoff GT |
 
 ---
@@ -205,7 +207,7 @@ After the path above, these fill algorithm intuition (not status).
 
 Parked / stretch (same doc): gray-failure Panorama corpus, I2 path-diff, V1 maintain-only.
 
-Also: [`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md) · [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md) · Lean/Fed/OO UC compare [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md)
+Also: [`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md) · [`SLICE_A_OO_UC_FAIRNESS.md`](./SLICE_A_OO_UC_FAIRNESS.md) · [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md) · Lean/Fed/OO UC compare [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md)
 
 ---
 
@@ -221,20 +223,23 @@ Use this **after** you have the map — or when you already know the goal.
 | See current status and phases | [`ROADMAP.md`](./ROADMAP.md) (journey stages) |
 | RCA workflow + next actions | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) |
 | **LIVE ingest runbook** | [`LIVE_INGEST_RUNBOOK.md`](./LIVE_INGEST_RUNBOOK.md) |
+| **Slice A OO UC fairness** | [`SLICE_A_OO_UC_FAIRNESS.md`](./SLICE_A_OO_UC_FAIRNESS.md) |
 | **OO UC fairness checklist** | [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md) |
 | Lean × Fed × OO UC compare | [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) |
 | Design ingestion (Vector → graphs) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
 | Ingestion PoC plan (hardware + gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
 | `ingest.v1` format / converters | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
 | Fair Lean vs Federated (shared Detect) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
+| **Incident Analysis** (human report UI) | PoC console [`#incident`](http://127.0.0.1:8765/#incident) — ObserveOps UC + Motadata L1 |
+| **RCA workflow sim** (Detect → Lean / Fed Localize) | [`../benchmarking/dashboard/rca-workflow-sim.html`](../benchmarking/dashboard/rca-workflow-sim.html) → `:8765/rca-workflow-sim.html` |
 | Fault buckets vs Dynatrace/Datadog | [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) · [`fault_taxonomy.py`](../benchmarking/benchmark/fault_taxonomy.py) |
 | Vendor RCA public eval (DD/DT) | [`VENDOR_BENCHMARKS.md`](./VENDOR_BENCHMARKS.md) |
 | L0 vs F1 cost report (pro6000) | [`cost_report.md`](../benchmarking/results/costing/cost-pro6000-20260721Tfinal/cost_report.md) |
 | Two-step RCA white space | [`two-step-rca-white-space.md`](./two-step-rca-white-space.md) |
-| Learn Lean vs Federated | [`RCA-learning-cheatsheet.md`](../RCA-learning-cheatsheet.md) |
+| Learn Lean vs Federated | [`learning/RCA-learning-cheatsheet.md`](./learning/RCA-learning-cheatsheet.md) |
 | Run lean diagnose / API | [`../lean-pipeline/README.md`](../lean-pipeline/README.md) |
 | Run bakeoff / scoreboard | [`../benchmarking/README.md`](../benchmarking/README.md) → [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) |
-| Open PoC console | [`dashboard/README.md`](../benchmarking/dashboard/README.md) → `:8765` (`#guide` · `#samples` · `#conduct`) |
+| Open PoC console | [`dashboard/README.md`](../benchmarking/dashboard/README.md) → `:8765` (`#guide` · `#incident` · `#samples` · `#conduct` · [`rca-workflow-sim`](../benchmarking/dashboard/rca-workflow-sim.html)) |
 | Evaluate any RCA method fairly | [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) |
 | Resolve terminology drift | [`GLOSSARY.md`](./GLOSSARY.md) |
 | Vendor landscape survey (PDF) | [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf) · [notes](./RCA_Vendor_Comparison_NOTES.md) |
@@ -248,24 +253,21 @@ Unified-RCA/
 ├── docs/NAVIGATION.md          ← you are here (doc path)
 ├── docs/CODE_GUIDE.md          ← code path for newcomers
 ├── docs/                       ← common PoC docs
-├── Lean-decoded.md             ← study notes
-├── Federated-decoded.md
-├── RCA-learning-cheatsheet.md
+├── docs/learning/              ← study notes (not scoreboards)
 ├── datasets/observeops/        ← ObserveOps frozen corpus (bakeoff)
 ├── datasets/ingest_samples/    ← ingest.v1 streams (UC replay + Motadata)
 ├── datasets/openobserve_incidents/
 ├── ingestion-poc/              ← Vector / detect / replay / adapters
 ├── lean-pipeline/              ← primary evaluation engine packaging
 ├── federated-pipeline/         ← comparator + optional hybrid track
-├── benchmarking/               ← runners, results, dashboard
-└── RCA-MANIM-Generator-System/ ← visual compiler (if present)
+└── benchmarking/               ← runners, results, dashboard
 ```
 
 ---
 
 ## Conventions (read once)
 
-- **Canonical scoreboard:** `bakeoff-phase-b-002` → [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md)
+- **Canonical scoreboard:** `adr001-rerun-20260723` → [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) (ADR-era snapshot: `bakeoff-phase-b-002`)
 - **Corpus v1.1.0:** UC-3b + `events.json` on UC-2/4/3b
 - **Verdict phrase:** primary **evaluation** engine on ObserveOps; **not** a finalized GTM commitment
 - **Two corpora:** ObserveOps UC vs OpenObserve — **never merge** accuracy headlines
@@ -277,4 +279,4 @@ Unified-RCA/
 |----------|------|
 | [`lean_rca_prd_insights_ae5f991e.plan.md`](../lean-pipeline/docs/lean_rca_prd_insights_ae5f991e.plan.md) | Early PRD plan — superseded by ROADMAP + ARCHITECTURE |
 
-*Last indexed: 2026-07-24 (LIVE runbook · OO fairness · Motadata deps-001 Bucket-3)*
+*Last indexed: 2026-07-28 (Incident Analysis · Motadata L1 in `#incident` · plain L0/F1 / Detect gloss)*

@@ -1,0 +1,22 @@
+{
+  "uc_id": "UC-1",
+  "run_id": "bakeoff-20260728T071930Z",
+  "corpus": "/root/Harshil-PoCs/Unified-RCA/datasets/observeops",
+  "corpus_version": "1.1.0",
+  "engine": "lean",
+  "latency_ms": 3.7355,
+  "system_latency_ms": 5.2669,
+  "detect_source": "shared_threshold",
+  "pipeline_profile": "parity-shared-detect",
+  "detect_latency_ms": 1.5314,
+  "points_scanned": 2022,
+  "series_scanned": 6,
+  "by_anomaly_class": {
+    "resource": 5,
+    "performance": 1
+  },
+  "change_near_onset": true,
+  "change_count_in_window": 2,
+  "C_detect_ms": 1.5314,
+  "change_window_minutes": 30
+}

@@ -11,7 +11,7 @@ Classic VMware-style stack: **Network Device → ESXi Host → VM → Guest OS �
 | UC-4 | Guest OS | Filesystem full / runaway process / OOM | Blaming the app code | Primary (+ events) |
 | UC-5 | Application | JVM heap / DB connection-pool exhaustion | *False-blaming* the infra below | Primary |
 
-Frozen corpus: `datasets/observeops/` **v1.1.0** (`manifest.json`) — UC-1..UC-5 (primary bakeoff), **UC-3b** (adversarial confound), and **`events.json`** on UC-2 / UC-4 / UC-3b. Matched bakeoff: **`bakeoff-phase-b-002`**.
+Frozen corpus: `datasets/observeops/` **v1.1.0** (`manifest.json`) — UC-1..UC-5 (primary bakeoff), **UC-3b** (adversarial confound), and **`events.json`** on UC-2 / UC-4 / UC-3b. Matched bakeoff: **`adr001-rerun-20260723`** (ADR-era: `bakeoff-phase-b-002`).
 
 ---
 

@@ -1,0 +1,186 @@
+{
+  "schema_version": "comprehensive_rca.v1",
+  "incident_id": "3H541z1bJNXfExUagp4l5AyAdGg",
+  "source_incident_id": "3H541z1bJNXfExUagp4l5AyAdGg",
+  "engine": "openobserve",
+  "generated_at": "2026-07-28T10:32:11Z",
+  "pack_meta": {
+    "uc_id": "UC-3",
+    "fair_slice": "A_fair",
+    "parity_run_id": "adr001-rerun-20260723",
+    "detected_at": "2026-07-27 09:26:24 UTC",
+    "source": "oo_portal_fair_extract",
+    "analysis_source": "live_fetch",
+    "live_refreshed": true
+  },
+  "localization": {
+    "root_ci": "unidentified shared downstream bottleneck",
+    "signature": null,
+    "oo_claimed_root": "unidentified shared downstream bottleneck (UC-1/3/5 co-spike)",
+    "contributor_cis": [],
+    "false_leads_ruled_out": [],
+    "matches_pack_gt": false
+  },
+  "incident_summary": {
+    "severity": "P3",
+    "detected": "2026-07-27 09:26:24 UTC",
+    "affected_services": [
+      "orders-api"
+    ],
+    "customer_impact": "Elevated API response latency on UC-3 (orders-api use case), breaching SLA threshold",
+    "dimension_slice": "OpenObserve fair Slice A \u00b7 ObserveOps UC",
+    "gt_fault_title": "Datastore storage contention"
+  },
+  "impact": {
+    "services_affected": [
+      "orders-api"
+    ],
+    "sla_breach": true,
+    "data_loss": false,
+    "estimated_fail_fraction": null,
+    "notes": null
+  },
+  "service_dependencies": {
+    "critical_path": [
+      "unidentified shared downstream bottleneck"
+    ],
+    "topology_edges": [],
+    "isolation_note": "Service topology returned no nodes or edges, indicating either:\n- Trace data collection not yet available for service graph construction\n- Service instrumentation not configured\n- Traces stream not populated during incident window\n\nThe alert metadata references only \"orders-api\" with no upstream/downstream dependencies documented in the system."
+  },
+  "distributed_traces": {
+    "available": false,
+    "analyzed_spans": 0,
+    "slow_spans": 0,
+    "assessment": "No trace data available in the traces stream for the time window 2026-07-27 08:56:24 UTC to 2026-07-27 09:26:24 UTC. Trace instrumentation may not be enabled for orders-api or the traces stream may not contain data from this service."
+  },
+  "log_patterns": {
+    "key_findings": [
+      "api_gateway_logs: last data point 2026-07-14 01:04:50 UTC (13+ days old)",
+      "app_logs: last data point 2026-07-14 00:58:21 UTC (13+ days old)"
+    ],
+    "pack_event_types": {}
+  },
+  "metrics_analysis": {
+    "crossed_anomalies": [
+      {
+        "ci": "orders-api",
+        "signal": "Timestamp UTC",
+        "value": 3.0,
+        "threshold": 1.0,
+        "raw_value": "UC-3 P95 (ms)",
+        "raw_threshold": "UC-1 P95 (ms)",
+        "crossed": true
+      },
+      {
+        "ci": "orders-api",
+        "signal": "2026-07-27 09:16:46",
+        "value": 400.0,
+        "threshold": 400.0,
+        "raw_value": "400",
+        "raw_threshold": "400",
+        "crossed": true
+      },
+      {
+        "ci": "orders-api",
+        "signal": "2026-07-27 09:20:06",
+        "value": 400.0,
+        "threshold": 400.0,
+        "raw_value": "400",
+        "raw_threshold": "400",
+        "crossed": true
+      },
+      {
+        "ci": "orders-api",
+        "signal": "2026-07-27 09:23:51",
+        "value": 2100.0,
+        "threshold": 1450.0,
+        "raw_value": "**2100**",
+        "raw_threshold": "1450",
+        "crossed": true
+      }
+    ],
+    "assessment": "**P95 Latency Timeline (observeops_request_p95_latency_ms stream):**\n\n| Timestamp UTC | UC-3 P95 (ms) | UC-1 P95 (ms) | UC-5 P95 (ms) | Status |\n|---|---|---|---|---|\n| 2026-07-27 09:16:46 | 400 | 400 | 400 | Baseline |\n| 2026-07-27 09:20:06 | 400 | 400 | 400 | Baseline |\n| 2026-07-27 09:23:51 | **2100** | 1450 | 1800 | **SPIKE** |\n\n**Key Observations:**\n- Latency remained stable at ~400 ms baseline across all use cases until 09:23:51 UTC\n- At 09:23:51 UTC, a sharp latency spike occurred:\n  - UC"
+  },
+  "timeline": [
+    {
+      "timestamp": "2026-07-27 09:16:46 UTC",
+      "summary": "Baseline latency: 400 ms across UC-1, UC-3, UC-5"
+    },
+    {
+      "timestamp": "2026-07-27 09:20:06 UTC",
+      "summary": "Baseline latency maintained: 400 ms across all use cases"
+    },
+    {
+      "timestamp": "2026-07-27 09:23:51 UTC",
+      "summary": "**Latency spike detected**: UC-3 P95 jumps to 2100 ms; UC-1 to 1450 ms; UC-5 to 1800 ms"
+    },
+    {
+      "timestamp": "2026-07-27 09:26:24 UTC",
+      "summary": "**Alert fires**: `orders_api_p95_latency_high_UC3` (alert threshold: value > 1000 ms)"
+    }
+  ],
+  "actions": {
+    "immediate": [
+      "**Verify current latency state** \u2014 Re-run P95 latency query for UC-3 post-09:26:24 UTC to determine if spike has resolved or persists",
+      "**Check orders-api deployment status** \u2014 Confirm no recent deployments/rollovers occurred between 09:15-09:25 UTC",
+      "**Query database/cache health** \u2014 Since all use cases spiked simultaneously, check database query latency, connection pool saturation, and cache hit rates",
+      "**Inspect load balancer/reverse proxy logs** \u2014 Check for request queuing, connection drops, or upstream timeouts",
+      "**Enable trace instrumentation** \u2014 Populate traces stream with orders-api transaction data to identify which downstream service(s) injected latency"
+    ],
+    "future": [
+      "**Establish baseline SLOs per use case** \u2014 Current 1000 ms threshold may not align with customer expectations; validate with SLA definition",
+      "**Implement composite alerting** \u2014 Create alerts that correlate latency spike with error rate and resource utilization (CPU, memory, disk I/O) to reduce alert volume and improve signal-to-noise ratio",
+      "**Enable comprehensive logging** \u2014 Modernize and centralize logs from orders-api, database, and cache layers; retire stale log streams",
+      "**Instrument distributed traces** \u2014 Ensure all services in the orders path (API gateway \u2192 orders-api \u2192 database/cache \u2192 payment/shipping services) emit spans for end-to-end latency breakdown",
+      "**Implement change detection** \u2014 Correlate incident timestamps with Git commits, deploy records, and infrastructure changes to accelerate RCA"
+    ]
+  },
+  "remediation": {
+    "immediate": [
+      "**Verify current latency state** \u2014 Re-run P95 latency query for UC-3 post-09:26:24 UTC to determine if spike has resolved or persists",
+      "**Check orders-api deployment status** \u2014 Confirm no recent deployments/rollovers occurred between 09:15-09:25 UTC",
+      "**Query database/cache health** \u2014 Since all use cases spiked simultaneously, check database query latency, connection pool saturation, and cache hit rates",
+      "**Inspect load balancer/reverse proxy logs** \u2014 Check for request queuing, connection drops, or upstream timeouts",
+      "**Enable trace instrumentation** \u2014 Populate traces stream with orders-api transaction data to identify which downstream service(s) injected latency"
+    ],
+    "future": [
+      "**Establish baseline SLOs per use case** \u2014 Current 1000 ms threshold may not align with customer expectations; validate with SLA definition",
+      "**Implement composite alerting** \u2014 Create alerts that correlate latency spike with error rate and resource utilization (CPU, memory, disk I/O) to reduce alert volume and improve signal-to-noise ratio",
+      "**Enable comprehensive logging** \u2014 Modernize and centralize logs from orders-api, database, and cache layers; retire stale log streams",
+      "**Instrument distributed traces** \u2014 Ensure all services in the orders path (API gateway \u2192 orders-api \u2192 database/cache \u2192 payment/shipping services) emit spans for end-to-end latency breakdown",
+      "**Implement change detection** \u2014 Correlate incident timestamps with Git commits, deploy records, and infrastructure changes to accelerate RCA"
+    ]
+  },
+  "rca_summary": {
+    "fault_title": "Datastore storage contention",
+    "root_ci": "unidentified shared downstream bottleneck",
+    "signature": null,
+    "causal_path": [
+      "unidentified shared downstream bottleneck"
+    ],
+    "customer_impact": "Elevated API response latency on UC-3 (orders-api use case), breaching SLA threshold",
+    "change_evidence": null,
+    "narrative": "P95 latency for orders-api (UC-3) surged from 400 ms to 2100 ms at 2026-07-27 09:23:51 UTC, with simultaneous spikes in UC-1 and UC-5, indicating a shared downstream bottleneck. The specific bottleneck cannot be identified without access to database latency metrics, cache health, error rates, distributed traces, or change history."
+  },
+  "executive_summary": {
+    "potential_cause": "P95 latency for orders-api (UC-3) surged from 400 ms to 2100 ms at 2026-07-27 09:23:51 UTC, with simultaneous spikes in UC-1 and UC-5, indicating a shared downstream bottleneck. The specific bottleneck cannot be identified without access to database latency metrics, cache health, error rates, distributed traces, or change history.",
+    "impact": "Customers querying the orders API during 09:23:51\u201309:26:24 UTC experienced elevated latency (2.1\u20134.2x normal), breaching the 1000 ms SLA threshold for UC-3.",
+    "resolution": "Immediate investigation should focus on verifying the spike has resolved, checking for recent deployments/config changes, and querying database/cache health. Long-term resolution requires enabling distributed tracing, centralizing logs, and implementing composite alerting to correlate latency with errors and resource metrics."
+  },
+  "fair_score": {
+    "oo_correct": false,
+    "pack_gt_root": "datastore-01",
+    "pack_gt_signature": "storage_contention",
+    "oo_note": null
+  },
+  "portal_analysis_markdown": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3H541z1bJNXfExUagp4l5AyAdGg\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-27 09:26:24 UTC\n- **Resolved**: Ongoing\n- **Duration**: First alert at 09:23:51 UTC, last alert at 09:23:51 UTC\n- **Affected Services**: orders-api\n- **Customer Impact**: Elevated API response latency on UC-3 (orders-api use case), breaching SLA threshold\n\n## Impact Assessment\n\n- **Services Affected**: 1 (orders-api)\n- **Peak P95 Latency**: 2100 ms (threshold: 1000 ms)\n- **Latency Increase**: 5.25x baseline (from ~400 ms to 2100 ms)\n- **Use Cases Impacted**: UC-3 (orders-api), UC-5, UC-1\n- **Users Impacted**: Unknown (dependent on traffic during incident window)\n- **Data Loss**: No\n- **SLA Breach**: Yes (threshold breach 2026-07-27 09:23:51 UTC)\n\n## Evidence\n\n### Service Dependencies\nService topology returned no nodes or edges, indicating either:\n- Trace data collection not yet available for service graph construction\n- Service instrumentation not configured\n- Traces stream not populated during incident window\n\nThe alert metadata references only \"orders-api\" with no upstream/downstream dependencies documented in the system.\n\n### Distributed Traces\nNo trace data available in the traces stream for the time window 2026-07-27 08:56:24 UTC to 2026-07-27 09:26:24 UTC. Trace instrumentation may not be enabled for orders-api or the traces stream may not contain data from this service.\n\n### Log Patterns\nLog searches across api_gateway_logs and app_logs streams returned zero hits during the incident window. These streams contain stale data:\n- api_gateway_logs: last data point 2026-07-14 01:04:50 UTC (13+ days old)\n- app_logs: last data point 2026-07-14 00:58:21 UTC (13+ days old)\n\nNo contemporary log data available to correlate with latency spike.\n\n### Metrics Analysis\n\n**P95 Latency Timeline (observeops_request_p95_latency_ms stream):**\n\n| Timestamp UTC | UC-3 P95 (ms) | UC-1 P95 (ms) | UC-5 P95 (ms) | Status |\n|---|---|---|---|---|\n| 2026-07-27 09:16:46 | 400 | 400 | 400 | Baseline |\n| 2026-07-27 09:20:06 | 400 | 400 | 400 | Baseline |\n| 2026-07-27 09:23:51 | **2100** | 1450 | 1800 | **SPIKE** |\n\n**Key Observations:**\n- Latency remained stable at ~400 ms baseline across all use cases until 09:23:51 UTC\n- At 09:23:51 UTC, a sharp latency spike occurred:\n  - UC-3: 400 \u2192 2100 ms (+425%)\n  - UC-1: 400 \u2192 1450 ms (+262.5%)\n  - UC-5: 400 \u2192 1800 ms (+350%)\n- All three use cases affected simultaneously, suggesting common downstream dependency\n- No error rate or throughput metrics available to correlate\n- No CPU/memory/disk metrics available from Prometheus\n\n### Recent Changes\n**Change history not investigated** \u2014 no tools available to query deploy audit logs, Git commit history, configuration change history, or Helm/Terraform modifications. The incident timestamp of 09:23:51 UTC aligns with a potential deployment or configuration change, but without access to change history, this remains speculative.\n\n### Contributing Factors\n1. **Simultaneous latency spike across all use cases** \u2014 Suggests a common bottleneck in shared infrastructure (database, cache, load balancer, or backing service dependency) rather than orders-api application logic alone\n2. **Sustained elevated latency** \u2014 Latency remained elevated (2100 ms for UC-3) at the time of alert generation, indicating the condition was not transient\n3. **Lack of correlated signals** \u2014 No error logs, no error-rate spike, no trace data, no resource-exhaustion metrics available to isolate the failure point\n4. **Data collection gaps** \u2014 Missing trace instrumentation, stale log streams, and absence of resource metrics limit RCA depth\n\n## Timeline\n\n- **2026-07-27 09:16:46 UTC** - Baseline latency: 400 ms across UC-1, UC-3, UC-5\n- **2026-07-27 09:20:06 UTC** - Baseline latency maintained: 400 ms across all use cases\n- **2026-07-27 09:23:51 UTC** - **Latency spike detected**: UC-3 P95 jumps to 2100 ms; UC-1 to 1450 ms; UC-5 to 1800 ms\n- **2026-07-27 09:26:24 UTC** - **Alert fires**: `orders_api_p95_latency_high_UC3` (alert threshold: value > 1000 ms)\n\n## Actions\n\n### Immediate\n1. **Verify current latency state** \u2014 Re-run P95 latency query for UC-3 post-09:26:24 UTC to determine if spike has resolved or persists\n2. **Check orders-api deployment status** \u2014 Confirm no recent deployments/rollovers occurred between 09:15-09:25 UTC\n3. **Query database/cache health** \u2014 Since all use cases spiked simultaneously, check database query latency, connection pool saturation, and cache hit rates\n4. **Inspect load balancer/reverse proxy logs** \u2014 Check for request queuing, connection drops, or upstream timeouts\n5. **Enable trace instrumentation** \u2014 Populate traces stream with orders-api transaction data to identify which downstream service(s) injected latency\n\n### Future\n1. **Establish baseline SLOs per use case** \u2014 Current 1000 ms threshold may not align with customer expectations; validate with SLA definition\n2. **Implement composite alerting** \u2014 Create alerts that correlate latency spike with error rate and resource utilization (CPU, memory, disk I/O) to reduce alert volume and improve signal-to-noise ratio\n3. **Enable comprehensive logging** \u2014 Modernize and centralize logs from orders-api, database, and cache layers; retire stale log streams\n4. **Instrument distributed traces** \u2014 Ensure all services in the orders path (API gateway \u2192 orders-api \u2192 database/cache \u2192 payment/shipping services) emit spans for end-to-end latency breakdown\n5. **Implement change detection** \u2014 Correlate incident timestamps with Git commits, deploy records, and infrastructure changes to accelerate RCA\n\n## Executive Summary\n\n**Potential Cause**: P95 latency for orders-api (UC-3) surged from 400 ms to 2100 ms at 2026-07-27 09:23:51 UTC, with simultaneous spikes in UC-1 and UC-5, indicating a shared downstream bottleneck. The specific bottleneck cannot be identified without access to database latency metrics, cache health, error rates, distributed traces, or change history. The spike aligns with a potential deployment or configuration change, but this cannot be confirmed without change-history tooling.\n\n**Impact**: Customers querying the orders API during 09:23:51\u201309:26:24 UTC experienced elevated latency (2.1\u20134.2x normal), breaching the 1000 ms SLA threshold for UC-3.\n\n**Resolution**: Immediate investigation should focus on verifying the spike has resolved, checking for recent deployments/config changes, and querying database/cache health. Long-term resolution requires enabling distributed tracing, centralizing logs, and implementing composite alerting to correlate latency with errors and resource metrics.\n",
+  "live_incident": {
+    "id": "3H541z1bJNXfExUagp4l5AyAdGg",
+    "title": "orders_api_p95_latency_high_UC3",
+    "status": "resolved"
+  },
+  "completeness": {
+    "score": 1.0,
+    "source": "oo_portal_fair"
+  }
+}
