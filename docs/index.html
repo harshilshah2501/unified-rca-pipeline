@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unified RCA — Documentation index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441;
+  --text:#e8eef4; --muted:#b8c4d0; --faint:#8a96a4; --accent:#3d9a8b;
+  --accent-soft:rgba(61,154,139,.14); --dd:#5B8DEF; --dt:#3d9a8b;
+  --radius:8px; --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; font-family:var(--font); font-size:15px; line-height:1.55; color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%), var(--bg);
+}
+a { color:var(--accent); text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width:52rem; margin:0 auto; padding:2rem 1.5rem 4rem; }
+.eyebrow { font-size:.7rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); }
+h1 { font-size:1.75rem; font-weight:700; margin:.35rem 0 .75rem; }
+.lead { color:var(--muted); margin:0 0 1.5rem; max-width:40rem; }
+.bar {
+  display:flex; flex-wrap:wrap; gap:.45rem; margin:0 0 1.75rem;
+}
+.bar a {
+  font-size:.78rem; padding:.35rem .65rem; border-radius:4px; border:1px solid var(--stroke);
+  background:var(--bg-soft); color:var(--muted); text-decoration:none;
+}
+.bar a:hover { color:var(--text); border-color:var(--accent); }
+.bar a.console { border-color:rgba(91,141,239,.45); color:#9bb8f5; }
+h2 {
+  font-size:1.05rem; font-weight:650; margin:2rem 0 .85rem; padding-top:.85rem;
+  border-top:1px solid var(--stroke); color:#d5dde6;
+}
+.grid { display:grid; gap:.75rem; }
+.grid.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+@media (max-width:720px) { .grid.two { grid-template-columns:1fr; } }
+.card {
+  display:block; padding:1rem 1.05rem; border-radius:var(--radius);
+  background:var(--bg-elev); border:1px solid var(--stroke); color:inherit; text-decoration:none;
+}
+.card:hover { border-color:rgba(61,154,139,.5); text-decoration:none; }
+.card .k {
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--faint); margin:0 0 .35rem;
+}
+.card .k.dt { color:var(--dt); }
+.card .k.dd { color:#8eb0f5; }
+.card .k.compare { color:#e8b86d; }
+.card h3 { margin:0 0 .35rem; font-size:1rem; font-weight:600; color:var(--text); }
+.card p { margin:0; font-size:.88rem; color:var(--muted); }
+.list { margin:0; padding:0; list-style:none; }
+.list li {
+  display:flex; gap:.75rem; align-items:baseline; padding:.55rem 0;
+  border-bottom:1px solid var(--stroke); font-size:.9rem;
+}
+.list li:last-child { border-bottom:none; }
+.list a { font-weight:500; }
+.list span { color:var(--muted); flex:1; }
+.note {
+  margin:1.25rem 0 0; padding:.75rem .9rem; border-radius:var(--radius);
+  background:var(--accent-soft); border-left:3px solid var(--accent); color:var(--muted); font-size:.88rem;
+}
+code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padding:.05rem .3rem; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Unified RCA · hosted docs</div>
+  <h1>Documentation index</h1>
+  <p class="lead">
+    Browser entry for vendor unveil + lab compare docs served from the PoC console
+    (<code>http://127.0.0.1:8765/</code>). Full markdown map remains in
+    <a href="/docs/NAVIGATION.md">NAVIGATION.md</a>.
+  </p>
+
+  <div class="bar">
+    <a class="console" href="/">PoC console</a>
+    <a href="/comparable-pipeline-dt-dd.html">DT vs DD compare</a>
+    <a href="/dynatrace-production-pipeline.html">Dynatrace</a>
+    <a href="/datadog-production-pipeline.html">Datadog</a>
+    <a href="/eleven-subsystem-mechanisms.html">DT mechanisms</a>
+    <a href="/datadog-subsystem-mechanisms.html">DD mechanisms</a>
+  </div>
+
+  <h2>1 · Start here (vendor compare)</h2>
+  <div class="grid">
+    <a class="card" href="/comparable-pipeline-dt-dd.html">
+      <div class="k compare">Lab · identical scenario</div>
+      <h3>Comparable pipeline — DT vs DD</h3>
+      <p>Same FE→product→inventory leaf 5xx. Dynatrace Problem P-26084 (<code>rootCauseEntity=inventory</code>) vs Datadog traces/map without packaged RC. Stage-by-stage for both vendors in one place.</p>
+    </a>
+  </div>
+
+  <h2>2 · Dynatrace unveil</h2>
+  <div class="grid two">
+    <a class="card" href="/dynatrace-production-pipeline.html">
+      <div class="k dt">Written map</div>
+      <h3>Dynatrace production pipeline</h3>
+      <p>OneAgent · Smartscape · Grail · Davis — long-form Clock A walkthrough (not the animator).</p>
+    </a>
+    <a class="card" href="/eleven-subsystem-mechanisms.html">
+      <div class="k dt">Animated storyboard</div>
+      <h3>Dynatrace mechanisms</h3>
+      <p>Step canvas: fabric → case opens → Davis diagnose (Smartscape ∥ Grail Fan-out).</p>
+    </a>
+  </div>
+  <ul class="list">
+    <li><a href="/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md">Dynatrace lab reference</a><span>Stages 0–5 · Problems</span></li>
+  </ul>
+
+  <h2>3 · Datadog unveil</h2>
+  <div class="grid two">
+    <a class="card" href="/datadog-production-pipeline.html">
+      <div class="k dd">Native map</div>
+      <h3>Datadog production pipeline</h3>
+      <p>Agent → APM/Metrics/Logs · Monitors + Watchdog · tag identity.</p>
+    </a>
+    <a class="card" href="/datadog-subsystem-mechanisms.html">
+      <div class="k dd">Storyboard</div>
+      <h3>Datadog subsystem mechanisms</h3>
+      <p>Animated product mechanisms for the Datadog path.</p>
+    </a>
+  </div>
+  <ul class="list">
+    <li><a href="/datadog-lab-evidence-2026-08-04.html">Lab evidence 2026-08-04</a><span>FE→product→inventory run notes</span></li>
+    <li><a href="/docs/datadog-tenant-evidence-2026-08-03.md">Tenant evidence 2026-08-03</a><span>MCP snapshot (markdown)</span></li>
+    <li><a href="/datadog-rca-lab/DATADOG_RCA_REFERENCE.md">Datadog lab reference</a><span>Lab layout · fault scripts</span></li>
+  </ul>
+
+  <h2>4 · Shared fabric / design</h2>
+  <ul class="list">
+    <li><a href="/rca-data-lake-brainstorm.html">RCA data lake brainstorm</a><span>Clock A/B · modalities · Grail/Smartscape</span></li>
+    <li><a href="/clock-ab-stage-reference.html">Clock A/B stage reference</a><span>Stage I/O cards</span></li>
+    <li><a href="/fanout-tailor-simulator.html">Fan-out / Tailor simulator</a><span>Interactive cut sketch</span></li>
+    <li><a href="/docs/NAVIGATION.md">NAVIGATION.md</a><span>Full repo reading path (markdown)</span></li>
+    <li><a href="/docs/README.md">docs/README.md</a><span>Common docs catalog</span></li>
+  </ul>
+
+  <h2>5 · PoC console &amp; engines</h2>
+  <ul class="list">
+    <li><a href="/">PoC console home</a><span><code>:8765/</code> — guide · incident · samples</span></li>
+    <li><a href="/rca-workflow-sim.html">RCA workflow sim</a><span>Lean / Fed Localize (engine compare)</span></li>
+    <li><a href="/docs/POC_DEMO_GUIDE.md">POC demo guide</a><span>15–20 min walkthrough</span></li>
+    <li><a href="/docs/CODE_GUIDE.md">Code guide</a><span>Where to run what</span></li>
+  </ul>
+
+  <p class="note">
+    <strong>Suggested path:</strong>
+    Comparable DT vs DD → Dynatrace pipeline → DT mechanisms → Datadog pipeline → DD mechanisms → lab evidence.
+    Markdown sources stay under <code>docs/</code>; this index is the browser hub.
+  </p>
+</div>
+
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

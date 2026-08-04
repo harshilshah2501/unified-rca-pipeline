@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Datadog products — Mechanism Simulator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0C10; --panel:#12151C; --panel-2:#171B24; --line:#1E222B;
+    --text:#E6E8EB; --muted:#7A8290;
+    --dd:#7C3AED; --dd2:#A78BFA; --seed:#EF4444;
+    --ok:#4FD1A0; --lake:#38BDF8; --map:#F472B6; --wd:#FBBF24;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(1200px 600px at 15% -10%, #1a1028 0%, transparent 60%), var(--bg);
+    color:var(--text); font-family:'Space Grotesk',sans-serif;
+    min-height:100vh; padding:28px 18px 70px;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+  h1{font-size:23px;font-weight:700;margin:0 0 8px;letter-spacing:-0.01em;}
+  .sub{color:var(--muted);font-size:13.5px;line-height:1.55;max-width:740px;margin-bottom:20px;}
+  .sub b{color:var(--text);font-weight:600;}
+  .sub a{color:var(--dd2);}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+  .tab{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;
+    padding:7px 10px;border-radius:7px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);cursor:pointer;
+    display:flex;align-items:center;gap:6px;
+  }
+  .tab .n{color:var(--muted);}
+  .tab.active{background:var(--panel-2);color:var(--dd2);border-color:rgba(124,58,237,.45);}
+  .tab .dot{width:6px;height:6px;border-radius:50%;display:inline-block;background:var(--dd);}
+  .stage-panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:16px 16px 12px;
+  }
+  .stage-head{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap;}
+  .stage-head h2{font-size:16px;margin:0;font-weight:600;}
+  .stage-head .tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:2px 7px;border-radius:5px;
+    background:rgba(124,58,237,.15);color:var(--dd2);border:1px solid rgba(124,58,237,.35);}
+  .blurb{color:var(--muted);font-size:12.5px;line-height:1.5;margin-bottom:10px;max-width:740px;}
+  canvas{width:100%;height:230px;display:block;border-radius:8px;background:#0D0F14;border:1px solid var(--line);}
+  .foot{display:flex;align-items:center;gap:10px;margin-top:10px;}
+  button{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;border-radius:7px;
+    padding:7px 12px;border:1px solid var(--line);background:var(--panel-2);
+    color:var(--text);cursor:pointer;
+  }
+  button:hover{border-color:#333a48;}
+  .legend{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);margin-left:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Datadog-native — MCP-grounded</div>
+  <h1>8 Datadog product mechanisms</h1>
+  <div class="sub">
+    Not a Dynatrace/Clock&nbsp;A clone. Each tab shows how a <b>Datadog product stage</b> works:
+    Agent → tags → Metrics∥APM∥Logs → APM-derived map → <b>Monitors and Watchdog</b> Detect → correlational operator assist.
+    Prose + tenant evidence:
+    <a href="./datadog-production-pipeline.html">pipeline</a> ·
+    <a href="./datadog-tenant-evidence-2026-08-03.md">evidence 2026-08-03</a>.
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="stage-panel">
+    <div class="stage-head">
+      <h2 id="stageName"></h2>
+      <span class="tag" id="stageTag"></span>
+    </div>
+    <div class="blurb" id="stageBlurb"></div>
+    <canvas id="cv" width="860" height="230"></canvas>
+    <div class="foot">
+      <button id="replayBtn">↺ Replay</button>
+      <span class="legend" id="stageLegend"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const COL = {
+  muted:'#7A8290', text:'#E6E8EB', line:'#242938',
+  dd:'#7C3AED', dd2:'#A78BFA', seed:'#EF4444',
+  lake:'#38BDF8', map:'#F472B6', ok:'#4FD1A0', wd:'#FBBF24', gray:'#3a4150'
+};
+function lerp(a,b,t){return a+(b-a)*t;}
+function clamp01(t){return t<0?0:t>1?1:t;}
+function smooth(t){t=clamp01(t);return t*t*(3-2*t);}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x,y,r);
+  ctx.closePath();
+}
+function drawNode(ctx,x,y,r,color,alpha=1){
+  ctx.save();ctx.globalAlpha=alpha;
+  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle=color;ctx.fill();ctx.restore();
+}
+function drawEdge(ctx,x1,y1,x2,y2,color,alpha=1,width=1.2){
+  ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineWidth=width;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
+}
+function drawChip(ctx,x,y,w,h,color,alpha,text,textColor){
+  ctx.save();ctx.globalAlpha=alpha;
+  ctx.fillStyle=color;
+  roundRect(ctx,x-w/2,y-h/2,w,h,4);ctx.fill();
+  if(text){
+    ctx.fillStyle=textColor||'#0A0C10';ctx.font='9px IBM Plex Mono, monospace';
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x,y);
+  }
+  ctx.restore();
+}
+function label(ctx,x,y,text,color,size=10,align='left'){
+  ctx.save();ctx.fillStyle=color;ctx.font=size+'px IBM Plex Mono, monospace';
+  ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(text,x,y);ctx.restore();
+}
+function drawShape(ctx,x,y,r,shape){
+  ctx.beginPath();
+  if(shape==='circle'){ctx.arc(x,y,r,0,Math.PI*2);}
+  else if(shape==='square'){ctx.rect(x-r,y-r,r*2,r*2);}
+  else if(shape==='triangle'){ctx.moveTo(x,y-r);ctx.lineTo(x+r,y+r);ctx.lineTo(x-r,y+r);ctx.closePath();}
+  else {ctx.moveTo(x,y-r);ctx.lineTo(x+r,y);ctx.lineTo(x,y+r);ctx.lineTo(x-r,y);ctx.closePath();}
+  ctx.fill();
+}
+
+function sceneAgent(ctx,W,H,p){
+  label(ctx,14,16,'edge → Agent buffers → intake',COL.muted,9.5);
+  const sources=[
+    {name:'host metrics',y:50,color:COL.lake,shape:'circle'},
+    {name:'APM libs',y:100,color:COL.dd2,shape:'square'},
+    {name:'logs / journal',y:150,color:COL.map,shape:'triangle'},
+    {name:'dogstatsd',y:200,color:COL.wd,shape:'diamond'}
+  ];
+  roundRect(ctx,380,70,100,90,8);ctx.fillStyle='#171B24';ctx.fill();ctx.strokeStyle=COL.dd;ctx.stroke();
+  label(ctx,430,115,'Agent',COL.dd2,11,'center');
+  roundRect(ctx,680,40,150,160,8);ctx.fillStyle='#171B24';ctx.fill();ctx.strokeStyle=COL.line;ctx.stroke();
+  label(ctx,755,120,'Datadog intake',COL.muted,10,'center');
+  sources.forEach((s,si)=>{
+    label(ctx,110,s.y,s.name,COL.muted,10,'right');
+    for(let i=0;i<3;i++){
+      const t=(p+i/3+si*0.05)%1;
+      const x=t<0.5?lerp(120,430,smooth(t/0.5)):lerp(430,700,smooth((t-0.5)/0.5));
+      const a=t<0.08?t/0.08:(t>0.92?(1-t)/0.08:1);
+      ctx.save();ctx.globalAlpha=a;ctx.fillStyle=s.color;drawShape(ctx,x,s.y,5,s.shape);ctx.restore();
+    }
+  });
+}
+
+function sceneTags(ctx,W,H,p){
+  const gateX=430;
+  ctx.save();ctx.strokeStyle=COL.dd;ctx.setLineDash([4,4]);ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(gateX,20);ctx.lineTo(gateX,210);ctx.stroke();ctx.restore();
+  label(ctx,gateX,14,'Unified tags',COL.dd2,10,'center');
+  label(ctx,80,30,'raw shapes',COL.muted,9.5);
+  label(ctx,760,30,'service·env·host',COL.muted,9.5,'center');
+  const shapes=['circle','square','triangle','diamond'];
+  const cols=[COL.lake,COL.map,COL.wd,COL.dd2];
+  for(let i=0;i<6;i++){
+    const t=(p+i/6)%1;
+    const x=lerp(70,790,t);
+    const y=115+Math.sin((t+i)*5)*28;
+    const morph=smooth(clamp01((x-(gateX-35))/70));
+    ctx.save();
+    if(morph<0.95){ctx.globalAlpha=1-morph*0.4;ctx.fillStyle=cols[i%4];drawShape(ctx,x,y,6,shapes[i%4]);}
+    if(morph>0.05){
+      ctx.globalAlpha=morph;ctx.fillStyle=COL.dd;
+      roundRect(ctx,x-20,y-7,40,14,3);ctx.fill();
+      if(morph>0.55){
+        ctx.fillStyle='#0A0C10';ctx.font='7px IBM Plex Mono, monospace';
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('svc:env',x,y);
+      }
+    }
+    ctx.restore();
+  }
+}
+
+function sceneStores(ctx,W,H,p){
+  label(ctx,14,18,'one tagged stream → three products (not one Grail)',COL.muted,9.5);
+  drawNode(ctx,120,115,8,COL.dd,1);
+  label(ctx,120,135,'stream',COL.dd2,9,'center');
+  const sinks=[
+    {name:'Metrics',y:55,color:COL.lake},
+    {name:'APM',y:115,color:COL.dd2},
+    {name:'Logs',y:175,color:COL.map}
+  ];
+  sinks.forEach((s,si)=>{
+    roundRect(ctx,620,s.y-22,180,44,8);ctx.fillStyle='#171B24';ctx.fill();ctx.strokeStyle=s.color;ctx.stroke();
+    label(ctx,710,s.y,s.name,s.color,11,'center');
+    for(let i=0;i<4;i++){
+      const t=(p+i/4+si*0.08)%1;
+      const x=lerp(140,620,smooth(t));
+      const y=lerp(115,s.y,smooth(t));
+      drawNode(ctx,x,y,4,s.color,0.9);
+    }
+  });
+}
+
+function sceneMap(ctx,W,H,p){
+  label(ctx,14,16,'Service Map mostly derived from APM peers (Observed: node → peer.hostname:*)',COL.muted,9.5);
+  const node={x:280,y:120};
+  const peers=[
+    {x:560,y:55,name:'api2.cursor.sh'},
+    {x:620,y:120,name:'mcp.datadoghq.com'},
+    {x:560,y:185,name:'docs.mcp.cloudflare.com'}
+  ];
+  drawChip(ctx,node.x,node.y,90,28,'rgba(124,58,237,.25)',1,'service:node',COL.dd2);
+  const build=smooth(clamp01(p/0.5));
+  peers.forEach((pe,i)=>{
+    const a=smooth(clamp01(build*3-i));
+    drawEdge(ctx,node.x+45,node.y,pe.x-70,pe.y,COL.map,0.6*a,1.5);
+    drawChip(ctx,pe.x,pe.y,150,24,'#171B24',a,'peer:'+pe.name.split('.')[0],COL.map);
+  });
+  // bottom: spans feeding edges
+  const laneY=210;
+  label(ctx,14,laneY,'APM spans feed edges',COL.muted,9);
+  for(let i=0;i<5;i++){
+    const t=(p*1.2+i/5)%1;
+    drawNode(ctx,lerp(160,500,t),laneY,4,COL.dd2,0.85);
+  }
+}
+
+function sceneMonitors(ctx,W,H,p){
+  label(ctx,14,16,'Door A — Monitors (explicit thresholds)',COL.muted,9.5);
+  const rows=[
+    {name:'mem.pct_usable',y:55,thresh:0.1,val:0.45,ok:true},
+    {name:'load.norm.1',y:100,thresh:1.0,val:0.27,ok:true},
+    {name:'cpu busy',y:145,thresh:0.9,val:0.35,ok:true},
+    {name:'disk await',y:190,thresh:500,val:12,ok:true}
+  ];
+  rows.forEach((r)=>{
+    label(ctx,14,r.y,r.name,COL.muted,9);
+    roundRect(ctx,160,r.y-10,480,20,4);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.line;ctx.stroke();
+    const fill=Math.min(1,r.val/(r.thresh*1.5))*smooth(clamp01(p/0.4));
+    ctx.save();ctx.fillStyle=r.ok?COL.ok:COL.seed;ctx.globalAlpha=0.85;
+    roundRect(ctx,160,r.y-10,480*fill,20,4);ctx.fill();ctx.restore();
+    const tx=160+480*(r.thresh/(r.thresh*1.5));
+    drawEdge(ctx,tx,r.y-12,tx,r.y+12,COL.wd,0.9,1.5);
+    drawChip(ctx,720,r.y,70,20,r.ok?'rgba(79,209,160,.2)':'rgba(239,68,68,.2)',1,r.ok?'OK':'ALERT',r.ok?COL.ok:COL.seed);
+  });
+}
+
+function sceneWatchdog(ctx,W,H,p){
+  label(ctx,14,16,'Door B — Watchdog stories → events → optional event-v2 monitor',COL.muted,9.5);
+  // series
+  ctx.save();ctx.strokeStyle=COL.dd2;ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let i=0;i<=40;i++){
+    const x=40+i*8;
+    const base=140;
+    const spike=i>22&&i<30?40:0;
+    const y=base-Math.sin(i*0.35+p*6)*8-spike*smooth(clamp01((p+0.2)%1));
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke();ctx.restore();
+  label(ctx,40,50,'APM / infra series',COL.muted,9);
+  const story=smooth(clamp01((p-0.25)/0.35));
+  drawChip(ctx,520,70,220,36,'rgba(251,191,36,.2)',story,'story: error_rate · node · /bin/bash',COL.wd);
+  const ev=smooth(clamp01((p-0.45)/0.3));
+  drawChip(ctx,520,120,160,28,'#171B24',ev,'source:watchdog event',COL.wd);
+  const mon=smooth(clamp01((p-0.65)/0.25));
+  drawChip(ctx,520,170,200,30,'rgba(239,68,68,.2)',mon,'event-v2 monitor → ALERT',COL.seed);
+  if(story>0.2){
+    ctx.save();ctx.globalAlpha=story;ctx.strokeStyle=COL.wd;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(280,100);ctx.lineTo(410,70);ctx.stroke();ctx.restore();
+  }
+}
+
+function scenePivot(ctx,W,H,p){
+  label(ctx,14,16,'Operator / Insights — correlational scoped pull (Incident may be absent)',COL.muted,9.5);
+  drawChip(ctx,160,80,140,32,'rgba(239,68,68,.2)',1,'Watchdog seed',COL.seed);
+  const mods=[
+    {name:'Metrics host',y:50,color:COL.lake},
+    {name:'APM service:node',y:110,color:COL.dd2},
+    {name:'Logs host',y:170,color:COL.map}
+  ];
+  mods.forEach((m,i)=>{
+    const a=smooth(clamp01((p-0.1-i*0.08)/0.35));
+    ctx.save();ctx.globalAlpha=a;ctx.strokeStyle=m.color;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(230,80);ctx.lineTo(320,m.y);ctx.stroke();ctx.restore();
+    drawChip(ctx,420,m.y,140,26,'#171B24',a,m.name,m.color);
+  });
+  const out=smooth(clamp01((p-0.55)/0.3));
+  drawChip(ctx,680,90,140,30,'#171B24',out,'related peers',COL.map);
+  drawChip(ctx,680,145,160,30,'rgba(122,122,122,.25)',out,'Incident: none (0)',COL.muted);
+}
+
+function scenePackage(ctx,W,H,p){
+  label(ctx,14,16,'What packaging would look like — Public framing (not observed as Incident here)',COL.muted,9.5);
+  const build=smooth(clamp01(p/0.55));
+  roundRect(ctx,200,45,460,150,10);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.dd;ctx.stroke();
+  label(ctx,430,65,'INSIGHT / INCIDENT (optional)',COL.dd2,11,'center');
+  const rows=[
+    {y:95,t:'seed: Watchdog story / monitor'},
+    {y:120,t:'evidence: metrics · spans · logs'},
+    {y:145,t:'claim: correlational relatedness'},
+    {y:170,t:'this tenant snapshot: 0 incidents'}
+  ];
+  rows.forEach((r,i)=>{
+    ctx.save();ctx.globalAlpha=build*clamp01(1-i*0.05);
+    label(ctx,230,r.y,r.t,i===3?COL.muted:COL.text,11);
+    ctx.restore();
+  });
+}
+
+const STAGES=[
+  {key:'agent',name:'Agent',tag:'PRODUCT',loop:4800,
+    blurb:'Datadog Agent collects host metrics, optional APM, logs, and dogstatsd — then exports to Datadog intake. Observed: Agent 7.81.3 on DESKTOP-MBPAQK1.',
+    legend:'left = edge sources · center = Agent · right = intake',
+    draw:sceneAgent},
+  {key:'tags',name:'Tagging',tag:'PRODUCT',loop:4500,
+    blurb:'Unified Service Tags gate: raw shapes become service · env · host (and peers). Observed spans carry service:node, env:dev.',
+    legend:'morph at dashed gate = tagging',
+    draw:sceneTags},
+  {key:'stores',name:'M / T / L stores',tag:'PRODUCT',loop:4000,
+    blurb:'The same tagged stream writes into three products — Metrics, APM, Logs — not a single Grail-class lake.',
+    legend:'one stream → three product sinks',
+    draw:sceneStores},
+  {key:'map',name:'APM-derived map',tag:'PRODUCT',loop:5200,
+    blurb:'Service Map / dependencies are largely inferred from APM peers. Observed: node → peer.hostname MCP/Cursor endpoints — not a typed microservice CI graph.',
+    legend:'chips = peer edges fed by spans',
+    draw:sceneMap},
+  {key:'monitors',name:'Monitors',tag:'DETECT A',loop:4200,
+    blurb:'Door A: hand-authored (or Support-default) query monitors on thresholds/forecasts. Observed host monitors were OK at snapshot (e.g. mem usable ~45%).',
+    legend:'dashed = threshold · chip = status',
+    draw:sceneMonitors},
+  {key:'watchdog',name:'Watchdog',tag:'DETECT B',loop:5000,
+    blurb:'Door B: Watchdog emits anomaly stories → source:watchdog events; an event-v2 monitor can roll them up. Observed Alert on node /bin/bash error_rate story.',
+    legend:'spike → story → event → ALERT',
+    draw:sceneWatchdog},
+  {key:'pivot',name:'Scoped pivot',tag:'OPERATOR',loop:4800,
+    blurb:'Operator (and Insights assist) pulls related Metrics / APM / Logs. Packaging into an Incident is optional — Observed count: 0.',
+    legend:'seed → three modality pivots · Incident may be absent',
+    draw:scenePivot},
+  {key:'package',name:'Package (optional)',tag:'FRAMING',loop:5200,
+    blurb:'Public framing: correlational Insight/Incident card. Not observed as a packaged Incident in this tenant — keep honesty labels.',
+    legend:'card = aspirational package · last line = tenant fact',
+    draw:scenePackage},
+];
+
+const tabsEl=document.getElementById('tabs');
+const cv=document.getElementById('cv');
+const ctx=cv.getContext('2d');
+let active=0, startTime=performance.now();
+
+STAGES.forEach((s,i)=>{
+  const btn=document.createElement('div');
+  btn.className='tab'+(i===active?' active':'');
+  btn.innerHTML=`<span class="dot"></span><span class="n">${String(i+1).padStart(2,'0')}</span> ${s.name}`;
+  btn.addEventListener('click',()=>setActive(i));
+  tabsEl.appendChild(btn);
+});
+
+function setActive(i){
+  active=i; startTime=performance.now();
+  Array.from(tabsEl.children).forEach((el,idx)=>{el.className='tab'+(idx===i?' active':'');});
+  const s=STAGES[i];
+  document.getElementById('stageName').textContent=`${String(i+1).padStart(2,'0')} · ${s.name}`;
+  document.getElementById('stageTag').textContent=s.tag;
+  document.getElementById('stageBlurb').textContent=s.blurb;
+  document.getElementById('stageLegend').textContent=s.legend;
+}
+document.getElementById('replayBtn').addEventListener('click',()=>{startTime=performance.now();});
+
+function frame(now){
+  const s=STAGES[active];
+  const phase=((now-startTime)%s.loop)/s.loop;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='#0D0F14';ctx.fillRect(0,0,cv.width,cv.height);
+  s.draw(ctx,cv.width,cv.height,phase);
+  requestAnimationFrame(frame);
+}
+setActive(0);
+requestAnimationFrame(frame);
+</script>
+
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

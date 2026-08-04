@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fan-out / Tailor — Time-Domain Simulator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0C10;
+    --panel:#12151C;
+    --panel-2:#171B24;
+    --line:#1E222B;
+    --text:#E6E8EB;
+    --muted:#7A8290;
+    --lean:#E8A33D;
+    --lean-dim:#5A431F;
+    --fed:#4FD1C5;
+    --fed-dim:#1E3D3A;
+    --seed:#EF4444;
+    --seed-dim:#4A1E1E;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #141822 0%, transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk',sans-serif;
+    min-height:100vh;
+    padding:32px 20px 64px;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  h1{
+    font-size:26px;
+    font-weight:700;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:14.5px;
+    line-height:1.55;
+    max-width:640px;
+    margin-bottom:28px;
+  }
+  .sub b{color:var(--text);font-weight:600;}
+
+  .controls{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:28px;
+    padding:14px 16px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+  button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.02em;
+    border-radius:7px;
+    padding:9px 14px;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--text);
+    cursor:pointer;
+    transition:border-color .15s, transform .1s;
+  }
+  button:hover{border-color:#333a48;}
+  button:active{transform:scale(0.97);}
+  #fireBtn{
+    background:linear-gradient(180deg, #C8402F, #A5301F);
+    border-color:#7a2015;
+    color:#fff;
+    font-weight:600;
+  }
+  #fireBtn:hover{border-color:#e0503a;}
+  #fireBtn:disabled{opacity:0.4;cursor:default;}
+  .spacer{flex:1;}
+  .stat{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .stat b{color:var(--text);}
+
+  .lanes{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:20px 18px 16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .lane-label{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .lane-name{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.04em;
+  }
+  .lane-name.lean{color:var(--lean);}
+  .lane-name.fed{color:var(--fed);}
+  .lane-meta{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+  }
+  .track{
+    position:relative;
+    height:56px;
+    border-radius:8px;
+    background:#0D0F14;
+    border:1px solid var(--line);
+    margin-bottom:22px;
+    overflow:hidden;
+  }
+  .fill{
+    position:absolute;
+    top:0;bottom:0;right:0;
+    border-radius:8px 0 0 8px;
+  }
+  .fill.lean{background:linear-gradient(90deg, transparent, var(--lean-dim) 30%, var(--lean-dim));}
+  .fill.fed{background:linear-gradient(90deg, transparent, var(--fed-dim) 30%, var(--fed-dim));}
+  .horizon{
+    position:absolute;
+    top:0;bottom:0;
+    width:2px;
+  }
+  .horizon.lean{background:var(--lean);box-shadow:0 0 8px var(--lean);}
+  .horizon.fed{background:var(--fed);box-shadow:0 0 8px var(--fed);}
+  .tick{
+    position:absolute;
+    top:8px;bottom:8px;
+    width:2px;
+    border-radius:1px;
+  }
+  .tick.lean{background:var(--lean);opacity:0.85;}
+  .tick.fed{background:var(--fed);opacity:0.85;}
+  .now-line{
+    position:absolute;
+    top:0;bottom:0;right:14px;
+    width:1px;
+    background:#3a4150;
+  }
+  .seed-marker{
+    position:absolute;
+    top:-6px;bottom:-6px;
+    width:2px;
+    background:var(--seed);
+    box-shadow:0 0 10px var(--seed);
+    z-index:5;
+  }
+  .seed-marker::before{
+    content:'t\2080';
+    position:absolute;
+    top:-18px;
+    left:-7px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    color:var(--seed);
+  }
+  .window-band{
+    position:absolute;
+    top:0;bottom:0;
+    background:transparent;
+    border-left:1.5px dashed rgba(230,232,235,0.55);
+    border-right:1.5px dashed rgba(230,232,235,0.55);
+    z-index:4;
+  }
+  .fulfilled-band{
+    position:absolute;
+    top:0;bottom:0;
+    z-index:2;
+  }
+  .fulfilled-band.lean{background:rgba(232,163,61,0.22);}
+  .fulfilled-band.fed{background:rgba(79,209,197,0.22);}
+  .gap-band{
+    position:absolute;
+    top:0;bottom:0;
+    background:repeating-linear-gradient(135deg, rgba(239,68,68,0.22) 0 6px, transparent 6px 12px);
+    z-index:3;
+  }
+
+  .legend{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:8px;height:8px;border-radius:2px;display:inline-block;}
+
+  .results{
+    margin-top:24px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width:640px){.results{grid-template-columns:1fr;}}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+  }
+  .card h3{
+    margin:0 0 10px;
+    font-size:13px;
+    font-family:'IBM Plex Mono',monospace;
+    letter-spacing:0.03em;
+  }
+  .card.lean h3{color:var(--lean);}
+  .card.fed h3{color:var(--fed);}
+  .row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    padding:4px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .row:last-child{border-bottom:none;}
+  .row .v{font-family:'IBM Plex Mono',monospace;color:var(--text);}
+  .warn{color:var(--seed);font-weight:600;}
+  .ok{color:var(--fed);font-weight:600;}
+  .placeholder{color:var(--muted);font-size:12.5px;padding:6px 0;}
+
+  .note{
+    margin-top:22px;
+    padding:14px 16px;
+    border:1px solid var(--line);
+    border-left:3px solid #3a4150;
+    border-radius:8px;
+    background:var(--panel);
+    font-size:13px;
+    line-height:1.6;
+    color:var(--muted);
+  }
+  .note b{color:var(--text);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Lean RCA — §3.2b reference build</div>
+  <h1>Fan-out writes continuously. Tailor reads on demand.</h1>
+  <div class="sub">
+    Normalized telemetry fans out into two <b>cost profiles</b> every tick — L0 kits for Lean Clock&nbsp;B,
+    F1 speed/structural feeds for Federated Clock&nbsp;B. Same Detect seed, same Tailor corridor on a fair
+    compare. Retention is a shared Maintain policy here (identical TTL), not “Lean short / Fed long.”
+    CARE lives on the Lean Localize path, not in the F1 sink.
+  </div>
+
+  <div class="controls">
+    <button id="fireBtn">🔥 Fire Detect → spawn seed</button>
+    <button id="resetBtn">↺ Reset</button>
+    <div class="spacer"></div>
+    <div class="stat">sim time <b id="simTimeLabel">0</b></div>
+  </div>
+
+  <div class="lanes">
+    <div class="lane-label">
+      <span class="lane-name lean">LEAN-CHEAP (L0)</span>
+      <span class="lane-meta">TTL 40u · metrics/events kits for CI-graph walk</span>
+    </div>
+    <div class="track" id="leanTrack"></div>
+
+    <div class="lane-label">
+      <span class="lane-name fed">FED-RICH (F1)</span>
+      <span class="lane-meta">TTL 40u · + tg:/pc: + structural for Murphy/Nezha</span>
+    </div>
+    <div class="track" id="fedTrack"></div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--lean)"></span>L0 tick (retained)</span>
+      <span><span class="dot" style="background:var(--fed)"></span>F1 tick (retained)</span>
+      <span><span class="dot" style="background:transparent;border:1.5px dashed #E6E8EB"></span>requested window — identical both stores (pre 25u / post 15u)</span>
+      <span><span class="dot" style="background:var(--lean)"></span>fulfilled (L0) / <span class="dot" style="background:var(--fed)"></span>fulfilled (F1)</span>
+    </div>
+  </div>
+
+  <div class="results">
+    <div class="card lean">
+      <h3>Tailor read — Lean-cheap (L0)</h3>
+      <div id="leanResult"><div class="placeholder">Fire Detect to see what Tailor can actually pull from this store.</div></div>
+    </div>
+    <div class="card fed">
+      <h3>Tailor read — Fed-rich (F1)</h3>
+      <div id="fedResult"><div class="placeholder">Fire Detect to see what Tailor can actually pull from this store.</div></div>
+    </div>
+  </div>
+
+  <div class="note" id="note">
+    <b>Watch what happens on fire:</b> both sinks get the same seed and the same requested corridor
+    (pre 25u / post 15u). With matched TTL, both <b>fulfill</b> the same request — that is the fair-compare
+    contract. What differs is <b>what Fan-out wrote</b> (L0 kits vs F1 structural/`tg:`/`pc:`), not retention
+    length. Lean vs Federated still fork later as different Clock&nbsp;B algorithms. Asymmetric TTL is a
+    Maintain cost knob that can starve <i>either</i> sink — it is not the definition of Federated.
+  </div>
+</div>
+
+<script>
+(function(){
+  const PX_PER_UNIT = 7;
+  const TICK_MS = 130;         // real ms per sim unit
+  const SHARED_RETENTION = 40; // fair compare: same TTL both sinks
+  const LEAN_RETENTION = SHARED_RETENTION;
+  const FED_RETENTION = SHARED_RETENTION;
+  const PRE_WINDOW = 25;
+  const POST_WINDOW = 15;
+
+  let simTime = 0;
+  let leanEvents = [];   // {t}
+  let fedEvents = [];
+  let seed = null;       // {t0}
+  let running = true;
+
+  const leanTrack = document.getElementById('leanTrack');
+  const fedTrack = document.getElementById('fedTrack');
+  const simTimeLabel = document.getElementById('simTimeLabel');
+  const fireBtn = document.getElementById('fireBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const leanResult = document.getElementById('leanResult');
+  const fedResult = document.getElementById('fedResult');
+
+  function trackWidth(el){ return el.clientWidth; }
+
+  function render(){
+    simTimeLabel.textContent = simTime;
+
+    [ [leanTrack, leanEvents, 'lean', LEAN_RETENTION],
+      [fedTrack, fedEvents, 'fed', FED_RETENTION] ].forEach(([track, events, cls, retention])=>{
+
+      track.querySelectorAll('.tick,.horizon,.seed-marker,.window-band,.fulfilled-band,.gap-band').forEach(n=>n.remove());
+
+      const w = trackWidth(track);
+      const rightMargin = 14;
+
+      // fill / horizon: colored region represents retained span
+      const retainedUnits = Math.min(simTime, retention);
+      const fillPx = Math.min(retainedUnits * PX_PER_UNIT, w);
+
+      let fillEl = track.querySelector('.fill');
+      if(!fillEl){
+        fillEl = document.createElement('div');
+        fillEl.className = 'fill ' + cls;
+        track.appendChild(fillEl);
+      }
+      fillEl.style.width = fillPx + 'px';
+
+      // ticks
+      events.forEach(ev=>{
+        const age = simTime - ev.t;
+        if(age > retention) return; // purged by Maintain
+        const x = w - rightMargin - age * PX_PER_UNIT;
+        if(x < -4) return;
+        const tick = document.createElement('div');
+        tick.className = 'tick ' + cls;
+        tick.style.left = x + 'px';
+        track.appendChild(tick);
+      });
+
+      // now line reference (only draw once per track via CSS ::after alt — using div)
+      // seed + window overlay
+      if(seed){
+        const ageT0 = simTime - seed.t0;
+        const xSeed = w - rightMargin - ageT0 * PX_PER_UNIT;
+
+        const marker = document.createElement('div');
+        marker.className = 'seed-marker';
+        marker.style.left = xSeed + 'px';
+        track.appendChild(marker);
+
+        const preAge = seed.t0 - PRE_WINDOW; // sim time of window start
+        const postAge = seed.t0 + POST_WINDOW;
+        const xStart = w - rightMargin - (simTime - preAge) * PX_PER_UNIT;
+        const xEnd = w - rightMargin - (simTime - Math.min(postAge, simTime)) * PX_PER_UNIT;
+
+        const band = document.createElement('div');
+        band.className = 'window-band';
+        band.style.left = Math.max(xStart, -4) + 'px';
+        band.style.width = Math.max(xEnd - xStart, 0) + 'px';
+        track.appendChild(band);
+
+        // fulfilled: portion of the requested pre-window actually still retained
+        const availableBack = Math.min(PRE_WINDOW, retention);
+        const fulfilledStartAge = seed.t0 - availableBack; // sim time, later than or equal to preAge
+        const fx1 = w - rightMargin - (simTime - fulfilledStartAge) * PX_PER_UNIT;
+        const fx2 = xEnd; // fulfilled always extends to window end (post side always available live)
+        const fulfilled = document.createElement('div');
+        fulfilled.className = 'fulfilled-band ' + cls;
+        fulfilled.style.left = Math.max(fx1, -4) + 'px';
+        fulfilled.style.width = Math.max(fx2 - fx1, 0) + 'px';
+        track.appendChild(fulfilled);
+
+        // gap: portion of pre-window older than retention allows, measured from seed backward
+        if(availableBack < PRE_WINDOW){
+          const gapEndAge = seed.t0 - availableBack; // sim time
+          const gapStartAge = seed.t0 - PRE_WINDOW;
+          const gx1 = w - rightMargin - (simTime - gapStartAge) * PX_PER_UNIT;
+          const gx2 = w - rightMargin - (simTime - gapEndAge) * PX_PER_UNIT;
+          const gap = document.createElement('div');
+          gap.className = 'gap-band';
+          gap.style.left = Math.max(gx1, -4) + 'px';
+          gap.style.width = Math.max(gx2 - gx1, 0) + 'px';
+          track.appendChild(gap);
+        }
+      }
+    });
+
+    renderResults();
+  }
+
+  function renderResults(){
+    if(!seed){ return; }
+    const elapsedSincePost = simTime - (seed.t0 + POST_WINDOW);
+    const postReady = elapsedSincePost >= 0;
+
+    [ [leanResult, LEAN_RETENTION, 'lean'],
+      [fedResult, FED_RETENTION, 'fed'] ].forEach(([el, retention, cls])=>{
+        const availableBack = Math.min(PRE_WINDOW, retention);
+        const missing = PRE_WINDOW - availableBack;
+        const postAvail = postReady ? POST_WINDOW : Math.max(0, simTime - seed.t0);
+        const coveragePct = Math.round(((availableBack+postAvail) / (PRE_WINDOW+POST_WINDOW)) * 100);
+
+        const profile = cls==='lean'
+          ? 'L0 kits (metrics/events)'
+          : 'F1 + tg:/pc: + structural';
+        el.innerHTML = `
+          <div class="row"><span>seed t₀</span><span class="v">${seed.t0}</span></div>
+          <div class="row"><span>requested window</span><span class="v">[t₀-${PRE_WINDOW}, t₀+${POST_WINDOW}]</span></div>
+          <div class="row"><span>sink profile</span><span class="v">${profile}</span></div>
+          <div class="row"><span>pre-window available</span><span class="v ${missing>0?'warn':'ok'}">${availableBack}/${PRE_WINDOW}u ${missing>0? '('+missing+'u purged)':''}</span></div>
+          <div class="row"><span>post-window available</span><span class="v ${postReady?'ok':''}">${postAvail}/${POST_WINDOW}u ${postReady? '' : '(accumulating…)'}</span></div>
+          <div class="row"><span>working-set coverage</span><span class="v ${coveragePct<100?'warn':'ok'}">${coveragePct}%</span></div>
+        `;
+      });
+  }
+
+  function tick(){
+    if(!running) return;
+    simTime += 1;
+    leanEvents.push({t:simTime});
+    fedEvents.push({t:simTime});
+    // trim arrays to avoid unbounded growth (buffer beyond shared retention)
+    const cutoff = simTime - SHARED_RETENTION - 5;
+    leanEvents = leanEvents.filter(e=>e.t >= cutoff);
+    fedEvents = fedEvents.filter(e=>e.t >= cutoff);
+    render();
+  }
+
+  fireBtn.addEventListener('click', ()=>{
+    seed = {t0: simTime};
+    render();
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    simTime = 0;
+    leanEvents = [];
+    fedEvents = [];
+    seed = null;
+    leanResult.innerHTML = '<div class="placeholder">Fire Detect to see what Tailor can actually pull from this store.</div>';
+    fedResult.innerHTML = '<div class="placeholder">Fire Detect to see what Tailor can actually pull from this store.</div>';
+    render();
+  });
+
+  setInterval(tick, TICK_MS);
+  render();
+})();
+</script>
+
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

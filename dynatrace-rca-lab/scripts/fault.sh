@@ -12,4 +12,4 @@ VAL="${3:?value}"
 FILE="$ROOT/faults/${SVC}.${KIND}"
 echo "$VAL" > "$FILE"
 echo "wrote $FILE = $(cat "$FILE")"
-curl -s -o /tmp/fault_probe.out -w "probe HTTP %{http_code}\n" http://localhost:18080 || true
+curl -s -o /tmp/fault_probe.out -w "probe HTTP %{http_code}\n" http://localhost:19080/ || true

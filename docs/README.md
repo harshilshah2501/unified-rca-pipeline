@@ -5,6 +5,9 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 
 **Full repo doc map:** [`NAVIGATION.md`](./NAVIGATION.md) — **start here** if you are lost.
 
+**Browser hub (PoC console):** [`index.html`](./index.html) → [`http://127.0.0.1:8765/docs.html`](http://127.0.0.1:8765/docs.html)  
+**Comparable DT vs DD:** [`comparable-pipeline-dt-dd.html`](./comparable-pipeline-dt-dd.html) → [`http://127.0.0.1:8765/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html)
+
 ## Index (common docs only)
 
 | Document | Purpose |
@@ -15,6 +18,9 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) | Canonical stages + **current next actions** (Ingest → … → Verify) |
 | [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) | Fault-type buckets vs Dynatrace/Datadog (coverage gaps) |
 | [`VENDOR_BENCHMARKS.md`](./VENDOR_BENCHMARKS.md) | Datadog/Dynatrace: no public RCA scoreboard; our GT contract |
+| [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | Dynatrace Clock A unveil (OneAgent / Smartscape / Grail) · [HTML](./dynatrace-production-pipeline.html) |
+| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | Same-scenario Dynatrace vs Datadog (P-26084) · [HTML](./comparable-pipeline-dt-dd.html) |
+| [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | Datadog-native unveil (Agent / M·T·L / Monitors+Watchdog) · [HTML](./datadog-production-pipeline.html) · [mechanisms](./datadog-subsystem-mechanisms.html) · [evidence](./datadog-tenant-evidence-2026-08-03.md) |
 | [`rca-use-cases-only.md`](./rca-use-cases-only.md) | Sole evaluation corpus spec (ObserveOps UC-1..UC-5; UC-3b + events schema specified) |
 | [`UC_LEARNING_BRAINSTORM.md`](./UC_LEARNING_BRAINSTORM.md) | **Learning / brainstorm** — simplified UC frames (problem → RCA output); not bakeoff GT |
 | [`ROADMAP.md`](./ROADMAP.md) | End-to-end phases and status |

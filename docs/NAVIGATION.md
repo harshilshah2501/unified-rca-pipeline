@@ -98,6 +98,16 @@ Understand **what** was measured before reading engine internals.
 | [`../datasets/openobserve_incidents/v1/ground_truth/README.md`](../datasets/openobserve_incidents/v1/ground_truth/README.md) | Option B GT convention |
 | [`../datasets/scenario.md`](../datasets/scenario.md) | E-com cross-NUMA checkout scenario (design + Postgres dump) |
 | [`ECOM_CHECKOUT_RCA_ANALYSIS.md`](./ECOM_CHECKOUT_RCA_ANALYSIS.md) | **Lean vs Federated write-up** for `ecom-numa-001` |
+| [`index.html`](./index.html) | **Browser docs hub** — [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) |
+| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | **Same-scenario DT vs DD** (P-26084) · [HTML](./comparable-pipeline-dt-dd.html) · [`:8765`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) |
+| [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | **Dynatrace-first:** Clock A → OneAgent/Smartscape/Grail map · Collect→Normalize→bind walkthroughs (simple + complex) |
+| [`dynatrace-production-pipeline.html`](./dynatrace-production-pipeline.html) | Same — browser / [`:8765/dynatrace-production-pipeline.html`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
+| [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) | Dynatrace mechanisms storyboard · [`:8765`](http://127.0.0.1:8765/eleven-subsystem-mechanisms.html) |
+| [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | **Datadog-native:** Agent → Metrics/APM/Logs · Monitors+Watchdog · MCP evidence · [HTML](./datadog-production-pipeline.html) |
+| [`datadog-production-pipeline.html`](./datadog-production-pipeline.html) | Same — browser / [`:8765/datadog-production-pipeline.html`](http://127.0.0.1:8765/datadog-production-pipeline.html) |
+| [`datadog-subsystem-mechanisms.html`](./datadog-subsystem-mechanisms.html) | Animated Datadog product mechanisms · [`:8765`](http://127.0.0.1:8765/datadog-subsystem-mechanisms.html) |
+| [`datadog-lab-evidence-2026-08-04.md`](./datadog-lab-evidence-2026-08-04.md) | Lab evidence · [HTML](./datadog-lab-evidence-2026-08-04.html) · [`:8765`](http://127.0.0.1:8765/datadog-lab-evidence-2026-08-04.html) |
+| [`datadog-tenant-evidence-2026-08-03.md`](./datadog-tenant-evidence-2026-08-03.md) | Dated MCP snapshot grounding Observed claims |
 | [`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) | **Team reference:** Clock A/B · classes A–E · Grail/Smartscape/Vector · solution path |
 | [`rca-data-lake-brainstorm.html`](./rca-data-lake-brainstorm.html) | Same — browser / [`:8765/rca-data-lake-brainstorm.html`](http://127.0.0.1:8765/rca-data-lake-brainstorm.html) |
 
@@ -123,8 +133,16 @@ Symlinks at repo root: [`../rca-use-cases-only.md`](../rca-use-cases-only.md), [
 
 Conceptual boundary: **ingestion is not RCA**. Shared fabric feeds both engines.
 
+**Vendor-first (production reference, no Lean/Fed):** read Dynatrace then Datadog before designing our Vector/sinks analogue — same Clock A skeleton, different Localize philosophy.
+
 | Topic | Where |
 |-------|--------|
+| **Dynatrace Clock A map + walkthroughs** | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) · [HTML](./dynatrace-production-pipeline.html) |
+| **Datadog Clock A map + walkthroughs** | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) · [HTML](./datadog-production-pipeline.html) · [mechanisms](./datadog-subsystem-mechanisms.html) · [evidence](./datadog-tenant-evidence-2026-08-03.md) · [lab evidence](./datadog-lab-evidence-2026-08-04.md) |
+| Dynatrace lab (stages 0–5, P-26076) | [`../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) |
+| Datadog lab (FE→product→inventory) | [`../datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../datadog-rca-lab/DATADOG_RCA_REFERENCE.md) · [lab evidence](./datadog-lab-evidence-2026-08-04.md) |
+| **Comparable DT vs DD pipeline (same scenario)** | [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) · [HTML](./comparable-pipeline-dt-dd.html) · [`:8765/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) · Problem **P-26084** |
+| **Hosted docs index (browser hub)** | [`index.html`](./index.html) · [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) — navigate DT / DD / compare / mechanisms |
 | Vector design (shared fabric → Lean / Federated artifacts) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
 | PoC plan (M1–M3, hardware, weekly gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
 | `ingest.v1` contract + converters | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
@@ -227,6 +245,8 @@ Use this **after** you have the map — or when you already know the goal.
 | **OO UC fairness checklist** | [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md) |
 | Lean × Fed × OO UC compare | [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) |
 | Design ingestion (Vector → graphs) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
+| **Understand Dynatrace production Clock A first** | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) · [HTML `:8765`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
+| **Understand Datadog production fabric** | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) · [HTML `:8765`](http://127.0.0.1:8765/datadog-production-pipeline.html) · [mechanisms](http://127.0.0.1:8765/datadog-subsystem-mechanisms.html) · [evidence](./datadog-tenant-evidence-2026-08-03.md) |
 | Ingestion PoC plan (hardware + gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
 | `ingest.v1` format / converters | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
 | Fair Lean vs Federated (shared Detect) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |

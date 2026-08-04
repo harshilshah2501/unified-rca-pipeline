@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The RCA Data Pre-Processing Puzzle</title>
+<style>
+  :root{
+    --navy:#0a1f33;
+    --navy-deep:#071626;
+    --grid:#15334f;
+    --line:#7ec8e3;
+    --line-dim:#3f6b86;
+    --paper:#eaf2f7;
+    --paper-dim:#9fb8c9;
+    --amber:#ffb703;
+    --amber-dim:#8a6a2a;
+    --danger:#ff7a5c;
+    --mono: "IBM Plex Mono", "SF Mono", "Courier New", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--navy);color:var(--paper);font-family:var(--sans);}
+  body{
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-color:var(--navy);
+    line-height:1.5;
+  }
+  a{color:var(--line);}
+  ::selection{background:var(--amber);color:var(--navy-deep);}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px 80px;}
+
+  /* ---------- title block hero ---------- */
+  .titleblock{
+    border:1px solid var(--line-dim);
+    border-top:3px solid var(--line);
+    margin-top:28px;
+    padding:28px 28px 20px;
+    position:relative;
+    background:rgba(10,31,51,0.4);
+  }
+  .titleblock::before, .titleblock::after,
+  .corner-tl, .corner-br{position:absolute;width:14px;height:14px;}
+  .titleblock .corner-tl{top:-1px;left:-1px;border-top:2px solid var(--amber);border-left:2px solid var(--amber);}
+  .titleblock .corner-br{bottom:-1px;right:-1px;border-bottom:2px solid var(--amber);border-right:2px solid var(--amber);}
+  .eyebrow{
+    font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--amber);
+    text-transform:uppercase;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;
+  }
+  h1{
+    font-size:clamp(28px,5vw,46px);
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin:0 0 14px;
+    font-weight:800;
+    color:var(--paper);
+  }
+  .thesis{
+    font-family:var(--mono);
+    font-size:15px;
+    color:var(--paper-dim);
+    border-left:2px solid var(--line);
+    padding-left:16px;
+    max-width:760px;
+  }
+  .thesis strong{color:var(--line);}
+
+  /* ---------- nav ---------- */
+  nav.toc{
+    position:sticky;top:0;z-index:50;
+    background:rgba(7,22,38,0.92);
+    backdrop-filter:blur(4px);
+    border-bottom:1px solid var(--line-dim);
+    margin-top:30px;
+  }
+  nav.toc .inner{
+    max-width:1080px;margin:0 auto;padding:0 24px;
+    display:flex;gap:2px;overflow-x:auto;
+  }
+  nav.toc button{
+    background:none;border:none;color:var(--paper-dim);
+    font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;
+    padding:14px 14px;cursor:pointer;white-space:nowrap;
+    border-bottom:2px solid transparent;
+    transition:color .15s, border-color .15s;
+  }
+  nav.toc button:hover{color:var(--paper);}
+  nav.toc button.active{color:var(--line);border-bottom-color:var(--line);}
+
+  section{margin-top:56px;scroll-margin-top:56px;}
+  .section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px;}
+  .section-num{font-family:var(--mono);color:var(--amber);font-size:14px;}
+  h2{font-size:22px;text-transform:uppercase;letter-spacing:1px;margin:0;color:var(--paper);}
+  .section-sub{font-family:var(--mono);font-size:12.5px;color:var(--paper-dim);margin:6px 0 22px;max-width:700px;}
+
+  .card{
+    border:1px solid var(--line-dim);
+    background:rgba(10,31,51,0.35);
+    padding:20px;
+    position:relative;
+  }
+  .card::before{content:"";position:absolute;top:-1px;left:-1px;width:10px;height:10px;border-top:2px solid var(--line);border-left:2px solid var(--line);}
+  .card::after{content:"";position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-bottom:2px solid var(--line);border-right:2px solid var(--line);}
+
+  /* badges */
+  .badge{
+    display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.5px;
+    padding:2px 7px;border-radius:2px;text-transform:uppercase;margin-left:8px;vertical-align:middle;
+  }
+  .badge.prior{border:1px dashed var(--amber);color:var(--amber);}
+  .badge.selfreport{border:1px dashed var(--paper-dim);color:var(--paper-dim);}
+  .badge.gap{border:1px dotted var(--danger);color:var(--danger);}
+  .badge.proven{border:1px solid var(--line);color:var(--line);}
+
+  /* ---------- pipeline diagram ---------- */
+  .pipeline{display:flex;gap:0;flex-wrap:wrap;margin-bottom:20px;}
+  .pipe-node{
+    flex:1;min-width:130px;
+    border:1px solid var(--line-dim);
+    padding:14px 10px;text-align:center;cursor:pointer;
+    font-family:var(--mono);font-size:13px;letter-spacing:1px;text-transform:uppercase;
+    background:rgba(10,31,51,0.5);
+    position:relative;
+    transition:background .15s, border-color .15s;
+  }
+  .pipe-node:not(:last-child)::after{
+    content:"→";position:absolute;right:-14px;top:50%;transform:translateY(-50%);
+    color:var(--line-dim);font-size:16px;z-index:2;
+  }
+  .pipe-node.active{background:rgba(126,200,227,0.12);border-color:var(--line);color:var(--line);}
+  .pipe-detail{display:none;}
+  .pipe-detail.show{display:block;}
+  .pipe-detail table{width:100%;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--grid);vertical-align:top;}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);border-bottom:1px solid var(--line-dim);}
+  td.k{color:var(--line);font-weight:600;white-space:nowrap;}
+
+  .quotebox{
+    font-family:var(--mono);font-size:14px;color:var(--paper);
+    border:1px dashed var(--line);padding:16px 18px;background:rgba(126,200,227,0.06);
+    margin:18px 0;
+  }
+
+  /* pain point tabs */
+  .tabs{display:flex;gap:2px;flex-wrap:wrap;margin-bottom:14px;}
+  .tab{
+    background:none;border:1px solid var(--line-dim);color:var(--paper-dim);
+    font-family:var(--mono);font-size:11.5px;padding:8px 12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;
+  }
+  .tab.active{border-color:var(--line);color:var(--line);background:rgba(126,200,227,0.1);}
+  .tabpanel{display:none;}
+  .tabpanel.show{display:block;}
+
+  /* competitor toggle */
+  .pillrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .pill{
+    border:1px solid var(--line-dim);background:none;color:var(--paper-dim);
+    padding:8px 14px;font-family:var(--mono);font-size:12px;cursor:pointer;border-radius:20px;
+  }
+  .pill.active{border-color:var(--amber);color:var(--amber);}
+  .matrix-wrap{overflow-x:auto;}
+  .matrix td, .matrix th{font-size:12.5px;}
+  .matrix .col-hl{background:rgba(255,183,3,0.08);}
+
+  /* scenario selector */
+  .scenariorow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .scenario-btn{
+    border:1px solid var(--line-dim);background:none;color:var(--paper-dim);
+    padding:10px 14px;font-family:var(--mono);font-size:12px;cursor:pointer;text-align:left;flex:1;min-width:150px;
+  }
+  .scenario-btn strong{display:block;color:var(--paper);font-size:13px;}
+  .scenario-btn.active{border-color:var(--line);color:var(--line);background:rgba(126,200,227,0.1);}
+  .scenario-btn.active strong{color:var(--line);}
+
+  .corridor{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;}
+  .modality{
+    flex:1;min-width:110px;border:1px solid var(--line-dim);padding:12px 8px;text-align:center;
+    font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--paper-dim);
+    opacity:.35;transition:opacity .2s, border-color .2s, background .2s;
+  }
+  .modality.lit{opacity:1;border-color:var(--line);color:var(--line);background:rgba(126,200,227,0.1);}
+  .modality.necessary.lit{border-color:var(--amber);color:var(--amber);background:rgba(255,183,3,0.1);}
+  .modality small{display:block;margin-top:4px;color:var(--paper-dim);}
+
+  .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:18px;}
+  .stat{border:1px solid var(--line-dim);padding:14px;background:rgba(10,31,51,0.4);}
+  .stat .num{font-family:var(--mono);font-size:22px;color:var(--line);}
+  .stat .lbl{font-size:12px;color:var(--paper-dim);margin-top:4px;}
+
+  /* lifecycle stepper */
+  .stepper{display:flex;gap:0;margin-bottom:18px;flex-wrap:wrap;}
+  .step{
+    flex:1;min-width:110px;text-align:center;padding:12px 6px;cursor:pointer;
+    border:1px solid var(--line-dim);font-family:var(--mono);font-size:12px;text-transform:uppercase;
+    color:var(--paper-dim);position:relative;
+  }
+  .step.active{border-color:var(--amber);color:var(--amber);background:rgba(255,183,3,0.08);}
+  .step .stepnum{display:block;font-size:10px;color:var(--line-dim);margin-bottom:4px;}
+  .step.active .stepnum{color:var(--amber);}
+  .lifepanel{display:none;}
+  .lifepanel.show{display:block;}
+
+  .tailordiagram{
+    display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:18px 0;
+    font-family:var(--mono);font-size:11.5px;
+  }
+  .tailordiagram .node{border:1px solid var(--line);padding:10px 10px;color:var(--line);background:rgba(126,200,227,0.08);text-align:center;flex:1;min-width:100px;}
+  .tailordiagram .arrow{color:var(--line-dim);}
+
+  ul.plain{margin:8px 0;padding-left:20px;}
+  ul.plain li{margin-bottom:6px;font-size:13.5px;color:var(--paper-dim);}
+
+  .oq-list{list-style:none;margin:0;padding:0;}
+  .oq-list li{
+    border-bottom:1px solid var(--grid);padding:12px 0;font-size:14px;color:var(--paper);
+    display:flex;gap:12px;
+  }
+  .oq-list li span.qn{font-family:var(--mono);color:var(--amber);flex-shrink:0;}
+
+  .footer-stamp{
+    margin-top:60px;border:2px solid var(--danger);padding:16px 20px;
+    font-family:var(--mono);font-size:12px;color:var(--danger);letter-spacing:.5px;
+    transform:rotate(-0.4deg);
+  }
+
+  .related{font-family:var(--mono);font-size:11px;color:var(--paper-dim);margin-top:8px;}
+
+  @media (max-width:640px){
+    .pipe-node:not(:last-child)::after{display:none;}
+    nav.toc .inner{gap:0;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="titleblock">
+    <div class="corner-tl"></div><div class="corner-br"></div>
+    <div class="eyebrow">
+      <span>SHEET 1 OF 1</span>
+      <span>REV — BRAINSTORM</span>
+      <span>DATE 2026-07-29</span>
+      <span>STATUS: WORKING HYPOTHESES, NOT A MEASURED SURVEY</span>
+    </div>
+    <h1>The RCA Data<br>Pre-Processing Puzzle</h1>
+    <div class="thesis">
+      <strong>The problem, in one sentence:</strong> given noisy, high-volume, multi-modal telemetry and a shifting estate,
+      automatically (or assistively) answer what is wrong, where the fault is, and — when justified — why,
+      with an evidence trail an SRE can trust.
+    </div>
+  </div>
+</div>
+
+<nav class="toc">
+  <div class="inner">
+    <button data-target="s1" class="active">01 Problem</button>
+    <button data-target="s2">02 Pain Points</button>
+    <button data-target="s3">03 Competitors</button>
+    <button data-target="s4">04 Modalities</button>
+    <button data-target="s5">05 Lake Lifecycle</button>
+    <button data-target="s6">06 Open Qs</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- SECTION 1: PROBLEM -->
+  <section id="s1">
+    <div class="section-head"><span class="section-num">01</span><h2>What is the problem?</h2></div>
+    <div class="section-sub">Five jobs, done in order. Click a stage to see its plain-language question and what breaks if it's skipped.</div>
+
+    <div class="pipeline" id="pipeline">
+      <div class="pipe-node active" data-i="0">Ingest</div>
+      <div class="pipe-node" data-i="1">Detect</div>
+      <div class="pipe-node" data-i="2">Localize</div>
+      <div class="pipe-node" data-i="3">Identify</div>
+      <div class="pipe-node" data-i="4">Verify</div>
+    </div>
+
+    <div class="card">
+      <div id="pipe-details"></div>
+    </div>
+
+    <div class="quotebox">
+      Market shorthand: <strong>Step 1 "where"</strong> ≈ Detect → Localize (vendors automate this well).
+      <strong>Step 2 "what happened there"</strong> ≈ Identify (+ Verify) — deep path-diff automation is still thin.
+      <span class="badge gap">white space</span>
+    </div>
+
+    <p style="color:var(--paper-dim);font-size:13.5px;">Raw production data is huge, heterogeneous, non-stationary (deploys change topology),
+    and identity-unstable (pods churn, monitors rename). So the real systems problem isn't "store everything" — it's:</p>
+
+    <div class="quotebox">
+      Create an entity-keyed, time-aligned store; then, per incident, tailor a small AI-ready working set
+      (seed + neighborhood + corridor) that Localize/Identify can reason over.
+    </div>
+  </section>
+
+  <!-- SECTION 2: PAIN POINTS -->
+  <section id="s2">
+    <div class="section-head"><span class="section-num">02</span><h2>Pain points</h2></div>
+    <div class="section-sub">Why "dump lake → LLM" fails. Grouped by layer — this is why vendors invest in agents, graphs, and scoping instead.</div>
+
+    <div class="tabs" id="painTabs">
+      <button class="tab active" data-i="0">Volume &amp; cost</button>
+      <button class="tab" data-i="1">Join &amp; identity</button>
+      <button class="tab" data-i="2">Detect quality</button>
+      <button class="tab" data-i="3">Reasoning quality</button>
+      <button class="tab" data-i="4">Organizational</button>
+    </div>
+    <div class="card"><div id="painBody"></div></div>
+  </section>
+
+  <!-- SECTION 3: COMPETITORS -->
+  <section id="s3">
+    <div class="section-head"><span class="section-num">03</span><h2>How competitors tackle it</h2></div>
+    <div class="section-sub">Three philosophies from public product framing + vendor notes — <span class="badge selfreport">self-reported where noted</span>.
+    All of them scope before they reason: none feeds the whole retention window into one model per ticket.</div>
+
+    <div class="pillrow" id="compPills">
+      <button class="pill active" data-i="0">Dynatrace</button>
+      <button class="pill" data-i="1">Datadog</button>
+      <button class="pill" data-i="2">BigPanda</button>
+      <button class="pill" data-i="3">Our PoC direction</button>
+    </div>
+    <div class="card"><div id="compBody"></div></div>
+
+    <div class="card" style="margin-top:16px;">
+      <strong style="color:var(--line);font-family:var(--mono);font-size:12px;letter-spacing:1px;">SHARED PATTERN — ALL SERIOUS PLAYERS</strong>
+      <ul class="plain" style="margin-top:10px;">
+        <li>Agents + continuous discovery → entity universe</li>
+        <li>Detect / Watchdog / Davis events → incident seed</li>
+        <li>Entity / service / Smartscape-style graph → where to relate signals</li>
+        <li>Incident-scoped pull of metrics/logs/traces near the seed (not the full lake)</li>
+        <li>Rank or pick a culprit → UI + optional AI narrative</li>
+        <li>Human Step-2 for deep method/path "why" (often) <span class="badge gap">gap</span></li>
+      </ul>
+    </div>
+
+    <div class="matrix-wrap" style="margin-top:16px;">
+      <table class="matrix" id="matrixTable"></table>
+    </div>
+  </section>
+
+  <!-- SECTION 4: MODALITIES -->
+  <section id="s4">
+    <div class="section-head"><span class="section-num">04</span><h2>What each data type answers</h2></div>
+    <div class="section-sub">Pick a scenario class to see which modalities actually light up for it. Percentages are <span class="badge prior">unmeasured priors</span>, not a published survey.</div>
+
+    <table style="margin-bottom:26px;">
+      <tr><th>Data type</th><th>Primary question</th><th>Note</th></tr>
+      <tr><td class="k">Alerts / Detect</td><td>That something is wrong — starts the case</td><td>Absolute intake for automated RCA</td></tr>
+      <tr><td class="k">Topology / CI graph</td><td>Where things connect — where to walk</td><td>Structure, not request-path "where"</td></tr>
+      <tr><td class="k">Metrics</td><td>What is unhealthy + when it started</td><td>Classic Localize workhorse</td></tr>
+      <tr><td class="k">Logs / events</td><td>What happened (errors, deploys, kernel) — sometimes a line of why</td><td>Often required for Identify</td></tr>
+      <tr><td class="k">Traces / spans</td><td>The end-to-end request story</td><td>Path-level Identify</td></tr>
+    </table>
+
+    <div class="scenariorow" id="scenarioBtns"></div>
+
+    <div class="corridor" id="corridor"></div>
+
+    <div class="card" id="scenarioDetail"></div>
+
+    <div class="statgrid">
+      <div class="stat"><div class="num">~45–55%</div><div class="lbl">Localize possible without rich logs (classes A–B) <span class="badge prior">prior</span></div></div>
+      <div class="stat"><div class="num">~40–50%</div><div class="lbl">Logs materially required (classes C–D Identify) <span class="badge prior">prior</span></div></div>
+      <div class="stat"><div class="num">~10–20%</div><div class="lbl">Traces/spans required (class D) <span class="badge prior">prior</span></div></div>
+      <div class="stat"><div class="num">~80%+</div><div class="lbl">Alerts + topology + metrics as minimum Detect→Localize kit <span class="badge prior">prior</span></div></div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: LIFECYCLE -->
+  <section id="s5">
+    <div class="section-head"><span class="section-num">05</span><h2>Data lake lifecycle</h2></div>
+    <div class="section-sub">Create → Maintain → Curate → Tailor → Churn — how Datadog/Dynatrace-class stacks avoid feeding the whole lake to an RCA engine.</div>
+
+    <div class="stepper" id="stepper">
+      <div class="step active" data-i="0"><span class="stepnum">1</span>Create</div>
+      <div class="step" data-i="1"><span class="stepnum">2</span>Maintain</div>
+      <div class="step" data-i="2"><span class="stepnum">3</span>Curate</div>
+      <div class="step" data-i="3"><span class="stepnum">4</span>Tailor</div>
+      <div class="step" data-i="4"><span class="stepnum">5</span>Churn</div>
+    </div>
+
+    <div class="card"><div id="lifeBody"></div></div>
+  </section>
+
+  <!-- SECTION 6: OPEN QUESTIONS -->
+  <section id="s6">
+    <div class="section-head"><span class="section-num">06</span><h2>Open questions &amp; takeaway</h2></div>
+    <div class="section-sub">What's still unresolved, and the five-point summary of where this stands.</div>
+
+    <div class="card">
+      <ul class="oq-list">
+        <li><span class="qn">1</span>Motadata sample: measured % in classes A–D?</li>
+        <li><span class="qn">2</span>Default corridor: ±15 min vs ±2 h vs change-aware?</li>
+        <li><span class="qn">3</span>When is "no logs" an acceptable product claim?</li>
+        <li><span class="qn">4</span>Incident lead example: ecom-numa vs UC appendix?</li>
+        <li><span class="qn">5</span>Detect demo: stream → threshold → seed, live?</li>
+        <li><span class="qn">6</span>Minimum trace sampling for class-D Identify under cost caps?</li>
+        <li><span class="qn">7</span>Where do we deliberately not copy Dynatrace causal marketing vs Datadog Watchdog branding?</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <ul class="plain">
+        <li><strong style="color:var(--paper);">Problem</strong> = joinable multi-modal estate + a Detect seed + scoped reasoning — not "bigger lake."</li>
+        <li><strong style="color:var(--paper);">Pains</strong> = volume, identity, stale topology, bad seeds, symptom bias, modality gaps, and a Step-2 automation hole.</li>
+        <li><strong style="color:var(--paper);">Dynatrace</strong> = topology-first + causal claim. <strong style="color:var(--paper);">Datadog</strong> = platform lake + statistical/Watchdog Localize + multimodal pivot. Both scope before they reason.</li>
+        <li><strong style="color:var(--paper);">Our bet</strong> = shared Detect, typed-topology Localize, honest Verify tiers, a multimodal report bar, and the fused path-Identify white space.</li>
+        <li>The §5-style percentiles stay <span class="badge prior">priors</span> until ticket-sampled.</li>
+      </ul>
+    </div>
+
+    <div class="footer-stamp">
+      BRAINSTORM ONLY — do not cite competitor accuracy or the modality-mix percentages externally without measurement or primary sources.
+    </div>
+  </section>
+
+</div>
+
+<script>
+// ---------- data ----------
+const pipeline = [
+  {name:"Ingest", q:"Can we join signals by identity + time?", fail:"Orphan metrics/logs; no walk possible."},
+  {name:"Detect", q:"Is something wrong now, and where does the pain show?", fail:"No case start, or the wrong seed."},
+  {name:"Localize", q:"Which CI / service is the fault region?", fail:"Blame the loud symptom app instead of the root."},
+  {name:"Identify", q:"What kind of failure is it (and optionally which path)?", fail:'"Host X is bad" with no actionable class.'},
+  {name:"Verify", q:"How strongly may we claim cause?", fail:'Marketing "causal" without evidence depth.'}
+];
+
+const pain = [
+  {title:"Volume & cost", rows:[
+    ["Cardinality explosion","High-cardinality metrics/logs","Hot store cost; query timeouts"],
+    ["Trace flood","Full request capture","Must sample; miss rare failures"],
+    ["Alert storms","Many alerts, one fault","Human overload; bad seeds"]
+  ]},
+  {title:"Join & identity", rows:[
+    ["No stable CI","Host vs pod vs service mismatch","Cannot hang logs on topology"],
+    ["Stale topology","Deploy changed dependencies","Walk to the wrong upstream"],
+    ["Clock skew","Modalities disagree on 'onset'","False Δt ordering"]
+  ]},
+  {title:"Detect quality", rows:[
+    ["Missing Detect","No alert / weak threshold","RCA never starts"],
+    ["Wrong seed","Alert on symptom only, treated as root","Localize never asked to walk"],
+    ["Contaminated alerts","Ground-truth / root text in alert body","Fake accuracy"],
+    ["Gray failure","Soft unhealthiness, no hard threshold","Threshold Detect is blind (Panorama-class gap)"]
+  ]},
+  {title:"Reasoning quality", rows:[
+    ["Symptom bias","Loud app blamed","Miss the shared infra root"],
+    ["Correlation ≠ cause","Ranked list of 'related'","Weak Verify / overclaimed causality"],
+    ["Modality gaps","No logs/traces when Identify needs them","Stop at Localize, or guess"],
+    ["Step-2 automation gap","Deep traces exist but no fused path-diff verdict","Human digs manually"]
+  ]},
+  {title:"Organizational", rows:[
+    ["Tool sprawl","Metrics in A, logs in B, traces in C","Slow multimodal RCA"],
+    ["No ground truth / feedback","Cannot score engines","Cannot improve lake or Detect"],
+    ["Dual-engine cost","Store everything for every approach","Need L0/F1-style cost fan-out"]
+  ]}
+];
+
+const competitors = [
+  {name:"Dynatrace (Davis)", tag:"Topology-first, causal claim", rows:[
+    ["Focus","Continuously known dependency world; diagnose on the map"],
+    ["Graph","Smartscape / topology — processes, services, hosts, calls, live"],
+    ["Detect","Davis events / anomaly detection on monitored entities"],
+    ["Localize","Deterministic / rule-assisted walk + causation engine"],
+    ["Identify / Verify","Claims causal reasoning — self-reported, no independent scoreboard"],
+    ["Mitigates","Stale-map and symptom bias (if topology is fresh)"],
+    ["Remaining pain","Gray cases; Step-2 path-diff fusion; cost of full-stack agents"]
+  ]},
+  {name:"Datadog", tag:"Platform lake + statistical localization", rows:[
+    ["Focus","Unified metrics/logs/traces; find what deviated from normal"],
+    ["Graph","Service map / APM entities + infra hosts from instrumentation"],
+    ["Detect","Monitors + Watchdog-style anomaly / outlier detection"],
+    ["Localize","Statistical correlation / change-point 'likely culprit'"],
+    ["Identify","Pivot to related logs, traces, error tracking; Bits AI assists humans"],
+    ["Mitigates","Tool sprawl (one pane); volume via sampling/indexing"],
+    ["Remaining pain","Correlation ≠ cause; depends on instrumentation coverage"]
+  ]},
+  {name:"BigPanda (sketch)", tag:"Alert / event correlation", rows:[
+    ["Graph","Alert / change event graph, more than deep APM topology"],
+    ["Tactic","Deduplicate storms; correlate alerts + changes → probable culprit"],
+    ["Mitigates","Alert fatigue, cross-tool noise"],
+    ["Gap vs north star","Weaker multimodal path Identify unless enriched elsewhere"]
+  ]},
+  {name:"Our PoC direction", tag:"Typed topology + honest Verify tiers", rows:[
+    ["Graph","Typed topology.json / A-TOPO"],
+    ["Detect → seed","Threshold Detect + seed (live streaming still to show)"],
+    ["Localize","Lean walk + Federated Murphy, fair shared Detect"],
+    ["Logs in RCA","Needed for class C–D; thin on classic UC"],
+    ["Traces/spans","Critical for the ecom-numa north star"],
+    ["Step-2 path-diff","White space / stretch goal"],
+    ["Scoreboard","Measured on frozen packs + Motadata ground truth"]
+  ]}
+];
+
+const matrixRows = [
+  ["Entity / topology graph","Smartscape (core)","Service map / tags (core)","Typed topology.json / A-TOPO"],
+  ["Detect → seed","Davis events","Monitors + Watchdog","Threshold Detect + seed"],
+  ["Localize style","Topology + causal engine claim","Statistical / related entities","Lean walk + Fed Murphy"],
+  ["Logs in RCA","Yes, entity-joined","Yes, first-class","Needed for class C–D"],
+  ["Traces/spans","Deep APM","Deep APM","Critical for ecom-numa"],
+  ["Lake scoping","Incident / entity context","Query + Watchdog context","Seed + neighborhood + corridor"],
+  ["Step-2 path-diff fused","Not verified as automatic","Not verified","White space"],
+  ["Accuracy scoreboard","Self-reported","Self-reported","Measured on frozen packs + GT"]
+];
+
+const scenarios = [
+  {id:"A", label:"Classic infra smoking gun", ex:"link down, host CPU/storage saturation, clear shared upstream",
+   share:"~25–35%", lit:["alert","metrics","topology"], necessary:[],
+   logs:"Often not required for Localize", traces:"Usually not"},
+  {id:"B", label:"Metrics-led, thin events", ex:"multi-signal onset, needs a topology walk + Δt",
+   share:"~20–25%", lit:["alert","metrics","topology","events"], necessary:[],
+   logs:"Recommended", traces:"Optional"},
+  {id:"C", label:"App / dependency gray", ex:"5xx, latency, pool exhaustion — 'slow somewhere'",
+   share:"~25–35%", lit:["alert","metrics","topology","logs"], necessary:["logs"],
+   logs:"Necessary for Identify; helps Localize", traces:"Recommended"},
+  {id:"D", label:"Path / microservice", ex:"wrong hop, dependency-call timeout, NUMA/IRQ cross-layer (ecom-numa)",
+   share:"~10–20%", lit:["alert","metrics","topology","logs","traces"], necessary:["logs","traces"],
+   logs:"Necessary", traces:"Necessary for path Identify"},
+  {id:"E", label:"Outside organic RCA", ex:"pure security, capacity planning, human process",
+   share:"~5–10%", lit:[], necessary:[],
+   logs:"—", traces:"—"}
+];
+
+// ---------- nav scroll spy ----------
+const navBtns = document.querySelectorAll('nav.toc button');
+navBtns.forEach(b=>b.addEventListener('click',()=>{
+  document.getElementById(b.dataset.target).scrollIntoView({behavior:'smooth'});
+}));
+const secs = ['s1','s2','s3','s4','s5','s6'].map(id=>document.getElementById(id));
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navBtns.forEach(b=>b.classList.toggle('active', b.dataset.target===e.target.id));
+    }
+  });
+},{rootMargin:"-40% 0px -50% 0px"});
+secs.forEach(s=>io.observe(s));
+
+// ---------- pipeline ----------
+function renderPipe(i){
+  document.querySelectorAll('#pipeline .pipe-node').forEach(n=>n.classList.toggle('active', +n.dataset.i===i));
+  const p = pipeline[i];
+  document.getElementById('pipe-details').innerHTML = `
+    <table>
+      <tr><th>Job</th><th>Plain question</th><th>Failure mode if skipped</th></tr>
+      <tr><td class="k">${p.name}</td><td>${p.q}</td><td>${p.fail}</td></tr>
+    </table>`;
+}
+document.querySelectorAll('#pipeline .pipe-node').forEach(n=>{
+  n.addEventListener('click',()=>renderPipe(+n.dataset.i));
+});
+renderPipe(0);
+
+// ---------- pain tabs ----------
+function renderPain(i){
+  document.querySelectorAll('#painTabs .tab').forEach(t=>t.classList.toggle('active', +t.dataset.i===i));
+  const p = pain[i];
+  document.getElementById('painBody').innerHTML = `
+    <table>
+      <tr><th>Pain</th><th>Symptom</th><th>Consequence</th></tr>
+      ${p.rows.map(r=>`<tr><td class="k">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}
+    </table>`;
+}
+document.querySelectorAll('#painTabs .tab').forEach(t=>t.addEventListener('click',()=>renderPain(+t.dataset.i)));
+renderPain(0);
+
+// ---------- competitors ----------
+function renderComp(i){
+  document.querySelectorAll('#compPills .pill').forEach(p=>p.classList.toggle('active', +p.dataset.i===i));
+  const c = competitors[i];
+  document.getElementById('compBody').innerHTML = `
+    <div style="margin-bottom:10px;">
+      <strong style="color:var(--paper);font-size:16px;">${c.name}</strong>
+      <span style="color:var(--paper-dim);font-family:var(--mono);font-size:12px;"> — ${c.tag}</span>
+    </div>
+    <table>${c.rows.map(r=>`<tr><td class="k">${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>`;
+  renderMatrix(i);
+}
+document.querySelectorAll('#compPills .pill').forEach(p=>p.addEventListener('click',()=>renderComp(+p.dataset.i)));
+
+function renderMatrix(hlIndex){
+  // matrix only has 3 vendor columns (Dynatrace, Datadog, Our direction) — map pill index 0,1,3 to cols 0,1,2; BigPanda(2) highlights none
+  const colMap = {0:0,1:1,3:2};
+  const hlCol = colMap[hlIndex];
+  let html = `<tr><th>Capability</th><th${hlCol===0?' class="col-hl"':''}>Dynatrace</th><th${hlCol===1?' class="col-hl"':''}>Datadog</th><th${hlCol===2?' class="col-hl"':''}>Our PoC direction</th></tr>`;
+  matrixRows.forEach(r=>{
+    html += `<tr><td class="k">${r[0]}</td><td${hlCol===0?' class="col-hl"':''}>${r[1]}</td><td${hlCol===1?' class="col-hl"':''}>${r[2]}</td><td${hlCol===2?' class="col-hl"':''}>${r[3]}</td></tr>`;
+  });
+  document.getElementById('matrixTable').innerHTML = html;
+}
+renderComp(0);
+
+// ---------- scenarios ----------
+const scenarioBtnsEl = document.getElementById('scenarioBtns');
+scenarios.forEach((s,i)=>{
+  const b = document.createElement('button');
+  b.className = 'scenario-btn' + (i===0?' active':'');
+  b.dataset.i = i;
+  b.innerHTML = `<strong>${s.id}. ${s.label}</strong>${s.share} of incidents`;
+  b.addEventListener('click',()=>renderScenario(i));
+  scenarioBtnsEl.appendChild(b);
+});
+
+const modalityDefs = [
+  {key:'alert', label:'Alerts'},
+  {key:'metrics', label:'Metrics'},
+  {key:'topology', label:'Topology'},
+  {key:'events', label:'Events'},
+  {key:'logs', label:'Logs'},
+  {key:'traces', label:'Traces/Spans'}
+];
+
+function renderScenario(i){
+  document.querySelectorAll('.scenario-btn').forEach(b=>b.classList.toggle('active', +b.dataset.i===i));
+  const s = scenarios[i];
+  document.getElementById('corridor').innerHTML = modalityDefs.map(m=>{
+    const lit = s.lit.includes(m.key);
+    const nec = s.necessary.includes(m.key);
+    return `<div class="modality ${lit?'lit':''} ${nec?'necessary':''}">${m.label}${nec?'<small>necessary</small>':(lit?'<small>used</small>':'<small>—</small>')}</div>`;
+  }).join('');
+  document.getElementById('scenarioDetail').innerHTML = `
+    <table>
+      <tr><th>Class</th><th>Example</th><th>Share <span class="badge prior">prior</span></th><th>Logs?</th><th>Traces/spans?</th></tr>
+      <tr><td class="k">${s.id}</td><td>${s.ex}</td><td>${s.share}</td><td>${s.logs}</td><td>${s.traces}</td></tr>
+    </table>`;
+}
+renderScenario(0);
+
+// ---------- lifecycle ----------
+const lifecycle = [
+  {title:"Create (ingest)", rows:[
+    ["Collect","Metrics, logs, spans/traces, events/changes, alerts","Prefer unified agents / OTel"],
+    ["Normalize","ingest.v1-class envelope","CI id, signal, time, value, threshold"],
+    ["Topology sibling","Typed CI / service graph (A-TOPO)","Crawler / CMDB / service map beside the vector store"],
+    ["Fan-out","L0 vs F1","Cost control without forking Detect"]
+  ], bar:"Joinable by stable identity + time."},
+  {title:"Maintain", rows:[
+    ["Identity","Workload/service/host keys over raw pod churn when relevant",""],
+    ["Topology freshness","Refresh on deploy/discovery",""],
+    ["Retention tiers","Hot incident / warm / cold",""],
+    ["Sampling","Traces + logs: keep decisive coverage under cost",""],
+    ["Clock sync","Shared time base across modalities",""]
+  ]},
+  {title:"Curate", rows:[
+    ["Storm control","Many alerts → one seed",""],
+    ["Human ground truth","Motadata-style packs; never auto-invent GT",""],
+    ["Quality flags","Missing topology/traces/logs called out in reports",""],
+    ["No coaching","Ground truth kept out of alert text",""],
+    ["Gold set","ecom-numa-class multimodal incidents",""]
+  ]},
+  {title:"Tailor (AI-ready working set)", rows:[
+    ["Time corridor","Minutes–hours around onset","Pack incident window, not 'search last 7 days'"],
+    ["Space corridor","Seed + up/downstream + shared infra","topology.json slice"],
+    ["Modality mix","A: metrics+topo. D: +logs+spans+change","UC vs ecom-numa"],
+    ["Format","Entity envelopes + edges","ingest.v1 + pack"]
+  ], tailorDiagram:true},
+  {title:"Churn", rows:[
+    ["Topology rebuild","Refresh the typed CI/service graph",""],
+    ["Detector retune","Re-tune thresholds as baselines drift",""],
+    ["Corpus GT refresh","Update ground truth as incidents evolve",""],
+    ["Re-run gold","Re-score gold set after engine changes",""],
+    ["L0/F1 cost rebalance","Rebalance the cost fan-out",""]
+  ], bar:"Accuracy loop: tailored pack → engines → score vs GT/gold → gaps feed curation."}
+];
+
+function renderLife(i){
+  document.querySelectorAll('#stepper .step').forEach(s=>s.classList.toggle('active', +s.dataset.i===i));
+  const l = lifecycle[i];
+  let html = `<table><tr><th>Step</th><th>Practice</th>${l.rows[0][2]!==undefined?'<th>Notes</th>':''}</tr>`;
+  l.rows.forEach(r=>{
+    html += `<tr><td class="k">${r[0]}</td><td>${r[1]}</td>${r[2]!==undefined?`<td>${r[2]}</td>`:''}</tr>`;
+  });
+  html += `</table>`;
+  if(l.tailorDiagram){
+    html += `
+    <div class="tailordiagram">
+      <div class="node">Alert / Detect</div><span class="arrow">→</span>
+      <div class="node">Symptom seed<br>(CI, signal, t0)</div><span class="arrow">→</span>
+      <div class="node">Topology neighborhood<br>(k-hop / critical path)</div><span class="arrow">→</span>
+      <div class="node">Metrics+logs+spans<br>[t0−pre, t0+post]</div><span class="arrow">→</span>
+      <div class="node">Pack / working set</div><span class="arrow">→</span>
+      <div class="node">Localize → Identify → Verify</div>
+    </div>`;
+  }
+  if(l.bar){
+    html += `<div class="quotebox">${l.bar}</div>`;
+  }
+  document.getElementById('lifeBody').innerHTML = html;
+}
+document.querySelectorAll('#stepper .step').forEach(s=>s.addEventListener('click',()=>renderLife(+s.dataset.i)));
+renderLife(0);
+</script>
+</body>
+</html>

@@ -5,233 +5,53 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-:root {
-  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441;
-  --text:#e8eef4; --muted:#9aa8b5; --faint:#6b7a88; --accent:#3d9a8b;
-  --accent-soft:rgba(61,154,139,.14); --warn-soft:rgba(196,163,90,.12);
-  --radius:8px; --max:54rem; --nav-w:15rem;
-  --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
-}
-* { box-sizing:border-box; }
-html { scroll-behavior:smooth; }
-body { margin:0; font-family:var(--font); font-size:15px; line-height:1.55; color:var(--text);
-  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%), var(--bg); }
+:root { --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441; --text:#e8eef4; --muted:#9aa8b5; --faint:#6b7a88; --accent:#3d9a8b; --accent-soft:rgba(61,154,139,.14); --radius:8px; --max:54rem; --nav-w:15rem; --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace; }
+* { box-sizing:border-box; } html { scroll-behavior:smooth; }
+body { margin:0; font-family:var(--font); font-size:15px; line-height:1.55; color:var(--text); background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%), var(--bg); }
 a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
 .shell { display:grid; grid-template-columns:var(--nav-w) minmax(0,1fr); max-width:calc(var(--nav-w) + var(--max) + 6rem); margin:0 auto; }
 nav.toc { position:sticky; top:0; height:100vh; overflow-y:auto; padding:1.5rem 1rem 2rem 1.25rem; border-right:1px solid var(--stroke); background:rgba(15,20,25,.9); }
 nav.toc .brand { font-size:.7rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); margin-bottom:.75rem; }
 nav.toc a { display:block; color:var(--muted); font-size:.78rem; padding:.28rem .4rem; border-radius:4px; margin-bottom:.08rem; text-decoration:none; }
-nav.toc a:hover, nav.toc a.active { color:var(--text); background:var(--bg-soft); }
+nav.toc a:hover { color:var(--text); background:var(--bg-soft); } nav.toc a.l2 { padding-left:1rem; font-size:.72rem; }
 main { padding:2rem 2rem 4rem; max-width:var(--max); }
-.meta { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.85rem; }
-.pill { font-size:.72rem; font-weight:600; padding:.2rem .55rem; border-radius:999px; border:1px solid var(--stroke); color:var(--muted); background:var(--bg-elev); }
-.pill.info { color:#a8d4c8; border-color:#2d5c54; background:var(--accent-soft); }
-.pill.warn { color:#e0c98a; border-color:#5c4e2d; background:var(--warn-soft); }
-h1 { font-size:1.7rem; font-weight:700; letter-spacing:-.02em; line-height:1.2; margin:0 0 .65rem; }
-h2 { font-size:1.22rem; font-weight:650; margin:2.4rem 0 .85rem; padding-top:.5rem; border-top:1px solid var(--stroke); }
-section:first-of-type h2 { border-top:none; }
-h3 { font-size:1rem; font-weight:600; margin:1.4rem 0 .5rem; color:#d5dde6; }
-h4 { font-size:.92rem; font-weight:600; margin:1.1rem 0 .4rem; color:#c5d0da; }
-p { margin:.55rem 0; }
-.callout { margin:1rem 0; padding:.85rem 1rem; border-radius:var(--radius); border:1px solid var(--stroke); background:var(--bg-elev); }
-.callout .title { font-weight:600; font-size:.85rem; margin-bottom:.35rem; color:#c8d6e2; }
-.flow { font-family:var(--mono); font-size:.8rem; padding:.65rem .85rem; background:var(--bg-soft); border:1px solid var(--stroke); border-radius:var(--radius); overflow-x:auto; white-space:pre; color:#b8c9d4; margin:.75rem 0; }
-table { width:100%; border-collapse:collapse; font-size:.84rem; margin:.75rem 0 1rem; }
-th, td { text-align:left; vertical-align:top; padding:.45rem .55rem; border-bottom:1px solid var(--stroke); }
-th { color:var(--faint); font-weight:600; font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; background:var(--bg-soft); }
-code { font-family:var(--mono); font-size:.84em; background:var(--bg-soft); padding:.05em .3em; border-radius:3px; }
-ol.compact, ul { margin:.5rem 0; padding-left:1.25rem; }
-li { margin:.25rem 0; }
-hr { border:none; border-top:1px solid var(--stroke); margin:1.5rem 0; }
-footer { margin-top:2rem; padding-top:1rem; border-top:1px solid var(--stroke); font-size:.8rem; color:var(--faint); }
-.menu-btn { display:none; position:fixed; top:.75rem; right:.75rem; z-index:20; background:var(--bg-elev); border:1px solid var(--stroke); color:var(--text); border-radius:6px; padding:.4rem .7rem; font:inherit; font-size:.8rem; cursor:pointer; }
-@media (max-width:900px) {
-  .shell { grid-template-columns:1fr; }
-  nav.toc { position:fixed; inset:0 auto 0 0; width:min(16rem,85vw); transform:translateX(-105%); transition:transform .2s; z-index:15; }
-  nav.toc.open { transform:translateX(0); }
-  .menu-btn { display:block; }
-  main { padding:3rem 1rem 3rem; }
-}
+h1 { font-size:1.7rem; font-weight:700; margin:0 0 .65rem; } h2 { font-size:1.22rem; font-weight:650; margin:2.4rem 0 .85rem; padding-top:.5rem; border-top:1px solid var(--stroke); }
+h3 { font-size:1rem; font-weight:600; margin:1.4rem 0 .5rem; color:#d5dde6; } h4 { font-size:.92rem; font-weight:600; margin:1.1rem 0 .4rem; color:#c5d0da; }
+p { margin:.55rem 0; } .flow { font-family:var(--mono); font-size:.8rem; padding:.65rem .85rem; background:var(--bg-soft); border:1px solid var(--stroke); border-radius:var(--radius); overflow-x:auto; white-space:pre; color:#b8c9d4; margin:.75rem 0; }
+table { width:100%; border-collapse:collapse; font-size:.84rem; margin:.75rem 0 1rem; } th, td { text-align:left; vertical-align:top; padding:.45rem .55rem; border-bottom:1px solid var(--stroke); }
+th { color:var(--muted); font-weight:600; font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; }
+code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padding:.05rem .3rem; border-radius:3px; } pre.flow code { background:none; padding:0; }
+ul, ol { margin:.4rem 0 .8rem 1.2rem; } li { margin:.25rem 0; } blockquote { margin:.75rem 0; padding:.55rem .85rem; border-left:3px solid var(--accent); background:var(--accent-soft); color:var(--muted); }
+hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
+@media (max-width:900px) { .shell { grid-template-columns:1fr; } nav.toc { position:relative; height:auto; border-right:none; border-bottom:1px solid var(--stroke); max-height:40vh; } }
 </style></head><body>
-<button class="menu-btn" type="button" id="menuBtn">Sections</button>
-<div class="shell"><nav class="toc" id="toc"><div class="brand">Team reference</div><a href="#how-to-read-this-document">How to read this document</a>
-<a href="#s0">0. Document map</a>
-<a href="#glossary">G. Glossary (read this first)</a>
-<a href="#s1">1. What is the problem?</a>
-<a href="#s2">2. Constraints (design against these once)</a>
-<a href="#s3">3. Clock A and Clock B (thorough)</a>
-<a href="#s4">4. How competitors cope with the same problem</a>
-<a href="#s5">5. How we solve it (vendor-aligned preprocess → RCA </a>
-<a href="#s6">6. Grail · Smartscape · Vector</a>
-<a href="#s7">7. Scenario classes A–E (what “class C–D” means)</a>
-<a href="#s8">8. Questions each data type answers</a>
-<a href="#s9">9. Detect vs symptom seed</a>
-<a href="#s10">10. Lake lifecycle — create → maintain → curate → ta</a>
-<a href="#s11">11. Open questions · takeaway</a></nav>
-<main><div class="meta"><span class="pill info">Team reference</span><span class="pill">Working hypotheses</span><span class="pill warn">Not a measured survey</span></div>
-<h1>RCA data plane — team reference (problem, clocks, modalities, competitors)</h1>
-<p><strong>Audience:</strong> engineers and PMs who need a shared vocabulary for ingest + RCA design (no prior PoC context required).  </p>
-<p><strong>Status:</strong> working hypotheses / design reference — <strong>not</strong> a measured industry survey or accuracy claim.  </p>
-<p><strong>Date:</strong> 2026-07-31 (team reference: Clock A/B · classes A–E · Grail/Smartscape/Vector · Fed tiers)  </p>
-<p><strong>Honesty label:</strong> competitor mechanics from <strong>public product framing + our vendor notes</strong> (self-reported where noted). Percentile bands are <strong>planning priors</strong>, not published measurements.</p>
-<p><strong>Also available as:</strong></p>
-<table><thead><tr><th>Surface</th><th>Where</th></tr></thead><tbody>
-<tr><td>Browser HTML</td><td><a href="./rca-data-lake-brainstorm.html"><code>rca-data-lake-brainstorm.html</code></a> · PoC console <a href="http://127.0.0.1:8765/rca-data-lake-brainstorm.html">http://127.0.0.1:8765/rca-data-lake-brainstorm.html</a></td></tr>
-<tr><td>Cursor canvas</td><td><a href="/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/rca-data-lake-grail-vector.canvas.tsx"><code>rca-data-lake-grail-vector.canvas.tsx</code></a></td></tr>
-</tbody></table>
-<p><strong>Related (deeper):</strong> <a href="./two-step-rca-white-space.md"><code>two-step-rca-white-space.md</code></a> · <a href="./RCA_Vendor_Comparison_NOTES.md"><code>RCA_Vendor_Comparison_NOTES.md</code></a> · <a href="./INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a> · <a href="../federated-pipeline/docs/STORAGE_TIERS.md"><code>federated-pipeline/docs/STORAGE_TIERS.md</code></a> · <a href="../federated-pipeline/docs/ARCHITECTURE.md"><code>federated-pipeline/docs/ARCHITECTURE.md</code></a> · <a href="../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md"><code>dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md</code></a> · PDF <a href="./RCA_Vendor_Comparison.pdf"><code>RCA_Vendor_Comparison.pdf</code></a></p>
-<hr />
-<section id="how-to-read-this-document"><h2>How to read this document</h2>
-<ol class="compact">
-<li>1. Start with <strong>§G Glossary</strong> if terms like Clock A, class C–D, or CI are unfamiliar.  </li>
-<li>2. <strong>§1</strong> defines the problem; <strong>§2</strong> lists constraints we design against (once).  </li>
-<li>3. <strong>§3</strong> is <strong>Clock A vs Clock B</strong> — the most important structural idea in the doc. <strong>§3.6</strong> maps clocks to Federated Tier 1/2 (do not conflate).  </li>
-<li>4. <strong>§4–§5</strong> are how vendors and we cope; <strong>§6</strong> is Grail / Smartscape / Vector.  </li>
-<li>5. <strong>§7</strong> defines <strong>scenario classes A–E</strong> (this is what “class C–D” means).  </li>
-<li>6. Later sections deepen modalities, Detect/seed, and lake lifecycle.</li>
-</ol>
-<hr />
-</section><section id="s0"><h2>0. Document map</h2>
-<table><thead><tr><th>Section</th><th>Contents</th></tr></thead><tbody>
-<tr><td><strong>§G</strong></td><td>Glossary (Clock A/B, class A–E, CI, seed, Tailor, …)</td></tr>
-<tr><td><strong>§1</strong></td><td>Problem definition + RCA jobs</td></tr>
-<tr><td><strong>§2</strong></td><td>Production constraints</td></tr>
-<tr><td><strong>§3</strong></td><td><strong>Clock A and Clock B</strong> (thorough) · <strong>§3.6 Federated tiers</strong></td></tr>
-<tr><td><strong>§4</strong></td><td>How competitors cope</td></tr>
-<tr><td><strong>§5</strong></td><td>How we solve it</td></tr>
-<tr><td><strong>§6</strong></td><td>Grail · Smartscape · Vector</td></tr>
-<tr><td><strong>§7</strong></td><td><strong>Scenario classes A–E</strong> (modality priors)</td></tr>
-<tr><td><strong>§8</strong></td><td>What each data type answers</td></tr>
-<tr><td><strong>§9</strong></td><td>Detect vs symptom seed</td></tr>
-<tr><td><strong>§10</strong></td><td>Lake lifecycle (create → … → churn)</td></tr>
-<tr><td><strong>§11</strong></td><td>Open questions · takeaway</td></tr>
-</tbody></table>
-<hr />
-</section><section id="glossary"><h2>G. Glossary (read this first)</h2>
-<p>Terms used throughout. Bold = used constantly.</p>
-<h3>G.1 Two clocks (structural)</h3>
-<table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody>
-<tr><td><strong>Clock A</strong></td><td>The <strong>continuous platform / ingest / lake</strong> timeline: collect telemetry, normalize it, keep topology fresh, store/retain, and — when an incident starts — <strong>tailor</strong> a small working set. Runs all the time, whether or not anyone is debugging.</td></tr>
-<tr><td><strong>Clock B</strong></td><td>The <strong>per-incident diagnosis</strong> timeline: once something is detected, <strong>Detect → Localize → Identify → Verify</strong> for that case. Starts and ends with an incident.</td></tr>
-<tr><td>Why “clock”?</td><td>Metaphor only: two different cadences. Do <strong>not</strong> mix “we need a better lake” (Clock A) with “our Localize missed the root” (Clock B) in the same discussion without saying which clock you mean.</td></tr>
-</tbody></table>
-<p><strong>One-line:</strong> Clock A prepares joinable data; Clock B reasons about one fault.</p>
-<pre class="flow">Clock A (always on)          Clock B (per incident)
+<div class="shell"><nav class="toc"><div class="brand">Team reference</div><a href="#rca-data-plane-team-reference-problem-clocks-modalities-competitors" class="">RCA data plane — team reference (problem, clocks, modalities, competitors)</a>
+<a href="#how-to-read-this-document" class="l2">How to read this document</a>
+<a href="#0-document-map" class="l2">0. Document map</a>
+<a href="#g-glossary-read-this-first" class="l2">G. Glossary (read this first)</a>
+<a href="#1-what-is-the-problem" class="l2">1. What is the problem?</a>
+<a href="#2-constraints-design-against-these-once" class="l2">2. Constraints (design against these once)</a>
+<a href="#3-clock-a-and-clock-b-thorough" class="l2">3. Clock A and Clock B (thorough)</a>
+<a href="#4-how-competitors-cope-with-the-same-problem" class="l2">4. How competitors cope with the same problem</a>
+<a href="#5-how-we-solve-it-vendor-aligned-preprocess-rca-bet" class="l2">5. How we solve it (vendor-aligned preprocess → RCA bet)</a>
+<a href="#6-grail-smartscape-vector" class="l2">6. Grail · Smartscape · Vector</a>
+<a href="#7-scenario-classes-ae-what-class-cd-means" class="l2">7. Scenario classes A–E (what “class C–D” means)</a>
+<a href="#8-questions-each-data-type-answers" class="l2">8. Questions each data type answers</a>
+<a href="#9-detect-vs-symptom-seed" class="l2">9. Detect vs symptom seed</a>
+<a href="#10-lake-lifecycle-create-maintain-curate-tailor-churn" class="l2">10. Lake lifecycle — create → maintain → curate → tailor → churn</a>
+<a href="#11-open-questions-takeaway" class="l2">11. Open questions · takeaway</a></nav><main><h1 id="rca-data-plane-team-reference-problem-clocks-modalities-competitors">RCA data plane — team reference (problem, clocks, modalities, competitors)</h1><p><strong>Audience:</strong> engineers and PMs who need a shared vocabulary for ingest + RCA design (no prior PoC context required).  </p><p><strong>Status:</strong> working hypotheses / design reference — <strong>not</strong> a measured industry survey or accuracy claim.  </p><p><strong>Date:</strong> 2026-07-31 (team reference: Clock A/B · classes A–E · Grail/Smartscape/Vector · Fed tiers)  </p><p><strong>Honesty label:</strong> competitor mechanics from <strong>public product framing + our vendor notes</strong> (self-reported where noted). Percentile bands are <strong>planning priors</strong>, not published measurements.</p><p><strong>Also available as:</strong></p><p><strong>Canvas (visual plane):</strong> open <a href="/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/clocks-tiers-orthogonality.canvas.tsx"><code>clocks-tiers-orthogonality.canvas.tsx</code></a> beside chat — 2×2 SVG plane + A→B flow (not a markdown table).  </p><p><strong>Browser HTML:</strong> <a href="./rca-data-lake-brainstorm.html"><code>rca-data-lake-brainstorm.html</code></a> · PoC console <a href="http://127.0.0.1:8765/rca-data-lake-brainstorm.html">http://127.0.0.1:8765/rca-data-lake-brainstorm.html</a>  </p><p><strong>Full brainstorm canvas:</strong> <a href="/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/rca-data-lake-grail-vector.canvas.tsx"><code>rca-data-lake-grail-vector.canvas.tsx</code></a></p><p><strong>Related (deeper):</strong> <a href="./two-step-rca-white-space.md"><code>two-step-rca-white-space.md</code></a> · <a href="./RCA_Vendor_Comparison_NOTES.md"><code>RCA_Vendor_Comparison_NOTES.md</code></a> · <a href="./INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a> · <a href="../federated-pipeline/docs/STORAGE_TIERS.md"><code>federated-pipeline/docs/STORAGE_TIERS.md</code></a> · <a href="../federated-pipeline/docs/ARCHITECTURE.md"><code>federated-pipeline/docs/ARCHITECTURE.md</code></a> · <a href="../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md"><code>dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md</code></a> · PDF <a href="./RCA_Vendor_Comparison.pdf"><code>RCA_Vendor_Comparison.pdf</code></a></p><hr /><h2 id="how-to-read-this-document">How to read this document</h2><ol><li>1. Start with <strong>§G Glossary</strong> if terms like Clock A, class C–D, or CI are unfamiliar.</li><li>2. <strong>§1</strong> defines the problem; <strong>§2</strong> lists constraints we design against (once).</li><li>3. <strong>§3</strong> is <strong>Clock A vs Clock B</strong> — the most important structural idea. <strong>§3.2b</strong> = step I/O; <strong>§3.6</strong> = Federated tiers.</li><li>4. <strong>§4–§5</strong> are how vendors and we cope; <strong>§6</strong> is Grail / Smartscape / Vector.</li><li>5. <strong>§7</strong> defines <strong>scenario classes A–E</strong> (this is what “class C–D” means).</li><li>6. Later sections deepen modalities, Detect/seed, and lake lifecycle.</li></ol><hr /><h2 id="0-document-map">0. Document map</h2><table><tr><th>Section</th><th>Contents</th></tr><tr><td><strong>§G</strong></td><td>Glossary (Clock A/B, class A–E, CI, seed, Tailor, …)</td></tr><tr><td><strong>§1</strong></td><td>Problem definition + RCA jobs</td></tr><tr><td><strong>§2</strong></td><td>Production constraints</td></tr><tr><td><strong>§3</strong></td><td><strong>Clock A/B</strong> · §3.2b step I/O · <strong>§3.6 Federated tiers</strong></td></tr><tr><td><strong>§4</strong></td><td>How competitors cope</td></tr><tr><td><strong>§5</strong></td><td>How we solve it</td></tr><tr><td><strong>§6</strong></td><td>Grail · Smartscape · Vector</td></tr><tr><td><strong>§7</strong></td><td><strong>Scenario classes A–E</strong> (modality priors)</td></tr><tr><td><strong>§8</strong></td><td>What each data type answers</td></tr><tr><td><strong>§9</strong></td><td>Detect vs symptom seed</td></tr><tr><td><strong>§10</strong></td><td>Lake lifecycle (create → … → churn)</td></tr><tr><td><strong>§11</strong></td><td>Open questions · takeaway</td></tr></table><hr /><h2 id="g-glossary-read-this-first">G. Glossary (read this first)</h2><p>Terms used throughout. Bold = used constantly.</p><h3 id="g1-two-clocks-structural">G.1 Two clocks (structural)</h3><table><tr><th>Term</th><th>Meaning</th></tr><tr><td><strong>Clock A</strong></td><td>The <strong>continuous platform / ingest / lake</strong> timeline: collect telemetry, normalize it, keep topology fresh, store/retain, and — when an incident starts — <strong>tailor</strong> a small working set. Runs all the time, whether or not anyone is debugging.</td></tr><tr><td><strong>Clock B</strong></td><td>The <strong>per-incident diagnosis</strong> timeline: after Tailor, <strong>Localize → Identify → Verify</strong> for that case. Starts and ends with an incident.</td></tr><tr><td>Why “clock”?</td><td>Metaphor only: two different cadences. Do <strong>not</strong> mix “we need a better lake” (Clock A) with “our Localize missed the root” (Clock B) in the same discussion without saying which clock you mean.</td></tr></table><p><strong>One-line:</strong> Clock A prepares joinable data; Clock B reasons about one fault.</p><pre class="flow"><code>Clock A (always on)          Clock B (per incident)
 ─────────────────────        ────────────────────────
-Collect / Normalize          Detect → seed
-Topology / Fan-out           Localize
-Maintain / Curate            Identify
-Tailor ────────────────────► Verify</pre>
-<h3>G.2 RCA jobs (Clock B)</h3>
-<table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody>
-<tr><td><strong>Ingest</strong></td><td>Make signals joinable by <strong>identity + time</strong> (usually Clock A; listed first in the end-to-end chain).</td></tr>
-<tr><td><strong>Detect</strong></td><td>Decide that something is wrong <em>now</em>, and where pain shows. Emits anomalies / alerts.</td></tr>
-<tr><td><strong>Symptom seed</strong></td><td>The (CI, signal, time) where Localize <strong>starts</strong>. Usually a <strong>symptom</strong>, not the root cause.</td></tr>
-<tr><td><strong>Localize</strong></td><td>Find which <strong>CI / service</strong> is the fault <em>region</em> (Step 1 “where”).</td></tr>
-<tr><td><strong>Identify</strong></td><td>Name the <strong>kind</strong> of failure (signature / fault class), and optionally the <strong>execution path</strong> (Step 2).</td></tr>
-<tr><td><strong>Verify</strong></td><td>How strongly we may claim cause (evidence depth / confidence tiers — not marketing “causal”).</td></tr>
-<tr><td><strong>Step 1</strong></td><td>Market shorthand ≈ Detect → Localize (“where”). Vendors automate this relatively well.</td></tr>
-<tr><td><strong>Step 2</strong></td><td>Market shorthand ≈ Identify (+ Verify) (“what happened there”). Deep path-diff automation is still thin industry-wide. See <a href="./two-step-rca-white-space.md"><code>two-step-rca-white-space.md</code></a>.</td></tr>
-</tbody></table>
-<h3>G.3 Entities, topology, scoping</h3>
-<table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody>
-<tr><td><strong>CI</strong></td><td>Configuration Item — a typed node we reason about (service, VM, datastore, switch port, …).</td></tr>
-<tr><td><strong>Topology / CI graph</strong></td><td>Typed nodes + edges Localize walks (calls, hosted_on, uses_datastore, …). Not a request trace.</td></tr>
-<tr><td><strong>Neighborhood / k-hop</strong></td><td>CIs within <em>k</em> graph edges of the seed (and often shared-upstream infra).</td></tr>
-<tr><td><strong>Time corridor</strong></td><td>Window around onset, e.g. <em>[t0 − pre, t0 + post]</em> — not “search last 7 days of the lake.”</td></tr>
-<tr><td><strong>Tailor</strong></td><td>Clock A step that builds the <strong>incident working set</strong>: seed + neighborhood + corridor + modalities.</td></tr>
-<tr><td><strong>Working set / incident kit</strong></td><td>The small pack Localize/Identify actually see.</td></tr>
-<tr><td><strong>Fan-out</strong></td><td>Write cheap vs rich sinks from the same normalized stream (cost control; same Detect).</td></tr>
-</tbody></table>
-<h3>G.4 Scenario classes A–E (modality mix)</h3>
-<p>These are <strong>planning buckets</strong> for “what data do we need?” — <strong>not</strong> product SKUs and <strong>not</strong> ObserveOps UC numbers.</p>
-<table><thead><tr><th>Class</th><th>Short name</th><th>Typical story</th><th>Logs?</th><th>Traces?</th></tr></thead><tbody>
-<tr><td><strong>A</strong></td><td>Classic infra smoking gun</td><td>Host CPU, link down, datastore saturation — clear shared-upstream</td><td>Often <strong>not</strong> needed for Localize</td><td>Usually not</td></tr>
-<tr><td><strong>B</strong></td><td>Metrics-led, thin events</td><td>Multi-signal onset; need topology walk + timing</td><td>Recommended</td><td>Optional</td></tr>
-<tr><td><strong>C</strong></td><td>App / dependency gray</td><td>5xx, latency, pool exhaustion — “slow somewhere”</td><td><strong>Necessary</strong> for Identify</td><td>Recommended</td></tr>
-<tr><td><strong>D</strong></td><td>Path / microservice</td><td>Wrong hop, dependency timeout, cross-layer path</td><td>Necessary</td><td><strong>Necessary</strong> for path Identify</td></tr>
-<tr><td><strong>E</strong></td><td>Outside organic RCA</td><td>Pure security, capacity planning, process</td><td>Often not RCA-engine territory</td><td>—</td></tr>
-</tbody></table>
-<p><strong>“Class C–D”</strong> in this doc = incidents that usually need <strong>logs</strong> (and for D, <strong>traces/spans</strong>) for trustworthy Identify — not metrics+topology alone.</p>
-<p>Full detail: <strong>§7</strong>.</p>
-<h3>G.5 Vendor / platform terms</h3>
-<table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody>
-<tr><td><strong>OneAgent</strong></td><td>Dynatrace edge agent (capture + enrichment).</td></tr>
-<tr><td><strong>Smartscape</strong></td><td>Dynatrace <strong>live topology graph</strong> (entities + relationships). Fed by discovery/OneAgent — <strong>not</strong> by DQL against Grail.</td></tr>
-<tr><td><strong>Grail</strong></td><td>Dynatrace <strong>unified lake + DQL query</strong> for metrics/logs/traces/events by entity + time.</td></tr>
-<tr><td><strong>Davis</strong></td><td>Dynatrace thin RCA / Problem layer on top of Smartscape + Grail + detectors.</td></tr>
-<tr><td><strong>Watchdog</strong></td><td>Datadog-style anomaly / outlier detection used as Detect signal.</td></tr>
-<tr><td><strong>Vector</strong></td><td>Our (and industry) <strong>telemetry pipeline</strong>: collect → transform → route (OTel/Fluent Bit family). <strong>Not</strong> a lake.</td></tr>
-<tr><td><strong>DQL</strong></td><td>Dynatrace Query Language — how consumers <strong>read</strong> Grail.</td></tr>
-</tbody></table>
-<h3>G.6 Other</h3>
-<table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody>
-<tr><td><strong>GT</strong></td><td>Ground truth — human-labeled root / fault for scoring. Must <strong>not</strong> leak into alert text (“coaching”).</td></tr>
-<tr><td><strong>Gray-failure Detect</strong></td><td>Soft unhealthiness without hard thresholds; optional Detect upgrade.</td></tr>
-<tr><td><strong>Modality</strong></td><td>A data type: metrics, logs, traces/spans, events/changes, alerts, topology.</td></tr>
-<tr><td><strong>Tier 1 / Event Graph</strong></td><td>Federated <strong>speed tier</strong> (Dragonfly): high-velocity traces/metrics/patterns — “what/when.” See §3.6.</td></tr>
-<tr><td><strong>Tier 2 / Knowledge Graph</strong></td><td>Federated <strong>structural tier</strong> (Vortex/DashMap design): persistent topology + properties/LOS — “who/why.” See §3.6.</td></tr>
-<tr><td><strong>Panorama / Murphy / Nezha</strong></td><td>Federated hops ≈ Detect (gray) / Localize (macro) / Identify (path). See §3.6.</td></tr>
-</tbody></table>
-<hr />
-</section><section id="s1"><h2>1. What is the problem?</h2>
-<h3>1.1 One-sentence problem</h3>
-<p><strong>Given noisy, high-volume, multi-modal telemetry and a shifting estate, automatically (or assistively) answer: what is wrong, where is the fault, and—when justified—why, with an evidence trail an SRE can trust.</strong></p>
-<h3>1.2 End-to-end jobs</h3>
-<pre class="flow">Ingest → Detect → Localize → Identify → Verify</pre>
-<table><thead><tr><th>Job</th><th>Plain question</th><th>Failure mode if skipped</th><th>Typical clock</th></tr></thead><tbody>
-<tr><td><strong>Ingest</strong></td><td>Can we join signals by identity + time?</td><td>Orphan metrics/logs; no walk</td><td>Mostly <strong>A</strong></td></tr>
-<tr><td><strong>Detect</strong></td><td>Is something wrong <em>now</em>, and where does pain show?</td><td>No case start / wrong seed</td><td>Starts <strong>B</strong> (often fed by A streams)</td></tr>
-<tr><td><strong>Localize</strong></td><td>Which CI / service is the fault region?</td><td>Blame the loud symptom app</td><td><strong>B</strong></td></tr>
-<tr><td><strong>Identify</strong></td><td>What <em>kind</em> of failure (and optionally which path)?</td><td>“Host X bad” with no actionable class</td><td><strong>B</strong></td></tr>
-<tr><td><strong>Verify</strong></td><td>How strongly may we claim cause?</td><td>Marketing “causal” without evidence depth</td><td><strong>B</strong></td></tr>
-</tbody></table>
-<p>Market shorthand:</p>
-<ul>
-<li><strong>Step 1 “where”</strong> ≈ Detect → Localize.  </li>
-<li><strong>Step 2 “what happened there”</strong> ≈ Identify (+ Verify).</li>
-</ul>
-<h3>1.3 Why a “bigger lake” alone is not the solution</h3>
-<p>Raw production data is:</p>
-<ul>
-<li><strong>Huge</strong> — metrics × hosts × minutes; log lines; sampled spans  </li>
-<li><strong>Heterogeneous</strong> — infra vs app vs change events  </li>
-<li><strong>Non-stationary</strong> — deploys change topology  </li>
-<li><strong>Identity-unstable</strong> — pods churn; monitors rename  </li>
-</ul>
-<p>So the systems problem is not “store everything.” It is:</p>
-<div class="callout"><div class="title">Key idea</div><p><strong>Create an entity-keyed, time-aligned store; then, per incident, tailor a small working set (seed + neighborhood + corridor) that Localize/Identify can reason over.</strong></p></div>
-<p>Datadog/Dynatrace-class products optimize for that operationally. Any serious RCA stack needs: <strong>normalized streams + scoped working sets</strong>, not full-retention diagnosis.</p>
-<hr />
-</section><section id="s2"><h2>2. Constraints (design against these once)</h2>
-<p>These are <strong>hard facts of production telemetry</strong>, not a product pitch. Later sections assume them.</p>
-<table><thead><tr><th>Constraint</th><th>Plain meaning</th><th>What design must do</th></tr></thead><tbody>
-<tr><td>Volume / cardinality</td><td>Too many series, log lines, spans to keep or scan raw</td><td>Sample, tier retention, cheap vs rich fan-out</td></tr>
-<tr><td>Identity + fresh topology</td><td>Hosts/pods/services rename and redeploy</td><td>Stable CI ids + an up-to-date dependency graph</td></tr>
-<tr><td>Detect / seed quality</td><td>RCA starts from “something is wrong <em>here</em>”</td><td>Reliable Detect → symptom seed</td></tr>
-<tr><td>Symptom bias / correlation≠cause</td><td>Loud apps look guilty; “moved together” ≠ root</td><td>Topology-aware Localize + honest Verify depth</td></tr>
-<tr><td>Modality gaps + Step-2 hole</td><td>Some faults need logs/traces; deep path “why” is thin</td><td>Pull the right modalities for the <strong>class</strong>; don’t overclaim path Identify</td></tr>
-</tbody></table>
-<p><strong>How to read §3 onward:</strong> answers to <em>how systems cope with this table</em> — not another pain catalog.</p>
-<hr />
-</section><section id="s3"><h2>3. Clock A and Clock B (thorough)</h2>
-<p>This section is the shared mental model for the team.</p>
-<h3>3.1 Definitions</h3>
-<table><thead><tr><th></th><th><strong>Clock A — Ingest / lake ops</strong></th><th><strong>Clock B — RCA case</strong></th></tr></thead><tbody>
-<tr><td><strong>Question</strong></td><td>Is our estate joinable and incident-ready?</td><td>For <em>this</em> incident, where is the fault and what kind is it?</td></tr>
-<tr><td><strong>Cadence</strong></td><td>Continuous (seconds–minutes forever)</td><td>Sparse (when Detect fires)</td></tr>
-<tr><td><strong>Stages</strong></td><td>Collect · Normalize · Topology · Fan-out · Maintain · Curate · <strong>Tailor</strong> · Churn</td><td><strong>Detect</strong> → <strong>Localize</strong> → <strong>Identify</strong> → <strong>Verify</strong></td></tr>
-<tr><td><strong>Primary outputs</strong></td><td>Normalized envelopes, CI graph, sinks, incident kits</td><td>Root CI, signature, evidence, confidence language</td></tr>
-<tr><td><strong>Failure looks like</strong></td><td>Orphans, stale topo, cost blow-ups, un-scoped dumps</td><td>Wrong root, symptom bias, overclaiming “causal”</td></tr>
-<tr><td><strong>Who “owns” it in Dynatrace-shaped stacks</strong></td><td>OneAgent, Smartscape, Grail, retention/sampling</td><td>Detectors + Davis (thin)</td></tr>
-<tr><td><strong>Who “owns” it in our design</strong></td><td>Vector-class pipeline + topo sibling + sinks/builders</td><td>Shared Detect + Localize/Identify engines + Verify tiers</td></tr>
-</tbody></table>
-<p><strong>Ingest is not RCA.</strong> Collecting and storing well does not localize a fault. Localizing well does not invent missing topology.</p>
-<h3>3.2 How the clocks connect</h3>
-<pre class="flow">CLOCK A (continuous)
-  Collect → Normalize → Topology bind → Fan-out → Maintain/Curate
+Collect / Normalize          Localize
+Topology / Fan-out / Maintain Identify
+Detect → Curate → seed       Verify
+Tailor ────────────────────►</code></pre><h3 id="g2-rca-jobs-clock-b">G.2 RCA jobs (Clock B)</h3><table><tr><th>Term</th><th>Meaning</th></tr><tr><td><strong>Ingest</strong></td><td>Make signals joinable by <strong>identity + time</strong> (usually Clock A; listed first in the end-to-end chain).</td></tr><tr><td><strong>Detect</strong></td><td>Decide that something is wrong <em>now</em>, and where pain shows. Emits anomalies / alerts.</td></tr><tr><td><strong>Symptom seed</strong></td><td>The (CI, signal, time) where Localize <strong>starts</strong>. Usually a <strong>symptom</strong>, not the root cause.</td></tr><tr><td><strong>Localize</strong></td><td>Find which <strong>CI / service</strong> is the fault <em>region</em> (Step 1 “where”).</td></tr><tr><td><strong>Identify</strong></td><td>Name the <strong>kind</strong> of failure (signature / fault class), and optionally the <strong>execution path</strong> (Step 2).</td></tr><tr><td><strong>Verify</strong></td><td>How strongly we may claim cause (evidence depth / confidence tiers — not marketing “causal”).</td></tr><tr><td><strong>Step 1</strong></td><td>Market shorthand ≈ Detect → Localize (“where”). Vendors automate this relatively well.</td></tr><tr><td><strong>Step 2</strong></td><td>Market shorthand ≈ Identify (+ Verify) (“what happened there”). Deep path-diff automation is still thin industry-wide. See <a href="./two-step-rca-white-space.md"><code>two-step-rca-white-space.md</code></a>.</td></tr></table><h3 id="g3-entities-topology-scoping">G.3 Entities, topology, scoping</h3><table><tr><th>Term</th><th>Meaning</th></tr><tr><td><strong>CI</strong></td><td>Configuration Item — a typed node we reason about (service, VM, datastore, switch port, …).</td></tr><tr><td><strong>Topology / CI graph</strong></td><td>Typed nodes + edges Localize walks (calls, hosted_on, uses_datastore, …). Not a request trace.</td></tr><tr><td><strong>Neighborhood / k-hop</strong></td><td>CIs within <em>k</em> graph edges of the seed (and often shared-upstream infra).</td></tr><tr><td><strong>Time corridor</strong></td><td>Window around onset, e.g. <em>[t0 − pre, t0 + post]</em> — not “search last 7 days of the lake.”</td></tr><tr><td><strong>Tailor</strong></td><td>Clock A step that builds the <strong>incident working set</strong>: seed + neighborhood + corridor + modalities.</td></tr><tr><td><strong>Working set / incident kit</strong></td><td>The small pack Localize/Identify actually see.</td></tr><tr><td><strong>Fan-out</strong></td><td>Write cheap vs rich sinks from the same normalized stream (cost control; same Detect).</td></tr></table><h3 id="g4-scenario-classes-ae-modality-mix">G.4 Scenario classes A–E (modality mix)</h3><p>These are <strong>planning buckets</strong> for “what data do we need?” — <strong>not</strong> product SKUs and <strong>not</strong> ObserveOps UC numbers.</p><table><tr><th>Class</th><th>Short name</th><th>Typical story</th><th>Logs?</th><th>Traces?</th></tr><tr><td><strong>A</strong></td><td>Classic infra smoking gun</td><td>Host CPU, link down, datastore saturation — clear shared-upstream</td><td>Often <strong>not</strong> needed for Localize</td><td>Usually not</td></tr><tr><td><strong>B</strong></td><td>Metrics-led, thin events</td><td>Multi-signal onset; need topology walk + timing</td><td>Recommended</td><td>Optional</td></tr><tr><td><strong>C</strong></td><td>App / dependency gray</td><td>5xx, latency, pool exhaustion — “slow somewhere”</td><td><strong>Necessary</strong> for Identify</td><td>Recommended</td></tr><tr><td><strong>D</strong></td><td>Path / microservice</td><td>Wrong hop, dependency timeout, cross-layer path</td><td>Necessary</td><td><strong>Necessary</strong> for path Identify</td></tr><tr><td><strong>E</strong></td><td>Outside organic RCA</td><td>Pure security, capacity planning, process</td><td>Often not RCA-engine territory</td><td>—</td></tr></table><p><strong>“Class C–D”</strong> in this doc = incidents that usually need <strong>logs</strong> (and for D, <strong>traces/spans</strong>) for trustworthy Identify — not metrics+topology alone.</p><p>Full detail: <strong>§7</strong>.</p><h3 id="g5-vendor-platform-terms">G.5 Vendor / platform terms</h3><table><tr><th>Term</th><th>Meaning</th></tr><tr><td><strong>OneAgent</strong></td><td>Dynatrace edge agent (capture + enrichment).</td></tr><tr><td><strong>Smartscape</strong></td><td>Dynatrace <strong>live topology graph</strong> (entities + relationships). Fed by discovery/OneAgent — <strong>not</strong> by DQL against Grail.</td></tr><tr><td><strong>Grail</strong></td><td>Dynatrace <strong>unified lake + DQL query</strong> for metrics/logs/traces/events by entity + time.</td></tr><tr><td><strong>Davis</strong></td><td>Dynatrace thin RCA / Problem layer on top of Smartscape + Grail + detectors.</td></tr><tr><td><strong>Watchdog</strong></td><td>Datadog-style anomaly / outlier detection used as Detect signal.</td></tr><tr><td><strong>Vector</strong></td><td>Our (and industry) <strong>telemetry pipeline</strong>: collect → transform → route (OTel/Fluent Bit family). <strong>Not</strong> a lake.</td></tr><tr><td><strong>DQL</strong></td><td>Dynatrace Query Language — how consumers <strong>read</strong> Grail.</td></tr></table><h3 id="g6-other">G.6 Other</h3><table><tr><th>Term</th><th>Meaning</th></tr><tr><td><strong>GT</strong></td><td>Ground truth — human-labeled root / fault for scoring. Must <strong>not</strong> leak into alert text (“coaching”).</td></tr><tr><td><strong>Gray-failure Detect</strong></td><td>Soft unhealthiness without hard thresholds; optional Detect upgrade.</td></tr><tr><td><strong>Modality</strong></td><td>A data type: metrics, logs, traces/spans, events/changes, alerts, topology.</td></tr><tr><td><strong>Tier 1 / Event Graph</strong></td><td>Federated <strong>speed tier</strong> (Dragonfly): high-velocity traces/metrics/patterns — “what/when.” See §3.6.</td></tr><tr><td><strong>Tier 2 / Knowledge Graph</strong></td><td>Federated <strong>structural tier</strong> (Vortex/DashMap design): persistent topology + properties/LOS — “who/why.” See §3.6.</td></tr><tr><td><strong>Panorama / Murphy / Nezha</strong></td><td>Federated hops ≈ Detect (gray) / Localize (macro) / Identify (path). See §3.6.</td></tr></table><hr /><h2 id="1-what-is-the-problem">1. What is the problem?</h2><h3 id="11-one-sentence-problem">1.1 One-sentence problem</h3><p><strong>Given noisy, high-volume, multi-modal telemetry and a shifting estate, automatically (or assistively) answer: what is wrong, where is the fault, and—when justified—why, with an evidence trail an SRE can trust.</strong></p><h3 id="12-end-to-end-jobs">1.2 End-to-end jobs</h3><pre class="flow"><code>Ingest → Detect → Localize → Identify → Verify</code></pre><table><tr><th>Job</th><th>Plain question</th><th>Failure mode if skipped</th><th>Typical clock</th></tr><tr><td><strong>Ingest</strong></td><td>Can we join signals by identity + time?</td><td>Orphan metrics/logs; no walk</td><td>Mostly <strong>A</strong></td></tr><tr><td><strong>Detect</strong></td><td>Is something wrong <em>now</em>, and where does pain show?</td><td>No case start / wrong seed</td><td><strong>A</strong> (opens case; Curate → seed)</td></tr><tr><td><strong>Localize</strong></td><td>Which CI / service is the fault region?</td><td>Blame the loud symptom app</td><td><strong>B</strong></td></tr><tr><td><strong>Identify</strong></td><td>What <em>kind</em> of failure (and optionally which path)?</td><td>“Host X bad” with no actionable class</td><td><strong>B</strong></td></tr><tr><td><strong>Verify</strong></td><td>How strongly may we claim cause?</td><td>Marketing “causal” without evidence depth</td><td><strong>B</strong></td></tr></table><p>Market shorthand:</p><ul><li><strong>Step 1 “where”</strong> ≈ Detect → Localize.</li><li><strong>Step 2 “what happened there”</strong> ≈ Identify (+ Verify).</li></ul><h3 id="13-why-a-bigger-lake-alone-is-not-the-solution">1.3 Why a “bigger lake” alone is not the solution</h3><p>Raw production data is:</p><ul><li><strong>Huge</strong> — metrics × hosts × minutes; log lines; sampled spans</li><li><strong>Heterogeneous</strong> — infra vs app vs change events</li><li><strong>Non-stationary</strong> — deploys change topology</li><li><strong>Identity-unstable</strong> — pods churn; monitors rename</li></ul><p>So the systems problem is not “store everything.” It is:</p><blockquote><strong>Create an entity-keyed, time-aligned store; then, per incident, tailor a small working set (seed + neighborhood + corridor) that Localize/Identify can reason over.</strong></blockquote><p>Datadog/Dynatrace-class products optimize for that operationally. Any serious RCA stack needs: <strong>normalized streams + scoped working sets</strong>, not full-retention diagnosis.</p><hr /><h2 id="2-constraints-design-against-these-once">2. Constraints (design against these once)</h2><p>These are <strong>hard facts of production telemetry</strong>, not a product pitch. Later sections assume them.</p><table><tr><th>Constraint</th><th>Plain meaning</th><th>What design must do</th></tr><tr><td>Volume / cardinality</td><td>Too many series, log lines, spans to keep or scan raw</td><td>Sample, tier retention, cheap vs rich fan-out</td></tr><tr><td>Identity + fresh topology</td><td>Hosts/pods/services rename and redeploy</td><td>Stable CI ids + an up-to-date dependency graph</td></tr><tr><td>Detect / seed quality</td><td>RCA starts from “something is wrong <em>here</em>”</td><td>Reliable Detect → symptom seed</td></tr><tr><td>Symptom bias / correlation≠cause</td><td>Loud apps look guilty; “moved together” ≠ root</td><td>Topology-aware Localize + honest Verify depth</td></tr><tr><td>Modality gaps + Step-2 hole</td><td>Some faults need logs/traces; deep path “why” is thin</td><td>Pull the right modalities for the <strong>class</strong>; don’t overclaim path Identify</td></tr></table><p><strong>How to read §3 onward:</strong> answers to <em>how systems cope with this table</em> — not another pain catalog.</p><hr /><h2 id="3-clock-a-and-clock-b-thorough">3. Clock A and Clock B (thorough)</h2><p>This section is the shared mental model for the team.</p><h3 id="31-definitions">3.1 Definitions</h3><table><tr><th></th><th><strong>Clock A — Ingest / lake ops</strong></th><th><strong>Clock B — RCA case</strong></th></tr><tr><td><strong>Question</strong></td><td>Is our estate joinable and incident-ready?</td><td>For <em>this</em> incident, where is the fault and what kind is it?</td></tr><tr><td><strong>Cadence</strong></td><td>Continuous (seconds–minutes forever)</td><td>Sparse (when Detect fires)</td></tr><tr><td><strong>Stages</strong></td><td>Collect · Normalize · Topology · Fan-out · Maintain · <strong>Detect</strong> · <strong>Curate</strong> · <strong>Tailor</strong> · Churn</td><td><strong>Localize</strong> → <strong>Identify</strong> → <strong>Verify</strong></td></tr><tr><td><strong>Primary outputs</strong></td><td>Normalized envelopes, CI graph, sinks, incident kits</td><td>Root CI, signature, evidence, confidence language</td></tr><tr><td><strong>Failure looks like</strong></td><td>Orphans, stale topo, cost blow-ups, un-scoped dumps</td><td>Wrong root, symptom bias, overclaiming “causal”</td></tr><tr><td><strong>Who “owns” it in Dynatrace-shaped stacks</strong></td><td>OneAgent, Smartscape, Grail, retention/sampling</td><td>Detectors + Davis (thin)</td></tr><tr><td><strong>Who “owns” it in our design</strong></td><td>Vector-class pipeline + topo sibling + sinks/builders</td><td>Shared Detect + Localize/Identify engines + Verify tiers</td></tr></table><p><strong>Ingest is not RCA.</strong> Collecting and storing well does not localize a fault. Localizing well does not invent missing topology.</p><h3 id="32-how-the-clocks-connect">3.2 How the clocks connect</h3><pre class="flow"><code>CLOCK A (continuous)
+  Collect → Normalize → Topology bind → Fan-out → Maintain
                               │
                               │  Detect watches streams / stores
+                              ▼
+                         raw alerts (often a storm)
+                              │
+                              │  Curate (storm → one honest seed)
                               ▼
                          symptom seed (CI, signal, t0)
                               │
@@ -241,88 +61,61 @@ Tailor ────────────────────► Verify</p
                               │
                               ▼
 CLOCK B (this incident)
-              Localize → Identify → Verify → (human / ticket)</pre>
-<p><strong>Tailor</strong> is the bridge: still “data ops,” but <strong>incident-triggered</strong>. Without Tailor, Clock B either sees nothing useful or sees the whole lake (and fails §2 volume).</p>
-<h3>3.3 What belongs on which clock (examples)</h3>
-<table><thead><tr><th>Discussion</th><th>Clock</th><th>Example</th></tr></thead><tbody>
-<tr><td>“Vector remaps Prometheus → entity envelope”</td><td><strong>A</strong></td><td>Collect + Normalize</td></tr>
-<tr><td>“topology.json missing datastore edge”</td><td><strong>A</strong></td><td>Topology</td></tr>
-<tr><td>“L0 vs F1 sinks cost too much”</td><td><strong>A</strong></td><td>Fan-out / Maintain</td></tr>
-<tr><td>“threshold Detect never fired”</td><td><strong>B</strong> (fed by A)</td><td>Detect</td></tr>
-<tr><td>“engine blamed checkout-api; root was datastore”</td><td><strong>B</strong></td><td>Localize</td></tr>
-<tr><td>“we need stack traces for pool exhaustion”</td><td><strong>B</strong> + class <strong>C</strong></td><td>Identify modalities</td></tr>
-<tr><td>“UI said ‘root cause proven’ on weak evidence”</td><td><strong>B</strong></td><td>Verify</td></tr>
-</tbody></table>
-<h3>3.4 Industry names for Clock A stages</h3>
-<table><thead><tr><th>Our word</th><th>Classical / industry name</th></tr></thead><tbody>
-<tr><td>Collect + Normalize</td><td>Observability / telemetry pipeline (OTel, Vector, Fluent Bit) — ETL/ELT family</td></tr>
-<tr><td>Topology + CI bind</td><td>Discovery + CMDB / service inventory + <strong>entity / identity resolution</strong></td></tr>
-<tr><td>Maintain</td><td>Data lifecycle (hot/warm/cold, cardinality, sampling)</td></tr>
-<tr><td>Curate</td><td>Data quality (+ ITSM event correlation for alert storms)</td></tr>
-<tr><td>Tailor</td><td><strong>Context assembly / incident scoping</strong> (vendor: related entities, Smartscape slice)</td></tr>
-<tr><td>Whole loop</td><td>Often marketed as “observability data platform” or “AIOps data prep”</td></tr>
-</tbody></table>
-<p>These are <strong>old</strong> problems (ITIL CMDB + events; ETL + DQ), reframed for multimodal AIOps. What is newer is volume + automated Localize on top.</p>
-<h3>3.5 Common confusion to avoid</h3>
-<table><thead><tr><th>Confusion</th><th>Correction</th></tr></thead><tbody>
-<tr><td>“Clock A vs Clock B are two products”</td><td>No — two <strong>timelines / job families</strong> in one system</td></tr>
-<tr><td>“Grail is Clock B”</td><td>No — Grail is Clock A <strong>store</strong>; Davis is mostly Clock B</td></tr>
-<tr><td>“Vector is our Grail”</td><td>No — Vector is Clock A <strong>pipeline</strong>; sinks/kits are a partial store</td></tr>
-<tr><td>“Class C–D is a Clock”</td><td>No — class is an <strong>incident modality bucket</strong>; both clocks still apply</td></tr>
-<tr><td>“Clock A = Event Graph, Clock B = Knowledge Graph”</td><td>No — <strong>orthogonal axes</strong>. Both tiers are written on A and read on B. See <strong>§3.6</strong>.</td></tr>
-</tbody></table>
-<h3>3.6 Clocks vs Federated two-tier design</h3>
-<p>People often map Clock A/B onto Federated’s two graph tiers. The intuition is useful; the <strong>1:1 equation is wrong</strong>.</p>
-<h4>Plain reading (team shareable)</h4>
-<p><strong>Tier 1 / Tier 2</strong> ≈ <strong>where data lives</strong> (Federated storage split: Event Graph vs Knowledge Graph), and therefore <strong>which hop reads which store</strong>. Storage-first axis.</p>
-<p><strong>Clock A / Clock B</strong> ≈ <strong>workflow / job cadence</strong>, not another storage layer:</p>
-<ul>
-<li><strong>Clock A</strong> — continuous platform work: collect → normalize → topo → fan-out → maintain → curate → tailor (preprocess + lake ops)  </li>
-<li><strong>Clock B</strong> — per-incident RCA: Detect → Localize → Identify → Verify  </li>
-</ul>
-<p>Together, A then B (with <strong>Tailor</strong> as the bridge) is the end-to-end story. The clocks <strong>use</strong> the tiers; they aren’t the same kind of split.</p>
-<pre class="flow">Tier axis  →  Dragonfly (T1)  |  Vortex/DashMap (T2)     [storage / data plane]
+              Localize → Identify → Verify → (human / ticket)</code></pre><p><strong>Tailor</strong> is the bridge: still “data ops,” but <strong>incident-triggered</strong>. Without Tailor, Clock B either sees nothing useful or sees the whole lake (and fails §2 volume).</p><h3 id="32b-clock-a-step-by-step-input-process-output">3.2b Clock A step-by-step — input → process → output</h3><p>Read this as a <strong>pipeline of contracts</strong>. Some stages run <strong>in parallel</strong> (topology beside collect); case sequencing is <strong>Detect → Curate → Tailor</strong>; Tailor is <strong>case-triggered Clock A</strong>.</p><pre class="flow"><code>Continuous (always on):
+  Collect → Normalize ─┬─► Fan-out → Maintain  (stores stay healthy)
+                       │
+ Topology discovery ───┘   (CI graph + bind LUT; sibling path)
+
+Case handoff (Clock A):
+  Detect → raw alerts
+  Curate → one honest symptom seed (CI, signal, t0)
+  Tailor(seed) → incident working set → Clock B</code></pre><h4 id="1-collect">1. Collect</h4><table><tr><th></th><th></th></tr><tr><td><strong>Input</strong></td><td>Raw telemetry from the estate: Prometheus scrapes, syslog, traps, OTel spans/logs, agent metrics, change/deploy feeds, vendor APIs, replay files</td></tr><tr><td><strong>Process</strong></td><td>Agents / collectors / Vector <strong>sources</strong> pull or receive bytes; optional light filter (drop noise, TLS terminate). <strong>No</strong> RCA yet</td></tr><tr><td><strong>Output</strong></td><td>Raw (or lightly framed) events on a bus / file / Vector internal stream — still vendor-shaped, often <strong>without</strong> stable <code>ci_id</code></td></tr></table><h4 id="2-normalize">2. Normalize</h4><table><tr><th></th><th></th></tr><tr><td><strong>Input</strong></td><td>Collect output (raw / semi-raw events)</td></tr><tr><td><strong>Process</strong></td><td>Map each event into a <strong>joinable envelope</strong> (our <code>ingest.v1</code>-class contract): stable fields such as <code>ts</code> (UTC), <code>ci_id</code> (or a key that <em>will</em> bind), <code>signal</code>, <code>value</code>, optional threshold / severity / modality tags. Drop or quarantine malformed rows</td></tr><tr><td><strong>Output</strong></td><td>Normalized stream — same <em>meaning</em> across sources so later stages can join by <strong>identity + time</strong></td></tr></table><p>Without Normalize, Fan-out and Detect see incompatible schemas; Localize cannot hang metrics/logs on one CI.</p><h4 id="3-topology-bind-ci-graph-identity">3. Topology bind (CI graph + identity)</h4><p><strong>Yes — this is the relationship / dependency graph</strong> Localize will walk (and that Tailor will slice). It is <strong>not</strong> a request trace.</p><table><tr><th>Piece</th><th>What it is</th></tr><tr><td><strong>CI (node)</strong></td><td>Typed entity: service, pod, VM, host, datastore, switch port, …</td></tr><tr><td><strong>Edge</strong></td><td>Typed relationship: <code>calls</code>, <code>hosted_on</code>, <code>runs_on</code>, <code>uses_datastore</code>, <code>uplink</code>, …</td></tr><tr><td><strong>Bind LUT</strong></td><td>Map messy labels (IP, hostname, K8s name) → stable <code>ci_id</code> used in Normalize</td></tr></table><table><tr><th></th><th></th></tr><tr><td><strong>Input</strong></td><td>Discovery / CMDB / service-map crawler cues (and optionally call-edge hints from APM); parallel to Collect, not “after all metrics arrive”</td></tr><tr><td><strong>Process</strong></td><td>Build/refresh the <strong>typed CI graph</strong>; publish bind table so Normalize can resolve <code>ci_id</code>; mark edges with direction useful for upstream/downstream walks</td></tr><tr><td><strong>Output</strong></td><td>Snapshot graph (<code>topology.json</code> / <code>A-TOPO</code> / Smartscape analogue) + bind LUT consumed by Normalize and later Tailor/Localize</td></tr></table><p><strong>Granularity reminder:</strong> coarse enough for stable ticket IDs; fine enough that the true fault CI is a <strong>node</strong>; refresh on deploy/discovery.</p><h4 id="4-fan-out-what-it-means">4. Fan-out — what it means</h4><p>**Fan-out = write the <em>same</em> normalized stream to one or more sinks/profiles without forking Detect.**</p><p>It is <strong>not</strong> “split the RCA algorithm.” It is <strong>cost / consumer routing</strong>:</p><table><tr><th>Profile (example)</th><th>What gets written</th><th>Why</th></tr><tr><td><strong>Cheap (L0)</strong></td><td>Lean-oriented incident bundles / metric slices needed for classic Localize</td><td>Lower store + query cost</td></tr><tr><td><strong>Rich (F1)</strong></td><td>+ structural / speed-tier feeds (Fed Dragonfly <code>tg:</code>/<code>pc:</code>, KG slice, richer modalities)</td><td>Enable Murphy/Nezha / class C–D depth when paid for</td></tr></table><table><tr><th></th><th></th></tr><tr><td><strong>Input</strong></td><td>Normalized envelopes (+ topology available for bind)</td></tr><tr><td><strong>Process</strong></td><td>Vector (or Python stand-in) <strong>routes</strong> events to configured sinks — file, Dragonfly, structural store, Lean bundle writer. Same Detect watches the shared logical stream</td></tr><tr><td><strong>Output</strong></td><td>Populated stores / bundles ready for Maintain and Detect; <strong>one</strong> Detect path remains shared for fair engine compare</td></tr></table><h4 id="5-maintain-how-it-works">5. Maintain — how it works</h4><p><strong>Maintain = keep the estate usable over time</strong> (lifecycle), continuous.</p><table><tr><th>Concern</th><th>What happens</th></tr><tr><td><strong>Identity</strong></td><td>Prefer service/host keys over ephemeral pod names when pods churn</td></tr><tr><td><strong>Topology freshness</strong></td><td>Rebuild/patch graph on discovery/deploy; stale edges → wrong walks</td></tr><tr><td><strong>Retention tiers</strong></td><td>Hot (recent incident windows) / warm / cold; drop or downsample what Tailor will never need</td></tr><tr><td><strong>Sampling</strong></td><td>Traces/logs: keep decisive coverage under cost caps</td></tr><tr><td><strong>Clock sync</strong></td><td>Shared time base so “onset” across modalities is comparable</td></tr></table><table><tr><th></th><th></th></tr><tr><td><strong>Input</strong></td><td>Fan-out sinks + live topology updates</td></tr><tr><td><strong>Process</strong></td><td>TTL, compaction, resample, re-index, re-crawl; ops policies — mostly automated</td></tr><tr><td><strong>Output</strong></td><td>Healthy hot/warm stores + fresh graph that Detect/Tailor can query</td></tr></table><h4 id="6-detect-watches-streamsstores-opens-the-case">6. Detect (watches streams/stores) — opens the case</h4><p>Detect sits on the <strong>boundary</strong>: feeds on Clock A data; <strong>opens the case</strong> (raw alerts still need Curate).</p><table><tr><th></th><th></th></tr><tr><td><strong>Input</strong></td><td>Normalized metrics/events (and optionally LOS / baselines) from Maintain’d stores or live streams</td></tr><tr><td><strong>Process</strong></td><td>Thresholds / SLOs / Watchdog-class / (optional) Panorama gray-failure: mark “crossed” anomalies; emit <strong>raw alerts</strong> (often several per real incident)</td></tr><tr><td><strong>Output</strong></td><td>Raw alert storm — usually <strong>not</strong> yet one honest seed</td></tr></table><pre class="flow"><code>alert examples (one incident):  orders-api latency · orders-api errors · db pool depth …</code></pre><h4 id="7-curate-storm-one-honest-seed">7. Curate — storm → one honest seed</h4><p><strong>Curate = quality and labeling discipline</strong> (not the same as Maintain). On the live path it sits <strong>on Detect’s raw output</strong>.</p><table><tr><th>Concern</th><th>What happens</th></tr><tr><td><strong>Storm control</strong></td><td>Many alerts → one logical case / one primary seed</td></tr><tr><td><strong>Human GT</strong></td><td>Labeled kits for scoring; never auto-invent GT</td></tr><tr><td><strong>Quality flags</strong></td><td>Mark missing topo / traces / logs so reports stay honest</td></tr><tr><td><strong>No coaching</strong></td><td>Keep root/GT text <strong>out</strong> of alert bodies</td></tr><tr><td><strong>Gold set</strong></td><td>Held-out multimodal incidents for Identify / report quality</td></tr></table><table><tr><th></th><th></th></tr><tr><td><strong>Input</strong></td><td>Detect’s raw alerts + historical incidents + human labels</td></tr><tr><td><strong>Process</strong></td><td>Dedup/correlate storms; attach quality metadata; GT workflow</td></tr><tr><td><strong>Output</strong></td><td><strong>One honest symptom seed</strong> <code>(ci_id, signal, t0)</code> + scorable packs / explicit gaps</td></tr></table><pre class="flow"><code>seed example:  orders-api , request.p95_latency_ms , 2026-07-28T07:19:30Z</code></pre><h4 id="8-tailor-cut-the-incident-working-set">8. Tailor — cut the incident working set</h4><p><strong>Tailor is case-triggered Clock A.</strong> Input is the <strong>seed</strong> plus the maintained lake/graph; output is everything Clock B is allowed to see.</p><table><tr><th>Knob</th><th>Meaning</th><th>Typical process</th></tr><tr><td><strong>Neighborhood / k-hop</strong></td><td>CIs within <em>k</em> edges of the seed (and often <strong>shared-upstream</strong> infra: host, datastore, uplink)</td><td>Graph walk/BFS on topology from <code>seed.ci_id</code>; include typed up/downstream</td></tr><tr><td><strong>Time corridor</strong></td><td>Window around onset: <code>[t0 − pre, t0 + post]</code></td><td>Query stores only in that window — <strong>not</strong> “last 7 days of the lake”</td></tr><tr><td><strong>Modality mix</strong></td><td>Which data types to pull (class A–D)</td><td>A–B: metrics (+ thin events); C: +logs/change; D: +traces/spans</td></tr><tr><td><strong>Working set / kit</strong></td><td>Seed + neighborhood + corridor + modalities</td><td>Pack files / query results / F1 slices handed to engines</td></tr></table><table><tr><th></th><th></th></tr><tr><td><strong>Input</strong></td><td>Symptom seed + CI graph + Maintain’d stores (+ Curate flags)</td></tr><tr><td><strong>Process</strong></td><td>Expand k-hop neighborhood → pull modalities in time corridor → assemble pack; drop entities/times outside the cut</td></tr><tr><td><strong>Output</strong></td><td><strong>Incident working set</strong> → <strong>Clock B</strong> (Localize → Identify → Verify)</td></tr></table><pre class="flow"><code>Incident working set =
+    seed
+  + neighborhood (k-hop / shared-upstream slice of CI graph)
+  + time corridor [t0 − pre, t0 + post]
+  + modalities (metrics, and logs/traces/change as class requires)</code></pre><p><strong>Your guess is right:</strong> neighborhood + time corridor + modality pull <strong>are</strong> the Tailor cut; that cut <strong>is</strong> the input to Clock B.</p><h4 id="compact-io-chain">Compact I/O chain</h4><table><tr><th>Step</th><th>In</th><th>Out</th></tr><tr><td>Collect</td><td>Raw sources</td><td>Raw streams</td></tr><tr><td>Normalize</td><td>Raw streams</td><td>Entity envelopes (<code>ci_id</code>, signal, <code>ts</code>, …)</td></tr><tr><td>Topology bind</td><td>Discovery</td><td>CI <strong>relationship/dependency graph</strong> + bind LUT</td></tr><tr><td>Fan-out</td><td>Envelopes</td><td>Cheap and/or rich <strong>sinks</strong> (same Detect)</td></tr><tr><td>Maintain</td><td>Sinks + graph</td><td>Fresh, retained, sampled stores</td></tr><tr><td>Detect</td><td>Streams/stores</td><td>Raw alert storm</td></tr><tr><td>Curate</td><td>Raw alerts + humans</td><td><strong>One honest seed</strong>, quality flags, GT</td></tr><tr><td>Tailor</td><td>Seed + graph + stores</td><td><strong>Working set</strong> → Clock B</td></tr></table><h3 id="33-what-belongs-on-which-clock-examples">3.3 What belongs on which clock (examples)</h3><table><tr><th>Discussion</th><th>Clock</th><th>Example</th></tr><tr><td>“Vector remaps Prometheus → entity envelope”</td><td><strong>A</strong></td><td>Collect + Normalize</td></tr><tr><td>“topology.json missing datastore edge”</td><td><strong>A</strong></td><td>Topology</td></tr><tr><td>“L0 vs F1 sinks cost too much”</td><td><strong>A</strong></td><td>Fan-out / Maintain</td></tr><tr><td>“threshold Detect never fired”</td><td><strong>A</strong> (opens the case)</td><td>Detect</td></tr><tr><td>“storm never became one seed”</td><td><strong>A</strong></td><td>Curate</td></tr><tr><td>“engine blamed checkout-api; root was datastore”</td><td><strong>B</strong></td><td>Localize</td></tr><tr><td>“we need stack traces for pool exhaustion”</td><td><strong>B</strong> + class <strong>C</strong></td><td>Identify modalities</td></tr><tr><td>“UI said ‘root cause proven’ on weak evidence”</td><td><strong>B</strong></td><td>Verify</td></tr></table><h3 id="34-industry-names-for-clock-a-stages">3.4 Industry names for Clock A stages</h3><table><tr><th>Our word</th><th>Classical / industry name</th></tr><tr><td>Collect + Normalize</td><td>Observability / telemetry pipeline (OTel, Vector, Fluent Bit) — ETL/ELT family</td></tr><tr><td>Topology + CI bind</td><td>Discovery + CMDB / service inventory + <strong>entity / identity resolution</strong></td></tr><tr><td>Maintain</td><td>Data lifecycle (hot/warm/cold, cardinality, sampling)</td></tr><tr><td>Curate</td><td>Data quality (+ ITSM event correlation for alert storms)</td></tr><tr><td>Tailor</td><td><strong>Context assembly / incident scoping</strong> (vendor: related entities, Smartscape slice)</td></tr><tr><td>Whole loop</td><td>Often marketed as “observability data platform” or “AIOps data prep”</td></tr></table><p>These are <strong>old</strong> problems (ITIL CMDB + events; ETL + DQ), reframed for multimodal AIOps. What is newer is volume + automated Localize on top.</p><h3 id="35-common-confusion-to-avoid">3.5 Common confusion to avoid</h3><table><tr><th>Confusion</th><th>Correction</th></tr><tr><td>“Clock A vs Clock B are two products”</td><td>No — two <strong>timelines / job families</strong> in one system</td></tr><tr><td>“Grail is Clock B”</td><td>No — Grail is Clock A <strong>store</strong>; Davis is mostly Clock B</td></tr><tr><td>“Vector is our Grail”</td><td>No — Vector is Clock A <strong>pipeline</strong>; sinks/kits are a partial store</td></tr><tr><td>“Class C–D is a Clock”</td><td>No — class is an <strong>incident modality bucket</strong>; both clocks still apply</td></tr><tr><td>“Clock A = Event Graph, Clock B = Knowledge Graph”</td><td>No — <strong>orthogonal axes</strong>. Both tiers are written on A and read on B. See <strong>§3.6</strong>.</td></tr></table><h3 id="36-clocks-vs-federated-two-tier-design">3.6 Clocks vs Federated two-tier design</h3><p>People often map Clock A/B onto Federated’s two graph tiers. The intuition is useful; the <strong>1:1 equation is wrong</strong>.</p><h4 id="plain-reading-team-shareable">Plain reading (team shareable)</h4><p><strong>Tier 1 / Tier 2</strong> ≈ <strong>where data lives</strong> (Federated storage split: Event Graph vs Knowledge Graph), and therefore <strong>which hop reads which store</strong>. Storage-first axis.</p><p><strong>Clock A / Clock B</strong> ≈ <strong>workflow / job cadence</strong>, not another storage layer:</p><ul><li><strong>Clock A</strong> — continuous platform work + case bridge: collect → normalize → topo → fan-out → maintain → <strong>Detect → Curate → Tailor</strong></li><li><strong>Clock B</strong> — per-incident RCA algorithms: <strong>Localize → Identify → Verify</strong></li></ul><p>Together, A then B (with <strong>Tailor</strong> as the bridge) is the end-to-end story. The clocks <strong>use</strong> the tiers; they aren’t the same kind of split.</p><pre class="flow"><code>Tier axis  →  Dragonfly (T1)  |  Vortex/DashMap (T2)     [storage / data plane]
 Clock axis →  A: write/maintain both continuously
-              B: Panorama/Murphy read T2; Nezha reads T1</pre>
-<p><strong>Bottom line:</strong> tiers = data-plane layout; clocks = when work runs and which RCA/preprocess jobs run on that data. <strong>Orthogonal, intersecting.</strong></p>
-<p><strong>Docs:</strong> <a href="../federated-pipeline/docs/STORAGE_TIERS.md"><code>federated-pipeline/docs/STORAGE_TIERS.md</code></a> · <a href="../federated-pipeline/docs/ARCHITECTURE.md"><code>ARCHITECTURE.md</code></a>.  </p>
-<p><strong>Honesty:</strong> Vortex/DashMap/NATS-Rust at 1B EPS is <strong>design vision</strong>; PoC today uses in-memory structural + optional Dragonfly/Redis speed tier.</p>
-<h4>Two axes (do not collapse)</h4>
-<table><thead><tr><th>Axis</th><th>What it partitions</th><th>Question</th></tr></thead><tbody>
-<tr><td><strong>Clock A vs Clock B</strong></td><td><strong>When / which job</strong></td><td>Continuous platform ops vs per-incident diagnosis</td></tr>
-<tr><td><strong>Tier 1 vs Tier 2</strong></td><td><strong>Where data lives + which algo reads it</strong></td><td>Speed/event graph vs structural/knowledge graph</td></tr>
-</tbody></table>
-<ul>
-<li><strong>Clocks</strong> apply to <strong>any</strong> RCA stack (Lean packs + <code>topology.json</code> included).  </li>
-<li><strong>Two tiers</strong> are the <strong>Federated</strong> scale design so high-EPS path data and deep topology reasoning don’t share one bottle.</li>
-</ul>
-<h4>What the Federated tiers are</h4>
-<table><thead><tr><th></th><th><strong>Tier 1 — Event Graph (speed)</strong></th><th><strong>Tier 2 — Knowledge Graph (structural)</strong></th></tr></thead><tbody>
-<tr><td><strong>Nickname</strong></td><td>“What” and “When”</td><td>“Who” and “Why” (topology / semantics)</td></tr>
-<tr><td><strong>Role</strong></td><td>High-velocity traces, logs, metrics; temporal / per-request pattern material</td><td>Persistent microservice (and infra) topology; blast-radius traversals; heavy property updates</td></tr>
-<tr><td><strong>Storage (design)</strong></td><td>DragonflyDB — time-bucketed ZSETs <code>tg:…</code>, sharded pattern HSETs <code>pc:…</code>, server-side Lua</td><td>Vortex/Arrow CSR (vectorized BFS) + DashMap LSM (lock-free properties / LOS)</td></tr>
-<tr><td><strong>Primary Clock B consumers</strong></td><td><strong>Nezha</strong> — expected vs actual path/pattern score</td><td><strong>Panorama</strong> (LOS / gray Detect) · <strong>Murphy</strong> (MRF / Gibbs Localize)</td></tr>
-</tbody></table>
-<h4>Intersection matrix (the useful picture)</h4>
-<pre class="flow">                 Tier 1 Event Graph              Tier 2 Knowledge Graph
+              B: Panorama/Murphy read T2; Nezha reads T1</code></pre><p><strong>Bottom line:</strong> tiers = data-plane layout; clocks = when work runs and which RCA/preprocess jobs run on that data. <strong>Orthogonal, intersecting.</strong></p><h4 id="visual-orthogonality-relationship">Visual: orthogonality + relationship</h4><p>Think of a <strong>plane</strong>, not a line. Horizontal = <strong>where</strong> (tiers). Vertical = <strong>when / which job</strong> (clocks). Each cell is a real write or read.</p><pre class="flow"><code>                        TIER AXIS (where data lives)
+                        ─────────────────────────────────────────────►
+                        Tier 1 Event Graph              Tier 2 Knowledge Graph
+                        Dragonfly  tg: / pc:            Vortex CSR + DashMap LOS
+                        “what / when” (paths)           “who / why” (topology)
+                   ┌────────────────────────────┬────────────────────────────┐
+     C             │                            │                            │
+     L   Clock A   │  WRITE high-EPS            │  WRITE / UPDATE            │
+     O   continuous│  traces → tg: timelines    │  CI edges → CSR            │
+     C   platform  │  patterns → pc: counts     │  properties / LOS → DashMap│
+     K             │                            │                            │
+                   ├────────────────────────────┼────────────────────────────┤
+     A             │                            │                            │
+     X   Clock B   │  READ  Nezha               │  READ  Panorama (Detect)   │
+     I   per       │  (path Identify /          │  READ  Murphy (Localize)   │
+     S   incident  │   micro-localize)          │                            │
+                   │                            │                            │
+                   └────────────────────────────┴────────────────────────────┘
+     │
+     ▼  when / which job</code></pre><p><strong>How to read it</strong></p><table><tr><th>Look at…</th><th>Means…</th></tr><tr><td>A <strong>column</strong></td><td>One store; used on <em>both</em> clocks</td></tr><tr><td>A <strong>row</strong></td><td>One job cadence; may touch <em>both</em> stores</td></tr><tr><td>A <strong>cell</strong></td><td>Concrete operation (write or read)</td></tr><tr><td>The <strong>whole grid</strong></td><td>Why “Clock A = Tier 1” is wrong — A fills <em>both</em> columns; B reads <em>both</em> (different hops)</td></tr></table><p><strong>Relationship (arrows), not identity:</strong></p><pre class="flow"><code>                    ┌──────────── Clock A (continuous) ────────────┐
+                    │                                              │
+   sources ──► normalize ──┬──► Tier 1 writes (tg:/pc:)            │
+                           └──► Tier 2 writes (CSR / LOS)          │
+                    │                                              │
+                    │         Detect → seed                        │
+                    │              │                               │
+                    │         Tailor (scope working set)           │
+                    └──────────────┼───────────────────────────────┘
+                                   ▼
+                    ┌──────────── Clock B (this incident) ─────────┐
+                    │  Panorama/Murphy ◄── Tier 2                  │
+                    │  Nezha           ◄── Tier 1                  │
+                    │  fuse / Verify                               │
+                    └──────────────────────────────────────────────┘</code></pre><p><strong>Lean on the same clocks (no Fed dual tier):</strong> Clock A still exists (kits + <code>topology.json</code>); Clock B is the typed CI walk — one “structural” column, no Event Graph column required for classic UC Localize.</p><p><strong>Docs:</strong> <a href="../federated-pipeline/docs/STORAGE_TIERS.md"><code>federated-pipeline/docs/STORAGE_TIERS.md</code></a> · <a href="../federated-pipeline/docs/ARCHITECTURE.md"><code>ARCHITECTURE.md</code></a>.  </p><p><strong>Honesty:</strong> Vortex/DashMap/NATS-Rust at 1B EPS is <strong>design vision</strong>; PoC today uses in-memory structural + optional Dragonfly/Redis speed tier.</p><h4 id="two-axes-do-not-collapse">Two axes (do not collapse)</h4><table><tr><th>Axis</th><th>What it partitions</th><th>Question</th></tr><tr><td><strong>Clock A vs Clock B</strong></td><td><strong>When / which job</strong></td><td>Continuous platform ops vs per-incident diagnosis</td></tr><tr><td><strong>Tier 1 vs Tier 2</strong></td><td><strong>Where data lives + which algo reads it</strong></td><td>Speed/event graph vs structural/knowledge graph</td></tr></table><ul><li><strong>Clocks</strong> apply to <strong>any</strong> RCA stack (Lean packs + <code>topology.json</code> included).</li><li><strong>Two tiers</strong> are the <strong>Federated</strong> scale design so high-EPS path data and deep topology reasoning don’t share one bottle.</li></ul><h4 id="what-the-federated-tiers-are">What the Federated tiers are</h4><table><tr><th></th><th><strong>Tier 1 — Event Graph (speed)</strong></th><th><strong>Tier 2 — Knowledge Graph (structural)</strong></th></tr><tr><td><strong>Nickname</strong></td><td>“What” and “When”</td><td>“Who” and “Why” (topology / semantics)</td></tr><tr><td><strong>Role</strong></td><td>High-velocity traces, logs, metrics; temporal / per-request pattern material</td><td>Persistent microservice (and infra) topology; blast-radius traversals; heavy property updates</td></tr><tr><td><strong>Storage (design)</strong></td><td>DragonflyDB — time-bucketed ZSETs <code>tg:…</code>, sharded pattern HSETs <code>pc:…</code>, server-side Lua</td><td>Vortex/Arrow CSR (vectorized BFS) + DashMap LSM (lock-free properties / LOS)</td></tr><tr><td><strong>Primary Clock B consumers</strong></td><td><strong>Nezha</strong> — expected vs actual path/pattern score</td><td><strong>Panorama</strong> (LOS / gray Detect) · <strong>Murphy</strong> (MRF / Gibbs Localize)</td></tr></table><h4 id="intersection-matrix-the-useful-picture">Intersection matrix (the useful picture)</h4><pre class="flow"><code>                 Tier 1 Event Graph              Tier 2 Knowledge Graph
                  (Dragonfly — what/when)         (Vortex/DashMap — who/why)
                  ──────────────────────          ─────────────────────────
 Clock A          Ingest traces/metrics           Update CSR topology,
 (continuous)     into tg:/pc: keys               DashMap properties / LOS
 
 Clock B          Nezha micro-localize            Panorama Detect (LOS)
-(per incident)   (path / Identify)               Murphy macro-Localize</pre>
-<table><thead><tr><th>Federated piece</th><th>Closer to…</th><th>Why</th></tr></thead><tbody>
-<tr><td>Ingest → Dragonfly (<code>tg:</code> / <code>pc:</code>)</td><td><strong>Clock A → Tier 1</strong></td><td>Continuous high-EPS write path</td></tr>
-<tr><td>Topology / property updates → CSR + DashMap</td><td><strong>Clock A → Tier 2</strong></td><td>Continuous Smartscape-like structural maintain</td></tr>
-<tr><td><strong>Panorama</strong> (bounded look-back on LOS)</td><td><strong>Clock B · Detect</strong> (Fed-native; often gray-failure)</td><td>Case ignition from structural LOS</td></tr>
-<tr><td><strong>Murphy</strong> (CSR + Gibbs)</td><td><strong>Clock B · Localize</strong> (macro “where”)</td><td>Walk Tier 2 graph</td></tr>
-<tr><td><strong>Nezha</strong> (Lua on Dragonfly)</td><td><strong>Clock B · Identify</strong> (micro path)</td><td>Read Tier 1 patterns <strong>after</strong> Localize scopes the candidate</td></tr>
-<tr><td>Fuse / evidence packaging</td><td><strong>Clock B · Verify</strong> (in spirit)</td><td>Confidence / packaging of the hops</td></tr>
-</tbody></table>
-<p><strong>Tailor</strong> (Clock A bridge) still applies: do not run Murphy/Nezha over the whole fleet forever — seed + neighborhood + corridor, then Clock B hops.</p>
-<h4>End-to-end flow in both languages</h4>
-<pre class="flow">Clock A / Tier writes:
+(per incident)   (path / Identify)               Murphy macro-Localize</code></pre><table><tr><th>Federated piece</th><th>Closer to…</th><th>Why</th></tr><tr><td>Ingest → Dragonfly (<code>tg:</code> / <code>pc:</code>)</td><td><strong>Clock A → Tier 1</strong></td><td>Continuous high-EPS write path</td></tr><tr><td>Topology / property updates → CSR + DashMap</td><td><strong>Clock A → Tier 2</strong></td><td>Continuous Smartscape-like structural maintain</td></tr><tr><td><strong>Panorama</strong> (bounded look-back on LOS)</td><td><strong>Clock B · Detect</strong> (Fed-native; often gray-failure)</td><td>Case ignition from structural LOS</td></tr><tr><td><strong>Murphy</strong> (CSR + Gibbs)</td><td><strong>Clock B · Localize</strong> (macro “where”)</td><td>Walk Tier 2 graph</td></tr><tr><td><strong>Nezha</strong> (Lua on Dragonfly)</td><td><strong>Clock B · Identify</strong> (micro path)</td><td>Read Tier 1 patterns <strong>after</strong> Localize scopes the candidate</td></tr><tr><td>Fuse / evidence packaging</td><td><strong>Clock B · Verify</strong> (in spirit)</td><td>Confidence / packaging of the hops</td></tr></table><p><strong>Tailor</strong> (Clock A bridge) still applies: do not run Murphy/Nezha over the whole fleet forever — seed + neighborhood + corridor, then Clock B hops.</p><h4 id="end-to-end-flow-in-both-languages">End-to-end flow in both languages</h4><pre class="flow"><code>Clock A / Tier writes:
   Ingest (high EPS) ──► Dragonfly (Tier 1)
   Topology + LOS updates ──► Vortex/DashMap (Tier 2)
 
@@ -330,305 +123,13 @@ Clock B / hops:
   Panorama (Tier 2)  → Detect / gray seed          ≈ Detect
   Murphy (Tier 2)    → macro root service          ≈ Localize
   Nezha (Tier 1)     → broken execution path       ≈ Identify (path)
-  fuse + evidence    →                             ≈ Verify (in spirit)</pre>
-<h4>What <em>not</em> to equate</h4>
-<table><thead><tr><th>Tempting 1:1</th><th>Why it’s wrong</th></tr></thead><tbody>
-<tr><td>Clock A = Event Graph</td><td>Event Graph is also <strong>Nezha on Clock B</strong></td></tr>
-<tr><td>Clock B = Knowledge Graph</td><td>Knowledge Graph is also <strong>maintained on Clock A</strong>; Panorama/Murphy only <em>use</em> it on B</td></tr>
-<tr><td>Tier 1 = “preprocess,” Tier 2 = “RCA”</td><td>Both tiers are <strong>written on A</strong> and <strong>read on B</strong></td></tr>
-<tr><td>Two clocks = only a Federated idea</td><td>Clocks are universal; two tiers are Federated’s scale split</td></tr>
-<tr><td>Fair Lean vs Fed bakeoff “uses Panorama Detect”</td><td>Fair compare uses <strong>shared threshold Detect</strong>; Panorama is the Fed-native gray-failure path (see <a href="./PIPELINE_PARITY.md"><code>PIPELINE_PARITY.md</code></a>)</td></tr>
-</tbody></table>
-<h4>Lean vs Federated on the same clocks</h4>
-<table><thead><tr><th></th><th>Lean</th><th>Federated</th></tr></thead><tbody>
-<tr><td>Clock A store shape</td><td>Incident kits / bundles + <code>topology.json</code> (often L0-cheap)</td><td>Dual sink: speed (Dragonfly) + structural (KG/LOS) — F1 when enabled</td></tr>
-<tr><td>Clock B Localize</td><td>Typed CI best-first / CARE / signatures</td><td>Murphy on structural graph</td></tr>
-<tr><td>Clock B path Identify</td><td>Limited / stretch</td><td>Nezha on Event Graph (class D strength)</td></tr>
-<tr><td>Clock B Detect</td><td>Shared threshold (fair) or alerts</td><td>Shared threshold (fair) <strong>or</strong> Panorama LOS</td></tr>
-</tbody></table>
-<p><strong>One-line for the team:</strong> Clock A/B = <em>jobs and timing</em>; Federated Tier 1/2 = <em>which store each hop needs so high EPS and deep causal analysis don’t share one bottle</em>.</p>
-<hr />
-</section><section id="s4"><h2>4. How competitors cope with the same problem</h2>
-<p><strong>Meaning of “cope”:</strong> how Dynatrace, Datadog, and BigPanda-class products handle §2 via ingest, Detect, scoping, and Localize. Soft wording: <a href="./RCA_Vendor_Comparison_NOTES.md"><code>RCA_Vendor_Comparison_NOTES.md</code></a>.</p>
-<p><strong>Three Localize philosophies:</strong></p>
-<table><thead><tr><th>Vendor shape</th><th>Localize idea</th></tr></thead><tbody>
-<tr><td>Dynatrace</td><td>Walk a live topology (Smartscape) with causal <em>claim</em></td></tr>
-<tr><td>Datadog</td><td>Statistical / correlational “likely culprit” among related entities</td></tr>
-<tr><td>BigPanda</td><td>Correlate alerts + changes (event-centric)</td></tr>
-</tbody></table>
-<h3>4.1 Shared operating loop (maps to §2)</h3>
-<table><thead><tr><th>Step</th><th>What happens</th><th>Why (§2)</th></tr></thead><tbody>
-<tr><td><strong>1. Capture + discover</strong></td><td>Agents emit telemetry; discovery keeps entities alive</td><td>Volume + identity</td></tr>
-<tr><td><strong>2. Detect → seed</strong></td><td>Thresholds / Watchdog / Davis events mark wrong on a CI at <em>t0</em></td><td>Detect/seed quality</td></tr>
-<tr><td><strong>3. Hold relationship graph</strong></td><td>Smartscape / service map / CI edges</td><td>Topology for walk</td></tr>
-<tr><td><strong>4. Scope the evidence</strong></td><td>Pull modalities near seed only</td><td>Volume — not whole retention per ticket</td></tr>
-<tr><td><strong>5. Rank / pick culprit</strong></td><td>Engine + UI propose root / shortlist</td><td>Symptom bias</td></tr>
-<tr><td><strong>6. Human deep-dive (often)</strong></td><td>Operator opens logs/traces for path “why”</td><td>Modality + Step-2 hole</td></tr>
-</tbody></table>
-<p><strong>Point:</strong> <strong>Detect → scope → reason on a small working set</strong> — not replaying weeks of telemetry into diagnosis each time.</p>
-<h3>4.2 Dynatrace — topology-first + platform substrate</h3>
-<table><thead><tr><th>Piece</th><th>Role</th><th>Clock</th></tr></thead><tbody>
-<tr><td><strong>OneAgent</strong></td><td>Edge capture / enrichment</td><td>A</td></tr>
-<tr><td><strong>Smartscape</strong></td><td>Live CI / relationship graph</td><td>A (topology)</td></tr>
-<tr><td><strong>Grail</strong></td><td>Unified multimodal store + DQL</td><td>A (store/query)</td></tr>
-<tr><td><strong>Detectors / Events</strong></td><td>Detect → seed material</td><td>A→B handoff</td></tr>
-<tr><td><strong>Davis</strong></td><td>Thin Localize / Problem packaging</td><td>B</td></tr>
-</tbody></table>
-<p><strong>Design takeaway:</strong> topology-first Localize + evidence discipline; treat broad “causal” marketing as philosophy until independently scored.</p>
-<h3>4.3 Datadog — platform lake + statistical Localize</h3>
-<p>Unified metrics/logs/traces; service map / tags; monitors + Watchdog; correlational ranking; pivot to related logs/traces for Identify. Strong on <strong>platform lake + Detect</strong>; Localize less “typed CI walk” than Dynatrace.</p>
-<h3>4.4 BigPanda (sketch)</h3>
-<p>Alert/change event graph; storm dedup → probable culprit. Weaker multimodal path Identify unless enriched elsewhere.</p>
-<h3>4.5 Comparison matrix</h3>
-<table><thead><tr><th>Capability</th><th>Dynatrace</th><th>Datadog</th><th>Abstract design target</th></tr></thead><tbody>
-<tr><td>Entity / topology graph</td><td>Smartscape (core)</td><td>Service map / tags (core)</td><td>Typed CI / service graph</td></tr>
-<tr><td>Detect → seed</td><td>Davis events</td><td>Monitors + Watchdog</td><td>Explicit Detect → symptom seed</td></tr>
-<tr><td>Localize style</td><td>Topology + causal claim</td><td>Statistical / related entities</td><td>Topology walk and/or statistical rank</td></tr>
-<tr><td>Lake / retrieval</td><td><strong>Grail</strong> (DQL, entity+time)</td><td>Indexed platform + query</td><td>Entity-keyed store + scoped pull</td></tr>
-<tr><td>Ingest pipeline</td><td>OneAgent → platform</td><td>Agents / OTel → platform</td><td>Collect → normalize → fan-out (Vector-class)</td></tr>
-<tr><td>Step-2 path-diff fused</td><td>Not verified as fused auto</td><td>Not verified</td><td>White-space / stretch</td></tr>
-<tr><td>Accuracy scoreboard</td><td>Self-reported</td><td>Self-reported</td><td>Held-out incidents + human GT</td></tr>
-</tbody></table>
-<h3>4.6 Design insights</h3>
-<ol class="compact">
-<li>1. Primary graph = <strong>CI / service relationships</strong>; hang modalities on entities.  </li>
-<li>2. <strong>Tailor like vendors:</strong> seed → neighborhood → corridor.  </li>
-<li>3. Copy <strong>evidence discipline</strong>, not causal marketing.  </li>
-<li>4. Compete where they stop: multimodal Identify + optional automated path Identify.  </li>
-<li>5. Cheap vs rich retention is normal — full dual-engine lake is expensive.</li>
-</ol>
-<hr />
-</section><section id="s5"><h2>5. How we solve it (vendor-aligned preprocess → RCA bet)</h2>
-<p><strong>Premise:</strong> Collect → Normalize → Topology sibling → Fan-out → Detect → scoped Tailor is <strong>near-accurate and in-line</strong> with Dynatrace/Datadog. Differentiation is <strong>not</strong> a new ingest religion. It is <strong>what we do after the working set exists</strong>, plus honest cost and Verify.</p>
-<h3>5.1 Solved on Clock A (match vendors)</h3>
-<table><thead><tr><th>Problem slice</th><th>Our approach</th></tr></thead><tbody>
-<tr><td>Orphan signals</td><td>Entity-keyed normalize + CI bind</td></tr>
-<tr><td>Dual-engine cost</td><td>Cheap vs rich fan-out (<strong>same</strong> Detect)</td></tr>
-<tr><td>Whole-lake → diagnosis</td><td>Tailor: seed + neighborhood + time corridor → incident kit</td></tr>
-<tr><td>Stale map</td><td>Topology sibling refreshed on discovery/deploy</td></tr>
-<tr><td>Fair engine compare</td><td>Shared Detect → seed, then diverge on Localize</td></tr>
-</tbody></table>
-<h3>5.2 Product bet on Clock B</h3>
-<table><thead><tr><th>Job</th><th>How we solve it</th><th>Deliberate difference vs vendors</th></tr></thead><tbody>
-<tr><td><strong>Detect</strong></td><td>Threshold / alert front door; optional gray-failure later</td><td>Explicit, measurable detect cost; not buried inside Localize</td></tr>
-<tr><td><strong>Localize</strong></td><td>Typed CI walk (topology-first primary on classic infra); optional correlational comparator</td><td>Comparable Detect; bakeoff on Localize quality, not Detect luck</td></tr>
-<tr><td><strong>Identify</strong></td><td>Signatures / fault class; multimodal corridor for <strong>class C–D</strong></td><td>Compete on report quality and optional path-level Identify</td></tr>
-<tr><td><strong>Verify</strong></td><td>Tiered evidence depth — claim only what the tier supports</td><td>Do <strong>not</strong> copy broad “causal” marketing</td></tr>
-</tbody></table>
-<h3>5.3 White space (where vendors still stop)</h3>
-<table><thead><tr><th>Gap</th><th>Our move</th></tr></thead><tbody>
-<tr><td>Step-2 fused path Identify</td><td>Scoped path-diff <strong>after</strong> Localize only (<a href="./two-step-rca-white-space.md"><code>two-step-rca-white-space.md</code></a>)</td></tr>
-<tr><td>Contaminated Detect / coaching</td><td>GT out of alert text; score held-out human labels</td></tr>
-<tr><td>Overclaiming cause</td><td>Verify tiers gate language in UI and bakeoffs</td></tr>
-</tbody></table>
-<h3>5.4 Deliberately not solved by copying Grail</h3>
-<ul>
-<li>Full Dynatrace-scale lake + DQL is <strong>not</strong> the differentiator.  </li>
-<li>Vector + sinks + builders + incident kits suffice to prove Localize/Identify <strong>if</strong> Tailor scopes correctly.  </li>
-<li>Grow store only when <strong>class C–D</strong> Identify or live Detect demos demand it.</li>
-</ul>
-<h3>5.5 Solution sequence (abstract roadmap)</h3>
-<table><thead><tr><th>#</th><th>Focus</th><th>Detail</th></tr></thead><tbody>
-<tr><td>1</td><td>Solid Clock A</td><td>Normalize + topo + fan-out + Detect→seed</td></tr>
-<tr><td>2</td><td>Strong Step-1 Localize</td><td>Topology walk on scoped kits (<strong>class A–B</strong> first)</td></tr>
-<tr><td>3</td><td>Honest Verify + GT</td><td>Tiered language; scored labels</td></tr>
-<tr><td>4</td><td>Multimodal Identify</td><td>Corridor for <strong>class C–D</strong> / report quality</td></tr>
-<tr><td>5</td><td>Optional path Identify</td><td>White space — scoped, cost-gated</td></tr>
-<tr><td>6</td><td>Optional richer store / gray Detect</td><td>Only with cost gates</td></tr>
-</tbody></table>
-<hr />
-</section><section id="s6"><h2>6. Grail · Smartscape · Vector</h2>
-<p>Three different things. Mixing them causes wrong architecture debates.</p>
-<h3>6.1 Grail vs Smartscape (Dynatrace)</h3>
-<table><thead><tr><th></th><th><strong>Smartscape</strong></th><th><strong>Grail</strong></th></tr></thead><tbody>
-<tr><td><strong>What</strong></td><td>Live <strong>entity + relationship graph</strong></td><td>Unified <strong>data lake + DQL</strong></td></tr>
-<tr><td><strong>Stores</strong></td><td>Nodes + edges (runs-on, calls, …)</td><td>Metrics, logs, traces, events over time</td></tr>
-<tr><td><strong>Answers</strong></td><td>How are things connected <em>right now</em>?</td><td>What did this entity look like in <em>[t0, t1]</em>?</td></tr>
-<tr><td><strong>Fed by</strong></td><td>OneAgent topology cues / discovery</td><td>OneAgent telemetry streams</td></tr>
-<tr><td><strong>Our analogue</strong></td><td><code>topology.json</code> / CI graph</td><td>Entity-keyed store / evidence sinks</td></tr>
-</tbody></table>
-<p><strong>Myth to drop:</strong> Smartscape does <strong>not</strong> stay fresh by querying Grail with DQL.</p>
-<p><strong>Write path (parallel):</strong></p>
-<pre class="flow">OneAgent ─┬─► Smartscape   (map)
-          └─► Grail        (evidence)</pre>
-<p><strong>Read path (Davis / UI):</strong> Detect on entity → expand neighborhood on <strong>Smartscape</strong> → pull series from <strong>Grail</strong> for those <code>entityId</code>s + time → rank / Problem.</p>
-<p>They stay aligned because of a <strong>shared entity model</strong>, not because the map rebuilds itself from the lake. DQL is how consumers <strong>read</strong> Grail.</p>
-<h3>6.2 Grail vs Vector (us vs Dynatrace lake)</h3>
-<table><thead><tr><th></th><th><strong>Grail</strong></th><th><strong>Vector</strong></th></tr></thead><tbody>
-<tr><td><strong>What</strong></td><td>Multimodal <strong>storage + query</strong></td><td><strong>Collect → normalize → fan-out</strong> pipeline</td></tr>
-<tr><td><strong>Industry family</strong></td><td>Observability lake / lakehouse</td><td>OTel collector / Fluent Bit / ETL</td></tr>
-<tr><td><strong>Clock A slot</strong></td><td>Maintain + retrieval</td><td>Collect + Normalize + Fan-out</td></tr>
-<tr><td><strong>Topology?</strong></td><td>No — Smartscape</td><td>No — sibling discovery → CI graph</td></tr>
-<tr><td><strong>RCA?</strong></td><td>No — Davis consumes it</td><td>Detect after/with; Localize out of scope</td></tr>
-</tbody></table>
-<pre class="flow">Dynatrace:  OneAgent ─┬─► Smartscape ─┐
+  fuse + evidence    →                             ≈ Verify (in spirit)</code></pre><h4 id="what-not-to-equate">What <em>not</em> to equate</h4><table><tr><th>Tempting 1:1</th><th>Why it’s wrong</th></tr><tr><td>Clock A = Event Graph</td><td>Event Graph is also <strong>Nezha on Clock B</strong></td></tr><tr><td>Clock B = Knowledge Graph</td><td>Knowledge Graph is also <strong>maintained on Clock A</strong>; Panorama/Murphy only <em>use</em> it on B</td></tr><tr><td>Tier 1 = “preprocess,” Tier 2 = “RCA”</td><td>Both tiers are <strong>written on A</strong> and <strong>read on B</strong></td></tr><tr><td>Two clocks = only a Federated idea</td><td>Clocks are universal; two tiers are Federated’s scale split</td></tr><tr><td>Fair Lean vs Fed bakeoff “uses Panorama Detect”</td><td>Fair compare uses <strong>shared threshold Detect</strong>; Panorama is the Fed-native gray-failure path (see <a href="./PIPELINE_PARITY.md"><code>PIPELINE_PARITY.md</code></a>)</td></tr></table><h4 id="lean-vs-federated-on-the-same-clocks">Lean vs Federated on the same clocks</h4><table><tr><th></th><th>Lean</th><th>Federated</th></tr><tr><td>Clock A store shape</td><td>Incident kits / bundles + <code>topology.json</code> (often L0-cheap)</td><td>Dual sink: speed (Dragonfly) + structural (KG/LOS) — F1 when enabled</td></tr><tr><td>Clock B Localize</td><td>Typed CI best-first / CARE / signatures</td><td>Murphy on structural graph</td></tr><tr><td>Clock B path Identify</td><td>Limited / stretch</td><td>Nezha on Event Graph (class D strength)</td></tr><tr><td>Clock B Detect</td><td>Shared threshold (fair) or alerts</td><td>Shared threshold (fair) <strong>or</strong> Panorama LOS</td></tr></table><p><strong>One-line for the team:</strong> Clock A/B = <em>jobs and timing</em>; Federated Tier 1/2 = <em>which store each hop needs so high EPS and deep causal analysis don’t share one bottle</em>.</p><hr /><h2 id="4-how-competitors-cope-with-the-same-problem">4. How competitors cope with the same problem</h2><p><strong>Meaning of “cope”:</strong> how Dynatrace, Datadog, and BigPanda-class products handle §2 via ingest, Detect, scoping, and Localize. Soft wording: <a href="./RCA_Vendor_Comparison_NOTES.md"><code>RCA_Vendor_Comparison_NOTES.md</code></a>.</p><p><strong>Three Localize philosophies:</strong></p><table><tr><th>Vendor shape</th><th>Localize idea</th></tr><tr><td>Dynatrace</td><td>Walk a live topology (Smartscape) with causal <em>claim</em></td></tr><tr><td>Datadog</td><td>Statistical / correlational “likely culprit” among related entities</td></tr><tr><td>BigPanda</td><td>Correlate alerts + changes (event-centric)</td></tr></table><h3 id="41-shared-operating-loop-maps-to-2">4.1 Shared operating loop (maps to §2)</h3><table><tr><th>Step</th><th>What happens</th><th>Why (§2)</th></tr><tr><td><strong>1. Capture + discover</strong></td><td>Agents emit telemetry; discovery keeps entities alive</td><td>Volume + identity</td></tr><tr><td><strong>2. Detect → seed</strong></td><td>Thresholds / Watchdog / Davis events mark wrong on a CI at <em>t0</em></td><td>Detect/seed quality</td></tr><tr><td><strong>3. Hold relationship graph</strong></td><td>Smartscape / service map / CI edges</td><td>Topology for walk</td></tr><tr><td><strong>4. Scope the evidence</strong></td><td>Pull modalities near seed only</td><td>Volume — not whole retention per ticket</td></tr><tr><td><strong>5. Rank / pick culprit</strong></td><td>Engine + UI propose root / shortlist</td><td>Symptom bias</td></tr><tr><td><strong>6. Human deep-dive (often)</strong></td><td>Operator opens logs/traces for path “why”</td><td>Modality + Step-2 hole</td></tr></table><p><strong>Point:</strong> <strong>Detect → scope → reason on a small working set</strong> — not replaying weeks of telemetry into diagnosis each time.</p><h3 id="42-dynatrace-topology-first-platform-substrate">4.2 Dynatrace — topology-first + platform substrate</h3><table><tr><th>Piece</th><th>Role</th><th>Clock</th></tr><tr><td><strong>OneAgent</strong></td><td>Edge capture / enrichment</td><td>A</td></tr><tr><td><strong>Smartscape</strong></td><td>Live CI / relationship graph</td><td>A (topology)</td></tr><tr><td><strong>Grail</strong></td><td>Unified multimodal store + DQL</td><td>A (store/query)</td></tr><tr><td><strong>Detectors / Events</strong></td><td>Detect → seed material</td><td>A→B handoff</td></tr><tr><td><strong>Davis</strong></td><td>Thin Localize / Problem packaging</td><td>B</td></tr></table><p><strong>Design takeaway:</strong> topology-first Localize + evidence discipline; treat broad “causal” marketing as philosophy until independently scored.</p><h3 id="43-datadog-platform-lake-statistical-localize">4.3 Datadog — platform lake + statistical Localize</h3><p>Unified metrics/logs/traces; service map / tags; monitors + Watchdog; correlational ranking; pivot to related logs/traces for Identify. Strong on <strong>platform lake + Detect</strong>; Localize less “typed CI walk” than Dynatrace.</p><h3 id="44-bigpanda-sketch">4.4 BigPanda (sketch)</h3><p>Alert/change event graph; storm dedup → probable culprit. Weaker multimodal path Identify unless enriched elsewhere.</p><h3 id="45-comparison-matrix">4.5 Comparison matrix</h3><table><tr><th>Capability</th><th>Dynatrace</th><th>Datadog</th><th>Abstract design target</th></tr><tr><td>Entity / topology graph</td><td>Smartscape (core)</td><td>Service map / tags (core)</td><td>Typed CI / service graph</td></tr><tr><td>Detect → seed</td><td>Davis events</td><td>Monitors + Watchdog</td><td>Explicit Detect → symptom seed</td></tr><tr><td>Localize style</td><td>Topology + causal claim</td><td>Statistical / related entities</td><td>Topology walk and/or statistical rank</td></tr><tr><td>Lake / retrieval</td><td><strong>Grail</strong> (DQL, entity+time)</td><td>Indexed platform + query</td><td>Entity-keyed store + scoped pull</td></tr><tr><td>Ingest pipeline</td><td>OneAgent → platform</td><td>Agents / OTel → platform</td><td>Collect → normalize → fan-out (Vector-class)</td></tr><tr><td>Step-2 path-diff fused</td><td>Not verified as fused auto</td><td>Not verified</td><td>White-space / stretch</td></tr><tr><td>Accuracy scoreboard</td><td>Self-reported</td><td>Self-reported</td><td>Held-out incidents + human GT</td></tr></table><h3 id="46-design-insights">4.6 Design insights</h3><ol><li>1. Primary graph = <strong>CI / service relationships</strong>; hang modalities on entities.</li><li>2. <strong>Tailor like vendors:</strong> seed → neighborhood → corridor.</li><li>3. Copy <strong>evidence discipline</strong>, not causal marketing.</li><li>4. Compete where they stop: multimodal Identify + optional automated path Identify.</li><li>5. Cheap vs rich retention is normal — full dual-engine lake is expensive.</li></ol><hr /><h2 id="5-how-we-solve-it-vendor-aligned-preprocess-rca-bet">5. How we solve it (vendor-aligned preprocess → RCA bet)</h2><p><strong>Premise:</strong> Collect → Normalize → Topology sibling → Fan-out → Detect → scoped Tailor is <strong>near-accurate and in-line</strong> with Dynatrace/Datadog. Differentiation is <strong>not</strong> a new ingest religion. It is <strong>what we do after the working set exists</strong>, plus honest cost and Verify.</p><h3 id="51-solved-on-clock-a-match-vendors">5.1 Solved on Clock A (match vendors)</h3><table><tr><th>Problem slice</th><th>Our approach</th></tr><tr><td>Orphan signals</td><td>Entity-keyed normalize + CI bind</td></tr><tr><td>Dual-engine cost</td><td>Cheap vs rich fan-out (<strong>same</strong> Detect)</td></tr><tr><td>Whole-lake → diagnosis</td><td>Tailor: seed + neighborhood + time corridor → incident kit</td></tr><tr><td>Stale map</td><td>Topology sibling refreshed on discovery/deploy</td></tr><tr><td>Fair engine compare</td><td>Shared Detect → seed, then diverge on Localize</td></tr></table><h3 id="52-product-bet-on-clock-b">5.2 Product bet on Clock B</h3><table><tr><th>Job</th><th>How we solve it</th><th>Deliberate difference vs vendors</th></tr><tr><td><strong>Detect</strong></td><td>Threshold / alert front door; optional gray-failure later</td><td>Explicit, measurable detect cost; not buried inside Localize</td></tr><tr><td><strong>Localize</strong></td><td>Typed CI walk (topology-first primary on classic infra); optional correlational comparator</td><td>Comparable Detect; bakeoff on Localize quality, not Detect luck</td></tr><tr><td><strong>Identify</strong></td><td>Signatures / fault class; multimodal corridor for <strong>class C–D</strong></td><td>Compete on report quality and optional path-level Identify</td></tr><tr><td><strong>Verify</strong></td><td>Tiered evidence depth — claim only what the tier supports</td><td>Do <strong>not</strong> copy broad “causal” marketing</td></tr></table><h3 id="53-white-space-where-vendors-still-stop">5.3 White space (where vendors still stop)</h3><table><tr><th>Gap</th><th>Our move</th></tr><tr><td>Step-2 fused path Identify</td><td>Scoped path-diff <strong>after</strong> Localize only (<a href="./two-step-rca-white-space.md"><code>two-step-rca-white-space.md</code></a>)</td></tr><tr><td>Contaminated Detect / coaching</td><td>GT out of alert text; score held-out human labels</td></tr><tr><td>Overclaiming cause</td><td>Verify tiers gate language in UI and bakeoffs</td></tr></table><h3 id="54-deliberately-not-solved-by-copying-grail">5.4 Deliberately not solved by copying Grail</h3><ul><li>Full Dynatrace-scale lake + DQL is <strong>not</strong> the differentiator.</li><li>Vector + sinks + builders + incident kits suffice to prove Localize/Identify <strong>if</strong> Tailor scopes correctly.</li><li>Grow store only when <strong>class C–D</strong> Identify or live Detect demos demand it.</li></ul><h3 id="55-solution-sequence-abstract-roadmap">5.5 Solution sequence (abstract roadmap)</h3><table><tr><th>#</th><th>Focus</th><th>Detail</th></tr><tr><td>1</td><td>Solid Clock A</td><td>Normalize + topo + fan-out + Detect→seed</td></tr><tr><td>2</td><td>Strong Step-1 Localize</td><td>Topology walk on scoped kits (<strong>class A–B</strong> first)</td></tr><tr><td>3</td><td>Honest Verify + GT</td><td>Tiered language; scored labels</td></tr><tr><td>4</td><td>Multimodal Identify</td><td>Corridor for <strong>class C–D</strong> / report quality</td></tr><tr><td>5</td><td>Optional path Identify</td><td>White space — scoped, cost-gated</td></tr><tr><td>6</td><td>Optional richer store / gray Detect</td><td>Only with cost gates</td></tr></table><hr /><h2 id="6-grail-smartscape-vector">6. Grail · Smartscape · Vector</h2><p>Three different things. Mixing them causes wrong architecture debates.</p><h3 id="61-grail-vs-smartscape-dynatrace">6.1 Grail vs Smartscape (Dynatrace)</h3><table><tr><th></th><th><strong>Smartscape</strong></th><th><strong>Grail</strong></th></tr><tr><td><strong>What</strong></td><td>Live <strong>entity + relationship graph</strong></td><td>Unified <strong>data lake + DQL</strong></td></tr><tr><td><strong>Stores</strong></td><td>Nodes + edges (runs-on, calls, …)</td><td>Metrics, logs, traces, events over time</td></tr><tr><td><strong>Answers</strong></td><td>How are things connected <em>right now</em>?</td><td>What did this entity look like in <em>[t0, t1]</em>?</td></tr><tr><td><strong>Fed by</strong></td><td>OneAgent topology cues / discovery</td><td>OneAgent telemetry streams</td></tr><tr><td><strong>Our analogue</strong></td><td><code>topology.json</code> / CI graph</td><td>Entity-keyed store / evidence sinks</td></tr></table><p><strong>Myth to drop:</strong> Smartscape does <strong>not</strong> stay fresh by querying Grail with DQL.</p><p><strong>Write path (parallel):</strong></p><pre class="flow"><code>OneAgent ─┬─► Smartscape   (map)
+          └─► Grail        (evidence)</code></pre><p><strong>Read path (Davis / UI):</strong> Detect on entity → expand neighborhood on <strong>Smartscape</strong> → pull series from <strong>Grail</strong> for those <code>entityId</code>s + time → rank / Problem.</p><p>They stay aligned because of a <strong>shared entity model</strong>, not because the map rebuilds itself from the lake. DQL is how consumers <strong>read</strong> Grail.</p><h3 id="62-grail-vs-vector-us-vs-dynatrace-lake">6.2 Grail vs Vector (us vs Dynatrace lake)</h3><table><tr><th></th><th><strong>Grail</strong></th><th><strong>Vector</strong></th></tr><tr><td><strong>What</strong></td><td>Multimodal <strong>storage + query</strong></td><td><strong>Collect → normalize → fan-out</strong> pipeline</td></tr><tr><td><strong>Industry family</strong></td><td>Observability lake / lakehouse</td><td>OTel collector / Fluent Bit / ETL</td></tr><tr><td><strong>Clock A slot</strong></td><td>Maintain + retrieval</td><td>Collect + Normalize + Fan-out</td></tr><tr><td><strong>Topology?</strong></td><td>No — Smartscape</td><td>No — sibling discovery → CI graph</td></tr><tr><td><strong>RCA?</strong></td><td>No — Davis consumes it</td><td>Detect after/with; Localize out of scope</td></tr></table><pre class="flow"><code>Dynatrace:  OneAgent ─┬─► Smartscape ─┐
                       └─► Grail ──────┼─► Detect/Events ─► Davis
 Ours:       Sources ──► Vector (+ topo sibling) ─► Detect/seed ─► engines
-                         └── sinks/builders ≈ partial lake (not DQL parity)</pre>
-<p><strong>Implication:</strong> matching Vector to vendors means matching <strong>ingest discipline</strong>, not rebuilding Grail.</p>
-<hr />
-</section><section id="s7"><h2>7. Scenario classes A–E (what “class C–D” means)</h2>
-<h3>7.1 Purpose of the taxonomy</h3>
-<p>When someone says “we need logs for class C–D,” they mean:</p>
-<div class="callout"><div class="title">Key idea</div><p>This incident type usually <strong>cannot</strong> finish trustworthy <strong>Identify</strong> (and sometimes Localize) on alerts + metrics + topology alone — it needs richer modalities.</p></div>
-<p>Classes are <strong>planning priors</strong> for data requirements and product claims. They are <strong>not</strong>:</p>
-<ul>
-<li>ObserveOps UC-1..5 IDs  </li>
-<li>Severity levels (P1/P2)  </li>
-<li>Vendor feature names  </li>
-</ul>
-<p>“Reliably RCA’able” below ≈ useful <strong>Step-1 Localize</strong> with high confidence; Identify called out separately.</p>
-<h3>7.2 Class definitions (detailed)</h3>
-<h4>Class A — Classic infra smoking gun (~25–35% prior)</h4>
-<table><thead><tr><th></th><th></th></tr></thead><tbody>
-<tr><td><strong>Examples</strong></td><td>Link down / high errors on uplink; host CPU + ready time contention; datastore latency with clear shared victims</td></tr>
-<tr><td><strong>Localize with</strong></td><td>Alerts + metrics + topology (+ light traps/events)</td></tr>
-<tr><td><strong>Logs</strong></td><td>Often <strong>not required</strong> for Localize</td></tr>
-<tr><td><strong>Traces</strong></td><td>Usually not</td></tr>
-<tr><td><strong>Why it works</strong></td><td>Fault CI is on the infra graph; onset and shared-upstream pattern are enough</td></tr>
-<tr><td><strong>Product claim</strong></td><td>Safe to say “metrics + topology Localize” for much of this class</td></tr>
-</tbody></table>
-<h4>Class B — Metrics-led, thin events (~20–25% prior)</h4>
-<table><thead><tr><th></th><th></th></tr></thead><tbody>
-<tr><td><strong>Examples</strong></td><td>Multi-VM / multi-service metric crossings; need Δt ordering on the walk; sparse SNMP/change hints</td></tr>
-<tr><td><strong>Localize with</strong></td><td>Alerts + metrics + topology + sparse events</td></tr>
-<tr><td><strong>Logs</strong></td><td>Recommended (confirm / disambiguate)</td></tr>
-<tr><td><strong>Traces</strong></td><td>Optional</td></tr>
-<tr><td><strong>Why</strong></td><td>Still mostly metric+topo, but ambiguity rises without light events</td></tr>
-</tbody></table>
-<h4>Class C — App / dependency gray (~25–35% prior)  ← part of “C–D”</h4>
-<table><thead><tr><th></th><th></th></tr></thead><tbody>
-<tr><td><strong>Examples</strong></td><td>5xx bursts; latency without hard infra smoking gun; connection pool / heap exhaustion; “slow dependency” with thin infra anomalies</td></tr>
-<tr><td><strong>Localize with</strong></td><td>Above + <strong>logs</strong> (+ change) help; may still point at an app CI</td></tr>
-<tr><td><strong>Logs</strong></td><td><strong>Necessary for Identify</strong> (error strings, pool exhaustion, deploy markers)</td></tr>
-<tr><td><strong>Traces</strong></td><td>Recommended</td></tr>
-<tr><td><strong>Why</strong></td><td>Metrics show <em>pain</em>; logs often show <em>what kind</em> of failure</td></tr>
-<tr><td><strong>Product claim</strong></td><td>Do <strong>not</strong> promise full Identify on metrics-only for this class</td></tr>
-</tbody></table>
-<h4>Class D — Path / microservice (~10–20% prior)  ← part of “C–D”</h4>
-<table><thead><tr><th></th><th></th></tr></thead><tbody>
-<tr><td><strong>Examples</strong></td><td>Wrong hop / retry storm; dependency timeout on a specific call edge; cross-layer path (app ↔ infra) where the <em>path</em> is the story</td></tr>
-<tr><td><strong>Localize with</strong></td><td>Multimodal corridor: metrics + logs + <strong>traces/spans</strong> + change</td></tr>
-<tr><td><strong>Logs</strong></td><td>Necessary</td></tr>
-<tr><td><strong>Traces/spans</strong></td><td><strong>Necessary for path Identify</strong></td></tr>
-<tr><td><strong>Why</strong></td><td>“Where on the request path” is a trace/span question</td></tr>
-<tr><td><strong>Product claim</strong></td><td>Path Identify requires span coverage; sampling policy matters</td></tr>
-</tbody></table>
-<h4>Class E — Outside organic RCA (~5–10% prior)</h4>
-<table><thead><tr><th></th><th></th></tr></thead><tbody>
-<tr><td><strong>Examples</strong></td><td>Pure security incident response; long-range capacity planning; human process failures</td></tr>
-<tr><td><strong>Note</strong></td><td>May use observability data, but often not the RCA engine’s job</td></tr>
-</tbody></table>
-<h3>7.3 Roll-up priors (planning only)</h3>
-<table><thead><tr><th>Claim</th><th>Prior</th></tr></thead><tbody>
-<tr><td>Localize possible <strong>without rich logs</strong> (A–B)</td><td>~<strong>45–55%</strong></td></tr>
-<tr><td>Logs <strong>materially required</strong> (C–D Identify)</td><td>~<strong>40–50%</strong></td></tr>
-<tr><td>Traces/spans <strong>required</strong> (D)</td><td>~<strong>10–20%</strong> (higher in pure microservice estates)</td></tr>
-<tr><td>Alerts + topology + metrics as <strong>minimum Detect→Localize kit</strong></td><td>~<strong>80%+</strong></td></tr>
-</tbody></table>
-<p><strong>Validate later:</strong> sample 50–100 production incidents; tag class + modalities decisive; replace bands with measured %.</p>
-<h3>7.4 How to use classes in design discussions</h3>
-<table><thead><tr><th>If someone says…</th><th>Interpret as…</th></tr></thead><tbody>
-<tr><td>“Ship A–B first”</td><td>Prove topology Localize on classic infra with metrics+topo kits</td></tr>
-<tr><td>“Class C–D gap”</td><td>Missing logs/traces (or Identify depth) for app/path incidents</td></tr>
-<tr><td>“North star is D”</td><td>Multimodal path-quality reports, not only Step-1 Localize bakeoffs</td></tr>
-<tr><td>“E is out of scope”</td><td>Don’t force the RCA engine to own security/capacity/process</td></tr>
-</tbody></table>
-<hr />
-</section><section id="s8"><h2>8. Questions each data type answers</h2>
-<table><thead><tr><th>Data type</th><th>Primary question(s)</th><th>Notes</th></tr></thead><tbody>
-<tr><td><strong>Alerts / Detect</strong></td><td><em>That</em> something is wrong — start the case</td><td>Absolute intake for automated RCA</td></tr>
-<tr><td><strong>Topology / CI graph</strong></td><td><em>Where</em> things connect — where to walk</td><td>Structure; not request-path “where”</td></tr>
-<tr><td><strong>Metrics</strong></td><td><em>What</em> is unhealthy + <em>when</em> it started</td><td>Classic Localize workhorse (A–B)</td></tr>
-<tr><td><strong>Logs / events</strong></td><td><em>What happened</em> — sometimes a line of <em>why</em></td><td>Often required for Identify (C–D)</td></tr>
-<tr><td><strong>Traces / spans</strong></td><td>Path <em>where + when</em> (request timing)</td><td>Path-level Identify (D)</td></tr>
-</tbody></table>
-<p><strong>Root-cause “why”</strong> = Localize + Identify + Verify across modalities together — no single modality owns “why.”</p>
-<hr />
-</section><section id="s9"><h2>9. Detect vs symptom seed</h2>
-<table><thead><tr><th>Term</th><th>Definition</th></tr></thead><tbody>
-<tr><td><strong>Detect</strong></td><td>Something is wrong → anomalies (thresholds / SLOs / Watchdog-class).</td></tr>
-<tr><td><strong>Symptom seed</strong></td><td>Start Localize at (CI, signal, time). <strong>Usually not the root.</strong></td></tr>
-<tr><td><strong>Shared Detect</strong></td><td>When comparing engines: <strong>one</strong> Detect path so Localize comparisons stay fair.</td></tr>
-<tr><td><strong>Gray-failure Detect</strong></td><td>Soft unhealthiness without hard thresholds — optional upgrade; not required to define the jobs.</td></tr>
-</tbody></table>
-<p><strong>Production bar:</strong> stream → Detect → seed → Localize — not only pre-baked seeds in packs.</p>
-<p><strong>Anti-pattern:</strong> treating the seed CI as the root without a topology walk (symptom bias).</p>
-<hr />
-</section><section id="s10"><h2>10. Lake lifecycle — create → maintain → curate → tailor → churn</h2>
-<p>Aligned with how vendors avoid “whole lake → RCA.” This is <strong>Clock A</strong>, with Tailor handing off to <strong>Clock B</strong>.</p>
-<h3>10.1 Create — order &amp; parallelism</h3>
-<p>Collect → Normalize → Topology → Fan-out is a <strong>contract dependency</strong>, not “finish all metrics, then invent topology.”</p>
-<pre class="flow">                    ┌── Collect ──► Normalize (entity envelope) ──┐
+                         └── sinks/builders ≈ partial lake (not DQL parity)</code></pre><p><strong>Implication:</strong> matching Vector to vendors means matching <strong>ingest discipline</strong>, not rebuilding Grail.</p><hr /><h2 id="7-scenario-classes-ae-what-class-cd-means">7. Scenario classes A–E (what “class C–D” means)</h2><h3 id="71-purpose-of-the-taxonomy">7.1 Purpose of the taxonomy</h3><p>When someone says “we need logs for class C–D,” they mean:</p><blockquote>This incident type usually <strong>cannot</strong> finish trustworthy <strong>Identify</strong> (and sometimes Localize) on alerts + metrics + topology alone — it needs richer modalities.</blockquote><p>Classes are <strong>planning priors</strong> for data requirements and product claims. They are <strong>not</strong>:</p><ul><li>ObserveOps UC-1..5 IDs</li><li>Severity levels (P1/P2)</li><li>Vendor feature names</li></ul><p>“Reliably RCA’able” below ≈ useful <strong>Step-1 Localize</strong> with high confidence; Identify called out separately.</p><h3 id="72-class-definitions-detailed">7.2 Class definitions (detailed)</h3><h4 id="class-a-classic-infra-smoking-gun-2535-prior">Class A — Classic infra smoking gun (~25–35% prior)</h4><table><tr><th></th><th></th></tr><tr><td><strong>Examples</strong></td><td>Link down / high errors on uplink; host CPU + ready time contention; datastore latency with clear shared victims</td></tr><tr><td><strong>Localize with</strong></td><td>Alerts + metrics + topology (+ light traps/events)</td></tr><tr><td><strong>Logs</strong></td><td>Often <strong>not required</strong> for Localize</td></tr><tr><td><strong>Traces</strong></td><td>Usually not</td></tr><tr><td><strong>Why it works</strong></td><td>Fault CI is on the infra graph; onset and shared-upstream pattern are enough</td></tr><tr><td><strong>Product claim</strong></td><td>Safe to say “metrics + topology Localize” for much of this class</td></tr></table><h4 id="class-b-metrics-led-thin-events-2025-prior">Class B — Metrics-led, thin events (~20–25% prior)</h4><table><tr><th></th><th></th></tr><tr><td><strong>Examples</strong></td><td>Multi-VM / multi-service metric crossings; need Δt ordering on the walk; sparse SNMP/change hints</td></tr><tr><td><strong>Localize with</strong></td><td>Alerts + metrics + topology + sparse events</td></tr><tr><td><strong>Logs</strong></td><td>Recommended (confirm / disambiguate)</td></tr><tr><td><strong>Traces</strong></td><td>Optional</td></tr><tr><td><strong>Why</strong></td><td>Still mostly metric+topo, but ambiguity rises without light events</td></tr></table><h4 id="class-c-app-dependency-gray-2535-prior-part-of-cd">Class C — App / dependency gray (~25–35% prior)  ← part of “C–D”</h4><table><tr><th></th><th></th></tr><tr><td><strong>Examples</strong></td><td>5xx bursts; latency without hard infra smoking gun; connection pool / heap exhaustion; “slow dependency” with thin infra anomalies</td></tr><tr><td><strong>Localize with</strong></td><td>Above + <strong>logs</strong> (+ change) help; may still point at an app CI</td></tr><tr><td><strong>Logs</strong></td><td><strong>Necessary for Identify</strong> (error strings, pool exhaustion, deploy markers)</td></tr><tr><td><strong>Traces</strong></td><td>Recommended</td></tr><tr><td><strong>Why</strong></td><td>Metrics show <em>pain</em>; logs often show <em>what kind</em> of failure</td></tr><tr><td><strong>Product claim</strong></td><td>Do <strong>not</strong> promise full Identify on metrics-only for this class</td></tr></table><h4 id="class-d-path-microservice-1020-prior-part-of-cd">Class D — Path / microservice (~10–20% prior)  ← part of “C–D”</h4><table><tr><th></th><th></th></tr><tr><td><strong>Examples</strong></td><td>Wrong hop / retry storm; dependency timeout on a specific call edge; cross-layer path (app ↔ infra) where the <em>path</em> is the story</td></tr><tr><td><strong>Localize with</strong></td><td>Multimodal corridor: metrics + logs + <strong>traces/spans</strong> + change</td></tr><tr><td><strong>Logs</strong></td><td>Necessary</td></tr><tr><td><strong>Traces/spans</strong></td><td><strong>Necessary for path Identify</strong></td></tr><tr><td><strong>Why</strong></td><td>“Where on the request path” is a trace/span question</td></tr><tr><td><strong>Product claim</strong></td><td>Path Identify requires span coverage; sampling policy matters</td></tr></table><h4 id="class-e-outside-organic-rca-510-prior">Class E — Outside organic RCA (~5–10% prior)</h4><table><tr><th></th><th></th></tr><tr><td><strong>Examples</strong></td><td>Pure security incident response; long-range capacity planning; human process failures</td></tr><tr><td><strong>Note</strong></td><td>May use observability data, but often not the RCA engine’s job</td></tr></table><h3 id="73-roll-up-priors-planning-only">7.3 Roll-up priors (planning only)</h3><table><tr><th>Claim</th><th>Prior</th></tr><tr><td>Localize possible <strong>without rich logs</strong> (A–B)</td><td>~<strong>45–55%</strong></td></tr><tr><td>Logs <strong>materially required</strong> (C–D Identify)</td><td>~<strong>40–50%</strong></td></tr><tr><td>Traces/spans <strong>required</strong> (D)</td><td>~<strong>10–20%</strong> (higher in pure microservice estates)</td></tr><tr><td>Alerts + topology + metrics as <strong>minimum Detect→Localize kit</strong></td><td>~<strong>80%+</strong></td></tr></table><p><strong>Validate later:</strong> sample 50–100 production incidents; tag class + modalities decisive; replace bands with measured %.</p><h3 id="74-how-to-use-classes-in-design-discussions">7.4 How to use classes in design discussions</h3><table><tr><th>If someone says…</th><th>Interpret as…</th></tr><tr><td>“Ship A–B first”</td><td>Prove topology Localize on classic infra with metrics+topo kits</td></tr><tr><td>“Class C–D gap”</td><td>Missing logs/traces (or Identify depth) for app/path incidents</td></tr><tr><td>“North star is D”</td><td>Multimodal path-quality reports, not only Step-1 Localize bakeoffs</td></tr><tr><td>“E is out of scope”</td><td>Don’t force the RCA engine to own security/capacity/process</td></tr></table><hr /><h2 id="8-questions-each-data-type-answers">8. Questions each data type answers</h2><table><tr><th>Data type</th><th>Primary question(s)</th><th>Notes</th></tr><tr><td><strong>Alerts / Detect</strong></td><td><em>That</em> something is wrong — start the case</td><td>Absolute intake for automated RCA</td></tr><tr><td><strong>Topology / CI graph</strong></td><td><em>Where</em> things connect — where to walk</td><td>Structure; not request-path “where”</td></tr><tr><td><strong>Metrics</strong></td><td><em>What</em> is unhealthy + <em>when</em> it started</td><td>Classic Localize workhorse (A–B)</td></tr><tr><td><strong>Logs / events</strong></td><td><em>What happened</em> — sometimes a line of <em>why</em></td><td>Often required for Identify (C–D)</td></tr><tr><td><strong>Traces / spans</strong></td><td>Path <em>where + when</em> (request timing)</td><td>Path-level Identify (D)</td></tr></table><p><strong>Root-cause “why”</strong> = Localize + Identify + Verify across modalities together — no single modality owns “why.”</p><hr /><h2 id="9-detect-vs-symptom-seed">9. Detect vs symptom seed</h2><table><tr><th>Term</th><th>Definition</th></tr><tr><td><strong>Detect</strong></td><td>Something is wrong → anomalies (thresholds / SLOs / Watchdog-class).</td></tr><tr><td><strong>Symptom seed</strong></td><td>Start Localize at (CI, signal, time). <strong>Usually not the root.</strong></td></tr><tr><td><strong>Shared Detect</strong></td><td>When comparing engines: <strong>one</strong> Detect path so Localize comparisons stay fair.</td></tr><tr><td><strong>Gray-failure Detect</strong></td><td>Soft unhealthiness without hard thresholds — optional upgrade; not required to define the jobs.</td></tr></table><p><strong>Production bar:</strong> stream → Detect → seed → Localize — not only pre-baked seeds in packs.</p><p><strong>Anti-pattern:</strong> treating the seed CI as the root without a topology walk (symptom bias).</p><hr /><h2 id="10-lake-lifecycle-create-maintain-curate-tailor-churn">10. Lake lifecycle — create → maintain → curate → tailor → churn</h2><p>Aligned with how vendors avoid “whole lake → RCA.” This is <strong>Clock A</strong>, with Tailor handing off to <strong>Clock B</strong>.</p><h3 id="101-create-order-parallelism">10.1 Create — order &amp; parallelism</h3><p>Collect → Normalize → Topology → Fan-out is a <strong>contract dependency</strong>, not “finish all metrics, then invent topology.”</p><pre class="flow"><code>                    ┌── Collect ──► Normalize (entity envelope) ──┐
                     │                                             ├──► Fan-out (cheap / rich)
- Topology discovery ──► CI graph ──► identity bind ───────────────┘</pre>
-<table><thead><tr><th>Step</th><th>Order role</th><th>Parallel?</th></tr></thead><tbody>
-<tr><td><strong>Collect</strong></td><td>Raw telemetry arrives</td><td>Yes — many sources</td></tr>
-<tr><td><strong>Normalize</strong></td><td>Map each event to join keys (<code>ci_id</code>, signal, <code>ts</code>, …)</td><td>Yes — per stream</td></tr>
-<tr><td><strong>Topology</strong></td><td>Sibling path; <strong>must exist</strong> for bind + Localize walk</td><td>Continuous refresh</td></tr>
-<tr><td><strong>Fan-out</strong></td><td>Cheap vs rich sinks without forking Detect</td><td>Profile choice</td></tr>
-</tbody></table>
-<p><strong>Bar:</strong> joinable by <strong>stable identity + time</strong>.</p>
-<h4>Topology granularity</h4>
-<p>Typed CI graph Localize walks (not a full CMDB dump, not a trace):</p>
-<table><thead><tr><th>Layer</th><th>Node examples</th><th>Edge examples</th><th>Used when</th></tr></thead><tbody>
-<tr><td>L1 Application / service</td><td>Service, API, consumer</td><td><code>calls</code>, <code>publishes_to</code></td><td>Microservice / app path</td></tr>
-<tr><td>L2 Runtime / workload</td><td>Pod, process, JVM</td><td><code>runs_on</code>, <code>contains</code></td><td>Deploy churn, noisy neighbor</td></tr>
-<tr><td>L3 Compute host</td><td>VM, node, bare metal</td><td><code>hosted_on</code></td><td>Classic host/CPU</td></tr>
-<tr><td>L4 Shared infra</td><td>Datastore, port, LB, NUMA</td><td><code>uses_datastore</code>, <code>uplink</code></td><td>Shared-upstream roots</td></tr>
-</tbody></table>
-<p><strong>Rules:</strong> coarse enough for stable ticket IDs; fine enough that the fault CI is a node; edges typed; refresh on deploy.</p>
-<h3>10.2 Maintain · Curate · Tailor · Churn</h3>
-<table><thead><tr><th>Phase</th><th>Practice</th></tr></thead><tbody>
-<tr><td><strong>Maintain</strong></td><td>Stable identity keys; topo freshness; hot/warm/cold; sampling; clock sync</td></tr>
-<tr><td><strong>Curate</strong></td><td>Storm → one seed; human GT; quality flags; no coaching in alerts; gold set</td></tr>
-<tr><td><strong>Tailor</strong></td><td>Seed → k-hop neighborhood → time corridor → working set → <strong>Clock B</strong></td></tr>
-<tr><td><strong>Churn</strong></td><td>Rebuild topo · retune detectors · refresh GT · rebalance cheap/rich</td></tr>
-</tbody></table>
-<table><thead><tr><th>Tailor knob</th><th>Production prior</th><th>Working-set analogue</th></tr></thead><tbody>
-<tr><td>Time corridor</td><td>Minutes–hours around onset</td><td>Incident window (not “last N days”)</td></tr>
-<tr><td>Space corridor</td><td>Seed + up/downstream + shared infra</td><td>Topology neighborhood slice</td></tr>
-<tr><td>Modality mix</td><td>A: metrics+topo; D: +logs+spans+change</td><td>Classes from <strong>§7</strong></td></tr>
-<tr><td>Format</td><td>Entity envelopes + edges</td><td>Normalized stream + incident kit</td></tr>
-</tbody></table>
-<table><thead><tr><th>Store</th><th>Role</th></tr></thead><tbody>
-<tr><td>CI / service relationship graph</td><td>Localize walk (primary)</td></tr>
-<tr><td>Metrics / events / logs / spans</td><td>Signals on entities</td></tr>
-<tr><td>“Knowledge graph”</td><td>Marketing umbrella — prefer precise terms</td></tr>
-<tr><td>Event / alert graph</td><td>BigPanda-style; secondary for topology-first Localize</td></tr>
-</tbody></table>
-<p><strong>Accuracy loop:</strong> tailored set → engines → score vs GT → gaps feed curation.</p>
-<hr />
-</section><section id="s11"><h2>11. Open questions · takeaway</h2>
-<h3>Open questions</h3>
-<ol class="compact">
-<li>1. Measured % of production incidents in classes A–E?  </li>
-<li>2. Default corridor: ±15 min vs ±2 h vs change-aware?  </li>
-<li>3. When is “no logs” an acceptable product claim (which classes)?  </li>
-<li>4. Min trace sampling for class-D Identify under cost caps?  </li>
-<li>5. How far to grow store toward Grail-like retrieval vs stay kit-centric?  </li>
-<li>6. Where to deliberately <strong>not</strong> copy Dynatrace causal vs Datadog Watchdog branding?</li>
-</ol>
-<h3>Takeaway (for the team)</h3>
-<ol class="compact">
-<li>1. <strong>Problem</strong> = joinable estate + Detect seed + scoped reasoning — not “bigger lake.”  </li>
-<li>2. <strong>Clock A</strong> = continuous ingest/lake/topo/tailor; <strong>Clock B</strong> = per-incident Detect→Localize→Identify→Verify. Don’t conflate them.  </li>
-<li>3. <strong>Federated Tier 1/2</strong> (Event Graph / Knowledge Graph) is a <strong>storage + hop</strong> split orthogonal to clocks — both tiers write on A and read on B (§3.6).  </li>
-<li>4. <strong>Class A–E</strong> = modality / difficulty buckets. <strong>Class C–D</strong> = usually need logs (and D needs traces) for Identify.  </li>
-<li>5. <strong>Grail ≠ Smartscape ≠ Vector</strong> — evidence lake vs topology map vs ingest pipeline; Davis joins map+lake via <code>entityId</code>.  </li>
-<li>6. <strong>Vendors</strong> = Detect → scope → reason on a small working set.  </li>
-<li>7. <strong>Our bet</strong> = match preprocess; win on Localize discipline, Verify honesty, multimodal Identify, optional scoped path Identify — not on rebuilding Grail.  </li>
-<li>8. §7 percentiles stay <strong>priors</strong> until ticket-sampled — do not cite externally as facts.</li>
-</ol>
-<hr />
-<p><em>Design reference / brainstorm — do not cite competitor accuracy or §7 bands externally without measurement / primary sources.</em></p></section>
-<footer>Generated from docs/RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md</footer></main></div>
-<script>
-const btn=document.getElementById('menuBtn'), toc=document.getElementById('toc');
-btn.addEventListener('click',()=>toc.classList.toggle('open'));
-toc.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toc.classList.remove('open')));
-const links=[...toc.querySelectorAll('a')];
-const sections=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
-const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(!e.isIntersecting)return;const id='#'+e.target.id;links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')===id));});},{rootMargin:'-20% 0px -65% 0px',threshold:0});
-sections.forEach(s=>io.observe(s));
-</script></body></html>
+ Topology discovery ──► CI graph ──► identity bind ───────────────┘</code></pre><table><tr><th>Step</th><th>Order role</th><th>Parallel?</th></tr><tr><td><strong>Collect</strong></td><td>Raw telemetry arrives</td><td>Yes — many sources</td></tr><tr><td><strong>Normalize</strong></td><td>Map each event to join keys (<code>ci_id</code>, signal, <code>ts</code>, …)</td><td>Yes — per stream</td></tr><tr><td><strong>Topology</strong></td><td>Sibling path; <strong>must exist</strong> for bind + Localize walk</td><td>Continuous refresh</td></tr><tr><td><strong>Fan-out</strong></td><td>Cheap vs rich sinks without forking Detect</td><td>Profile choice</td></tr></table><p><strong>Bar:</strong> joinable by <strong>stable identity + time</strong>.</p><h4 id="topology-granularity">Topology granularity</h4><p>Typed CI graph Localize walks (not a full CMDB dump, not a trace):</p><table><tr><th>Layer</th><th>Node examples</th><th>Edge examples</th><th>Used when</th></tr><tr><td>L1 Application / service</td><td>Service, API, consumer</td><td><code>calls</code>, <code>publishes_to</code></td><td>Microservice / app path</td></tr><tr><td>L2 Runtime / workload</td><td>Pod, process, JVM</td><td><code>runs_on</code>, <code>contains</code></td><td>Deploy churn, noisy neighbor</td></tr><tr><td>L3 Compute host</td><td>VM, node, bare metal</td><td><code>hosted_on</code></td><td>Classic host/CPU</td></tr><tr><td>L4 Shared infra</td><td>Datastore, port, LB, NUMA</td><td><code>uses_datastore</code>, <code>uplink</code></td><td>Shared-upstream roots</td></tr></table><p><strong>Rules:</strong> coarse enough for stable ticket IDs; fine enough that the fault CI is a node; edges typed; refresh on deploy.</p><h3 id="102-maintain-curate-tailor-churn">10.2 Maintain · Curate · Tailor · Churn</h3><table><tr><th>Phase</th><th>Practice</th></tr><tr><td><strong>Maintain</strong></td><td>Stable identity keys; topo freshness; hot/warm/cold; sampling; clock sync</td></tr><tr><td><strong>Curate</strong></td><td>Storm → one seed; human GT; quality flags; no coaching in alerts; gold set</td></tr><tr><td><strong>Tailor</strong></td><td>Seed → k-hop neighborhood → time corridor → working set → <strong>Clock B</strong></td></tr><tr><td><strong>Churn</strong></td><td>Rebuild topo · retune detectors · refresh GT · rebalance cheap/rich</td></tr></table><table><tr><th>Tailor knob</th><th>Production prior</th><th>Working-set analogue</th></tr><tr><td>Time corridor</td><td>Minutes–hours around onset</td><td>Incident window (not “last N days”)</td></tr><tr><td>Space corridor</td><td>Seed + up/downstream + shared infra</td><td>Topology neighborhood slice</td></tr><tr><td>Modality mix</td><td>A: metrics+topo; D: +logs+spans+change</td><td>Classes from <strong>§7</strong></td></tr><tr><td>Format</td><td>Entity envelopes + edges</td><td>Normalized stream + incident kit</td></tr></table><table><tr><th>Store</th><th>Role</th></tr><tr><td>CI / service relationship graph</td><td>Localize walk (primary)</td></tr><tr><td>Metrics / events / logs / spans</td><td>Signals on entities</td></tr><tr><td>“Knowledge graph”</td><td>Marketing umbrella — prefer precise terms</td></tr><tr><td>Event / alert graph</td><td>BigPanda-style; secondary for topology-first Localize</td></tr></table><p><strong>Accuracy loop:</strong> tailored set → engines → score vs GT → gaps feed curation.</p><hr /><h2 id="11-open-questions-takeaway">11. Open questions · takeaway</h2><h3 id="open-questions">Open questions</h3><ol><li>1. Measured % of production incidents in classes A–E?</li><li>2. Default corridor: ±15 min vs ±2 h vs change-aware?</li><li>3. When is “no logs” an acceptable product claim (which classes)?</li><li>4. Min trace sampling for class-D Identify under cost caps?</li><li>5. How far to grow store toward Grail-like retrieval vs stay kit-centric?</li><li>6. Where to deliberately <strong>not</strong> copy Dynatrace causal vs Datadog Watchdog branding?</li></ol><h3 id="takeaway-for-the-team">Takeaway (for the team)</h3><ol><li>1. <strong>Problem</strong> = joinable estate + Detect seed + scoped reasoning — not “bigger lake.”</li><li>2. <strong>Clock A</strong> = continuous ingest/lake/topo/tailor; <strong>Clock B</strong> = per-incident Detect→Localize→Identify→Verify. Don’t conflate them.</li><li>3. <strong>Federated Tier 1/2</strong> (Event Graph / Knowledge Graph) is a <strong>storage + hop</strong> split orthogonal to clocks — both tiers write on A and read on B (§3.6).</li><li>4. <strong>Class A–E</strong> = modality / difficulty buckets. <strong>Class C–D</strong> = usually need logs (and D needs traces) for Identify.</li><li>5. <strong>Grail ≠ Smartscape ≠ Vector</strong> — evidence lake vs topology map vs ingest pipeline; Davis joins map+lake via <code>entityId</code>.</li><li>6. <strong>Vendors</strong> = Detect → scope → reason on a small working set.</li><li>7. <strong>Our bet</strong> = match preprocess; win on Localize discipline, Verify honesty, multimodal Identify, optional scoped path Identify — not on rebuilding Grail.</li><li>8. §7 percentiles stay <strong>priors</strong> until ticket-sampled — do not cite externally as facts.</li></ol><hr /><p><em>Design reference / brainstorm — do not cite competitor accuracy or §7 bands externally without measurement / primary sources.</em></p></main></div>
+
+<script src="/doc-nav.js" defer></script>
+</body></html>

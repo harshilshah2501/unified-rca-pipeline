@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Observability Preprocessing & RCA Engine Spec</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-card: #1e293b;
+      --bg-hover: #334155;
+      --border-color: #475569;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-purple: #c084fc;
+      --accent-green: #4ade80;
+      --accent-amber: #fbbf24;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 24px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    header h1 { font-size: 1.8rem; font-weight: 700; color: var(--accent-blue); }
+    header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 4px; }
+
+    .nav-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+    .tab-btn {
+      background: none;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover { background-color: var(--bg-card); color: var(--text-main); }
+    .tab-btn.active {
+      background-color: var(--accent-blue);
+      color: #0f172a;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Interactive Blocks Grid */
+    .blocks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .block-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .block-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-blue);
+    }
+    .block-card .phase-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .phase-1-tag { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); }
+    .phase-2-tag { background: rgba(251, 191, 36, 0.2); color: var(--accent-amber); }
+    .phase-3-tag { background: rgba(74, 222, 128, 0.2); color: var(--accent-green); }
+
+    .block-card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    .block-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Modal / Detail Drawer */
+    .drawer {
+      position: fixed;
+      top: 0; right: -450px;
+      width: 420px; height: 100%;
+      background-color: var(--bg-card);
+      border-left: 1px solid var(--border-color);
+      box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+      transition: right 0.3s ease;
+      padding: 24px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+    .drawer.open { right: 0; }
+    .drawer-close {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 1.4rem; cursor: pointer; float: right;
+    }
+    .drawer h2 { font-size: 1.4rem; color: var(--accent-blue); margin-bottom: 12px; }
+    .drawer-section { margin-top: 16px; }
+    .drawer-section h4 { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .drawer-section p, .drawer-section ul { font-size: 0.9rem; }
+    .drawer-section ul { margin-left: 18px; }
+
+    /* Diagram Container */
+    .diagram-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Observability Architecture Spec</h1>
+    <p>Continuous vs. Investigation-Time Preprocessing Engine & RCA Pipeline</p>
+  </header>
+
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('diagram-tab')">Sequence Diagram</button>
+    <button class="tab-btn" onclick="switchTab('blocks-tab')">14 Building Blocks</button>
+  </div>
+
+  <!-- TAB 1: SEQUENCE DIAGRAM -->
+  <div id="diagram-tab" class="tab-content active">
+    <div class="diagram-card">
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    
+    actor Source as Telemetry Sources
+    box Continuous Preprocessing (Always-On)
+        participant Ingest as Ingestion & Deduplication
+        participant Norm as Ingest Normalization
+        participant Topology as Entity & Topology Engine
+        participant Store as Telemetry Store
+    end
+
+    box Investigation-Time Preprocessing (Triggered)
+        participant Alert as Alert Pool Buffer
+        participant Trigger as Incident Trigger
+        participant Retriever as M.E.L.T. & Topology Retriever
+        participant SignalCorr as Signal Correlation Engine
+        participant CausalCorr as Causal Correlation Engine
+        participant Builder as Evidence Package Builder
+    end
+
+    box Reasoning & RCA Layer
+        participant Davis as Reasoning Engine (Davis AI)
+        actor User as Operations / SRE
+    end
+
+    %% Phase 1
+    rect rgb(30, 41, 59)
+        Source->>Ingest: Stream Raw Telemetry (M.E.L.T)
+        Ingest->>Ingest: Deduplicate & Order Stream
+        Ingest->>Norm: Pass Deduplicated Data
+        Norm->>Norm: Canonical Mapping & Tagging
+        Norm->>Topology: Entity Relationships
+        Topology->>Topology: Resolve CIs & Update Active Graph
+        Norm->>Store: Write Normalized M.E.L.T
+        Topology->>Store: Store Topology Snapshots
+    end
+
+    %% Phase 2
+    rect rgb(45, 35, 20)
+        Store->>Alert: Baseline Evaluation
+        Alert->>Alert: Buffer & Deduplicate
+        Alert->>Trigger: High-Severity Event
+        Trigger->>Retriever: Initiate Investigation (Target CI + Time)
+        par Parallel Retrieval
+            Retriever->>Store: Fetch M.E.L.T (t_anchor ± Δt)
+            Retriever->>Store: Fetch Topology Sub-Graph
+        end
+        Store-->>Retriever: Data Chunk & Graph Slice
+        Retriever->>SignalCorr: Pass Data Chunk
+        SignalCorr->>SignalCorr: Relative Scale & Statistical Co-occurrence
+        SignalCorr-->>CausalCorr: Correlated Anomaly Groups
+        CausalCorr->>CausalCorr: DAG Traversal & Temporal Directionality
+        CausalCorr-->>Builder: Directed Causal Path
+        Builder->>Builder: Assemble Distilled Evidence Package
+    end
+
+    %% Phase 3
+    rect rgb(20, 45, 30)
+        Builder->>Davis: Hand off Evidence Package
+        Davis->>Davis: Formulate Hypotheses & Rank Causes
+        Davis->>User: Present Root Cause & Interactive Story
+    end
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: BUILDING BLOCKS -->
+  <div id="blocks-tab" class="tab-content">
+    <div class="blocks-grid" id="blocksContainer"></div>
+  </div>
+
+  <!-- DRAWER FOR BLOCK DETAILS -->
+  <div class="drawer" id="detailDrawer">
+    <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+    <span class="phase-tag" id="drawerPhase">Phase</span>
+    <h2 id="drawerTitle">Block Title</h2>
+    
+    <div class="drawer-section">
+      <h4>Purpose</h4>
+      <p id="drawerPurpose">Component purpose here...</p>
+    </div>
+    <div class="drawer-section">
+      <h4>Inputs</h4>
+      <p id="drawerInputs">Inputs here...</p>
+    </div>
+    <div class="drawer-section">
+      <h4>Outputs</h4>
+      <p id="drawerOutputs">Outputs here...</p>
+    </div>
+    <div class="drawer-section">
+      <h4>Key Algorithms & Logic</h4>
+      <p id="drawerAlgo">Algorithms here...</p>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+    const buildingBlocks = [
+      { id: 1, phase: 1, title: "1. Telemetry Collection", purpose: "Gathers raw observations from distributed environments.", inputs: "Agents (OneAgent, OTel), Cloud APIs, Logs.", outputs: "Raw Telemetry Event Streams.", algo: "Push/Pull receivers, batch flushing." },
+      { id: 2, phase: 1, title: "2. Ingestion Pipeline & Deduplication", purpose: "Ensures reliable delivery and removes redundant data.", inputs: "Raw Event Streams.", outputs: "Deduplicated, ordered stream.", algo: "Sliding window deduplication, Kafka partitioned buffering." },
+      { id: 3, phase: 1, title: "3. Event Normalization", purpose: "Standardizes schemas across heterogeneous sources.", inputs: "Deduplicated Stream.", outputs: "Canonical schema M.E.L.T objects.", algo: "Schema transformation, type mapping." },
+      { id: 4, phase: 1, title: "4. Context Enrichment", purpose: "Attaches environment metadata to signals.", inputs: "Canonical M.E.L.T objects.", outputs: "Enriched event objects.", algo: "K8s label lookup, Cloud region tagging." },
+      { id: 5, phase: 1, title: "5. Entity Resolution", purpose: "Maps observations directly to known Configuration Items.", inputs: "Enriched objects.", outputs: "Unique CI_ID / Entity_ID.", algo: "Deterministic key matching, IP/Process lookup." },
+      { id: 6, phase: 1, title: "6. Topology Builder", purpose: "Constructs live dependency graphs.", inputs: "Entity relationships, connection maps.", outputs: "Dynamic Dependency Graph.", algo: "Adjacency matrix generation, link discovery." },
+      { id: 7, phase: 1, title: "7. Graph Maintenance", purpose: "Keeps topology updated in real-time.", inputs: "State changes, pod churn events.", outputs: "Time-versioned topology snapshots.", algo: "TTL-based node expiration, differential updates." },
+      
+      { id: 8, phase: 2, title: "8. Alert Generation & Pooling", purpose: "Converts metrics to alerts and buffers active issues.", inputs: "Threshold evaluations, anomaly scores.", outputs: "Prioritized Alert Pool.", algo: "Adaptive baseline evaluation, priority queues." },
+      { id: 9, phase: 2, title: "9. Problem Query & Retrieval", purpose: "Extracts target time-slice and sub-graph slice for investigation.", inputs: "Trigger event (CI_ID + t_anchor).", outputs: "Telemetry chunk & Sub-graph slice.", algo: "Parallel spatial/temporal indexed queries." },
+      { id: 10, phase: 2, title: "10. Evidence Normalization", purpose: "Scales metrics to dimensionless relative values.", inputs: "Raw Telemetry chunk.", outputs: "z-score / percentile scaled metrics.", algo: "z-score transformation, relative deviation scaling." },
+      { id: 11, phase: 2, title: "11. Signal Correlation Engine", purpose: "Determines what changed together in time.", inputs: "Normalized telemetry chunk.", outputs: "Correlated Anomaly Groups.", algo: "Cross-correlation calculation, sliding-window time clustering." },
+      { id: 12, phase: 2, title: "12. Causal Correlation Engine", purpose: "Determines propagation path and cause.", inputs: "Correlated Anomaly Groups, Sub-graph.", outputs: "Directed Causal Path.", algo: "DAG traversal, topological sorting, temporal order evaluation." },
+      { id: 13, phase: 2, title: "13. Evidence Package Builder", purpose: "Packages deterministic findings for LLM consumption.", inputs: "Directed causal path, metrics, alerts.", outputs: "Distilled Evidence Package (JSON).", algo: "JSON schema compilation, graph pruning." },
+      
+      { id: 14, phase: 3, title: "14. Davis AI / Reasoning Engine", purpose: "Generates hypotheses and human explanations.", inputs: "Distilled Evidence Package.", outputs: "Ranked root cause & natural language narrative.", algo: "LLM contextual reasoning, hypothesis ranking." }
+    ];
+
+    function renderBlocks() {
+      const container = document.getElementById('blocksContainer');
+      container.innerHTML = buildingBlocks.map(b => `
+        <div class="block-card" onclick="openDrawer(${b.id})">
+          <span class="phase-tag phase-${b.phase}-tag">Phase ${b.phase}</span>
+          <h3>${b.title}</h3>
+          <p>${b.purpose}</p>
+        </div>
+      `).join('');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    function openDrawer(id) {
+      const b = buildingBlocks.find(x => x.id === id);
+      document.getElementById('drawerTitle').innerText = b.title;
+      document.getElementById('drawerPhase').innerText = `Phase ${b.phase}`;
+      document.getElementById('drawerPhase').className = `phase-tag phase-${b.phase}-tag`;
+      document.getElementById('drawerPurpose').innerText = b.purpose;
+      document.getElementById('drawerInputs').innerText = b.inputs;
+      document.getElementById('drawerOutputs').innerText = b.outputs;
+      document.getElementById('drawerAlgo').innerText = b.algo;
+      
+      document.getElementById('detailDrawer').classList.add('open');
+    }
+
+    function closeDrawer() {
+      document.getElementById('detailDrawer').classList.remove('open');
+    }
+
+    renderBlocks();
+  </script>
+</body>
+</html>

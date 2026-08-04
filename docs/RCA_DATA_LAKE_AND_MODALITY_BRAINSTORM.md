@@ -7,10 +7,9 @@
 
 **Also available as:**
 
-| Surface | Where |
-|---------|--------|
-| Browser HTML | [`rca-data-lake-brainstorm.html`](./rca-data-lake-brainstorm.html) · PoC console [http://127.0.0.1:8765/rca-data-lake-brainstorm.html](http://127.0.0.1:8765/rca-data-lake-brainstorm.html) |
-| Cursor canvas | [`rca-data-lake-grail-vector.canvas.tsx`](/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/rca-data-lake-grail-vector.canvas.tsx) |
+**Canvas (visual plane):** open [`clocks-tiers-orthogonality.canvas.tsx`](/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/clocks-tiers-orthogonality.canvas.tsx) beside chat — 2×2 SVG plane + A→B flow (not a markdown table).  
+**Browser HTML:** [`rca-data-lake-brainstorm.html`](./rca-data-lake-brainstorm.html) · PoC console [http://127.0.0.1:8765/rca-data-lake-brainstorm.html](http://127.0.0.1:8765/rca-data-lake-brainstorm.html)  
+**Full brainstorm canvas:** [`rca-data-lake-grail-vector.canvas.tsx`](/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/rca-data-lake-grail-vector.canvas.tsx)
 
 **Related (deeper):** [`two-step-rca-white-space.md`](./two-step-rca-white-space.md) · [`RCA_Vendor_Comparison_NOTES.md`](./RCA_Vendor_Comparison_NOTES.md) · [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) · [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`federated-pipeline/docs/ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md) · [`dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) · PDF [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf)
 
@@ -20,7 +19,7 @@
 
 1. Start with **§G Glossary** if terms like Clock A, class C–D, or CI are unfamiliar.  
 2. **§1** defines the problem; **§2** lists constraints we design against (once).  
-3. **§3** is **Clock A vs Clock B** — the most important structural idea in the doc. **§3.6** maps clocks to Federated Tier 1/2 (do not conflate).  
+3. **§3** is **Clock A vs Clock B** — the most important structural idea. **§3.2b** = step I/O; **§3.6** = Federated tiers.  
 4. **§4–§5** are how vendors and we cope; **§6** is Grail / Smartscape / Vector.  
 5. **§7** defines **scenario classes A–E** (this is what “class C–D” means).  
 6. Later sections deepen modalities, Detect/seed, and lake lifecycle.
@@ -34,7 +33,7 @@
 | **§G** | Glossary (Clock A/B, class A–E, CI, seed, Tailor, …) |
 | **§1** | Problem definition + RCA jobs |
 | **§2** | Production constraints |
-| **§3** | **Clock A and Clock B** (thorough) · **§3.6 Federated tiers** |
+| **§3** | **Clock A/B** · §3.2b step I/O · **§3.6 Federated tiers** |
 | **§4** | How competitors cope |
 | **§5** | How we solve it |
 | **§6** | Grail · Smartscape · Vector |
@@ -55,7 +54,7 @@ Terms used throughout. Bold = used constantly.
 | Term | Meaning |
 |------|---------|
 | **Clock A** | The **continuous platform / ingest / lake** timeline: collect telemetry, normalize it, keep topology fresh, store/retain, and — when an incident starts — **tailor** a small working set. Runs all the time, whether or not anyone is debugging. |
-| **Clock B** | The **per-incident diagnosis** timeline: once something is detected, **Detect → Localize → Identify → Verify** for that case. Starts and ends with an incident. |
+| **Clock B** | The **per-incident diagnosis** timeline: after Tailor, **Localize → Identify → Verify** for that case. Starts and ends with an incident. |
 | Why “clock”? | Metaphor only: two different cadences. Do **not** mix “we need a better lake” (Clock A) with “our Localize missed the root” (Clock B) in the same discussion without saying which clock you mean. |
 
 **One-line:** Clock A prepares joinable data; Clock B reasons about one fault.
@@ -63,10 +62,10 @@ Terms used throughout. Bold = used constantly.
 ```
 Clock A (always on)          Clock B (per incident)
 ─────────────────────        ────────────────────────
-Collect / Normalize          Detect → seed
-Topology / Fan-out           Localize
-Maintain / Curate            Identify
-Tailor ────────────────────► Verify
+Collect / Normalize          Localize
+Topology / Fan-out / Maintain Identify
+Detect → Curate → seed       Verify
+Tailor ────────────────────►
 ```
 
 ### G.2 RCA jobs (Clock B)
@@ -150,7 +149,7 @@ Ingest → Detect → Localize → Identify → Verify
 | Job | Plain question | Failure mode if skipped | Typical clock |
 |-----|----------------|-------------------------|---------------|
 | **Ingest** | Can we join signals by identity + time? | Orphan metrics/logs; no walk | Mostly **A** |
-| **Detect** | Is something wrong *now*, and where does pain show? | No case start / wrong seed | Starts **B** (often fed by A streams) |
+| **Detect** | Is something wrong *now*, and where does pain show? | No case start / wrong seed | **A** (opens case; Curate → seed) |
 | **Localize** | Which CI / service is the fault region? | Blame the loud symptom app | **B** |
 | **Identify** | What *kind* of failure (and optionally which path)? | “Host X bad” with no actionable class | **B** |
 | **Verify** | How strongly may we claim cause? | Marketing “causal” without evidence depth | **B** |
@@ -203,7 +202,7 @@ This section is the shared mental model for the team.
 |--|--------------------------------|------------------------|
 | **Question** | Is our estate joinable and incident-ready? | For *this* incident, where is the fault and what kind is it? |
 | **Cadence** | Continuous (seconds–minutes forever) | Sparse (when Detect fires) |
-| **Stages** | Collect · Normalize · Topology · Fan-out · Maintain · Curate · **Tailor** · Churn | **Detect** → **Localize** → **Identify** → **Verify** |
+| **Stages** | Collect · Normalize · Topology · Fan-out · Maintain · **Detect** · **Curate** · **Tailor** · Churn | **Localize** → **Identify** → **Verify** |
 | **Primary outputs** | Normalized envelopes, CI graph, sinks, incident kits | Root CI, signature, evidence, confidence language |
 | **Failure looks like** | Orphans, stale topo, cost blow-ups, un-scoped dumps | Wrong root, symptom bias, overclaiming “causal” |
 | **Who “owns” it in Dynatrace-shaped stacks** | OneAgent, Smartscape, Grail, retention/sampling | Detectors + Davis (thin) |
@@ -215,9 +214,13 @@ This section is the shared mental model for the team.
 
 ```
 CLOCK A (continuous)
-  Collect → Normalize → Topology bind → Fan-out → Maintain/Curate
+  Collect → Normalize → Topology bind → Fan-out → Maintain
                               │
                               │  Detect watches streams / stores
+                              ▼
+                         raw alerts (often a storm)
+                              │
+                              │  Curate (storm → one honest seed)
                               ▼
                          symptom seed (CI, signal, t0)
                               │
@@ -232,14 +235,179 @@ CLOCK B (this incident)
 
 **Tailor** is the bridge: still “data ops,” but **incident-triggered**. Without Tailor, Clock B either sees nothing useful or sees the whole lake (and fails §2 volume).
 
+### 3.2b Clock A step-by-step — input → process → output
+
+Read this as a **pipeline of contracts**. Some stages run **in parallel** (topology beside collect); case sequencing is **Detect → Curate → Tailor**; Tailor is **case-triggered Clock A**.
+
+```
+Continuous (always on):
+  Collect → Normalize ─┬─► Fan-out → Maintain  (stores stay healthy)
+                       │
+ Topology discovery ───┘   (CI graph + bind LUT; sibling path)
+
+Case handoff (Clock A):
+  Detect → raw alerts
+  Curate → one honest symptom seed (CI, signal, t0)
+  Tailor(seed) → incident working set → Clock B
+```
+
+#### 1. Collect
+
+| | |
+|--|--|
+| **Input** | Raw telemetry from the estate: Prometheus scrapes, syslog, traps, OTel spans/logs, agent metrics, change/deploy feeds, vendor APIs, replay files |
+| **Process** | Agents / collectors / Vector **sources** pull or receive bytes; optional light filter (drop noise, TLS terminate). **No** RCA yet |
+| **Output** | Raw (or lightly framed) events on a bus / file / Vector internal stream — still vendor-shaped, often **without** stable `ci_id` |
+
+#### 2. Normalize
+
+| | |
+|--|--|
+| **Input** | Collect output (raw / semi-raw events) |
+| **Process** | Map each event into a **joinable envelope** (our `ingest.v1`-class contract): stable fields such as `ts` (UTC), `ci_id` (or a key that *will* bind), `signal`, `value`, optional threshold / severity / modality tags. Drop or quarantine malformed rows |
+| **Output** | Normalized stream — same *meaning* across sources so later stages can join by **identity + time** |
+
+Without Normalize, Fan-out and Detect see incompatible schemas; Localize cannot hang metrics/logs on one CI.
+
+#### 3. Topology bind (CI graph + identity)
+
+**Yes — this is the relationship / dependency graph** Localize will walk (and that Tailor will slice). It is **not** a request trace.
+
+| Piece | What it is |
+|-------|------------|
+| **CI (node)** | Typed entity: service, pod, VM, host, datastore, switch port, … |
+| **Edge** | Typed relationship: `calls`, `hosted_on`, `runs_on`, `uses_datastore`, `uplink`, … |
+| **Bind LUT** | Map messy labels (IP, hostname, K8s name) → stable `ci_id` used in Normalize |
+
+| | |
+|--|--|
+| **Input** | Discovery / CMDB / service-map crawler cues (and optionally call-edge hints from APM); parallel to Collect, not “after all metrics arrive” |
+| **Process** | Build/refresh the **typed CI graph**; publish bind table so Normalize can resolve `ci_id`; mark edges with direction useful for upstream/downstream walks |
+| **Output** | Snapshot graph (`topology.json` / `A-TOPO` / Smartscape analogue) + bind LUT consumed by Normalize and later Tailor/Localize |
+
+**Granularity reminder:** coarse enough for stable ticket IDs; fine enough that the true fault CI is a **node**; refresh on deploy/discovery.
+
+#### 4. Fan-out — what it means
+
+**Fan-out = write the *same* normalized stream to one or more sinks/profiles without forking Detect.**
+
+It is **not** “split the RCA algorithm.” It is **cost / consumer routing**:
+
+| Profile (example) | What gets written | Why |
+|-------------------|-------------------|-----|
+| **Cheap (L0)** | Lean-oriented incident bundles / metric slices needed for classic Localize | Lower store + query cost |
+| **Rich (F1)** | + structural / speed-tier feeds (Fed Dragonfly `tg:`/`pc:`, KG slice, richer modalities) | Enable Murphy/Nezha / class C–D depth when paid for |
+
+| | |
+|--|--|
+| **Input** | Normalized envelopes (+ topology available for bind) |
+| **Process** | Vector (or Python stand-in) **routes** events to configured sinks — file, Dragonfly, structural store, Lean bundle writer. Same Detect watches the shared logical stream |
+| **Output** | Populated stores / bundles ready for Maintain and Detect; **one** Detect path remains shared for fair engine compare |
+
+#### 5. Maintain — how it works
+
+**Maintain = keep the estate usable over time** (lifecycle), continuous.
+
+| Concern | What happens |
+|---------|----------------|
+| **Identity** | Prefer service/host keys over ephemeral pod names when pods churn |
+| **Topology freshness** | Rebuild/patch graph on discovery/deploy; stale edges → wrong walks |
+| **Retention tiers** | Hot (recent incident windows) / warm / cold; drop or downsample what Tailor will never need |
+| **Sampling** | Traces/logs: keep decisive coverage under cost caps |
+| **Clock sync** | Shared time base so “onset” across modalities is comparable |
+
+| | |
+|--|--|
+| **Input** | Fan-out sinks + live topology updates |
+| **Process** | TTL, compaction, resample, re-index, re-crawl; ops policies — mostly automated |
+| **Output** | Healthy hot/warm stores + fresh graph that Detect/Tailor can query |
+
+#### 6. Detect (watches streams/stores) — opens the case
+
+Detect sits on the **boundary**: feeds on Clock A data; **opens the case** (raw alerts still need Curate).
+
+| | |
+|--|--|
+| **Input** | Normalized metrics/events (and optionally LOS / baselines) from Maintain’d stores or live streams |
+| **Process** | Thresholds / SLOs / Watchdog-class / (optional) Panorama gray-failure: mark “crossed” anomalies; emit **raw alerts** (often several per real incident) |
+| **Output** | Raw alert storm — usually **not** yet one honest seed |
+
+```
+alert examples (one incident):  orders-api latency · orders-api errors · db pool depth …
+```
+
+#### 7. Curate — storm → one honest seed
+
+**Curate = quality and labeling discipline** (not the same as Maintain). On the live path it sits **on Detect’s raw output**.
+
+| Concern | What happens |
+|---------|----------------|
+| **Storm control** | Many alerts → one logical case / one primary seed |
+| **Human GT** | Labeled kits for scoring; never auto-invent GT |
+| **Quality flags** | Mark missing topo / traces / logs so reports stay honest |
+| **No coaching** | Keep root/GT text **out** of alert bodies |
+| **Gold set** | Held-out multimodal incidents for Identify / report quality |
+
+| | |
+|--|--|
+| **Input** | Detect’s raw alerts + historical incidents + human labels |
+| **Process** | Dedup/correlate storms; attach quality metadata; GT workflow |
+| **Output** | **One honest symptom seed** `(ci_id, signal, t0)` + scorable packs / explicit gaps |
+
+```
+seed example:  orders-api , request.p95_latency_ms , 2026-07-28T07:19:30Z
+```
+
+#### 8. Tailor — cut the incident working set
+
+**Tailor is case-triggered Clock A.** Input is the **seed** plus the maintained lake/graph; output is everything Clock B is allowed to see.
+
+| Knob | Meaning | Typical process |
+|------|---------|-----------------|
+| **Neighborhood / k-hop** | CIs within *k* edges of the seed (and often **shared-upstream** infra: host, datastore, uplink) | Graph walk/BFS on topology from `seed.ci_id`; include typed up/downstream |
+| **Time corridor** | Window around onset: `[t0 − pre, t0 + post]` | Query stores only in that window — **not** “last 7 days of the lake” |
+| **Modality mix** | Which data types to pull (class A–D) | A–B: metrics (+ thin events); C: +logs/change; D: +traces/spans |
+| **Working set / kit** | Seed + neighborhood + corridor + modalities | Pack files / query results / F1 slices handed to engines |
+
+| | |
+|--|--|
+| **Input** | Symptom seed + CI graph + Maintain’d stores (+ Curate flags) |
+| **Process** | Expand k-hop neighborhood → pull modalities in time corridor → assemble pack; drop entities/times outside the cut |
+| **Output** | **Incident working set** → **Clock B** (Localize → Identify → Verify) |
+
+```
+Incident working set =
+    seed
+  + neighborhood (k-hop / shared-upstream slice of CI graph)
+  + time corridor [t0 − pre, t0 + post]
+  + modalities (metrics, and logs/traces/change as class requires)
+```
+
+**Your guess is right:** neighborhood + time corridor + modality pull **are** the Tailor cut; that cut **is** the input to Clock B.
+
+#### Compact I/O chain
+
+| Step | In | Out |
+|------|----|-----|
+| Collect | Raw sources | Raw streams |
+| Normalize | Raw streams | Entity envelopes (`ci_id`, signal, `ts`, …) |
+| Topology bind | Discovery | CI **relationship/dependency graph** + bind LUT |
+| Fan-out | Envelopes | Cheap and/or rich **sinks** (same Detect) |
+| Maintain | Sinks + graph | Fresh, retained, sampled stores |
+| Detect | Streams/stores | Raw alert storm |
+| Curate | Raw alerts + humans | **One honest seed**, quality flags, GT |
+| Tailor | Seed + graph + stores | **Working set** → Clock B |
+
 ### 3.3 What belongs on which clock (examples)
+
 
 | Discussion | Clock | Example |
 |------------|-------|---------|
 | “Vector remaps Prometheus → entity envelope” | **A** | Collect + Normalize |
 | “topology.json missing datastore edge” | **A** | Topology |
 | “L0 vs F1 sinks cost too much” | **A** | Fan-out / Maintain |
-| “threshold Detect never fired” | **B** (fed by A) | Detect |
+| “threshold Detect never fired” | **A** (opens the case) | Detect |
+| “storm never became one seed” | **A** | Curate |
 | “engine blamed checkout-api; root was datastore” | **B** | Localize |
 | “we need stack traces for pool exhaustion” | **B** + class **C** | Identify modalities |
 | “UI said ‘root cause proven’ on weak evidence” | **B** | Verify |
@@ -277,8 +445,8 @@ People often map Clock A/B onto Federated’s two graph tiers. The intuition is 
 
 **Clock A / Clock B** ≈ **workflow / job cadence**, not another storage layer:
 
-- **Clock A** — continuous platform work: collect → normalize → topo → fan-out → maintain → curate → tailor (preprocess + lake ops)  
-- **Clock B** — per-incident RCA: Detect → Localize → Identify → Verify  
+- **Clock A** — continuous platform work + case bridge: collect → normalize → topo → fan-out → maintain → **Detect → Curate → Tailor**  
+- **Clock B** — per-incident RCA algorithms: **Localize → Identify → Verify** 
 
 Together, A then B (with **Tailor** as the bridge) is the end-to-end story. The clocks **use** the tiers; they aren’t the same kind of split.
 
@@ -289,6 +457,64 @@ Clock axis →  A: write/maintain both continuously
 ```
 
 **Bottom line:** tiers = data-plane layout; clocks = when work runs and which RCA/preprocess jobs run on that data. **Orthogonal, intersecting.**
+
+#### Visual: orthogonality + relationship
+
+Think of a **plane**, not a line. Horizontal = **where** (tiers). Vertical = **when / which job** (clocks). Each cell is a real write or read.
+
+```
+                        TIER AXIS (where data lives)
+                        ─────────────────────────────────────────────►
+                        Tier 1 Event Graph              Tier 2 Knowledge Graph
+                        Dragonfly  tg: / pc:            Vortex CSR + DashMap LOS
+                        “what / when” (paths)           “who / why” (topology)
+                   ┌────────────────────────────┬────────────────────────────┐
+     C             │                            │                            │
+     L   Clock A   │  WRITE high-EPS            │  WRITE / UPDATE            │
+     O   continuous│  traces → tg: timelines    │  CI edges → CSR            │
+     C   platform  │  patterns → pc: counts     │  properties / LOS → DashMap│
+     K             │                            │                            │
+                   ├────────────────────────────┼────────────────────────────┤
+     A             │                            │                            │
+     X   Clock B   │  READ  Nezha               │  READ  Panorama (Detect)   │
+     I   per       │  (path Identify /          │  READ  Murphy (Localize)   │
+     S   incident  │   micro-localize)          │                            │
+                   │                            │                            │
+                   └────────────────────────────┴────────────────────────────┘
+     │
+     ▼  when / which job
+```
+
+**How to read it**
+
+| Look at… | Means… |
+|----------|--------|
+| A **column** | One store; used on *both* clocks |
+| A **row** | One job cadence; may touch *both* stores |
+| A **cell** | Concrete operation (write or read) |
+| The **whole grid** | Why “Clock A = Tier 1” is wrong — A fills *both* columns; B reads *both* (different hops) |
+
+**Relationship (arrows), not identity:**
+
+```
+                    ┌──────────── Clock A (continuous) ────────────┐
+                    │                                              │
+   sources ──► normalize ──┬──► Tier 1 writes (tg:/pc:)            │
+                           └──► Tier 2 writes (CSR / LOS)          │
+                    │                                              │
+                    │         Detect → seed                        │
+                    │              │                               │
+                    │         Tailor (scope working set)           │
+                    └──────────────┼───────────────────────────────┘
+                                   ▼
+                    ┌──────────── Clock B (this incident) ─────────┐
+                    │  Panorama/Murphy ◄── Tier 2                  │
+                    │  Nezha           ◄── Tier 1                  │
+                    │  fuse / Verify                               │
+                    └──────────────────────────────────────────────┘
+```
+
+**Lean on the same clocks (no Fed dual tier):** Clock A still exists (kits + `topology.json`); Clock B is the typed CI walk — one “structural” column, no Event Graph column required for classic UC Localize.
 
 **Docs:** [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md).  
 **Honesty:** Vortex/DashMap/NATS-Rust at 1B EPS is **design vision**; PoC today uses in-memory structural + optional Dragonfly/Redis speed tier.
