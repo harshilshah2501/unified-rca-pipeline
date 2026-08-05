@@ -16,7 +16,7 @@ OpenObserve peer / Option B metrics are **out of scope** for this PoC console (D
 
 **Walkthrough:** [`../../docs/POC_DEMO_GUIDE.md`](../../docs/POC_DEMO_GUIDE.md)
 
-**Hosted docs hub:** [`http://127.0.0.1:8765/docs.html`](http://127.0.0.1:8765/docs.html) · Comparable DT vs DD: [`/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html)
+**Hosted docs hub:** [`http://127.0.0.1:8765/docs.html`](http://127.0.0.1:8765/docs.html) · Comparable DT vs DD: [`/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) · Fed vs DT gaps: [`/federated-vs-dt-pipeline-gaps.html`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html)
 
 ## Serve (control plane)
 

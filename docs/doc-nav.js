@@ -8,6 +8,7 @@
     { href: "/comparable-pipeline-dt-dd.html", label: "DT vs DD" },
     { href: "/dynatrace-production-pipeline.html", label: "DT pipeline" },
     { href: "/eleven-subsystem-mechanisms.html", label: "DT mechanisms" },
+    { href: "/federated-vs-dt-pipeline-gaps.html", label: "Fed vs DT gaps" },
     { href: "/datadog-production-pipeline.html", label: "DD pipeline" },
     { href: "/datadog-subsystem-mechanisms.html", label: "DD mechanisms" },
     { href: "/datadog-lab-evidence-2026-08-04.html", label: "DD lab evidence" },

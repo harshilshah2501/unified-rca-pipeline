@@ -19,6 +19,7 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) | Fault-type buckets vs Dynatrace/Datadog (coverage gaps) |
 | [`VENDOR_BENCHMARKS.md`](./VENDOR_BENCHMARKS.md) | Datadog/Dynatrace: no public RCA scoreboard; our GT contract |
 | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | Dynatrace Clock A unveil (OneAgent / Smartscape / Grail) · [HTML](./dynatrace-production-pipeline.html) |
+| [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) | Gap map: Federated Part 1 vs DT 5+3+3 · [HTML](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html) |
 | [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | Same-scenario Dynatrace vs Datadog (P-26084) · [HTML](./comparable-pipeline-dt-dd.html) |
 | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | Datadog-native unveil (Agent / M·T·L / Monitors+Watchdog) · [HTML](./datadog-production-pipeline.html) · [mechanisms](./datadog-subsystem-mechanisms.html) · [evidence](./datadog-tenant-evidence-2026-08-03.md) |
 | [`rca-use-cases-only.md`](./rca-use-cases-only.md) | Sole evaluation corpus spec (ObserveOps UC-1..UC-5; UC-3b + events schema specified) |

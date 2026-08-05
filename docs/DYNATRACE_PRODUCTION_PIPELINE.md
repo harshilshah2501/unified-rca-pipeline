@@ -133,12 +133,25 @@ Same stages as a contract table. Dynatrace product names are in the map above; t
 | **Normalize** | Raw streams | Map to joinable envelope: `ci_id`, signal, `ts`, value… | Normalized stream |
 | **Topology bind** | Discovery / CMDB / service map | Build CI relationship/dependency graph (nodes + typed edges) + bind LUT (hostname→`ci_id`) | Graph + bind table |
 | **Fan-out** | Normalized envelopes | Parallel write to map + lake (Dynatrace: Smartscape ∥ Grail) — **not** a second Detect; **not** Lean/Fed | Populated stores |
-| **Maintain** | Sinks + graph | Retention, sampling, topo freshness, clock sync | Usable hot/warm lake |
+| **Maintain** | Sinks + graph | Keep Smartscape edges fresh + Grail rows accumulating (lab timeline below) | Usable map + lake for Detect/Davis |
 | **Detect** | Streams/stores | Thresholds / anomalies — noisy by design | Raw alert storm |
 | **Curate** | Detect’s raw alerts + humans | Storm→one seed, GT, quality flags, no coaching | One honest seed `(CI, signal, t0)` |
 | **Tailor** | Seed + graph + stores | Cut space/time/modality | Working set → Clock B |
 
 **Dynatrace reading of Fan-out / Maintain:** parallel write is **Smartscape ∥ Grail** — but **not twin dumps**. Topology bind **reads/stamps** identity (`entityId`; auto-create may add a node). Fan-out then writes **different facets** of the same stream: Smartscape **relationship/property upserts** and Grail **evidence** (metrics/traces/logs/events). Lean/Fed and L0/F1 are **out of scope** on this unveil; the mechanisms page phase 3 is **Davis** (walk → Grail rank → Problem), not Lean/Fed.
+
+#### Maintain as one checkout timeline (lab)
+
+Maintain is **not** “split a timeseries into shaded vs pulse.” It is housekeeping while the inventory fault story runs. Animated: [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) (Maintain step).
+
+| Beat | Smartscape (same graph as Topology) | Grail |
+|------|--------------------------------------|-------|
+| ① Healthy `07:25` | HOST-A/B · `FE→API→INV` (+ PAY, BATCH, DB) live | `SERVICE-INV /stock 200`, low error_rate |
+| ② Fault `07:40–07:52` | **Same shape** — INV highlighted on checkout path | Rows **accumulate**: INV `500`, `error_rate 0.92`, API cascade |
+| ③ Problem `07:52` | Davis **walks this same map** | Davis **pulls** INV rows → **P-26084**, `rootCauseEntity=inventory` |
+| ④ Cleared `07:53` | Topology unchanged | New INV `/stock 200` — Problem can close |
+
+Maintain does **not** pick the root cause and does **not** build a different map than Topology. It only keeps that Smartscape fresh while Grail fills.
 
 ### Lab stages 0–5 ↔ Clock A
 
@@ -271,6 +284,48 @@ All four can sit in the same Collect bag. They only become comparable after Norm
 | **Output** | **Events** — e.g. `SERVICE_ERROR_RATE_INCREASED`, `PROCESS_RESTART` — keyed by entity + time. **Event ≠ Problem** |
 
 **Observed (lab):** inventory fault → nearby service error-rate Events before Problem packaging.
+
+#### Phase 2 teaching timeline (Detect → Curate → Tailor)
+
+Animated: [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) · Phase 2 Case opens. **Event ≠ Problem.**
+
+```text
+Grail series (Maintain’d)
+  → Detect  → raw Events (per entity)
+  → Curate  → one case seed
+  → Tailor  → working set {entities[], timeRange}
+  → Phase 3 Davis → Problem P-26084
+```
+
+**Detect — how Events are raised**
+
+| Order | Teaching Event | entityId | Why |
+|-------|----------------|----------|-----|
+| 1 | `SERVICE_ERROR_RATE_INCREASED` | `SERVICE-INV` | leaf 5xx / `failed_call` series breaches threshold |
+| 2 | same class | `SERVICE-API` | cascade caller — **its own** detector |
+| 3 | same class | `SERVICE-FE` | edge symptom — **its own** detector |
+| (noise) | e.g. `PROCESS_CPU_HIGH` | `SERVICE-BATCH` | co-timed; **no** checkout `calls` edge |
+
+Detectors score **entity-keyed Grail series** asynchronously. One breach → one Event. Cascade is many Events, not one fused alert.
+
+**Curate — correlate / group (inferred)**
+
+| Beat | What happens |
+|------|----------------|
+| Storm in | INV + API + FE (+ BATCH noise) Events |
+| Group | Merge by **time proximity** + **Smartscape neighborhood** on FE→API→INV |
+| Drop noise | BATCH out / weak (no checkout edge) |
+| Seed out | `(entityId≈SERVICE-INV, t0≈07:52)` for Tailor — **not yet** `rootCauseEntity` |
+
+**Tailor — space + time cut**
+
+| Cut | Teaching result |
+|-----|-----------------|
+| Space | Same Smartscape as Topology; expand from seed → `{FE, API, INV, DB}`; dim PAY / BATCH |
+| Time | Corridor around t0 ≈ `[07:40, 07:52]` |
+| Out | Working set → Phase 3 Localize / Identify / Package |
+
+Tailor does **not** rank the root. It scopes what Davis may read.
 
 ### 3.7 Davis → Problems (curate + localize package)
 

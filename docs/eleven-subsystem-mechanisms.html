@@ -129,6 +129,35 @@
   .dcard li{margin:2px 0;}
   .dcard .warn{color:var(--lean);}
   .dcard .ok{color:var(--ok);}
+  .dcard.beat-active{
+    border-color:rgba(123,168,247,.55);
+    background:rgba(123,168,247,.1);
+    box-shadow:inset 3px 0 0 var(--clockA);
+  }
+  .dcard.beat-active h3{color:var(--clockA);}
+  .dcard[data-beat]{cursor:pointer;}
+  .dcard[data-beat]:hover{border-color:#3a4558;}
+  .beat-nav{
+    display:none;align-items:center;gap:8px;flex-wrap:wrap;
+    margin:10px 0 4px;padding:8px 10px;border-radius:8px;
+    background:var(--panel-2);border:1px solid var(--line);
+  }
+  .beat-nav.show{display:flex;}
+  .beat-nav .beat-label{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);
+    margin-right:4px;
+  }
+  .beat-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+  .beat-chip{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;
+    padding:7px 12px;border-radius:6px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);cursor:pointer;
+  }
+  .beat-chip.active{
+    color:var(--clockA);border-color:rgba(123,168,247,.55);
+    background:rgba(123,168,247,.12);
+  }
+  .beat-nav .beat-step{padding:7px 12px;font-size:12px;}
   @media (max-width:720px){
     .detail-cards,.detail-cards.two,.detail-cards.four{grid-template-columns:1fr;}
   }
@@ -177,6 +206,12 @@
     </div>
     <div class="blurb" id="stageBlurb"></div>
     <canvas id="cv" width="860" height="230"></canvas>
+    <div class="beat-nav" id="beatNav" aria-label="Checkout story beats">
+      <span class="beat-label">Checkout story</span>
+      <button type="button" class="beat-step" id="beatPrev" title="Previous beat">←</button>
+      <div class="beat-chips" id="beatChips"></div>
+      <button type="button" class="beat-step" id="beatNext" title="Next beat">→</button>
+    </div>
     <div class="detail-cards" id="detailCards"></div>
     <div class="foot">
       <button type="button" id="prevBtn">← Prev</button>
@@ -563,163 +598,402 @@ function sceneFanout(ctx,W,H,p){
 }
 
 function sceneMaintain(ctx,W,H,p){
-  /* Keep map + lake usable — Dynatrace fabric, not Lean/Fed TTL myth */
-  label(ctx,14,16,'Maintain — keep Smartscape fresh + Grail usable',COL.clockA,13);
-  label(ctx,14,34,'Retention / sampling / indexing · continuous topo updates (matched TTL teaching)',COL.muted,11);
-
-  const retentionPx=400;
-  const tracks=[
-    {y:90,color:COL.clockA,label:'Smartscape — entity / edge freshness pulse'},
-    {y:190,color:COL.clockB,label:'Grail — hot/warm evidence (entityId + time) · shared TTL policy'}
+  /* Same Smartscape as Topology (Walkthrough B). Maintain only refreshes it
+     while Grail rows accumulate for the checkout fault story. */
+  const phase = (typeof stageBeat === 'number') ? stageBeat : 0;
+  const titles=[
+    '① Healthy — same Smartscape as Topology · Grail has OK rows',
+    '② Fault on — map unchanged (INV hot) · Grail fills with INV 500s',
+    '③ Davis walks THIS map + pulls Grail → Problem P-26084',
+    '④ Fault cleared — same topology · recovery rows in Grail'
   ];
-  tracks.forEach(tr=>{
-    roundRect(ctx,30,tr.y-22,800,44,8);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.line;ctx.stroke();
-    label(ctx,40,tr.y-32,tr.label,tr.color,12);
-    const boundaryX=820-retentionPx;
-    ctx.save();ctx.globalAlpha=0.16;ctx.fillStyle=tr.color;
-    roundRect(ctx,Math.max(boundaryX,30),tr.y-22,820-Math.max(boundaryX,30),44,8);ctx.fill();ctx.restore();
-    drawEdge(ctx,boundaryX,tr.y-26,boundaryX,tr.y+22,tr.color,0.9,2);
+  const clocks=['07:25','07:40→07:52','07:52','07:53'];
 
-    const N=26;
-    for(let i=0;i<N;i++){
-      const off=i/N;
-      const t=(p*3+off)%1;
-      const x=lerp(820,40,t);
-      if(x<boundaryX-4) continue;
-      const a = x<boundaryX+14 ? (x-(boundaryX-4))/18 : 1;
-      ctx.save();ctx.globalAlpha=clamp01(a);ctx.fillStyle=tr.color;
-      ctx.fillRect(x-1,tr.y-14,2,28);
-      ctx.restore();
-    }
+  label(ctx,14,14,'MAINTAIN — same Smartscape as 03 Topology (not a different map)',COL.clockA,13);
+  label(ctx,14,32,titles[phase],COL.muted,11);
+  roundRect(ctx,720,12,126,28,6);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.clockAd;ctx.stroke();
+  label(ctx,783,26,'t = '+clocks[phase],COL.clockAd,12,'center');
+  label(ctx,14,52,'Checkout path FE→API→INV highlighted · PAY healthy · BATCH no calls edge',COL.muted,10);
+
+  const y0=68;
+  // ── Smartscape = same layout as Topology CI Graph ──
+  roundRect(ctx,14,y0,400,200,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.clockA;ctx.stroke();
+  label(ctx,24,y0+16,'SMARTSCAPE (same as Topology)',COL.clockA,12);
+  label(ctx,24,y0+32,'calls + runsOn · refreshed here, not rebuilt',COL.muted,10);
+
+  const hostY=y0+44;
+  roundRect(ctx,28,hostY,372,112,6);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.line;ctx.stroke();
+  label(ctx,38,hostY+14,'HOST-A',COL.muted,10);
+  label(ctx,220,hostY+14,'HOST-B',COL.muted,10);
+  // containment hint
+  label(ctx,38,hostY+28,'runsOn ↓',COL.muted,9);
+  label(ctx,220,hostY+28,'runsOn ↓',COL.muted,9);
+
+  const invHot = phase===1 || phase===2;
+  const services=[
+    {id:'FE',x:55,y:hostY+78,c:COL.clockAd},
+    {id:'API',x:115,y:hostY+78,c:COL.clockA},
+    {id:'PAY',x:175,y:hostY+52,c:COL.ok},
+    {id:'INV',x:260,y:hostY+78,c:invHot?COL.seed:COL.clockA},
+    {id:'DB',x:330,y:hostY+78,c:COL.clockB},
+    {id:'BATCH',x:300,y:hostY+44,c:COL.lean}
+  ];
+  // calls edges — checkout path brighter when fault/problem
+  const pathGlow = invHot ? 1 : 0.75;
+  [['FE','API'],['API','INV'],['INV','DB'],['API','PAY']].forEach(([a,b])=>{
+    const A=services.find(s=>s.id===a), B=services.find(s=>s.id===b);
+    const onPath = (a==='FE'&&b==='API')||(a==='API'&&b==='INV');
+    const col = b==='PAY'?COL.ok:(onPath&&invHot?COL.seed:COL.clockA);
+    const w = onPath ? 2.2 : 1.3;
+    drawEdge(ctx,A.x+(a==='API'&&b==='PAY'?8:12),A.y+(b==='PAY'?-6:0),B.x-12,B.y+(b==='PAY'?-4:0),col,pathGlow,w);
   });
-  const pulse = (p*2)%1;
-  if(pulse<0.15){
-    ctx.save();ctx.globalAlpha=(0.15-pulse)/0.15*0.5;
-    ctx.strokeStyle=COL.clockA;ctx.lineWidth=2;
-    ctx.strokeRect(30,48,800,210);
+  services.forEach(s=>{
+    const dim = s.id==='BATCH' ? 0.5 : 1;
+    const hot = s.id==='INV' && invHot;
+    ctx.save();ctx.globalAlpha=dim;
+    if(hot){
+      ctx.beginPath();ctx.arc(s.x,s.y,14,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,107,107,.2)';ctx.fill();
+    }
+    drawNode(ctx,s.x,s.y,s.id==='BATCH'?6:9,s.c,1);
+    label(ctx,s.x,s.y+18,s.id,s.c,10,'center');
     ctx.restore();
+  });
+  // runsOn ticks (containment) host → services
+  drawEdge(ctx,70,hostY+34,55,hostY+68,COL.line,0.35,1);
+  drawEdge(ctx,70,hostY+34,115,hostY+68,COL.line,0.35,1);
+  drawEdge(ctx,70,hostY+34,175,hostY+48,COL.line,0.35,1);
+  drawEdge(ctx,250,hostY+34,260,hostY+68,COL.line,0.35,1);
+  drawEdge(ctx,250,hostY+34,330,hostY+68,COL.line,0.35,1);
+  drawEdge(ctx,250,hostY+34,300,hostY+50,COL.line,0.35,1);
+
+  const seen = phase===0?'07:25':(phase===3?'07:53':'07:52');
+  label(ctx,24,y0+186,'lastSeen refreshed · '+seen+(invHot?' · INV hot on checkout path':''),invHot?COL.seed:COL.muted,10);
+
+  // ── Grail panel ──
+  roundRect(ctx,430,y0,416,200,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.clockB;ctx.stroke();
+  label(ctx,440,y0+16,'GRAIL (evidence) — fills over time',COL.clockB,12);
+  label(ctx,440,y0+32,'same entityIds as Smartscape nodes',COL.muted,10);
+
+  label(ctx,448,y0+54,'entityId',COL.muted,10);
+  label(ctx,560,y0+54,'ts',COL.muted,10);
+  label(ctx,630,y0+54,'what',COL.muted,10);
+  drawEdge(ctx,440,y0+62,830,y0+62,COL.line,0.7,1);
+
+  const allRows=[
+    {e:'SERVICE-INV',ts:'07:25',w:'/stock 200',tone:COL.ok,from:0},
+    {e:'SERVICE-INV',ts:'07:40',w:'/stock 500',tone:COL.seed,from:1},
+    {e:'SERVICE-INV',ts:'07:45',w:'error_rate 0.92',tone:COL.seed,from:1},
+    {e:'SERVICE-API',ts:'07:45',w:'span 500 (cascade)',tone:COL.muted,from:1},
+    {e:'SERVICE-INV',ts:'07:52',w:'/stock 500',tone:COL.seed,from:1},
+    {e:'SERVICE-INV',ts:'07:53',w:'/stock 200',tone:COL.ok,from:3}
+  ];
+  let shown;
+  if(phase===0) shown=allRows.filter(r=>r.from===0);
+  else if(phase===1){
+    if(stageManual){
+      shown=allRows.filter(r=>r.from<=1);
+    } else {
+      const sub=(p-0.22)/(0.55-0.22);
+      const n=1+Math.floor(clamp01(sub)*4);
+      shown=allRows.filter(r=>r.from<=1).slice(0,Math.min(1+n,5));
+    }
+  } else if(phase===2) shown=allRows.filter(r=>r.from<=1);
+  else shown=allRows;
+
+  shown.forEach((r,i)=>{
+    const y=y0+76+i*18;
+    if(phase===2 && r.e==='SERVICE-INV' && r.ts>='07:40' && r.ts<='07:52'){
+      roundRect(ctx,440,y-8,400,16,3);ctx.fillStyle='rgba(95,224,176,.12)';ctx.fill();
+    }
+    label(ctx,448,y,r.e,COL.text,10);
+    label(ctx,560,y,r.ts,COL.muted,10);
+    label(ctx,630,y,r.w,r.tone,10);
+  });
+
+  const yB=y0+214;
+  roundRect(ctx,14,yB,832,56,8);ctx.fillStyle='#12151C';ctx.fill();
+  ctx.strokeStyle=phase===2?COL.ok:COL.line;ctx.stroke();
+  if(phase===0){
+    label(ctx,24,yB+20,'Same map as Topology. Maintain only keeps lastSeen fresh + Grail current.',COL.muted,11);
+    label(ctx,24,yB+40,'Smartscape: FE→API→INV (+ PAY, BATCH, DB)   ·   Grail: INV 200',COL.text,11);
+  } else if(phase===1){
+    label(ctx,24,yB+20,'Map shape unchanged — only INV highlighted. Grail rows accumulate under SERVICE-INV.',COL.seed,11);
+    label(ctx,24,yB+40,'That is “Grail fills” — new evidence rows, not a new topology.',COL.text,11);
+  } else if(phase===2){
+    label(ctx,24,yB+20,'FINAL: P-26084 · rootCauseEntity = inventory (SERVICE-INV)',COL.ok,12);
+    label(ctx,24,yB+40,'Davis walked FE→API→INV on this same Smartscape + pulled highlighted Grail rows.',COL.text,11);
+  } else {
+    label(ctx,24,yB+20,'Fault cleared — topology still the Topology graph. New Grail INV 200.',COL.ok,11);
+    label(ctx,24,yB+40,'Problem can close when INV error_rate is healthy again.',COL.text,11);
   }
-  label(ctx,430,H-18,'shaded = still retained · pulse = topo / index refresh',COL.muted,11,'center');
+
+  label(ctx,430,H-14,'Topology builds/binds the map · Maintain keeps that same map + lake usable',COL.muted,10,'center');
 }
 
-function sceneCurate(ctx,W,H,p){
-  const cx=420,cy=110;
-  const t=p%1;
-  label(ctx,14,20,"Detect's raw alerts (one incident) → one honest seed",COL.muted,9.5);
-  const stormEnd=0.35, mergeEnd=0.65;
-  const N=4;
-  if(t<stormEnd){
-    const a=smooth(t/stormEnd);
-    for(let i=0;i<N;i++){
-      const ang=(i/N)*Math.PI*2;
-      const r=60*a;
-      drawNode(ctx,cx+Math.cos(ang)*r,cy+Math.sin(ang)*r,4,COL.seed,a*0.85);
+function drawSmartscapeMini(ctx,x,y,w,h,opts){
+  /* Shared Walkthrough B graph used by Topology / Maintain / Tailor / Curate */
+  opts=opts||{};
+  const seed=opts.seed||null; // 'INV' etc
+  const hot=opts.hot||{};     // id -> bool
+  const inSet=opts.inSet||null; // Set of ids in working set; null = all full
+  const dimOut=opts.dimOut!==false;
+  roundRect(ctx,x,y,w,h,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=opts.stroke||COL.clockA;ctx.stroke();
+  if(opts.title) label(ctx,x+10,y+16,opts.title,opts.stroke||COL.clockA,11);
+  if(opts.sub) label(ctx,x+10,y+32,opts.sub,COL.muted,9);
+  const hostY=y+(opts.title?44:12);
+  roundRect(ctx,x+10,hostY,w-20,h-(opts.title?56:24),6);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.line;ctx.stroke();
+  label(ctx,x+20,hostY+12,'HOST-A',COL.muted,9);
+  label(ctx,x+w/2+10,hostY+12,'HOST-B',COL.muted,9);
+  const services=[
+    {id:'FE',x:x+40,y:hostY+70,c:COL.clockAd},
+    {id:'API',x:x+95,y:hostY+70,c:COL.clockA},
+    {id:'PAY',x:x+150,y:hostY+48,c:COL.ok},
+    {id:'INV',x:x+230,y:hostY+70,c:COL.seed},
+    {id:'DB',x:x+300,y:hostY+70,c:COL.clockB},
+    {id:'BATCH',x:x+270,y:hostY+42,c:COL.lean}
+  ];
+  [['FE','API'],['API','INV'],['INV','DB'],['API','PAY']].forEach(([a,b])=>{
+    const A=services.find(s=>s.id===a), B=services.find(s=>s.id===b);
+    const onPath=(a==='FE'&&b==='API')||(a==='API'&&b==='INV');
+    drawEdge(ctx,A.x+10,A.y+(b==='PAY'?-4:0),B.x-10,B.y+(b==='PAY'?-4:0),b==='PAY'?COL.ok:(onPath?COL.clockA:COL.line),0.75,onPath?1.8:1.2);
+  });
+  services.forEach(s=>{
+    const included = !inSet || inSet.has(s.id);
+    const isHot = !!hot[s.id] || s.id===seed;
+    const a = included ? 1 : (dimOut ? 0.28 : 1);
+    ctx.save();ctx.globalAlpha=a;
+    if(isHot && included){
+      ctx.beginPath();ctx.arc(s.x,s.y,13,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,107,107,.22)';ctx.fill();
     }
-  } else if(t<mergeEnd){
-    const a=smooth((t-stormEnd)/(mergeEnd-stormEnd));
-    for(let i=0;i<N;i++){
-      const ang=(i/N)*Math.PI*2;
-      const r=lerp(60,0,a);
-      drawNode(ctx,cx+Math.cos(ang)*r,cy+Math.sin(ang)*r,4,COL.seed,(1-a)*0.85);
-    }
-    drawNode(ctx,cx,cy,10,COL.seed,a);
-  } else {
-    const hold=(t-mergeEnd)/(1-mergeEnd);
-    drawNode(ctx,cx,cy,10,COL.seed,1);
-    ctx.save();ctx.globalAlpha=0.5+0.3*Math.sin(hold*Math.PI*6);
-    ctx.strokeStyle=COL.seed;ctx.beginPath();ctx.arc(cx,cy,14+hold*4,0,Math.PI*2);ctx.stroke();
+    drawNode(ctx,s.x,s.y,s.id==='BATCH'?5:8, isHot&&included?COL.seed:s.c,1);
+    label(ctx,s.x,s.y+16,s.id,isHot&&included?COL.seed:s.c,9,'center');
     ctx.restore();
-    label(ctx,cx,cy+28,'seed candidate',COL.seed,9.5,'center');
-
-    ctx.save();ctx.globalAlpha=smooth(hold);
-    ctx.strokeStyle=COL.muted;ctx.setLineDash([3,3]);
-    ctx.beginPath();ctx.moveTo(cx+20,cy);ctx.lineTo(cx+140,cy-40);ctx.stroke();
-    ctx.restore();
-    drawChip(ctx,cx+160,cy-40,50,22,'#171B24',smooth(hold),'GT: db-3',COL.ok);
-    label(ctx,cx+160,cy-56,'tracked separately',COL.muted,8.5,'center');
-  }
+  });
 }
 
 function sceneDetect(ctx,W,H,p){
-  const metrics=[
-    {name:'latency',y:44,phase:0},
-    {name:'error rate',y:88,phase:0.035},
-    {name:'queue depth',y:132,phase:0.07},
-    {name:'CPU',y:176,phase:0.105},
+  /* Grail series → per-entity Events. Lab: INV then API then FE. Event ≠ Problem. */
+  const beat = (typeof stageBeat === 'number') ? stageBeat : 0;
+  const titles=[
+    '① Watch — each service’s error_rate series watched vs its threshold',
+    '② Breach — INV crosses threshold → first Event object',
+    '③ Cascade — API then FE each open their own Event (not one fused alert)',
+    '④ Storm — raw Event list; still no Problem card'
   ];
-  const threshOffset=-24;
-  label(ctx,14,16,'correlated metrics, cascading breaches — not simultaneous',COL.muted,9.5);
+  label(ctx,14,14,'DETECT — how detectors raise Events (checkout lab)',COL.clockA,13);
+  label(ctx,14,32,titles[beat],COL.muted,11);
+  roundRect(ctx,700,12,146,28,6);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.seed;ctx.stroke();
+  label(ctx,773,26,'Event ≠ Problem',COL.seed,11,'center');
 
-  let firstBreachP=null, lastBreachP=null;
+  // Left: Grail series gauges
+  roundRect(ctx,14,48,400,250,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.clockB;ctx.stroke();
+  label(ctx,24,66,'GRAIL series (input to detectors)',COL.clockB,12);
+  label(ctx,24,84,'entityId + signal + time · each series scored on its own',COL.muted,10);
 
-  metrics.forEach((m,mi)=>{
-    ctx.save();ctx.strokeStyle=COL.muted;ctx.setLineDash([3,3]);
-    ctx.beginPath();ctx.moveTo(20,m.y+threshOffset);ctx.lineTo(840,m.y+threshOffset);ctx.stroke();ctx.restore();
-    label(ctx,845,m.y,m.name,COL.muted,8.5,'left');
+  const series=[
+    {id:'SERVICE-INV', signal:'error_rate', y:110, healthy:0.02, fault:0.92, order:0},
+    {id:'SERVICE-API', signal:'error_rate', y:170, healthy:0.01, fault:0.78, order:1},
+    {id:'SERVICE-FE', signal:'error_rate', y:230, healthy:0.01, fault:0.71, order:2}
+  ];
+  // threshold once in legend area — not on every row (avoid overlap on “error_rate”)
+  const thrX=28+360*0.3;
+  series.forEach((s,i)=>{
+    let val=s.healthy;
+    if(beat===1) val = i===0 ? s.fault : s.healthy;
+    else if(beat===2) val = i===0 ? s.fault : (i===1 ? s.fault : 0.45);
+    else if(beat>=3) val = s.fault;
 
-    const N=110;
-    ctx.beginPath();
-    for(let i=0;i<N;i++){
-      const xT=i/N;
-      const localP=(p - (1-xT)*1 + m.phase)%1;
-      const wave = Math.sin(localP*40+mi*1.7)*6 + Math.sin(localP*5)*5;
-      const spike = (localP>0.86 && localP<0.95) ? -34*smooth((localP-0.86)/0.05)*(1-smooth((localP-0.90)/0.05)) : 0;
-      const y = m.y + wave + spike;
-      const x = 20+xT*760;
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    label(ctx,28,s.y-8,s.id,COL.text,11);
+    label(ctx,200,s.y-8,s.signal,COL.muted,10);
+    // bar track
+    roundRect(ctx,28,s.y+4,360,16,4);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.line;ctx.stroke();
+    drawEdge(ctx,thrX,s.y+2,thrX,s.y+22,COL.lean,0.85,1.5);
+    const barW=Math.max(4,360*val);
+    roundRect(ctx,28,s.y+4,barW,16,4);
+    ctx.fillStyle=val>0.3?COL.seed:COL.ok;ctx.fill();
+    label(ctx,400,s.y+12,val.toFixed(2),val>0.3?COL.seed:COL.ok,10,'right');
+  });
+  label(ctx,28,280,'gold line = threshold (teaching 0.30) · bar = current error_rate',COL.muted,10);
+
+  // Right: Event objects
+  roundRect(ctx,430,48,416,250,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.seed;ctx.stroke();
+  label(ctx,440,66,'EVENTS out (one breach → one Event)',COL.seed,12);
+  label(ctx,440,84,'type · entityId · ts · value',COL.muted,10);
+
+  const events=[
+    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-INV', ts:'07:48', v:'0.92', from:1},
+    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-API', ts:'07:49', v:'0.78', from:2},
+    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-FE', ts:'07:50', v:'0.71', from:3},
+    {type:'PROCESS_CPU_HIGH', e:'SERVICE-BATCH', ts:'07:50', v:'0.81', from:3, noise:true}
+  ];
+  let shown;
+  if(beat===0) shown=[];
+  else if(beat===1) shown=events.filter(ev=>ev.from===1);
+  else if(beat===2) shown=events.filter(ev=>ev.from<=2 && !ev.noise);
+  else shown=events;
+
+  if(shown.length===0){
+    label(ctx,440,140,'No Event yet — series below threshold',COL.muted,12);
+    label(ctx,440,164,'Detectors keep watching Grail…',COL.muted,11);
+  } else {
+    shown.forEach((ev,i)=>{
+      const y=108+i*44;
+      roundRect(ctx,440,y-14,396,40,5);
+      ctx.fillStyle=ev.noise?'rgba(240,179,90,.08)':'rgba(255,107,107,.1)';ctx.fill();
+      ctx.strokeStyle=ev.noise?COL.lean:COL.seed;ctx.stroke();
+      label(ctx,450,y-2,ev.type,ev.noise?COL.lean:COL.seed,10);
+      label(ctx,450,y+14,ev.e+'  ts='+ev.ts+'  '+ev.v+(ev.noise?'  (noise)':''),COL.text,10);
+    });
+  }
+
+  // bottom strip
+  roundRect(ctx,14,312,832,48,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.line;ctx.stroke();
+  if(beat===0){
+    label(ctx,24,332,'Detectors read Maintain’d Grail. No breach → no Event → no case yet.',COL.muted,11);
+  } else if(beat===1){
+    label(ctx,24,332,'First Event is INV — leaf failure. Upstream not merged yet (that is Curate).',COL.seed,11);
+  } else if(beat===2){
+    label(ctx,24,332,'Cascade = many independent Events as callers fail. Still not one “alert” and not a Problem.',COL.seed,11);
+  } else {
+    label(ctx,24,332,'Raw storm includes BATCH noise. Next: Curate merges by time + topology → one seed.',COL.text,11);
+  }
+  label(ctx,430,H-14,'Detect = Events from Grail breaches · does not package rootCauseEntity',COL.muted,10,'center');
+}
+
+function sceneCurate(ctx,W,H,p){
+  /* Storm of Events → merge by time + Smartscape neighborhood → one seed for Tailor */
+  const beat = (typeof stageBeat === 'number') ? stageBeat : 0;
+  const titles=[
+    '① Storm in — Detect’s raw Events (INV, API, FE + BATCH noise)',
+    '② Group — merge by time proximity + Smartscape neighborhood (inferred)',
+    '③ Drop noise — BATCH has no checkout calls edge → weak / out',
+    '④ Seed out — one case seed for Tailor (not yet Problem rootCauseEntity)'
+  ];
+  label(ctx,14,14,'CURATE — correlate Events → one honest case seed',COL.clockA,13);
+  label(ctx,14,32,titles[beat],COL.muted,11);
+
+  // Left: event storm / groups
+  roundRect(ctx,14,52,400,240,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.seed;ctx.stroke();
+  label(ctx,24,70,'Event storm',COL.seed,12);
+
+  const storm=[
+    {e:'SERVICE-INV', role:'leaf', keep:true},
+    {e:'SERVICE-API', role:'caller', keep:true},
+    {e:'SERVICE-FE', role:'edge', keep:true},
+    {e:'SERVICE-BATCH', role:'noise', keep:false}
+  ];
+  storm.forEach((s,i)=>{
+    const y=98+i*42;
+    let alpha=1, stroke=COL.seed, fill='rgba(255,107,107,.1)';
+    if(beat>=2 && !s.keep){
+      alpha=beat>=3?0.25:0.45; stroke=COL.lean; fill='rgba(240,179,90,.08)';
     }
-    ctx.strokeStyle=COL.clockA;ctx.lineWidth=1.3;ctx.stroke();
-
-    // this metric's own breach state right now (xT=1, i.e. "now")
-    const nowLocalP=(p+m.phase)%1;
-    const inBreach = nowLocalP>0.90 && nowLocalP<0.97;
-    if(inBreach){
-      const a=smooth((nowLocalP-0.90)/0.035)*(nowLocalP<0.935?1:1-smooth((nowLocalP-0.935)/0.035));
-      drawNode(ctx,800,m.y+threshOffset,4.5,COL.seed,a);
-      if(firstBreachP===null) firstBreachP=nowLocalP;
-      lastBreachP=nowLocalP;
+    if(beat>=3 && s.keep){
+      // converging toward seed
+      fill='rgba(95,224,176,.12)'; stroke=COL.ok;
     }
+    ctx.save();ctx.globalAlpha=alpha;
+    roundRect(ctx,28,y-12,370,34,5);ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.stroke();
+    label(ctx,40,y,s.e+'  ·  ERROR_RATE_INCREASED',COL.text,11);
+    label(ctx,360,y,s.role,COL.muted,10,'right');
+    ctx.restore();
   });
 
-  if(firstBreachP!==null){
-    label(ctx,420,215,'root cause → cascade of raw alerts over ~'+Math.round((metrics[metrics.length-1].phase)*4200)+'ms, not one instant',COL.seed,9.5,'center');
+  // Right: merge logic + seed
+  roundRect(ctx,430,52,416,240,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.clockA;ctx.stroke();
+  label(ctx,440,70,'Merge rules (teaching / inferred)',COL.clockA,12);
+  label(ctx,440,92,'1. Same time window (~minutes)',COL.muted,11);
+  label(ctx,440,112,'2. Smartscape neighbors on calls path',COL.muted,11);
+  label(ctx,440,132,'3. Prefer leaf / deepest failure as seed tip',COL.muted,11);
+
+  drawSmartscapeMini(ctx,448,150,380,120,{
+    title:'neighborhood check',
+    sub:'FE→API→INV keep · BATCH dim',
+    seed: beat>=3 ? 'INV' : null,
+    hot: beat>=2 ? {INV:true,API:true,FE:true} : {},
+    inSet: beat>=2 ? new Set(['FE','API','INV','DB','PAY']) : null,
+    stroke:COL.clockA
+  });
+
+  roundRect(ctx,14,306,832,54,8);ctx.fillStyle='#12151C';ctx.fill();
+  ctx.strokeStyle=beat===3?COL.ok:COL.line;ctx.stroke();
+  if(beat<3){
+    label(ctx,24,326,'Curate does not invent rootCauseEntity yet — it collapses the storm.',COL.muted,11);
+    label(ctx,24,344,'Causal rank of INV vs API is Phase 3 Identify / Package.',COL.text,11);
+  } else {
+    label(ctx,24,326,'SEED → entityId=SERVICE-INV  ·  t0≈07:52  ·  related={FE,API,INV}',COL.ok,12);
+    label(ctx,24,344,'Handoff to Tailor: cut space + time around this seed (still not P-26084).',COL.text,11);
   }
+  label(ctx,430,H-14,'Curate = storm → one case seed · Problem packaging is later',COL.muted,10,'center');
 }
 
 function sceneTailor(ctx,W,H,p){
-  const off={x:0,y:-6};
-  const scaled = n=>({x:n.x, y:n.y*0.75+20});
-  const seed=scaled(GRAPH.nodes[0]);
-  const rT=smooth(clamp01((p%1)/0.5));
-  const radius=lerp(0,150,rT);
+  /* Same Smartscape · space cut + time corridor · working set for Phase 3 */
+  const beat = (typeof stageBeat === 'number') ? stageBeat : 0;
+  const titles=[
+    '① Seed in — from Curate: SERVICE-INV @ t0≈07:52',
+    '② Space cut — expand Smartscape neighborhood (calls + runsOn)',
+    '③ Time cut — corridor around t0 (teaching 07:40–07:52)',
+    '④ Working set out — entities[] ∩ timeRange → Phase 3 Davis'
+  ];
+  label(ctx,14,14,'TAILOR — case-triggered scope (not whole-lake diagnosis)',COL.clockA,13);
+  label(ctx,14,32,titles[beat],COL.muted,11);
 
-  ctx.save();ctx.globalAlpha=0.15;ctx.fillStyle=COL.clockB;
-  ctx.beginPath();ctx.arc(seed.x,seed.y,radius,0,Math.PI*2);ctx.fill();ctx.restore();
-  ctx.save();ctx.globalAlpha=0.5;ctx.strokeStyle=COL.clockB;
-  ctx.beginPath();ctx.arc(seed.x,seed.y,radius,0,Math.PI*2);ctx.stroke();ctx.restore();
+  const inSet = beat===0 ? new Set(['INV'])
+    : beat===1 ? new Set(['FE','API','INV','DB'])
+    : new Set(['FE','API','INV','DB']); // PAY/BATCH out of checkout working set
 
-  GRAPH.edges.forEach(([a,b])=>{
-    const na=scaled(GRAPH.nodes[a]), nb=scaled(GRAPH.nodes[b]);
-    drawEdge(ctx,na.x,na.y,nb.x,nb.y,COL.line,1,1);
+  drawSmartscapeMini(ctx,14,52,420,210,{
+    title:'SPACE cut — same Smartscape as Topology',
+    sub: beat===0 ? 'seed only' : 'expand FE←API←INV→DB · dim PAY/BATCH',
+    seed:'INV',
+    hot:{INV:true},
+    inSet: beat>=1 ? inSet : new Set(['INV']),
+    stroke:COL.clockB
   });
-  GRAPH.nodes.forEach((n,i)=>{
-    const s=scaled(n);
-    const d=Math.hypot(s.x-seed.x,s.y-seed.y);
-    const inRange=d<=radius+2;
-    drawNode(ctx,s.x,s.y,i===0?8:6, i===0?COL.seed:(inRange?COL.clockB:COL.gray), i===0?1:(inRange?1:0.35));
-  });
-  label(ctx,14,16,'space cut: bounded k-hop neighborhood',COL.muted,9.5);
 
-  // time corridor strip
-  const stripY=210, stripX0=40, stripX1=820;
-  drawEdge(ctx,stripX0,stripY,stripX1,stripY,COL.line,1,1.5);
-  const t0x=(stripX0+stripX1)/2;
-  drawNode(ctx,t0x,stripY,4,COL.seed,1);
-  const winW=lerp(0,160,rT);
-  ctx.save();ctx.globalAlpha=0.5;ctx.strokeStyle=COL.clockB;ctx.setLineDash([3,3]);
-  ctx.strokeRect(t0x-winW,stripY-10,winW*2,20);ctx.restore();
-  label(ctx,t0x,stripY-16,'t\u2080',COL.seed,9,'center');
-  label(ctx,14,205,'time cut: [t\u2080\u2212pre, t\u2080+post]',COL.muted,9.5);
+  // Time corridor panel
+  roundRect(ctx,450,52,396,210,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.clockB;ctx.stroke();
+  label(ctx,460,70,'TIME cut — corridor around t0',COL.clockB,12);
+  label(ctx,460,90,'teaching window ≈ [07:40, 07:52]',COL.muted,10);
+
+  const stripY=140, x0=470, x1=820;
+  drawEdge(ctx,x0,stripY,x1,stripY,COL.line,1,2);
+  // full timeline labels
+  label(ctx,x0,stripY+24,'07:25',COL.muted,9);
+  label(ctx,x1,stripY+24,'07:53',COL.muted,9,'right');
+  const t0x=(x0+x1)/2;
+  drawNode(ctx,t0x,stripY,5,COL.seed,1);
+  label(ctx,t0x,stripY-14,'t0',COL.seed,11,'center');
+
+  if(beat>=2){
+    // corridor
+    const c0=x0+40, c1=x1-30;
+    ctx.save();ctx.globalAlpha=0.2;ctx.fillStyle=COL.clockB;
+    ctx.fillRect(c0,stripY-18,c1-c0,36);ctx.restore();
+    ctx.save();ctx.strokeStyle=COL.clockB;ctx.setLineDash([4,3]);
+    ctx.strokeRect(c0,stripY-18,c1-c0,36);ctx.restore();
+    label(ctx,(c0+c1)/2,stripY+48,'[t0−pre , t0+post]',COL.clockB,11,'center');
+  } else {
+    label(ctx,t0x,stripY+48,'corridor not cut yet',COL.muted,10,'center');
+  }
+
+  label(ctx,460,200,'Modalities in cut: metrics · traces · logs',COL.muted,10);
+  label(ctx,460,220,'(DQL read later in Identify — Tailor defines scope)',COL.muted,10);
+
+  roundRect(ctx,14,278,832,72,8);ctx.fillStyle='#12151C';ctx.fill();
+  ctx.strokeStyle=beat===3?COL.ok:COL.line;ctx.stroke();
+  if(beat<3){
+    label(ctx,24,300,'Tailor does not rank root cause. It builds the working set.',COL.muted,11);
+    label(ctx,24,322,'Space = Smartscape neighbors · Time = corridor · then Phase 3 Localize / Identify / Package',COL.text,11);
+  } else {
+    label(ctx,24,298,'WORKING SET',COL.ok,12);
+    label(ctx,24,318,'entities = {SERVICE-FE, SERVICE-API, SERVICE-INV, SERVICE-DB}',COL.text,11);
+    label(ctx,24,336,'timeRange = [07:40, 07:52]  →  handoff to Davis Localize / Identify → P-26084',COL.text,11);
+  }
+  label(ctx,430,H-14,'Tailor = space ∩ time cut · whole-lake scan is out of scope',COL.muted,10,'center');
 }
 
 function sceneLocalize(ctx,W,H,p){
@@ -839,21 +1113,21 @@ const STAGES={
     blurb:'After bind, SERVICE-INV is one Smartscape node and one Grail key. Fan-out upserts map edges/props and writes INV’s failed span + error% + pool log under that same id — parallel facets, not lake→map refresh.',
     legend:'∥ = map upserts + lake evidence · bind ≠ Fan-out',
     draw:sceneFanout},
-  maintain:{key:'maintain',name:'Maintain',short:'Maintain',tag:'A',phase:0,loop:5000,
-    blurb:'Keep the fabric usable: Smartscape freshness + Grail retention/sampling/indexing. Matched TTL for teaching clarity.',
-    legend:'shaded = retained · pulse = topo / index refresh',
+  maintain:{key:'maintain',name:'Maintain',short:'Maintain',tag:'A',phase:0,loop:12000,tall:true,xtall:true,
+    blurb:'Same Smartscape as Topology (HOST-A/B, FE→API→INV…). Maintain refreshes that map and lets Grail rows accumulate through the fault — it does not build a different graph. Detect/Davis read these stores → P-26084.',
+    legend:'Use beat ← → below canvas · active card highlights · auto-plays unless you step manually',
     draw:sceneMaintain},
-  detect:{key:'detect',name:'Detect',short:'Detect',tag:'A',phase:1,loop:4200,
-    blurb:'Detectors on Grail series open Events. One root often trips several correlated metrics — each breach is its own Event. Event ≠ Problem.',
-    legend:'dashed lines = thresholds · right-edge dots = live breach status',
+  detect:{key:'detect',name:'Detect',short:'Detect',tag:'A',phase:1,loop:12000,tall:true,xtall:true,
+    blurb:'Detectors score each service’s Grail error_rate on its own. INV breach → Event; later API and FE each get their own Event (cascade ≠ one alert). Event ≠ Problem — packaging is Curate→Tailor→Davis.',
+    legend:'Use Detect story ← → · Watch → Breach → Cascade → Storm',
     draw:sceneDetect},
-  curate:{key:'curate',name:'Curate',short:'Curate',tag:'A',phase:1,loop:5200,
-    blurb:"Davis merges nearby Events into one Problem narrative / primary seed story. Sequencing: Detect → Curate → Tailor.",
-    legend:"raw Events → merge → seed for neighborhood cut",
+  curate:{key:'curate',name:'Curate',short:'Curate',tag:'A',phase:1,loop:12000,tall:true,xtall:true,
+    blurb:'Merge Detect’s Event storm by time + Smartscape neighborhood (inferred). Keep FE/API/INV; drop BATCH noise. Output one case seed for Tailor — not yet rootCauseEntity.',
+    legend:'Use Curate story ← → · Storm → Group → Drop noise → Seed',
     draw:sceneCurate},
-  tailor:{key:'tailor',name:'Tailor',short:'Tailor',tag:'A',phase:1,loop:4000,
-    blurb:'Case-triggered: expand Smartscape neighborhood (space) and pull a time corridor around t₀ — working set for Davis, not whole-lake diagnosis.',
-    legend:'circle = space cut · bracket = time cut',
+  tailor:{key:'tailor',name:'Tailor',short:'Tailor',tag:'A',phase:1,loop:12000,tall:true,xtall:true,
+    blurb:'Case-triggered scope: same Smartscape as Topology — expand space from seed, cut time corridor (~07:40–07:52). Working set → Phase 3 Davis. Not whole-lake diagnosis.',
+    legend:'Use Tailor story ← → · Seed → Space → Time → Working set',
     draw:sceneTailor},
   localize:{key:'localize',name:'Localize',short:'Localize',tag:'B',phase:2,loop:4200,
     blurb:'Davis (inferred): walk Smartscape from seed (e.g. SERVICE-INV) — FE←API←INV→DB; skip BATCH (no calls edge) and note PAY as healthy sibling.',
@@ -871,7 +1145,7 @@ const STAGES={
 
 const PHASES=[
   {id:'fabric',title:'Always-on fabric',hint:'Phase 1',intro:'<strong>Continuous write path — no incident yet.</strong> Collect → Normalize → Topology (LUT stamp + graph) → Fan-out (<strong>Smartscape upserts ∥ Grail evidence</strong>) → Maintain. Bind stamps identity; Fan-out writes different facets.'},
-  {id:'case',title:'Case opens',hint:'Phase 2',intro:'<strong>Something crossed a line.</strong> Detect writes Events → Curate merges toward one seed → Tailor cuts Smartscape neighborhood + time window.'},
+  {id:'case',title:'Case opens',hint:'Phase 2',intro:'<strong>Something crossed a line on Grail series.</strong> <b>Detect</b> raises per-entity Events (INV→API→FE) · <b>Curate</b> merges the storm to one seed (drop BATCH noise) · <b>Tailor</b> cuts space+time on the same Smartscape → working set for Davis. Event ≠ Problem.'},
   {id:'diagnose',title:'Davis diagnose',hint:'Phase 3',intro:'<strong>Dynatrace only.</strong> Localize (Smartscape walk) → Identify (Grail evidence + rank) → Package (Problem). No Lean / Federated branch on this page.'},
 ];
 
@@ -894,6 +1168,99 @@ const stageBlurb=document.getElementById('stageBlurb');
 const stageLegend=document.getElementById('stageLegend');
 const detailCards=document.getElementById('detailCards');
 const replayBtn=document.getElementById('replayBtn');
+const beatNav=document.getElementById('beatNav');
+const beatChips=document.getElementById('beatChips');
+const beatPrev=document.getElementById('beatPrev');
+const beatNext=document.getElementById('beatNext');
+
+const STAGE_BEATS={
+  maintain:[
+    {short:'① Healthy'},
+    {short:'② Fault fills'},
+    {short:'③ Problem'},
+    {short:'④ Cleared'}
+  ],
+  detect:[
+    {short:'① Watch'},
+    {short:'② Breach'},
+    {short:'③ Cascade'},
+    {short:'④ Storm'}
+  ],
+  curate:[
+    {short:'① Storm in'},
+    {short:'② Group'},
+    {short:'③ Drop noise'},
+    {short:'④ Seed out'}
+  ],
+  tailor:[
+    {short:'① Seed in'},
+    {short:'② Space cut'},
+    {short:'③ Time cut'},
+    {short:'④ Working set'}
+  ]
+};
+let stageBeat=0;
+let stageManual=false;
+// aliases for older Maintain scene references
+let maintainBeat=0, maintainManual=false;
+
+function currentBeats(){ return STAGE_BEATS[activeKey]||null; }
+function autoBeatFromProgress(key,p){
+  const beats=STAGE_BEATS[key];
+  if(!beats||!beats.length) return 0;
+  if(key==='maintain') return p<0.22?0 : p<0.55?1 : p<0.78?2 : 3;
+  const n=beats.length;
+  return Math.min(n-1, Math.floor(p*n*0.999));
+}
+function setStageBeat(i, manual){
+  const beats=currentBeats();
+  if(!beats) return;
+  const next=Math.max(0, Math.min(beats.length-1, i|0));
+  const changed = next!==stageBeat || !!manual!==stageManual;
+  stageBeat=next;
+  maintainBeat=next;
+  if(manual){ stageManual=true; maintainManual=true; }
+  if(changed || manual) syncStageBeatUI();
+}
+function setMaintainBeat(i, manual){ setStageBeat(i, manual); }
+function syncStageBeatUI(){
+  if(!beatNav) return;
+  const beats=currentBeats();
+  const on=!!beats;
+  beatNav.classList.toggle('show', on);
+  if(!on) return;
+  const label=beatNav.querySelector('.beat-label');
+  if(label){
+    label.textContent = activeKey==='maintain'?'Checkout story'
+      : activeKey==='detect'?'Detect story'
+      : activeKey==='curate'?'Curate story'
+      : activeKey==='tailor'?'Tailor story'
+      : 'Story';
+  }
+  Array.from(beatChips.querySelectorAll('.beat-chip')).forEach((el,i)=>{
+    el.classList.toggle('active', i===stageBeat);
+  });
+  Array.from(detailCards.querySelectorAll('.dcard[data-beat]')).forEach(el=>{
+    el.classList.toggle('beat-active', Number(el.dataset.beat)===stageBeat);
+  });
+  if(beatPrev) beatPrev.disabled = stageBeat<=0;
+  if(beatNext) beatNext.disabled = stageBeat>=beats.length-1;
+}
+function syncMaintainBeatUI(){ syncStageBeatUI(); }
+function renderBeatNav(){
+  const beats=currentBeats();
+  beatChips.innerHTML='';
+  if(!beats){ syncStageBeatUI(); return; }
+  beats.forEach((b,i)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='beat-chip'+(i===stageBeat?' active':'');
+    btn.textContent=b.short;
+    btn.addEventListener('click',()=>{ stopPlay(); setStageBeat(i, true); });
+    beatChips.appendChild(btn);
+  });
+  syncStageBeatUI();
+}
 
 const DETAIL={
   collect:{
@@ -925,6 +1292,42 @@ const DETAIL={
     cards:[
       {h:'Smartscape write',b:'Upsert edges/props for the pin — e.g. node <code>SERVICE-INV</code> already on HOST-B; refresh <code>API--calls-->INV</code>. Map for later walks — not DQL.', tone:'a'},
       {h:'Grail write',b:'Same pin as lake key: <code>entityId=SERVICE-INV</code> holds t3 500 span + error% 0.92 + pool ERROR. BATCH cpu is <code>SERVICE-BATCH</code> — separate id.', tone:'b'}
+    ]
+  },
+  maintain:{
+    cls:'four',
+    cards:[
+      {h:'① Healthy 07:25',b:'<strong>Same Smartscape as Topology</strong> (HOST-A/B · FE/API/PAY · INV/BATCH/DB). Grail: <code>SERVICE-INV /stock 200</code>. Maintain only refreshes <code>lastSeen</code>.'},
+      {h:'② Fault 07:40–07:52',b:'Map <em>shape</em> unchanged — INV highlighted on checkout path <code>FE→API→INV</code>. <strong>Grail fills</strong>: new rows (INV 500s, error_rate, API cascade).'},
+      {h:'③ Problem 07:52',b:'Davis walks <strong>this same</strong> Smartscape to INV and pulls INV Grail rows → <code>P-26084</code>, <code>rootCauseEntity=inventory</code>.'},
+      {h:'④ Cleared 07:53',b:'Still the Topology graph. New Grail <code>INV /stock 200</code> after we clear <code>inventory.fail</code>. Problem can close.'}
+    ]
+  },
+  detect:{
+    cls:'four',
+    cards:[
+      {h:'① Watch',b:'Each service has its own Grail series (e.g. <code>SERVICE-INV error_rate</code>). Detectors compare that series to a threshold — not one global score for the whole checkout.'},
+      {h:'② Breach',b:'INV crosses threshold → Event <code>{type:SERVICE_ERROR_RATE_INCREASED, entityId:SERVICE-INV, ts, value}</code>. One breach, one Event.'},
+      {h:'③ Cascade',b:'Callers fail next: API then FE each cross <em>their</em> threshold → more Events. That chain of failures is the <strong>cascade</strong>; it is <strong>not</strong> one fused alert.'},
+      {h:'④ Storm',b:'Raw Event list (may include BATCH noise). Still <strong>not</strong> a Problem. Curate merges; Davis packages <code>P-26084</code> later.'}
+    ]
+  },
+  curate:{
+    cls:'four',
+    cards:[
+      {h:'① Storm in',b:'Input = Detect Events: INV + API + FE error-rate (+ optional BATCH CPU).'},
+      {h:'② Group',b:'Merge by <strong>time proximity</strong> + <strong>Smartscape neighborhood</strong> on the checkout <code>calls</code> path (inferred Davis merge).'},
+      {h:'③ Drop noise',b:'BATCH is co-timed but has <strong>no checkout calls edge</strong> → weak/out of the case group.'},
+      {h:'④ Seed out',b:'One seed <code>(SERVICE-INV, t0≈07:52)</code> for Tailor. Still <strong>not</strong> <code>rootCauseEntity</code> on a Problem card.'}
+    ]
+  },
+  tailor:{
+    cls:'four',
+    cards:[
+      {h:'① Seed in',b:'From Curate: start at <code>SERVICE-INV</code> / <code>t0≈07:52</code>.'},
+      {h:'② Space cut',b:'Expand <strong>same Smartscape as Topology</strong>: FE←API←INV→DB. Dim PAY (healthy) and BATCH (no edge).'},
+      {h:'③ Time cut',b:'Corridor around t0 — teaching <code>[07:40, 07:52]</code>. Not whole retention history.'},
+      {h:'④ Working set',b:'Output <code>{entities[], timeRange}</code> → Phase 3 Localize / Identify / Package → <code>P-26084</code>.'}
     ]
   }
 };
@@ -1021,13 +1424,29 @@ function setActive(key){
   const d=DETAIL[key];
   if(d){
     detailCards.className='detail-cards show'+(d.cls?(' '+d.cls):'');
-    detailCards.innerHTML=d.cards.map(c=>{
+    detailCards.innerHTML=d.cards.map((c,i)=>{
       const cls=c.tone==='b'?' b':(c.tone==='a'?'':'');
-      return `<div class="dcard${cls}"><h3>${c.h}</h3>${c.b}</div>`;
+      const beatAttr = STAGE_BEATS[key] ? ` data-beat="${i}"` : '';
+      return `<div class="dcard${cls}"${beatAttr}><h3>${c.h}</h3>${c.b}</div>`;
     }).join('');
+    if(STAGE_BEATS[key]){
+      Array.from(detailCards.querySelectorAll('.dcard[data-beat]')).forEach(el=>{
+        el.addEventListener('click',()=>{
+          stopPlay();
+          setStageBeat(Number(el.dataset.beat), true);
+        });
+      });
+    }
   } else {
     detailCards.className='detail-cards';
     detailCards.innerHTML='';
+  }
+  stageBeat=0; maintainBeat=0;
+  stageManual=false; maintainManual=false;
+  if(STAGE_BEATS[key]){
+    renderBeatNav();
+  } else if(beatNav){
+    beatNav.classList.remove('show');
   }
   renderPhases();
   renderRail();
@@ -1079,12 +1498,35 @@ nextBtn.addEventListener('click',()=>{
   if(i>=0 && i<path.length-1) setActive(path[i+1]);
 });
 playBtn.addEventListener('click',()=>startPlay());
-replayBtn.addEventListener('click',()=>{startTime=performance.now();});
+replayBtn.addEventListener('click',()=>{
+  startTime=performance.now();
+  if(STAGE_BEATS[activeKey]){
+    stageManual=false; maintainManual=false;
+    stageBeat=0; maintainBeat=0;
+    syncStageBeatUI();
+  }
+});
+
+beatPrev.addEventListener('click',()=>{
+  stopPlay();
+  setStageBeat(stageBeat-1, true);
+});
+beatNext.addEventListener('click',()=>{
+  stopPlay();
+  setStageBeat(stageBeat+1, true);
+});
 
 function frame(now){
   const s=STAGES[activeKey];
   const elapsed=now-startTime;
   const phase=(elapsed%s.loop)/s.loop;
+  if(STAGE_BEATS[activeKey] && !stageManual){
+    const autoBeat=autoBeatFromProgress(activeKey, phase);
+    if(autoBeat!==stageBeat){
+      stageBeat=autoBeat; maintainBeat=autoBeat;
+      syncStageBeatUI();
+    }
+  }
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.fillStyle='#0D0F14';ctx.fillRect(0,0,cv.width,cv.height);
   s.draw(ctx,cv.width,cv.height,phase);

@@ -102,6 +102,7 @@ Understand **what** was measured before reading engine internals.
 | [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | **Same-scenario DT vs DD** (P-26084) · [HTML](./comparable-pipeline-dt-dd.html) · [`:8765`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) |
 | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | **Dynatrace-first:** Clock A → OneAgent/Smartscape/Grail map · Collect→Normalize→bind walkthroughs (simple + complex) |
 | [`dynatrace-production-pipeline.html`](./dynatrace-production-pipeline.html) | Same — browser / [`:8765/dynatrace-production-pipeline.html`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
+| [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) | **Gap map:** Federated Part 1 (Dragonfly/Vortex/Panorama–Murphy–Nezha) vs DT 5+3+3 · [HTML](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html) · Cursor canvas IDE-only |
 | [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) | Dynatrace mechanisms storyboard · [`:8765`](http://127.0.0.1:8765/eleven-subsystem-mechanisms.html) |
 | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | **Datadog-native:** Agent → Metrics/APM/Logs · Monitors+Watchdog · MCP evidence · [HTML](./datadog-production-pipeline.html) |
 | [`datadog-production-pipeline.html`](./datadog-production-pipeline.html) | Same — browser / [`:8765/datadog-production-pipeline.html`](http://127.0.0.1:8765/datadog-production-pipeline.html) |
