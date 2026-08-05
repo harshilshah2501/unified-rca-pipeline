@@ -1,12 +1,12 @@
 # Federated architecture requirement vs Dynatrace 5+3+3 pipeline — gap map
 
-**Purpose:** Map Part 1 (Federated two-tier graph + Nezha / Murphy / Panorama RCA flow) onto the Dynatrace teaching pipeline we documented: **5 Always-on fabric + 3 Case opens + 3 Diagnose**. Call out **covered**, **partial**, and **missing** blocks with epistemic labels.
+**Purpose:** Map Motadata’s **proposed Federated architecture** (two-tier Event Graph + Knowledge Graph; Panorama → Murphy → Nezha; 1B EPS) onto the Dynatrace teaching pipeline we documented: **5 Always-on fabric + 3 Case opens + 3 Diagnose**. Call out **covered**, **partial**, and **missing** blocks with epistemic labels. Separately, Motadata’s **multi-telemetry FR/AC** is the broad acceptance bar (§8) — *what* must pass — not the architecture design.
 
 **Browser:** [`federated-vs-dt-pipeline-gaps.html`](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html)
 
 **Cursor canvas (IDE only):** `canvases/federated-vs-dt-pipeline-gaps.canvas.tsx` beside chat — not served by the PoC console.
 
-**Related:** [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) · [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) · [`federated-pipeline/docs/REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md)
+**Related:** [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) · [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) · [`federated-pipeline/docs/REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md) · [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](./multi-telemetry-rca-functional-and-acceptance-criteria.md)
 
 ---
 
@@ -14,7 +14,8 @@
 
 | Side | What it is |
 |------|------------|
-| **Federated requirement** | Target ObserveOps-style architecture (Dragonfly Event Graph + Vortex Knowledge Graph; Panorama → Murphy → Nezha) aimed at **1B EPS** and deep causal analysis |
+| **Federated requirement / Motadata architecture** | Proposed Motadata design: Dragonfly Event Graph + Vortex Knowledge Graph; Panorama → Murphy → Nezha; aimed at **1B EPS** and deep causal analysis (§2) |
+| **Motadata multi-telemetry FR/AC** | Broad **functional & acceptance** criteria only — normalized Signal → CI → one incident (§8). Does **not** specify Dragonfly/Vortex/algos |
 | **DT 5+3+3 pipeline** | **Teaching unveil** of Dynatrace-shaped Clock A/B using our lab (`frontend → product → inventory`) — not a claim we reimplemented Dynatrace |
 
 | Gap class | Meaning |
@@ -29,9 +30,18 @@
 | **Public framing** | Matches vendor public architecture language |
 | **Inferred** | Fits lab + public story; internals unpublished |
 | **Teaching** | Demo vocabulary / simplified model |
-| **Requirement** | Stated Federated target (not validated at 1B EPS in this PoC) |
+| **Requirement / Motadata architecture** | Stated Federated design target (not validated at 1B EPS in this PoC) |
 
-**Nothing here is 100% Dynatrace-internal accuracy.** Federated rows are **requirement** claims; DT rows are **teaching + lab + public/inferred**.
+**Nothing here is 100% Dynatrace-internal accuracy.** Federated / Motadata-architecture rows are **proposed design** claims; Motadata FR/AC rows are **acceptance** claims; DT rows are **teaching + lab + public/inferred**.
+
+**Motadata docs are complementary, not contradictory:**
+
+| Motadata doc | Answers |
+|--------------|---------|
+| Multi-telemetry FR/AC | *What* must the product accept? (signals → one incident + evidence + blast radius) |
+| Federated two-tier graph + RCA flow (§2) | *How* is deep causal RCA at extreme EPS proposed to be built? (Dragonfly / Vortex / Panorama–Murphy–Nezha) |
+
+The FR/AC does **not** deeply specify CMDB vs Discovery policy, dual-graph stores, or algo depth — that lives in the architecture. Gaps G1–G4 are **architecture vs DT unveil**, not “Motadata AC fails Federated.”
 
 ---
 
@@ -78,36 +88,38 @@ On the Federated side, Discovery ≈ feeding the **Knowledge Graph** (Vortex CSR
 
 ---
 
-## 2. Federated Part 1 — required blocks
+## 2. Motadata proposed architecture — Federated Part 1
+
+Canonical Motadata design (supplementary to the multi-telemetry FR/AC — not a replacement for it). Same content as PoC [`REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md) / Part 1 brief.
 
 ### 2.1 Tier 1 — Event Graph (Dragonfly) — “What” and “When”
 
-| Requirement element | Tag |
-|---------------------|-----|
-| Ingest high-velocity traces/logs/metrics into **temporal execution graphs** per request | Requirement |
-| **DragonflyDB** shared-nothing in-memory | Requirement |
-| Time-bucketed ZSETs `tg:{tenant}:{trace_id}:{minute}` | Requirement |
-| Sharded HSETs `pc:{phase}:{tenant}:{hash(pattern)%256}` (hot-key avoidance) | Requirement |
-| **Nezha** Expected vs Actual scoring `Score = S_C / (S_C + S_P)` via **server-side Lua** | Requirement |
+| Design element | Tag |
+|----------------|-----|
+| Ingest high-velocity traces/logs/metrics into **temporal execution graphs** per request | Motadata architecture |
+| **DragonflyDB** shared-nothing in-memory | Motadata architecture |
+| Time-bucketed ZSETs `tg:{tenant}:{trace_id}:{minute}` | Motadata architecture |
+| Sharded HSETs `pc:{phase}:{tenant}:{hash(pattern)%256}` (hot-key avoidance) | Motadata architecture |
+| **Nezha** Expected vs Actual scoring `Score = S_C / (S_C + S_P)` via **server-side Lua** | Motadata architecture |
 
 ### 2.2 Tier 2 — Knowledge Graph (Vortex/Arrow + DashMap) — “Who” and “Why”
 
-| Requirement element | Tag |
-|---------------------|-----|
-| Persistent semantic microservice topology | Requirement |
-| **Vortex/Arrow CSR** for vectorized BFS / blast radius | Requirement |
-| **DashMap** lock-free LSM property store (~100×/s updates) | Requirement |
-| **Panorama** LOS + bounded look-back majority (gray failure) on DashMap | Requirement |
-| **Murphy** counterfactual MRF + Gibbs sampling on Vortex CSR (cyclic deps) | Requirement |
+| Design element | Tag |
+|----------------|-----|
+| Persistent semantic microservice topology | Motadata architecture |
+| **Vortex/Arrow CSR** for vectorized BFS / blast radius | Motadata architecture |
+| **DashMap** lock-free LSM property store (~100×/s updates) | Motadata architecture |
+| **Panorama** LOS + bounded look-back majority (gray failure) on DashMap | Motadata architecture |
+| **Murphy** counterfactual MRF + Gibbs sampling on Vortex CSR (cyclic deps) | Motadata architecture |
 
-### 2.3 End-to-end RCA flow (requirement)
+### 2.3 End-to-end RCA flow (Motadata architecture)
 
 ```text
-Ingest 1B EPS:  NATS → Rust → pattern hash → Dragonfly
-Detect:         Panorama in-situ → DashMap LOS → gray-failure flags
-Macro localize: anomaly → Murphy on Vortex CSR (Gibbs / counterfactual)
-Micro localize: Rust → 256 Lua fans → Dragonfly Nezha scores → broken path
-                e.g. Auth→DB_Query  ⇒  Auth→DB_Timeout
+Ingestion (1B EPS):  NATS → Rust → pattern hash → Dragonfly
+Detection:           Panorama in-situ → DashMap LOS → gray-failure flags
+Macro localization:  anomaly → Murphy on Vortex CSR (Gibbs / counterfactual)
+Micro localization:  Rust → 256 Lua fans → Dragonfly Nezha scores → broken path
+                     e.g. Auth→DB_Query  ⇒  Auth→DB_Timeout
 ```
 
 ---
@@ -260,11 +272,65 @@ These are **necessary but not sufficient** for Part 1 Federated architecture.
 ## 7. One-page verdict
 
 ```text
-DT 5+3+3  =  how we *explain* Dynatrace-shaped RCA (lab-proven Problem packaging)
-Federated =  how we *intend to build* extreme-EPS causal RCA (Dragonfly + Vortex + Panorama/Murphy/Nezha)
+DT 5+3+3              =  how we *explain* Dynatrace-shaped RCA (lab-proven Problem packaging)
+Motadata architecture =  how Motadata *proposes to build* extreme-EPS causal RCA (§2)
+Motadata FR/AC        =  broad *acceptance* bar (engine-agnostic product outcomes)
 
 Overlap:  fabric jobs, map∥evidence idea, detect-then-localize-then-package intent
 Gaps:     Event Graph, Nezha, Murphy, Panorama LOS, 1B EPS ingest, CSR/LSM stacks
+          (architecture ↔ DT unveil — not FR/AC vs architecture)
 ```
 
-**Do not** treat the DT teaching pipeline as implementation of Part 1. Use this gap map to see which Federated blocks are still **missing** after the unveil.
+**Do not** treat the DT teaching pipeline as implementation of Motadata §2. Use this gap map to see which Federated blocks are still **missing** after the unveil. Treat Motadata FR/AC + §2 as **supplementary layers** of one Motadata story.
+
+---
+
+## 8. Motadata multi-telemetry FR/AC — supplementary acceptance bar
+
+**Source:** [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](./multi-telemetry-rca-functional-and-acceptance-criteria.md) (draft 2026-07-31).
+
+Both Motadata artifacts below are **supplementary**, not opposing:
+
+| Motadata artifact | Layer | Answers |
+|-------------------|-------|---------|
+| **Multi-telemetry FR/AC** | Acceptance | Broad *what*: normalize every telemetry class → bind CI → correlate → one root cause + evidence + blast radius + incident |
+| **Federated graph + RCA flow (§2)** | Proposed architecture / design | Detailed *how*: Dragonfly Event Graph ∥ Vortex KG; Panorama → Murphy → Nezha; 1B EPS ingest |
+
+The FR/AC does **not** go deep on CMDB vs Discovery policy, dual-graph stores, Fan-out semantics, or Panorama/Murphy/Nezha. Those live in §2. Do **not** read “FR-E uses topology + signatures” as Motadata rejecting Federated algos — the AC stays engine-agnostic so product QA can pass without locking the implementation.
+
+This gap map’s **Missing** rows (G1–G4) compare **§2 architecture ↔ DT 5+3+3 teaching**. Passing Motadata FR/AC validates product behavior; shipping §2 closes the Federated design gaps vs DT unveil.
+
+### 8.1 FR/AC jobs ↔ DT 5+3+3 / §2 architecture
+
+| Motadata FR | DT 5+3+3 / §2 nearest | How to read |
+|-------------|----------------------|-------------|
+| **FR-A** Signal ingest + normalize | Collect → Normalize; §2 ingest path | AC *what*; §2 NATS→Rust→Dragonfly is *how* at scale |
+| **FR-B** Entity resolution | Topology bind LUT | AC requires `ci_ref`; §2 / DT use shared entity identity on KG / Smartscape |
+| **FR-C** Shared topology + time | Topology + Maintain; Tailor | AC needs a shared graph + timeline. **FR-C1** names “Discovery/CMDB” as Motadata module shorthand — it does **not** decide discovery-first vs CMDB-gate (that policy is §1.1 / product design, not contradicted by AC) |
+| **FR-D** Corr + suppress | Detect → Curate (+ Tailor) | AC *job*; §2 Detect is Panorama, case cut is orchestrator hops |
+| **FR-E** Root-cause CI | Localize (+ Identify) | AC *outcome* (top-1 CI accuracy). §2 *engines* = Murphy macro + Nezha micro — not specified in FR text |
+| **FR-F / G** Evidence + blast radius | Identify evidence + Package; Vortex BFS | AC *artifact*; §2 CSR traversal is one design for blast radius |
+| **FR-H** Anomaly / storm seed | Detect + Curate storm | AC allows baseline/anomaly seeds; §2 adds Panorama gray-failure LOS (stronger than AC minimum) |
+| **FR-I** One incident | Package | Shared *job* |
+| **FR-J** ServiceOps / notify | — | Motadata product surface (outside DT teach / §2 core) |
+| **FR-K / L / M** NFRs, RBAC, explain | §2 1B EPS + Package explain | AC = platform peak + explainability; §2 = extreme-EPS design target |
+
+Scenarios **S1–S6** remain the right **acceptance** stories (one fault → one incident, multi-type evidence, no false infra blame). §2 is how Motadata proposes to win hard cases (gray failure, cyclic deps, path-level Identify) beyond the AC minimum.
+
+### 8.2 What the FR/AC deliberately leaves open (filled by §2)
+
+| Topic | FR/AC stance | §2 Motadata architecture |
+|-------|--------------|--------------------------|
+| Topology source of truth | Mentions Discovery/CMDB module; assumes usable topology | Knowledge Graph (Vortex) + DashMap; Discovery/CMDB policy orthogonal (§1.1) |
+| Detect depth | Anomaly/pattern signals + storms (FR-H) | **Panorama** LOS + bounded look-back majority |
+| Macro localize | Topo + severity + signature rules (outcome-level) | **Murphy** counterfactual MRF / Gibbs on CSR |
+| Micro / path Identify | Not required for AC pass | **Nezha** on Dragonfly Lua / pattern scores |
+| Store model | Unified Signal + shared topology (logical) | Dual tier: Event Graph ∥ Knowledge Graph |
+| Scale | Sustain “platform peak” (FR-K) | **1B EPS** NATS → Rust → Dragonfly |
+
+### 8.3 Practical reading
+
+- **FR/AC** = Motadata **acceptance criteria** (broad, engine-agnostic).
+- **§2** = Motadata **proposed architecture** (Federated Part 1) — closes G1–G4 relative to DT unveil when built.
+- **This doc** = map §2 onto DT 5+3+3 and show which teaching stages are only *job*-aligned.
+- Treat Motadata AC + Motadata architecture as **one product story, two layers** — supplementary, not contradictory.

@@ -21,7 +21,6 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
 ul, ol { margin:.4rem 0 .8rem 1.2rem; } li { margin:.25rem 0; }
 hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
 .badge { display:inline-block; font-family:var(--mono); font-size:.72rem; padding:.15rem .45rem; border-radius:4px; border:1px solid var(--stroke); color:var(--muted); margin-bottom:1rem; }
-.note { padding:.75rem 1rem; border:1px solid var(--stroke); border-radius:var(--radius); background:var(--bg-elev); color:var(--muted); margin:1rem 0; }
 </style>
 </head>
 <body>
@@ -30,12 +29,15 @@ hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
 <h1
 id="federated-architecture-requirement-vs-dynatrace-533-pipeline-gap-map">Federated
 architecture requirement vs Dynatrace 5+3+3 pipeline — gap map</h1>
-<p><strong>Purpose:</strong> Map Part 1 (Federated two-tier graph +
-Nezha / Murphy / Panorama RCA flow) onto the Dynatrace teaching pipeline
-we documented: <strong>5 Always-on fabric + 3 Case opens + 3
+<p><strong>Purpose:</strong> Map Motadata’s <strong>proposed Federated
+architecture</strong> (two-tier Event Graph + Knowledge Graph; Panorama
+→ Murphy → Nezha; 1B EPS) onto the Dynatrace teaching pipeline we
+documented: <strong>5 Always-on fabric + 3 Case opens + 3
 Diagnose</strong>. Call out <strong>covered</strong>,
 <strong>partial</strong>, and <strong>missing</strong> blocks with
-epistemic labels.</p>
+epistemic labels. Separately, Motadata’s <strong>multi-telemetry
+FR/AC</strong> is the broad acceptance bar (§8) — <em>what</em> must
+pass — not the architecture design.</p>
 <p><strong>Browser:</strong> <a
 href="./federated-vs-dt-pipeline-gaps.html"><code>federated-vs-dt-pipeline-gaps.html</code></a>
 · <a
@@ -48,7 +50,9 @@ href="./DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md
 · <a
 href="./eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a>
 · <a
-href="../federated-pipeline/docs/REQUIREMENTS.md"><code>federated-pipeline/docs/REQUIREMENTS.md</code></a></p>
+href="../federated-pipeline/docs/REQUIREMENTS.md"><code>federated-pipeline/docs/REQUIREMENTS.md</code></a>
+· <a
+href="./multi-telemetry-rca-functional-and-acceptance-criteria.md"><code>multi-telemetry-rca-functional-and-acceptance-criteria.md</code></a></p>
 <hr />
 <h2 id="how-to-read-this-document">0. How to read this document</h2>
 <table>
@@ -64,12 +68,18 @@ href="../federated-pipeline/docs/REQUIREMENTS.md"><code>federated-pipeline/docs/
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Federated requirement</strong></td>
-<td>Target ObserveOps-style architecture (Dragonfly Event Graph + Vortex
-Knowledge Graph; Panorama → Murphy → Nezha) aimed at <strong>1B
-EPS</strong> and deep causal analysis</td>
+<td><strong>Federated requirement / Motadata architecture</strong></td>
+<td>Proposed Motadata design: Dragonfly Event Graph + Vortex Knowledge
+Graph; Panorama → Murphy → Nezha; aimed at <strong>1B EPS</strong> and
+deep causal analysis (§2)</td>
 </tr>
 <tr class="even">
+<td><strong>Motadata multi-telemetry FR/AC</strong></td>
+<td>Broad <strong>functional &amp; acceptance</strong> criteria only —
+normalized Signal → CI → one incident (§8). Does <strong>not</strong>
+specify Dragonfly/Vortex/algos</td>
+</tr>
+<tr class="odd">
 <td><strong>DT 5+3+3 pipeline</strong></td>
 <td><strong>Teaching unveil</strong> of Dynatrace-shaped Clock A/B using
 our lab (<code>frontend → product → inventory</code>) — not a claim we
@@ -135,14 +145,47 @@ DT 5+3+3 teaching map</td>
 <td>Demo vocabulary / simplified model</td>
 </tr>
 <tr class="odd">
-<td><strong>Requirement</strong></td>
-<td>Stated Federated target (not validated at 1B EPS in this PoC)</td>
+<td><strong>Requirement / Motadata architecture</strong></td>
+<td>Stated Federated design target (not validated at 1B EPS in this
+PoC)</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Nothing here is 100% Dynatrace-internal accuracy.</strong>
-Federated rows are <strong>requirement</strong> claims; DT rows are
-<strong>teaching + lab + public/inferred</strong>.</p>
+Federated / Motadata-architecture rows are <strong>proposed
+design</strong> claims; Motadata FR/AC rows are
+<strong>acceptance</strong> claims; DT rows are <strong>teaching + lab +
+public/inferred</strong>.</p>
+<p><strong>Motadata docs are complementary, not
+contradictory:</strong></p>
+<table>
+<colgroup>
+<col style="width: 60%" />
+<col style="width: 39%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Motadata doc</th>
+<th>Answers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Multi-telemetry FR/AC</td>
+<td><em>What</em> must the product accept? (signals → one incident +
+evidence + blast radius)</td>
+</tr>
+<tr class="even">
+<td>Federated two-tier graph + RCA flow (§2)</td>
+<td><em>How</em> is deep causal RCA at extreme EPS proposed to be built?
+(Dragonfly / Vortex / Panorama–Murphy–Nezha)</td>
+</tr>
+</tbody>
+</table>
+<p>The FR/AC does <strong>not</strong> deeply specify CMDB vs Discovery
+policy, dual-graph stores, or algo depth — that lives in the
+architecture. Gaps G1–G4 are <strong>architecture vs DT unveil</strong>,
+not “Motadata AC fails Federated.”</p>
 <hr />
 <h2 id="stage-cheatsheet-dt-533">1. Stage cheatsheet — DT 5+3+3</h2>
 <pre class="text"><code>Phase 1 · Always-on fabric (5)
@@ -273,18 +316,22 @@ href="./DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md
 Graph</strong> (Vortex CSR edges + entity identity). CMDB remains
 optional governance, not Vortex itself.</p>
 <hr />
-<h2 id="federated-part-1-required-blocks">2. Federated Part 1 — required
-blocks</h2>
+<h2 id="motadata-proposed-architecture-federated-part-1">2. Motadata
+proposed architecture — Federated Part 1</h2>
+<p>Canonical Motadata design (supplementary to the multi-telemetry FR/AC
+— not a replacement for it). Same content as PoC <a
+href="../federated-pipeline/docs/REQUIREMENTS.md"><code>REQUIREMENTS.md</code></a>
+/ Part 1 brief.</p>
 <h3 id="tier-1-event-graph-dragonfly-what-and-when">2.1 Tier 1 — Event
 Graph (Dragonfly) — “What” and “When”</h3>
 <table>
 <colgroup>
-<col style="width: 80%" />
-<col style="width: 19%" />
+<col style="width: 76%" />
+<col style="width: 23%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Requirement element</th>
+<th>Design element</th>
 <th>Tag</th>
 </tr>
 </thead>
@@ -292,27 +339,27 @@ Graph (Dragonfly) — “What” and “When”</h3>
 <tr class="odd">
 <td>Ingest high-velocity traces/logs/metrics into <strong>temporal
 execution graphs</strong> per request</td>
-<td>Requirement</td>
+<td>Motadata architecture</td>
 </tr>
 <tr class="even">
 <td><strong>DragonflyDB</strong> shared-nothing in-memory</td>
-<td>Requirement</td>
+<td>Motadata architecture</td>
 </tr>
 <tr class="odd">
 <td>Time-bucketed ZSETs
 <code>tg:{tenant}:{trace_id}:{minute}</code></td>
-<td>Requirement</td>
+<td>Motadata architecture</td>
 </tr>
 <tr class="even">
 <td>Sharded HSETs <code>pc:{phase}:{tenant}:{hash(pattern)%256}</code>
 (hot-key avoidance)</td>
-<td>Requirement</td>
+<td>Motadata architecture</td>
 </tr>
 <tr class="odd">
 <td><strong>Nezha</strong> Expected vs Actual scoring
 <code>Score = S_C / (S_C + S_P)</code> via <strong>server-side
 Lua</strong></td>
-<td>Requirement</td>
+<td>Motadata architecture</td>
 </tr>
 </tbody>
 </table>
@@ -320,49 +367,49 @@ Lua</strong></td>
 2 — Knowledge Graph (Vortex/Arrow + DashMap) — “Who” and “Why”</h3>
 <table>
 <colgroup>
-<col style="width: 80%" />
-<col style="width: 19%" />
+<col style="width: 76%" />
+<col style="width: 23%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Requirement element</th>
+<th>Design element</th>
 <th>Tag</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>Persistent semantic microservice topology</td>
-<td>Requirement</td>
+<td>Motadata architecture</td>
 </tr>
 <tr class="even">
 <td><strong>Vortex/Arrow CSR</strong> for vectorized BFS / blast
 radius</td>
-<td>Requirement</td>
+<td>Motadata architecture</td>
 </tr>
 <tr class="odd">
 <td><strong>DashMap</strong> lock-free LSM property store (~100×/s
 updates)</td>
-<td>Requirement</td>
+<td>Motadata architecture</td>
 </tr>
 <tr class="even">
 <td><strong>Panorama</strong> LOS + bounded look-back majority (gray
 failure) on DashMap</td>
-<td>Requirement</td>
+<td>Motadata architecture</td>
 </tr>
 <tr class="odd">
 <td><strong>Murphy</strong> counterfactual MRF + Gibbs sampling on
 Vortex CSR (cyclic deps)</td>
-<td>Requirement</td>
+<td>Motadata architecture</td>
 </tr>
 </tbody>
 </table>
-<h3 id="end-to-end-rca-flow-requirement">2.3 End-to-end RCA flow
-(requirement)</h3>
-<pre class="text"><code>Ingest 1B EPS:  NATS → Rust → pattern hash → Dragonfly
-Detect:         Panorama in-situ → DashMap LOS → gray-failure flags
-Macro localize: anomaly → Murphy on Vortex CSR (Gibbs / counterfactual)
-Micro localize: Rust → 256 Lua fans → Dragonfly Nezha scores → broken path
-                e.g. Auth→DB_Query  ⇒  Auth→DB_Timeout</code></pre>
+<h3 id="end-to-end-rca-flow-motadata-architecture">2.3 End-to-end RCA
+flow (Motadata architecture)</h3>
+<pre class="text"><code>Ingestion (1B EPS):  NATS → Rust → pattern hash → Dragonfly
+Detection:           Panorama in-situ → DashMap LOS → gray-failure flags
+Macro localization:  anomaly → Murphy on Vortex CSR (Gibbs / counterfactual)
+Micro localization:  Rust → 256 Lua fans → Dragonfly Nezha scores → broken path
+                     e.g. Auth→DB_Query  ⇒  Auth→DB_Timeout</code></pre>
 <hr />
 <h2 id="crosswalk-federated-block-dt-stages">3. Crosswalk — Federated
 block → DT stage(s)</h2>
@@ -834,14 +881,208 @@ the Federated runtime</td>
 </table>
 <hr />
 <h2 id="one-page-verdict">7. One-page verdict</h2>
-<pre class="text"><code>DT 5+3+3  =  how we *explain* Dynatrace-shaped RCA (lab-proven Problem packaging)
-Federated =  how we *intend to build* extreme-EPS causal RCA (Dragonfly + Vortex + Panorama/Murphy/Nezha)
+<pre class="text"><code>DT 5+3+3              =  how we *explain* Dynatrace-shaped RCA (lab-proven Problem packaging)
+Motadata architecture =  how Motadata *proposes to build* extreme-EPS causal RCA (§2)
+Motadata FR/AC        =  broad *acceptance* bar (engine-agnostic product outcomes)
 
 Overlap:  fabric jobs, map∥evidence idea, detect-then-localize-then-package intent
-Gaps:     Event Graph, Nezha, Murphy, Panorama LOS, 1B EPS ingest, CSR/LSM stacks</code></pre>
+Gaps:     Event Graph, Nezha, Murphy, Panorama LOS, 1B EPS ingest, CSR/LSM stacks
+          (architecture ↔ DT unveil — not FR/AC vs architecture)</code></pre>
 <p><strong>Do not</strong> treat the DT teaching pipeline as
-implementation of Part 1. Use this gap map to see which Federated blocks
-are still <strong>missing</strong> after the unveil.</p>
+implementation of Motadata §2. Use this gap map to see which Federated
+blocks are still <strong>missing</strong> after the unveil. Treat
+Motadata FR/AC + §2 as <strong>supplementary layers</strong> of one
+Motadata story.</p>
+<hr />
+<h2 id="motadata-multi-telemetry-frac-supplementary-acceptance-bar">8.
+Motadata multi-telemetry FR/AC — supplementary acceptance bar</h2>
+<p><strong>Source:</strong> <a
+href="./multi-telemetry-rca-functional-and-acceptance-criteria.md"><code>multi-telemetry-rca-functional-and-acceptance-criteria.md</code></a>
+(draft 2026-07-31).</p>
+<p>Both Motadata artifacts below are <strong>supplementary</strong>, not
+opposing:</p>
+<table>
+<colgroup>
+<col style="width: 54%" />
+<col style="width: 20%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Motadata artifact</th>
+<th>Layer</th>
+<th>Answers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Multi-telemetry FR/AC</strong></td>
+<td>Acceptance</td>
+<td>Broad <em>what</em>: normalize every telemetry class → bind CI →
+correlate → one root cause + evidence + blast radius + incident</td>
+</tr>
+<tr class="even">
+<td><strong>Federated graph + RCA flow (§2)</strong></td>
+<td>Proposed architecture / design</td>
+<td>Detailed <em>how</em>: Dragonfly Event Graph ∥ Vortex KG; Panorama →
+Murphy → Nezha; 1B EPS ingest</td>
+</tr>
+</tbody>
+</table>
+<p>The FR/AC does <strong>not</strong> go deep on CMDB vs Discovery
+policy, dual-graph stores, Fan-out semantics, or Panorama/Murphy/Nezha.
+Those live in §2. Do <strong>not</strong> read “FR-E uses topology +
+signatures” as Motadata rejecting Federated algos — the AC stays
+engine-agnostic so product QA can pass without locking the
+implementation.</p>
+<p>This gap map’s <strong>Missing</strong> rows (G1–G4) compare
+<strong>§2 architecture ↔︎ DT 5+3+3 teaching</strong>. Passing Motadata
+FR/AC validates product behavior; shipping §2 closes the Federated
+design gaps vs DT unveil.</p>
+<h3 id="frac-jobs-dt-533-2-architecture">8.1 FR/AC jobs ↔︎ DT 5+3+3 / §2
+architecture</h3>
+<table>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 45%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Motadata FR</th>
+<th>DT 5+3+3 / §2 nearest</th>
+<th>How to read</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>FR-A</strong> Signal ingest + normalize</td>
+<td>Collect → Normalize; §2 ingest path</td>
+<td>AC <em>what</em>; §2 NATS→Rust→Dragonfly is <em>how</em> at
+scale</td>
+</tr>
+<tr class="even">
+<td><strong>FR-B</strong> Entity resolution</td>
+<td>Topology bind LUT</td>
+<td>AC requires <code>ci_ref</code>; §2 / DT use shared entity identity
+on KG / Smartscape</td>
+</tr>
+<tr class="odd">
+<td><strong>FR-C</strong> Shared topology + time</td>
+<td>Topology + Maintain; Tailor</td>
+<td>AC needs a shared graph + timeline. <strong>FR-C1</strong> names
+“Discovery/CMDB” as Motadata module shorthand — it does
+<strong>not</strong> decide discovery-first vs CMDB-gate (that policy is
+§1.1 / product design, not contradicted by AC)</td>
+</tr>
+<tr class="even">
+<td><strong>FR-D</strong> Corr + suppress</td>
+<td>Detect → Curate (+ Tailor)</td>
+<td>AC <em>job</em>; §2 Detect is Panorama, case cut is orchestrator
+hops</td>
+</tr>
+<tr class="odd">
+<td><strong>FR-E</strong> Root-cause CI</td>
+<td>Localize (+ Identify)</td>
+<td>AC <em>outcome</em> (top-1 CI accuracy). §2 <em>engines</em> =
+Murphy macro + Nezha micro — not specified in FR text</td>
+</tr>
+<tr class="even">
+<td><strong>FR-F / G</strong> Evidence + blast radius</td>
+<td>Identify evidence + Package; Vortex BFS</td>
+<td>AC <em>artifact</em>; §2 CSR traversal is one design for blast
+radius</td>
+</tr>
+<tr class="odd">
+<td><strong>FR-H</strong> Anomaly / storm seed</td>
+<td>Detect + Curate storm</td>
+<td>AC allows baseline/anomaly seeds; §2 adds Panorama gray-failure LOS
+(stronger than AC minimum)</td>
+</tr>
+<tr class="even">
+<td><strong>FR-I</strong> One incident</td>
+<td>Package</td>
+<td>Shared <em>job</em></td>
+</tr>
+<tr class="odd">
+<td><strong>FR-J</strong> ServiceOps / notify</td>
+<td>—</td>
+<td>Motadata product surface (outside DT teach / §2 core)</td>
+</tr>
+<tr class="even">
+<td><strong>FR-K / L / M</strong> NFRs, RBAC, explain</td>
+<td>§2 1B EPS + Package explain</td>
+<td>AC = platform peak + explainability; §2 = extreme-EPS design
+target</td>
+</tr>
+</tbody>
+</table>
+<p>Scenarios <strong>S1–S6</strong> remain the right
+<strong>acceptance</strong> stories (one fault → one incident,
+multi-type evidence, no false infra blame). §2 is how Motadata proposes
+to win hard cases (gray failure, cyclic deps, path-level Identify)
+beyond the AC minimum.</p>
+<h3 id="what-the-frac-deliberately-leaves-open-filled-by-2">8.2 What the
+FR/AC deliberately leaves open (filled by §2)</h3>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 29%" />
+<col style="width: 55%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Topic</th>
+<th>FR/AC stance</th>
+<th>§2 Motadata architecture</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Topology source of truth</td>
+<td>Mentions Discovery/CMDB module; assumes usable topology</td>
+<td>Knowledge Graph (Vortex) + DashMap; Discovery/CMDB policy orthogonal
+(§1.1)</td>
+</tr>
+<tr class="even">
+<td>Detect depth</td>
+<td>Anomaly/pattern signals + storms (FR-H)</td>
+<td><strong>Panorama</strong> LOS + bounded look-back majority</td>
+</tr>
+<tr class="odd">
+<td>Macro localize</td>
+<td>Topo + severity + signature rules (outcome-level)</td>
+<td><strong>Murphy</strong> counterfactual MRF / Gibbs on CSR</td>
+</tr>
+<tr class="even">
+<td>Micro / path Identify</td>
+<td>Not required for AC pass</td>
+<td><strong>Nezha</strong> on Dragonfly Lua / pattern scores</td>
+</tr>
+<tr class="odd">
+<td>Store model</td>
+<td>Unified Signal + shared topology (logical)</td>
+<td>Dual tier: Event Graph ∥ Knowledge Graph</td>
+</tr>
+<tr class="even">
+<td>Scale</td>
+<td>Sustain “platform peak” (FR-K)</td>
+<td><strong>1B EPS</strong> NATS → Rust → Dragonfly</td>
+</tr>
+</tbody>
+</table>
+<h3 id="practical-reading">8.3 Practical reading</h3>
+<ul>
+<li><strong>FR/AC</strong> = Motadata <strong>acceptance
+criteria</strong> (broad, engine-agnostic).</li>
+<li><strong>§2</strong> = Motadata <strong>proposed
+architecture</strong> (Federated Part 1) — closes G1–G4 relative to DT
+unveil when built.</li>
+<li><strong>This doc</strong> = map §2 onto DT 5+3+3 and show which
+teaching stages are only <em>job</em>-aligned.</li>
+<li>Treat Motadata AC + Motadata architecture as <strong>one product
+story, two layers</strong> — supplementary, not contradictory.</li>
+</ul>
 
 </main>
 <script src="/doc-nav.js" defer></script>
