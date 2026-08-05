@@ -218,6 +218,6 @@ Each scenario is an end-to-end acceptance test: inject the fault, assert one inc
 
 *Companion: `../rca-poc-observeops/` (topology-based RCA algorithm + blended engine this extends), `../serviceops-asset-cmdb-endpoint-unification/` (the CI/entity model signals resolve to).*
 
-**Role of this doc:** Motadata **functional & acceptance criteria** only (broad, engine-agnostic). It does **not** specify CMDB-vs-Discovery gate policy, dual-graph stores, or Panorama/Murphy/Nezha depth.
+**Role of this doc:** Motadata **functional & acceptance criteria** only (broad, engine-agnostic). It does **not** specify CMDB-vs-Discovery gate policy, dual-graph stores, Panorama/Murphy/Nezha depth, or the Vector-class Collect pipeline.
 
-**Supplementary Motadata architecture** (Federated two-tier graph + RCA flow) and alignment to DT 5+3+3: [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) §2 + §8 · hosted [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html#motadata-multi-telemetry-frac-supplementary-acceptance-bar). AC + architecture are **one product story, two layers** — not contradictions.
+**Supplementary Motadata architecture** (Federated two-tier graph + RCA flow + Vector Collect) and DT objective mapping: [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) §1.2–§1.3 · §2 · §8 · hosted [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html#functional-objectives-motadata-achievability-not-dt-product-clones). AC + architecture are **one product story, two layers** — not contradictions.

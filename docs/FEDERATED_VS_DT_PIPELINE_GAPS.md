@@ -1,12 +1,12 @@
 # Federated architecture requirement vs Dynatrace 5+3+3 pipeline — gap map
 
-**Purpose:** Map Motadata’s **proposed Federated architecture** (two-tier Event Graph + Knowledge Graph; Panorama → Murphy → Nezha; 1B EPS) onto the Dynatrace teaching pipeline we documented: **5 Always-on fabric + 3 Case opens + 3 Diagnose**. Call out **covered**, **partial**, and **missing** blocks with epistemic labels. Separately, Motadata’s **multi-telemetry FR/AC** is the broad acceptance bar (§8) — *what* must pass — not the architecture design.
+**Purpose:** Map Motadata’s **proposed Federated architecture** (two-tier Event Graph + Knowledge Graph; Panorama → Murphy → Nezha; 1B EPS) onto the Dynatrace teaching pipeline: **5 Always-on fabric + 3 Case opens + 3 Diagnose**. Compare **functional objectives** (can Motadata achieve the job?), not Dynatrace product clones (Smartscape/Grail). Call out covered / partial / missing with epistemic labels. Motadata’s **multi-telemetry FR/AC** is the broad acceptance bar (§8). **Vector** is the Collect/Normalize **pipeline**, not a lake (§1.3).
 
 **Browser:** [`federated-vs-dt-pipeline-gaps.html`](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html)
 
 **Cursor canvas (IDE only):** `canvases/federated-vs-dt-pipeline-gaps.canvas.tsx` beside chat — not served by the PoC console.
 
-**Related:** [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) · [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) · [`federated-pipeline/docs/REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md) · [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](./multi-telemetry-rca-functional-and-acceptance-criteria.md)
+**Related:** [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) · [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) · [`federated-pipeline/docs/REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md) · [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](./multi-telemetry-rca-functional-and-acceptance-criteria.md) · [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) · [`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) §6
 
 ---
 
@@ -86,6 +86,78 @@ Our lab is **discovery-first** (auto-create `SERVICE-INV` on first sighting). A 
 
 On the Federated side, Discovery ≈ feeding the **Knowledge Graph** (Vortex CSR edges + entity identity). CMDB remains optional governance, not Vortex itself.
 
+### 1.2 Functional objectives — Motadata achievability (not DT product clones)
+
+**Smartscape** and **Grail** are Dynatrace product names. Motadata is **not** shipping those products. When we compare pipelines, we only ask: *can Motadata achieve the same job?* — not *do we have a 100% match?*
+
+In plain language, Dynatrace’s unveil needs **two kinds of memory** plus a **pipe that fills them**:
+
+| Everyday job (objective) | What it means for operators | DT teaching name | Motadata way to achieve it |
+|--------------------------|-----------------------------|------------------|----------------------------|
+| **Who is connected?** | Walk hosts/services/edges; compute blast radius | Smartscape | **Knowledge Graph** (Vortex CSR + DashMap properties) |
+| **What happened, when?** | Keep high-volume evidence so Diagnose can prove the story | Grail | **Event Graph** (Dragonfly temporal graphs + pattern counts) + structural metrics/LOS on DashMap |
+| **Same id on map and evidence** | One CI means the same thing everywhere | Shared `entityId` | Shared CI / entity identity across KG ↔ Event Graph / Signals (FR-B) |
+| **Get data in cleanly** | Collect → normalize → stamp CI → write both stores | Collect → Normalize → Topology → Fan-out | **Vector-class pipeline** → bus → Rust → dual sinks (§1.3, §2.4) |
+| **Something is wrong** | Raise signals without yet naming the Problem | Detect Events | Panorama (+ AC anomaly/storm seeds) |
+| **One answer** | Single incident: root cause + evidence + impact | Problem / Package | Fused verdict / Motadata incident (FR-I) |
+
+**Achievability rule of thumb**
+
+- If Motadata has a **walkable topology** and a **high-velocity evidence plane** joined by **CI identity**, the Smartscape/Grail *objectives* are achievable under Motadata names.
+- If Motadata only has correlation rules and no dual stores, AC scenarios may still pass for simple faults — deep gray-failure / path Identify / 1B EPS will not.
+- **No claim of twin query models.** Motadata does not need DQL-over-Grail; it needs *enough evidence, scoped in time and neighborhood, to explain the root cause*.
+
+### 1.3 Vector in Collect — simple explanation
+
+**Vector is not a third lake.** In our vocabulary ([`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) §6):
+
+| Name | Kind of thing | One-line role |
+|------|---------------|---------------|
+| **Smartscape** (DT) / **Knowledge Graph** (Motadata) | Map | Who depends on whom |
+| **Grail** (DT) / **Event Graph** (Motadata) | Evidence store(s) | What happened, when |
+| **Vector** (us / industry) | **Ingest pipeline** | Collect → transform/normalize → **route** into the map and evidence sinks |
+
+Think of Vector (or OTel Collector / Fluent Bit — same *class*) as the **plumbing**, not the filing cabinet:
+
+```text
+Agents / collectors / traps / flow exporters
+        │
+        ▼
+  Vector-class pipeline     ← Collect + Normalize (+ help Topology bind keys)
+   • accept vendor-shaped bytes
+   • build joinable Signal / envelope (type, time, ci keys, severity, …)
+   • route copies to the right sinks
+        │
+        ├──────────────────────────────┐
+        ▼                              ▼
+  Event Graph (Dragonfly)      Knowledge Graph (Vortex + DashMap)
+  "what / when"                "who / why" (+ LOS / metrics)
+```
+
+**Why §2’s short ingest line looked incomplete**
+
+The Motadata architecture brief often writes:
+
+`NATS → Rust → Dragonfly`
+
+That describes the **hot path into the Event Graph**. It **skips naming** the front door:
+
+1. **Collectors** (already assumed by Motadata FR/AC — out of FR scope as “existing”).
+2. **Vector-class Collect/Normalize** — turn raw telemetry into Motadata Signals / Nezha events with CI keys.
+3. **Bus** (NATS) — move normalized traffic at scale.
+4. **Rust** — pattern hash, dual-stream split, write Dragonfly **and** structural sinks.
+5. **Topology upserts** into Vortex/DashMap (Fan-out’s “map” half).
+
+So Vector was **missing from the Motadata Collect write-up**, not missing as a *job*. The job is still Collect → Normalize → Fan-out; Vector (or equivalent) is the intended **how** for Motadata fabric stages 1–2–4. Design detail: [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md).
+
+**Fan-out in Motadata words (avoid DT confusion)**
+
+| Teaching word | Motadata meaning |
+|---------------|------------------|
+| DT Fan-out | Same stream → Smartscape *and* Grail (different facets) |
+| Motadata Fan-out | Same normalized stream → Event Graph *and* Knowledge Graph / LOS / metrics |
+| Not | “Fan-out” = Nezha’s 256 Lua calls (that is Diagnose compute, stage 10) |
+
 ---
 
 ## 2. Motadata proposed architecture — Federated Part 1
@@ -115,12 +187,27 @@ Canonical Motadata design (supplementary to the multi-telemetry FR/AC — not a 
 ### 2.3 End-to-end RCA flow (Motadata architecture)
 
 ```text
-Ingestion (1B EPS):  NATS → Rust → pattern hash → Dragonfly
+Ingestion (1B EPS):  collectors → Vector-class pipeline → NATS → Rust
+                     → pattern hash → Dragonfly  ∥  Vortex/DashMap (topo + LOS + metrics)
 Detection:           Panorama in-situ → DashMap LOS → gray-failure flags
 Macro localization:  anomaly → Murphy on Vortex CSR (Gibbs / counterfactual)
 Micro localization:  Rust → 256 Lua fans → Dragonfly Nezha scores → broken path
                      e.g. Auth→DB_Query  ⇒  Auth→DB_Timeout
+Package:             fused verdict / Motadata incident (root CI + evidence + blast radius)
 ```
+
+### 2.4 Collect path spelled out (Vector → dual sinks)
+
+| Step | Motadata piece | DT 5+3+3 job | Notes |
+|------|----------------|--------------|-------|
+| 0 | Existing collectors (metric/log/flow/trap/trace/event) | Collect (sources) | FR/AC assumes collectors already exist |
+| 1 | **Vector-class** sources + transforms | Collect + Normalize | Build unified Signal / envelope; preserve native keys (FR-A) |
+| 2 | Entity resolution / bind keys | Topology bind (LUT half) | Stamp `ci_ref` / entity id (FR-B); Discovery/CMDB policy per §1.1 |
+| 3 | NATS (or equivalent bus) | — (transport) | Scale handoff into compute |
+| 4 | Rust normalizer / dual-stream writer | Fan-out | Speed → Dragonfly; structural → DashMap + Vortex edges (FR-1) |
+| 5 | Continuous upserts + TTLs | Maintain | Keep KG fresh; Event Graph windows hot |
+
+**Doc hygiene:** always show steps 1–2 when quoting Motadata ingest. Jumping straight to “NATS → Rust → Dragonfly” understates Collect/Normalize and the Knowledge Graph write path.
 
 ---
 
@@ -133,8 +220,9 @@ Micro localization:  Rust → 256 Lua fans → Dragonfly Nezha scores → broken
 | Event Graph (Dragonfly) temporal execution graphs | **Grail** (evidence by `entityId`+time) + traces in lake | **Missing** as designed | Grail is a **multimodal lake**, not per-trace ZSET execution graphs or pattern-count shards. **Public framing / teaching.** |
 | Knowledge Graph (Vortex CSR) | **Smartscape** (Topology + Maintain) | **Partial** | Both are “who is connected.” DT: discovery property graph (`calls`, `runsOn`). **No** CSR/Vortex, **no** Murphy Gibbs. **Public framing + teaching.** |
 | DashMap LSM properties / LOS | Smartscape props + Grail series; no LOS | **Missing** | No Panorama Local Observation Store or bounded look-back majority in DT unveil. |
-| NATS → Rust 1B EPS ingest | Collect (OneAgent/OTLP) | **Missing** (scale path) | Lab is tiny EPS; DT ingest is vendor-opaque. **Not** our NATS/Dragonfly pipeline. |
-| Fan-out to Dragonfly shards | Fan-out Smartscape ∥ Grail | **Partial (name collision)** | DT Fan-out = **map∥lake facets**. Federated = **tiered sinks / Event Graph write path**. Do not equate. |
+| NATS → Rust 1B EPS ingest | Collect (OneAgent/OTLP) | **Missing** (scale path) | Lab is tiny EPS; DT ingest is vendor-opaque. Motadata front door should include **Vector-class** Collect (§1.3) before NATS. |
+| Fan-out to Dragonfly shards | Fan-out Smartscape ∥ Grail | **Partial (name collision)** | DT Fan-out = **map∥lake facets**. Motadata = **Event Graph ∥ Knowledge Graph**. Do not equate to Nezha’s 256 Lua fans. |
+| **Vector-class pipeline** | Collect → Normalize → Fan-out | **Partial / under-named in §2 brief** | Job exists in Clock A teaching + [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md); Motadata Part 1 brief often omitted it (G9). |
 
 ### 3.2 Algorithms → diagnose stages
 
@@ -171,10 +259,10 @@ FR ids from [`federated-pipeline/docs/REQUIREMENTS.md`](../federated-pipeline/do
 | # | DT stage (teaching) | Job | Federated requirement (nearest) | Fit |
 |---|---------------------|-----|----------------------------------|-----|
 | **Phase 1 — Always-on fabric** |||||
-| 1 | **Collect** | Bring MELT in | **FR-1a** NATS ingest of traces/logs/metrics; prod vision 1B EPS | **Partial** job / **Missing** NATS·Rust·1B path (G4) |
-| 2 | **Normalize** | Envelope + ids | **FR-1b** Rust → Nezha `Event`s; dual-stream split (speed vs structural) | **Partial** (envelope idea); Fed schema ≠ DT `failed_call` / `raw_ids` |
-| 3 | **Topology bind** | CI graph + stamp `entityId` | **FR-1d** dependency edges → Murphy CSR; entity identity | **Partial** — Vortex CSR ≈ Smartscape *job*; **Discovery** ≈ edge/node upsert; **CMDB** optional (§1.1) |
-| 4 | **Fan-out** | Map ∥ lake facets | Speed → **Dragonfly** (events) ∥ structural → **DashMap/Vortex** (topo + LOS + metrics) | **Partial / name collision** (G6) — same *split sinks* idea, different stores |
+| 1 | **Collect** | Bring MELT / multi-telem in | **Vector-class** sources + **FR-1a** NATS; prod vision 1B EPS | **Partial** — job clear; Vector under-named in short §2 brief (G9); 1B path Missing (G4) |
+| 2 | **Normalize** | Envelope + ids | Vector transforms + **FR-1b** Rust → Nezha `Event`s / Motadata Signals | **Partial** — same objective; schemas differ |
+| 3 | **Topology bind** | CI graph + stamp `entityId` | **FR-1d** dependency edges → Murphy CSR; entity identity | **Partial** — Vortex CSR ≈ Smartscape *objective*; **Discovery** ≈ edge/node upsert; **CMDB** optional (§1.1) |
+| 4 | **Fan-out** | Map ∥ evidence facets | Vector/Rust dual-write → **Dragonfly** ∥ **DashMap/Vortex** | **Partial / name collision** (G6) — objective yes; stores ≠ Smartscape∥Grail |
 | 5 | **Maintain** | Keep map + lake fresh | Continuous DashMap LSM (~100×/s), CSR refresh, Dragonfly TTL windows | **Partial** freshness job; Fed retention model differs |
 | **Phase 2 — Case opens** |||||
 | 6 | **Detect** | Per-entity Events (≠ Problem) | **FR-2a** **Panorama** gray failure via LOS majority | **Partial / weak** — DT = threshold/baseline Events; Fed = Panorama (G3) |
@@ -185,9 +273,11 @@ FR ids from [`federated-pipeline/docs/REQUIREMENTS.md`](../federated-pipeline/do
 | 10 | **Identify** | What / path | **FR-2e** **Nezha** `S_C/(S_C+S_P)` on Dragonfly patterns | **Missing** (G1) — DT lab stops at service `rootCauseEntity` |
 | 11 | **Package** | Problem / verdict card | **FR-2f / FR-4b** fused verdict API | **Covered** as *job* (ship one answer); product semantics differ |
 
-**Federated read order on this grid:** Collect→…→Maintain ≈ fabric for **FR-1**; Detect≈**Panorama**; Curate/Tailor≈**orchestrator hops**; Localize≈**Murphy**; Identify≈**Nezha**; Package≈**fused verdict**.
+**Federated read order on this grid:** Collect→Normalize (**Vector-class**) → Topology → Fan-out → Maintain ≈ fabric for **FR-1**; Detect≈**Panorama**; Curate/Tailor≈**orchestrator hops**; Localize≈**Murphy**; Identify≈**Nezha**; Package≈**fused verdict**.
 
 **CMDB / Discovery on this grid:** only stage **3** (and Maintain of that graph). Discovery builds/updates Knowledge Graph edges; CMDB is still optional governance, not Vortex itself.
+
+**Smartscape / Grail on this grid:** teaching labels only. Motadata achieves their *objectives* via Knowledge Graph + Event Graph (§1.2) — not by cloning those products.
 
 ---
 
@@ -236,23 +326,31 @@ Docs already warn; keep gap visible so builders don’t wire the wrong “Fan-ou
 
 ### G8 — Package / Problem vs Nezha path evidence — **Partial** · P1
 
+**Requirement:** Micro path string as first-class Nezha output.  
 **DT Observed:** Problem + `rootCauseEntity`.  
-**Federated:** Micro path string as first-class Nezha output.  
 **Block:** Evidence *packaging* exists; **path-pattern** evidence artifact does not.
+
+### G9 — Vector-class Collect under-named in Motadata §2 brief — **Partial** · P1 (docs / fabric)
+
+**Objective:** Collect → Normalize → route into dual sinks (Clock A stages 1–2–4).  
+**Motadata §2 short form:** Often starts at `NATS → Rust → Dragonfly` — Event Graph hot path only.  
+**Already designed elsewhere:** [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md); LIVE Vector configs in ingest PoC.  
+**Block (clarity, not invention):** Teams may think Motadata has “no Collect stage” or confuse Vector with a lake. **Fix:** always document Vector-class (or equivalent) in front of NATS (§1.3, §2.4).
 
 ---
 
 ## 5. What the DT pipeline *does* give you (so gaps aren’t overstated)
 
-Useful **covered / strong partial** foundations for a Federated build:
+Useful **covered / strong partial** foundations for a Motadata Federated build:
 
 1. **Clock A fabric vocabulary** — Collect → … → Maintain (joinable identity + time).  
-2. **Map ∥ lake** — Smartscape-like “who” vs Grail-like “evidence” (even if not Dragonfly/Vortex).  
+2. **Map ∥ evidence objectives** — “who” vs “what/when” (Motadata: Knowledge Graph ∥ Event Graph; DT names: Smartscape ∥ Grail — **objectives only**, §1.2).  
 3. **Event ≠ Problem** — Detect storm before package (**Teaching**, matches lab).  
 4. **Case scoping** — Curate seed + Tailor space/time (analogous *job* to “don’t scan whole lake”).  
-5. **Comparable lab** — same FE→API→INV fault for DT vs DD honesty checks.
+5. **Comparable lab** — same FE→API→INV fault for DT vs DD honesty checks.  
+6. **Vector-class ingest design** — shared Collect/Normalize/route fabric already sketched for Motadata ([`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md)); wire it explicitly into §2 (G9).
 
-These are **necessary but not sufficient** for Part 1 Federated architecture.
+These are **necessary but not sufficient** for Motadata Federated Part 1 (still need Panorama / Murphy / Nezha / 1B path).
 
 ---
 
@@ -260,12 +358,13 @@ These are **necessary but not sufficient** for Part 1 Federated architecture.
 
 | Order | Build | Closes |
 |------|--------|--------|
+| 0 | Document + wire **Vector-class** Collect/Normalize into Motadata fabric (before/alongside NATS) | G9 |
 | 1 | Ingest path (NATS/Rust) + Dragonfly Event Graph schemas | G4, G1 (storage) |
 | 2 | Knowledge Graph CSR + property LSM (Vortex/DashMap stand-ins OK) | G2 (store), G5 |
 | 3 | Panorama LOS Detect | G3 |
 | 4 | Murphy macro on KG | G2 (algo) |
 | 5 | Nezha Lua micro on Event Graph | G1 (algo), G8 |
-| 6 | Keep DT 5+3+3 as **vendor unveil / bakeoff lens**, not the Federated runtime | G6 clarity |
+| 6 | Keep DT 5+3+3 as **vendor unveil / bakeoff lens**, not the Motadata runtime | G6 clarity |
 
 ---
 
@@ -276,12 +375,18 @@ DT 5+3+3              =  how we *explain* Dynatrace-shaped RCA (lab-proven Probl
 Motadata architecture =  how Motadata *proposes to build* extreme-EPS causal RCA (§2)
 Motadata FR/AC        =  broad *acceptance* bar (engine-agnostic product outcomes)
 
+Objectives (not clones):
+  "who" map     → Knowledge Graph     (DT teaching label: Smartscape)
+  "what/when"   → Event Graph (+ LOS) (DT teaching label: Grail)
+  Collect pipe  → Vector-class        (NOT a lake; fills both sinks)
+
 Overlap:  fabric jobs, map∥evidence idea, detect-then-localize-then-package intent
-Gaps:     Event Graph, Nezha, Murphy, Panorama LOS, 1B EPS ingest, CSR/LSM stacks
+Gaps:     Event Graph, Nezha, Murphy, Panorama LOS, 1B EPS ingest, CSR/LSM stacks,
+          Vector under-named in short Motadata ingest line (G9)
           (architecture ↔ DT unveil — not FR/AC vs architecture)
 ```
 
-**Do not** treat the DT teaching pipeline as implementation of Motadata §2. Use this gap map to see which Federated blocks are still **missing** after the unveil. Treat Motadata FR/AC + §2 as **supplementary layers** of one Motadata story.
+**Do not** treat the DT teaching pipeline as implementation of Motadata §2. Use this gap map to see which Federated blocks are still **missing** after the unveil. Treat Motadata FR/AC + §2 as **supplementary layers** of one Motadata story. Ask *objective achievability*, not *Smartscape/Grail product parity*.
 
 ---
 
@@ -331,6 +436,7 @@ Scenarios **S1–S6** remain the right **acceptance** stories (one fault → one
 ### 8.3 Practical reading
 
 - **FR/AC** = Motadata **acceptance criteria** (broad, engine-agnostic).
-- **§2** = Motadata **proposed architecture** (Federated Part 1) — closes G1–G4 relative to DT unveil when built.
+- **§2** = Motadata **proposed architecture** (Federated Part 1) — closes G1–G4 relative to DT unveil when built; include **Vector-class Collect** explicitly (G9).
+- **§1.2** = ask *objective achievability* (who-map / what-when evidence / one incident) — **not** Smartscape/Grail product parity.
 - **This doc** = map §2 onto DT 5+3+3 and show which teaching stages are only *job*-aligned.
 - Treat Motadata AC + Motadata architecture as **one product story, two layers** — supplementary, not contradictory.
