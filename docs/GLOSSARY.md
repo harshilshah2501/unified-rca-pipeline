@@ -44,6 +44,7 @@ Canonical: [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.
 | **Beat** | Teaching UI step only (storyboard). |
 | **Seed** | Curate `(entityId, t0)` tip for Tailor — not `rootCauseEntity`. Tailor expands time corridor. |
 | **Teaching threshold 0.30** | Storyboard chalk line on Detect canvas — not a fitted Dynatrace SKU. |
+| **Lab UTC clocks (P-26084)** | Fault ≈**05:54 UTC** → Problem ≈**06:04 UTC** ([`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) §5). Mechanisms/Maintain use these — **not** fictional `07:xx` or IST. |
 
 ## Fault buckets (Samples / coverage)
 

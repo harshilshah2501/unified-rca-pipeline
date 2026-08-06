@@ -145,12 +145,14 @@ Same stages as a contract table. Dynatrace product names are in the map above; t
 
 Maintain is **not** “split a timeseries into shaded vs pulse.” It is housekeeping while the inventory fault story runs. Animated: [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) (Maintain step).
 
+**Clocks = dual-lab UTC (same as Dynatrace dashboard / P-26084).** [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) §5: fault ≈**05:54 UTC** → Problem with RC ≈**06:04 UTC** (~10 min continuous 5xx). Intermediate Grail/Event sample times inside that window are **illustrative** (exact per-Event open times not exported). **Not IST**; replaces the old fictional `07:xx` storyboard.
+
 | Beat | Smartscape (same graph as Topology) | Grail |
 |------|--------------------------------------|-------|
-| ① Healthy `07:25` | HOST-A/B · `FE→API→INV` (+ PAY, BATCH, DB) live | `SERVICE-INV /stock 200`, low error_rate |
-| ② Fault `07:40–07:52` | **Same shape** — INV highlighted on checkout path | Rows **accumulate**: INV `500`, `error_rate 0.92`, API cascade |
-| ③ Problem `07:52` | Davis **walks this same map** | Davis **pulls** INV rows → **P-26084**, `rootCauseEntity=inventory` |
-| ④ Cleared `07:53` | Topology unchanged | New INV `/stock 200` — Problem can close |
+| ① Healthy ≈`05:50` UTC | HOST-A/B · `FE→API→INV` (+ PAY, BATCH, DB) live | `SERVICE-INV /stock 200`, low error_rate (pre-fault) |
+| ② Fault `05:54–06:04` UTC | **Same shape** — INV highlighted on checkout path | Rows **accumulate** ~10 min: INV `500`, `error_rate`, API cascade |
+| ③ Problem ≈`06:04` UTC | Davis **walks this same map** | Davis **pulls** INV rows → **P-26084**, `rootCauseEntity=inventory` (**Observed**) |
+| ④ Cleared (after fault off) | Topology unchanged | New INV `/stock 200` — Problem can close (exact clear clock not recorded) |
 
 Maintain does **not** pick the root cause and does **not** build a different map than Topology. It only keeps that Smartscape fresh while Grail fills.
 
@@ -328,7 +330,7 @@ All four can sit in the same Collect bag. They only become comparable after Norm
 | **Alert** (everyday) | One fused “checkout down” notification | **Detect does not** emit that fused object |
 | **Problem** | Packaged RCA card after Curate→Tailor→Davis | Yes (Problems) |
 
-**Cascade ≠ one alert.** Cascade is the topology/business story; Detect still emits **separate Events** (e.g. INV≈07:48, API≈07:49, FE≈07:50 — each series scored **on its own**).
+**Cascade ≠ one alert.** Cascade is the topology/business story; Detect still emits **separate Events** (illustrative order inside Observed window, e.g. INV≈05:58, API≈05:59, FE≈06:00 UTC — each series scored **on its own**; exact Event open times not exported).
 
 Animated: [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) · Phase 2 Case opens. **Event ≠ Problem.**
 
@@ -358,14 +360,14 @@ Detectors score **entity-keyed Grail series** asynchronously. One breach → one
 | Storm in | INV + API + FE (+ BATCH noise) Events from the common store |
 | Group | Merge by **time proximity** + **Smartscape neighborhood** on FE→API→INV |
 | Drop noise | BATCH out / weak (no checkout edge) |
-| Seed out | `(entityId≈SERVICE-INV, t0≈07:52)` for Tailor — **not yet** `rootCauseEntity`. Seed pins **one** time; Tailor builds `[t0−pre, t0+post]` |
+| Seed out | `(entityId≈SERVICE-INV, t0≈06:04 UTC)` for Tailor — **not yet** `rootCauseEntity`. Seed pins **one** time (**Observed** Problem moment); Tailor builds `[t0−pre, t0+post]` |
 
 **Tailor — space + time cut**
 
 | Cut | Teaching result |
 |-----|-----------------|
 | Space | Same Smartscape as Topology; expand from seed → `{FE, API, INV, DB}`; dim PAY / BATCH |
-| Time | Corridor around t0 ≈ `[07:40, 07:52]` (includes Grail evidence from **before** t0) |
+| Time | Corridor ≈ Observed fault window `[05:54, 06:04] UTC` (includes Grail evidence from **before** Problem open) |
 | Out | Working set → Phase 3 Localize / Identify / Package |
 
 Tailor does **not** rank the root. It scopes what Davis may read.

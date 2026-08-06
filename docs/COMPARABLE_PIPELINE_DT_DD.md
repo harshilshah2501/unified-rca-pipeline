@@ -248,10 +248,12 @@ Datadog:    frontend → product → inventory   (+ peer.hostname on client span
 
 | Milestone | Notes |
 |-----------|-------|
-| DT dual-lab window | Fault ~05:54 UTC → Problem with RC~06:04 (~10 min continuous 5xx) |
+| DT dual-lab window | Fault ~**05:54 UTC** → Problem with RC ~**06:04 UTC** (~10 min continuous 5xx) |
 | DD sustained rerun | ~12 min fault, ~1297 checkouts; clear → 200 |
 | DT Detect latency | Events→Problem slower than first DD spans |
 | DD Detect *signal* | Traces within ~1 min; packaging doors stayed shut |
+
+**Teaching alignment:** Dynatrace mechanisms / Maintain / Curate / Tailor clocks use this **same UTC window** (not fictional `07:xx`, not IST). Mid-window sample times are illustrative inside `[05:54, 06:04]`; anchors **05:54** and **06:04** are **Observed**. See [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) · [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) Maintain timeline.
 
 ---
 

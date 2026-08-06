@@ -7,6 +7,8 @@
 | Module(s)  | Alert Policy & Event Correlation · AIOps · Discovery/Topology (CMDB) · Collectors · (feeds ServiceOps incident)             |
 | Date       | 2026-07-31 · **Status:** Draft functional spec                                                                              |
 
+**Browser (docs hub):** [`multi-telemetry-rca-fac.html`](./multi-telemetry-rca-fac.html) · [`:8765`](http://127.0.0.1:8765/multi-telemetry-rca-fac.html) — visual FR filter, scenarios, NFR meters.
+
 > Extends the topology-based RCA design in `../rca-poc-observeops/`. There the signals were infra KPIs; here RCA ingests **every telemetry class** and produces one root cause with cross-telemetry evidence.
 
 ---
@@ -221,3 +223,5 @@ Each scenario is an end-to-end acceptance test: inject the fault, assert one inc
 **Role of this doc:** Motadata **functional & acceptance criteria** only (broad, engine-agnostic). It does **not** specify CMDB-vs-Discovery gate policy, dual-graph stores, Panorama/Murphy/Nezha depth, or the Vector-class Collect pipeline.
 
 **Supplementary Motadata architecture** (Federated two-tier graph + RCA flow + Vector Collect) and DT objective mapping: [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) §1.2–§1.3 · §2 · §8 · hosted [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html#functional-objectives-motadata-achievability-not-dt-product-clones). AC + architecture are **one product story, two layers** — not contradictions.
+
+**Visual hub page:** [`multi-telemetry-rca-fac.html`](./multi-telemetry-rca-fac.html) · [`http://127.0.0.1:8765/multi-telemetry-rca-fac.html`](http://127.0.0.1:8765/multi-telemetry-rca-fac.html).

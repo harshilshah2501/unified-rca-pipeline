@@ -88,6 +88,7 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
     <a href="/eleven-subsystem-mechanisms.html">DT mechanisms</a>
     <a href="/datadog-subsystem-mechanisms.html">DD mechanisms</a>
     <a href="/federated-vs-dt-pipeline-gaps.html">Fed vs DT gaps</a>
+    <a href="/multi-telemetry-rca-fac.html">Motadata FR/AC</a>
   </div>
 
   <h2>1 · Start here (vendor compare)</h2>
@@ -120,7 +121,23 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
   <ul class="list">
     <li><a href="/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md">Dynatrace lab reference</a><span>Stages 0–5 · Problems</span></li>
     <li><a href="/docs/FEDERATED_VS_DT_PIPELINE_GAPS.md">Federated vs DT gaps (markdown)</a><span>Same content as HTML · Cursor canvas is IDE-only</span></li>
-    <li><a href="/docs/multi-telemetry-rca-functional-and-acceptance-criteria.md">Motadata multi-telemetry FR/AC</a><span>Acceptance bar · architecture in gap doc §2/§8</span></li>
+  </ul>
+
+  <h2>2b · Motadata acceptance</h2>
+  <div class="grid two">
+    <a class="card" href="/multi-telemetry-rca-fac.html">
+      <div class="k compare">FR / AC · visual</div>
+      <h3>Multi-telemetry RCA criteria</h3>
+      <p>Six signal classes → one incident. Filterable FR-A…M, clickable S1–S6 scenarios, NFR targets. Engine-agnostic acceptance bar.</p>
+    </a>
+    <a class="card" href="/federated-vs-dt-pipeline-gaps.html#motadata-multi-telemetry-frac-supplementary-acceptance-bar">
+      <div class="k compare">AC ↔ architecture</div>
+      <h3>How AC relates to Federated design</h3>
+      <p>Gap map §8 — Motadata FR/AC plus Dragonfly/Vortex/Panorama–Murphy–Nezha as complementary layers.</p>
+    </a>
+  </div>
+  <ul class="list">
+    <li><a href="/docs/multi-telemetry-rca-functional-and-acceptance-criteria.md">FR/AC markdown source</a><span>Same content as the visual HTML</span></li>
   </ul>
 
   <h2>3 · Datadog unveil</h2>

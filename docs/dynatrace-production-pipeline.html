@@ -365,16 +365,17 @@ Grail pull for entityId=SERVICE-INV in the fault window
 </table>
 <p><strong>Dynatrace reading of Fan-out / Maintain:</strong> parallel write is <strong>Smartscape ∥ Grail</strong> — but <strong>not twin dumps</strong>. Topology bind <strong>reads/stamps</strong> identity (<code>entityId</code>; auto-create may add a node). Fan-out then writes <strong>different facets</strong> of the same stream: Smartscape <strong>relationship/property upserts</strong> and Grail <strong>evidence</strong> (metrics/traces/logs/events). Lean/Fed and L0/F1 are <strong>out of scope</strong> on this unveil; the mechanisms page phase 3 is <strong>Davis</strong> (walk → Grail rank → Problem), not Lean/Fed.</p>
 <h4 id="maintain-as-one-checkout-timeline-lab">Maintain as one checkout timeline (lab)</h4>
+<p><strong>Clocks = dual-lab UTC</strong> (align with Dynatrace / P-26084): fault ≈<strong>05:54 UTC</strong> → Problem ≈<strong>06:04 UTC</strong> (~10 min). Mid-window Grail rows are illustrative inside that Observed window. <strong>Not IST.</strong> Detail: <a href="/comparable-pipeline-dt-dd.html">comparable pipeline §5</a>.</p>
 <p>Maintain is <strong>not</strong> “split a timeseries into shaded vs pulse.” It is housekeeping while the inventory fault story runs. Animated: <a href="/eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a> (Maintain step).</p>
 <div class="viz" id="viz-maintain-timeline">
   <p class="cap">FE → PRD → INV · Maintain keeps both stores usable · Detect/Davis do RCA</p>
   <table>
     <thead><tr><th>Beat</th><th>Smartscape (same graph as Topology)</th><th>Grail</th></tr></thead>
     <tbody>
-    <tr><td>① Healthy <code>07:25</code></td><td>HOST-A/B · <code>FE→API→INV</code> (+ PAY, BATCH, DB) live</td><td><code>SERVICE-INV /stock 200</code>, low error_rate</td></tr>
-    <tr><td>② Fault <code>07:40–07:52</code></td><td><strong>Same shape</strong> — INV highlighted on checkout path</td><td>Rows <strong>accumulate</strong>: INV <code>500</code>, <code>error_rate 0.92</code>, API cascade</td></tr>
-    <tr><td>③ Problem <code>07:52</code></td><td>Davis <strong>walks this same map</strong></td><td>Davis <strong>pulls</strong> INV rows → <strong>P-26084</strong>, <code>rootCauseEntity=inventory</code></td></tr>
-    <tr><td>④ Cleared <code>07:53</code></td><td>Topology unchanged</td><td>New INV <code>/stock 200</code> — Problem can close</td></tr>
+    <tr><td>① Healthy ≈<code>05:50</code> UTC</td><td>HOST-A/B · <code>FE→API→INV</code> (+ PAY, BATCH, DB) live</td><td><code>SERVICE-INV /stock 200</code>, low error_rate</td></tr>
+    <tr><td>② Fault <code>05:54–06:04</code> UTC</td><td><strong>Same shape</strong> — INV highlighted on checkout path</td><td>Rows <strong>accumulate</strong> ~10 min (Observed dual-lab): INV <code>500</code>, error_rate, API cascade</td></tr>
+    <tr><td>③ Problem ≈<code>06:04</code> UTC</td><td>Davis <strong>walks this same map</strong></td><td>Davis <strong>pulls</strong> INV rows → <strong>P-26084</strong>, <code>rootCauseEntity=inventory</code></td></tr>
+    <tr><td>④ Cleared (after fault off)</td><td>Topology unchanged</td><td>New INV <code>/stock 200</code> after clear — Problem can close</td></tr>
     </tbody>
   </table>
   <p class="viz-note">Maintain does <strong>not</strong> pick the root cause and does <strong>not</strong> build a different map than Topology. It only keeps that Smartscape fresh while Grail fills.</p>
@@ -611,11 +612,11 @@ process.cpu{pid:4421,exe:python} 0.12</code></pre>
   <div class="viz-grid" style="margin-top:.85rem;">
     <div class="viz-panel warn">
       <h5>Curate</h5>
-      <p>Storm → group by time + Smartscape neighborhood → drop BATCH → seed <code>(SERVICE-INV, t0≈07:52)</code>. Seed pins one time; Tailor builds the window. Not yet <code>rootCauseEntity</code>.</p>
+      <p>Storm → group by time + Smartscape neighborhood → drop BATCH → seed <code>(SERVICE-INV, t0≈06:04 UTC)</code>. Seed pins one time; Tailor builds the window. Not yet <code>rootCauseEntity</code>.</p>
     </div>
     <div class="viz-panel accent">
       <h5>Tailor</h5>
-      <p>Space: same Smartscape, expand FE←API←INV→DB. Time corridor around t0: <code>[07:40, 07:52]</code> (includes evidence before t0). Out: working set → Phase 3.</p>
+      <p>Space: same Smartscape, expand FE←API←INV→DB. Time corridor: Observed <code>[05:54, 06:04] UTC</code> (includes evidence before t0). Out: working set → Phase 3.</p>
     </div>
   </div>
 </div>

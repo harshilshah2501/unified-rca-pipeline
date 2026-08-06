@@ -607,9 +607,9 @@ function sceneMaintain(ctx,W,H,p){
     '③ Davis walks THIS map + pulls Grail → Problem P-26084',
     '④ Fault cleared — same topology · recovery rows in Grail'
   ];
-  const clocks=['07:25','07:40→07:52','07:52','07:53'];
+  const clocks=['05:50','05:54→06:04','06:04','after clear'];
 
-  label(ctx,14,14,'MAINTAIN — same Smartscape as 03 Topology (not a different map)',COL.clockA,13);
+  label(ctx,14,14,'MAINTAIN — same Smartscape as 03 Topology · clocks = lab UTC',COL.clockA,13);
   label(ctx,14,32,titles[phase],COL.muted,11);
   roundRect(ctx,720,12,126,28,6);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.clockAd;ctx.stroke();
   label(ctx,783,26,'t = '+clocks[phase],COL.clockAd,12,'center');
@@ -667,7 +667,7 @@ function sceneMaintain(ctx,W,H,p){
   drawEdge(ctx,250,hostY+34,330,hostY+68,COL.line,0.35,1);
   drawEdge(ctx,250,hostY+34,300,hostY+50,COL.line,0.35,1);
 
-  const seen = phase===0?'07:25':(phase===3?'07:53':'07:52');
+  const seen = phase===0?'05:50':(phase===3?'cleared':'06:04');
   label(ctx,24,y0+186,'lastSeen refreshed · '+seen+(invHot?' · INV hot on checkout path':''),invHot?COL.seed:COL.muted,10);
 
   // ── Grail panel ──
@@ -681,12 +681,12 @@ function sceneMaintain(ctx,W,H,p){
   drawEdge(ctx,440,y0+62,830,y0+62,COL.line,0.7,1);
 
   const allRows=[
-    {e:'SERVICE-INV',ts:'07:25',w:'/stock 200',tone:COL.ok,from:0},
-    {e:'SERVICE-INV',ts:'07:40',w:'/stock 500',tone:COL.seed,from:1},
-    {e:'SERVICE-INV',ts:'07:45',w:'error_rate 0.92',tone:COL.seed,from:1},
-    {e:'SERVICE-API',ts:'07:45',w:'span 500 (cascade)',tone:COL.muted,from:1},
-    {e:'SERVICE-INV',ts:'07:52',w:'/stock 500',tone:COL.seed,from:1},
-    {e:'SERVICE-INV',ts:'07:53',w:'/stock 200',tone:COL.ok,from:3}
+    {e:'SERVICE-INV',ts:'05:50',w:'/stock 200',tone:COL.ok,from:0},
+    {e:'SERVICE-INV',ts:'05:54',w:'/stock 500',tone:COL.seed,from:1},
+    {e:'SERVICE-INV',ts:'05:59',w:'error_rate 0.92',tone:COL.seed,from:1},
+    {e:'SERVICE-API',ts:'05:59',w:'span 500 (cascade)',tone:COL.muted,from:1},
+    {e:'SERVICE-INV',ts:'06:04',w:'/stock 500 (still failing)',tone:COL.seed,from:1},
+    {e:'SERVICE-INV',ts:'06:10',w:'/stock 200 (cleared)',tone:COL.ok,from:3}
   ];
   let shown;
   if(phase===0) shown=allRows.filter(r=>r.from===0);
@@ -703,7 +703,7 @@ function sceneMaintain(ctx,W,H,p){
 
   shown.forEach((r,i)=>{
     const y=y0+76+i*18;
-    if(phase===2 && r.e==='SERVICE-INV' && r.ts>='07:40' && r.ts<='07:52'){
+    if(phase===2 && r.e==='SERVICE-INV' && r.ts>='05:54' && r.ts<='06:04'){
       roundRect(ctx,440,y-8,400,16,3);ctx.fillStyle='rgba(95,224,176,.12)';ctx.fill();
     }
     label(ctx,448,y,r.e,COL.text,10);
@@ -823,10 +823,10 @@ function sceneDetect(ctx,W,H,p){
   label(ctx,440,84,'type · entityId · ts · value',COL.muted,10);
 
   const events=[
-    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-INV', ts:'07:48', v:'0.92', from:1},
-    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-API', ts:'07:49', v:'0.78', from:2},
-    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-FE', ts:'07:50', v:'0.71', from:3},
-    {type:'PROCESS_CPU_HIGH', e:'SERVICE-BATCH', ts:'07:50', v:'0.81', from:3, noise:true}
+    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-INV', ts:'05:58', v:'0.92', from:1},
+    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-API', ts:'05:59', v:'0.78', from:2},
+    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-FE', ts:'06:00', v:'0.71', from:3},
+    {type:'PROCESS_CPU_HIGH', e:'SERVICE-BATCH', ts:'06:00', v:'0.81', from:3, noise:true}
   ];
   let shown;
   if(beat===0) shown=[];
@@ -923,7 +923,7 @@ function sceneCurate(ctx,W,H,p){
     label(ctx,24,326,'Curate does not invent rootCauseEntity yet — it collapses the storm.',COL.muted,11);
     label(ctx,24,344,'Causal rank of INV vs API is Phase 3 Identify / Package.',COL.text,11);
   } else {
-    label(ctx,24,326,'SEED → entityId=SERVICE-INV  ·  t0≈07:52  ·  related={FE,API,INV}',COL.ok,12);
+    label(ctx,24,326,'SEED → entityId=SERVICE-INV  ·  t0≈06:04 UTC  ·  related={FE,API,INV}',COL.ok,12);
     label(ctx,24,344,'Handoff to Tailor: cut space + time around this seed (still not P-26084).',COL.text,11);
   }
   label(ctx,430,H-14,'Curate = storm → one case seed · Problem packaging is later',COL.muted,10,'center');
@@ -933,9 +933,9 @@ function sceneTailor(ctx,W,H,p){
   /* Same Smartscape · space cut + time corridor · working set for Phase 3 */
   const beat = (typeof stageBeat === 'number') ? stageBeat : 0;
   const titles=[
-    '① Seed in — from Curate: SERVICE-INV @ t0≈07:52',
+    '① Seed in — from Curate: SERVICE-INV @ t0≈06:04 UTC',
     '② Space cut — expand Smartscape neighborhood (calls + runsOn)',
-    '③ Time cut — corridor around t0 (teaching 07:40–07:52)',
+    '③ Time cut — corridor around t0 (Observed fault window 05:54–06:04 UTC)',
     '④ Working set out — entities[] ∩ timeRange → Phase 3 Davis'
   ];
   label(ctx,14,14,'TAILOR — case-triggered scope (not whole-lake diagnosis)',COL.clockA,13);
@@ -957,13 +957,13 @@ function sceneTailor(ctx,W,H,p){
   // Time corridor panel
   roundRect(ctx,450,52,396,210,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.clockB;ctx.stroke();
   label(ctx,460,70,'TIME cut — corridor around t0',COL.clockB,12);
-  label(ctx,460,90,'teaching window ≈ [07:40, 07:52]',COL.muted,10);
+  label(ctx,460,90,'Observed window ≈ [05:54, 06:04] UTC',COL.muted,10);
 
   const stripY=140, x0=470, x1=820;
   drawEdge(ctx,x0,stripY,x1,stripY,COL.line,1,2);
   // full timeline labels
-  label(ctx,x0,stripY+24,'07:25',COL.muted,9);
-  label(ctx,x1,stripY+24,'07:53',COL.muted,9,'right');
+  label(ctx,x0,stripY+24,'05:50',COL.muted,9);
+  label(ctx,x1,stripY+24,'06:10',COL.muted,9,'right');
   const t0x=(x0+x1)/2;
   drawNode(ctx,t0x,stripY,5,COL.seed,1);
   label(ctx,t0x,stripY-14,'t0',COL.seed,11,'center');
@@ -991,7 +991,7 @@ function sceneTailor(ctx,W,H,p){
   } else {
     label(ctx,24,298,'WORKING SET',COL.ok,12);
     label(ctx,24,318,'entities = {SERVICE-FE, SERVICE-API, SERVICE-INV, SERVICE-DB}',COL.text,11);
-    label(ctx,24,336,'timeRange = [07:40, 07:52]  →  handoff to Davis Localize / Identify → P-26084',COL.text,11);
+    label(ctx,24,336,'timeRange = [05:54, 06:04] UTC  →  handoff to Davis Localize / Identify → P-26084',COL.text,11);
   }
   label(ctx,430,H-14,'Tailor = space ∩ time cut · whole-lake scan is out of scope',COL.muted,10,'center');
 }
@@ -1126,7 +1126,7 @@ const STAGES={
     legend:'Use Curate story ← → · Storm → Group → Drop noise → Seed',
     draw:sceneCurate},
   tailor:{key:'tailor',name:'Tailor',short:'Tailor',tag:'A',phase:1,loop:12000,tall:true,xtall:true,
-    blurb:'Case-triggered scope: same Smartscape as Topology — expand space from seed, cut time corridor (~07:40–07:52). Working set → Phase 3 Davis. Not whole-lake diagnosis.',
+    blurb:'Case-triggered scope: same Smartscape as Topology — expand space from seed, cut time corridor (~05:54–06:04 UTC). Working set → Phase 3 Davis. Not whole-lake diagnosis.',
     legend:'Use Tailor story ← → · Seed → Space → Time → Working set',
     draw:sceneTailor},
   localize:{key:'localize',name:'Localize',short:'Localize',tag:'B',phase:2,loop:4200,
@@ -1297,10 +1297,10 @@ const DETAIL={
   maintain:{
     cls:'four',
     cards:[
-      {h:'① Healthy 07:25',b:'<strong>Same Smartscape as Topology</strong> (HOST-A/B · FE/API/PAY · INV/BATCH/DB). Grail: <code>SERVICE-INV /stock 200</code>. Maintain only refreshes <code>lastSeen</code>.'},
-      {h:'② Fault 07:40–07:52',b:'Map <em>shape</em> unchanged — INV highlighted on checkout path <code>FE→API→INV</code>. <strong>Grail fills</strong>: new rows (INV 500s, error_rate, API cascade).'},
-      {h:'③ Problem 07:52',b:'Davis walks <strong>this same</strong> Smartscape to INV and pulls INV Grail rows → <code>P-26084</code>, <code>rootCauseEntity=inventory</code>.'},
-      {h:'④ Cleared 07:53',b:'Still the Topology graph. New Grail <code>INV /stock 200</code> after we clear <code>inventory.fail</code>. Problem can close.'}
+      {h:'① Healthy ≈05:50 UTC',b:'<strong>Same Smartscape as Topology</strong> (HOST-A/B · FE/API/PAY · INV/BATCH/DB). Grail: <code>SERVICE-INV /stock 200</code>. Pre-fault (before Observed 05:54). Maintain only refreshes <code>lastSeen</code>.'},
+      {h:'② Fault 05:54–06:04 UTC',b:'<strong>Observed</strong> dual-lab window. Map shape unchanged — INV on <code>FE→API→INV</code>. <strong>Grail fills</strong> for ~10 min continuous 5xx.'},
+      {h:'③ Problem ≈06:04 UTC',b:'<strong>Observed</strong> <code>P-26084</code> with RC. Davis walks this Smartscape + pulls INV Grail → <code>rootCauseEntity=inventory</code>.'},
+      {h:'④ Cleared (after fault off)',b:'Still the Topology graph. New Grail <code>INV /stock 200</code> after we clear <code>inventory.fail</code>. Exact clear clock not recorded — recovery is Observed shape.'}
     ]
   },
   detect:{
@@ -1318,15 +1318,15 @@ const DETAIL={
       {h:'① Storm in',b:'Input = Detect Events: INV + API + FE error-rate (+ optional BATCH CPU).'},
       {h:'② Group',b:'Merge by <strong>time proximity</strong> + <strong>Smartscape neighborhood</strong> on the checkout <code>calls</code> path (inferred Davis merge).'},
       {h:'③ Drop noise',b:'BATCH is co-timed but has <strong>no checkout calls edge</strong> → weak/out of the case group.'},
-      {h:'④ Seed out',b:'One seed <code>(SERVICE-INV, t0≈07:52)</code> for Tailor. Still <strong>not</strong> <code>rootCauseEntity</code> on a Problem card.'}
+      {h:'④ Seed out',b:'One seed <code>(SERVICE-INV, t0≈06:04 UTC)</code> for Tailor. Still <strong>not</strong> <code>rootCauseEntity</code> on a Problem card.'}
     ]
   },
   tailor:{
     cls:'four',
     cards:[
-      {h:'① Seed in',b:'From Curate: start at <code>SERVICE-INV</code> / <code>t0≈07:52</code>.'},
+      {h:'① Seed in',b:'From Curate: start at <code>SERVICE-INV</code> / <code>t0≈06:04 UTC</code>.'},
       {h:'② Space cut',b:'Expand <strong>same Smartscape as Topology</strong>: FE←API←INV→DB. Dim PAY (healthy) and BATCH (no edge).'},
-      {h:'③ Time cut',b:'Corridor around t0 — teaching <code>[07:40, 07:52]</code>. Not whole retention history.'},
+      {h:'③ Time cut',b:'Corridor around t0 — Observed <code>[05:54, 06:04] UTC</code>. Not whole retention history.'},
       {h:'④ Working set',b:'Output <code>{entities[], timeRange}</code> → Phase 3 Localize / Identify / Package → <code>P-26084</code>.'}
     ]
   }
