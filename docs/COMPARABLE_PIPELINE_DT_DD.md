@@ -134,6 +134,8 @@ We keep **our** stage names as a fair compare lens. Product names below are what
 | Packaged **Problem** with named RC | **P-26084**, `rootCauseEntity=inventory` |
 | Upstream kept but **not** RC-relevant | FE/PRD Events marked not RC |
 
+**Follow-on (2026-08-06, code-level enrich):** **P-260817** — same leaf pattern with real `KeyError` in inventory; API event timeline + teaching notes in [`dt-lab-timeline-code-level.html`](./dt-lab-timeline-code-level.html) (`rootCauseEntity=null` this pull).
+
 ### Confirmed Datadog-only strength (this scenario)
 
 | Building block | Evidence |

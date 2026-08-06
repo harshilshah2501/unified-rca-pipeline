@@ -5,14 +5,12 @@
 
   var links = [
     { href: "/docs.html", label: "Docs index" },
+    { href: "/dt-davis-category-hub.html", label: "DT · Davis categories" },
     { href: "/comparable-pipeline-dt-dd.html", label: "DT vs DD" },
-    { href: "/dynatrace-production-pipeline.html", label: "DT pipeline" },
-    { href: "/eleven-subsystem-mechanisms.html", label: "DT mechanisms" },
     { href: "/federated-vs-dt-pipeline-gaps.html", label: "Fed vs DT gaps" },
     { href: "/multi-telemetry-rca-fac.html", label: "Motadata FR/AC" },
     { href: "/datadog-production-pipeline.html", label: "DD pipeline" },
     { href: "/datadog-subsystem-mechanisms.html", label: "DD mechanisms" },
-    { href: "/datadog-lab-evidence-2026-08-04.html", label: "DD lab evidence" },
     { href: "/rca-data-lake-brainstorm.html", label: "Data lake" },
     { href: "/", label: "PoC console" }
   ];
@@ -23,6 +21,7 @@
     "#urca-doc-nav{position:sticky;top:0;z-index:9999;display:flex;flex-wrap:wrap;gap:6px;align-items:center;",
     "padding:8px 12px;background:rgba(15,20,25,.94);border-bottom:1px solid #2a3441;",
     "backdrop-filter:blur(8px);font-family:system-ui,-apple-system,sans-serif;}",
+    "#urca-dt-cat-bar{position:sticky;top:42px;z-index:9998;}",
     "#urca-doc-nav a{font-size:12px;padding:5px 9px;border-radius:4px;border:1px solid #2a3441;",
     "background:#1c2430;color:#b8c4d0;text-decoration:none;white-space:nowrap;}",
     "#urca-doc-nav a:hover{color:#e8eef4;border-color:#3d9a8b;}",
@@ -41,6 +40,13 @@
     a.textContent = item.label;
     var target = item.href.replace(/\/+$/, "") || "/";
     if (path === target || path.endsWith(target)) a.className = "here";
+    // also highlight hub when on any DT category teaching/lab page
+    if (
+      item.href === "/dt-davis-category-hub.html" &&
+      /dt-lab-timeline|dt-cat-|eleven-subsystem-mechanisms|dynatrace-production-pipeline|dt-e2e-smartscape/.test(path)
+    ) {
+      a.classList.add("here");
+    }
     if (item.href === "/docs.html") a.classList.add("urca-back");
     nav.appendChild(a);
   });

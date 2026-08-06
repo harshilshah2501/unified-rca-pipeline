@@ -50,6 +50,9 @@ services:
     environment:
       <<: *otel
       OTEL_SERVICE_NAME: inventory
+      OTEL_LOGS_EXPORTER: "${OTEL_LOGS_EXPORTER:-otlp}"
       DT_CLUSTER_ID: inventory
       DT_RELEASE_PRODUCT: inventory
       DT_RELEASE_STAGE: rca-lab
+      DT_RELEASE_VERSION: "${DT_RELEASE_VERSION:-1.1.0-codepin}"
+      OTEL_RESOURCE_ATTRIBUTES: "service.name=inventory,service.version=${DT_RELEASE_VERSION:-1.1.0-codepin},lab=dynatrace-rca-lab"

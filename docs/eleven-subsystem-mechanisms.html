@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <title>RCA pipeline — mechanisms along the flow</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta name="doc-revision" content="lab-utc-per-cat">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="/dt-davis-categories.js"></script>
 <style>
   :root{
     --bg:#0A0C10; --panel:#12151C; --panel-2:#171B24; --line:#2A3140;
@@ -95,9 +99,30 @@
   .tag.a{background:rgba(91,141,239,.15);color:var(--clockA);border:1px solid rgba(91,141,239,.35);}
   .tag.b{background:rgba(176,132,232,.15);color:var(--clockB);border:1px solid rgba(176,132,232,.35);}
   .blurb{color:var(--text);font-size:15px;line-height:1.55;margin-bottom:12px;max-width:820px;opacity:.92;}
-  canvas{width:100%;height:230px;display:block;border-radius:8px;background:#0D0F14;border:1px solid var(--line);}
-  canvas.tall{height:360px;}
-  canvas.xtall{height:520px;}
+  canvas{
+    width:100%;height:auto;display:block;border-radius:8px;background:#0D0F14;border:1px solid var(--line);
+    aspect-ratio:860 / 230; /* JS overrides per stage so footers sit under content — no dead band */
+  }
+  .cat-panel{
+    display:none;margin-top:14px;padding:14px 16px;border-radius:8px;
+    background:var(--panel);border:1px solid var(--line);
+  }
+  .cat-panel.show{display:block;}
+  .cat-panel h3{
+    margin:0 0 8px;font-size:14px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--text);
+  }
+  .cat-panel .lead{margin:0 0 10px;font-size:14px;line-height:1.55;color:var(--muted);}
+  .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+  .cat-chip{
+    padding:10px 11px;border-radius:7px;background:var(--panel-2);border:1px solid var(--line);
+    font-size:13px;line-height:1.45;color:var(--muted);
+  }
+  .cat-chip b{display:block;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text);margin-bottom:4px;}
+  .cat-chip.on{border-color:rgba(255,107,107,.45);background:rgba(255,107,107,.08);}
+  .cat-chip.on b{color:var(--seed);}
+  .cat-chip.meta b{color:var(--lean);}
+  .cat-note{margin:10px 0 0;font-size:13px;line-height:1.5;color:var(--muted);}
+  .cat-note code{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--clockA);}
   .detail-cards{display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px;}
   .detail-cards.show{display:grid;}
   .detail-cards.two{grid-template-columns:repeat(2,minmax(0,1fr));}
@@ -184,6 +209,8 @@
     One coherent path: <b>always-on fabric</b> → <b>case opens</b> → <b>Davis diagnose</b>.
     Fan-out is <b>Smartscape&nbsp;∥&nbsp;Grail</b> (map upserts ∥ lake evidence — not twin dumps).
     Phase&nbsp;3 is <b>Davis</b> only — no Lean / Federated toggle on this page.
+    <span id="clockIntro">Clock = Observed lab UTC — category-specific (switch SLOWDOWN / ERROR above).</span>
+    Full dual-store board: <a id="e2eLink" href="/dt-e2e-smartscape-grail.html" style="color:var(--clockA)">Smartscape ∥ Grail E2E</a>.
   </div>
 
   <div class="phases" id="phases"></div>
@@ -213,6 +240,16 @@
       <button type="button" class="beat-step" id="beatNext" title="Next beat">→</button>
     </div>
     <div class="detail-cards" id="detailCards"></div>
+    <div class="cat-panel" id="catPanel" aria-live="polite">
+      <h3 id="catPanelTitle">Davis event categories</h3>
+      <p class="lead" id="catPanelLead"></p>
+      <div class="cat-grid" id="catGrid"></div>
+      <p class="cat-note">
+        A Problem can raise severity over its life (e.g. Slowdown → Availability).
+        Dissecting another category = swap Grail series + Event type in Detect; Curate/Tailor/Davis stay the same clocks.
+        Use the category dropdown to reload Maintain / Detect / Package with matching evidence (no ERROR 5xx on SLOWDOWN).
+      </p>
+    </div>
     <div class="foot">
       <button type="button" id="prevBtn">← Prev</button>
       <button type="button" id="nextBtn">Next →</button>
@@ -230,6 +267,20 @@ const COL = {
   seed:'#FF6B6B', clockA:'#7BA8F7', clockAd:'#A8C4FA', clockB:'#C9A4F0', ok:'#5FE0B0',
   gray:'#5A6474'
 };
+function labSc(){
+  if(window.URCA_DT_CATS && typeof URCA_DT_CATS.labScenario==='function') return URCA_DT_CATS.labScenario();
+  if(window.URCA_DT_CATS && URCA_DT_CATS.lab && URCA_DT_CATS.lab.error) return URCA_DT_CATS.lab.error;
+  return {id:'error',problem:'P-26084',clocks:['05:50','05:54→06:04','06:04','after clear'],faultWindow:'05:54–06:04',problemAt:'06:04',seenFault:'06:04',maintainTitles:['① Healthy','② Fault','③ Problem','④ Cleared'],grailRows:[],detectSignal:'error_rate',detectThr:0.3,detectMax:1,detectTitles:['① Watch','② Breach','③ Cascade','④ Storm'],detectSeries:[],events:[],packageLines:[['rootCauseEntity','SERVICE-INV']],identifyRows:['failed_call↑ INV'],clearMetric:'error_rate',rcLabel:'rootCauseEntity = inventory',clockIntro:''};
+}
+function toneCol(t){
+  if(t==='ok') return COL.ok;
+  if(t==='seed') return COL.seed;
+  return COL.muted;
+}
+function fmtDetectVal(v, max){
+  if(max>2) return (Math.round(v*10)/10).toFixed(v>=10?0:1)+(max>5?'s':'');
+  return v.toFixed(2);
+}
 function lerp(a,b,t){return a+(b-a)*t;}
 function clamp01(t){return t<0?0:t>1?1:t;}
 function smooth(t){t=clamp01(t);return t*t*(3-2*t);}
@@ -344,8 +395,7 @@ function sceneCollect(ctx,W,H,p){
     }
   });
 
-  // legend chips
-  const legendY=H-22;
+  const legendY=278;
   [
     {s:'circle',c:COL.clockA,t:'Agents'},
     {s:'square',c:COL.clockAd,t:'OTel'},
@@ -594,29 +644,23 @@ function sceneFanout(ctx,W,H,p){
       drawNode(ctx,lerp(cx,705,smooth(t)),lerp(cy,210,smooth(t)),4.5,COL.clockB,1);
     }
   }
-  label(ctx,430,H-18,'∥ = simultaneous · Smartscape gets edges/props · Grail gets evidence',COL.muted,11,'center');
+  label(ctx,430,278,'∥ = simultaneous · Smartscape gets edges/props · Grail gets evidence',COL.muted,11,'center');
 }
 
 function sceneMaintain(ctx,W,H,p){
-  /* Same Smartscape as Topology (Walkthrough B). Maintain only refreshes it
-     while Grail rows accumulate for the checkout fault story. */
+  /* Same Smartscape as Topology. Grail rows come from active Davis category. */
+  const sc=labSc();
   const phase = (typeof stageBeat === 'number') ? stageBeat : 0;
-  const titles=[
-    '① Healthy — same Smartscape as Topology · Grail has OK rows',
-    '② Fault on — map unchanged (INV hot) · Grail fills with INV 500s',
-    '③ Davis walks THIS map + pulls Grail → Problem P-26084',
-    '④ Fault cleared — same topology · recovery rows in Grail'
-  ];
-  const clocks=['05:50','05:54→06:04','06:04','after clear'];
+  const titles=sc.maintainTitles || [];
+  const clocks=sc.clocks || [];
 
   label(ctx,14,14,'MAINTAIN — same Smartscape as 03 Topology · clocks = lab UTC',COL.clockA,13);
-  label(ctx,14,32,titles[phase],COL.muted,11);
+  label(ctx,14,32,titles[phase]||'',COL.muted,11);
   roundRect(ctx,720,12,126,28,6);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.clockAd;ctx.stroke();
-  label(ctx,783,26,'t = '+clocks[phase],COL.clockAd,12,'center');
+  label(ctx,783,26,'t = '+(clocks[phase]||''),COL.clockAd,12,'center');
   label(ctx,14,52,'Checkout path FE→API→INV highlighted · PAY healthy · BATCH no calls edge',COL.muted,10);
 
   const y0=68;
-  // ── Smartscape = same layout as Topology CI Graph ──
   roundRect(ctx,14,y0,400,200,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.clockA;ctx.stroke();
   label(ctx,24,y0+16,'SMARTSCAPE (same as Topology)',COL.clockA,12);
   label(ctx,24,y0+32,'calls + runsOn · refreshed here, not rebuilt',COL.muted,10);
@@ -625,7 +669,6 @@ function sceneMaintain(ctx,W,H,p){
   roundRect(ctx,28,hostY,372,112,6);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.line;ctx.stroke();
   label(ctx,38,hostY+14,'HOST-A',COL.muted,10);
   label(ctx,220,hostY+14,'HOST-B',COL.muted,10);
-  // containment hint
   label(ctx,38,hostY+28,'runsOn ↓',COL.muted,9);
   label(ctx,220,hostY+28,'runsOn ↓',COL.muted,9);
 
@@ -638,7 +681,6 @@ function sceneMaintain(ctx,W,H,p){
     {id:'DB',x:330,y:hostY+78,c:COL.clockB},
     {id:'BATCH',x:300,y:hostY+44,c:COL.lean}
   ];
-  // calls edges — checkout path brighter when fault/problem
   const pathGlow = invHot ? 1 : 0.75;
   [['FE','API'],['API','INV'],['INV','DB'],['API','PAY']].forEach(([a,b])=>{
     const A=services.find(s=>s.id===a), B=services.find(s=>s.id===b);
@@ -659,7 +701,6 @@ function sceneMaintain(ctx,W,H,p){
     label(ctx,s.x,s.y+18,s.id,s.c,10,'center');
     ctx.restore();
   });
-  // runsOn ticks (containment) host → services
   drawEdge(ctx,70,hostY+34,55,hostY+68,COL.line,0.35,1);
   drawEdge(ctx,70,hostY+34,115,hostY+68,COL.line,0.35,1);
   drawEdge(ctx,70,hostY+34,175,hostY+48,COL.line,0.35,1);
@@ -667,27 +708,19 @@ function sceneMaintain(ctx,W,H,p){
   drawEdge(ctx,250,hostY+34,330,hostY+68,COL.line,0.35,1);
   drawEdge(ctx,250,hostY+34,300,hostY+50,COL.line,0.35,1);
 
-  const seen = phase===0?'05:50':(phase===3?'cleared':'06:04');
+  const seen = phase===0?(clocks[0]||''):(phase===3?'cleared':(sc.seenFault||clocks[2]||''));
   label(ctx,24,y0+186,'lastSeen refreshed · '+seen+(invHot?' · INV hot on checkout path':''),invHot?COL.seed:COL.muted,10);
 
-  // ── Grail panel ──
   roundRect(ctx,430,y0,416,200,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.clockB;ctx.stroke();
   label(ctx,440,y0+16,'GRAIL (evidence) — fills over time',COL.clockB,12);
-  label(ctx,440,y0+32,'same entityIds as Smartscape nodes',COL.muted,10);
+  label(ctx,440,y0+32,'same entityIds as Smartscape nodes · '+((sc.id||'')+'').toUpperCase(),COL.muted,10);
 
   label(ctx,448,y0+54,'entityId',COL.muted,10);
   label(ctx,560,y0+54,'ts',COL.muted,10);
   label(ctx,630,y0+54,'what',COL.muted,10);
   drawEdge(ctx,440,y0+62,830,y0+62,COL.line,0.7,1);
 
-  const allRows=[
-    {e:'SERVICE-INV',ts:'05:50',w:'/stock 200',tone:COL.ok,from:0},
-    {e:'SERVICE-INV',ts:'05:54',w:'/stock 500',tone:COL.seed,from:1},
-    {e:'SERVICE-INV',ts:'05:59',w:'error_rate 0.92',tone:COL.seed,from:1},
-    {e:'SERVICE-API',ts:'05:59',w:'span 500 (cascade)',tone:COL.muted,from:1},
-    {e:'SERVICE-INV',ts:'06:04',w:'/stock 500 (still failing)',tone:COL.seed,from:1},
-    {e:'SERVICE-INV',ts:'06:10',w:'/stock 200 (cleared)',tone:COL.ok,from:3}
-  ];
+  const allRows=(sc.grailRows||[]).map(r=>({e:r.e,ts:r.ts,w:r.w,tone:toneCol(r.tone),from:r.from}));
   let shown;
   if(phase===0) shown=allRows.filter(r=>r.from===0);
   else if(phase===1){
@@ -703,7 +736,7 @@ function sceneMaintain(ctx,W,H,p){
 
   shown.forEach((r,i)=>{
     const y=y0+76+i*18;
-    if(phase===2 && r.e==='SERVICE-INV' && r.ts>='05:54' && r.ts<='06:04'){
+    if(phase===2 && r.tone===COL.seed){
       roundRect(ctx,440,y-8,400,16,3);ctx.fillStyle='rgba(95,224,176,.12)';ctx.fill();
     }
     label(ctx,448,y,r.e,COL.text,10);
@@ -716,19 +749,19 @@ function sceneMaintain(ctx,W,H,p){
   ctx.strokeStyle=phase===2?COL.ok:COL.line;ctx.stroke();
   if(phase===0){
     label(ctx,24,yB+20,'Same map as Topology. Maintain only keeps lastSeen fresh + Grail current.',COL.muted,11);
-    label(ctx,24,yB+40,'Smartscape: FE→API→INV (+ PAY, BATCH, DB)   ·   Grail: INV 200',COL.text,11);
+    label(ctx,24,yB+40,'Smartscape: FE→API→INV (+ PAY, BATCH, DB)   ·   Grail: healthy rows',COL.text,11);
   } else if(phase===1){
-    label(ctx,24,yB+20,'Map shape unchanged — only INV highlighted. Grail rows accumulate under SERVICE-INV.',COL.seed,11);
+    label(ctx,24,yB+20,'Map shape unchanged — only INV highlighted. Grail rows accumulate for this category.',COL.seed,11);
     label(ctx,24,yB+40,'That is “Grail fills” — new evidence rows, not a new topology.',COL.text,11);
   } else if(phase===2){
-    label(ctx,24,yB+20,'FINAL: P-26084 · rootCauseEntity = inventory (SERVICE-INV)',COL.ok,12);
+    label(ctx,24,yB+20,'FINAL: '+sc.problem+' · '+(sc.rcLabel||''),COL.ok,12);
     label(ctx,24,yB+40,'Davis walked FE→API→INV on this same Smartscape + pulled highlighted Grail rows.',COL.text,11);
   } else {
-    label(ctx,24,yB+20,'Fault cleared — topology still the Topology graph. New Grail INV 200.',COL.ok,11);
-    label(ctx,24,yB+40,'Problem can close when INV error_rate is healthy again.',COL.text,11);
+    label(ctx,24,yB+20,'Fault cleared — topology still the Topology graph. Recovery rows in Grail.',COL.ok,11);
+    label(ctx,24,yB+40,'Problem can close when INV '+(sc.clearMetric||'signal')+' is healthy again.',COL.text,11);
   }
 
-  label(ctx,430,H-14,'Topology builds/binds the map · Maintain keeps that same map + lake usable',COL.muted,10,'center');
+  label(ctx,430,348,'Topology builds/binds the map · Maintain keeps that same map + lake usable',COL.muted,10,'center');
 }
 
 function drawSmartscapeMini(ctx,x,y,w,h,opts){
@@ -774,60 +807,46 @@ function drawSmartscapeMini(ctx,x,y,w,h,opts){
 }
 
 function sceneDetect(ctx,W,H,p){
-  /* Grail series → per-entity Events. Lab: INV then API then FE. Event ≠ Problem. */
+  /* Grail series → per-entity Events. Signal/threshold from active category. */
+  const sc=labSc();
   const beat = (typeof stageBeat === 'number') ? stageBeat : 0;
-  const titles=[
-    '① Watch — each service’s error_rate series watched vs its threshold',
-    '② Breach — INV crosses threshold → first Event object',
-    '③ Cascade — API then FE each open their own Event (not one fused alert)',
-    '④ Storm — raw Event list; still no Problem card'
-  ];
-  label(ctx,14,14,'DETECT — how detectors raise Events (checkout lab)',COL.clockA,13);
-  label(ctx,14,32,titles[beat],COL.muted,11);
+  const titles=sc.detectTitles || [];
+  const thr=sc.detectThr!=null?sc.detectThr:0.3;
+  const max=sc.detectMax!=null?sc.detectMax:1;
+  label(ctx,14,14,'DETECT — how detectors raise Events ('+sc.problem+' lab UTC)',COL.clockA,13);
+
+  label(ctx,14,32,titles[beat]||'',COL.muted,11);
   roundRect(ctx,700,12,146,28,6);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.seed;ctx.stroke();
   label(ctx,773,26,'Event ≠ Problem',COL.seed,11,'center');
 
-  // Left: Grail series gauges
   roundRect(ctx,14,48,400,250,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.clockB;ctx.stroke();
   label(ctx,24,66,'GRAIL series (input to detectors)',COL.clockB,12);
   label(ctx,24,84,'entityId + signal + time · each series scored on its own',COL.muted,10);
 
-  const series=[
-    {id:'SERVICE-INV', signal:'error_rate', y:110, healthy:0.02, fault:0.92, order:0},
-    {id:'SERVICE-API', signal:'error_rate', y:170, healthy:0.01, fault:0.78, order:1},
-    {id:'SERVICE-FE', signal:'error_rate', y:230, healthy:0.01, fault:0.71, order:2}
-  ];
-  // threshold once in legend area — not on every row (avoid overlap on “error_rate”)
-  const thrX=28+360*0.3;
+  const series=sc.detectSeries || [];
+  const thrX=28+360*Math.min(0.98, thr/max);
   series.forEach((s,i)=>{
     let val=s.healthy;
-    if(beat===1) val = i===0 ? s.fault : s.healthy;
-    else if(beat===2) val = i===0 ? s.fault : (i===1 ? s.fault : 0.45);
+    if(beat===1) val = s.order===0 ? s.fault : s.healthy;
+    else if(beat===2) val = s.order<=1 ? s.fault : (s.healthy+(s.fault-s.healthy)*0.45);
     else if(beat>=3) val = s.fault;
 
     label(ctx,28,s.y-8,s.id,COL.text,11);
     label(ctx,200,s.y-8,s.signal,COL.muted,10);
-    // bar track
     roundRect(ctx,28,s.y+4,360,16,4);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.line;ctx.stroke();
     drawEdge(ctx,thrX,s.y+2,thrX,s.y+22,COL.lean,0.85,1.5);
-    const barW=Math.max(4,360*val);
+    const barW=Math.max(4,360*Math.min(1,val/max));
     roundRect(ctx,28,s.y+4,barW,16,4);
-    ctx.fillStyle=val>0.3?COL.seed:COL.ok;ctx.fill();
-    label(ctx,400,s.y+12,val.toFixed(2),val>0.3?COL.seed:COL.ok,10,'right');
+    ctx.fillStyle=val>thr?COL.seed:COL.ok;ctx.fill();
+    label(ctx,400,s.y+12,fmtDetectVal(val,max),val>thr?COL.seed:COL.ok,10,'right');
   });
-  label(ctx,28,280,'gold line = threshold (teaching 0.30) · bar = current error_rate',COL.muted,10);
+  label(ctx,28,280,'gold line = threshold ('+thr+(max>2?'s':'')+') · bar = current '+(sc.detectSignal||'signal'),COL.muted,10);
 
-  // Right: Event objects
   roundRect(ctx,430,48,416,250,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.seed;ctx.stroke();
   label(ctx,440,66,'EVENTS out (one breach → one Event)',COL.seed,12);
-  label(ctx,440,84,'type · entityId · ts · value',COL.muted,10);
+  label(ctx,440,84,'type · entityId · ts (UTC) · value · window '+(sc.faultWindow||''),COL.muted,10);
 
-  const events=[
-    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-INV', ts:'05:58', v:'0.92', from:1},
-    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-API', ts:'05:59', v:'0.78', from:2},
-    {type:'SERVICE_ERROR_RATE_INCREASED', e:'SERVICE-FE', ts:'06:00', v:'0.71', from:3},
-    {type:'PROCESS_CPU_HIGH', e:'SERVICE-BATCH', ts:'06:00', v:'0.81', from:3, noise:true}
-  ];
+  const events=sc.events || [];
   let shown;
   if(beat===0) shown=[];
   else if(beat===1) shown=events.filter(ev=>ev.from===1);
@@ -844,22 +863,21 @@ function sceneDetect(ctx,W,H,p){
       ctx.fillStyle=ev.noise?'rgba(240,179,90,.08)':'rgba(255,107,107,.1)';ctx.fill();
       ctx.strokeStyle=ev.noise?COL.lean:COL.seed;ctx.stroke();
       label(ctx,450,y-2,ev.type,ev.noise?COL.lean:COL.seed,10);
-      label(ctx,450,y+14,ev.e+'  ts='+ev.ts+'  '+ev.v+(ev.noise?'  (noise)':''),COL.text,10);
+      label(ctx,450,y+14,ev.e+'  ts='+ev.ts+' UTC  '+ev.v+(ev.noise?'  (noise)':''),COL.text,10);
     });
   }
 
-  // bottom strip
   roundRect(ctx,14,312,832,48,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.line;ctx.stroke();
   if(beat===0){
     label(ctx,24,332,'Detectors read Maintain’d Grail. No breach → no Event → no case yet.',COL.muted,11);
   } else if(beat===1){
-    label(ctx,24,332,'First Event is INV — leaf failure. Upstream not merged yet (that is Curate).',COL.seed,11);
+    label(ctx,24,332,'First Event is leaf — upstream not merged yet (that is Curate).',COL.seed,11);
   } else if(beat===2){
     label(ctx,24,332,'Cascade = many independent Events as callers fail. Still not one “alert” and not a Problem.',COL.seed,11);
   } else {
-    label(ctx,24,332,'Raw storm includes BATCH noise. Next: Curate merges by time + topology → one seed.',COL.text,11);
+    label(ctx,24,332,'Raw storm may include noise. Next: Curate merges by time + topology → one seed.',COL.text,11);
   }
-  label(ctx,430,H-14,'Detect = Events from Grail breaches · does not package rootCauseEntity',COL.muted,10,'center');
+  label(ctx,430,376,'Detect = Events from Grail breaches · does not package rootCauseEntity',COL.muted,10,'center');
 }
 
 function sceneCurate(ctx,W,H,p){
@@ -896,7 +914,7 @@ function sceneCurate(ctx,W,H,p){
     }
     ctx.save();ctx.globalAlpha=alpha;
     roundRect(ctx,28,y-12,370,34,5);ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.stroke();
-    label(ctx,40,y,s.e+'  ·  ERROR_RATE_INCREASED',COL.text,11);
+    label(ctx,40,y,s.e+'  ·  '+(labSc().events&&labSc().events[0]?labSc().events[0].type.replace(/^SERVICE_/,''):'EVENT'),COL.text,11);
     label(ctx,360,y,s.role,COL.muted,10,'right');
     ctx.restore();
   });
@@ -924,18 +942,19 @@ function sceneCurate(ctx,W,H,p){
     label(ctx,24,344,'Causal rank of INV vs API is Phase 3 Identify / Package.',COL.text,11);
   } else {
     label(ctx,24,326,'SEED → entityId=SERVICE-INV  ·  t0≈06:04 UTC  ·  related={FE,API,INV}',COL.ok,12);
-    label(ctx,24,344,'Handoff to Tailor: cut space + time around this seed (still not P-26084).',COL.text,11);
+    label(ctx,24,344,'Handoff to Tailor: cut space + time around this seed (still not '+labSc().problem+').',COL.text,11);
   }
-  label(ctx,430,H-14,'Curate = storm → one case seed · Problem packaging is later',COL.muted,10,'center');
+  label(ctx,430,376,'Curate = storm → one case seed · Problem packaging is later',COL.muted,10,'center');
 }
 
 function sceneTailor(ctx,W,H,p){
   /* Same Smartscape · space cut + time corridor · working set for Phase 3 */
+  const sc=labSc();
   const beat = (typeof stageBeat === 'number') ? stageBeat : 0;
   const titles=[
-    '① Seed in — from Curate: SERVICE-INV @ t0≈06:04 UTC',
+    '① Seed in — from Curate: SERVICE-INV @ t0≈'+sc.problemAt+' UTC',
     '② Space cut — expand Smartscape neighborhood (calls + runsOn)',
-    '③ Time cut — corridor around t0 (Observed fault window 05:54–06:04 UTC)',
+    '③ Time cut — corridor around t0 (Observed fault window '+sc.faultWindow+' UTC)',
     '④ Working set out — entities[] ∩ timeRange → Phase 3 Davis'
   ];
   label(ctx,14,14,'TAILOR — case-triggered scope (not whole-lake diagnosis)',COL.clockA,13);
@@ -943,7 +962,7 @@ function sceneTailor(ctx,W,H,p){
 
   const inSet = beat===0 ? new Set(['INV'])
     : beat===1 ? new Set(['FE','API','INV','DB'])
-    : new Set(['FE','API','INV','DB']); // PAY/BATCH out of checkout working set
+    : new Set(['FE','API','INV','DB']);
 
   drawSmartscapeMini(ctx,14,52,420,210,{
     title:'SPACE cut — same Smartscape as Topology',
@@ -954,22 +973,19 @@ function sceneTailor(ctx,W,H,p){
     stroke:COL.clockB
   });
 
-  // Time corridor panel
   roundRect(ctx,450,52,396,210,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.clockB;ctx.stroke();
   label(ctx,460,70,'TIME cut — corridor around t0',COL.clockB,12);
-  label(ctx,460,90,'Observed window ≈ [05:54, 06:04] UTC',COL.muted,10);
+  label(ctx,460,90,'Observed window ≈ ['+sc.faultWindow+'] UTC',COL.muted,10);
 
   const stripY=140, x0=470, x1=820;
   drawEdge(ctx,x0,stripY,x1,stripY,COL.line,1,2);
-  // full timeline labels
-  label(ctx,x0,stripY+24,'05:50',COL.muted,9);
-  label(ctx,x1,stripY+24,'06:10',COL.muted,9,'right');
+  label(ctx,x0,stripY+24,sc.clocks&&sc.clocks[0]?String(sc.clocks[0]).split('→')[0]:'t−',COL.muted,9);
+  label(ctx,x1,stripY+24,'after',COL.muted,9,'right');
   const t0x=(x0+x1)/2;
   drawNode(ctx,t0x,stripY,5,COL.seed,1);
   label(ctx,t0x,stripY-14,'t0',COL.seed,11,'center');
 
   if(beat>=2){
-    // corridor
     const c0=x0+40, c1=x1-30;
     ctx.save();ctx.globalAlpha=0.2;ctx.fillStyle=COL.clockB;
     ctx.fillRect(c0,stripY-18,c1-c0,36);ctx.restore();
@@ -991,9 +1007,9 @@ function sceneTailor(ctx,W,H,p){
   } else {
     label(ctx,24,298,'WORKING SET',COL.ok,12);
     label(ctx,24,318,'entities = {SERVICE-FE, SERVICE-API, SERVICE-INV, SERVICE-DB}',COL.text,11);
-    label(ctx,24,336,'timeRange = [05:54, 06:04] UTC  →  handoff to Davis Localize / Identify → P-26084',COL.text,11);
+    label(ctx,24,336,'timeRange = ['+sc.faultWindow+'] UTC  →  handoff to Davis → '+sc.problem,COL.text,11);
   }
-  label(ctx,430,H-14,'Tailor = space ∩ time cut · whole-lake scan is out of scope',COL.muted,10,'center');
+  label(ctx,430,366,'Tailor = space ∩ time cut · whole-lake scan is out of scope',COL.muted,10,'center');
 }
 
 function sceneLocalize(ctx,W,H,p){
@@ -1023,7 +1039,7 @@ function sceneLocalize(ctx,W,H,p){
     }
   });
   if(t>0.55){
-    label(ctx,420,H-18,'neighborhood working set for evidence pull',COL.muted,11,'center');
+    label(ctx,420,208,'neighborhood working set for evidence pull',COL.muted,11,'center');
   }
 }
 
@@ -1036,7 +1052,7 @@ function sceneIdentify(ctx,W,H,p){
   roundRect(ctx,40,55,220,130,8);ctx.fillStyle='rgba(176,132,232,.1)';ctx.fill();ctx.strokeStyle=COL.clockB;ctx.stroke();
   label(ctx,150,78,'Grail pull',COL.clockB,12,'center');
   label(ctx,150,100,'entityId ∩ time halo',COL.muted,11,'center');
-  const rows=['failed_call↑ INV','latency FE→API','CPU HOST-B','BATCH noise'];
+  const rows=labSc().identifyRows||['failed_call↑ INV','latency FE→API','CPU HOST-B','BATCH noise'];
   rows.forEach((r,i)=>{
     const show=t>0.12+i*0.1;
     if(show) label(ctx,150,122+i*16,r,i===0?COL.seed:COL.muted,10,'center');
@@ -1065,17 +1081,14 @@ function sceneIdentify(ctx,W,H,p){
 
 function sceneVerify(ctx,W,H,p){
   /* Davis Package: thin ranker → Problem card */
+  const sc=labSc();
   const t=p%1;
   label(ctx,14,16,'Davis · Package — open / update Problem',COL.clockB,13);
   label(ctx,14,34,'Thin packager: rootCauseEntity + evidence list + impact (inferred)',COL.muted,11);
 
   roundRect(ctx,80,60,320,140,10);ctx.fillStyle='#0D0F14';ctx.fill();ctx.strokeStyle=COL.clockB;ctx.stroke();
-  label(ctx,100,88,'Problem P-26084',COL.clockB,13);
-  const lines=[
-    ['rootCauseEntity','SERVICE-INV'],
-    ['impact','frontend checkout'],
-    ['events merged','3 nearby'],
-  ];
+  label(ctx,100,88,'Problem '+sc.problem,COL.clockB,13);
+  const lines=sc.packageLines||[['rootCauseEntity','SERVICE-INV'],['impact','frontend'],['events','3']];
   lines.forEach((ln,i)=>{
     const show=t>0.2+i*0.12;
     if(show){
@@ -1097,47 +1110,47 @@ function sceneVerify(ctx,W,H,p){
 
 /* ---------------- CONFIG ---------------- */
 const STAGES={
-  collect:{key:'collect',name:'Collect',short:'Collect',tag:'A',phase:0,loop:5500,tall:true,
+  collect:{key:'collect',name:'Collect',short:'Collect',tag:'A',phase:0,loop:5500,h:300,
     blurb:'Receive / pull only. Shape+color mark source dialect (Agents · OTel · SNMP · Vendor APIs)—not severity. Streams stay vendor-shaped; no shared ci_id / failed_call / entityId yet. Light edge filter (drop noise, TLS) is OK; enrichment and failure labeling start at Normalize.',
     legend:'shape+color = source type · snippets = example raw · bag = still unjoined',
     draw:sceneCollect},
-  normalize:{key:'normalize',name:'Normalize',short:'Normalize',tag:'A',phase:0,loop:9000,tall:true,xtall:true,
+  normalize:{key:'normalize',name:'Normalize',short:'Normalize',tag:'A',phase:0,loop:9000,h:478,
     blurb:'STEP 1 builds the envelope, then forks: status → STEP 2 (failed_call for Detect) and raw_ids → STEP 3 (lookup_keys for LUT). STEP 3 does not depend on STEP 2.',
     legend:'STEP 1 fork · STEP 2 Detect · STEP 3 Bind · LUT preview at bottom',
     draw:sceneNormalize},
-  topology:{key:'topology',name:'Topology bind',short:'Topology',tag:'A',phase:0,loop:8000,tall:true,
+  topology:{key:'topology',name:'Topology bind',short:'Topology',tag:'A',phase:0,loop:8000,h:348,
     blurb:'Walkthrough B: Smartscape graph FE→API→INV→DB (+ API→PAY); BATCH on HOST-B with no checkout edge. LUT is a flat table lookup_key→entityId — e.g. inventory and c8e91a both → SERVICE-INV. Try keys in order; MISS → policy.',
     legend:'HIT → stamp entityId · MISS → policy · Fan-out writes map ∥ lake next',
     draw:sceneTopology},
-  fanout:{key:'fanout',name:'Fan-out',short:'Fan-out',tag:'A',phase:0,loop:4800,tall:true,
+  fanout:{key:'fanout',name:'Fan-out',short:'Fan-out',tag:'A',phase:0,loop:4800,h:300,
     blurb:'After bind, SERVICE-INV is one Smartscape node and one Grail key. Fan-out upserts map edges/props and writes INV’s failed span + error% + pool log under that same id — parallel facets, not lake→map refresh.',
     legend:'∥ = map upserts + lake evidence · bind ≠ Fan-out',
     draw:sceneFanout},
-  maintain:{key:'maintain',name:'Maintain',short:'Maintain',tag:'A',phase:0,loop:12000,tall:true,xtall:true,
-    blurb:'Same Smartscape as Topology (HOST-A/B, FE→API→INV…). Maintain refreshes that map and lets Grail rows accumulate through the fault — it does not build a different graph. Detect/Davis read these stores → P-26084.',
+  maintain:{key:'maintain',name:'Maintain',short:'Maintain',tag:'A',phase:0,loop:12000,h:368,
+    blurb:'Same Smartscape as Topology (HOST-A/B, FE→API→INV…). Maintain refreshes that map and lets Grail rows accumulate through the fault — it does not build a different graph. Detect/Davis read these stores (category-specific evidence).',
     legend:'Use beat ← → below canvas · active card highlights · auto-plays unless you step manually',
     draw:sceneMaintain},
-  detect:{key:'detect',name:'Detect',short:'Detect',tag:'A',phase:1,loop:12000,tall:true,xtall:true,
-    blurb:'Detectors score each service’s Grail error_rate on its own (not Smartscape walk). Teaching threshold 0.30. INV breach → Event; later API and FE each get their own Event (cascade ≠ one alert). Shared Event store. Event ≠ Problem — packaging is Curate→Tailor→Davis.',
-    legend:'Use Detect story ← → · Watch → Breach → Cascade → Storm · gold line = teaching 0.30',
+  detect:{key:'detect',name:'Detect',short:'Detect',tag:'A',phase:1,loop:12000,h:392,
+    blurb:'Detectors score each service’s Grail signal on its own (not Smartscape walk). Threshold and Event type follow the selected Davis category. Cascade = separate Events per entity. Event ≠ Problem.',
+    legend:'Use Detect story ← → · Watch → Breach → Cascade · Storm · gold line = category threshold',
     draw:sceneDetect},
-  curate:{key:'curate',name:'Curate',short:'Curate',tag:'A',phase:1,loop:12000,tall:true,xtall:true,
+  curate:{key:'curate',name:'Curate',short:'Curate',tag:'A',phase:1,loop:12000,h:392,
     blurb:'Merge Detect’s Event storm by time + Smartscape neighborhood (inferred). Keep FE/API/INV; drop BATCH noise. Output one case seed for Tailor — not yet rootCauseEntity.',
     legend:'Use Curate story ← → · Storm → Group → Drop noise → Seed',
     draw:sceneCurate},
-  tailor:{key:'tailor',name:'Tailor',short:'Tailor',tag:'A',phase:1,loop:12000,tall:true,xtall:true,
-    blurb:'Case-triggered scope: same Smartscape as Topology — expand space from seed, cut time corridor (~05:54–06:04 UTC). Working set → Phase 3 Davis. Not whole-lake diagnosis.',
+  tailor:{key:'tailor',name:'Tailor',short:'Tailor',tag:'A',phase:1,loop:12000,h:382,
+    blurb:'Case-triggered scope: same Smartscape as Topology — expand space from seed, cut time corridor around the category fault window. Working set → Phase 3 Davis. Not whole-lake diagnosis.',
     legend:'Use Tailor story ← → · Seed → Space → Time → Working set',
     draw:sceneTailor},
-  localize:{key:'localize',name:'Localize',short:'Localize',tag:'B',phase:2,loop:4200,
+  localize:{key:'localize',name:'Localize',short:'Localize',tag:'B',phase:2,loop:4200,h:230,
     blurb:'Davis (inferred): walk Smartscape from seed (e.g. SERVICE-INV) — FE←API←INV→DB; skip BATCH (no calls edge) and note PAY as healthy sibling.',
     legend:'numbers = expand order · seed = start entity',
     draw:sceneLocalize},
-  identify:{key:'identify',name:'Identify',short:'Identify',tag:'B',phase:2,loop:5000,
+  identify:{key:'identify',name:'Identify',short:'Identify',tag:'B',phase:2,loop:5000,h:230,
     blurb:'Davis (inferred): scoped Grail pull (entityId ∩ time) then rank rootCauseRelevant. Exact scoring is unpublished — teaching sketch from lab Problems.',
     legend:'left = evidence pull · bars = ranked candidates',
     draw:sceneIdentify},
-  verify:{key:'verify',name:'Package',short:'Package',tag:'B',phase:2,loop:5200,
+  verify:{key:'verify',name:'Package',short:'Package',tag:'B',phase:2,loop:5200,h:230,
     blurb:'Davis packages the Problem card: rootCauseEntity, evidence, impact — thin packager on top of the always-on fabric.',
     legend:'Problem card ← ranked root + evidence',
     draw:sceneVerify},
@@ -1296,41 +1309,59 @@ const DETAIL={
   },
   maintain:{
     cls:'four',
-    cards:[
-      {h:'① Healthy ≈05:50 UTC',b:'<strong>Same Smartscape as Topology</strong> (HOST-A/B · FE/API/PAY · INV/BATCH/DB). Grail: <code>SERVICE-INV /stock 200</code>. Pre-fault (before Observed 05:54). Maintain only refreshes <code>lastSeen</code>.'},
-      {h:'② Fault 05:54–06:04 UTC',b:'<strong>Observed</strong> dual-lab window. Map shape unchanged — INV on <code>FE→API→INV</code>. <strong>Grail fills</strong> for ~10 min continuous 5xx.'},
-      {h:'③ Problem ≈06:04 UTC',b:'<strong>Observed</strong> <code>P-26084</code> with RC. Davis walks this Smartscape + pulls INV Grail → <code>rootCauseEntity=inventory</code>.'},
-      {h:'④ Cleared (after fault off)',b:'Still the Topology graph. New Grail <code>INV /stock 200</code> after we clear <code>inventory.fail</code>. Exact clear clock not recorded — recovery is Observed shape.'}
-    ]
+    cards:null // filled by detailFor()
   },
   detect:{
     cls:'four',
-    cards:[
-      {h:'① Watch',b:'Each service has its own Grail series (e.g. <code>SERVICE-INV error_rate</code>). Detectors compare that series to a threshold — not one global score for the whole checkout.'},
-      {h:'② Breach',b:'INV crosses threshold → Event <code>{type:SERVICE_ERROR_RATE_INCREASED, entityId:SERVICE-INV, ts, value}</code>. One breach, one Event.'},
-      {h:'③ Cascade',b:'Callers fail next: API then FE each cross <em>their</em> threshold → more Events. That chain of failures is the <strong>cascade</strong>; it is <strong>not</strong> one fused alert.'},
-      {h:'④ Storm',b:'Raw Event list (may include BATCH noise). Still <strong>not</strong> a Problem. Curate merges; Davis packages <code>P-26084</code> later.'}
-    ]
+    cards:null
   },
   curate:{
     cls:'four',
     cards:[
-      {h:'① Storm in',b:'Input = Detect Events: INV + API + FE error-rate (+ optional BATCH CPU).'},
+      {h:'① Storm in',b:'Input = Detect Events for the active category (+ optional BATCH noise).'},
       {h:'② Group',b:'Merge by <strong>time proximity</strong> + <strong>Smartscape neighborhood</strong> on the checkout <code>calls</code> path (inferred Davis merge).'},
       {h:'③ Drop noise',b:'BATCH is co-timed but has <strong>no checkout calls edge</strong> → weak/out of the case group.'},
-      {h:'④ Seed out',b:'One seed <code>(SERVICE-INV, t0≈06:04 UTC)</code> for Tailor. Still <strong>not</strong> <code>rootCauseEntity</code> on a Problem card.'}
+      {h:'④ Seed out',b:'One seed for Tailor. Still <strong>not</strong> <code>rootCauseEntity</code> on a Problem card.'}
     ]
   },
   tailor:{
     cls:'four',
-    cards:[
-      {h:'① Seed in',b:'From Curate: start at <code>SERVICE-INV</code> / <code>t0≈06:04 UTC</code>.'},
-      {h:'② Space cut',b:'Expand <strong>same Smartscape as Topology</strong>: FE←API←INV→DB. Dim PAY (healthy) and BATCH (no edge).'},
-      {h:'③ Time cut',b:'Corridor around t0 — Observed <code>[05:54, 06:04] UTC</code>. Not whole retention history.'},
-      {h:'④ Working set',b:'Output <code>{entities[], timeRange}</code> → Phase 3 Localize / Identify / Package → <code>P-26084</code>.'}
-    ]
+    cards:null
   }
 };
+
+function detailFor(key){
+  const base=DETAIL[key];
+  if(!base) return null;
+  const sc=labSc();
+  const cat=window.URCA_DT_CATS?URCA_DT_CATS.current():{name:'ERROR',detect:'error_rate'};
+  if(key==='maintain'){
+    return {cls:'four', cards:[
+      {h:'① Healthy',b:'<strong>Same Smartscape as Topology</strong>. Grail healthy rows for <code>'+cat.name+'</code> (not cross-category 5xx unless ERROR).'},
+      {h:'② Fault · '+sc.faultWindow,b:'Map shape unchanged — INV on <code>FE→API→INV</code>. <strong>Grail fills</strong> with category evidence (SLOWDOWN = slow <code>200</code> / RT; ERROR = 5xx / error_rate).'},
+      {h:'③ Problem · '+sc.problem,b:'<strong>'+sc.problemNote+'</strong>. '+sc.rcLabel+'.'},
+      {h:'④ Cleared',b:'Still the Topology graph. Recovery rows when <code>'+sc.clearMetric+'</code> is healthy again.'}
+    ]};
+  }
+  if(key==='detect'){
+    const ev0=(sc.events&&sc.events[0])?sc.events[0].type:'EVENT';
+    return {cls:'four', cards:[
+      {h:'① Watch',b:'Each service has its own Grail series for <code>'+sc.detectSignal+'</code>. Threshold teaching value: <code>'+sc.detectThr+'</code>.'},
+      {h:'② Breach',b:'Leaf crosses threshold → Event <code>{type:'+ev0+', entityId, ts, value}</code>.'},
+      {h:'③ Cascade',b:'Callers each open their own Event. Cascade ≠ one fused alert.'},
+      {h:'④ Storm',b:'Raw Event list. Still <strong>not</strong> a Problem. Later packaging → <code>'+sc.problem+'</code>.'}
+    ]};
+  }
+  if(key==='tailor'){
+    return {cls:'four', cards:[
+      {h:'① Seed in',b:'From Curate: start at leaf / seed tip · t0≈<code>'+sc.problemAt+'</code>.'},
+      {h:'② Space cut',b:'Expand <strong>same Smartscape as Topology</strong>: FE←API←INV→DB.'},
+      {h:'③ Time cut',b:'Corridor around t0 — Observed <code>['+sc.faultWindow+']</code>.'},
+      {h:'④ Working set',b:'Output → Phase 3 → <code>'+sc.problem+'</code>.'}
+    ]};
+  }
+  return base;
+}
 const prevBtn=document.getElementById('prevBtn');
 const nextBtn=document.getElementById('nextBtn');
 const playBtn=document.getElementById('playBtn');
@@ -1414,14 +1445,15 @@ function setActive(key){
   else { stageTag.textContent=s.tag==='A'?'CLOCK A':'CLOCK B'; stageTag.className='tag '+s.tag.toLowerCase(); }
   stageBlurb.textContent=s.blurb;
   stageLegend.textContent=s.legend;
-  // canvas height for detailed stages
-  const tall=!!s.tall;
-  cv.classList.toggle('tall', tall);
-  cv.classList.toggle('xtall', !!s.xtall);
-  cv.height=s.xtall?520:(tall?360:230);
-  cv.width=860;
+  // canvas height fits drawn content (no dead band under footers)
+  const h = s.h || 230;
+  cv.height = h;
+  cv.width = 860;
+  cv.style.aspectRatio = `860 / ${h}`;
+  const catPanel = document.getElementById('catPanel');
+  if(catPanel) catPanel.classList.toggle('show', key === 'detect');
   // detail cards
-  const d=DETAIL[key];
+  const d=detailFor(key);
   if(d){
     detailCards.className='detail-cards show'+(d.cls?(' '+d.cls):'');
     detailCards.innerHTML=d.cards.map((c,i)=>{
@@ -1533,9 +1565,53 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 setActive('collect');
+(function () {
+  const hash = (location.hash || '').replace(/^#/, '');
+  if (hash && STAGES[hash]) setActive(hash);
+})();
 requestAnimationFrame(frame);
 </script>
 
 <script src="/doc-nav.js" defer></script>
+<script>
+(function applyCategoryChrome(){
+  const sc=labSc();
+  const cat=window.URCA_DT_CATS?URCA_DT_CATS.current():{id:'error',name:'ERROR',detect:'error_rate',title:'ERROR'};
+  const intro=document.getElementById('clockIntro');
+  if(intro) intro.innerHTML=sc.clockIntro||('Clock = lab UTC for <code>'+sc.problem+'</code>.');
+  const e2e=document.getElementById('e2eLink');
+  if(e2e && window.URCA_DT_CATS) e2e.href=URCA_DT_CATS.withCat('/dt-e2e-smartscape-grail.html', cat);
+  // refresh blurbs that mention problem id
+  STAGES.maintain.blurb='Same Smartscape as Topology (HOST-A/B, FE→API→INV…). Maintain refreshes that map and lets Grail rows accumulate through the fault — Detect/Davis read these stores → '+sc.problem+'.';
+  STAGES.detect.blurb='Detectors score each service’s Grail '+sc.detectSignal+' on its own (not Smartscape walk). Threshold '+sc.detectThr+'. Cascade = separate Events. Event ≠ Problem — packaging is Curate→Tailor→Davis → '+sc.problem+'.';
+  STAGES.detect.legend='Use Detect story ← → · gold line = threshold '+sc.detectThr+' · signal = '+sc.detectSignal;
+  const title=document.getElementById('catPanelTitle');
+  if(title) title.textContent='Davis event categories (active: '+cat.name+')';
+  const lead=document.getElementById('catPanelLead');
+  if(lead){
+    lead.innerHTML='This storyboard’s Detect/Maintain/Package panels follow <b style="color:var(--seed)">'+cat.name+'</b> (<code style="font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--clockA)">'+cat.detect+'</code>). Switch the dropdown to reload evidence for another category — SLOWDOWN shows slow <b>200</b>s / response time, not HTTP 5xx.';
+  }
+  const grid=document.getElementById('catGrid');
+  if(grid && window.URCA_DT_CATS){
+    const chips=[
+      {id:'monitoring_unavailable', meta:true, html:'<b>MONITORING_UNAVAILABLE</b>OneAgents / ingest dark — meta outage of visibility, not app fault.'},
+      {id:'availability', html:'<b>AVAILABILITY</b>Host/process down, crash, hard outage.'},
+      {id:'error', html:'<b>ERROR</b>Error-rate / failure. Observed <code>P-260817</code> · teaching dual-lab also uses 5xx / error_rate.'},
+      {id:'slowdown', html:'<b>SLOWDOWN</b>Latency. Observed <a href="/dt-lab-timeline-slowdown.html" style="color:inherit;text-decoration:underline">P-260820</a> · slow <code>200</code> · <code>SERVICE_SLOWDOWN</code>.'},
+      {id:'resource_contention', html:'<b>RESOURCE_CONTENTION</b>CPU / memory saturation.'},
+      {id:'_custom', meta:true, html:'<b>CUSTOM_ALERT</b>User metric threshold. Same Event object; Davis correlation still applies.'},
+      {id:'_info', meta:true, html:'<b>INFO / WARNING</b>Deploy, config, early warn — usually no Problem card alone.'}
+    ];
+    grid.innerHTML=chips.map(c=>{
+      const on=c.id===cat.id?' on':'';
+      const meta=c.meta?' meta':'';
+      return '<div class="cat-chip'+meta+on+'">'+c.html+'</div>';
+    }).join('');
+  }
+  if(window.URCA_DT_CATS){
+    // categories.js auto-mounts the switcher on DOMContentLoaded
+  }
+})();
+</script>
 </body>
 </html>

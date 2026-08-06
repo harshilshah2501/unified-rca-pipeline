@@ -100,11 +100,18 @@ Understand **what** was measured before reading engine internals.
 | [`ECOM_CHECKOUT_RCA_ANALYSIS.md`](./ECOM_CHECKOUT_RCA_ANALYSIS.md) | **Lean vs Federated write-up** for `ecom-numa-001` |
 | [`index.html`](./index.html) | **Browser docs hub** — [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) |
 | [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | **Same-scenario DT vs DD** (P-26084) · [HTML](./comparable-pipeline-dt-dd.html) · [`:8765`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) |
-| [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | **Dynatrace-first:** Clock A → OneAgent/Smartscape/Grail · Phase 2 glossary · Smartscape on Grail note · [HTML](./dynatrace-production-pipeline.html) · [`:8765`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
-| [`dynatrace-production-pipeline.html`](./dynatrace-production-pipeline.html) | Same — browser / [`:8765/dynatrace-production-pipeline.html`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
+| [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | **Thesis (MD):** Clock A → OneAgent/Smartscape/Grail · Phase 2 glossary · [HTML](./dynatrace-production-pipeline.html) · [`:8765`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
 | [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) | **Gap map:** Federated Part 1 vs DT 5+3+3 · [HTML](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html) · §8 Motadata FR/AC alignment · Cursor canvas IDE-only |
 | [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](./multi-telemetry-rca-functional-and-acceptance-criteria.md) | Motadata ObserveOps **acceptance** FRs/ACs · [visual HTML](./multi-telemetry-rca-fac.html) · [`:8765`](http://127.0.0.1:8765/multi-telemetry-rca-fac.html) · architecture in gap map §2/§8 |
-| [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) | Dynatrace mechanisms storyboard · [`:8765`](http://127.0.0.1:8765/eleven-subsystem-mechanisms.html) |
+| [`dt-davis-category-hub.html`](./dt-davis-category-hub.html) | **DT hub:** Davis event categories · Thesis / Breakdown / Dual-track / Timeline per category · [`:8765`](http://127.0.0.1:8765/dt-davis-category-hub.html) |
+| [`dynatrace-production-pipeline.html`](./dynatrace-production-pipeline.html) | Dynatrace **Thesis** (shared; `?cat=`) · [`:8765`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
+| [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) | Dynatrace **Breakdown** canvas (shared; `?cat=`) · [`:8765`](http://127.0.0.1:8765/eleven-subsystem-mechanisms.html) |
+| [`dt-e2e-smartscape-grail.html`](./dt-e2e-smartscape-grail.html) | **Dual-track** Smartscape ∥ Grail journey (shared; `?cat=`) · [`:8765`](http://127.0.0.1:8765/dt-e2e-smartscape-grail.html) |
+| [`dt-lab-timeline-code-level.html`](./dt-lab-timeline-code-level.html) | **ERROR Timeline** Observed · P-260817 · [`:8765`](http://127.0.0.1:8765/dt-lab-timeline-code-level.html) |
+| [`dt-lab-timeline-slowdown.html`](./dt-lab-timeline-slowdown.html) | **SLOWDOWN Timeline** Observed · P-260820 · [`:8765`](http://127.0.0.1:8765/dt-lab-timeline-slowdown.html) |
+| [`dt-cat-monitoring-unavailable-lab.html`](./dt-cat-monitoring-unavailable-lab.html) | **MONITORING_UNAVAILABLE** Timeline stub (planned) |
+| [`dt-cat-availability-lab.html`](./dt-cat-availability-lab.html) | **AVAILABILITY** Timeline stub (planned) |
+| [`dt-cat-resource-contention-lab.html`](./dt-cat-resource-contention-lab.html) | **RESOURCE_CONTENTION** Timeline stub (planned) |
 | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | **Datadog-native:** Agent → Metrics/APM/Logs · Monitors+Watchdog · MCP evidence · [HTML](./datadog-production-pipeline.html) |
 | [`datadog-production-pipeline.html`](./datadog-production-pipeline.html) | Same — browser / [`:8765/datadog-production-pipeline.html`](http://127.0.0.1:8765/datadog-production-pipeline.html) |
 | [`datadog-subsystem-mechanisms.html`](./datadog-subsystem-mechanisms.html) | Animated Datadog product mechanisms · [`:8765`](http://127.0.0.1:8765/datadog-subsystem-mechanisms.html) |

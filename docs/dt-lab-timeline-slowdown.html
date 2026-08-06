@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dynatrace lab · SLOWDOWN · Response-time observed (P-260820)</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441;
+  --text:#e8eef4; --muted:#c5d0da; --faint:#8a96a4; --accent:#3d9a8b;
+  --seed:#e07a7a; --ok:#5FE0B0; --lean:#F0B35A;
+  --radius:8px; --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font);font-size:15.5px;line-height:1.55;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%),var(--bg);}
+a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+.wrap{max-width:54rem;margin:0 auto;padding:2rem 1.5rem 4rem;}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);}
+h1{font-size:1.7rem;font-weight:700;margin:.35rem 0 .75rem;}
+h2{font-size:1.15rem;font-weight:650;margin:2rem 0 .75rem;padding-top:.85rem;border-top:1px solid var(--stroke);}
+h3{font-size:1rem;font-weight:600;margin:1.25rem 0 .5rem;color:#d5dde6;}
+.lead{color:var(--muted);margin:0 0 1.25rem;max-width:46rem;}
+.lead code,.note code,td code,li code,p code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#9bc0ff;}
+.note{margin:1rem 0;padding:.75rem .9rem;border-radius:var(--radius);background:rgba(61,154,139,.12);border-left:3px solid var(--accent);color:var(--muted);font-size:.95rem;}
+.warn{border-left-color:var(--lean);background:rgba(240,179,90,.08);}
+.ok{border-left-color:var(--ok);background:rgba(95,224,176,.08);}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin:.6rem 0 1rem;}
+th,td{text-align:left;vertical-align:top;padding:.45rem .55rem;border-bottom:1px solid var(--stroke);}
+th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
+.tl{border:1px solid var(--stroke);border-radius:10px;background:var(--bg-elev);padding:0;margin:1rem 0;overflow:hidden;}
+.tl-row{display:grid;grid-template-columns:8.5rem 1fr;gap:0;border-bottom:1px solid var(--stroke);}
+.tl-row:last-child{border-bottom:none;}
+.tl-t{padding:.85rem .9rem;font-family:var(--mono);font-size:.82rem;color:var(--ok);background:#0c1016;border-right:1px solid var(--stroke);}
+.tl-b{padding:.85rem 1rem;color:var(--muted);font-size:.95rem;}
+.tl-b strong{color:var(--text);font-weight:600;}
+.pill{display:inline-block;font-family:var(--mono);font-size:.72rem;padding:.15rem .45rem;border-radius:4px;border:1px solid rgba(95,224,176,.45);color:var(--ok);margin-right:.35rem;}
+.pre{font-family:var(--mono);font-size:.82rem;background:var(--bg-soft);border:1px solid var(--stroke);border-radius:6px;padding:.75rem .9rem;overflow-x:auto;white-space:pre;color:#b8c9d4;}
+ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li strong{color:var(--text);}
+.toc{margin:1rem 0 0;padding:.75rem 1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
+.toc a{display:inline-block;margin:.2rem .75rem .2rem 0;font-size:.9rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Davis category · SLOWDOWN · Observed + teaching analysis</div>
+  <h1>SLOWDOWN — Response time degradation (P-260820)</h1>
+  <p class="lead">
+    Category write-up for <strong style="color:var(--text)">SLOWDOWN</strong>.
+    Full analysis of the code-level latency experiment: what we broke, what Davis packaged,
+    why <strong style="color:var(--text)">entity RCA</strong> was null, why
+    <strong style="color:var(--text)">code-line RCA</strong> did not appear on the Problem analysis,
+    and how that differs from ERROR / P-260814. Defect is <strong style="color:var(--text)">healed</strong>.
+    Hub: <a href="/dt-davis-category-hub.html?cat=slowdown">Davis event categories</a>.
+  </p>
+
+  <div class="note ok">
+    <span class="pill">HEALED</span>
+    <code>inventory/app.py</code> restored to <code>WAREHOUSE_SKU_INDEX</code> O(1) lookup · probe ~<strong>40 ms</strong> HTTP 200
+    · <code>./scripts/heal_inventory_slow_code.sh</code>
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#defect">1 Defect</a>
+    <a href="#detect">2 Detect config</a>
+    <a href="#observed">3 Observed Problem</a>
+    <a href="#merge">4 UI merge</a>
+    <a href="#entity-rca">5 Why null entity RCA</a>
+    <a href="#code-rca">6 Why no code-line on analysis</a>
+    <a href="#layers">7 Entity vs code layers</a>
+    <a href="#compare">8 vs ERROR / P-260814</a>
+    <a href="#scripts">9 Scripts</a>
+  </nav>
+
+  <h2 id="defect">1) The defect (code-level, not a sleep flag)</h2>
+  <p style="color:var(--muted)">
+    Only <code>dynatrace-rca-lab/inventory/app.py</code> changed. Frontend and product were unchanged;
+    they waited on inventory, so their response times rose as a cascade.
+  </p>
+  <table>
+    <tr><th></th><th>Healthy</th><th>Broken (this run)</th></tr>
+    <tr>
+      <td>Lookup</td>
+      <td><code>WAREHOUSE_SKU_INDEX[sku]</code> O(1)</td>
+      <td>Scan 50k-row <code>WAREHOUSE_LEDGER</code> + 150-round <code>_debug_row_checksum</code> per row</td>
+    </tr>
+    <tr>
+      <td>HTTP</td>
+      <td>200 · ~40–50 ms</td>
+      <td>200 · ~9–11 s (still success — pure SLOWDOWN)</td>
+    </tr>
+    <tr>
+      <td>Not used</td>
+      <td colspan="2"><code>faults/*.latency</code> sleep flags — rejected; real CPU regression only</td>
+    </tr>
+  </table>
+
+  <h2 id="detect">2) Detect configuration (required for this lab)</h2>
+  <div class="note warn">
+    Environment default was <strong>auto</strong> response-time baselining with
+    <code>requestsPerMinute: 10</code>. Sequential ~9 s traffic was below that gate, so no Problem opened
+    until we set <strong>fixed</strong> thresholds via Settings API
+    (<code>builtin:anomaly-detection.services</code>).
+  </div>
+  <table>
+    <tr><th>Setting</th><th>Value used</th></tr>
+    <tr><td>detectionMode</td><td><code>fixed</code></td></tr>
+    <tr><td>Median (all requests)</td><td>2000 ms</td></tr>
+    <tr><td>Slowest 10%</td><td>3000 ms</td></tr>
+    <tr><td>Min load</td><td>1 request/min</td></tr>
+    <tr><td>Abnormal duration</td><td>1 minute</td></tr>
+    <tr><td>Sensitivity</td><td>high</td></tr>
+  </table>
+  <p style="color:var(--muted);font-size:.92rem;">
+    Script: <code>./scripts/set_fixed_response_time_threshold.sh</code> (needs <code>settings.read</code> + <code>settings.write</code>).
+  </p>
+
+  <h2 id="observed">3) Observed Problem (API)</h2>
+  <div class="note">
+    <span class="pill">FETCHED</span>
+    <code>GET /api/v2/problems/{id}?fields=evidenceDetails</code> ·
+    snapshot <code>docs/vendor-source/dynatrace/p260820-slowdown-snapshot.json</code>
+  </div>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>displayId</td><td><code>P-260820</code></td></tr>
+    <tr><td>title</td><td>Response time degradation</td></tr>
+    <tr><td>status (at pull)</td><td>OPEN</td></tr>
+    <tr><td>severityLevel</td><td><code>PERFORMANCE</code></td></tr>
+    <tr><td>Problem start</td><td><strong>2026-08-06 15:10:00 UTC</strong></td></tr>
+    <tr><td>rootCauseEntity</td><td><strong>null</strong></td></tr>
+    <tr><td>affected / impacted</td><td>frontend · product · inventory</td></tr>
+    <tr><td>impact analysis</td><td>frontend · ~159 potentially affected service calls</td></tr>
+  </table>
+
+  <h3>Evidence Events</h3>
+  <table>
+    <tr><th>Entity</th><th>eventType</th><th>start</th><th>rootCauseRelevant</th></tr>
+    <tr><td>product</td><td><code>SERVICE_SLOWDOWN</code></td><td>15:05 UTC</td><td>false</td></tr>
+    <tr><td>frontend</td><td><code>SERVICE_SLOWDOWN</code></td><td>15:05 UTC</td><td>false</td></tr>
+    <tr><td>inventory</td><td><code>SERVICE_SLOWDOWN</code></td><td>15:05 UTC</td><td>false</td></tr>
+  </table>
+
+  <div class="tl">
+    <div class="tl-row">
+      <div class="tl-t">Code break</div>
+      <div class="tl-b">Ledger scan in <code>lookup_stock_in_warehouse</code> · rebuild inventory</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">Settings</div>
+      <div class="tl-b">Fixed RT thresholds (2 s / 3 s / 1 rpm)</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">15:05 UTC</div>
+      <div class="tl-b">Three <code>SERVICE_SLOWDOWN</code> Events — <strong>same start bucket</strong></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">15:10 UTC</div>
+      <div class="tl-b"><strong>P-260820</strong> packaged · UI merge of sibling cards · <code>rootCauseEntity=null</code></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">Heal</div>
+      <div class="tl-b">O(1) index restored · ~40 ms probe — Problem can close after de-alert window</div>
+    </div>
+  </div>
+
+  <h2 id="merge">4) UI merge (Observed)</h2>
+  <p style="color:var(--muted)">
+    Operators first saw <strong style="color:var(--text)">three</strong> Active Slowdown cards
+    (<code>P-260822</code> inventory · <code>P-260821</code> frontend · <code>P-260820</code> product),
+    each Affected 1. Then Davis correlated them into <strong style="color:var(--text)">one</strong> card:
+    <code>P-260820</code> with Affected 3. That is the operator-visible Curate/merge step — not a separate
+    Dynatrace “Curate” product. Event ≠ Problem still holds: the API lists three Events under one Problem.
+  </p>
+
+  <h2 id="entity-rca">5) Why entity RCA was null</h2>
+  <p style="color:var(--muted)">
+    Same-time Events do <em>not</em> hard-forbid RCA, but Davis entity ranking often uses
+    <strong style="color:var(--text)">onset order</strong> (+ Smartscape). When all three
+    <code>SERVICE_SLOWDOWN</code> Events share <strong>15:05</strong>, there is no earlier leaf Event to mark
+    <code>rootCauseRelevant=true</code> → <code>rootCauseEntity</code> stays null and the UI Root cause panel
+    stays empty.
+  </p>
+  <p style="color:var(--muted)">
+    Why they aligned: every checkout is FE→product→inventory. The leaf CPU cost sits on the
+    <em>same</em> request chain, so all three response-time series jump together. Contrast
+    <strong style="color:var(--text)">P-260814</strong> (ERROR): inventory Event at 11:17, product/FE at 11:18 →
+    inventory <code>rootCauseRelevant=true</code> → <code>rootCauseEntity=inventory</code>.
+  </p>
+  <div class="note warn">
+    To chase leaf-first SLOWDOWN deliberately: inventory-only traffic first, then FE cascade —
+    <code>./scripts/run_slowdown_staggered_rca.sh</code>. That mimics P-260814’s temporal gap; it was started
+    experimentally but the primary Observed analysis for this page remains P-260820 (same-bucket null RC).
+  </div>
+
+  <h2 id="code-rca">6) Why code-level evidence is not on Problem analysis</h2>
+  <p style="color:var(--muted)">
+    <strong style="color:var(--text)">Question:</strong> Even without entity RCA, shouldn’t analysis show
+    <code>app.py</code> / line / function?<br/>
+    <strong style="color:var(--text)">Answer (Observed):</strong> No — not on this Problem surface.
+  </p>
+  <ol style="color:var(--muted);margin:.4rem 0 .8rem 1.2rem;">
+    <li style="margin:.35rem 0;"><strong style="color:var(--text)">Evidence type:</strong> Problem analysis here is built from Davis
+      <em>Events</em> — <code>SERVICE_SLOWDOWN</code> metric breaches (“RT above threshold”). Those objects do not carry file/line.</li>
+    <li style="margin:.35rem 0;"><strong style="color:var(--text)">No exception:</strong> This defect returns HTTP 200. There is no stack for analysis to pin to a line (unlike KeyError on a span).</li>
+    <li style="margin:.35rem 0;"><strong style="color:var(--text)">Product split:</strong> Method/line/CPU hotspot lives under traces / code-level / profiling drill-downs. Dynatrace does <em>not</em> auto-promote that into the Problem Root cause / analysis block as a substitute when entity RCA is null.</li>
+  </ol>
+  <div class="note">
+    Null entity RCA does <strong style="color:var(--text)">not</strong> mean “code RCA is switched off.”
+    Long Ok spans on inventory are still visible if you drill Problem → inventory → Distributed tracing.
+    What is missing is an <em>explicit code-line claim on the Problem analysis card</em>.
+  </div>
+
+  <h2 id="layers">7) Entity RCA vs code-level (parallel layers)</h2>
+  <table>
+    <tr><th>Layer</th><th>Answers</th><th>Where</th><th>This run</th></tr>
+    <tr>
+      <td>Entity RCA</td>
+      <td>Which service?</td>
+      <td>Root cause panel / <code>rootCauseEntity</code></td>
+      <td><strong>null</strong> (no ranked leaf Event)</td>
+    </tr>
+    <tr>
+      <td>Metric Events</td>
+      <td>What breached?</td>
+      <td>Problem evidence / <code>evidenceDetails</code></td>
+      <td>Three <code>SERVICE_SLOWDOWN</code></td>
+    </tr>
+    <tr>
+      <td>Code-level</td>
+      <td>Which method / line / exception?</td>
+      <td>Traces, exceptions, method hotspots</td>
+      <td>Long inventory span in lookup/checksum — <em>not</em> listed as Problem evidence</td>
+    </tr>
+  </table>
+  <p style="color:var(--muted);font-size:.92rem;">
+    They are not a pipeline “entity first → then code.” Entity can be null while code telemetry still exists off-card.
+  </p>
+
+  <h2 id="compare">8) Comparison</h2>
+  <table>
+    <tr><th></th><th>ERROR · P-260817</th><th>ERROR · P-260814</th><th>SLOWDOWN · P-260820</th></tr>
+    <tr><td>Defect</td><td>KeyError → 5xx</td><td>KeyError → 5xx</td><td>Ledger scan → slow 200</td></tr>
+    <tr><td>eventType</td><td><code>SERVICE_ERROR_RATE_INCREASED</code></td><td>same</td><td><code>SERVICE_SLOWDOWN</code></td></tr>
+    <tr><td>severity</td><td>ERROR</td><td>ERROR</td><td>PERFORMANCE</td></tr>
+    <tr><td>Event starts</td><td>aligned → null RC</td><td>INV 1 min earlier</td><td>aligned 15:05 → null RC</td></tr>
+    <tr><td>rootCauseEntity</td><td>null</td><td><strong>inventory</strong></td><td>null</td></tr>
+    <tr><td>Code on Problem evidence</td><td>No</td><td>No</td><td>No</td></tr>
+  </table>
+
+  <h2 id="scripts">9) Lab scripts</h2>
+  <div class="pre">cd dynatrace-rca-lab
+./scripts/break_inventory_slow_code.sh      # patch ledger scan + rebuild
+./scripts/heal_inventory_slow_code.sh       # restore O(1) + rebuild  ← done
+./scripts/set_fixed_response_time_threshold.sh
+./scripts/run_slowdown_rca.sh               # sustain FE load (same-bucket pattern)
+./scripts/run_slowdown_staggered_rca.sh     # inventory-only first, then cascade</div>
+
+  <h2 id="related">Related</h2>
+  <ul>
+    <li><a href="/dt-lab-timeline-code-level.html">ERROR / code-level timeline (P-260817)</a></li>
+    <li><a href="/eleven-subsystem-mechanisms.html">Davis event categories (SLOWDOWN chip)</a></li>
+    <li><a href="/dynatrace-production-pipeline.html">DT production pipeline prose</a></li>
+  </ul>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dt-davis-categories.js" defer></script>
+</body>
+</html>

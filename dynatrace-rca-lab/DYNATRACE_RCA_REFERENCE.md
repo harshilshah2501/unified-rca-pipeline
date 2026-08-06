@@ -772,6 +772,68 @@ Raw traces/logs remain in stores and are fetched as exemplars when drilling into
 
 ---
 
+## Code-level RCA enrichment (entity + exact fault)
+
+### Real code defect (preferred demo)
+
+Not a fault-flag raise. Inventory’s `WAREHOUSE_SKU_INDEX` is missing `MACBOOK-PRO-14`, so a normal dict lookup raises **`KeyError`** in `lookup_stock_in_warehouse` (`inventory/app.py`).
+
+```bash
+# already the live buggy build after compose rebuild — or:
+./scripts/break_inventory_code.sh
+# sustain load ~10–12 min, then watch Dynatrace Problems / traces / Exceptions
+
+# heal (real fix + rebuild):
+./scripts/heal_inventory_code.sh
+```
+
+**What to search:** `KeyError: 'MACBOOK-PRO-14'` · `lookup_stock_in_warehouse` · stack frame `app.py` line with `WAREHOUSE_SKU_INDEX[sku]`.
+
+### Legacy flag-based simulation (optional)
+
+`./scripts/fault.sh inventory fail true` previously staged a custom exception — use only if you need a reversible toggle without rebuild. Prefer the KeyError path above for honest code-level RCA.
+
+**Token scopes (for full depth):**
+
+| Path | Scopes |
+| ---- | ------ |
+| OTLP traces/metrics/logs | `openTelemetryTrace.ingest`, `metrics.ingest`, `logs.ingest` |
+| Deploy/config events | `events.ingest` |
+| OneAgent-only | Python injection enabled; OTLP 403 is OK if agent ships spans/logs |
+
+If `events.ingest` is missing, run with `./scripts/run_code_level_rca.sh --no-deploy` (code exception still works).
+
+### Run the enriched fault
+
+```bash
+./scripts/run_code_level_rca.sh              # deploy event + fail + ~12 min load
+./scripts/run_code_level_rca.sh --no-deploy  # exception only
+./scripts/run_code_level_rca.sh --minutes 10
+```
+
+Or step by step:
+
+```bash
+./scripts/ingest_change_event.sh deployment
+sleep 45
+./scripts/fault.sh inventory fail true
+# sustain: while true; do ./scripts/load.sh 25; done
+```
+
+### Expected Problem story
+
+1. **Where:** `rootCauseEntity ≈ inventory` (unchanged Localize/Package)
+2. **What in code:** failing function `lookup_stock_in_warehouse` / `InventoryStockLookupError` / `WAREHOUSE_SKU_INDEX_CORRUPT`
+3. **Why now (if deploy ingested):** related deployment event on inventory just before onset
+
+Clear:
+
+```bash
+./scripts/fault.sh inventory fail false
+```
+
+---
+
 ## Practical takeaway
 
 Treat Dynatrace as a **black-box RCA engine** fed by a **pre-indexed telemetry fabric**.

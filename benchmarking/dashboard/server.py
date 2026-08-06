@@ -307,6 +307,14 @@ class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(DASH), **kwargs)
 
+    def end_headers(self) -> None:
+        # Teaching HTML changes often; avoid stale Detect clock in the browser.
+        path = urlparse(self.path).path.lower()
+        if path.endswith((".html", ".js", ".css", ".md")) or path in ("/", ""):
+            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
+            self.send_header("Pragma", "no-cache")
+        super().end_headers()
+
     def log_message(self, fmt: str, *args: Any) -> None:
         sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % args))
 

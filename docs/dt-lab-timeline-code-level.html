@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dynatrace lab · ERROR · Failure-rate observed (P-260817)</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441;
+  --text:#e8eef4; --muted:#c5d0da; --faint:#8a96a4; --accent:#3d9a8b;
+  --seed:#e07a7a; --ok:#5FE0B0; --lean:#F0B35A; --map:#7BA8F7;
+  --radius:8px; --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font);font-size:15.5px;line-height:1.55;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%),var(--bg);}
+a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+.wrap{max-width:52rem;margin:0 auto;padding:2rem 1.5rem 4rem;}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);}
+h1{font-size:1.7rem;font-weight:700;margin:.35rem 0 .75rem;}
+h2{font-size:1.15rem;font-weight:650;margin:2rem 0 .75rem;padding-top:.85rem;border-top:1px solid var(--stroke);}
+h3{font-size:1rem;font-weight:600;margin:1.2rem 0 .45rem;color:#d5dde6;}
+.lead{color:var(--muted);margin:0 0 1.25rem;max-width:44rem;}
+.lead code,.note code,td code,li code,p code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#9bc0ff;}
+.note{margin:1rem 0;padding:.75rem .9rem;border-radius:var(--radius);background:rgba(61,154,139,.12);border-left:3px solid var(--accent);color:var(--muted);font-size:.95rem;}
+.warn{border-left-color:var(--lean);background:rgba(240,179,90,.08);}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin:.6rem 0 1rem;}
+th,td{text-align:left;vertical-align:top;padding:.45rem .55rem;border-bottom:1px solid var(--stroke);}
+th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
+.tl{border:1px solid var(--stroke);border-radius:10px;background:var(--bg-elev);padding:0;margin:1rem 0;overflow:hidden;}
+.tl-row{display:grid;grid-template-columns:7.5rem 1fr;gap:0;border-bottom:1px solid var(--stroke);}
+.tl-row:last-child{border-bottom:none;}
+.tl-t{padding:.85rem .9rem;font-family:var(--mono);font-size:.82rem;color:var(--ok);background:#0c1016;border-right:1px solid var(--stroke);}
+.tl-b{padding:.85rem 1rem;color:var(--muted);font-size:.95rem;}
+.tl-b strong{color:var(--text);font-weight:600;}
+.tl-b .tag{display:inline-block;font-family:var(--mono);font-size:.72rem;padding:.15rem .4rem;border-radius:4px;border:1px solid var(--stroke);margin-right:.35rem;color:var(--faint);}
+.tl-b .tag.ev{color:var(--seed);border-color:rgba(224,122,122,.45);}
+.tl-b .tag.rc{color:var(--ok);border-color:rgba(95,224,176,.45);}
+.tl-b .tag.code{color:var(--lean);border-color:rgba(240,179,90,.45);}
+.pre{font-family:var(--mono);font-size:.82rem;background:var(--bg-soft);border:1px solid var(--stroke);border-radius:6px;padding:.75rem .9rem;overflow-x:auto;white-space:pre;color:#b8c9d4;}
+ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li strong{color:var(--text);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Davis category · ERROR · Observed + teaching</div>
+  <h1>ERROR — Failure rate / code-level RCA</h1>
+  <p class="lead">
+    Category write-up for <strong style="color:var(--text)">ERROR</strong> (failure-rate).
+    Live pull from Problems API for <strong style="color:var(--text)">P-260817</strong> (CLOSED), plus merge vs teaching model,
+    and where <strong style="color:var(--text)">code-level</strong> evidence lives (traces/logs, not the Problem evidence list).
+    Hub: <a href="/dt-davis-category-hub.html?cat=error">Davis event categories</a>.
+  </p>
+
+  <div class="note">
+    <strong style="color:var(--text)">Fetched:</strong> 2026-08-06 via
+    <code>GET /api/v2/problems/{id}?fields=evidenceDetails</code>
+    · env <code>jjd82607</code> · lab FE→product→inventory ·
+    <strong style="color:var(--text)">rootCauseEntity=null</strong> (API)
+  </div>
+
+  <h2 id="fetch">1) Can we fetch the exact event-wise timeline?</h2>
+  <p style="color:var(--muted)">Yes.</p>
+  <ul>
+    <li><strong>UI:</strong> Problem → <em>Events / Evidence</em> (and related entities) — ordered by event start.</li>
+    <li><strong>API:</strong> Problems v2 details with <code>evidenceDetails</code> (EVENT rows with <code>startTime</code>/<code>endTime</code>/<code>eventType</code>/<code>entity</code>).</li>
+    <li><strong>Broader:</strong> Events API v2 <code>GET /api/v2/events</code> with timeframe + entity filter.</li>
+    <li><strong>Code pinpoint:</strong> not in Problem evidence list for this run — use Distributed tracing / Logs for <code>KeyError</code> stack (see §4).</li>
+  </ul>
+  <div class="pre"># from dynatrace-rca-lab/ with .env loaded
+curl -sS -G "$DT_ENV_URL/api/v2/problems" --data-urlencode 'from=now-12h' \
+  -H "Authorization: Api-Token $DT_API_TOKEN"
+
+curl -sS -G "$DT_ENV_URL/api/v2/problems/$PROBLEM_ID" \
+  --data-urlencode 'fields=evidenceDetails,impactAnalysis' \
+  -H "Authorization: Api-Token $DT_API_TOKEN"</div>
+  <p style="color:var(--muted);font-size:.92rem;">Token needs <code>problems.read</code> (and <code>events.read</code> for Events API).</p>
+
+  <h2 id="merge">2) Three “problems” then one — vs our Event ≠ Problem teaching</h2>
+  <div class="note warn">
+    <strong style="color:var(--text)">Observed UI behavior:</strong> failure-rate signals can surface per entity
+    (frontend / product / inventory) and then <strong>merge</strong> into a single Problem card.
+    Dynatrace does <em>not</em> expose our teaching stages as separate products (“Detect storm → Curate seed → Package”).
+    Internally it still raises <strong>Events</strong> and correlates them; the operator mostly sees
+    <strong>Problems</strong> (+ evidence events). Our Detect→Curate→Tailor→Davis map is a <strong>teaching decomposition</strong>,
+    not a 1:1 UI walkthrough.
+  </div>
+  <table>
+    <tr><th>Teaching (our docs)</th><th>Dynatrace Observed (this lab)</th></tr>
+    <tr><td>Detect → many Events (INV, API/FE…)</td><td><code>SERVICE_ERROR_RATE_INCREASED</code> per service (see evidence)</td></tr>
+    <tr><td>Curate merges to one seed</td><td>Davis merge / Problem correlation (may briefly look like multiple problems)</td></tr>
+    <tr><td>Package → one Problem + rootCauseEntity</td><td><strong>P-260817</strong> · <code>rootCauseEntity=null</code> · all three Events <code>rootCauseRelevant=false</code></td></tr>
+    <tr><td>Event ≠ Problem (strict)</td><td>True under the hood; UI emphasizes Problem, with Events as evidence</td></tr>
+  </table>
+
+  <h2 id="p260817">3) Observed timeline — P-260817 (CLOSED)</h2>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>displayId</td><td><code>P-260817</code></td></tr>
+    <tr><td>title</td><td>Failure rate increase</td></tr>
+    <tr><td>status</td><td>CLOSED</td></tr>
+    <tr><td>Problem window</td><td><strong>11:46:00 → 12:11:00 UTC</strong> (2026-08-06) · ~25 min open</td></tr>
+    <tr><td>rootCauseEntity</td><td><strong>null</strong> (API) — no packaged entity RC this pull</td></tr>
+    <tr><td>affected</td><td>frontend · product · inventory</td></tr>
+    <tr><td>impact (SERVICE)</td><td>frontend · ~3414 potentially affected service calls</td></tr>
+    <tr><td>severity</td><td>ERROR</td></tr>
+  </table>
+
+  <div class="note warn">
+    <strong style="color:var(--text)">Honesty:</strong> Unlike some earlier CLOSED failure-rate problems in the same lab window
+    (e.g. P-260814 had <code>rootCauseEntity=inventory</code>), <strong>P-260817</strong> ships
+    <code>rootCauseEntity=null</code> and marks <em>every</em> evidence Event
+    <code>rootCauseRelevant=false</code>. Entity RCA is not always filled on the Problem card —
+    code pinpoint still lives on traces/logs.
+  </div>
+
+  <div class="tl">
+    <div class="tl-row">
+      <div class="tl-t">11:41 UTC</div>
+      <div class="tl-b">
+        <span class="tag ev">EVENT</span>
+        <strong>frontend</strong> · <code>SERVICE_ERROR_RATE_INCREASED</code>
+        · start <strong>11:41</strong> → end <strong>12:11</strong>
+        · rootCauseRelevant=false
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">11:41 UTC</div>
+      <div class="tl-b">
+        <span class="tag ev">EVENT</span>
+        <strong>product</strong> · <code>SERVICE_ERROR_RATE_INCREASED</code>
+        · 11:41 → 12:11 · rootCauseRelevant=false
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">11:41 UTC</div>
+      <div class="tl-b">
+        <span class="tag ev">EVENT</span>
+        <strong>inventory</strong> · <code>SERVICE_ERROR_RATE_INCREASED</code>
+        · 11:41 → 12:11 · rootCauseRelevant=false
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">11:46 UTC</div>
+      <div class="tl-b">
+        <span class="tag rc">PROBLEM</span>
+        <strong>P-260817</strong> opens (packaged) · title Failure rate increase · <strong>RC entity unset</strong>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">~11:41–12:11</div>
+      <div class="tl-b">
+        <span class="tag code">CODE / TRACE</span>
+        Real <code>KeyError: 'MACBOOK-PRO-14'</code> in <code>lookup_stock_in_warehouse</code>
+        (<code>inventory/app.py</code>) — on spans/logs (enriched ingest). <em>Not</em> listed as a separate Problem evidence EVENT type in this API pull.
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">12:11 UTC</div>
+      <div class="tl-b">
+        <span class="tag rc">CLOSED</span>
+        Problem + all three failure-rate events end (healthy traffic / de-alert window satisfied).
+      </div>
+    </div>
+  </div>
+
+  <p style="color:var(--muted);font-size:.92rem;">
+    Same afternoon also had <code>P-260811</code> and <code>P-260814</code> (other CLOSED failure-rate problems).
+    That matches the “several cards then settle” feel — separate windows / merges, not three permanent Problems.
+  </p>
+
+  <h2 id="code">4) Code-level enrichment (what we added to the feed)</h2>
+  <table>
+    <tr><th>Layer</th><th>What Dynatrace packaged</th><th>Where to see “exact code”</th></tr>
+    <tr>
+      <td>Entity RCA</td>
+      <td><code>rootCauseEntity=null</code> + three failure-rate Events (none RC-relevant)</td>
+      <td>Problem card / <code>evidenceDetails</code> — entity RC <em>not</em> filled this pull</td>
+    </tr>
+    <tr>
+      <td>Code-level</td>
+      <td>Not a separate evidence EVENT in this pull</td>
+      <td>Traces + logs: <code>KeyError</code> · <code>lookup_stock_in_warehouse</code> · <code>WAREHOUSE_SKU_INDEX[sku]</code></td>
+    </tr>
+    <tr>
+      <td>Config / deploy</td>
+      <td>Not on P-260817 (no <code>events.ingest</code> deploy event this run)</td>
+      <td>Needs <code>CUSTOM_DEPLOYMENT</code> / config event with root-cause-relevant flag</td>
+    </tr>
+  </table>
+  <div class="note">
+    <strong style="color:var(--text)">Honesty:</strong> Davis did <em>not</em> name an entity RC on this Problem.
+    Code pinpoint is still available because we shipped a <em>real</em> KeyError (missing SKU in index) and OneAgent/OTEL captured stack on the inventory span — drill from Problem → inventory → traces/exceptions/logs.
+  </div>
+
+  <h2 id="teaching">5) Teaching map (same incident)</h2>
+  <table>
+    <tr><th>Clock A / B stage</th><th>What happened (this run)</th></tr>
+    <tr><td>Collect → Fan-out → Maintain</td><td>FE→product→inventory spans/logs under shared service ids; Grail fills during KeyError 5xx</td></tr>
+    <tr><td>Detect</td><td>Three <code>SERVICE_ERROR_RATE_INCREASED</code> Events (FE / product / INV all @11:41)</td></tr>
+    <tr><td>Curate / merge</td><td>Correlated into one Problem; <em>no</em> Event marked rootCauseRelevant</td></tr>
+    <tr><td>Tailor / Localize / Identify</td><td>Impact ranked on frontend calls; entity RC field left empty</td></tr>
+    <tr><td>Package</td><td>P-260817 · Failure rate increase · CLOSED 12:11 · rootCauseEntity=null</td></tr>
+  </table>
+
+  <h2 id="related">Related</h2>
+  <ul>
+    <li><a href="/eleven-subsystem-mechanisms.html">Breakdown (phased canvas)</a></li>
+    <li><a href="/dt-e2e-smartscape-grail.html">Smartscape ∥ Grail dual-track E2E</a></li>
+    <li><a href="/comparable-pipeline-dt-dd.html">Comparable DT vs DD (P-26084 era)</a></li>
+    <li><a href="/dynatrace-production-pipeline.html">DT production pipeline prose</a></li>
+    <li>Snapshot: <code>docs/vendor-source/dynatrace/p260817-evidence-snapshot.json</code></li>
+    <li>Lab: <code>dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md</code> · code KeyError in <code>inventory/app.py</code></li>
+  </ul>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dt-davis-categories.js" defer></script>
+</body>
+</html>

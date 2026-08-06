@@ -35,7 +35,8 @@ def product():
     if _fail():
         abort(500)
 
-    resp = requests.get("http://inventory:8082/inventory", timeout=5)
+    # 30s so code-level inventory SLOWDOWN stays HTTP 200 (not timeout→5xx)
+    resp = requests.get("http://inventory:8082/inventory", timeout=60)
     resp.raise_for_status()
     inventory = resp.json()
 

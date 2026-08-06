@@ -156,6 +156,35 @@ Maintain is **not** “split a timeseries into shaded vs pulse.” It is houseke
 
 Maintain does **not** pick the root cause and does **not** build a different map than Topology. It only keeps that Smartscape fresh while Grail fills.
 
+#### Code-level enriched run — P-260817 (Observed API pull, 2026-08-06)
+
+Visual + curl recipes: [`dt-lab-timeline-code-level.html`](./dt-lab-timeline-code-level.html) · snapshot [`vendor-source/dynatrace/p260817-evidence-snapshot.json`](./vendor-source/dynatrace/p260817-evidence-snapshot.json).
+
+Real code defect (missing `MACBOOK-PRO-14` in warehouse index → `KeyError` in `lookup_stock_in_warehouse`). **Not** a fault-flag raise.
+
+| Clock (UTC) | What |
+|-------------|------|
+| 11:41 | Events `SERVICE_ERROR_RATE_INCREASED` on **frontend**, **product**, and **inventory** (all `rootCauseRelevant=false`) |
+| 11:46 → 12:11 | **Problem P-260817** open → CLOSED · `rootCauseEntity=null` |
+| During window | Traces/logs: `KeyError: 'MACBOOK-PRO-14'` stack (code pinpoint — drill from Problem → inventory traces; **not** a separate evidence EVENT in this pull) |
+
+**UI merge note:** operators may briefly see multiple failure cards then one Problem. That is Davis correlation, not our teaching Detect/Curate product surfaces. Event ≠ Problem still holds under the hood (`evidenceDetails` lists the three Events). Same afternoon also had CLOSED **P-260811** / **P-260814** (separate windows).
+
+#### SLOWDOWN run — P-260820 (Observed API pull, 2026-08-06)
+
+Full analysis: [`dt-lab-timeline-slowdown.html`](./dt-lab-timeline-slowdown.html) · snapshot [`vendor-source/dynatrace/p260820-slowdown-snapshot.json`](./vendor-source/dynatrace/p260820-slowdown-snapshot.json).
+
+Real code defect in `inventory/app.py`: 50k-row ledger scan + leftover checksum instead of O(1) index → ~9–11 s HTTP **200** (not 5xx). Fixed RT thresholds (median 2 s / p90 3 s / min 1 rpm) required — auto baselining with 10 rpm gate did not fire. **Healed** after the run (`heal_inventory_slow_code.sh`).
+
+| Clock (UTC) | What |
+|-------------|------|
+| 15:05 | Three Events `SERVICE_SLOWDOWN` on product, frontend, inventory (all `rootCauseRelevant=false`, same start bucket) |
+| 15:10 | **Problem P-260820** OPEN · title Response time degradation · severity `PERFORMANCE` · `rootCauseEntity=null` |
+| UI | Three Slowdown cards (P-260822/821/820) then **merged** into P-260820 Affected 3 |
+| Code on Problem analysis | **Not present** — evidence is metric Events only; long Ok spans on traces (no exception). Null entity RCA ≠ code-line on the Problem card |
+
+**Teaching:** Entity RCA and code-level are parallel layers. Same-bucket Events → no temporal leaf ranking → null `rootCauseEntity`. Problem analysis does not auto-promote `app.py` line/function; drill traces for code-shaped evidence. Contrast **P-260814** (INV Event 1 min earlier → `rootCauseEntity=inventory`).
+
 ### Lab stages 0–5 ↔ Clock A
 
 | Lab ref stage | Clock A slot |

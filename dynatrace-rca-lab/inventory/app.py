@@ -1,40 +1,44 @@
-import os
-import time
-from pathlib import Path
-from flask import Flask, abort
+"""
+Inventory service — lab checkout leaf.
+
+Healthy path: O(1) dict lookup in WAREHOUSE_SKU_INDEX.
+
+Code-level SLOWDOWN (see scripts/break_inventory_slow_code.sh): lookup walks a
+long unsorted WAREHOUSE_LEDGER and runs a leftover per-row checksum — classic
+perf regression (HTTP 200, elevated response time). Not a fault-flag sleep.
+"""
+import logging
+
+from flask import Flask
 
 app = Flask("inventory")
-FAULT_DIR = Path(os.getenv("FAULT_DIR", "/faults"))
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
+log = logging.getLogger("inventory")
+
+WAREHOUSE_SKU_INDEX = {
+    "IPAD-AIR": 40,
+    "WATCH-ULTRA": 15,
+    "MACBOOK-PRO-14": 100,
+}
 
 
-def _flag(name, default="false"):
-    path = FAULT_DIR / name
-    if path.exists():
-        return path.read_text().strip().lower()
-    return default
+# --- LOOKUP_ impl markers (break/heal scripts swap between FAST and SLOW) ---
+def lookup_stock_in_warehouse(sku: str = "MACBOOK-PRO-14") -> dict:
+    """FAST: O(1) index lookup."""
+    qty = WAREHOUSE_SKU_INDEX[sku]
+    return {"stock": qty, "sku": sku}
 
 
-def _latency():
-    try:
-        return float(_flag("inventory.latency", "0"))
-    except ValueError:
-        return 0.0
-
-
-def _fail():
-    return _flag("inventory.fail", "false") == "true"
+# --- end LOOKUP_ ---
 
 
 @app.route("/inventory")
 def inventory():
-    latency = _latency()
-    if latency > 0:
-        time.sleep(latency)
-
-    if _fail():
-        abort(500)
-
-    return {"stock": 100}
+    return lookup_stock_in_warehouse("MACBOOK-PRO-14")
 
 
-app.run(host="0.0.0.0", port=8082)
+app.run(host="0.0.0.0", port=8082, threaded=True)

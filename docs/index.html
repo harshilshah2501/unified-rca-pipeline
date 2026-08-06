@@ -82,11 +82,9 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
 
   <div class="bar">
     <a class="console" href="/">PoC console</a>
+    <a href="/dt-davis-category-hub.html">DT · Davis categories</a>
     <a href="/comparable-pipeline-dt-dd.html">DT vs DD compare</a>
-    <a href="/dynatrace-production-pipeline.html">Dynatrace</a>
     <a href="/datadog-production-pipeline.html">Datadog</a>
-    <a href="/eleven-subsystem-mechanisms.html">DT mechanisms</a>
-    <a href="/datadog-subsystem-mechanisms.html">DD mechanisms</a>
     <a href="/federated-vs-dt-pipeline-gaps.html">Fed vs DT gaps</a>
     <a href="/multi-telemetry-rca-fac.html">Motadata FR/AC</a>
   </div>
@@ -100,25 +98,55 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
     </a>
   </div>
 
-  <h2>2 · Dynatrace unveil</h2>
-  <div class="grid two">
-    <a class="card" href="/dynatrace-production-pipeline.html">
-      <div class="k dt">Written map</div>
-      <h3>Dynatrace production pipeline</h3>
-      <p>OneAgent · Smartscape · Grail · Davis — long-form Clock A walkthrough (not the animator).</p>
+  <h2>2 · Dynatrace · Davis event categories</h2>
+  <p class="lead" style="margin-top:-.35rem;margin-bottom:1rem;font-size:.95rem;">
+    Structured by Davis category. Each category has the same four slots (teaching order):
+    <strong style="color:var(--text)">Thesis</strong> · <strong style="color:var(--text)">Breakdown</strong> ·
+    <strong style="color:var(--text)">Dual-track</strong> · <strong style="color:var(--text)">Timeline</strong>.
+    Use the hub dropdown to switch.
+  </p>
+  <div class="grid">
+    <a class="card" href="/dt-davis-category-hub.html">
+      <div class="k dt">Hub · dropdown</div>
+      <h3>Davis event categories</h3>
+      <p>ERROR · SLOWDOWN (Observed) · MONITORING_UNAVAILABLE · AVAILABILITY · RESOURCE_CONTENTION (planned). Pick a category → Thesis → Breakdown → Dual-track → Timeline.</p>
     </a>
-    <a class="card" href="/eleven-subsystem-mechanisms.html">
-      <div class="k dt">Animated storyboard</div>
-      <h3>Dynatrace mechanisms</h3>
-      <p>Step canvas: fabric → case opens → Davis diagnose (Smartscape ∥ Grail Fan-out).</p>
+  </div>
+  <div class="grid two" style="margin-top:.75rem;">
+    <a class="card" href="/dt-davis-category-hub.html?cat=error">
+      <div class="k dt">ERROR · Observed</div>
+      <h3>Failure rate (P-260817)</h3>
+      <p>Thesis / Breakdown / Dual-track + Timeline. KeyError leaf · SERVICE_ERROR_RATE_INCREASED · rootCauseEntity=null.</p>
+    </a>
+    <a class="card" href="/dt-davis-category-hub.html?cat=slowdown">
+      <div class="k dt">SLOWDOWN · Observed</div>
+      <h3>Response time (P-260820)</h3>
+      <p>Thesis / Breakdown / Dual-track + Timeline. Ledger-scan leaf · SERVICE_SLOWDOWN · null entity RCA · healed.</p>
+    </a>
+    <a class="card" href="/dt-davis-category-hub.html?cat=monitoring_unavailable">
+      <div class="k dt">MONITORING_UNAVAILABLE</div>
+      <h3>Visibility dark · planned</h3>
+      <p>Teaching slots ready; lab stub. Agent/ingest unavailable Detect tip.</p>
+    </a>
+    <a class="card" href="/dt-davis-category-hub.html?cat=availability">
+      <div class="k dt">AVAILABILITY</div>
+      <h3>Host / process down · planned</h3>
+      <p>Teaching slots ready; lab stub. Hard outage Detect tip.</p>
+    </a>
+    <a class="card" href="/dt-davis-category-hub.html?cat=resource_contention">
+      <div class="k dt">RESOURCE_CONTENTION</div>
+      <h3>CPU / memory · planned</h3>
+      <p>Teaching slots ready; lab stub. Saturation + runsOn Detect tip.</p>
     </a>
     <a class="card" href="/federated-vs-dt-pipeline-gaps.html">
       <div class="k compare">Gap map · build order</div>
       <h3>Federated vs DT 5+3+3</h3>
-      <p>Crosswalk Dragonfly / Vortex / Panorama–Murphy–Nezha to Clock A teaching stages. P0 gaps (Event Graph, Vortex, 1B ingest) and what DT already covers.</p>
+      <p>Crosswalk Dragonfly / Vortex / Panorama–Murphy–Nezha to Clock A. P0 gaps and what DT already covers.</p>
     </a>
   </div>
   <ul class="list">
+    <li><a href="/dt-lab-timeline-code-level.html">ERROR lab analysis (direct)</a><span>P-260817</span></li>
+    <li><a href="/dt-lab-timeline-slowdown.html">SLOWDOWN lab analysis (direct)</a><span>P-260820</span></li>
     <li><a href="/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md">Dynatrace lab reference</a><span>Stages 0–5 · Problems</span></li>
     <li><a href="/docs/FEDERATED_VS_DT_PIPELINE_GAPS.md">Federated vs DT gaps (markdown)</a><span>Same content as HTML · Cursor canvas is IDE-only</span></li>
   </ul>
