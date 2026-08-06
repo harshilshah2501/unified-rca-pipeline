@@ -37,7 +37,7 @@ Read these before diving into folders.
 | [`POC_BRIEFING.md`](./POC_BRIEFING.md) | End-to-end story: objective → design → bakeoff → conclusion (slides / NotebookLM) |
 | [`ROADMAP.md`](./ROADMAP.md) | PoC **journey**: Compare → Deepen → Ship → Transfer → Connect (+ later Federate/Scale) |
 | [`ADR-001-lean-primary-engine.md`](./ADR-001-lean-primary-engine.md) | Lean favored on ObserveOps — **evaluation finding**, not a finalized GTM lock |
-| [`GLOSSARY.md`](./GLOSSARY.md) | Tier namespaces, corpus names, verifiability vs “main-path %” — stop terminology drift early |
+| [`GLOSSARY.md`](./GLOSSARY.md) | Tier namespaces · Dynatrace teaching terms (Event/Storm/Seed/Smartscape on Grail) · corpus names |
 | [`README.md`](./README.md) | Four qualities, five roadblocks, lean vs federated decision guide (long-form) |
 
 **Do not merge scoreboards:** ObserveOps UC bakeoff ≠ OpenObserve peer track ≠ Motadata L1 ≠ e-com checkout scenario. Treat them as separate surfaces.
@@ -100,7 +100,7 @@ Understand **what** was measured before reading engine internals.
 | [`ECOM_CHECKOUT_RCA_ANALYSIS.md`](./ECOM_CHECKOUT_RCA_ANALYSIS.md) | **Lean vs Federated write-up** for `ecom-numa-001` |
 | [`index.html`](./index.html) | **Browser docs hub** — [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) |
 | [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | **Same-scenario DT vs DD** (P-26084) · [HTML](./comparable-pipeline-dt-dd.html) · [`:8765`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) |
-| [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | **Dynatrace-first:** Clock A → OneAgent/Smartscape/Grail map · Collect→Normalize→bind walkthroughs (simple + complex) |
+| [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | **Dynatrace-first:** Clock A → OneAgent/Smartscape/Grail · Phase 2 glossary · Smartscape on Grail note · [HTML](./dynatrace-production-pipeline.html) · [`:8765`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
 | [`dynatrace-production-pipeline.html`](./dynatrace-production-pipeline.html) | Same — browser / [`:8765/dynatrace-production-pipeline.html`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
 | [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) | **Gap map:** Federated Part 1 vs DT 5+3+3 · [HTML](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html) · §8 Motadata FR/AC alignment · Cursor canvas IDE-only |
 | [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](./multi-telemetry-rca-functional-and-acceptance-criteria.md) | Motadata ObserveOps **acceptance** FRs/ACs (engine-agnostic) · architecture in gap map §2 · relationship §8 |

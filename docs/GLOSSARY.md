@@ -30,6 +30,21 @@ Cost compare asks: same input bytes, how much **extra** does dual-sink cost? See
 | **symptom seed** | CI/signal where pain showed — **start** of the search, usually **not** the root. |
 | **Panorama (fair bakeoff)** | Off the ObserveOps UC scoreboard; Federated Hop-1 consumes shared Detect. |
 
+## Dynatrace teaching (Clock A / Phase 2)
+
+Canonical: [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) §3.4–3.6 · [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html).
+
+| Term | Plain meaning |
+|------|----------------|
+| **Smartscape** | Live who-graph (`calls` + containment). Not a DAG requirement; teaching walk is **unweighted**. Not rebuilt by DQL on Grail. |
+| **Grail** | Evidence lake by `entityId`+time; Detectors read this (not Smartscape) to raise Events. |
+| **Smartscape on Grail** | Product evolution: entity attrs also Grail-native (`dt.smartscape.*`). Jobs still map∥evidence. |
+| **Event** | One Detect breach record in a **shared Event store**. |
+| **Storm** | Teaching: pile of raw Events before Curate merge. |
+| **Beat** | Teaching UI step only (storyboard). |
+| **Seed** | Curate `(entityId, t0)` tip for Tailor — not `rootCauseEntity`. Tailor expands time corridor. |
+| **Teaching threshold 0.30** | Storyboard chalk line on Detect canvas — not a fitted Dynatrace SKU. |
+
 ## Fault buckets (Samples / coverage)
 
 Dashboard labels (ids stay `1_symptom` … in data):

@@ -103,6 +103,10 @@ hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
 <td><strong>Inferred</strong></td>
 <td>Reasonable model; not a Dynatrace-internal spec</td>
 </tr>
+<tr class="even">
+<td><strong>Teaching</strong></td>
+<td>Simplified name/model for the storyboard (not vendor vocabulary or a measured SKU)</td>
+</tr>
 </tbody>
 </table>
 <p><strong>Browser:</strong> <a href="/dynatrace-production-pipeline.html"><code>dynatrace-production-pipeline.html</code></a><br />
@@ -544,84 +548,61 @@ process.cpu{pid:4421,exe:python} 0.12</code></pre>
 <p><strong>This is not Smartscape.</strong> It only answers “which entity does this record belong to?”</p>
 <h3 id="smartscape-topology-ci-graph">3.4 Smartscape (topology / CI graph)</h3>
 <table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
-<tr class="odd">
-<td><strong>Input</strong></td>
-<td>Topology cues from OneAgent/discovery; call peers from traces; process-group / service detection rules</td>
-</tr>
-<tr class="even">
-<td><strong>Process</strong></td>
-<td>Upsert entities; maintain <strong>vertical</strong> containment (HOST→PG→…→SERVICE) and <strong>horizontal</strong> <code>calls</code> edges; keep graph fresh</td>
-</tr>
-<tr class="odd">
-<td><strong>Output</strong></td>
-<td>Live property graph: stable nodes (<code>SERVICE-…</code>, <code>HOST-…</code>, …) + typed edges — the map Davis expands</td>
-</tr>
+<tr class="odd"><td><strong>Input</strong></td><td>Topology cues from OneAgent/discovery; call peers from traces; process-group / service detection rules</td></tr>
+<tr class="even"><td><strong>Process</strong></td><td>Upsert entities; maintain <strong>vertical</strong> containment (HOST→PG→…→SERVICE; teaching ≈ <code>runsOn</code>) and <strong>horizontal</strong> <code>calls</code> edges; keep graph fresh</td></tr>
+<tr class="odd"><td><strong>Output</strong></td><td>Live <strong>property graph</strong>: stable nodes (<code>SERVICE-…</code>, <code>HOST-…</code>, …) + <strong>typed</strong> edges — the map Davis expands</td></tr>
 </tbody>
 </table>
 <p><strong>Does not:</strong> store full metric history (that’s Grail). <strong>Not</strong> refreshed by DQL against Grail.</p>
+<p><strong>Graph shape (teaching / public framing):</strong> not required to be a DAG (cycles/fan-in/out OK). Edges are <strong>not weighted</strong> in our teaching walk — failure strength lives in Grail. Persistence job = keep the <strong>current</strong> who-graph true (<code>lastSeen</code> / upserts).</p>
+<h4 id="smartscape-on-grail-product-evolution-note">Smartscape on Grail (product evolution note)</h4>
+<p><strong>Observed (tenant UI, 2026-08):</strong> Apps may banner <em>“This app now uses Smartscape on Grail”</em> and prefer <code>dt.smartscape.*</code> over classic <code>dt.entity.*</code>. Map vs evidence <strong>jobs</strong> remain; collaboration moves toward a more shared persistence/query substrate — <strong>not</strong> “rebuild Smartscape by DQL every minute.”</p>
 <h3 id="grail-unified-lake-dql">3.5 Grail (unified lake + DQL)</h3>
 <table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
-<tr class="odd">
-<td><strong>Input</strong></td>
-<td>Entity-stamped metrics, traces, logs, and (later) events from the platform write path</td>
-</tr>
-<tr class="even">
-<td><strong>Process</strong></td>
-<td>Index / retain / make queryable by <strong><code>(entityId, timeRange)</code></strong>; serve DQL (and UI) reads</td>
-</tr>
-<tr class="odd">
-<td><strong>Output</strong></td>
-<td>On write: durable multimodal evidence store. On read: series, exemplars, logs, events for scoped queries</td>
-</tr>
+<tr class="odd"><td><strong>Input</strong></td><td>Entity-stamped metrics, traces, logs, and (later) events from the platform write path</td></tr>
+<tr class="even"><td><strong>Process</strong></td><td>Index / retain / make queryable by <strong><code>(entityId, timeRange)</code></strong>; serve DQL (and UI) reads</td></tr>
+<tr class="odd"><td><strong>Output</strong></td><td>On write: durable multimodal evidence store. On read: series, exemplars, logs, events for scoped queries</td></tr>
 </tbody>
 </table>
-<p><strong>Write = continuous. DQL = on-demand read.</strong> Grail is not the topology map.</p>
+<p><strong>Write = continuous. DQL = on-demand read.</strong> Grail is not the topology map. Persistence job = remember <strong>what happened</strong> (hot/warm/cold). Smartscape upserts <strong>present</strong>; Grail appends <strong>history</strong>.</p>
 <h3 id="detectors-events-detect">3.6 Detectors → Events (detect)</h3>
 <table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
-<tr class="odd">
-<td><strong>Input</strong></td>
-<td>Entity-keyed series in Grail (error rate, response time, restarts, availability, …) + baselines/thresholds</td>
-</tr>
-<tr class="even">
-<td><strong>Process</strong></td>
-<td>Async evaluation; change-point / threshold / anomaly style checks (<strong>inferred</strong> exact algos)</td>
-</tr>
-<tr class="odd">
-<td><strong>Output</strong></td>
-<td><strong>Events</strong> — e.g. <code>SERVICE_ERROR_RATE_INCREASED</code>, <code>PROCESS_RESTART</code> — keyed by entity + time. <strong>Event ≠ Problem</strong></td>
-</tr>
+<tr class="odd"><td><strong>Input</strong></td><td>Entity-keyed series in <strong>Grail</strong> (error rate, response time, restarts, …) + baselines/thresholds</td></tr>
+<tr class="even"><td><strong>Process</strong></td><td>Async evaluation (<strong>inferred</strong> exact algos). <strong>Does not walk Smartscape</strong> to raise an Event</td></tr>
+<tr class="odd"><td><strong>Output</strong></td><td><strong>Events</strong> — e.g. <code>SERVICE_ERROR_RATE_INCREASED</code> — keyed by entity + time. <strong>Event ≠ Problem</strong></td></tr>
 </tbody>
 </table>
 <p><strong>Observed (lab):</strong> inventory fault → nearby service error-rate Events before Problem packaging.</p>
+<p><strong>Teaching threshold:</strong> mechanisms canvas gold line <code>0.30</code> so INV/API/FE bars clearly breach — <strong>Teaching</strong>, not a fitted Dynatrace SKU. Events land in a <strong>shared Event store</strong>; cascade ≠ one fused Detect alert.</p>
+<h4 id="phase-2-teaching-glossary-detect-curate-tailor">Phase 2 teaching glossary (Detect → Curate → Tailor)</h4>
+<table>
+<thead><tr><th>Term</th><th>What it is</th><th>Product term?</th></tr></thead>
+<tbody>
+<tr><td><strong>Cascade</strong></td><td>Failure spreads along FE→API→INV</td><td>Everyday word</td></tr>
+<tr><td><strong>Event</strong></td><td>One Detect breach record</td><td>Yes</td></tr>
+<tr><td><strong>Storm</strong></td><td>Pile of raw Events (still unmerged)</td><td><strong>Teaching</strong></td></tr>
+<tr><td><strong>Beat</strong></td><td>Storyboard UI step only</td><td>No</td></tr>
+<tr><td><strong>Seed</strong></td><td>Curate handoff <code>(entityId, t0)</code> — Tailor expands time corridor</td><td><strong>Teaching</strong></td></tr>
+<tr><td><strong>Problem</strong></td><td>Packaged RCA after Curate→Tailor→Davis</td><td>Yes</td></tr>
+</tbody>
+</table>
 <h4 id="phase-2-teaching-timeline-detect-curate-tailor">Phase 2 teaching timeline (Detect → Curate → Tailor)</h4>
 <p>Animated: <a href="/eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a> · Phase 2 Case opens. <strong>Event ≠ Problem.</strong></p>
 <pre class="flow">Grail series (Maintain’d)
-  → Detect  → raw Events (per entity)
-  → Curate  → one case seed
+  → Detect  → raw Events (per entity) → common Event store
+  → Curate  → one case seed (entityId, t0)   // Tailor expands t0 → corridor
   → Tailor  → working set {entities[], timeRange}
   → Phase 3 Davis → Problem P-26084</pre>
 <div class="viz" id="viz-phase2-case">
   <p class="cap">Detect · Curate · Tailor — checkout lab</p>
-  <p class="viz-note"><strong>Detect — how Events are raised</strong></p>
+  <p class="viz-note"><strong>Detect — how Events are raised</strong> (Grail only; teaching threshold 0.30)</p>
   <table>
     <thead><tr><th>Order</th><th>Teaching Event</th><th>entityId</th><th>Why</th></tr></thead>
     <tbody>
-    <tr><td>1</td><td><code>SERVICE_ERROR_RATE_INCREASED</code></td><td><code>SERVICE-INV</code></td><td>leaf 5xx / failed_call series breaches threshold</td></tr>
+    <tr><td>1</td><td><code>SERVICE_ERROR_RATE_INCREASED</code></td><td><code>SERVICE-INV</code></td><td>leaf 5xx — teaching line 0.30</td></tr>
     <tr><td>2</td><td>same class</td><td><code>SERVICE-API</code></td><td>cascade caller — its own detector</td></tr>
     <tr><td>3</td><td>same class</td><td><code>SERVICE-FE</code></td><td>edge symptom — its own detector</td></tr>
     <tr><td>(noise)</td><td>e.g. <code>PROCESS_CPU_HIGH</code></td><td><code>SERVICE-BATCH</code></td><td>co-timed; no checkout <code>calls</code> edge</td></tr>
@@ -630,11 +611,11 @@ process.cpu{pid:4421,exe:python} 0.12</code></pre>
   <div class="viz-grid" style="margin-top:.85rem;">
     <div class="viz-panel warn">
       <h5>Curate</h5>
-      <p>Storm → group by time + Smartscape neighborhood → drop BATCH → seed <code>(SERVICE-INV, t0≈07:52)</code>. Not yet <code>rootCauseEntity</code>.</p>
+      <p>Storm → group by time + Smartscape neighborhood → drop BATCH → seed <code>(SERVICE-INV, t0≈07:52)</code>. Seed pins one time; Tailor builds the window. Not yet <code>rootCauseEntity</code>.</p>
     </div>
     <div class="viz-panel accent">
       <h5>Tailor</h5>
-      <p>Space: same Smartscape, expand FE←API←INV→DB. Time: <code>[07:40, 07:52]</code>. Out: working set → Phase 3.</p>
+      <p>Space: same Smartscape, expand FE←API←INV→DB. Time corridor around t0: <code>[07:40, 07:52]</code> (includes evidence before t0). Out: working set → Phase 3.</p>
     </div>
   </div>
 </div>

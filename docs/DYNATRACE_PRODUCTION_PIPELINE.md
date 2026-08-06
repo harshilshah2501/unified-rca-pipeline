@@ -11,6 +11,7 @@
 | **Observed (lab)** | Seen in `dynatrace-rca-lab` / controlled tenant runs |
 | **Public framing** | Dynatrace product docs / marketing-shaped architecture |
 | **Inferred** | Reasonable model; not a Dynatrace-internal spec |
+| **Teaching** | Simplified name/model for the storyboard (not vendor vocabulary or a measured SKU) |
 
 **Browser:** [`dynatrace-production-pipeline.html`](./dynatrace-production-pipeline.html)  
 **Lab depth:** [`../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md)  
@@ -260,10 +261,29 @@ All four can sit in the same Collect bag. They only become comparable after Norm
 | | |
 |--|--|
 | **Input** | Topology cues from OneAgent/discovery; call peers from traces; process-group / service detection rules |
-| **Process** | Upsert entities; maintain **vertical** containment (HOST→PG→…→SERVICE) and **horizontal** `calls` edges; keep graph fresh |
-| **Output** | Live property graph: stable nodes (`SERVICE-…`, `HOST-…`, …) + typed edges — the map Davis expands |
+| **Process** | Upsert entities; maintain **vertical** containment (HOST→PG→…→SERVICE; teaching name ≈ **`runsOn`**) and **horizontal** `calls` edges; keep graph fresh |
+| **Output** | Live **property graph**: stable nodes (`SERVICE-…`, `HOST-…`, …) + **typed** edges — the map Davis expands |
 
 **Does not:** store full metric history (that’s Grail). **Not** refreshed by DQL against Grail.
+
+**Graph shape (teaching / public framing)**
+
+| Question | Answer |
+|----------|--------|
+| Is it a DAG? | **No requirement.** FE→API→INV looks like a chain in the lab, but real Smartscape is a **directed property graph** (cycles, fan-in/out, multiple edge types are normal). |
+| Are edges weighted? | **Not in our teaching RCA walk.** Davis uses **typed** topology (`calls`, containment). Failure *strength* lives in **Grail** (`failed_call`, `error_rate`, spans) by `entityId`+time — not as Smartscape edge weights. |
+| Persistence job | Keep the **current** who-graph true (`lastSeen` / upserts). Semantics = “present map,” not a full telemetry archive. |
+
+#### Smartscape on Grail (product evolution note)
+
+**Observed (tenant UI, 2026-08):** Apps may show a banner: *“This app now uses Smartscape on Grail”* and prefer **`dt.smartscape.*`** attributes over classic **`dt.entity.*`**.
+
+| Classic teaching | What the banner adds |
+|------------------|----------------------|
+| Map plane ∥ lake plane, joined by shared `entityId` | Topology/entity **semantics** are also becoming **Grail-queryable** (`dt.smartscape.*`) |
+| Filter still often works as `dt.entity.service = SERVICE-…` | Legacy form; migrate toward `dt.smartscape.*` |
+
+**Read carefully:** this does **not** mean “delete the who-graph job” or “Smartscape is rebuilt by DQL every minute.” Map vs evidence **jobs** remain. Collaboration moves from **link-by-id across backends** toward **more shared persistence/query substrate**. See also persistence note under §3.5.
 
 ### 3.5 Grail (unified lake + DQL)
 
@@ -275,24 +295,47 @@ All four can sit in the same Collect bag. They only become comparable after Norm
 
 **Write = continuous. DQL = on-demand read.** Grail is not the topology map.
 
+**Persistence job:** remember **what happened** (hot/warm/cold retention, sampling). Detect/Tailor/Davis **pull** history; they do not walk Grail as a neighbor graph.
+
+| Plane | Persistence style (teaching) |
+|-------|------------------------------|
+| Smartscape | Upsert **current** who-graph |
+| Grail | Append / tier **history** by entity + time |
+
 ### 3.6 Detectors → Events (detect)
 
 | | |
 |--|--|
-| **Input** | Entity-keyed series in Grail (error rate, response time, restarts, availability, …) + baselines/thresholds |
-| **Process** | Async evaluation; change-point / threshold / anomaly style checks (**inferred** exact algos) |
+| **Input** | Entity-keyed series in **Grail** (error rate, response time, restarts, availability, …) + baselines/thresholds |
+| **Process** | Async evaluation; change-point / threshold / anomaly style checks (**inferred** exact algos). **Does not walk Smartscape** to raise an Event |
 | **Output** | **Events** — e.g. `SERVICE_ERROR_RATE_INCREASED`, `PROCESS_RESTART` — keyed by entity + time. **Event ≠ Problem** |
 
 **Observed (lab):** inventory fault → nearby service error-rate Events before Problem packaging.
 
-#### Phase 2 teaching timeline (Detect → Curate → Tailor)
+**Teaching threshold:** mechanisms canvas uses gold line **`0.30`** so INV `0.92` / API `0.78` / FE `0.71` clearly breach. That number is **Teaching**, not a lab-fitted Dynatrace SKU. Real tenants often use baselines/anomaly; our fault is hard 5xx so almost any modest line would fire.
+
+**Where Events live:** raised **independently per entity**, but written into a **shared platform Event store** (teaching: one common Event stream/index), roughly `{ type, entityId, ts, signal, value, … }`. INV/API/FE Events are not private silos — Curate/Davis read the **same** store.
+
+#### Phase 2 teaching glossary (Detect → Curate → Tailor)
+
+| Term | What it is | Dynatrace product term? |
+|------|------------|-------------------------|
+| **Cascade** | Failure spreads along `FE→API→INV` because callers depend on INV | Everyday word — not a Detect object |
+| **Event** | One Detect record: this entity’s series breached | Yes (Events) |
+| **Storm** | Pile of raw Events after Detect (INV+API+FE + maybe BATCH) | **Teaching** for “many Events, not yet one Problem” |
+| **Beat** | UI step on the mechanisms storyboard (① Watch … ④ Storm) | **No** — navigation only |
+| **Seed** | Curate handoff `(entityId, t0)` for Tailor | **Teaching** handle — not `rootCauseEntity` |
+| **Alert** (everyday) | One fused “checkout down” notification | **Detect does not** emit that fused object |
+| **Problem** | Packaged RCA card after Curate→Tailor→Davis | Yes (Problems) |
+
+**Cascade ≠ one alert.** Cascade is the topology/business story; Detect still emits **separate Events** (e.g. INV≈07:48, API≈07:49, FE≈07:50 — each series scored **on its own**).
 
 Animated: [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) · Phase 2 Case opens. **Event ≠ Problem.**
 
 ```text
 Grail series (Maintain’d)
-  → Detect  → raw Events (per entity)
-  → Curate  → one case seed
+  → Detect  → raw Events (per entity) → common Event store
+  → Curate  → one case seed (entityId, t0)   // Tailor expands t0 → time corridor
   → Tailor  → working set {entities[], timeRange}
   → Phase 3 Davis → Problem P-26084
 ```
@@ -301,28 +344,28 @@ Grail series (Maintain’d)
 
 | Order | Teaching Event | entityId | Why |
 |-------|----------------|----------|-----|
-| 1 | `SERVICE_ERROR_RATE_INCREASED` | `SERVICE-INV` | leaf 5xx / `failed_call` series breaches threshold |
+| 1 | `SERVICE_ERROR_RATE_INCREASED` | `SERVICE-INV` | leaf 5xx / `failed_call` series breaches threshold (**teaching** line 0.30) |
 | 2 | same class | `SERVICE-API` | cascade caller — **its own** detector |
 | 3 | same class | `SERVICE-FE` | edge symptom — **its own** detector |
 | (noise) | e.g. `PROCESS_CPU_HIGH` | `SERVICE-BATCH` | co-timed; **no** checkout `calls` edge |
 
-Detectors score **entity-keyed Grail series** asynchronously. One breach → one Event. Cascade is many Events, not one fused alert.
+Detectors score **entity-keyed Grail series** asynchronously. One breach → one Event. Cascade is many Events, not one fused alert. Smartscape is used later (**Curate** neighborhood, **Tailor** expand, **Davis** walk) — not to score the breach.
 
 **Curate — correlate / group (inferred)**
 
 | Beat | What happens |
 |------|----------------|
-| Storm in | INV + API + FE (+ BATCH noise) Events |
+| Storm in | INV + API + FE (+ BATCH noise) Events from the common store |
 | Group | Merge by **time proximity** + **Smartscape neighborhood** on FE→API→INV |
 | Drop noise | BATCH out / weak (no checkout edge) |
-| Seed out | `(entityId≈SERVICE-INV, t0≈07:52)` for Tailor — **not yet** `rootCauseEntity` |
+| Seed out | `(entityId≈SERVICE-INV, t0≈07:52)` for Tailor — **not yet** `rootCauseEntity`. Seed pins **one** time; Tailor builds `[t0−pre, t0+post]` |
 
 **Tailor — space + time cut**
 
 | Cut | Teaching result |
 |-----|-----------------|
 | Space | Same Smartscape as Topology; expand from seed → `{FE, API, INV, DB}`; dim PAY / BATCH |
-| Time | Corridor around t0 ≈ `[07:40, 07:52]` |
+| Time | Corridor around t0 ≈ `[07:40, 07:52]` (includes Grail evidence from **before** t0) |
 | Out | Working set → Phase 3 Localize / Identify / Package |
 
 Tailor does **not** rank the root. It scopes what Davis may read.
