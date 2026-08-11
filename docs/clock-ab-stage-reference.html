@@ -172,6 +172,7 @@
   }
   .note b{color:var(--text);}
 </style>
+<link rel="stylesheet" href="/urca-diagrams.css" />
 </head>
 <body>
 <div class="wrap">
@@ -182,13 +183,28 @@
     Clock A runs continuously in the background; Clock B only exists once a seed is handed off.
   </div>
 
-  <div class="ascii"><span class="a">Collect → Normalize ─┬─► Fan-out → Maintain</span>
-<span class="a">                      │</span>
-<span class="a">Topology (CI graph) ──┘</span>
-
-<span class="a">Detect</span> → <span class="a">Curate</span> (storm → one seed) → <span class="a">Tailor</span>(seed) → working set → forks:
-  <span class="a">Lean:</span> CI graph walk → signatures/fault class → Verify (tiers)
-  <span class="b">Federated:</span> Murphy → Nezha → Verify (orchestrator fusion) · Panorama optional Detect (off fair board)</div>
+  <div class="ud-viz">
+    <div class="ud-cap">Overview — Clock A fabric → case open → Clock B forks</div>
+    <div class="ud-flow">
+      <span class="ud-chip">Collect</span><span class="ud-arrow">→</span>
+      <span class="ud-chip">Normalize</span><span class="ud-arrow">→</span>
+      <span class="ud-chip">Fan-out</span><span class="ud-arrow">→</span>
+      <span class="ud-chip">Maintain</span>
+      <span class="ud-chip soft">∥ Topology (CI graph)</span>
+    </div>
+    <div class="ud-down">▼ case opens</div>
+    <div class="ud-flow" style="justify-content:center">
+      <span class="ud-chip">Detect</span><span class="ud-arrow">→</span>
+      <span class="ud-chip">Curate</span><span class="ud-arrow">→</span>
+      <span class="ud-chip">Tailor</span><span class="ud-arrow">→</span>
+      <span class="ud-chip soft">working set</span>
+    </div>
+    <div class="ud-down">▼ diagnose forks</div>
+    <div class="ud-grid two">
+      <div class="ud-panel accent"><h5>Lean</h5><p>CI graph walk → signatures / fault class → Verify (tiers)</p></div>
+      <div class="ud-panel"><h5>Federated</h5><p>Murphy → Nezha → Verify (orchestrator fusion) · Panorama optional Detect (off fair board)</p></div>
+    </div>
+  </div>
 
   <div class="controls">
     <button id="fireBtn">🔥 Fire Detect → run Clock B once</button>

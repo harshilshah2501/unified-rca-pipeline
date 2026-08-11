@@ -2,6 +2,10 @@
 
 Terms reused across lean, federated, and benchmarking docs.
 
+> **Docs hub (HLD / DT / DD / Obs generations):** use the browser glossary first —
+> [`urca-glossary.html`](./urca-glossary.html) (`:8765/urca-glossary.html`).
+> This file stays bakeoff/engine + lean Tier / L0·F1 / Panorama / corpus.
+
 ## Tier (three namespaces)
 
 | Namespace | Where | Meaning |
@@ -43,8 +47,9 @@ Canonical: [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.
 | **Storm** | Teaching: pile of raw Events before Curate merge. |
 | **Beat** | Teaching UI step only (storyboard). |
 | **Seed** | Curate `(entityId, t0)` tip for Tailor — not `rootCauseEntity`. Tailor expands time corridor. |
-| **Teaching threshold 0.30** | Storyboard chalk line on Detect canvas — not a fitted Dynatrace SKU. |
-| **Lab UTC clocks (P-26084)** | Fault ≈**05:54 UTC** → Problem ≈**06:04 UTC** ([`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) §5). Mechanisms/Maintain use these — **not** fictional `07:xx` or IST. |
+| **Teaching threshold 0.30** | ERROR Detect chalk line on storyboard — not a fitted Dynatrace SKU. **SLOWDOWN** Observed used fixed RT thresholds **2 s / 3 s**, not 0.30. |
+| **Lab UTC clocks (ERROR dual-lab P-26084)** | Fault ≈**05:54 UTC** → Problem ≈**06:04 UTC** ([`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) §5). Use only for ERROR teaching — **not** fictional `07:xx` or IST. |
+| **Lab UTC clocks (SLOWDOWN P-260820)** | Events ≈**15:05 UTC** → Problem ≈**15:10 UTC** · HTTP **200** ~9 s · `rootCauseEntity=null`. **Do not reuse P-26084 / 06:04 for this category.** |
 
 ## Fault buckets (Samples / coverage)
 

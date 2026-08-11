@@ -48,7 +48,8 @@ hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
 .doc-bar a { font-size:.78rem; padding:.35rem .65rem; border-radius:4px; border:1px solid var(--stroke); background:var(--bg-soft); color:var(--muted); text-decoration:none; }
 .doc-bar a:hover { color:var(--text); border-color:var(--accent); }
 .doc-bar a.here { color:var(--accent); border-color:rgba(61,154,139,.5); background:var(--accent-soft); }
-</style></head><body>
+</style><link rel="stylesheet" href="/urca-diagrams.css" />
+</head><body>
 <div class="shell"><nav class="toc"><div class="brand">DD lab evidence</div>
 <a href="./index.html">← Docs index</a>
 <a href="#lab-run-dynatrace-parity-scenario" class="">1. Lab run (Dynatrace-parity scenario)</a>
@@ -57,12 +58,6 @@ hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
 <a href="#detect-surfaces-during-the-run" class="">4. Detect surfaces during the run</a>
 <a href="#agent-path-local" class="">5. Agent path (local)</a>
 <a href="#reproduce" class="">6. Reproduce</a></nav><main>
-<div class="doc-bar">
-  <a href="./index.html">Docs index</a>
-  <a href="./comparable-pipeline-dt-dd.html">DT vs DD compare</a>
-  <a href="./datadog-production-pipeline.html">Datadog pipeline</a>
-  <a class="here" href="./datadog-lab-evidence-2026-08-04.html">Lab evidence</a>
-</div>
 <h1 id="datadog-tenant-lab-evidence-2026-08-04">Datadog tenant + lab evidence — 2026-08-04</h1>
 <p>Appendix for <a href="./DATADOG_PRODUCTION_PIPELINE.md"><code>DATADOG_PRODUCTION_PIPELINE.md</code></a>.<br />
 <strong>Labels:</strong> Observed (agent) + Observed (MCP) + <strong>Observed (lab)</strong> from <code>datadog-rca-lab</code>.</p>
@@ -157,11 +152,17 @@ https://app.datadoghq.com/apm/traces?query=env%3Arca-lab+service%3Ainventory+sta
 <p><strong>Trace ID:</strong> <code>6a717a3e00000000a9fa020928a93f8c</code><br />
 <strong>UI:</strong> https://app.datadoghq.com/apm/trace/6a717a3e00000000a9fa020928a93f8c</p>
 <p>Call chain (service entry / client peers):</p>
-<pre class="text"><code>frontend  GET /api/checkout          → http.status_code 502  (error)
-  └─ requests → product              → 502  (peer.hostname:product)
-       product GET /api/product      → 502  (error)
-         └─ requests → inventory     → 503  (peer.hostname:inventory)
-              inventory GET /api/stock → 503  (error)</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Observed lab trace (2026-08-04)</div>
+  <div class="ud-chain">
+    <div class="ud-node"><span class="ud-role">FE</span>GET /api/checkout → <strong>502</strong> error</div>
+    <div class="ud-link"></div>
+    <div class="ud-node"><span class="ud-role">Product</span>GET /api/product → <strong>502</strong> · peer.hostname:product</div>
+    <div class="ud-link"></div>
+    <div class="ud-node leaf"><span class="ud-role">Leaf</span>GET /api/stock → inventory fault tip</div>
+  </div>
+  <p class="ud-note">APM peer edges + status:error cascade.</p>
+</div>
 <p><strong>Insight:</strong> Same failure propagates as <strong>503 at leaf, 502 upstream</strong> — Datadog marks multiple services <code>status:error</code> on one trace. Localize by reading the <strong>deepest</strong> error / peer edge, not the entry span alone. Service Map catalog API had not yet returned edges at T+~2m; edges are <strong>visible on the trace</strong> via <code>peer.hostname</code>.</p>
 <hr />
 <h2 id="detect-surfaces-during-the-run">4. Detect surfaces during the run</h2>

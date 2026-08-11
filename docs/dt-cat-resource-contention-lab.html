@@ -3,32 +3,94 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Dynatrace lab — RESOURCE_CONTENTION (planned)</title>
+<title>Dynatrace lab · RESOURCE_CONTENTION · Agent task</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-:root{--bg:#0f1419;--bg-elev:#171d25;--bg-soft:#1c2430;--stroke:#2a3441;--text:#e8eef4;--muted:#c5d0da;--faint:#8a96a4;--accent:#3d9a8b;--lean:#F0B35A;--radius:8px;--font:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;}
-*{box-sizing:border-box;}body{margin:0;font-family:var(--font);font-size:15.5px;line-height:1.55;color:var(--text);background:var(--bg);}
-.wrap{max-width:48rem;margin:0 auto;padding:2rem 1.5rem 4rem;}
+:root{--bg:#0f1419;--bg-elev:#171d25;--bg-soft:#1c2430;--stroke:#2a3441;--text:#e8eef4;--muted:#c5d0da;--faint:#8a96a4;--accent:#3d9a8b;--lean:#F0B35A;--ok:#5FE0B0;--radius:8px;--font:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;}
+*{box-sizing:border-box;}body{margin:0;font-family:var(--font);font-size:15.5px;line-height:1.55;color:var(--text);background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%),var(--bg);}
+a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+.wrap{max-width:54rem;margin:0 auto;padding:2rem 1.5rem 4rem;}
 .eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);}
-h1{font-size:1.6rem;font-weight:700;margin:.35rem 0 .75rem;}
-.lead,.note{color:var(--muted);}
-.note{margin:1rem 0;padding:.75rem .9rem;border-radius:8px;background:rgba(240,179,90,.08);border-left:3px solid var(--lean);}
-a{color:var(--accent);} code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#9bc0ff;}
-ul{color:var(--muted);} li strong{color:var(--text);}
+h1{font-size:1.65rem;font-weight:700;margin:.35rem 0 .75rem;}
+h2{font-size:1.12rem;font-weight:650;margin:1.75rem 0 .65rem;padding-top:.75rem;border-top:1px solid var(--stroke);}
+.lead{color:var(--muted);margin:0 0 1rem;max-width:46rem;}
+.note{margin:1rem 0;padding:.75rem .9rem;border-radius:var(--radius);background:rgba(240,179,90,.08);border-left:3px solid var(--lean);color:var(--muted);font-size:.95rem;}
+.note.task{border-left-color:var(--accent);background:rgba(61,154,139,.12);}
+.pill{display:inline-block;font-family:var(--mono);font-size:.72rem;padding:.15rem .45rem;border-radius:4px;border:1px solid rgba(240,179,90,.5);color:var(--lean);margin-right:.35rem;}
+.pill.go{border-color:rgba(61,154,139,.55);color:var(--ok);}
+code,.pre{font-family:var(--mono);font-size:.88em;}
+code{background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#9bc0ff;}
+.pre{display:block;background:var(--bg-soft);border:1px solid var(--stroke);border-radius:6px;padding:.75rem .9rem;overflow-x:auto;white-space:pre;color:#b8c9d4;font-size:.82rem;margin:.5rem 0 1rem;}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin:.5rem 0 1rem;}
+th,td{text-align:left;vertical-align:top;padding:.4rem .5rem;border-bottom:1px solid var(--stroke);}
+th{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;}
+ul{color:var(--muted);}li{margin:.28rem 0;}li strong{color:var(--text);}
+.toc{margin:1rem 0;padding:.75rem 1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
+.toc a{display:inline-block;margin:.2rem .75rem .2rem 0;font-size:.9rem;}
+.check li{list-style:none;margin-left:0;}
+.check li::before{content:"☐ ";color:var(--faint);}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="eyebrow">Davis category · planned lab</div>
-  <h1>RESOURCE_CONTENTION</h1>
-  <p class="lead">CPU / memory saturation. Often host/process seed; Smartscape <code>runsOn</code> walk matters more.</p>
-  <div class="note"><strong style="color:var(--text)">Status:</strong> Lab exercise not run yet. Mechanisms / Pipeline / E2E are available via the category hub with this Detect tip.</div>
-  <ul>
-    <li><strong>Detect signal:</strong> CPU / memory / resource saturation</li>
-    <li><strong>Leaf idea (future):</strong> CPU burn / memory pressure on inventory host while checkout continues</li>
-    <li><strong>Compare:</strong> <a href="/dt-davis-category-hub.html?cat=slowdown">SLOWDOWN</a> (latency without necessarily saturating host metrics)</li>
+  <div class="eyebrow">Davis category · Timeline · Agent task ready</div>
+  <h1>RESOURCE_CONTENTION — CPU / memory</h1>
+  <p class="lead">
+    Agent-ready lab for <strong style="color:var(--text)">host/process resource saturation</strong>.
+    Background CPU burn keeps <code>/inventory</code> HTTP fast so Detect tip is CPU/mem — not the Observed SLOWDOWN ledger-scan path.
+  </p>
+
+  <div class="note task">
+    <span class="pill go">AGENT TASK</span>
+    Paste prompt: <a href="/docs/agent-tasks/dt-resource-contention.md"><code>docs/agent-tasks/dt-resource-contention.md</code></a>
+    · Hub: <a href="/dt-davis-category-hub.html?cat=resource_contention">RESOURCE_CONTENTION</a>
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#goal">Goal</a>
+    <a href="#contrast">vs SLOWDOWN</a>
+    <a href="#run">How to run</a>
+    <a href="#success">Success</a>
+    <a href="#teach">Teaching</a>
+  </nav>
+
+  <h2 id="goal">Goal</h2>
+  <p style="color:var(--muted)">
+    Open a <strong style="color:var(--text)">RESOURCE_CONTENTION</strong> Problem (CPU/mem), note whether SLOWDOWN co-fires,
+    document Smartscape <code>runsOn</code> role, heal, and promote this Timeline to Observed.
+  </p>
+
+  <h2 id="contrast">vs SLOWDOWN (P-260820)</h2>
+  <table>
+    <tr><th></th><th>SLOWDOWN (Observed)</th><th>This task</th></tr>
+    <tr><td>Leaf</td><td>Ledger scan in request path (~9s HTTP 200)</td><td>Background CPU burn thread</td></tr>
+    <tr><td>Detect tip</td><td>response_time / SERVICE_SLOWDOWN</td><td>CPU / mem / RESOURCE_CONTENTION</td></tr>
+    <tr><td>HTTP during fault</td><td>Slow 200</td><td>Prefer fast 200</td></tr>
+  </table>
+
+  <h2 id="run">How to run (from <code>dynatrace-rca-lab/</code>)</h2>
+  <pre class="pre">./scripts/run_resource_contention_rca.sh --minutes 15
+# or:
+./scripts/break_inventory_resource_burn.sh
+# … load while burning …
+./scripts/heal_inventory_resource_burn.sh</pre>
+
+  <h2 id="success">Success criteria</h2>
+  <ul class="check">
+    <li>Host or process CPU (or mem) elevated in Dynatrace</li>
+    <li>Primary teaching claim is RESOURCE_CONTENTION (document any co-occurring SLOWDOWN)</li>
+    <li>Problem id + UTC on this page; burn thread healed; registry updated</li>
   </ul>
+
+  <h2 id="teach">Teaching slots</h2>
+  <ul>
+    <li><a href="/dynatrace-production-pipeline.html?cat=resource_contention">Thesis</a></li>
+    <li><a href="/eleven-subsystem-mechanisms.html?cat=resource_contention">Breakdown</a> — Detect tip = cpu/mem</li>
+    <li><a href="/dt-e2e-smartscape-grail.html?cat=resource_contention">Dual-track</a></li>
+    <li>Contrast: <a href="/dt-lab-timeline-slowdown.html">SLOWDOWN Timeline</a></li>
+  </ul>
+
   <p><a href="/dt-davis-category-hub.html?cat=resource_contention">← Hub</a></p>
 </div>
 <script src="/doc-nav.js" defer></script>

@@ -1,11 +1,14 @@
 FROM python:3.12-slim
 WORKDIR /app
-COPY frontend/requirements.txt /tmp/requirements.txt
+COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
-COPY frontend/app.py .
+COPY common /app/common
+COPY frontend/app.py /app/app.py
 ENV DD_LOGS_INJECTION=true \
     DD_PROFILING_ENABLED=false \
     DD_RUNTIME_METRICS_ENABLED=true \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    LOG_DIR=/logs \
+    PYTHONPATH=/app
 EXPOSE 8080
 CMD ["ddtrace-run", "python", "app.py"]

@@ -25,6 +25,35 @@
 
 ---
 
+## 0. Method · stage IPO · Doors vs stores (hub shared)
+
+**Method:** Finish independent Datadog end-to-end dissection for **ERROR-rate** and **SLOWDOWN** first (**Detect → leaf → packaging limits**). Dynatrace ↔ Datadog building-block parallels come only after both categories have that insight — not mid-pipeline.
+
+Lean Breakdown stages are **01–08** (no Maintain stage — continuous write is **03**).
+
+| Method phrase | Breakdown stages |
+|---------------|------------------|
+| Write (continuous) | **03** M ∥ APM ∥ Logs (not Detect) |
+| Detect | **05** Monitors · Watchdog (Door A ∥ Door B) |
+| leaf | **07** Flamegraph leaf · tag join |
+| packaging limits | **08** Bits Investigation ∥ Incident (often absent) |
+
+**Doors vs product rails:** Stage **03** writes Metrics ∥ APM ∥ Logs continuously (backend: Metrics timeseries ∥ Husky events for traces/logs). Stage **05** Detect does **not** equally consume all three rails:
+
+| Door | Primary Detect input | Lab ERROR note (e3 · 2026-08-10) | Lab SLOWDOWN note (e3 · 2026-08-11) |
+|------|----------------------|----------------------------------|-------------------------------------|
+| **A · Monitors** | Metric / APM **query + threshold** | Error-rate `310925690` → **Alert** after sustain | Same error Door **OK** (HTTP 200); **no** latency/p95 Door scoped → no Alert |
+| **B · Watchdog APM** | APM anomaly **stories** → events → bridge `310485027` | **0** APM stories · bridge **OK** | **0** APM stories |
+| **B · Watchdog Logs** | `logs_pattern_anomaly` under `env:rca-lab-e3` | **Present** (~07:51Z+) | Not the Detect tip (ok logs) |
+| Logs (MTL) | Corroboration at **tag join** (stage **07**) | Equal evidence, not fused Detect | `inventory.stock.ok` corroborates success path |
+
+∥ = parallel, not merged. Same fault can light different Detect surfaces with different verdicts. **SLOWDOWN Observed:** Write can be loud while Detect stays empty — operator Localize (Timeline §2). **Bits** = optional Bits AI Investigation (separate click). Detect ALERT ≠ Bits ≠ Incident.
+
+**Hub tabs:** Thesis / Breakdown / Three-rail / Timeline (+ Interpret: MTL · Bits) share one spine via `?cat=`. Full **8-stage** IPO table: Breakdown + Hub (`#urca-dd-pipeline-guide`).
+
+Live HTML injects the same guide from [`dd-detect-categories.js`](./dd-detect-categories.js) (`URCA_DD_CATS.pipeline`).
+
+
 ## 1. What this tenant actually has
 
 **Observed (MCP)** on 2026-08-03 — thin but real:
@@ -43,6 +72,10 @@
 
 **Implication (2026-08-03):** Host + monitors + Watchdog were the only Observed Detect paths.  
 **Update (2026-08-04):** `datadog-rca-lab` adds **Observed (lab)** FE→product→inventory APM traces + auto Flask error-rate monitor — see §7 and [`datadog-lab-evidence-2026-08-04.md`](./datadog-lab-evidence-2026-08-04.md).
+
+**Update (2026-08-07):** same ERROR scenario with **production-grade Metrics ∥ Traces ∥ Logs** — DogStatsD `rca.*`, JSON logs + Agent file tail, APM error tags. Teaching: [`dd-error-mtl-dissection.html`](./dd-error-mtl-dissection.html) · evidence [`datadog-lab-evidence-mtl-error-2026-08-07.md`](./datadog-lab-evidence-mtl-error-2026-08-07.md).
+
+**Update (2026-08-10):** primary teaching run **`env:rca-lab-e3`** · `version:keyerror-20260810T072333Z` · code-level KeyError (no `fault.injected`). MCP: Metrics≈2403 · spans KeyError≈2427 · logs≈2486 · Door A **Alert** · Door B APM **0** · logs Watchdog **yes** · Incident **0**. Evidence: [`datadog-lab-evidence-mtl-error-2026-08-10.md`](./datadog-lab-evidence-mtl-error-2026-08-10.md).
 
 ---
 
@@ -86,7 +119,7 @@ OneAgent ─┬─► Smartscape (typed map write path)
 
 ### Myths to drop
 
-1. **“Platform lake = Grail.”** Datadog ships **separate** Metrics, APM, and Logs products. “Lake” here is our shorthand for those indexes sharing tags — **Public framing / Inferred**.
+1. **“Platform lake = Grail.”** Datadog ships **separate product explorers** for Metrics, APM, and Logs. Backend: Metrics timeseries ∥ Husky events (traces+logs) — still not one Grail lake. Join = tags.
 2. **“Service Map is written in parallel like Smartscape.”** In practice the map / dependency list is largely **APM-derived** from call peers (**Observed (MCP)** for `node` → peer hostnames).
 3. **“Detect = only monitors.”** **Watchdog** is a second Detect door (**Observed (MCP)**).
 4. **“Alert = Incident.”** Monitors and Watchdog stories can fire with **zero** Incidents packaged (**Observed (MCP)**).
@@ -95,7 +128,7 @@ OneAgent ─┬─► Smartscape (typed map write path)
 
 ## 3. Building blocks (Datadog products)
 
-Each block as **Input → Process → Output**. Prefer product names over Clock A until §5.
+Each block as **Input → Process → Output**. Use Datadog product names throughout.
 
 ### 3.1 Datadog Agent (edge collect)
 
@@ -108,25 +141,64 @@ Each block as **Input → Process → Output**. Prefer product names over Clock 
 **Observed (agent):** Agent v7 on WSL; hostname must be set explicitly or Agent exits; successful intake to `app.datadoghq.com`.  
 **Observed (MCP):** Host appears with Agent `7.81.3`, `env:dev`.
 
-### 3.2 Unified Service Tags / enrichment
+### 3.2 Unified Service Tags / enrichment (Tagging)
+
+In Datadog, **Tagging** is how identity is attached: every metric, span, and log gets the same keys so Metrics, APM, and Logs can be joined later.
+
+| Tag | Role |
+|-----|------|
+| `service` | Which app / component |
+| `env` | Which environment |
+| `version` | Deploy version |
+| `host` | Where it ran (often from the Agent) |
+
+Plus Agent / container auto-tags and APM cues on spans (`status`, HTTP code, `peer.hostname`, …).
 
 | Role | Content |
 |------|---------|
 | **Input** | Raw points / spans / logs |
-| **Process** | Stamp `service`, `env`, `version`, `host` (and peers); failure / status cues on spans |
+| **Process** | Stamp the keys above |
 | **Output** | Tag-joinable envelopes — still not an Incident |
+
+#### Where tags come from
+
+1. **App / tracer** — `DD_SERVICE`, `DD_ENV`, `DD_VERSION` (lab sets these per container in `datadog-rca-lab/docker-compose.yml`).
+2. **Agent** — host tags, Docker/K8s auto-tags, `datadog.yaml` / `DD_TAGS`.
+3. **APM enrichment** — peers and status on spans as traces are processed.
+
+**Lab (Observed):** `env:rca-lab` + `service:frontend|product|inventory` + `version:1.0.0`. That is why Monitors and pivots scope with `env:rca-lab,service:inventory`.
+
+#### Why it matters
+
+Datadog’s **product rails** (Metrics ∥ APM ∥ Logs) stay separate explorers. The join key is **tags**. Backend is **not** three equal peer databases: classic **Metrics timeseries** vs **Husky** event store (logs + traces + other Event Platform products). See §3.3.
+
+- Consistent tags → Related / monitors / flamegraph pivots work.
+- Mistagged / unbound → orphan series, weak Related, noisy monitors.
+
+Do **not** conflate two artifacts:
+
+```
+Telemetry stream  ──►  Tagging                         (identity on each record)  ← this stage
+APM discovery     ──►  Service Map / dependencies      (edges)
+```
+
+Tags do not invent the Service Map; spans do. See also §8.
 
 **Observed (MCP):** Spans carry `service:node`, `env:dev`, `host:DESKTOP-MBPAQK1`, `svc.auto:node`.
 
-### 3.3 Metrics / APM / Logs (three stores)
+### 3.3 Metrics / APM / Logs (product rails · backend honesty)
 
-| Store | Holds | Observed here |
-|-------|-------|---------------|
-| **Metrics** | Timeseries by tags | Host system metrics live |
-| **APM** | Spans, resources, service entry points | Auto `node` spans + peer HTTP |
-| **Logs** | Indexed log lines by tags | Host syslog + other shippers |
+| Product rail | Holds (operator) | Backend (official eng) | Observed here |
+|--------------|------------------|------------------------|---------------|
+| **Metrics** | Timeseries by tags | **Classic Metrics timeseries store** — pre-aggregated `<timeseries_id, timestamp, float64>`; bounded tag cardinality. *Not* Husky. | Host system metrics + lab `rca.*` / `trace.*.errors` |
+| **APM / Traces** | Spans, resources, flamegraph | **Husky / Event Platform** — spans as events (with logs, NPM, RUM, …) | Lab KeyError spans; host auto `node` spans |
+| **Logs** | Indexed log lines | **Husky / Event Platform** — high-cardinality events | Lab JSON + host syslog |
 
-**Write = continuous. Query = on-demand.** There is no single DQL lake name in this product framing.
+**Write = continuous. Query = on-demand** per product explorer. There is no Dynatrace-style single DQL lake name.
+
+Cite: [Introducing Husky](https://www.datadoghq.com/blog/engineering/introducing-husky/) · [Husky query architecture](https://www.datadoghq.com/blog/engineering/husky-query-architecture/) (“logs, traces, network data, and more”).
+
+**Lab nuance:** APM can also emit Metrics series (e.g. `trace.flask.request.errors`) while spans land as Husky events — dual emission, still tag-joined.
 
 ### 3.4 Service Catalog + Service Map / dependencies
 
@@ -204,23 +276,21 @@ Workloads
 
 ---
 
-## 5. Clock A translation (optional lens — imperfect fit)
+## 5. Optional dual-vendor appendix (skip for Datadog-only reading)
 
-We keep **our** Clock A vocabulary as a **translation layer** for later compares — not as Datadog’s native architecture.
+This section exists only for later head-to-head compares. **Do not use it as Datadog’s product model.** Datadog teaching in this hub uses Agent, Tagging, Service Map, Metrics/APM/Logs, Monitors, Watchdog, Related, flamegraph, Insights/Incident.
 
-| Clock A stage | Closest Datadog reality | Fit notes |
-|---------------|-------------------------|-----------|
-| **Collect** | Datadog Agent | Strong |
-| **Normalize** | Unified Service Tags / enrichment | Strong (tag-centric, not `entityId`-centric) |
-| **Topology bind** | Catalog + APM dependencies + tag resolution | Weaker / different — map is **derived**, not Smartscape-class typed CI |
-| **Fan-out** | Write into Metrics + APM + Logs | **Not** “map ∥ lake twin”; map is mostly a view on APM |
-| **Maintain** | Retention / indexing / discovery freshness | Strong as product ops |
-| **Detect** | Monitors **and** Watchdog | Two doors |
-| **Curate** | Grouping / primary symptom selection | Partial / UI-heavy; **Inferred** |
-| **Tailor** | Related + time-scoped query | Public framing; correlational |
-| **Package** | Insights / Bits AI / Incident | Thin; not observed as Incident here |
+| If you later map concepts | Datadog product reality |
+|---------------------------|-------------------------|
+| Edge collect | Datadog Agent |
+| Identity bind | Unified Service Tags |
+| Topology view | Service Catalog + APM-derived Service Map |
+| Telemetry stores | Product rails Metrics ∥ APM ∥ Logs; backend Metrics timeseries ∥ Husky events |
+| Alerting | Monitors **and** Watchdog |
+| Investigation | Related + time/tag scope + flamegraph |
+| Packaging | Insights / Bits AI / Incident (often thin here) |
 
-**Do not** force Datadog into “Smartscape ∥ Grail → Davis.” That is Dynatrace’s story ([`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md)).
+Primary Datadog unveil stays on Datadog terms. Separate Dynatrace unveil: [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md). Optional same-scenario compare: [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md).
 
 ---
 
@@ -267,59 +337,64 @@ Agent on DESKTOP-MBPAQK1
 
 ## 7. Observed (lab) walkthrough — FE → product → inventory
 
-**Labels:** Observed (lab) + Observed (MCP). Same topology as `dynatrace-rca-lab`. Detail: [`datadog-lab-evidence-2026-08-04.md`](./datadog-lab-evidence-2026-08-04.md).
+**Labels:** Observed (lab) + Observed (MCP). Primary: [`datadog-lab-evidence-mtl-error-2026-08-10.md`](./datadog-lab-evidence-mtl-error-2026-08-10.md) · Timeline: [`dd-lab-timeline-error.html`](./dd-lab-timeline-error.html).
 
 ```text
 curl :18080/api/checkout
         │
         ▼
-   frontend ──ddtrace──► Agent :8126 ──► Datadog APM (env:rca-lab)
-        │
+   frontend ──ddtrace──► Agent :8126 ──► Datadog APM (env:rca-lab-e3)
+        │                 DogStatsD :8125 ──► Metrics (rca.*)
+        │                 file logs ──► Logs (rca_lab_logs.d)
         ▼
     product
         │
         ▼
-  inventory  ← fault: HTTP 503 on /api/stock
+  inventory  ← fault: HTTP 500 KeyError on /api/stock
 ```
 
 ### 7.1 What fired in the pipeline
 
-| Stage | What we saw |
-|-------|-------------|
-| **Collect** | Containers → host Trace Agent (`apm_non_local_traffic`) → `trace.agent.datadoghq.com` |
-| **Normalize / tags** | `service` + `env:rca-lab` + `version:1.0.0` + container tags; HTTP status on spans |
-| **Map (APM-derived)** | Trace shows `peer.hostname:product` / `peer.hostname:inventory` client edges. Catalog dependency API empty at T+~2m — map lag vs flamegraph |
-| **Detect** | Auto monitor `[operation:flask.request] High Error Rate…` **created** when Flask traffic appeared (`min(last_15m)` error ratio `> 0.1`). **Watchdog:** no new `source:watchdog` events in the short window |
-| **Operator Tailor** | Open error trace → deepest `503` on inventory; upstream `502` on product/frontend are symptoms |
+| Stage | What we saw (e3 · 2026-08-10 MCP) |
+|-------|-----------------------------------|
+| **Agent** | Containers → host Trace Agent; DogStatsD `:8125`; log tail `rca_lab_logs.d` |
+| **Tagging** | `service` + `env:rca-lab-e3` + `version:keyerror-20260810T072333Z` + container tags; same join keys on Metrics ∥ Logs |
+| **Metrics ∥ Traces ∥ Logs** | `rca.inventory.stock.errors`≈**2403** · APM KeyError/500≈**2427** · Upstream*/502≈**2421** · Logs stock.error≈**2486** |
+| **Service Map** | Trace peers `product` / `inventory`; FE→product→inventory |
+| **Monitors · Watchdog** | Door A Flask `310925690` → **Alert** after sustain · Door B APM bridge `310485027` **OK** (0 APM stories) · logs_pattern_anomaly **present** · Incident **0** |
+| **Flamegraph / Related** | Deepest `500`/`KeyError` on inventory (sample `6a79840f…`); confirm with log + `rca.inventory.stock.errors`; upstream `502` are symptoms |
 
-### 7.2 Pipeline insight (vs Dynatrace mental model)
+### 7.2 Pipeline insight (Datadog-native)
 
-1. **Errors fan out on the trace** — inventory 503 + product/frontend 502 all `status:error`. Datadog does not collapse to one `rootCauseEntity` here; the operator (or Bits AI) correlates.
-2. **Service Map is laggy relative to traces** — trust the flamegraph/`peer.hostname` first for a fresh lab.
-3. **Detect default for this fault is APM monitor auto-gen**, not Watchdog story — Watchdog remains a second door that may not open on a short synthetic spike.
-4. **No Smartscape∥Grail** — evidence lives in APM (and optionally Metrics/Logs); join key is **tags**, not a single multimodal lake query.
+1. **Errors fan out on the trace** — inventory 500 KeyError + product/frontend 502 all `status:error`. The operator (or Bits AI) correlates on the flamegraph; there is no auto `rootCauseEntity` field in this path.
+2. **All three rails agree on the leaf** when the lab emits Metrics + Traces + Logs — use tag join (`env`/`service`/`trace_id`), not a second fabric.
+3. **Service Map is laggy relative to traces** — trust the flamegraph/`peer.hostname` first for a fresh lab.
+4. **Detect surfaces diverge** — Door A can Alert after sustain while APM Watchdog stays quiet and logs Watchdog stories fire; Detect ≠ Bits ≠ Incident.
+5. **Join key is tags** — evidence lives in Metrics ∥ APM ∥ Logs scoped by `service` / `env:rca-lab-e3` / `version`.
 
 ---
 
 ## 8. Identity & bind (why tags matter)
 
-Normalize / bind here means **tags join**, not Dynatrace `entityId` stamping.
+Tagging here means **tags join** across Metrics ∥ APM ∥ Logs. Full model: **§3.2**.
 
 | Later stage | Needs | If unbound / mistagged |
 |-------------|-------|------------------------|
 | Metrics / Logs / APM write | consistent `service` / `host` / `env` | Orphan series, weak Related |
 | Service Map edges | peer services from traces | Floating peers / inferred hostnames |
 | Monitors / Watchdog | tag scope on queries / stories | Wrong entity or noisy story |
-| Operator Tailor | related + scoped pull | Cannot name culprit honestly |
+| Related / flamegraph | related + scoped pull | Cannot name culprit honestly |
 
 Two artifacts (do not conflate):
 
 ```text
 APM discovery     ──►  Service Map / dependencies   (edges)
-Telemetry stream  ──►  Tag resolution               (identity on each record)
+Telemetry stream  ──►  Tagging                      (identity on each record)
 ```
 
 Unresolved `service:inv-svc-v2`: first-seen auto service, weak Related, or remapping (**Public framing**).
+
+**Lab reminder:** compose sets `DD_SERVICE` / `DD_ENV=rca-lab` / `DD_VERSION=1.0.0` on FE, product, and inventory — the same keys you filter on in Monitors and pivots.
 
 ---
 
@@ -339,20 +414,25 @@ Unresolved `service:inv-svc-v2`: first-seen auto service, weak Related, or remap
 
 | Doc | Use |
 |-----|-----|
+| [`dd-detect-category-hub.html`](./dd-detect-category-hub.html) | Detect category hub (ERROR · SLOWDOWN) |
+| [`dd-e2e-metrics-traces-logs.html`](./dd-e2e-metrics-traces-logs.html) | Three-rail journey (animated write path; Metrics timeseries ∥ Husky events) |
+| [`dd-error-mtl-dissection.html`](./dd-error-mtl-dissection.html) | ERROR · MTL deep (error-rate increase) |
+| [`dd-lab-timeline-error.html`](./dd-lab-timeline-error.html) | ERROR Observed Timeline |
+| [`dd-lab-timeline-slowdown.html`](./dd-lab-timeline-slowdown.html) | SLOWDOWN Observed Timeline |
+| [`datadog-subsystem-mechanisms.html`](./datadog-subsystem-mechanisms.html) | Animated Datadog product mechanisms |
 | [`datadog-tenant-evidence-2026-08-03.md`](./datadog-tenant-evidence-2026-08-03.md) | MCP snapshot citations (host / Watchdog baseline) |
 | [`datadog-lab-evidence-2026-08-04.md`](./datadog-lab-evidence-2026-08-04.md) | FE→inventory lab run + trace IDs |
+| [`datadog-lab-evidence-mtl-error-2026-08-07.md`](./datadog-lab-evidence-mtl-error-2026-08-07.md) | ERROR Metrics∥Traces∥Logs Observed numbers |
 | [`../datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../datadog-rca-lab/DATADOG_RCA_REFERENCE.md) | Lab topology + fault scripts |
-| [`datadog-subsystem-mechanisms.html`](./datadog-subsystem-mechanisms.html) | Animated Datadog product mechanisms |
-| [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | Separate Dynatrace unveil (topology-first) |
-| [`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) §4.3 · §4.5 | Short Datadog vs Dynatrace matrix (planning) |
+| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | After independent unveils — derived patterns |
+| [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | Separate Dynatrace unveil |
 | [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) | Fault buckets vs vendors |
 
 ---
 
 ## 11. Takeaway
 
-1. Describe Datadog **as Datadog**: Agent → tagged Metrics/APM/Logs → Monitors **and** Watchdog → correlational operator assist.
-2. **Do not** clone Smartscape∥Grail; Service Map is largely **APM-derived**; stores are **product-split**.
-3. Host snapshot proved **fabric + Watchdog Detect**; the lab proved **microservice APM + auto error-rate Detect** — still **not** a packaged Incident RCA card.
-4. Clock A is a **translation lens** with imperfect fits — use it after the native model, not before.
-5. Head-to-head comparison waits until both vendor unveils stand alone on their own evidence.
+1. Describe Datadog **as Datadog**: Agent → Tagging → Metrics/APM/Logs → Monitors **and** Watchdog → Related / flamegraph → optional Insights/Incident.
+2. Service Map is largely **APM-derived**; product rails are separate explorers joined by **tags**; backend is Metrics timeseries ∥ Husky events (not three equal peer DBs).
+3. Host snapshot proved **fabric + Watchdog**; the lab proved **microservice APM + auto error-rate monitors** and (2026-08-07) **full MTL leaf agreement** — still **not** a packaged Incident RCA card in this tenant.
+4. Keep Datadog scenarios independent. Dual-vendor compares are a separate doc after each unveil stands alone.

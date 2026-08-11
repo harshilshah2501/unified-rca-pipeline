@@ -1,0 +1,11 @@
+RUN_ENV=rca-lab-e2
+RUN_VER=fresh-error-20260807T103920Z
+BREAK_UTC=2026-08-07T10:40:55Z
+LOAD_END_UTC=2026-08-07T10:45:55Z
+HEAL_UTC=2026-08-07T10:47:14Z
+LOAD_REQUESTS=754
+FILTER=env:rca-lab-e2 version:fresh-error-20260807T103920Z
+APM_TRACES=https://app.datadoghq.com/apm/traces?query=env%3Arca-lab-e2%20status%3Aerror
+LOGS=https://app.datadoghq.com/logs?query=env%3Arca-lab-e2%20%40event%3Ainventory.stock.error
+METRICS=sum:trace.flask.request.errors{env:rca-lab-e2} by {service}.as_count()
+NOTE=Do NOT use env:rca-lab — that is prior runs. Ignore old Watchdog story_keys 5252dd11/502a3ac1/38cbdcab unless they also tag this env.

@@ -143,9 +143,9 @@ Same stages as a contract table. Dynatrace product names are in the map above; t
 
 #### Maintain as one checkout timeline (lab)
 
-Maintain is **not** “split a timeseries into shaded vs pulse.” It is housekeeping while the inventory fault story runs. Animated: [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) (Maintain step).
+Maintain is **not** “split a timeseries into shaded vs pulse.” It is housekeeping while the inventory fault story runs. Animated: [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) (Maintain step) — framed by Davis category (`?cat=`).
 
-**Clocks = dual-lab UTC (same as Dynatrace dashboard / P-26084).** [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) §5: fault ≈**05:54 UTC** → Problem with RC ≈**06:04 UTC** (~10 min continuous 5xx). Intermediate Grail/Event sample times inside that window are **illustrative** (exact per-Event open times not exported). **Not IST**; replaces the old fictional `07:xx` storyboard.
+**ERROR dual-lab clocks (comparable / teaching map):** [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) §5 · Problem **P-26084** — fault ≈**05:54 UTC** → Problem with RC ≈**06:04 UTC** (~10 min continuous **5xx** / error_rate). Intermediate Grail/Event stamps inside that window are **illustrative**. **Not IST.**
 
 | Beat | Smartscape (same graph as Topology) | Grail |
 |------|--------------------------------------|-------|
@@ -153,6 +153,8 @@ Maintain is **not** “split a timeseries into shaded vs pulse.” It is houseke
 | ② Fault `05:54–06:04` UTC | **Same shape** — INV highlighted on checkout path | Rows **accumulate** ~10 min: INV `500`, `error_rate`, API cascade |
 | ③ Problem ≈`06:04` UTC | Davis **walks this same map** | Davis **pulls** INV rows → **P-26084**, `rootCauseEntity=inventory` (**Observed**) |
 | ④ Cleared (after fault off) | Topology unchanged | New INV `/stock 200` — Problem can close (exact clear clock not recorded) |
+
+**SLOWDOWN Observed clocks (do not reuse P-26084):** see [§ SLOWDOWN run — P-260820](#slowdown-run--p-260820-observed-api-pull-2026-08-06) below — HTTP **200** · ~9 s · Events ≈**15:05** → Problem **P-260820** ≈**15:10** · `rootCauseEntity=null`.
 
 Maintain does **not** pick the root cause and does **not** build a different map than Topology. It only keeps that Smartscape fresh while Grail fills.
 
@@ -172,18 +174,29 @@ Real code defect (missing `MACBOOK-PRO-14` in warehouse index → `KeyError` in 
 
 #### SLOWDOWN run — P-260820 (Observed API pull, 2026-08-06)
 
-Full analysis: [`dt-lab-timeline-slowdown.html`](./dt-lab-timeline-slowdown.html) · snapshot [`vendor-source/dynatrace/p260820-slowdown-snapshot.json`](./vendor-source/dynatrace/p260820-slowdown-snapshot.json).
+Full analysis: [`dt-lab-timeline-slowdown.html`](./dt-lab-timeline-slowdown.html) · snapshot [`vendor-source/dynatrace/p260820-slowdown-snapshot.json`](./vendor-source/dynatrace/p260820-slowdown-snapshot.json) · Thesis/Breakdown with `?cat=slowdown`.
 
-Real code defect in `inventory/app.py`: 50k-row ledger scan + leftover checksum instead of O(1) index → ~9–11 s HTTP **200** (not 5xx). Fixed RT thresholds (median 2 s / p90 3 s / min 1 rpm) required — auto baselining with 10 rpm gate did not fire. **Healed** after the run (`heal_inventory_slow_code.sh`).
+Real code defect in `inventory/app.py`: 50k-row ledger scan + leftover checksum instead of O(1) index → ~9–11 s HTTP **200** (not 5xx). Fixed RT thresholds (median **2 s** / p90 **3 s** / min 1 rpm) required — auto baselining with 10 rpm gate did not fire. **Healed** after the run (`heal_inventory_slow_code.sh`).
+
+**Maintain beats for this category (same Smartscape as Topology):**
+
+| Beat | Smartscape | Grail |
+|------|------------|-------|
+| ① Healthy ≈`14:55` UTC | FE→API→INV live | `/inventory 200` · ~50 ms |
+| ② Slowdown `15:05+` | Same shape — INV hot | **Grail cascade staggers** (teaching): INV ~15:05 slow **200** / ~9 s → API ~15:06 → FE ~15:07 as callers wait |
+| ③ Problem ≈`15:10` UTC | Davis walks same map | **P-260820** · `rootCauseEntity=null` |
+| ④ Healed | Topology unchanged | Fast 200s again |
 
 | Clock (UTC) | What |
 |-------------|------|
-| 15:05 | Three Events `SERVICE_SLOWDOWN` on product, frontend, inventory (all `rootCauseRelevant=false`, same start bucket) |
+| 15:05 | Three Events `SERVICE_SLOWDOWN` on product, frontend, and inventory (all `rootCauseRelevant=false`, **same start bucket**) — *Event start ≠ Grail onset stagger* |
 | 15:10 | **Problem P-260820** OPEN · title Response time degradation · severity `PERFORMANCE` · `rootCauseEntity=null` |
 | UI | Three Slowdown cards (P-260822/821/820) then **merged** into P-260820 Affected 3 |
 | Code on Problem analysis | **Not present** — evidence is metric Events only; long Ok spans on traces (no exception). Null entity RCA ≠ code-line on the Problem card |
 
-**Teaching:** Entity RCA and code-level are parallel layers. Same-bucket Events → no temporal leaf ranking → null `rootCauseEntity`. Problem analysis does not auto-promote `app.py` line/function; drill traces for code-shaped evidence. Contrast **P-260814** (INV Event 1 min earlier → `rootCauseEntity=inventory`).
+**Detect teaching for SLOWDOWN:** Event type `SERVICE_SLOWDOWN` · signal = response time — **not** `SERVICE_ERROR_RATE_INCREASED` / teaching chalk `0.30`. Fixed lab thresholds 2 s / 3 s.
+
+**Teaching:** Entity RCA and code-level are parallel layers. **Grail** can show INV slowing first and callers later; **Detect Event start** times still same-bucket → no temporal leaf ranking → null `rootCauseEntity`. Topology roles (leaf/caller/edge) ≠ temporal order. Problem analysis does not auto-promote `app.py` line/function; drill traces for code-shaped evidence. Contrast **P-260814** (INV Event 1 min earlier → `rootCauseEntity=inventory`). **Do not cite P-26084 clocks or 5xx rows for this category.**
 
 ### Lab stages 0–5 ↔ Clock A
 
@@ -339,11 +352,15 @@ All four can sit in the same Collect bag. They only become comparable after Norm
 |--|--|
 | **Input** | Entity-keyed series in **Grail** (error rate, response time, restarts, availability, …) + baselines/thresholds |
 | **Process** | Async evaluation; change-point / threshold / anomaly style checks (**inferred** exact algos). **Does not walk Smartscape** to raise an Event |
-| **Output** | **Events** — e.g. `SERVICE_ERROR_RATE_INCREASED`, `PROCESS_RESTART` — keyed by entity + time. **Event ≠ Problem** |
+| **Output** | **Events** — e.g. `SERVICE_ERROR_RATE_INCREASED` (ERROR), `SERVICE_SLOWDOWN` (SLOWDOWN), `PROCESS_RESTART`, … — keyed by entity + time. **Event ≠ Problem** |
 
-**Observed (lab):** inventory fault → nearby service error-rate Events before Problem packaging.
+**Observed (lab):**
+- **ERROR** — inventory 5xx → nearby `SERVICE_ERROR_RATE_INCREASED` Events before Problem packaging (dual-lab **P-26084**; code-level **P-260817**).
+- **SLOWDOWN** — inventory slow HTTP **200** → three `SERVICE_SLOWDOWN` Events (same start bucket) → **P-260820** (`rootCauseEntity=null`).
 
-**Teaching threshold:** mechanisms canvas uses gold line **`0.30`** so INV `0.92` / API `0.78` / FE `0.71` clearly breach. That number is **Teaching**, not a lab-fitted Dynatrace SKU. Real tenants often use baselines/anomaly; our fault is hard 5xx so almost any modest line would fire.
+**Teaching thresholds (category-specific):**
+- **ERROR** mechanisms canvas gold line **`0.30`** (error_rate) — **Teaching**, not a fitted SKU.
+- **SLOWDOWN** Observed lab used **fixed** response-time thresholds median **2 s** / p90 **3 s** / min 1 rpm — not the 0.30 chalk line.
 
 **Where Events live:** raised **independently per entity**, but written into a **shared platform Event store** (teaching: one common Event stream/index), roughly `{ type, entityId, ts, signal, value, … }`. INV/API/FE Events are not private silos — Curate/Davis read the **same** store.
 
@@ -359,19 +376,19 @@ All four can sit in the same Collect bag. They only become comparable after Norm
 | **Alert** (everyday) | One fused “checkout down” notification | **Detect does not** emit that fused object |
 | **Problem** | Packaged RCA card after Curate→Tailor→Davis | Yes (Problems) |
 
-**Cascade ≠ one alert.** Cascade is the topology/business story; Detect still emits **separate Events** (illustrative order inside Observed window, e.g. INV≈05:58, API≈05:59, FE≈06:00 UTC — each series scored **on its own**; exact Event open times not exported).
+**Cascade ≠ one alert.** Cascade is the topology/business story; Detect still emits **separate Events**. ERROR teaching stamps (illustrative inside P-26084 window): INV≈05:58, API≈05:59, FE≈06:00 UTC. **SLOWDOWN:** Grail/RT onset can stagger (INV first, callers after wait), but Observed **Event start** times for P-260820 still landed in the **same minute bucket** ≈15:05 → no temporal leaf → `rootCauseEntity=null`. Soft latency ≠ hard 5xx leaf timing.
 
-Animated: [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) · Phase 2 Case opens. **Event ≠ Problem.**
+Animated: [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) · Phase 2 Case opens (`?cat=`). **Event ≠ Problem.**
 
 ```text
 Grail series (Maintain’d)
   → Detect  → raw Events (per entity) → common Event store
   → Curate  → one case seed (entityId, t0)   // Tailor expands t0 → time corridor
   → Tailor  → working set {entities[], timeRange}
-  → Phase 3 Davis → Problem P-26084
+  → Phase 3 Davis → Problem   # ERROR dual-lab: P-26084 · SLOWDOWN Observed: P-260820
 ```
 
-**Detect — how Events are raised**
+**Detect — how Events are raised (ERROR teaching)**
 
 | Order | Teaching Event | entityId | Why |
 |-------|----------------|----------|-----|
@@ -379,6 +396,13 @@ Grail series (Maintain’d)
 | 2 | same class | `SERVICE-API` | cascade caller — **its own** detector |
 | 3 | same class | `SERVICE-FE` | edge symptom — **its own** detector |
 | (noise) | e.g. `PROCESS_CPU_HIGH` | `SERVICE-BATCH` | co-timed; **no** checkout `calls` edge |
+
+**Detect — how Events are raised (SLOWDOWN Observed P-260820)**
+
+| Order | Observed Event | entityId | Why |
+|-------|----------------|----------|-----|
+| 1–3 (same bucket) | `SERVICE_SLOWDOWN` | product / frontend / inventory | response time above **fixed** 2 s / 3 s lab thresholds; HTTP **200** |
+| (noise) | e.g. CPU | BATCH | co-timed; no checkout edge |
 
 Detectors score **entity-keyed Grail series** asynchronously. One breach → one Event. Cascade is many Events, not one fused alert. Smartscape is used later (**Curate** neighborhood, **Tailor** expand, **Davis** walk) — not to score the breach.
 
@@ -389,15 +413,16 @@ Detectors score **entity-keyed Grail series** asynchronously. One breach → one
 | Storm in | INV + API + FE (+ BATCH noise) Events from the common store |
 | Group | Merge by **time proximity** + **Smartscape neighborhood** on FE→API→INV |
 | Drop noise | BATCH out / weak (no checkout edge) |
-| Seed out | `(entityId≈SERVICE-INV, t0≈06:04 UTC)` for Tailor — **not yet** `rootCauseEntity`. Seed pins **one** time (**Observed** Problem moment); Tailor builds `[t0−pre, t0+post]` |
+| Seed out (ERROR dual-lab) | `(entityId≈SERVICE-INV, t0≈06:04 UTC)` for Tailor — **not yet** `rootCauseEntity`. Seed pins **Observed** Problem moment for **P-26084** |
+| Seed out (SLOWDOWN Observed) | Same-bucket Events @ 15:05 → Problem **P-260820** @ ≈15:10 with `rootCauseEntity=null` (no temporal leaf ranking) |
 
 **Tailor — space + time cut**
 
-| Cut | Teaching result |
-|-----|-----------------|
-| Space | Same Smartscape as Topology; expand from seed → `{FE, API, INV, DB}`; dim PAY / BATCH |
-| Time | Corridor ≈ Observed fault window `[05:54, 06:04] UTC` (includes Grail evidence from **before** Problem open) |
-| Out | Working set → Phase 3 Localize / Identify / Package |
+| Cut | ERROR dual-lab (P-26084) | SLOWDOWN Observed (P-260820) |
+|-----|--------------------------|------------------------------|
+| Space | Same Smartscape; expand FE←API←INV→DB; dim PAY / BATCH | Same |
+| Time | Corridor ≈ `[05:54, 06:04] UTC` | Corridor ≈ `[15:05, 15:10+] UTC` |
+| Out | Working set → Phase 3 → **P-26084** | Working set → Phase 3 → **P-260820** |
 
 Tailor does **not** rank the root. It scopes what Davis may read.
 
@@ -645,7 +670,9 @@ prep: lookup keys ready → LUT → entityId=SERVICE-INV
 
 #### Normalize as a fork (teaching)
 
-STEP 1 builds **one envelope**, then two jobs use **different fields** from it:
+STEP 1 builds **one envelope**, then two jobs use **different fields** from it. Framed by Davis category:
+
+**ERROR (teaching / dual-lab):**
 
 ```text
 STEP 1 Enrichment
@@ -658,7 +685,19 @@ STEP 1 Enrichment
                                  (Bind path — STEP 3 does not read failed_call)
 ```
 
-**Bind LUT preview** (what Topology tries next — flat table, not a graph):
+**SLOWDOWN (Observed P-260820):**
+
+```text
+STEP 1 Enrichment
+  envelope = { status=200, duration≈9s, raw_ids=[inventory, c8e91a], … }
+       │
+       ├── status+duration ► STEP 2 ──► slow_call=true · failed_call=false
+       │                         (response-time Detect → SERVICE_SLOWDOWN — NOT 5xx)
+       │
+       └── raw_ids ─────────► STEP 3 Entity prep ──► same LUT → SERVICE-INV
+```
+
+**Bind LUT preview** (what Topology tries next — flat table, not a graph; **category-neutral**):
 
 | lookup_key | entityId | notes |
 |------------|----------|-------|

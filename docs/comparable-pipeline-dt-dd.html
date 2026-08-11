@@ -42,53 +42,191 @@ hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
 .viz-arrow { color:var(--muted); }
 .viz-note { font-size:.88rem; color:var(--muted); margin:.6rem 0 0; }
 .viz a { color:#7ec8b8; }
-@media (max-width:720px) { .viz-grid, .viz-grid.three { grid-template-columns:1fr; } }
+.viz-dest { margin:1.1rem 0 1.4rem; padding:0; background:transparent; border:none; }
+.viz-dest .dest-head {
+  text-align:center; margin:0 auto 1rem; max-width:28rem;
+  padding:1rem 1.15rem; border-radius:var(--radius);
+  background:linear-gradient(180deg, rgba(61,154,139,.18), rgba(15,20,25,.4));
+  border:1px solid rgba(61,154,139,.45);
+}
+.viz-dest .dest-k {
+  font-size:.72rem; font-weight:650; letter-spacing:.08em; text-transform:uppercase;
+  color:#7ec8b8; margin:0 0 .35rem; font-family:var(--mono);
+}
+.viz-dest .dest-goal { margin:0; font-size:1.05rem; font-weight:600; color:var(--text); line-height:1.4; }
+.viz-dest .dest-split {
+  display:flex; justify-content:center; align-items:flex-start; gap:0;
+  margin:0 0 .65rem; position:relative; height:1.6rem;
+}
+.viz-dest .dest-split::before {
+  content:""; position:absolute; top:0; left:25%; right:25%; height:1px;
+  background:var(--stroke);
+}
+.viz-dest .dest-split .stem {
+  position:absolute; top:-.55rem; left:50%; width:1px; height:.55rem;
+  background:var(--stroke); transform:translateX(-50%);
+}
+.viz-dest .dest-split .arm {
+  flex:1; text-align:center; font-size:.9rem; color:var(--muted); padding-top:.35rem;
+}
+.viz-dest .cols { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.viz-dest .col {
+  border-radius:10px; border:1px solid var(--stroke); background:var(--bg-elev);
+  overflow:hidden; display:flex; flex-direction:column;
+}
+.viz-dest .col.dt { border-color:rgba(61,154,139,.4); }
+.viz-dest .col.dd { border-color:rgba(123,168,245,.4); }
+.viz-dest .col-head {
+  padding:.75rem 1rem; font-family:var(--mono); font-size:.82rem; font-weight:650;
+  letter-spacing:.04em; text-transform:uppercase;
+}
+.viz-dest .col.dt .col-head { background:rgba(61,154,139,.14); color:#7ec8b8; }
+.viz-dest .col.dd .col-head { background:rgba(123,168,245,.12); color:#9bb8f5; }
+.viz-dest .layers { list-style:none; margin:0; padding:.55rem .7rem .75rem; display:flex; flex-direction:column; gap:.4rem; }
+.viz-dest .layers li {
+  margin:0; padding:.55rem .7rem; border-radius:6px; background:var(--bg-soft);
+  border:1px solid var(--stroke); font-size:.9rem; line-height:1.45; color:#c5d0da;
+}
+.viz-dest .layers li .lbl {
+  display:block; font-family:var(--mono); font-size:.68rem; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--faint); margin:0 0 .2rem;
+}
+.viz-dest .layers li strong { color:var(--text); font-weight:600; }
+.viz-dest .layers li code { font-size:.86em; }
+.viz-dest .layers li.out {
+  border-style:dashed;
+}
+.viz-dest .col.dt .layers li.out { border-color:rgba(61,154,139,.5); background:rgba(61,154,139,.08); }
+.viz-dest .col.dd .layers li.out { border-color:rgba(123,168,245,.45); background:rgba(123,168,245,.07); }
+.viz-dest .layers li.note { font-size:.82rem; color:var(--muted); border-style:dotted; background:transparent; }
+@media (max-width:720px) {
+  .viz-dest .cols { grid-template-columns:1fr; }
+  .viz-dest .dest-split::before { left:10%; right:10%; }
+}
 
 
-.doc-bar { display:flex; flex-wrap:wrap; gap:.5rem; margin:0 0 1.25rem; }
-.doc-bar a { font-size:.78rem; padding:.35rem .65rem; border-radius:4px; border:1px solid var(--stroke); background:var(--bg-soft); color:var(--muted); text-decoration:none; }
-.doc-bar a:hover { color:var(--text); border-color:var(--accent); }
-.doc-bar a.here { color:var(--accent); border-color:rgba(61,154,139,.5); background:var(--accent-soft); }
+
 pre.flow { white-space:pre-wrap; }
-</style></head><body>
+</style><link rel="stylesheet" href="/urca-diagrams.css" />
+</head><body>
 <div class="shell"><nav class="toc">
-<div class="brand">DT vs DD compare</div>
-<a href="/docs.html">← Docs index</a>
+<div class="brand">On this page</div>
+<a href="#comparable-pipeline-dynatrace-vs-datadog">Comparable pipeline — Dynatrace vs Datadog</a>
+<a href="#geometry-honesty-do-not-twin" class="l2">Geometry honesty (do not twin)</a>
+<a href="#lab-vintages-read-before-equating-counts" class="l2">Lab vintages (read before equating counts)</a>
 <a href="#what-we-ran-and-why-it-is-identical" class="l2">What we ran (and why it is “identical”)</a>
 <a href="#how-to-read-honesty-labels" class="l2">How to read honesty labels</a>
-<a href="#philosophy-same-destination-different-path" class="">0. Philosophy — same destination, different path</a>
+<a href="#philosophy-independent-building-blocks-first">0. Philosophy — independent building blocks first</a>
+<a href="#dynatrace-building-blocks-native" class="l2">0.1 Dynatrace building blocks (native)</a>
+<a href="#datadog-building-blocks-native" class="l2">0.2 Datadog building blocks (native)</a>
+<a href="#common-patterns-derived-later-not-forced-twins" class="l2">0.3 Common patterns (derived later — not forced twins)</a>
+<a href="#ai-ml-comparison-derived-not-twins" class="l2">0.4 AI / ML comparison (derived — not twins)</a>
+<a href="#detect-signal-categories-twin-list" class="l2">0.5 Detect signal categories — twin list?</a>
 <a href="#simplified-illustration" class="l2">Simplified illustration</a>
-<a href="#solidified-pipeline-our-three-phases-product-blocks" class="">1. Solidified pipeline (our three phases → product blocks)</a>
+<a href="#optional-pattern-lens-clock-a-after-native-reading">1. Optional pattern lens (Clock A — after native reading)</a>
 <a href="#phase-1-always-on-fabric" class="l2">Phase 1 — Always-on fabric</a>
 <a href="#phase-2-case-opens" class="l2">Phase 2 — Case opens</a>
 <a href="#phase-3-diagnose" class="l2">Phase 3 — Diagnose</a>
-<a href="#confirmed-building-blocks-vs-gaps-lab-hardened" class="">2. Confirmed building blocks vs gaps (lab-hardened)</a>
+<a href="#confirmed-building-blocks-vs-gaps-lab-hardened">2. Confirmed building blocks vs gaps (lab-hardened)</a>
 <a href="#confirmed-both" class="l2">Confirmed (both)</a>
 <a href="#confirmed-dynatrace-only-this-scenario" class="l2">Confirmed Dynatrace-only (this scenario)</a>
 <a href="#confirmed-datadog-only-strength-this-scenario" class="l2">Confirmed Datadog-only strength (this scenario)</a>
 <a href="#gaps-to-address-product-compare-our-design" class="l2">Gaps to address (product / compare / our design)</a>
-<a href="#one-page-stage-verdict-same-scenario" class="">3. One-page stage verdict (same scenario)</a>
-<a href="#stage-by-stage-evidence" class="">4. Stage-by-stage evidence</a>
+<a href="#one-page-stage-verdict-same-scenario">3. One-page stage verdict (same scenario)</a>
+<a href="#stage-by-stage-evidence">4. Stage-by-stage evidence</a>
 <a href="#collect" class="l2">4.1 Collect</a>
 <a href="#normalize" class="l2">4.2 Normalize</a>
 <a href="#topology-bind-map" class="l2">4.3 Topology bind / map</a>
 <a href="#detect" class="l2">4.4 Detect</a>
 <a href="#curate-package-localize" class="l2">4.5 Curate → Package → Localize</a>
-<a href="#timing" class="">5. Timing</a>
-<a href="#reproduce" class="">6. Reproduce</a>
-<a href="#design-takeaways-for-our-clock-ab" class="">7. Design takeaways (for our Clock A/B)</a>
-<a href="#related" class="">8. Related</a>
+<a href="#timing">5. Timing</a>
+<a href="#reproduce">6. Reproduce</a>
+<a href="#design-takeaways">7. Design takeaways</a>
+<a href="#related">8. Related</a>
 </nav><main>
-<div class="doc-bar">
-  <a href="/docs.html">Docs index</a>
-  <a class="here" href="/comparable-pipeline-dt-dd.html">DT vs DD compare</a>
-  <a href="/dynatrace-production-pipeline.html">DT pipeline</a>
-  <a href="/datadog-production-pipeline.html">DD pipeline</a>
-  <a href="/eleven-subsystem-mechanisms.html">DT mechanisms</a>
-  <a href="/datadog-subsystem-mechanisms.html">DD mechanisms</a>
-</div>
 <h1 id="comparable-pipeline-dynatrace-vs-datadog">Comparable pipeline — Dynatrace vs Datadog</h1>
-<p><strong>Goal (shared):</strong> From continuous telemetry on a service chain, surface <em>what broke</em>, <em>where</em>, and <em>what an operator should look at</em> — without re-collecting the estate from scratch on every alert.</p>
+<p><strong>Method (read this first):</strong></p>
+<ol type="1">
+<li><strong>Understand each vendor independently</strong> — Dynatrace on Dynatrace terms (<a href="./dt-davis-category-hub.html">DT hub</a> · <a href="./DYNATRACE_PRODUCTION_PIPELINE.md">DT thesis</a>); Datadog on Datadog terms (<a href="./dd-detect-category-hub.html">DD hub</a> · <a href="./DATADOG_PRODUCTION_PIPELINE.md">DD thesis</a>).</li>
+<li><strong>Then</strong> use this page to line up a same-scenario lab and <strong>derive common patterns</strong> — without forcing one vendor’s geometry onto the other.</li>
+</ol>
+<p><strong>Goal (shared destination):</strong> From continuous telemetry on a service chain, surface <em>what broke</em>, <em>where</em>, and <em>what an operator should look at</em> — without re-collecting the estate from scratch on every alert.</p>
+<h3 id="geometry-honesty-do-not-twin">Geometry honesty (do not twin)</h3>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 50%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Dynatrace</th>
+<th>Datadog</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Teaching journey</strong></td>
+<td><strong>Dual-track:</strong> Smartscape ∥ Grail (two real write facets)</td>
+<td><strong>Three-rail:</strong> Metrics ∥ APM ∥ Logs (tag join)</td>
+</tr>
+<tr class="even">
+<td><strong>Topology</strong></td>
+<td>Smartscape typed entity graph (<code>entityId</code>)</td>
+<td>Service Map ≈ <strong>APM-derived view</strong> (not a peer write track)</td>
+</tr>
+<tr class="odd">
+<td><strong>Evidence store</strong></td>
+<td>Grail (multimodal lake + DQL)</td>
+<td>Product explorers stay separate; backend = classic <strong>Metrics timeseries</strong> ∥ <strong>Husky</strong> event store (traces + logs + …) — <strong>not</strong> three equal peer DBs and <strong>not</strong> Grail</td>
+</tr>
+<tr class="even">
+<td><strong>Join key</strong></td>
+<td><code>entityId</code></td>
+<td><code>service</code> + <code>env</code> (+ <code>host</code> / <code>version</code>) tags</td>
+</tr>
+<tr class="odd">
+<td><strong>AI geometry</strong></td>
+<td>Causal AI folded into <strong>Davis</strong> (default Problem path)</td>
+<td>Separable surfaces: <strong>Watchdog</strong> (ML Detect) + <strong>Bits</strong> (agentic packaging) — optional on dense MTL</td>
+</tr>
+</tbody>
+</table>
+<p>There is <strong>no Smartscape-like dual-track</strong> on Datadog. Comparing “dual-track vs dual-track” or “Grail vs Husky as twin lakes” is a category error.</p>
+<h3 id="lab-vintages-read-before-equating-counts">Lab vintages (read before equating counts)</h3>
+<table>
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 25%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Vintage</th>
+<th>What</th>
+<th>Use for</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Early same-scenario cascade</strong></td>
+<td>DT <strong>P-26084</strong> (<code>rootCauseEntity=inventory</code>) · early DD inventory <strong>503</strong> / upstream <strong>502</strong> · dense APM, packaging doors quiet</td>
+<td>Detailed §4 stage tables below</td>
+</tr>
+<tr class="even">
+<td><strong>Current DD ERROR primary</strong></td>
+<td><code>env:rca-lab-e3</code> · KeyError / HTTP <strong>500</strong> leaf · Door A Alert after sustain · APM Watchdog <strong>0</strong> · logs Watchdog stories <strong>yes</strong> · Bits investigation · Incident <strong>0</strong></td>
+<td>Building-block + AI/ML honesty; hubs / MTL / Bits tabs</td>
+</tr>
+<tr class="odd">
+<td><strong>DT code-level follow-ons</strong></td>
+<td>e.g. <strong>P-260817</strong> KeyError enrich · other Davis category timelines</td>
+<td>Independent DT unveil — do not overwrite P-26084 clocks</td>
+</tr>
+</tbody>
+</table>
+<p>Same causal story across vintages: inventory leaf sick → callers fail. Status codes and Detect surfaces can differ by stack and run.</p>
 <h3 id="what-we-ran-and-why-it-is-identical">What we ran (and why it is “identical”)</h3>
 <p>We needed one fault both vendors could see, so differences would come from <strong>pipeline behavior</strong>, not from different apps or different bugs.</p>
 <p>Both labs run the same three-service checkout chain: <strong>frontend</strong> calls <strong>product</strong>, which calls <strong>inventory</strong>. Traffic hits the edge checkout URL; when healthy, inventory returns stock and the request succeeds. For the fault we only break the <strong>leaf</strong> — inventory’s stock API starts returning <strong>5xx</strong> — then keep driving checkout traffic for many minutes so detectors and maps have time to react, then clear the fault and confirm recovery.</p>
@@ -194,77 +332,293 @@ pre.flow { white-space:pre-wrap; }
 </table>
 <p>Unless a sentence is marked otherwise, treat it as <strong>Observed (lab)</strong>. Where we generalize beyond this single cascade, we say so.</p>
 <p>Labs: <a href="../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md"><code>dynatrace-rca-lab</code></a> · <a href="../datadog-rca-lab/DATADOG_RCA_REFERENCE.md"><code>datadog-rca-lab</code></a><br />
-Browser: <a href="/comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt-dd.html</code></a> · <a href="http://127.0.0.1:8765/comparable-pipeline-dt-dd.html"><code>:8765</code></a> · <a href="http://127.0.0.1:8765/docs.html">docs hub</a></p>
+Browser: <a href="./comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt-dd.html</code></a> · <a href="http://127.0.0.1:8765/comparable-pipeline-dt-dd.html"><code>:8765</code></a> · <a href="http://127.0.0.1:8765/docs.html">docs hub</a></p>
 <hr />
-<h2 id="philosophy-same-destination-different-path">0. Philosophy — same destination, different path</h2>
+<h2 id="philosophy-independent-building-blocks-first">0. Philosophy — independent building blocks first</h2>
 <p>Both platforms are trying to answer:</p>
 <blockquote>
 <p><em>Something is wrong in checkout — what is the root, and what evidence proves it?</em></p>
 </blockquote>
-<p>They do <strong>not</strong> disagree on that destination. They disagree on <strong>who does the last mile</strong> and <strong>what object you get</strong>.</p>
+<p>They do <strong>not</strong> disagree on that destination. They disagree on <strong>building-block geometry</strong> and <strong>who does the last mile</strong>.</p>
+<h3 id="dynatrace-building-blocks-native">0.1 Dynatrace building blocks (native)</h3>
 <table>
 <colgroup>
-<col style="width: 6%" />
-<col style="width: 50%" />
-<col style="width: 43%" />
+<col style="width: 25%" />
+<col style="width: 75%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th></th>
-<th>Dynatrace path</th>
-<th>Datadog path</th>
+<th>Block</th>
+<th>Role (lab-hardened)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Center of gravity</strong></td>
-<td>Always-on <strong>entity fabric</strong> (map ∥ lake) + thin packager</td>
-<td>Always-on <strong>tagged multimodal evidence</strong> (esp. APM)</td>
+<td>OneAgent / OTLP</td>
+<td>Edge collect</td>
 </tr>
 <tr class="even">
-<td><strong>Join key</strong></td>
-<td>Stable <strong><code>entityId</code></strong></td>
-<td><strong><code>service</code> + <code>env</code> (+ host) tags</strong></td>
+<td>Smartscape</td>
+<td>Typed topology write / walk (<code>entityId</code>)</td>
 </tr>
 <tr class="odd">
-<td><strong>When fault happens</strong></td>
-<td>Detectors → Events → <strong>Davis</strong> merges, walks map, ranks, <strong>packages Problem</strong></td>
-<td>Spans/metrics light up immediately; <strong>operator</strong> (or Bits AI) scopes traces/map</td>
+<td>Grail</td>
+<td>Multimodal evidence lake + DQL</td>
 </tr>
 <tr class="even">
-<td><strong>Promise to the operator</strong></td>
-<td>“Here is a <strong>Problem</strong> with <strong><code>rootCauseEntity</code></strong>”</td>
-<td>“Here is the <strong>full flamegraph + map</strong> — go find the deepest error”</td>
+<td>Detectors → Events</td>
+<td>Fault signal objects (baselines / thresholds on entity series)</td>
 </tr>
 <tr class="odd">
-<td><strong>Lab outcome</strong></td>
-<td>Packaged RC = <strong>inventory</strong></td>
-<td>Evidence clear; <strong>packaged RC absent</strong></td>
+<td><strong>Davis</strong></td>
+<td>Merge / rank / <strong>Problem</strong> package — causal AI layer (<code>rootCauseEntity</code> when ranked)</td>
 </tr>
 </tbody>
 </table>
+<p>Teaching path: Thesis → Breakdown → <strong>Dual-track (Smartscape ∥ Grail)</strong> → Timeline.</p>
+<h3 id="datadog-building-blocks-native">0.2 Datadog building blocks (native)</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 75%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Block</th>
+<th>Role (lab-hardened)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Agent + ddtrace</td>
+<td>Edge collect</td>
+</tr>
+<tr class="even">
+<td>Unified Service Tags</td>
+<td>Identity join across products</td>
+</tr>
+<tr class="odd">
+<td>Metrics ∥ APM ∥ Logs</td>
+<td>Three <strong>product</strong> rails (three-rail); backend Metrics timeseries ∥ Husky events (traces+logs)</td>
+</tr>
+<tr class="even">
+<td>Service Map</td>
+<td>APM-derived dependency view (not a dual-track write)</td>
+</tr>
+<tr class="odd">
+<td><strong>Monitors ∥ Watchdog</strong></td>
+<td>Door A (query) ∥ Door B (ML anomaly stories) — parallel Detect, not merged</td>
+</tr>
+<tr class="even">
+<td>Related / flamegraph</td>
+<td>Operator leaf on dense MTL</td>
+</tr>
+<tr class="odd">
+<td><strong>Bits ∥ Incident</strong></td>
+<td>Packaging peer tab (Hypothesis Tree) ∥ optional Incident declare</td>
+</tr>
+</tbody>
+</table>
+<p>Teaching path: Thesis → Breakdown → <strong>Three-rail (Metrics ∥ APM ∥ Logs)</strong> → Timeline → MTL workbook → <strong>Bits</strong>.</p>
+<h3 id="common-patterns-derived-later-not-forced-twins">0.3 Common patterns (derived later — not forced twins)</h3>
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 39%" />
+<col style="width: 36%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Pattern (ours)</th>
+<th>Appears on Dynatrace as…</th>
+<th>Appears on Datadog as…</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Continuous edge collect</td>
+<td>OneAgent</td>
+<td>Agent + ddtrace</td>
+</tr>
+<tr class="even">
+<td>Identity on every record</td>
+<td><code>entityId</code></td>
+<td>tags (<code>service</code>/<code>env</code>/<code>host</code>/<code>version</code>)</td>
+</tr>
+<tr class="odd">
+<td>Call-path reconstruction</td>
+<td>Smartscape edges</td>
+<td>APM peers / Service Map</td>
+</tr>
+<tr class="even">
+<td>Always-on evidence</td>
+<td>Grail</td>
+<td>Metrics ∥ APM ∥ Logs (Husky behind traces+logs)</td>
+</tr>
+<tr class="odd">
+<td>Fault signal</td>
+<td>Detectors → <strong>Events</strong></td>
+<td>Spans / rates + Door A Monitors ∥ Door B Watchdog</td>
+</tr>
+<tr class="even">
+<td>Named packaged root</td>
+<td><strong>Problem</strong> + <code>rootCauseEntity</code> (Davis default)</td>
+<td>Flamegraph leaf always; <strong>Bits</strong> optional package; <strong>Incident</strong> often absent</td>
+</tr>
+<tr class="odd">
+<td>AI / ML assist</td>
+<td>Folded into Davis</td>
+<td>Separable Watchdog + Bits surfaces</td>
+</tr>
+</tbody>
+</table>
+<p><strong>One sentence:</strong> Dynatrace <strong>pre-computes a joinable world and packages a verdict</strong>; Datadog <strong>maximizes inspectable evidence and leaves AI packaging optional</strong>.</p>
+<h3 id="ai-ml-comparison-derived-not-twins">0.4 AI / ML comparison (derived — not twins)</h3>
+<p><strong>Honesty:</strong> Datadog is <strong>not</strong> “more AI/ML” overall. Both are AI-heavy. Datadog <strong>exposes more separable AI product surfaces</strong>; Dynatrace <strong>runs AI as the packaging engine</strong> (Davis) by default.</p>
+<p><strong>Generation criteria:</strong> neither vendor is a clean Observability 2.0 or 3.0 match — score layers with must-pass checks (correlate ≠ 2.0; AI surfaces ≠ 3.0). See <a href="./observability-generations-dt-dd.html">Observability 1.0 / 2.0 / 3.0 evaluation</a>.</p>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 26%" />
+<col style="width: 21%" />
+<col style="width: 35%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Layer</th>
+<th>Dynatrace</th>
+<th>Datadog</th>
+<th>Do not equate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Anomaly / Detect AI</td>
+<td>Detectors + auto baselining → <strong>Events</strong></td>
+<td><strong>Watchdog</strong> unsupervised stories (+ anomaly monitors)</td>
+<td>Event ≠ Watchdog story</td>
+</tr>
+<tr class="even">
+<td>Diagnose / package AI</td>
+<td><strong>Davis</strong> causal ranking → Problem + <code>rootCauseEntity</code></td>
+<td><strong>Bits</strong> observe → hypothesize → validate (Hypothesis Tree); Incident separate</td>
+<td>Problem ≠ Bits ≠ Incident</td>
+</tr>
+<tr class="odd">
+<td>Topology role in AI</td>
+<td>Smartscape walk is first-class input to Davis</td>
+<td>Service Map assist; Bits / operator still rank on traces</td>
+<td>Smartscape ≠ Service Map</td>
+</tr>
+<tr class="even">
+<td>Default vs optional</td>
+<td>AI package path is <strong>default</strong></td>
+<td>ML Detect door + agentic Bits are <strong>optional surfaces</strong> on dense MTL</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>Lab honesty</td>
+<td>Packaged RC Observed (e.g. <strong>P-26084</strong>)</td>
+<td>e3: Door A Alert after sustain; APM Watchdog <strong>0</strong>; logs Watchdog <strong>yes</strong>; Bits <a href="https://app.datadoghq.com/bits-ai/investigations/90a88d93-2570-40c6-9706-d186290ea2b6?v=tree"><code>90a88d93…</code></a>; Incident <strong>0</strong></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Teaching one-liner: <strong>Datadog shows more separate AI product surfaces; Dynatrace runs AI as the packaging engine.</strong> Exact Davis / Watchdog / Bits scoring internals remain unpublished (black-box) — no public top-1 bakeoff (<a href="./VENDOR_BENCHMARKS.md"><code>VENDOR_BENCHMARKS.md</code></a>).</p>
+
+<h3 id="detect-signal-categories-twin-list">0.5 Detect signal categories — twin list? (Public framing + Observed packs)</h3>
+<p><strong>Question:</strong> Are Datadog’s default monitors the same kind of thing as Dynatrace Davis <strong>event categories</strong>?</p>
+<p><strong>Answer:</strong> Same <em>layer</em> of the stack (Detect inputs) — <strong>not</strong> the same taxonomy. Dynatrace publishes one official <code>event.category</code> list (fault semantics + severity). Datadog has <strong>no twin list</strong>: it splits Door A (monitor types / packs) and Door B (Watchdog by product rail).</p>
+
+<h4 id="dynatrace-official-twin-list">Dynatrace — official twin list (<code>event.category</code>)</h4>
+<p>Most → least severe (<a href="https://docs.dynatrace.com/docs/dynatrace-intelligence/root-cause-analysis/event-analysis-and-correlation/event-categories">Event categories</a>; semantic dictionary also lists <code>INFO</code>):</p>
+<table>
+<thead><tr><th>Category</th><th>Meaning</th><th>Opens Problem?</th><th>Our lab hub</th></tr></thead>
+<tbody>
+<tr><td><strong>MONITORING_UNAVAILABLE</strong></td><td>Widespread OneAgent / visibility dark</td><td>Yes</td><td>Observed P-260826</td></tr>
+<tr><td><strong>AVAILABILITY</strong></td><td>Host / process / service outage</td><td>Yes</td><td>Observed P-260831</td></tr>
+<tr><td><strong>ERROR</strong></td><td>Error-rate / error incidents</td><td>Yes</td><td>Observed (KeyError)</td></tr>
+<tr><td><strong>SLOWDOWN</strong></td><td>Performance / response-time degradation</td><td>Yes</td><td>Observed P-260820</td></tr>
+<tr><td><strong>RESOURCE_CONTENTION</strong></td><td>CPU / memory (and similar) saturation</td><td>Yes</td><td>Agent task</td></tr>
+<tr><td><strong>CUSTOM_ALERT</strong></td><td>User-defined metric thresholds</td><td>Yes (merge often restricted)</td><td>—</td></tr>
+<tr><td><strong>INFO / Warning</strong></td><td>Deploy / config / early warnings</td><td>Typically <strong>no</strong></td><td>—</td></tr>
+</tbody>
+</table>
+<p>Under each category sit many <code>event.type</code> values (e.g. <code>SERVICE_ERROR_RATE_INCREASED</code>, <code>SERVICE_SLOWDOWN</code>). <strong>Category = significance class; type = concrete detector.</strong></p>
+
+<h4 id="datadog-no-twin-list">Datadog — no twin list (what that means)</h4>
+<p>Datadog does <strong>not</strong> stamp every alert with one of ERROR · SLOWDOWN · AVAILABILITY · …. Instead:</p>
+<table>
+<thead><tr><th>Surface</th><th>How signals are grouped</th><th>Not a Davis twin because…</th></tr></thead>
+<tbody>
+<tr><td><strong>Door A · Monitors</strong></td><td>By <strong>monitor type</strong> (Metric, APM, Logs, Anomaly, Process, Synthetics, …) and <code>monitor_pack:</code> tags</td><td>Pack = “default templates for a product surface,” not fault semantics</td></tr>
+<tr><td><strong>Door B · Watchdog</strong></td><td>Facet <strong>Alert Category</strong> = <code>apm</code> · <code>infrastructure</code> · <code>logs</code></td><td>Product-rail anomaly feed; APM watches error rate · latency · hits</td></tr>
+</tbody>
+</table>
+<p>Same <em>ideas</em> (errors, latency, CPU) exist on Datadog; they are just <strong>not filed in one twin category enum</strong>.</p>
+
+<h4 id="observed-host-apm-packs-11">Observed tenant: Host + APM recommended packs (11 templates)</h4>
+<p><strong>Public framing:</strong> <code>monitor_pack</code> marks Datadog <strong>recommended / out-of-the-box</strong> monitors (multi-alert with <code>{{host.name}}</code> / <code>{{service.name}}</code>).</p>
+<p><strong>Observed (this tenant UI):</strong> Host pack <strong>7</strong> + APM pack <strong>4</strong> = <strong>11</strong> templates on that screen — <strong>not</strong> a global “Datadog defines exactly 11 monitors” rule. Other integrations can add more packs.</p>
+<table>
+<thead><tr><th>Pack</th><th>Tag</th><th>Templates (Observed)</th></tr></thead>
+<tbody>
+<tr><td><strong>Host</strong> (7)</td><td><code>monitor_pack:host</code> · <code>integration:host</code></td><td>CPU high · Disk latency · Disk usage · Memory low · Network RX high · Network TX high · System load high</td></tr>
+<tr><td><strong>APM</strong> (4)</td><td><code>monitor_pack:apm</code></td><td>Watchdog Anomaly bridge · High Error Rate <code>fastapi.request</code> · <strong><code>flask.request</code></strong> · <code>web.request</code></td></tr>
+</tbody>
+</table>
+<p>Lab ERROR Door A (<code>310925690</code> family) sits in the <strong>Flask High Error Rate</strong> APM-pack line. <strong>SLOWDOWN</strong> has <strong>no</strong> twin in this 11 — latency Door A is often absent until you add a duration/p95 monitor. Host-pack CPU OK during KeyError is <strong>negative</strong> infra evidence, not the ERROR leaf.</p>
+
+<h4 id="category-crosswalk">Crosswalk (semantics → where it lives)</h4>
+<table>
+<thead><tr><th>Fault semantics</th><th>Dynatrace category</th><th>Datadog (typical)</th></tr></thead>
+<tbody>
+<tr><td>Failure / error rate</td><td><strong>ERROR</strong></td><td>APM High Error Rate pack · Watchdog APM error rate · log error anomalies</td></tr>
+<tr><td>Latency / slow</td><td><strong>SLOWDOWN</strong></td><td>APM latency monitor (often <strong>custom</strong>) · Watchdog APM latency</td></tr>
+<tr><td>Hard down</td><td><strong>AVAILABILITY</strong></td><td>Process / service check / synthetics — <strong>not</strong> host CPU pack</td></tr>
+<tr><td>CPU / mem saturation</td><td><strong>RESOURCE_CONTENTION</strong></td><td>Host monitor pack · Watchdog infra</td></tr>
+<tr><td>Agent / ingest dark</td><td><strong>MONITORING_UNAVAILABLE</strong></td><td>No single twin category</td></tr>
+<tr><td>Custom threshold</td><td><strong>CUSTOM_ALERT</strong></td><td>Any Metric / Log / … monitor you author</td></tr>
+</tbody>
+</table>
+<p><strong>Our HLD implication:</strong> E6 Detect should use <strong>semantic Detect classes</strong> (Dynatrace-like), implemented with threshold and/or anomaly doors (Datadog-like) — do not copy <code>monitor_pack</code> names as the category system.</p>
+
 <h3 id="simplified-illustration">Simplified illustration</h3>
-<pre class="text"><code>                    SAME DESTINATION
-         “Name the root of the inventory 5xx cascade”
-                           │
-           ┌───────────────┴───────────────┐
-           ▼                               ▼
-     DYNATRACE PATH                  DATADOG PATH
-     ──────────────                  ─────────────
-     Pre-join the world              Keep the evidence rich
-     (entityId + Smartscape          (tags + APM/Metrics/Logs)
-      ∥ Grail)                       map ≈ view on traces
-
-     Detect → Event objects          Detect signal = spans / rates
-     (case opens in platform)        (case often opens in UI)
-
-     Davis thin diagnose             Operator / Bits diagnose
-     → Problem card                  → optional Incident (lab: none)
-       rootCauseEntity=inventory       deepest span = inventory</code></pre>
-<p><strong>One sentence:</strong> Dynatrace <strong>pre-computes a joinable world and packages a verdict</strong>; Datadog <strong>maximizes inspectable evidence and leaves packaging optional</strong>.</p>
+<figure class="viz viz-dest" aria-label="Same destination, Dynatrace vs Datadog native paths">
+  <div class="dest-head">
+    <p class="dest-k">Same destination</p>
+    <p class="dest-goal">Name the causal leaf on the shared FE → product → inventory workload</p>
+  </div>
+  <div class="dest-split" aria-hidden="true">
+    <span class="stem"></span>
+    <span class="arm">▼</span>
+    <span class="arm">▼</span>
+  </div>
+  <div class="cols">
+    <div class="col dt">
+      <div class="col-head">Dynatrace · native</div>
+      <ul class="layers">
+        <li><span class="lbl">Fabric</span><strong>Dual-track</strong> — Smartscape ∥ Grail</li>
+        <li><span class="lbl">Join · map · lake</span>join = <code>entityId</code><br>map = typed write path<br>lake = Grail</li>
+        <li><span class="lbl">Detect</span>Detectors → <strong>Event</strong> objects</li>
+        <li class="out"><span class="lbl">AI package · leaf</span><strong>Davis</strong> (causal AI) → Problem<br><code>rootCauseEntity</code> (may be null)</li>
+      </ul>
+    </div>
+    <div class="col dd">
+      <div class="col-head">Datadog · native</div>
+      <ul class="layers">
+        <li><span class="lbl">Fabric</span><strong>Three-rail</strong> — Metrics ∥ APM ∥ Logs</li>
+        <li><span class="lbl">Join · map · backend</span>join = tags<br>map = APM-derived view<br>backend = Metrics store ∥ Husky</li>
+        <li><span class="lbl">Detect</span>Door A Monitors ∥ Door B Watchdog</li>
+        <li class="out"><span class="lbl">Leaf · optional AI</span>Signal = spans / rates / logs<br><strong>Flamegraph leaf</strong> by Detect class</li>
+        <li class="note">Bits (optional) · Incident often 0</li>
+      </ul>
+    </div>
+  </div>
+</figure>
 <hr />
-<h2 id="solidified-pipeline-our-three-phases-product-blocks">1. Solidified pipeline (our three phases → product blocks)</h2>
-<p>We keep <strong>our</strong> stage names as a fair compare lens. Product names below are what each vendor actually runs.</p>
+<h2 id="optional-pattern-lens-clock-a-after-native-reading">1. Optional pattern lens (Clock A — after native reading)</h2>
+<p>We keep <strong>our</strong> stage names as a <strong>later</strong> compare lens only — not as either vendor’s product model. Read §0 first.</p>
 <h3 id="phase-1-always-on-fabric">Phase 1 — Always-on fabric</h3>
 <table>
 <colgroup>
@@ -302,15 +656,15 @@ Browser: <a href="/comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt-
 </tr>
 <tr class="even">
 <td><strong>Fan-out</strong></td>
-<td><strong>Smartscape upserts ∥ Grail evidence</strong> (not twin dumps; not Lean/Fed)</td>
-<td>Write <strong>Metrics ∥ APM ∥ Logs</strong>; map mostly <strong>derived from APM</strong></td>
-<td>Same <em>idea</em> (continuous write); different <em>geometry</em></td>
+<td><strong>Smartscape upserts ∥ Grail evidence</strong> (dual-track)</td>
+<td>Write <strong>Metrics ∥ APM ∥ Logs</strong> (three-rail); backend Metrics store ∥ Husky; map mostly <strong>derived from APM</strong></td>
+<td>Continuous write both; <strong>different geometry</strong> — do not call DD dual-track</td>
 </tr>
 <tr class="odd">
 <td><strong>Maintain</strong></td>
-<td>Grail lifecycle + Smartscape freshness</td>
-<td>Retention / indexing / discovery</td>
-<td>Strong both</td>
+<td>Grail lifecycle + Smartscape freshness (<strong>named DT fabric stage</strong>)</td>
+<td><strong>No named Maintain stage</strong> — continuous <strong>03 Write</strong> + retention/indexing/discovery in product stores</td>
+<td>DT yes · DD remap (do not call DD “Maintain”)</td>
 </tr>
 </tbody>
 </table>
@@ -334,20 +688,20 @@ Browser: <a href="/comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt-
 <tr class="odd">
 <td><strong>Detect</strong></td>
 <td>Failure-rate <strong>Events</strong> (e.g. inventory + upstream)</td>
-<td><strong>APM error spans/rates</strong> always visible; Monitors + Watchdog as <strong>doors</strong></td>
-<td>DD: auto High Error Rate often <strong>OK</strong> (<code>min(last_15m)</code>); Watchdog <strong>0</strong> on this fault</td>
+<td><strong>APM error spans/rates</strong> always visible; Door A <strong>Monitors</strong> ∥ Door B <strong>Watchdog</strong></td>
+<td>Early cascade: auto High Error Rate often <strong>OK</strong> (<code>min(last_15m)</code>); Watchdog quiet. <strong>e3:</strong> Door A Alert after sustain; APM Watchdog <strong>0</strong>; logs Watchdog stories <strong>yes</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Curate</strong></td>
 <td>Davis merges nearby Events toward one Problem narrative</td>
-<td>Monitor/story grouping; optional Incident seed</td>
-<td><strong>DD gap:</strong> no merge to one seed — FE/PRD/INV all <code>error</code></td>
+<td>Monitor/story grouping; optional Incident seed; Bits scopes later</td>
+<td><strong>DD gap:</strong> no auto merge to one seed — FE/PRD/INV all <code>error</code></td>
 </tr>
 <tr class="odd">
 <td><strong>Tailor</strong></td>
 <td>Smartscape neighborhood + Grail DQL time cut</td>
-<td>Operator (or Bits) scopes services + time + related</td>
-<td><strong>DD:</strong> human-cut; not a first-class auto neighborhood expand</td>
+<td>Operator (or <strong>Bits</strong>) scopes services + time + Related</td>
+<td><strong>DD:</strong> human / Bits cut; not a first-class auto neighborhood expand</td>
 </tr>
 </tbody>
 </table>
@@ -372,19 +726,19 @@ Browser: <a href="/comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt-
 <td><strong>Localize</strong></td>
 <td>Smartscape walk from seed → candidate entities</td>
 <td>Trace / Service Map; deepest error span</td>
-<td>DD: <strong>operator Localize</strong>, not <code>rootCauseEntity</code></td>
+<td>DD: <strong>operator (or Bits) on flamegraph</strong>, not <code>rootCauseEntity</code></td>
 </tr>
 <tr class="even">
 <td><strong>Identify</strong></td>
 <td>Rank <code>rootCauseRelevant</code> evidence (inferred scoring)</td>
-<td>Status codes, resources, related metrics/logs on the trace</td>
-<td>Both correlational at packaging layer</td>
+<td>Status codes, resources, related metrics/logs on the trace; Bits Hypothesis Tree</td>
+<td>Both correlational at packaging layer; DT packages by default</td>
 </tr>
 <tr class="odd">
 <td><strong>Verify / Package</strong></td>
-<td><strong>Problem</strong> card (<code>rootCauseEntity</code>, evidence, impact)</td>
-<td>Insights / Bits AI / <strong>Incidents</strong></td>
-<td><strong>DD gap (lab):</strong> Incidents <strong>0</strong>, no packaged RC</td>
+<td><strong>Problem</strong> card (<code>rootCauseEntity</code>, evidence, impact) — Davis AI default</td>
+<td><strong>Bits</strong> peer tab ∥ <strong>Incidents</strong></td>
+<td><strong>DD:</strong> Incident often <strong>0</strong>; Bits optional (e3: <a href="https://app.datadoghq.com/bits-ai/investigations/90a88d93-2570-40c6-9706-d186290ea2b6?v=tree"><code>90a88d93…</code></a>); leaf claim still valid from MTL alone</td>
 </tr>
 </tbody>
 </table>
@@ -409,7 +763,7 @@ Browser: <a href="/comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt-
 </tr>
 <tr class="even">
 <td>Failure semantics on leaf + cascade</td>
-<td>DT 5xx / DD 503→502</td>
+<td>DT 5xx / early DD 503→502 / e3 DD 500→502</td>
 </tr>
 <tr class="odd">
 <td>Call path reconstruction</td>
@@ -417,11 +771,15 @@ Browser: <a href="/comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt-
 </tr>
 <tr class="even">
 <td>Multimodal-ish evidence for operators</td>
-<td>DT Grail pull · DD APM (+ metrics tags)</td>
+<td>DT Grail pull · DD APM + Metrics + Logs (tag join)</td>
 </tr>
 <tr class="odd">
 <td>Clear <strong>after</strong> fault clear</td>
 <td>Both return to healthy</td>
+</tr>
+<tr class="even">
+<td>AI surfaces exist</td>
+<td>Davis packaging · Watchdog / Bits (different geometry — see §0.4)</td>
 </tr>
 </tbody>
 </table>
@@ -456,6 +814,7 @@ Browser: <a href="/comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt-
 </tr>
 </tbody>
 </table>
+<p><strong>Follow-on (2026-08-06, code-level enrich):</strong> <strong>P-260817</strong> — same leaf pattern with real <code>KeyError</code> in inventory; API event timeline + teaching notes in <a href="./dt-lab-timeline-code-level.html"><code>dt-lab-timeline-code-level.html</code></a> (<code>rootCauseEntity=null</code> this pull).</p>
 <h3 id="confirmed-datadog-only-strength-this-scenario">Confirmed Datadog-only strength (this scenario)</h3>
 <table>
 <colgroup>
@@ -471,15 +830,19 @@ Browser: <a href="/comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt-
 <tbody>
 <tr class="odd">
 <td>Immediate, dense APM Detect <em>signal</em></td>
-<td>~100% Flask error; <strong>1317</strong> inventory <code>@http.status_code:503</code>; ~12 min / ~1297 checkouts</td>
+<td>Early cascade: ~100% Flask error; <strong>1317</strong> inventory <code>@http.status_code:503</code>. <strong>e3:</strong> KeyError/500 ≈2427 · Upstream*/502 ≈2421 · <code>rca.inventory.stock.errors</code> ≈2403</td>
 </tr>
 <tr class="even">
 <td>Operator-ready flamegraph</td>
-<td>Deepest error = inventory <code>/api/stock</code> (<a href="https://app.datadoghq.com/apm/trace/6a7196aa00000000b9a41769b31205b8">example trace</a>)</td>
+<td>Deepest error = inventory <code>/api/stock</code> (e3 sample <a href="https://app.datadoghq.com/apm/trace/6a79840f000000005f3c58a8cfc1f888"><code>6a79840f…</code></a>; early <a href="https://app.datadoghq.com/apm/trace/6a7196aa00000000b9a41769b31205b8"><code>6a7196aa…</code></a>)</td>
 </tr>
 <tr class="odd">
 <td>Service map for the chain</td>
 <td><code>frontend → product → inventory</code></td>
+</tr>
+<tr class="even">
+<td>Separable AI surfaces</td>
+<td>Door B Watchdog (logs stories on e3) + <strong>Bits</strong> peer tab (<a href="./dd-bits-error-review.html"><code>dd-bits-error-review.html</code></a> · investigation <code>90a88d93…</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -499,55 +862,70 @@ Browser: <a href="/comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt-
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Packaged RCA object</strong></td>
+<td><strong>Default packaged RCA object</strong></td>
 <td>Datadog (lab)</td>
-<td>No Incident / Watchdog story / alerted monitor naming inventory as root — operator must Localize</td>
+<td>Incident often <strong>0</strong>; Bits is optional peer packaging — operator / Bits must still name the leaf (unlike Davis Problem default)</td>
 </tr>
 <tr class="even">
 <td><strong>Monitor windowing</strong></td>
 <td>Datadog</td>
-<td><code>min(last_15m)</code> can stay OK through a full outage if healthy minutes remain in the window</td>
+<td><code>min(last_15m)</code> can stay OK through a short outage; sustain (~15m near-100% errors) can flip Door A to <strong>Alert</strong> (e3 Observed)</td>
 </tr>
 <tr class="odd">
-<td><strong>Watchdog on synthetic cascade</strong></td>
+<td><strong>Watchdog APM vs logs</strong></td>
 <td>Datadog</td>
-<td>Second Detect door did not open for FE/PRD/INV here</td>
+<td>APM Watchdog bridge can stay quiet while <strong>logs</strong> Watchdog stories fire — doors are not fused</td>
 </tr>
 <tr class="even">
 <td><strong>Map vs lake twin write</strong></td>
-<td>Datadog vs DT vocabulary</td>
-<td>Do not equate Service Map with Smartscape ∥ Grail</td>
+<td>Vocabulary trap</td>
+<td>Datadog has <strong>three-rail</strong> stores + APM-derived Service Map + Husky behind traces/logs — <strong>not</strong> Smartscape ∥ Grail dual-track</td>
 </tr>
 <tr class="odd">
-<td><strong>Davis scoring internals</strong></td>
-<td>Dynatrace</td>
-<td>Exact rank math unpublished — treat Problem as thin packager on rich fabric (<strong>Inferred</strong>)</td>
+<td><strong>“DD is more AI” myth</strong></td>
+<td>Vocabulary trap</td>
+<td>More <strong>separable</strong> AI surfaces ≠ more AI overall; Davis <strong>is</strong> the AI packaging engine (§0.4)</td>
 </tr>
 <tr class="even">
+<td><strong>Detect category twin list</strong></td>
+<td>Vocabulary trap</td>
+<td>DT <code>event.category</code> ≠ DD <code>monitor_pack</code> / Watchdog rails; Observed Host+APM = <strong>11 templates</strong>, not Davis taxonomy (§0.5)</td>
+</tr>
+<tr class="odd">
+<td><strong>Davis / Bits / Watchdog scoring internals</strong></td>
+<td>Both</td>
+<td>Exact rank math unpublished — treat as black-box (<strong>Inferred</strong> / Public framing)</td>
+</tr>
+<tr class="odd">
 <td><strong>Our product wedge</strong></td>
 <td>Unified RCA</td>
-<td>Decide: entity fabric + package (DT-like), evidence-first + optional package (DD-like), or hybrid with <strong>explicit</strong> Curate→Package</td>
+<td>Decide after independent unveils: entity fabric + package (DT-like), evidence-first + optional package (DD-like), or hybrid with <strong>explicit</strong> Curate→Package</td>
 </tr>
 </tbody>
 </table>
-<pre class="text"><code>SOLIDIFIED COMPARE (lab)
-────────────────────────
-Fabric:     BOTH strong (different ID: entityId vs tags)
-Detect:     BOTH have signal — DT as Events; DD as APM density
-Curate:     DT yes (Davis merge) · DD thin/absent
-Tailor:     DT auto neighborhood · DD operator scope
-Diagnose:   DT packages RC · DD stops at inspectable evidence</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Solidified compare (lab)</div>
+  <div class="ud-score">
+    <div class="ud-row"><div class="ud-k">Geometry</div><div class="ud-v"><strong>DT</strong> dual-track (Smartscape∥Grail) · <strong>DD</strong> three-rail (M∥T∥L) + Husky + derived map</div></div>
+    <div class="ud-row"><div class="ud-k">Fabric</div><div class="ud-v">BOTH strong — different ID: <code>entityId</code> vs tags</div></div>
+    <div class="ud-row"><div class="ud-k">Detect</div><div class="ud-v">BOTH have signal — DT as Events; DD as APM density + Door A∥B</div></div>
+    <div class="ud-row"><div class="ud-k">AI</div><div class="ud-v">DT Davis default package · DD Watchdog ML door + Bits optional agent</div></div>
+    <div class="ud-row"><div class="ud-k">Curate</div><div class="ud-v">DT yes (Davis merge) · DD thin/absent as auto seed</div></div>
+    <div class="ud-row"><div class="ud-k">Investigate</div><div class="ud-v">DT auto neighborhood · DD Related + flamegraph (+ Bits)</div></div>
+    <div class="ud-row"><div class="ud-k">Diagnose</div><div class="ud-v">DT packages RC · DD leaf from MTL; Bits/Incident optional</div></div>
+  </div>
+</div>
 <hr />
 <h2 id="one-page-stage-verdict-same-scenario">3. One-page stage verdict (same scenario)</h2>
 <table>
 <colgroup>
-<col style="width: 55%" />
-<col style="width: 24%" />
+<col style="width: 54%" />
+<col style="width: 25%" />
 <col style="width: 20%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Clock A / product stage</th>
+<th>Pattern lens / product</th>
 <th>Dynatrace</th>
 <th>Datadog</th>
 </tr>
@@ -559,43 +937,48 @@ Diagnose:   DT packages RC · DD stops at inspectable evidence</code></pre>
 <td>ddtrace → Agent → HQ</td>
 </tr>
 <tr class="even">
-<td><strong>Normalize</strong></td>
-<td>Failure labeling; <code>entityId</code> prep</td>
-<td>Span <code>status:error</code> + HTTP tags</td>
+<td><strong>Identity</strong></td>
+<td><code>entityId</code> prep</td>
+<td>Unified Service Tags + HTTP/status</td>
 </tr>
 <tr class="odd">
-<td><strong>Topology bind</strong></td>
+<td><strong>Topology</strong></td>
 <td>Smartscape FE→PRD→INV + host</td>
-<td>APM map FE→PRD→INV</td>
+<td>APM Service Map FE→PRD→INV (derived)</td>
 </tr>
 <tr class="even">
-<td><strong>Fan-out / store</strong></td>
-<td>Smartscape ∥ Grail</td>
-<td>Metrics ∥ APM ∥ Logs (tag join)</td>
+<td><strong>Stores</strong></td>
+<td>Smartscape ∥ Grail (<strong>dual-track</strong>)</td>
+<td>Metrics ∥ APM ∥ Logs (<strong>three-rail</strong>); backend Metrics ∥ Husky</td>
 </tr>
 <tr class="odd">
 <td><strong>Detect</strong></td>
 <td>Events on inventory (+ FE/PRD)</td>
-<td>Dense APM errors; monitor often OK; Watchdog 0</td>
+<td>Dense APM errors; Door A∥B (e3: Door A Alert after sustain; APM Watchdog 0; logs Watchdog yes)</td>
 </tr>
 <tr class="even">
-<td><strong>Curate / package</strong></td>
-<td><strong>Problem P-26084</strong></td>
-<td><strong>No Incident</strong></td>
+<td><strong>AI / package</strong></td>
+<td><strong>Davis → Problem P-26084</strong></td>
+<td>Flamegraph leaf; <strong>Bits</strong> optional (<a href="https://app.datadoghq.com/bits-ai/investigations/90a88d93-2570-40c6-9706-d186290ea2b6?v=tree"><code>90a88d93…</code></a>); Incident often <strong>0</strong></td>
 </tr>
 <tr class="odd">
-<td><strong>Tailor / Localize</strong></td>
+<td><strong>Leaf claim</strong></td>
 <td><strong><code>rootCauseEntity=inventory</code></strong></td>
-<td>Operator: deepest <strong>503</strong> = inventory</td>
+<td>Operator / Bits: deepest <strong>5xx</strong> = inventory (early 503 · e3 KeyError/500)</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Headline:</strong> same fault → Dynatrace ships a <strong>ranked Problem with named root</strong>; Datadog ships <strong>rich traces + map</strong> and leaves packaging thinner.</p>
+<p><strong>Headline:</strong> same fault → Dynatrace ships a <strong>ranked Problem with named root (Davis default)</strong>; Datadog ships <strong>rich MTL + separable AI surfaces</strong> and leaves packaging (Bits / Incident) optional.</p>
 <hr />
 <h2 id="stage-by-stage-evidence">4. Stage-by-stage evidence</h2>
+<blockquote>
+<p><strong>Vintage:</strong> tables in this section are the <strong>early same-scenario cascade</strong> (DD inventory <strong>503</strong>, packaging doors quiet) unless noted. For current DD ERROR Detect/Bits honesty see lab vintages above and <a href="./dd-detect-category-hub.html"><code>dd-detect-category-hub.html</code></a>.</p>
+</blockquote>
 <h3 id="collect">4.1 Collect</h3>
-<pre class="text"><code>Workload: frontend → product → inventory
-Fault:    inventory 5xx</code></pre>
+<div class="ud-viz"><div class="ud-cap">Shared lab scenario</div>
+<div class="ud-flow"><span class="ud-chip">frontend</span><span class="ud-arrow">→</span><span class="ud-chip">product</span><span class="ud-arrow">→</span><span class="ud-chip warn">inventory</span></div>
+<p class="ud-note">Fault tip: inventory 5xx (ERROR) — same chain for SLOWDOWN with HTTP 200.</p>
+</div>
 <table>
 <colgroup>
 <col style="width: 9%" />
@@ -660,8 +1043,17 @@ Fault:    inventory 5xx</code></pre>
 </tbody>
 </table>
 <h3 id="topology-bind-map">4.3 Topology bind / map</h3>
-<pre class="text"><code>Dynatrace:  frontend --calls--&gt; product --calls--&gt; inventory   (+ runsOnHost)
-Datadog:    frontend → product → inventory   (+ peer.hostname on client spans)</code></pre>
+<div class="ud-viz"><div class="ud-cap">Same chain · different map language</div>
+<div class="ud-grid two">
+  <div class="ud-panel dt"><h5>Dynatrace</h5>
+    <div class="ud-flow"><span class="ud-chip">FE</span><span class="ud-arrow">calls→</span><span class="ud-chip">product</span><span class="ud-arrow">calls→</span><span class="ud-chip">inventory</span></div>
+    <p>+ <code>runsOnHost</code></p>
+  </div>
+  <div class="ud-panel dd"><h5>Datadog</h5>
+    <div class="ud-flow"><span class="ud-chip">FE</span><span class="ud-arrow">→</span><span class="ud-chip">product</span><span class="ud-arrow">→</span><span class="ud-chip">inventory</span></div>
+    <p>+ <code>peer.hostname</code> on client spans</p>
+  </div>
+</div></div>
 <table>
 <colgroup>
 <col style="width: 9%" />
@@ -762,15 +1154,19 @@ Datadog:    frontend → product → inventory   (+ peer.hostname on client span
 <tbody>
 <tr class="odd">
 <td>Incident / Watchdog</td>
-<td><strong>0</strong> / <strong>none</strong> for this fault</td>
+<td>Early cascade: Incident <strong>0</strong> / Watchdog quiet. <strong>e3:</strong> APM Watchdog <strong>0</strong>, logs Watchdog <strong>yes</strong>, Door A Alert after sustain</td>
 </tr>
 <tr class="even">
 <td>Operator path</td>
-<td>APM → deepest inventory 503</td>
+<td>APM → deepest inventory 5xx; optional <strong>Bits</strong> peer tab</td>
 </tr>
 <tr class="odd">
-<td>Example</td>
-<td><a href="https://app.datadoghq.com/apm/trace/6a7196aa00000000b9a41769b31205b8">trace <code>6a7196aa…</code></a> · <a href="https://app.datadoghq.com/apm/traces?query=env%3Arca-lab+service%3A%28frontend+OR+product+OR+inventory%29">traces explorer</a></td>
+<td>Example (early)</td>
+<td><a href="https://app.datadoghq.com/apm/trace/6a7196aa00000000b9a41769b31205b8">trace <code>6a7196aa…</code></a></td>
+</tr>
+<tr class="even">
+<td>Example (e3 Bits)</td>
+<td><a href="./dd-bits-error-review.html"><code>dd-bits-error-review.html</code></a> · <a href="https://app.datadoghq.com/bits-ai/investigations/90a88d93-2570-40c6-9706-d186290ea2b6?v=tree">investigation <code>90a88d93…</code></a></td>
 </tr>
 </tbody>
 </table>
@@ -790,7 +1186,7 @@ Datadog:    frontend → product → inventory   (+ peer.hostname on client span
 <tbody>
 <tr class="odd">
 <td>DT dual-lab window</td>
-<td>Fault ~05:54 UTC → Problem with RC~06:04 (~10 min continuous 5xx)</td>
+<td>Fault ~<strong>05:54 UTC</strong> → Problem with RC ~<strong>06:04 UTC</strong> (~10 min continuous 5xx)</td>
 </tr>
 <tr class="even">
 <td>DD sustained rerun</td>
@@ -806,6 +1202,7 @@ Datadog:    frontend → product → inventory   (+ peer.hostname on client span
 </tr>
 </tbody>
 </table>
+<p><strong>Teaching alignment:</strong> Dynatrace mechanisms / Maintain / Curate / Tailor clocks for <strong>ERROR</strong> teaching use this <strong>same UTC window</strong> (not fictional <code>07:xx</code>, not IST). Mid-window sample times are illustrative inside <code>[05:54, 06:04]</code>; anchors <strong>05:54</strong> and <strong>06:04</strong> are <strong>Observed</strong>. For <strong>SLOWDOWN</strong>, use <strong>P-260820</strong> clocks (Events ≈15:05 → Problem ≈15:10) — do not reuse this ERROR window. See <a href="./eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a><code>?cat=</code> · <a href="./DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md</code></a>.</p>
 <hr />
 <h2 id="reproduce">6. Reproduce</h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Datadog :18080 · Dynatrace :19080</span></span>
@@ -822,12 +1219,15 @@ Datadog:    frontend → product → inventory   (+ peer.hostname on client span
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="ex">./datadog-rca-lab/scripts/fault.sh</span> inventory ok</span>
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="ex">./dynatrace-rca-lab/scripts/fault.sh</span> inventory fail off</span></code></pre></div>
 <hr />
-<h2 id="design-takeaways-for-our-clock-ab">7. Design takeaways (for our Clock A/B)</h2>
+<h2 id="design-takeaways">7. Design takeaways</h2>
 <ol type="1">
-<li><strong>Same destination</strong> — name the root of a cascade with evidence; <strong>different path</strong> — package-first entity fabric (DT) vs evidence-first tagged APM (DD).</li>
-<li><strong>Fabric is not the wedge</strong> — both Collect/Normalize/Map work; the wedge is <strong>Curate → Package</strong>.</li>
-<li><strong>Do not equate</strong> Problem ↔︎ Incident, Smartscape ↔︎ Service Map, Grail ↔︎ “Datadog lake.”</li>
-<li><strong>Gaps to own in our design:</strong> explicit Curate (storm → one seed), Tailor cut contract, and whether Package is mandatory or optional — lab shows optional packaging can leave a clear fault <strong>unpackaged</strong>.</li>
+<li><strong>Independent first</strong> — finish DT and DD unveils on each vendor’s own terms; this page is for <strong>derived</strong> patterns, not a twining template.</li>
+<li><strong>Same destination</strong> — name the root of a cascade with evidence; <strong>different geometry</strong> — DT dual-track (Smartscape ∥ Grail) vs DD three-rail (Metrics ∥ APM ∥ Logs) + Husky + APM-derived Service Map.</li>
+<li><strong>Do not equate</strong> Problem ↔︎ Incident, Smartscape ↔︎ Service Map, Grail ↔︎ Husky / “Datadog lake,” Dual-track ↔︎ Three-rail, Davis ↔︎ Bits, Event ↔︎ Watchdog story.</li>
+<li><strong>Fabric is not the wedge</strong> — both collect/map/evidence work; the wedge is <strong>merge → package</strong> (DT strong / default; DD thin unless Bits/Incident).</li>
+<li><strong>AI geometry, not AI volume</strong> — Datadog shows more <strong>separable</strong> AI surfaces (Watchdog + Bits); Dynatrace runs AI as the <strong>Davis packaging engine</strong>. Neither is “more AI” as a blanket claim (§0.4).</li>
+<li><strong>Detect categories are not twin lists</strong> — Dynatrace <code>event.category</code> (ERROR · SLOWDOWN · …) ≠ Datadog <code>monitor_pack</code> / Watchdog <code>apm|infrastructure|logs</code>. Observed Host+APM packs = <strong>11 templates</strong> on one screen, not a Davis taxonomy (§0.5).</li>
+<li><strong>Gaps to own in our design:</strong> explicit Curate (storm → one seed), investigation cut contract, and whether Package is mandatory or optional — lab shows optional packaging can leave a clear fault <strong>unpackaged</strong>.</li>
 </ol>
 <hr />
 <h2 id="related">8. Related</h2>
@@ -844,27 +1244,55 @@ Datadog:    frontend → product → inventory   (+ peer.hostname on client span
 </thead>
 <tbody>
 <tr class="odd">
-<td><a href="/dynatrace-production-pipeline.html"><code>DYNATRACE_PRODUCTION_PIPELINE.md</code></a> · <a href="/dynatrace-production-pipeline.html">HTML</a></td>
+<td><a href="./dt-davis-category-hub.html"><code>dt-davis-category-hub.html</code></a></td>
+<td>DT hub (independent)</td>
+</tr>
+<tr class="even">
+<td><a href="./dd-detect-category-hub.html"><code>dd-detect-category-hub.html</code></a></td>
+<td>DD hub (independent)</td>
+</tr>
+<tr class="odd">
+<td><a href="./DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md</code></a> · <a href="./dynatrace-production-pipeline.html">HTML</a></td>
 <td>DT unveil</td>
 </tr>
 <tr class="even">
-<td><a href="/datadog-production-pipeline.html"><code>DATADOG_PRODUCTION_PIPELINE.md</code></a> · <a href="/datadog-production-pipeline.html">HTML</a></td>
+<td><a href="./DATADOG_PRODUCTION_PIPELINE.md"><code>DATADOG_PRODUCTION_PIPELINE.md</code></a> · <a href="./datadog-production-pipeline.html">HTML</a></td>
 <td>DD unveil</td>
 </tr>
 <tr class="odd">
-<td><a href="/eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a></td>
+<td><a href="./dt-e2e-smartscape-grail.html"><code>dt-e2e-smartscape-grail.html</code></a></td>
+<td>DT Dual-track Smartscape ∥ Grail</td>
+</tr>
+<tr class="even">
+<td><a href="./dd-e2e-metrics-traces-logs.html"><code>dd-e2e-metrics-traces-logs.html</code></a></td>
+<td>DD Three-rail Metrics ∥ APM ∥ Logs</td>
+</tr>
+<tr class="odd">
+<td><a href="./eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a></td>
 <td>DT mechanisms (Davis)</td>
 </tr>
 <tr class="even">
-<td><a href="/datadog-subsystem-mechanisms.html"><code>datadog-subsystem-mechanisms.html</code></a></td>
+<td><a href="./datadog-subsystem-mechanisms.html"><code>datadog-subsystem-mechanisms.html</code></a></td>
 <td>DD mechanisms</td>
 </tr>
 <tr class="odd">
-<td><a href="/datadog-lab-evidence-2026-08-04.html"><code>datadog-lab-evidence-2026-08-04.md</code></a></td>
+<td><a href="./dd-bits-error-review.html"><code>dd-bits-error-review.html</code></a></td>
+<td>DD Bits peer tab (Hypothesis Tree · 500 vs 502)</td>
+</tr>
+<tr class="even">
+<td><a href="./datadog-lab-evidence-mtl-error-2026-08-10.html"><code>datadog-lab-evidence-mtl-error-2026-08-10.html</code></a></td>
+<td>DD e3 MTL appendix</td>
+</tr>
+<tr class="odd">
+<td><a href="./datadog-lab-evidence-2026-08-04.md"><code>datadog-lab-evidence-2026-08-04.md</code></a></td>
 <td>Earlier DD notes</td>
 </tr>
 <tr class="even">
-<td><a href="/docs.html"><code>index.html</code></a> · <a href="http://127.0.0.1:8765/docs.html"><code>:8765/docs.html</code></a></td>
+<td><a href="./VENDOR_BENCHMARKS.md"><code>VENDOR_BENCHMARKS.md</code></a></td>
+<td>No public top-1 AI bakeoff</td>
+</tr>
+<tr class="odd">
+<td><a href="./index.html"><code>index.html</code></a> · <a href="http://127.0.0.1:8765/docs.html"><code>:8765/docs.html</code></a></td>
 <td>Docs hub</td>
 </tr>
 </tbody>

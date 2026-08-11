@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Datadog lab · SLOWDOWN · Response-time observed</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441;
+  --text:#f2f5f8; --muted:#d8e0e8; --faint:#b0bac6; --accent:#7BA8F5;
+  --seed:#e07a7a; --ok:#7aecc4; --lean:#F0B35A;
+  --radius:8px; --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font);font-size:17px;line-height:1.65;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2438 0%,transparent 55%),var(--bg);}
+a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+.wrap{max-width:54rem;margin:0 auto;padding:2rem 1.5rem 4rem;}
+.eyebrow{font-size:.85rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);}
+h1{font-size:1.85rem;font-weight:700;margin:.35rem 0 .75rem;color:var(--text);}
+h2{font-size:1.28rem;font-weight:650;margin:2rem 0 .75rem;padding-top:.85rem;border-top:1px solid var(--stroke);color:var(--text);}
+.lead{color:var(--muted);margin:0 0 1.25rem;max-width:46rem;font-size:1.05rem;}
+.lead code,.note code,td code,li code,p code{font-family:var(--mono);font-size:.92em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#b8d4ff;}
+.note{margin:1rem 0;padding:.85rem 1rem;border-radius:var(--radius);background:rgba(91,141,239,.14);border-left:3px solid var(--accent);color:var(--muted);font-size:1rem;}
+.warn{border-left-color:var(--lean);background:rgba(240,179,90,.1);}
+.ok{border-left-color:var(--ok);background:rgba(95,224,176,.1);}
+table{width:100%;border-collapse:collapse;font-size:1rem;margin:.6rem 0 1rem;}
+th,td{text-align:left;vertical-align:top;padding:.5rem .55rem;border-bottom:1px solid var(--stroke);color:var(--muted);}
+th{color:var(--faint);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em;}
+.tl{border:1px solid var(--stroke);border-radius:10px;background:var(--bg-elev);padding:0;margin:1rem 0;overflow:hidden;}
+.tl-row{display:grid;grid-template-columns:9.5rem 1fr;gap:0;border-bottom:1px solid var(--stroke);}
+.tl-row:last-child{border-bottom:none;}
+.tl-t{padding:.85rem .9rem;font-family:var(--mono);font-size:.9rem;color:var(--ok);background:#0c1016;border-right:1px solid var(--stroke);}
+.tl-b{padding:.85rem 1rem;color:var(--muted);font-size:1rem;}
+.tl-b strong{color:var(--text);font-weight:600;}
+.pill{display:inline-block;font-family:var(--mono);font-size:.8rem;padding:.2rem .5rem;border-radius:4px;border:1px solid rgba(95,224,176,.5);color:var(--ok);margin-right:.35rem;}
+.pre{font-family:var(--mono);font-size:.9rem;background:var(--bg-soft);border:1px solid var(--stroke);border-radius:6px;padding:.85rem 1rem;overflow-x:auto;white-space:pre;color:#d0dbe6;}
+ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li strong{color:var(--text);}
+.toc{margin:1rem 0 0;padding:.85rem 1.1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
+.toc a{display:inline-block;margin:.25rem .85rem .25rem 0;font-size:1rem;}
+p{color:var(--muted);}
+</style>
+<link rel="stylesheet" href="/urca-diagrams.css" />
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Detect category · SLOWDOWN · Observed</div>
+  <h1>SLOWDOWN — Response time degradation</h1>
+  <p class="lead">
+    Category write-up for <strong style="color:var(--text)">SLOWDOWN</strong> on Datadog
+    (<code>env:rca-lab-e3</code> · FE→product→inventory). Teaching leaf: inventory
+    <code>lookup_stock_in_warehouse</code> ledger scan — HTTP <strong style="color:var(--text)">200</strong>,
+    wall ~9–22&nbsp;s (not a sleep flag).     Detect (MCP, 2026-08-11): Door A error-rate
+    <strong style="color:var(--text)">OK</strong> (irrelevant) · no scoped latency Door A ·
+    Door B Watchdog APM <strong style="color:var(--text)">0</strong> · Incident
+    <strong style="color:var(--text)">0</strong>.
+    Teaching trap: <a href="#insight">Write ≠ Detect ≠ Localize</a> — we opened APM; stage 05 stayed quiet. Hub:
+    <a href="/dd-detect-category-hub.html?cat=slowdown">Detect categories</a>.
+  </p>
+  <div id="urca-dd-pipeline-guide" data-variant="compact"></div>
+
+  <div class="note ok">
+    <span class="pill">PRIMARY RUN</span>
+    <code>env:rca-lab-e3</code> · <code>version:slowdown-20260811T045553Z</code>
+    (APM tag lowercases to <code>…t045553z</code>) · MCP pull 2026-08-11 ·
+    snapshot <a href="/docs/vendor-source/datadog/slowdown-2026-08-11.json"><code>slowdown-2026-08-11.json</code></a>
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#defect">1 Defect</a>
+    <a href="#insight">2 Write ≠ Detect ≠ Localize</a>
+    <a href="#detect-config">3 Detect config</a>
+    <a href="#mtl">4 Metrics ∥ Traces ∥ Logs</a>
+    <a href="#timeline">5 Observed timeline</a>
+    <a href="#trace">6 Trace localize</a>
+    <a href="#detect">7 Detect surfaces</a>
+    <a href="#package">8 Packaged RC</a>
+    <a href="#layers">9 Telemetry vs package</a>
+    <a href="#compare">10 vs ERROR</a>
+    <a href="#scripts">11 Scripts</a>
+  </nav>
+
+  <h2 id="defect">1) The defect (code-level, not a sleep flag)</h2>
+  <p>
+    Only <code>datadog-rca-lab/inventory/app.py</code> changed via
+    <code>break_inventory_slow_code.sh</code>. Frontend and product wait on inventory
+    (timeouts ≥&nbsp;30–40&nbsp;s), so their wall times rise as a cascade while staying HTTP 200.
+  </p>
+  <table>
+    <tr><th></th><th>Healthy</th><th>Broken (this run)</th></tr>
+    <tr>
+      <td>Lookup</td>
+      <td><code>WAREHOUSE_SKU_INDEX[sku]</code> O(1)</td>
+      <td>Scan 50k-row <code>WAREHOUSE_LEDGER</code> + 150-round <code>_debug_row_checksum</code> per row</td>
+    </tr>
+    <tr>
+      <td>HTTP</td>
+      <td>200 · ~tens of ms</td>
+      <td>200 · ~9–22&nbsp;s (still success — pure SLOWDOWN)</td>
+    </tr>
+    <tr>
+      <td>Not used</td>
+      <td colspan="2"><code>faults/*.latency</code> sleep flags — rejected; real CPU regression only</td>
+    </tr>
+  </table>
+
+  <h2 id="insight">2) Core insight — Write ≠ Detect ≠ Localize</h2>
+  <p>
+    This run is the teaching trap for SLOWDOWN. There is <strong style="color:var(--text)">no Maintain stage</strong>
+    in the Datadog hub pipeline. Continuous telemetry is stage <strong style="color:var(--text)">03 Write</strong>
+    (M ∥ APM ∥ Logs). Foghorns are stage <strong style="color:var(--text)">05 Detect</strong>
+    (Door A Monitors ∥ Door B Watchdog). Leaf claims are stage <strong style="color:var(--text)">07 Localize</strong>.
+  </p>
+  <table>
+    <tr><th>Stage</th><th>Job</th><th>This Observed run</th></tr>
+    <tr>
+      <td><strong>03 Write</strong></td>
+      <td>Keep shipping duration metrics + ok spans + ok logs</td>
+      <td><strong>Yes</strong> — inventory p95 ~9–22&nbsp;s · 295 spans &gt;5&nbsp;s · HTTP 200</td>
+    </tr>
+    <tr>
+      <td><strong>05 Detect · Door A</strong></td>
+      <td>Monitor query crosses threshold → Alert</td>
+      <td><strong>No</strong> — error-rate monitor <code>310925690</code> OK; <em>no</em> latency monitor defined</td>
+    </tr>
+    <tr>
+      <td><strong>05 Detect · Door B</strong></td>
+      <td>Watchdog opens an anomaly story without that query</td>
+      <td><strong>No</strong> — 0 APM Watchdog stories (deployment version story ≠ latency RCA)</td>
+    </tr>
+    <tr>
+      <td><strong>07 Localize</strong></td>
+      <td>Read flamegraph / longest self-time leaf</td>
+      <td><strong>Yes — but operator-driven</strong> — lab opened APM for the known fault window</td>
+    </tr>
+    <tr>
+      <td><strong>08 Package</strong></td>
+      <td>Bits / Incident</td>
+      <td><strong>Incident 0</strong> — Bits only if you start an Investigation (peer tab)</td>
+    </tr>
+  </table>
+
+  <h3 style="font-size:1.05rem;margin:1.25rem 0 .5rem;color:var(--text);border:0;padding:0;">What Datadog did <em>not</em> do</h3>
+  <p>
+    From <strong style="color:var(--text)">Detect’s</strong> point of view, nothing was declared wrong.
+    No latency Door A Alert, error Door A stayed OK (correct for HTTP 200), Watchdog did not foghorn
+    inventory latency, and no Incident was opened. Datadog did <strong style="color:var(--text)">not</strong>
+    Detect this case on stage 05.
+  </p>
+
+  <h3 style="font-size:1.05rem;margin:1.25rem 0 .5rem;color:var(--text);border:0;padding:0;">What the data still showed</h3>
+  <p>
+    From the <strong style="color:var(--text)">stores’</strong> point of view, the slowdown was obvious
+    if anyone looked: Metrics p95 jumped ~1000×, Trace Explorer fills with <code>status:ok</code>
+    <code>@duration:&gt;5s</code>, Service Map still shows FE→product→inventory peers.
+    Explorers looking “hot” are reading <strong style="color:var(--text)">03 Write</strong> —
+    that is not the same as a Door opening.
+  </p>
+
+  <h3 style="font-size:1.05rem;margin:1.25rem 0 .5rem;color:var(--text);border:0;padding:0;">Who actually “detected and analyzed”</h3>
+  <p>
+    <strong style="color:var(--text)">We did</strong> — the lab operator (and MCP pull), because we injected the fault
+    and explicitly queried APM for <code>env:rca-lab-e3</code> ·
+    <code>version:slowdown-20260811t045553z</code> · <code>04:58:07Z–05:10:34Z</code>.
+    We did not flip a Datadog UI switch that “marked this as an incident.”
+    We opened explorers, sorted by duration, opened trace
+    <a href="https://app.datadoghq.com/apm/trace/6a7aabea0000000020327ba0f5f0755a">6a7aabea…</a>,
+    and applied the SLOWDOWN leaf rule: <strong style="color:var(--text)">longest / deepest self-time span</strong>
+    (<code>inventory.stock</code>), not <code>status:error</code> (there is none).
+  </p>
+  <div class="ud-viz">
+  <div class="ud-cap">SLOWDOWN path — Write loud · Detect empty · operator Leaf</div>
+  <div class="ud-flow">
+    <span class="ud-chip warn">Inject ledger scan</span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip dd">01–03 Write</span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip soft">04 Map</span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip warn">05 empty foghorn</span>
+  </div>
+  <div class="ud-down">▼ operator opens Trace Explorer (known UTC window)</div>
+  <div class="ud-flow" style="justify-content:center">
+    <span class="ud-chip hit">07 Leaf · inventory.stock self-time</span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip soft">08 Bits optional · Incident 0</span>
+  </div>
+  <p class="ud-note">01–03: long HTTP 200 spans land in Metrics + Husky. 04: peers only (not leaf proof). 05: Door A quiet · Door B quiet.</p>
+</div>
+  <div class="note warn">
+    <strong style="color:var(--text)">One-line rule:</strong>
+    Slow data in explorers ≠ Detected incident. Until a latency Door A (or Watchdog) fires,
+    stage 05 treats this as “no alert.” Analysis here is <em>Write + human Localize</em>,
+    not Detect → Localize.
+  </div>
+  <div class="note">
+    Optional next teaching step: define
+    <code>avg(last_5m):p95:trace.flask.request{env:rca-lab-e3,service:inventory} &gt; 2</code>
+    so Door A <em>can</em> be the first foghorn. This Observed run deliberately shows the empty-Detect path.
+    Peer: <a href="/datadog-subsystem-mechanisms.html?cat=slowdown">Breakdown stage 05</a> ·
+    <a href="/dd-bits-slowdown-review.html?cat=slowdown">Bits</a> (Investigation still starts from a seed you give it).
+  </div>
+
+  <h2 id="detect-config">3) Detect configuration (what you need for this lab)</h2>
+  <p>
+    Unlike ERROR (where auto Flask High Error Rate <code>310925690</code> Alerted after sustain),
+    SLOWDOWN does <strong style="color:var(--text)">not</strong> trip error-rate Detect.
+    To get a Door A alert you need a scoped <em>latency</em> monitor, e.g.
+    <code>avg(last_5m):p95:trace.flask.request{env:rca-lab-e3,service:inventory}</code>
+    with <code>avg</code>/<code>max</code>/<code>p95</code> (not <code>min(last_15m)</code>).
+    This Observed run did <strong style="color:var(--text)">not</strong> require that monitor —
+    duration on traces was enough to teach the leaf <em>after</em> we opened APM.
+  </p>
+  <table>
+    <tr><th>Door</th><th>Primary input</th><th>What to watch</th><th>Lab outcome</th></tr>
+    <tr><td>A · Monitors</td><td>Metrics / APM duration</td><td>Latency / p95 on inventory</td><td>No custom latency monitor scoped → no Alert</td></tr>
+    <tr><td>A · Error-rate</td><td>Metrics / APM ratios</td><td>flask.request errors/hits (&gt;&nbsp;0.1)</td><td><strong>OK</strong> — HTTP 200 throughout (monitor <code>310925690</code>)</td></tr>
+    <tr><td>B · Watchdog</td><td>APM anomaly features</td><td>Latency / change stories</td><td><strong>0</strong> Watchdog stories — only deployment version story</td></tr>
+  </table>
+  <div class="note">
+    SLOWDOWN Detect is <em>not</em> equal Log Detect either. Three-rail still writes M∥T∥L;
+    Door teaching needs a <strong style="color:var(--text)">latency Door A</strong>.
+    Method + IPO: see Hub pipeline guide.
+  </div>
+
+  <h2 id="mtl">4) Metrics ∥ Traces ∥ Logs (Observed)</h2>
+  <table>
+    <tr><th>Rail</th><th>Query / evidence</th><th>Fault window result</th></tr>
+    <tr>
+      <td>Metrics</td>
+      <td><code>p95:trace.flask.request{env:rca-lab-e3,service:inventory,version:slowdown-20260811t045553z}</code></td>
+      <td>Baseline ~5&nbsp;ms → fault ~9–22&nbsp;s → post-heal ~9–18&nbsp;ms. Error hits ≈&nbsp;0.</td>
+    </tr>
+    <tr>
+      <td>Traces</td>
+      <td><code>env:rca-lab-e3 version:slowdown-20260811t045553z status:ok @duration:&gt;5s</code></td>
+      <td><strong>295</strong> inventory spans &gt;5&nbsp;s · <strong>0</strong> <code>status:error</code> across FE/product/inventory</td>
+    </tr>
+    <tr>
+      <td>Logs</td>
+      <td><code>env:rca-lab-e3 service:inventory</code> · <code>@event:inventory.stock.ok</code></td>
+      <td>Steady <code>stock request ok</code> · <code>http_status:200</code> · <strong>0</strong> KeyError / error logs</td>
+    </tr>
+  </table>
+  <div class="note warn">
+    APM version tags are lowercased (<code>slowdown-20260811t045553z</code>). Logs keep mixed case
+    <code>slowdown-20260811T045553Z</code>. Filter carefully when joining rails.
+  </div>
+
+  <h2 id="timeline">5) Observed timeline (UTC 2026-08-11)</h2>
+  <div class="tl">
+    <div class="tl-row"><div class="tl-t">04:55:53Z</div><div class="tl-b"><strong>Version stamp</strong> — compose <code>DD_VERSION=slowdown-20260811T045553Z</code> · <code>DD_ENV=rca-lab-e3</code>.</div></div>
+    <div class="tl-row"><div class="tl-t">04:56:27Z</div><div class="tl-b"><strong>Baseline</strong> — healthy O(1) lookup · checkout / stock ~tens of ms · HTTP 200. APM inventory <code>GET /api/stock</code> p95 ≈&nbsp;<strong>5&nbsp;ms</strong>.</div></div>
+    <div class="tl-row"><div class="tl-t">04:58:07Z</div><div class="tl-b"><strong>FAULT_START</strong> — <code>break_inventory_slow_code.sh</code> (ledger scan + checksum). Stock probe ~9.8&nbsp;s · checkout ~12&nbsp;s · HTTP 200.</div></div>
+    <div class="tl-row"><div class="tl-t">04:58:18Z–05:10:34Z</div><div class="tl-b"><strong>Sustain</strong> — ~15× <code>load.sh 4</code> batches (~60 checkouts) · <strong>all HTTP 200</strong> · no ERROR path.</div></div>
+    <div class="tl-row"><div class="tl-t">05:10:34Z</div><div class="tl-b"><strong>LOAD_END</strong> — start heal rebuild.</div></div>
+    <div class="tl-row"><div class="tl-t">05:10:58Z</div><div class="tl-b"><strong>HEAL_DONE</strong> — O(1) restored · post-heal checkout <strong>200 · ~49&nbsp;ms</strong> · APM inventory p95 collapses to ~16&nbsp;ms by 05:11Z.</div></div>
+  </div>
+  <p>Snapshot: <a href="/docs/vendor-source/datadog/slowdown-2026-08-11.json"><code>vendor-source/datadog/slowdown-2026-08-11.json</code></a>
+    · prior teaching run: <a href="/docs/vendor-source/datadog/slowdown-2026-08-07.json"><code>slowdown-2026-08-07.json</code></a>.</p>
+
+  <h2 id="trace">6) Trace localize</h2>
+  <p>APM aggregates (<code>env:rca-lab-e3</code> · <code>version:slowdown-20260811t045553z</code> · 04:58:07Z–05:10:34Z) — all <code>status:ok</code> / HTTP 200:</p>
+  <table>
+    <tr><th>service · resource</th><th>spans</th><th>p50</th><th>p95</th><th>max</th></tr>
+    <tr><td>inventory · GET /api/stock</td><td>177</td><td>~10.9&nbsp;s</td><td>~17.6&nbsp;s</td><td>~22.0&nbsp;s</td></tr>
+    <tr><td>product · GET /api/product</td><td>177</td><td>~10.9&nbsp;s</td><td>~17.6&nbsp;s</td><td>~22.0&nbsp;s</td></tr>
+    <tr><td>frontend · GET /api/checkout</td><td>177</td><td>~10.9&nbsp;s</td><td>~17.6&nbsp;s</td><td>~22.0&nbsp;s</td></tr>
+  </table>
+  <p>Status rollup (same window): frontend <strong>709</strong> ok · product <strong>709</strong> ok · inventory <strong>650</strong> ok · <strong>0</strong> error.</p>
+  <div class="ud-viz">
+  <div class="ud-cap">Trace tree — longest self-time leaf (sample)</div>
+  <div class="ud-chain">
+    <div class="ud-node"><span class="ud-role">FE</span>GET /api/checkout → <strong>200</strong> · ~10481 ms</div>
+    <div class="ud-link"></div>
+    <div class="ud-node"><span class="ud-role">Product</span>GET /api/product → <strong>200</strong> · ~10474 ms</div>
+    <div class="ud-link"></div>
+    <div class="ud-node leaf"><span class="ud-role">Leaf</span>GET /api/stock → <strong>200</strong> · ~10460 ms · CPU</div>
+    <div class="ud-link"></div>
+    <div class="ud-node leaf"><span class="ud-role">Span</span><code>inventory.stock</code> → ok · ~10449 ms · sku:WIDGET-1</div>
+  </div>
+</div>
+  <p>
+    Trace: <a href="https://app.datadoghq.com/apm/trace/6a7aabea0000000020327ba0f5f0755a">6a7aabea0000000020327ba0f5f0755a</a>
+    (04:58:18Z) · Read the <strong style="color:var(--text)">longest leaf span</strong> on the flamegraph,
+    not <code>status:error</code> (there is none).
+  </p>
+
+  <h2 id="detect">7) Detect surfaces</h2>
+  <table>
+    <tr><th>Surface</th><th>Observation</th></tr>
+    <tr><td>APM duration</td><td><strong>Strong</strong> — ok spans, ~9–22&nbsp;s leaf; p95 ≫ baseline (~5&nbsp;ms)</td></tr>
+    <tr><td>Error-rate Door A (<code>310925690</code>)</td><td><strong>OK / quiet</strong> — pure SLOWDOWN (no 5xx); misses this category</td></tr>
+    <tr><td>Latency Door A</td><td><strong>Absent</strong> — no scoped p95/duration monitor on lab inventory</td></tr>
+    <tr><td>Watchdog Door B</td><td><strong>0</strong> anomaly stories; only deployment <code>slowdown-20260811t045553z</code></td></tr>
+    <tr><td>Incidents</td><td><strong>0</strong> in window</td></tr>
+  </table>
+  <div class="note warn">
+    Optional Detect assist: scoped APM latency monitor on <code>env:rca-lab-e3,service:inventory</code>
+    using <code>p95</code>/<code>avg</code>/<code>max</code> (not <code>min(last_15m)</code>) — not required for teaching telemetry.
+  </div>
+
+  <h2 id="package">8) Packaged root cause</h2>
+  <p>
+    No Incident and no Watchdog story attributing inventory as root cause.
+    Operator (and Bits) read the flamegraph: <code>inventory.stock</code> holds ~all self-time while callers wait.
+    Peer packaging: <a href="/dd-bits-slowdown-review.html?cat=slowdown">Bits</a> ·
+    queries/counts: <a href="/dd-slowdown-mtl-dissection.html?cat=slowdown">MTL workbook</a>.
+    Same honesty as the ERROR lab — strong APM telemetry, thin Insights/Incident packaging.
+  </p>
+
+  <h2 id="layers">9) Telemetry vs package (two layers)</h2>
+  <table>
+    <tr><th>Layer</th><th>What Datadog had</th><th>What it is not</th></tr>
+    <tr>
+      <td>03 Write · Telemetry</td>
+      <td>Metrics p95 · APM @duration · Service Map peers · ok logs</td>
+      <td>Not a Monitor Alert; not “Detected”</td>
+    </tr>
+    <tr>
+      <td>05 Detect</td>
+      <td>Empty foghorn (error Door OK · latency Door absent · Watchdog 0)</td>
+      <td>Not proof Datadog “missed” the spans — spans were written</td>
+    </tr>
+    <tr>
+      <td>07 Localize · Flamegraph leaf</td>
+      <td>Longest inventory span ≈ leaf CPU (ledger scan) — after we opened APM</td>
+      <td>Not an auto-filled Incident root cause</td>
+    </tr>
+    <tr>
+      <td>08 Package</td>
+      <td>Absent (0 Incidents / 0 Watchdog anomalies)</td>
+      <td>Not Insights/Incident RCA packaging</td>
+    </tr>
+  </table>
+  <div class="note warn">
+    Teach both layers. Collapsing “no Incident / no Alert” into “Datadog didn’t see it” is wrong —
+    stage 03 spans prove the leaf. Collapsing “we found it in APM” into “Datadog Detected it” is also wrong —
+    stage 05 stayed quiet. Detail: <a href="#insight">§2 Write ≠ Detect ≠ Localize</a>.
+  </div>
+
+  <h2 id="compare">10) vs Datadog ERROR (e3 Observed)</h2>
+  <table>
+    <tr><th></th><th>ERROR (2026-08-10)</th><th>SLOWDOWN (2026-08-11)</th></tr>
+    <tr><td>Leaf HTTP</td><td>500 KeyError</td><td>200 · slow</td></tr>
+    <tr><td>Cascade</td><td>callers 502</td><td>callers 200 · wait</td></tr>
+    <tr><td>Signal</td><td><code>status:error</code> / error rate</td><td><code>@duration</code> / p95</td></tr>
+    <tr><td>Flamegraph leaf</td><td>deepest error</td><td>longest span</td></tr>
+    <tr><td>Door A</td><td>Flask High Error Rate → <strong>Alert</strong> after sustain</td><td>error-rate <strong>OK</strong>; latency Door A absent</td></tr>
+    <tr><td>Door B APM</td><td>0 stories</td><td>0 stories</td></tr>
+    <tr><td>Incident</td><td>0</td><td>0</td></tr>
+    <tr><td>Bits peer</td><td><a href="/dd-bits-error-review.html?cat=error">500 vs 502</a></td><td><a href="/dd-bits-slowdown-review.html?cat=slowdown">longest self-time</a></td></tr>
+    <tr><td>MTL peer</td><td><a href="/dd-error-mtl-dissection.html?cat=error">ERROR workbook</a></td><td><a href="/dd-slowdown-mtl-dissection.html?cat=slowdown">SLOWDOWN workbook</a></td></tr>
+  </table>
+  <p>Sibling timeline: <a href="/dd-lab-timeline-error.html">ERROR Observed</a>.</p>
+
+  <h2 id="scripts">11) Scripts</h2>
+  <div class="pre">cd datadog-rca-lab
+./scripts/run_slowdown_rca.sh --minutes 12
+# or:
+./scripts/break_inventory_slow_code.sh
+# … load …
+./scripts/heal_inventory_slow_code.sh</div>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dd-detect-categories.js" defer></script>
+</body>
+</html>

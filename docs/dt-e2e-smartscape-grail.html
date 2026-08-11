@@ -5,7 +5,7 @@
 <title>Dynatrace E2E — signal journey on Smartscape ∥ Grail</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta name="doc-revision" content="e2e-per-cat">
+<meta name="doc-revision" content="e2e-per-cat-v2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="/dt-davis-categories.js"></script>
@@ -207,10 +207,17 @@ function labSc(){
 }
 function patchStagesForCat(){
   const sc=labSc();
+  const pre = (sc.clocks && sc.clocks[0]) ? String(sc.clocks[0]).split('→')[0] : 't0';
+  STAGES.forEach(s=>{
+    if(s.key==='collect' || s.key==='normalize' || s.key==='topology' || s.key==='fanout'){
+      s.clock = 't ≈ '+pre+' UTC · pre-fault / fabric';
+    }
+  });
   const maintain=STAGES.find(s=>s.key==='maintain');
   const detect=STAGES.find(s=>s.key==='detect');
   const curate=STAGES.find(s=>s.key==='curate');
   const tailor=STAGES.find(s=>s.key==='tailor');
+  const localize=STAGES.find(s=>s.key==='localize');
   const identify=STAGES.find(s=>s.key==='identify');
   const verify=STAGES.find(s=>s.key==='verify');
   if(maintain){
@@ -229,19 +236,41 @@ function patchStagesForCat(){
     detect.clock='Events · '+sc.detectSignal;
     detect.blurb='Detectors score each entity’s Grail '+sc.detectSignal+' alone (threshold '+sc.detectThr+'). Cascade = separate Events. Smartscape is not walked here. Event ≠ Problem.';
     detect.teach='<b>Teaching:</b> Detect is lake-only. Signal = <code>'+sc.detectSignal+'</code> for this category.';
+    if(sc.id==='slowdown'){
+      detect.lake='READ — score response_time → SERVICE_SLOWDOWN Event storm (plus optional BATCH noise).';
+    }
   }
   if(curate){
     curate.clock='≈'+sc.problemAt+' UTC · seed';
+    curate.teach=sc.rcEntity===null
+      ? '<b>Teaching:</b> First case stage that needs the map. Seed tip prefers leaf INV · t0≈'+sc.problemAt+' · packaged RC may stay null (same-bucket).'
+      : '<b>Teaching:</b> First case stage that needs the map. Seed tip prefers deepest failure (INV) · t0≈'+sc.problemAt+'.';
   }
   if(tailor){
     tailor.clock='corridor ['+sc.faultWindow+'] UTC';
   }
+  if(localize){
+    localize.clock='≈'+sc.problemAt+' UTC · walk';
+  }
   if(identify){
     identify.clock='≈'+sc.problemAt+' UTC · evidence';
+    identify.blurb=sc.rcEntity===null
+      ? 'Scoped Grail pull for entities ∩ Tailor timeRange. Same-bucket SLOWDOWN → weak leaf ranking → packaged RC null.'
+      : 'Scoped Grail pull for entities ∩ Tailor timeRange; rank rootCauseRelevant. INV leads for this lab.';
   }
   if(verify){
     verify.clock='≈'+sc.problemAt+' UTC · '+sc.problem;
+    verify.blurb='Thin packager: Problem card with '+sc.rcLabel+', evidence, impact. Fabric underneath stays always-on.';
     verify.teach='<b>Outcome:</b> <code>'+sc.problem+'</code> · '+sc.rcLabel+'. Both rails feed the card.';
+  }
+  const norm=STAGES.find(s=>s.key==='normalize');
+  if(norm && sc.id==='slowdown'){
+    norm.blurb='One envelope, then a fork: status+duration → slow_call (for RT Detect later) and raw_ids → lookup_keys (for Topology LUT). Still no pin. Not a 5xx / failed_call path.';
+    norm.lake='No write. slow_call / duration is a future Detect input.';
+  }
+  const fan=STAGES.find(s=>s.key==='fanout');
+  if(fan && sc.id==='slowdown'){
+    fan.lake='WRITE — slow 200 span + response_time under entityId=SERVICE-INV.';
   }
   const el=document.getElementById('e2eLabIds');
   if(el) el.innerHTML='<code>'+sc.problem+'</code>';
@@ -577,11 +606,21 @@ function drawMiniLake(x,y,w,h,mode,lit){
     label(x+w/2, y+h/2, 'no rows yet', COL.muted, 12, 'center');
     return;
   }
-  const rows = [
-    {t:'05:50', s:'200', c:COL.ok},
-    {t:'05:54', s:'500', c:COL.seed},
-    {t:'05:59', s:'0.92', c:COL.seed}
-  ];
+  const sc = labSc();
+  let rows;
+  if (sc.id==='slowdown') {
+    rows = [
+      {t:'14:55', s:'200', c:COL.ok},
+      {t:'15:05', s:'~9s', c:COL.seed},
+      {t:'15:06', s:'API↑', c:COL.seed}
+    ];
+  } else {
+    rows = [
+      {t:'05:50', s:'200', c:COL.ok},
+      {t:'05:54', s:'500', c:COL.seed},
+      {t:'05:59', s:'0.92', c:COL.seed}
+    ];
+  }
   const show = mode==='fanout' ? rows.slice(0,1) : rows;
   show.forEach((r,i) => {
     const yy = y + 32 + i*18;

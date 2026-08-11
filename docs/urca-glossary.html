@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unified RCA · Docs hub glossary</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441;
+  --text:#f2f5f8; --muted:#d8e0e8; --faint:#b0bac6; --accent:#7BA8F5;
+  --ok:#7aecc4; --warn:#F0B35A; --dt:#7ec8b8; --dd:#7BA8F5; --ours:#c4b5fd;
+  --radius:8px; --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font);font-size:16px;line-height:1.55;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2438 0%,transparent 55%),var(--bg);}
+a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+.wrap{max-width:52rem;margin:0 auto;padding:1.5rem 1.25rem 4rem;}
+.eyebrow{font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);}
+h1{font-size:1.75rem;font-weight:700;margin:.35rem 0 .75rem;}
+h2{font-size:1.2rem;font-weight:650;margin:2rem 0 .65rem;padding-top:.75rem;border-top:1px solid var(--stroke);}
+h3{font-size:1rem;font-weight:650;margin:1.25rem 0 .4rem;color:var(--ok);}
+.lead{color:var(--muted);margin:0 0 1rem;max-width:46rem;}
+.lead code,.note code,td code,li code,p code,dt code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#b8d4ff;}
+.note{margin:1rem 0;padding:.8rem 1rem;border-radius:var(--radius);background:rgba(91,141,239,.12);border-left:3px solid var(--accent);color:var(--muted);font-size:.95rem;}
+.warn{border-left-color:var(--warn);background:rgba(240,179,90,.1);}
+.ok{border-left-color:var(--ok);background:rgba(95,224,176,.08);}
+.toc{margin:1rem 0;padding:.85rem 1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
+.toc a{display:inline-block;margin:.2rem .75rem .2rem 0;font-size:.95rem;}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 1rem;}
+.filters button{font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:5px;border:1px solid var(--stroke);
+  background:var(--bg-soft);color:var(--muted);cursor:pointer;}
+.filters button.on{color:var(--ok);border-color:rgba(122,236,196,.5);background:rgba(122,236,196,.1);}
+.section[data-hide="1"]{display:none;}
+dl.g{margin:.4rem 0 1rem;}
+.g dt{font-family:var(--mono);font-size:.92rem;font-weight:600;color:var(--text);margin:.55rem 0 .15rem;}
+.g dd{margin:0 0 .15rem 0;color:var(--muted);font-size:.95rem;padding-left:.1rem;}
+.g dd .tag{display:inline-block;font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;text-transform:uppercase;
+  padding:.1rem .35rem;border-radius:3px;margin-right:.35rem;vertical-align:middle;}
+.tag.conflict{background:rgba(240,179,90,.2);color:var(--warn);}
+.tag.ours{background:rgba(196,181,253,.18);color:var(--ours);}
+.tag.dt{background:rgba(126,200,184,.18);color:var(--dt);}
+.tag.dd{background:rgba(123,168,245,.18);color:var(--dd);}
+.tag.lab{background:rgba(176,186,198,.15);color:var(--faint);}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin:.5rem 0 1rem;}
+th,td{text-align:left;vertical-align:top;padding:.45rem .5rem;border-bottom:1px solid var(--stroke);color:var(--muted);}
+th{color:var(--faint);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;}
+td strong{color:var(--text);}
+p{color:var(--muted);}
+ul{margin:.35rem 0 .8rem 1.15rem;} li{margin:.25rem 0;color:var(--muted);} li strong{color:var(--text);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Docs hub · reference</div>
+  <h1>Glossary</h1>
+  <p class="lead">
+    Short definitions for taxonomy used across Our HLD, Dynatrace hub, Datadog hub, and DT vs DD.
+    Conflict terms are listed first — same word, different meaning by surface.
+  </p>
+  <div class="note ok">
+    Reading path: <a href="/observeops-pipeline-hld.html">Our HLD</a> →
+    <a href="/dt-davis-category-hub.html">DT hub</a> →
+    <a href="/dd-detect-category-hub.html">DD hub</a> →
+    <a href="/comparable-pipeline-dt-dd.html">DT vs DD</a>.
+    Bakeoff/engine terms (Lean Tier, L0/F1, Panorama…):
+    <a href="/docs/GLOSSARY.md">GLOSSARY.md</a>.
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#conflicts">Conflicts</a>
+    <a href="#ours">Ours (HLD)</a>
+    <a href="#clock">Clock A/B</a>
+    <a href="#dt">Dynatrace</a>
+    <a href="#dd">Datadog</a>
+    <a href="#gen">Obs generations</a>
+    <a href="#lab">Lab appendix</a>
+    <a href="#bakeoff">Bakeoff link</a>
+  </nav>
+
+  <div class="filters" role="group" aria-label="Filter sections">
+    <button type="button" class="on" data-filter="all">All</button>
+    <button type="button" data-filter="conflicts">Conflicts</button>
+    <button type="button" data-filter="ours">Ours</button>
+    <button type="button" data-filter="dt">Dynatrace</button>
+    <button type="button" data-filter="dd">Datadog</button>
+    <button type="button" data-filter="gen">Generations</button>
+    <button type="button" data-filter="lab">Lab</button>
+  </div>
+
+  <section class="section" data-sec="conflicts" id="conflicts">
+    <h2>Cross-vendor conflicts (read first)</h2>
+    <p>Do not flatten these across surfaces.</p>
+    <table>
+      <thead><tr><th>Term</th><th>Ours</th><th>Dynatrace</th><th>Datadog</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Maintain</strong></td>
+          <td>E5 — retention, freshness, change feed</td>
+          <td>Named fabric stage (Smartscape + Grail lifecycle)</td>
+          <td><strong>No Maintain stage</strong> — continuous <strong>03 Write</strong> + product retention</td>
+        </tr>
+        <tr>
+          <td><strong>Detect</strong></td>
+          <td>E6 — fault <em>signals</em> only</td>
+          <td>Detectors → <strong>Events</strong> (Event ≠ Problem)</td>
+          <td>Door A Monitors ∥ Door B Watchdog (can be <em>empty</em> while Write is loud)</td>
+        </tr>
+        <tr>
+          <td><strong>Localize</strong></td>
+          <td>E9 — leaf by Detect class</td>
+          <td>Smartscape walk → <code>rootCauseEntity</code> (may be null)</td>
+          <td>Flamegraph leaf (operator / Bits); no <code>rootCauseEntity</code></td>
+        </tr>
+        <tr>
+          <td><strong>Package</strong></td>
+          <td>E11 — required verdict card</td>
+          <td><strong>Problem</strong> (Davis default)</td>
+          <td><strong>Bits</strong> optional · <strong>Incident</strong> often 0</td>
+        </tr>
+        <tr>
+          <td><strong>Curate / Scope / Tailor</strong></td>
+          <td>E7 Curate · <strong>E8 Scope</strong></td>
+          <td>Curate → seed; <strong>Tailor</strong> = space∩time cut</td>
+          <td>Weak auto-merge; operator/Bits scopes (≈ Tailor/Scope)</td>
+        </tr>
+        <tr>
+          <td><strong>Fan-out</strong></td>
+          <td>Compare lens: parallel write geometry</td>
+          <td>Smartscape upserts ∥ Grail evidence</td>
+          <td>Three-rail Write (not dual-track). Also: Motadata/L0 cost routing ≠ this</td>
+        </tr>
+        <tr>
+          <td><strong>Map / lake</strong></td>
+          <td>E3 Topology · E4 Stores (hybrid OK)</td>
+          <td>Smartscape · Grail</td>
+          <td>Service Map (APM-derived) · Metrics store ∥ Husky — not Grail</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="note warn">
+      <strong style="color:var(--text)">Never equate:</strong>
+      Problem ↔ Incident · Event ↔ Watchdog story · Smartscape ↔ Service Map ·
+      Grail ↔ Husky · Dual-track ↔ Three-rail · Davis ↔ Bits · Alert ↔ packaged RCA.
+    </div>
+    <dl class="g">
+      <dt><span class="tag conflict">conflict</span> ∥ (parallel)</dt>
+      <dd>Means parallel paths / simultaneous writes — not “next step in a sequence.”</dd>
+      <dt><span class="tag conflict">conflict</span> Scope ≡ Tailor</dt>
+      <dd>Same job (lock entities + time for diagnosis). HLD calls it <strong>E8 Scope</strong>; DT/Clock A teaching often says <strong>Tailor</strong>. Glossary treats them as aliases.</dd>
+      <dt><span class="tag conflict">conflict</span> leaf (DT) vs Leaf (DD)</dt>
+      <dd>DT teaching: deepest topo tip on the call path (often the seed preference). DD stage 07: localize claim by Detect class (deepest error span or longest self-time) — Map ≠ Leaf.</dd>
+      <dt><span class="tag conflict">conflict</span> Verify vs Package</dt>
+      <dd>NAV workflow ends in Verify; vendor compare often folds Verify/Package. HLD has E11 Package without a separate Verify block.</dd>
+    </dl>
+  </section>
+
+  <section class="section" data-sec="ours" id="ours">
+    <h2>Our HLD (ObserveOps)</h2>
+    <p>Canonical: <a href="/observeops-pipeline-hld.html">observeops-pipeline-hld.html</a> · <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">OBSERVEOPS_PIPELINE_HLD.md</a></p>
+    <h3>Layers</h3>
+    <dl class="g">
+      <dt><span class="tag ours">ours</span> Layer E · Engineering</dt>
+      <dd>Required fabric + case pipeline (Collect through Package). Writes, Detect, scope, localize, package.</dd>
+      <dt><span class="tag ours">ours</span> Layer I · Interpret</dt>
+      <dd>How a human (or Bits-like agent) reads <em>one</em> Observed run — Timeline, MTL workbook, Bits. Not a storage or Detect engine.</dd>
+    </dl>
+    <h3>Blocks E1–E11</h3>
+    <dl class="g">
+      <dt><span class="tag ours">ours</span> E1 Collect</dt>
+      <dd>Edge intake → raw / near-raw payloads.</dd>
+      <dt><span class="tag ours">ours</span> E2 Identity</dt>
+      <dd>Join-ready records (tags and/or entity id).</dd>
+      <dt><span class="tag ours">ours</span> E3 Topology</dt>
+      <dd>Walkable neighbors + edges (typed graph or derived — LLD decision).</dd>
+      <dt><span class="tag ours">ours</span> E4 Stores</dt>
+      <dd>Queryable history under Identity (not forced to one Grail).</dd>
+      <dt><span class="tag ours">ours</span> E5 Maintain</dt>
+      <dd>Retention, indexing, discovery freshness, version/deploy change feed — fresh fabric for Detect.</dd>
+      <dt><span class="tag ours">ours</span> E6 Detect</dt>
+      <dd>Fault <em>signals</em> only — not a ranked root cause.</dd>
+      <dt><span class="tag ours">ours</span> E7 Curate</dt>
+      <dd>Collapse a storm of signals into one case seed.</dd>
+      <dt><span class="tag ours">ours</span> E8 Scope</dt>
+      <dd>Lock time window + candidate set for diagnosis (alias of Clock A Tailor).</dd>
+      <dt><span class="tag ours">ours</span> E9 Localize</dt>
+      <dd>Leaf claim — rule depends on Detect class (deepest error vs longest self-time, etc.).</dd>
+      <dt><span class="tag ours">ours</span> E10 Identify</dt>
+      <dd>Ranked multimodal evidence bundle around the leaf.</dd>
+      <dt><span class="tag ours">ours</span> E11 Package</dt>
+      <dd>Operator verdict card; Bits-style narrative optional on top.</dd>
+    </dl>
+    <h3>Other Ours terms</h3>
+    <dl class="g">
+      <dt><span class="tag ours">ours</span> Detect class</dt>
+      <dd>Semantic plug-in (ERROR, SLOWDOWN, …): same E-blocks, different Localize rule.</dd>
+      <dt><span class="tag ours">ours</span> MTL workbook</dt>
+      <dd>Layer I: Metrics ∥ Traces ∥ Logs queries/counts for one Observed window.</dd>
+      <dt><span class="tag ours">ours</span> Bits (Interpret)</dt>
+      <dd>Layer I packaging walk / optional E11 narrator — not Collect/Detect fabric.</dd>
+      <dt><span class="tag ours">ours</span> D1–D5</dt>
+      <dd>Open HLD decisions (topology style, stores, Curate strength, Package policy, AI placement).</dd>
+    </dl>
+  </section>
+
+  <section class="section" data-sec="ours" id="clock">
+    <h2>Clock A / Clock B (shared teaching lens)</h2>
+    <p>Optional pattern vocabulary after reading each vendor natively. See also <a href="/clock-ab-stage-reference.html">clock-ab-stage-reference.html</a>.</p>
+    <dl class="g">
+      <dt>Clock A</dt>
+      <dd>Always-on fabric + case open: Collect → … → Maintain → Detect → Curate → Tailor. (Datadog remaps Maintain → continuous <strong>03 Write</strong>.)</dd>
+      <dt>Clock B</dt>
+      <dd>Diagnose after Tailor working set: Localize → Identify → Package (Lean vs Fed algorithms).</dd>
+      <dt>5+3+3</dt>
+      <dd>Teaching split: 5 always-on · 3 case-open · 3 diagnose (DT-oriented).</dd>
+      <dt>Always-on fabric</dt>
+      <dd>Continuous write with no incident yet (Collect through Maintain / DD Write).</dd>
+      <dt>Case opens</dt>
+      <dd>Something crossed a line: Detect → Curate → Tailor/Scope.</dd>
+      <dt>seed</dt>
+      <dd>Curate handoff tip <code>(entityId, t0)</code> — not yet the packaged root cause.</dd>
+      <dt>storm</dt>
+      <dd>Pile of raw Detect signals before Curate merges them.</dd>
+      <dt>cascade</dt>
+      <dd>Failure spreads along callers (FE→product→inventory); many symptoms, one leaf.</dd>
+      <dt>working set</dt>
+      <dd>Tailor/Scope output: entities + time range for Localize/Identify.</dd>
+      <dt>symptom seed</dt>
+      <dd>Where pain showed — start of search, usually not the root.</dd>
+      <dt>parity-shared-detect</dt>
+      <dd>Bakeoff: same alerts to both engines; score Localize only.</dd>
+    </dl>
+  </section>
+
+  <section class="section" data-sec="dt" id="dt">
+    <h2>Dynatrace hub</h2>
+    <p>Hub: <a href="/dt-davis-category-hub.html">dt-davis-category-hub.html</a> · Thesis · Breakdown · Dual-track · Timeline</p>
+    <h3>Stages &amp; products</h3>
+    <dl class="g">
+      <dt><span class="tag dt">dt</span> Collect · Normalize · Topology bind · Fan-out · Maintain</dt>
+      <dd>Always-on path into Smartscape ∥ Grail. Maintain keeps map/lake fresh — does not pick root cause.</dd>
+      <dt><span class="tag dt">dt</span> Detect · Curate · Tailor</dt>
+      <dd>Detectors raise Events; Curate merges to a seed; Tailor cuts space∩time for Davis.</dd>
+      <dt><span class="tag dt">dt</span> Localize · Identify · Package</dt>
+      <dd>Davis walk + Grail rank → Problem card.</dd>
+      <dt><span class="tag dt">dt</span> Davis</dt>
+      <dd>Thin correlator/packager on continuous fabric — not the whole RCA system.</dd>
+      <dt><span class="tag dt">dt</span> Smartscape</dt>
+      <dd>Live CI/relationship map (who calls whom / runsOn). Not metric history.</dd>
+      <dt><span class="tag dt">dt</span> Grail</dt>
+      <dd>Multimodal evidence lake keyed by <code>entityId</code> + time; query with DQL.</dd>
+      <dt><span class="tag dt">dt</span> dual-track</dt>
+      <dd>Smartscape (map) ∥ Grail (lake) joined by shared <code>entityId</code>.</dd>
+      <dt><span class="tag dt">dt</span> entityId</dt>
+      <dd>Shared id: Smartscape node and Grail partition key after bind.</dd>
+      <dt><span class="tag dt">dt</span> Bind LUT</dt>
+      <dd>Flat <code>raw key → entityId</code> stamp — not a graph walk.</dd>
+      <dt><span class="tag dt">dt</span> OneAgent · OTLP</dt>
+      <dd>Edge collect paths into the tenant.</dd>
+      <dt><span class="tag dt">dt</span> DQL</dt>
+      <dd>Grail query language for scoped reads; does not rebuild Smartscape.</dd>
+    </dl>
+    <h3>Event / Problem</h3>
+    <dl class="g">
+      <dt><span class="tag dt">dt</span> Event</dt>
+      <dd>One Detect breach record for an entity+time. Not a Problem.</dd>
+      <dt><span class="tag dt">dt</span> Problem</dt>
+      <dd>Packaged RCA card after Curate→Tailor→Davis (may still have <code>rootCauseEntity=null</code>).</dd>
+      <dt><span class="tag dt">dt</span> Event ≠ Problem</dt>
+      <dd>Core teaching invariant.</dd>
+      <dt><span class="tag dt">dt</span> rootCauseEntity</dt>
+      <dd>Packaged entity RC on the Problem; null when Events align / ranking weak.</dd>
+      <dt><span class="tag dt">dt</span> rootCauseRelevant</dt>
+      <dd>Per-evidence flag on contributing Events.</dd>
+      <dt><span class="tag dt">dt</span> leaf (topo)</dt>
+      <dd>Deepest service on the call path (inventory in the lab) — preferred seed tip; timing ≠ role.</dd>
+      <dt><span class="tag dt">dt</span> same start bucket</dt>
+      <dd>Events share the same start minute → often weak temporal leaf ranking / null entity RC.</dd>
+      <dt><span class="tag dt">dt</span> discovery-first</dt>
+      <dd>Smartscape from observed traffic; CMDB optional enrich, not required.</dd>
+    </dl>
+    <h3>Categories &amp; hub chrome</h3>
+    <dl class="g">
+      <dt><span class="tag dt">dt</span> ERROR · SLOWDOWN · MONITORING_UNAVAILABLE · AVAILABILITY · RESOURCE_CONTENTION · CUSTOM_ALERT</dt>
+      <dd>Davis event categories framing Detect; shared pages via <code>?cat=</code>.</dd>
+      <dt><span class="tag dt">dt</span> Thesis · Breakdown · Dual-track · Timeline</dt>
+      <dd>Teaching spine slots for each category.</dd>
+      <dt><span class="tag dt">dt</span> Observed · Public framing · Inferred · Teaching</dt>
+      <dd>Honesty labels for evidence provenance.</dd>
+    </dl>
+  </section>
+
+  <section class="section" data-sec="dd" id="dd">
+    <h2>Datadog hub</h2>
+    <p>Hub: <a href="/dd-detect-category-hub.html">dd-detect-category-hub.html</a> · Thesis · Breakdown · Three-rail · Timeline · Interpret (MTL · Bits)</p>
+    <h3>Eight stages (no Maintain)</h3>
+    <dl class="g">
+      <dt><span class="tag dd">dd</span> 01 Agent</dt>
+      <dd>Edge collect: host/container sources ∥ application sources (<code>ddtrace</code>, DogStatsD, log tails) → Datadog intake. Lab does <em>not</em> push via Datadog HTTP REST.</dd>
+      <dt><span class="tag dd">dd</span> 02 Tagging</dt>
+      <dd>Unified Service Tags (<code>service</code> · <code>env</code> · <code>version</code> · host) for join.</dd>
+      <dt><span class="tag dd">dd</span> 03 Write (M ∥ APM ∥ Logs)</dt>
+      <dd>Continuous write of the three rails into Metrics timeseries ∥ Husky events. Includes live baseline — <strong>not</strong> Detect.</dd>
+      <dt><span class="tag dd">dd</span> 04 Service Map</dt>
+      <dd>APM-derived peers — topology only; Map ≠ Leaf.</dd>
+      <dt><span class="tag dd">dd</span> 05 Monitors · Watchdog</dt>
+      <dd>Detect via two independent Doors (or empty foghorn).</dd>
+      <dt><span class="tag dd">dd</span> 06 Triage · Related</dt>
+      <dd>After Detect (or when Detect is empty): pick the primary symptom card / window and lock env · version · time.</dd>
+      <dt><span class="tag dd">dd</span> 07 Leaf · tag join</dt>
+      <dd>Name the causal tip on the flamegraph / spans, then corroborate across rails by tags (+ <code>trace_id</code>).</dd>
+      <dt><span class="tag dd">dd</span> 08 Bits ∥ Incident</dt>
+      <dd>Optional packaging; Incident often 0.</dd>
+    </dl>
+    <h3>Edge emitters (lab → Agent)</h3>
+    <dl class="g">
+      <dt><span class="tag dd">dd</span> ddtrace</dt>
+      <dd>Python APM library: spans → Agent Trace intake (<code>:8126</code>). Feeds the APM rail, Service Map peers, and APM-derived metrics. Lab: <code>from ddtrace import tracer</code> in <code>telemetry.py</code>.</dd>
+      <dt><span class="tag dd">dd</span> DogStatsD</dt>
+      <dd>UDP custom metrics to Agent (<code>:8125</code>). Lab counters like <code>rca.inventory.stock.errors</code> / <code>…ok</code> — Metrics rail, not APM spans. Separate from <code>ddtrace</code>.</dd>
+      <dt><span class="tag dd">dd</span> JSON logs (+ <code>dd.trace_id</code>)</dt>
+      <dd>Stdout / file tails via Agent log config. Same Unified Service Tags; <code>dd.trace_id</code> joins a log line to its span.</dd>
+    </dl>
+    <h3>Rails · Doors · Triage · Leaf</h3>
+    <dl class="g">
+      <dt><span class="tag dd">dd</span> rails / three-rail</dt>
+      <dd>Operator UI evidence channels: <strong>Metrics ∥ APM (Traces) ∥ Logs</strong>, joined by Unified Service Tags. Backend: Metrics timeseries ∥ Husky (traces + logs). Teaching page: Three-rail. Not Dynatrace dual-track (Smartscape ∥ Grail).</dd>
+      <dt><span class="tag dd">dd</span> Doors</dt>
+      <dd>Two parallel Detect entries at stage 05 — independent; either, both, or neither may fire. Door ≠ Bits ≠ Incident.</dd>
+      <dt><span class="tag dd">dd</span> Door A · Monitors</dt>
+      <dd>Explicit query + threshold (pack- or user-authored). Lab ERROR: Flask High Error Rate (<code>310925690</code>, <code>min(last_15m)</code>). SLOWDOWN: same error Door stays OK on HTTP 200; a latency/p95 Door A was never scoped → no Alert.</dd>
+      <dt><span class="tag dd">dd</span> Door B · Watchdog</dt>
+      <dd>Anomaly stories (<code>source:watchdog</code>) without that hand-written query — APM and/or Logs Insights; optional APM bridge monitor (<code>310485027</code>). Lab SLOWDOWN: 0 APM Watchdog stories.</dd>
+      <dt><span class="tag dd">dd</span> Triage</dt>
+      <dd>Stage 06: choose which symptom is primary (hot Door card, Insights, or — when Detect is empty — an operator-chosen latency window) and lock scope (env / version / UTC range) before Localize. Not Curate/Problem merge.</dd>
+      <dt><span class="tag dd">dd</span> Leaf</dt>
+      <dd>Stage 07 localize claim: the span/resource where work actually fails or burns time — <strong>not</strong> Service Map red, not the first Door alert. ERROR → deepest <code>status:error</code> span; SLOWDOWN → longest <strong>self-time</strong> (lab: <code>inventory.stock</code>). Then tag-join corroboration across rails. No <code>rootCauseEntity</code> field.</dd>
+      <dt><span class="tag dd">dd</span> self-time</dt>
+      <dd>Time spent inside a span (vs wall time waiting on children). SLOWDOWN Leaf rule.</dd>
+    </dl>
+    <h3>Core teaching rules</h3>
+    <dl class="g">
+      <dt><span class="tag dd">dd</span> Write ≠ Detect ≠ Localize</dt>
+      <dd>Loud explorers (03 Write / rails) ≠ Door Alert (05) ≠ naming the Leaf (07). SLOWDOWN Observed: Write loud, Detect empty, operator Triage + Leaf.</dd>
+      <dt><span class="tag dd">dd</span> Detect ≠ Bits ≠ Incident</dt>
+      <dd>Door Alert/story ≠ Bits Investigation ≠ Incident card.</dd>
+      <dt><span class="tag dd">dd</span> empty Detect / foghorn</dt>
+      <dd>Stage 05 quiet while stage 03 has data. Foghorn = teaching word for “a Door fired,” not a product name.</dd>
+      <dt><span class="tag dd">dd</span> Metrics timeseries ∥ Husky</dt>
+      <dd>Backend stores behind the three rails: classic Metrics store separate from Husky Event Platform (traces + logs).</dd>
+      <dt><span class="tag dd">dd</span> Unified Service Tags · tag join</dt>
+      <dd>Join Metrics ∥ APM ∥ Logs by tags (+ <code>trace_id</code> for log↔span).</dd>
+      <dt><span class="tag dd">dd</span> Engineering vs Interpret</dt>
+      <dd>Hub chrome: Thesis/Breakdown/Three-rail/Timeline = engineering; MTL/Bits = Interpret one run.</dd>
+      <dt><span class="tag dd">dd</span> IPO</dt>
+      <dd>Input → Processing → Output shape on Breakdown stage blurbs.</dd>
+      <dt><span class="tag dd">dd</span> env:rca-lab-e3</dt>
+      <dd>Primary teaching environment tag (retire bare <code>rca-lab</code> / <code>rca-lab-e2</code> for Observed e3).</dd>
+      <dt><span class="tag dd">dd</span> live baseline · warm discovery</dt>
+      <dd>Healthy pre-break write (what normal looks like) · catalog/map already known from prior traffic. Taught at stage <strong>03 Write</strong>, not 05.</dd>
+    </dl>
+  </section>
+
+  <section class="section" data-sec="gen" id="gen">
+    <h2>Observability 1.0 / 2.0 / 3.0</h2>
+    <p>Scorecard: <a href="/observability-generations-dt-dd.html">observability-generations-dt-dd.html</a></p>
+    <dl class="g">
+      <dt>1.0 Three pillars</dt>
+      <dd>Separate stores; many questions fixed at write-time; manual join; threshold Detect.</dd>
+      <dt>2.0 Wide events</dt>
+      <dd>Wide-event primary evidence; late binding; fabric/entity join; entity/event UX — <strong>not</strong> “any correlation.”</dd>
+      <dt>3.0 AI assist</dt>
+      <dd>Anomaly Detect first-class; <em>default</em> RCA package; less babysitting — <strong>not</strong> “has Watchdog or Bits.”</dd>
+      <dt>correlate ≠ 2.0</dt>
+      <dd>1.0 already correlates alerts/metrics; 2.0 is an evidence-model claim.</dd>
+      <dt>AI surfaces ≠ 3.0</dt>
+      <dd>Optional Watchdog/Bits/Davis AI ≠ clean generation-3 match.</dd>
+      <dt>Pass / Partial / Fail · hybrid</dt>
+      <dd>Scorecard language; DT and DD score as hybrids (not clean 2.0 or 3.0).</dd>
+      <dt>C1–C4</dt>
+      <dd>Must-pass criteria ids per generation on the scorecard page.</dd>
+    </dl>
+  </section>
+
+  <section class="section" data-sec="lab" id="lab">
+    <h2>Lab appendix (compact)</h2>
+    <dl class="g">
+      <dt><span class="tag lab">lab</span> FE → product → inventory</dt>
+      <dd>Shared checkout call chain; teaching leaf = inventory.</dd>
+      <dt><span class="tag lab">lab</span> P-260817 · P-260814 · P-260820 · P-260826 · P-260831</dt>
+      <dd>DT Observed Problems (ERROR · contrast · SLOWDOWN · monitoring-dark · AVAILABILITY). Do not reuse ERROR clocks for SLOWDOWN.</dd>
+      <dt><span class="tag lab">lab</span> dual-lab / P-26084 teaching window</dt>
+      <dd>DT ERROR teaching clocks (~05:54→06:04 UTC) — not IST, not SLOWDOWN.</dd>
+      <dt><span class="tag lab">lab</span> KeyError · ledger-scan</dt>
+      <dd>ERROR code defect · SLOWDOWN CPU scan (HTTP 200).</dd>
+      <dt><span class="tag lab">lab</span> W1 / W2</dt>
+      <dd>DD ERROR e3 fault windows (short vs sustained for Door A <code>min(last_15m)</code>).</dd>
+      <dt><span class="tag lab">lab</span> 310925690 · 310485027</dt>
+      <dd>DD Flask High Error Rate monitor · Watchdog APM bridge monitor (lab Observed).</dd>
+      <dt><span class="tag lab">lab</span> visibility dark</dt>
+      <dd>Telemetry/agent off while process/HTTP may still work (MONITORING_UNAVAILABLE teaching).</dd>
+    </dl>
+  </section>
+
+  <section class="section" data-sec="all" id="bakeoff">
+    <h2>Bakeoff &amp; engine glossary</h2>
+    <p>
+      Lean Tier 1/2/3 · L0/F1 · Panorama / Murphy / Nezha · corpus names:
+      <a href="/docs/GLOSSARY.md"><code>docs/GLOSSARY.md</code></a>
+      (disambiguation for engine docs — not duplicated here).
+    </p>
+  </section>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script>
+(function () {
+  var buttons = document.querySelectorAll(".filters button");
+  var sections = document.querySelectorAll(".section[data-sec]");
+  function apply(f) {
+    buttons.forEach(function (b) {
+      b.classList.toggle("on", b.getAttribute("data-filter") === f);
+    });
+    sections.forEach(function (s) {
+      var sec = s.getAttribute("data-sec");
+      var show = f === "all" || sec === f || sec === "all";
+      s.setAttribute("data-hide", show ? "0" : "1");
+    });
+  }
+  buttons.forEach(function (b) {
+    b.addEventListener("click", function () {
+      apply(b.getAttribute("data-filter"));
+    });
+  });
+})();
+</script>
+</body>
+</html>

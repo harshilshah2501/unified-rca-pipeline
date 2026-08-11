@@ -39,34 +39,37 @@
       id: "monitoring_unavailable",
       name: "MONITORING_UNAVAILABLE",
       title: "MONITORING_UNAVAILABLE · Visibility dark",
-      blurb: "OneAgent / ingest dark — meta outage of visibility, not app fault.",
+      blurb: "OneAgent / ingest dark — meta outage of visibility, not app fault. Inventory HTTP stayed 200.",
       detect: "agent / ingest availability",
-      status: "planned",
-      problem: null,
+      status: "observed",
+      problem: "P-260826",
       lab: "/dt-cat-monitoring-unavailable-lab.html",
-      signal: "monitoring"
+      signal: "monitoring",
+      agentTask: "/docs/agent-tasks/dt-monitoring-unavailable.md"
     },
     {
       id: "availability",
       name: "AVAILABILITY",
       title: "AVAILABILITY · Host / process down",
-      blurb: "Hard outage, crash, process unavailable. Detect often from hard signals, not soft % thresholds.",
+      blurb: "Hard outage — inventory container stopped; callers fail. Severity AVAILABILITY on PG.",
       detect: "availability / process / host down",
-      status: "planned",
-      problem: null,
+      status: "observed",
+      problem: "P-260831",
       lab: "/dt-cat-availability-lab.html",
-      signal: "availability"
+      signal: "availability",
+      agentTask: "/docs/agent-tasks/dt-availability.md"
     },
     {
       id: "resource_contention",
       name: "RESOURCE_CONTENTION",
       title: "RESOURCE_CONTENTION · CPU / memory",
-      blurb: "Saturation on host/process. Smartscape runsOn walk matters more for seed tip.",
+      blurb: "Saturation on host/process. Agent task ready to run (background CPU burn).",
       detect: "CPU / memory / resource saturation",
-      status: "planned",
+      status: "agent_task",
       problem: null,
       lab: "/dt-cat-resource-contention-lab.html",
-      signal: "resource"
+      signal: "resource",
+      agentTask: "/docs/agent-tasks/dt-resource-contention.md"
     }
   ];
 
@@ -134,7 +137,22 @@
       identifyRows: ["failed_call↑ INV", "latency FE→API", "CPU HOST-B", "BATCH noise"],
       clearMetric: "error_rate",
       clockIntro:
-        "Clock = Observed dual-lab UTC (<code>P-26084</code>: fault ≈05:54 → Problem ≈06:04). ERROR path: 5xx / error_rate."
+        "Clock = Observed dual-lab UTC (<code>P-26084</code>: fault ≈05:54 → Problem ≈06:04). ERROR path: 5xx / error_rate.",
+      normalize: {
+        fieldsLine: "fields: status · raw_ids · modality",
+        outA: "OUT A · status=500",
+        outAHint: "→ STEP 2 Detect",
+        step2Title: "FAILURE LABEL",
+        step2Sub: "Detect path · not used by LUT",
+        step2In: "IN:  status=500",
+        step2Rule: "RULE: 5xx → true",
+        step2Out: "OUT: failed_call=true",
+        step2Note: "also: PAY→false · BATCH→unset",
+        detailFork:
+          "One envelope, two outputs: <code>status=500</code> → STEP 2; <code>raw_ids=[inventory,c8e91a]</code> → STEP 3.",
+        detailStep2:
+          "<code>failed_call=true</code> for failure-rate Detect later. Not an input to STEP 3 / LUT."
+      }
     },
     slowdown: {
       id: "slowdown",
@@ -155,9 +173,9 @@
       grailRows: [
         { e: "SERVICE-INV", ts: "14:55", w: "/inventory 200 · ~50ms", tone: "ok", from: 0 },
         { e: "SERVICE-INV", ts: "15:05", w: "/inventory 200 · ~9s", tone: "seed", from: 1 },
-        { e: "SERVICE-INV", ts: "15:05", w: "response_time ~9s", tone: "seed", from: 1 },
-        { e: "SERVICE-API", ts: "15:05", w: "RT cascade (waits INV)", tone: "muted", from: 1 },
-        { e: "SERVICE-FE", ts: "15:05", w: "RT cascade (waits INV)", tone: "muted", from: 1 },
+        { e: "SERVICE-INV", ts: "15:05", w: "response_time ~9s (leaf)", tone: "seed", from: 1 },
+        { e: "SERVICE-API", ts: "15:06", w: "RT cascade (waits INV)", tone: "muted", from: 1 },
+        { e: "SERVICE-FE", ts: "15:07", w: "RT cascade (waits API)", tone: "muted", from: 1 },
         { e: "SERVICE-INV", ts: "15:20", w: "/inventory 200 · ~50ms", tone: "ok", from: 3 }
       ],
       detectSignal: "resp_time_s",
@@ -165,9 +183,9 @@
       detectMax: 10.0,
       detectTitles: [
         "① Watch — each service’s response_time vs fixed threshold (lab 2s)",
-        "② Breach — INV crosses threshold → first SERVICE_SLOWDOWN Event",
-        "③ Cascade — API then FE each open their own SLOWDOWN Event",
-        "④ Storm — raw Event list; still no Problem card"
+        "② Breach — INV crosses first (leaf slows before callers notice)",
+        "③ Cascade — API then FE RT rise after wait; each opens own Event",
+        "④ Storm — Event *start* times still same minute bucket (Observed)"
       ],
       detectSeries: [
         { id: "SERVICE-INV", signal: "resp_s", y: 110, healthy: 0.05, fault: 9.0, order: 0 },
@@ -175,10 +193,10 @@
         { id: "SERVICE-FE", signal: "resp_s", y: 230, healthy: 0.1, fault: 9.2, order: 2 }
       ],
       events: [
-        { type: "SERVICE_SLOWDOWN", e: "SERVICE-INV", ts: "15:05", v: "~9s", from: 1 },
-        { type: "SERVICE_SLOWDOWN", e: "SERVICE-API", ts: "15:05", v: "~9s", from: 2 },
-        { type: "SERVICE_SLOWDOWN", e: "SERVICE-FE", ts: "15:05", v: "~9s", from: 3 },
-        { type: "PROCESS_CPU_HIGH", e: "SERVICE-BATCH", ts: "15:06", v: "0.81", from: 3, noise: true }
+        { type: "SERVICE_SLOWDOWN", e: "SERVICE-INV", ts: "15:05", v: "~9s", from: 1, role: "topo leaf" },
+        { type: "SERVICE_SLOWDOWN", e: "SERVICE-API", ts: "15:05", v: "~9s", from: 2, role: "topo caller" },
+        { type: "SERVICE_SLOWDOWN", e: "SERVICE-FE", ts: "15:05", v: "~9s", from: 3, role: "topo edge" },
+        { type: "PROCESS_CPU_HIGH", e: "SERVICE-BATCH", ts: "15:06", v: "0.81", from: 3, noise: true, role: "noise" }
       ],
       packageLines: [
         ["rootCauseEntity", "null"],
@@ -188,40 +206,55 @@
       identifyRows: ["long INV span ~9s", "RT FE→product→INV", "CPU HOST-B", "BATCH noise"],
       clearMetric: "response_time",
       clockIntro:
-        "Clock = Observed SLOWDOWN lab UTC (<code>P-260820</code>: Events ≈15:05 → Problem ≈15:10). HTTP <b>200</b> slow path — not 5xx."
+        "Clock = Observed SLOWDOWN <code>P-260820</code>. <b>Grail</b> cascade is staggered (INV ~15:05 → API ~15:06 → FE ~15:07). <b>Detect Event starts</b> still landed in the <b>same minute bucket</b> ≈15:05 → packaged <code>rootCauseEntity=null</code>. Soft latency ≠ hard 5xx leaf timing.",
+      normalize: {
+        fieldsLine: "fields: status · duration · raw_ids · modality",
+        outA: "OUT A · status=200 · ~9s",
+        outAHint: "→ STEP 2 Detect",
+        step2Title: "LATENCY LABEL",
+        step2Sub: "Detect path · not used by LUT",
+        step2In: "IN:  status=200 · duration≈9s",
+        step2Rule: "RULE: slow OK → RT series",
+        step2Out: "OUT: slow_call=true",
+        step2Note: "failed_call=false (not a 5xx path)",
+        detailFork:
+          "One envelope, two outputs: <code>status=200 · duration≈9s</code> → STEP 2; <code>raw_ids=[inventory,c8e91a]</code> → STEP 3.",
+        detailStep2:
+          "<code>slow_call=true</code> feeds response-time Detect later (SLOWDOWN). Not an input to STEP 3 / LUT. No <code>failed_call</code> from 5xx."
+      }
     },
     monitoring_unavailable: {
       id: "monitoring_unavailable",
-      problem: "(planned)",
-      problemNote: "illustrative — lab not run",
-      rcEntity: "HOST-B / OneAgent",
-      rcLabel: "seed tip = monitoring / agent dark (illustrative)",
-      clocks: ["t0", "t0+gap", "Problem", "restored"],
-      faultWindow: "agent dark window",
-      problemAt: "Problem",
-      seenFault: "dark",
+      problem: "P-260826",
+      problemNote: "Observed lab UTC (CUSTOM_ALERT surface; organic platform MONITORING_UNAVAILABLE not auto-fired)",
+      rcEntity: "PROCESS_GROUP inventory",
+      rcLabel: "seed tip = inventory PG visibility dark (HTTP still 200)",
+      clocks: ["06:20", "06:21→06:36", "06:42", "06:43"],
+      faultWindow: "06:20–06:43",
+      problemAt: "06:42",
+      seenFault: "06:42",
       maintainTitles: [
-        "① Healthy — agents reporting · Grail receiving",
-        "② Agent/ingest dark on INV host — map stale · Grail gaps",
-        "③ Problem for MONITORING_UNAVAILABLE (illustrative)",
-        "④ Agent restored — Grail fills again"
+        "① Healthy — OTLP + OneAgent Python on INV · Grail receiving",
+        "② Visibility dark — OTEL off · PG MONITORING_OFF · OA stopped · HTTP 200",
+        "③ Davis packages Problem P-260826 (CUSTOM_ALERT on inventory PG)",
+        "④ Healed — OA + MONITORING_ON + OTEL back · Grail fills again"
       ],
       grailRows: [
-        { e: "SERVICE-INV", ts: "t0", w: "spans/metrics OK", tone: "ok", from: 0 },
-        { e: "HOST-B", ts: "t1", w: "OneAgent unreachable", tone: "seed", from: 1 },
-        { e: "SERVICE-INV", ts: "t1", w: "no new telemetry", tone: "seed", from: 1 },
-        { e: "SERVICE-API", ts: "t1", w: "calls INV · incomplete traces", tone: "muted", from: 1 },
-        { e: "HOST-B", ts: "t2", w: "agent still dark", tone: "seed", from: 1 },
-        { e: "HOST-B", ts: "t3", w: "agent back", tone: "ok", from: 3 }
+        { e: "SERVICE-INV", ts: "06:15", w: "spans/metrics OK", tone: "ok", from: 0 },
+        { e: "SERVICE-INV", ts: "06:22", w: "OTLP+OA deep dark", tone: "seed", from: 1 },
+        { e: "HOST-B", ts: "06:31", w: "oneagent stopped", tone: "seed", from: 1 },
+        { e: "SERVICE-API", ts: "06:31", w: "calls INV · HTTP 200", tone: "muted", from: 1 },
+        { e: "SERVICE-INV", ts: "06:42", w: "CUSTOM_ALERT → P-260826", tone: "seed", from: 1 },
+        { e: "SERVICE-INV", ts: "06:43", w: "telemetry restored", tone: "ok", from: 3 }
       ],
       detectSignal: "agent_up",
       detectThr: 0.5,
       detectMax: 1.0,
       detectTitles: [
-        "① Watch — agent / ingest heartbeats",
-        "② Breach — INV host monitoring unavailable Event",
-        "③ Related — dependent services may warn",
-        "④ Storm — raw Events; not yet Problem"
+        "① Watch — agent / ingest heartbeats (platform MONITORING_UNAVAILABLE is majority-agent)",
+        "② Breach — inventory PG goes dark while checkout HTTP stays 200",
+        "③ Surface — CUSTOM_ALERT ingest (organic OSI_/MONITORING_* not in window)",
+        "④ Storm — raw Event; then Problem card"
       ],
       detectSeries: [
         { id: "HOST-B", signal: "agent_up", y: 110, healthy: 1.0, fault: 0.0, order: 0 },
@@ -229,72 +262,104 @@
         { id: "SERVICE-API", signal: "ingest", y: 230, healthy: 1.0, fault: 0.85, order: 2 }
       ],
       events: [
-        { type: "MONITORING_UNAVAILABLE", e: "HOST-B", ts: "t1", v: "agent", from: 1 },
-        { type: "MONITORING_UNAVAILABLE", e: "SERVICE-INV", ts: "t1", v: "dark", from: 2 },
-        { type: "CONNECTION_FAILED", e: "SERVICE-API", ts: "t2", v: "partial", from: 3 }
+        { type: "CUSTOM_ALERT", e: "SERVICE-INV", ts: "06:42", v: "dark", from: 1 },
+        { type: "MONITORING_UNAVAILABLE", e: "HOST-B", ts: "06:31", v: "agent", from: 1 },
+        { type: "CONNECTION_FAILED", e: "SERVICE-API", ts: "06:35", v: "partial", from: 3 }
       ],
       packageLines: [
         ["category", "MONITORING_UNAVAILABLE"],
-        ["seed tip", "HOST-B / agent"],
-        ["note", "lab planned"]
+        ["problem", "P-260826"],
+        ["seed tip", "inventory PG"],
+        ["severity", "CUSTOM_ALERT"]
       ],
-      identifyRows: ["agent heartbeat miss", "ingest gap INV", "trace breaks", "noise"],
+      identifyRows: ["ingest gap INV", "OA deep off", "HTTP 200 OK", "noise"],
       clearMetric: "agent_up",
       clockIntro:
-        "Illustrative MONITORING_UNAVAILABLE path (lab planned). Detect tip = agent/ingest dark — not app 5xx."
+        "Clock = Observed MONITORING_UNAVAILABLE lab UTC (<code>P-260826</code>: dark ≈06:20 → Problem 06:42). Process up · telemetry dark — not 5xx.",
+      normalize: {
+        fieldsLine: "fields: agent_up · ingest · raw_ids · modality",
+        outA: "OUT A · agent_up=0",
+        outAHint: "→ STEP 2 Detect",
+        step2Title: "INGEST LABEL",
+        step2Sub: "Detect path · not used by LUT",
+        step2In: "IN:  agent heartbeat miss",
+        step2Rule: "RULE: dark → unavailable",
+        step2Out: "OUT: monitoring_gap=true",
+        step2Note: "HTTP may still be 200 on callers",
+        detailFork:
+          "One envelope, two outputs: <code>agent_up=0</code> → STEP 2; <code>raw_ids</code> → STEP 3. Not an app 5xx path.",
+        detailStep2:
+          "<code>monitoring_gap=true</code> for agent/ingest Detect. Not an input to STEP 3 / LUT."
+      }
     },
     availability: {
       id: "availability",
-      problem: "(planned)",
-      problemNote: "illustrative — lab not run",
-      rcEntity: "SERVICE-INV",
-      rcLabel: "seed tip = process/host down (illustrative)",
-      clocks: ["t0", "crash window", "Problem", "restarted"],
-      faultWindow: "process down",
-      problemAt: "Problem",
-      seenFault: "down",
+      problem: "P-260831",
+      problemNote: "Observed lab UTC (AVAILABILITY_EVENT surface; organic cascade was PERFORMANCE on callers)",
+      rcEntity: "PROCESS_GROUP inventory",
+      rcLabel: "seed tip = inventory process/container down (hard outage)",
+      clocks: ["07:00", "07:00→07:11", "07:10", "07:11"],
+      faultWindow: "07:00–07:11",
+      problemAt: "07:10",
+      seenFault: "07:00",
       maintainTitles: [
-        "① Healthy — INV process up",
-        "② INV process/host down — map marks unavailable · Grail availability Events",
-        "③ AVAILABILITY Problem (illustrative)",
-        "④ Process back — availability clear"
+        "① Healthy — INV container up · checkout 200",
+        "② INV stopped — map marks unavailable · callers 000/500",
+        "③ Davis packages Problem P-260831 (AVAILABILITY on inventory PG)",
+        "④ Process back — heal · checkout 200"
       ],
       grailRows: [
-        { e: "SERVICE-INV", ts: "t0", w: "process UP", tone: "ok", from: 0 },
-        { e: "SERVICE-INV", ts: "t1", w: "process DOWN", tone: "seed", from: 1 },
-        { e: "SERVICE-API", ts: "t1", w: "connection refused", tone: "seed", from: 1 },
-        { e: "SERVICE-FE", ts: "t1", w: "upstream fail", tone: "muted", from: 1 },
-        { e: "SERVICE-INV", ts: "t2", w: "still DOWN", tone: "seed", from: 1 },
-        { e: "SERVICE-INV", ts: "t3", w: "process UP", tone: "ok", from: 3 }
+        { e: "SERVICE-INV", ts: "06:55", w: "process UP", tone: "ok", from: 0 },
+        { e: "SERVICE-INV", ts: "07:00", w: "container STOPPED", tone: "seed", from: 1 },
+        { e: "SERVICE-API", ts: "07:00", w: "connection refused", tone: "seed", from: 1 },
+        { e: "SERVICE-FE", ts: "07:00", w: "upstream fail / 500", tone: "muted", from: 1 },
+        { e: "SERVICE-INV", ts: "07:10", w: "AVAILABILITY_EVENT → P-260831", tone: "seed", from: 1 },
+        { e: "SERVICE-INV", ts: "07:11", w: "process UP · healed", tone: "ok", from: 3 }
       ],
       detectSignal: "availability",
       detectThr: 0.5,
       detectMax: 1.0,
       detectTitles: [
         "① Watch — process / host availability",
-        "② Breach — INV availability Event",
-        "③ Cascade — API/FE connection failures",
-        "④ Storm — raw Events"
+        "② Breach — INV container stop (graceful stop ≠ organic PGI_UNAVAILABLE in-window)",
+        "③ Cascade — FE/product PERFORMANCE P-260829 · surface AVAILABILITY_EVENT",
+        "④ Storm — raw Event; then Problem card P-260831"
       ],
       detectSeries: [
         { id: "SERVICE-INV", signal: "available", y: 110, healthy: 1.0, fault: 0.0, order: 0 },
-        { id: "SERVICE-API", signal: "available", y: 170, healthy: 1.0, fault: 0.4, order: 1 },
-        { id: "SERVICE-FE", signal: "available", y: 230, healthy: 1.0, fault: 0.5, order: 2 }
+        { id: "SERVICE-API", signal: "available", y: 170, healthy: 1.0, fault: 0.35, order: 1 },
+        { id: "SERVICE-FE", signal: "available", y: 230, healthy: 1.0, fault: 0.4, order: 2 }
       ],
       events: [
-        { type: "SERVICE_UNAVAILABLE", e: "SERVICE-INV", ts: "t1", v: "down", from: 1 },
-        { type: "CONNECTION_LOST", e: "SERVICE-API", ts: "t1", v: "refused", from: 2 },
-        { type: "REQUEST_FAILED", e: "SERVICE-FE", ts: "t2", v: "5xx/timeout", from: 3 }
+        { type: "AVAILABILITY_EVENT", e: "SERVICE-INV", ts: "07:10", v: "down", from: 1 },
+        { type: "SERVICE_SLOWDOWN", e: "SERVICE-API", ts: "07:02", v: "cascade", from: 2 },
+        { type: "SERVICE_SLOWDOWN", e: "SERVICE-FE", ts: "07:02", v: "cascade", from: 3 }
       ],
       packageLines: [
         ["category", "AVAILABILITY"],
-        ["seed tip", "SERVICE-INV"],
-        ["note", "lab planned"]
+        ["problem", "P-260831"],
+        ["seed tip", "inventory PG"],
+        ["severity", "AVAILABILITY"]
       ],
-      identifyRows: ["process down INV", "conn refused API", "FE errors", "noise"],
+      identifyRows: ["process down INV", "conn refused API", "FE 500s", "noise"],
       clearMetric: "availability",
       clockIntro:
-        "Illustrative AVAILABILITY path (lab planned). Hard down — not soft error_rate or latency-only."
+        "Clock = Observed AVAILABILITY lab UTC (<code>P-260831</code>: stop 07:00 → Problem 07:10). Hard down — not soft error_rate or latency-only.",
+      normalize: {
+        fieldsLine: "fields: available · raw_ids · modality",
+        outA: "OUT A · available=false",
+        outAHint: "→ STEP 2 Detect",
+        step2Title: "AVAILABILITY LABEL",
+        step2Sub: "Detect path · not used by LUT",
+        step2In: "IN:  process/host down",
+        step2Rule: "RULE: hard down → true",
+        step2Out: "OUT: unavailable=true",
+        step2Note: "callers → connection refused",
+        detailFork:
+          "One envelope, two outputs: <code>available=false</code> → STEP 2; <code>raw_ids</code> → STEP 3.",
+        detailStep2:
+          "<code>unavailable=true</code> for availability Detect. Not an input to STEP 3 / LUT."
+      }
     },
     resource_contention: {
       id: "resource_contention",
@@ -347,7 +412,22 @@
       identifyRows: ["HOST-B cpu", "INV latency", "runsOn INV→HOST-B", "noise"],
       clearMetric: "cpu",
       clockIntro:
-        "Illustrative RESOURCE_CONTENTION path (lab planned). Detect tip = CPU/mem; Smartscape runsOn matters."
+        "Illustrative RESOURCE_CONTENTION path (lab planned). Detect tip = CPU/mem; Smartscape runsOn matters.",
+      normalize: {
+        fieldsLine: "fields: cpu · mem · raw_ids · modality",
+        outA: "OUT A · cpu=0.97",
+        outAHint: "→ STEP 2 Detect",
+        step2Title: "RESOURCE LABEL",
+        step2Sub: "Detect path · not used by LUT",
+        step2In: "IN:  host/process cpu",
+        step2Rule: "RULE: cpu≥thr → true",
+        step2Out: "OUT: resource_hot=true",
+        step2Note: "HTTP may stay 200 (unlike SLOWDOWN leaf)",
+        detailFork:
+          "One envelope, two outputs: <code>cpu=0.97</code> → STEP 2; <code>raw_ids</code> → STEP 3.",
+        detailStep2:
+          "<code>resource_hot=true</code> for CPU/mem Detect. Not an input to STEP 3 / LUT."
+      }
     }
   };
 
@@ -412,11 +492,12 @@
 
   function statusLabel(s) {
     if (s === "observed") return "Observed";
+    if (s === "agent_task") return "Agent task";
     if (s === "planned") return "Planned lab";
     return s;
   }
 
-  /** Inject sticky category bar under #urca-doc-nav (or at top). */
+  /** Inject sticky teaching chrome under #urca-doc-nav (or at top). */
   function mountSwitcher(opts) {
     opts = opts || {};
     if (document.getElementById("urca-dt-cat-bar")) return;
@@ -425,15 +506,19 @@
 
     var style = document.createElement("style");
     style.textContent = [
-      "#urca-dt-cat-bar{position:sticky;top:0;z-index:9998;display:flex;flex-wrap:wrap;gap:10px;align-items:center;",
-      "padding:8px 12px;background:rgba(12,16,22,.96);border-bottom:1px solid #2a3441;",
-      "font-family:system-ui,-apple-system,sans-serif;font-size:13px;color:#c5d0da;}",
+      "#urca-dt-cat-bar{position:sticky;top:0;z-index:9998;display:flex;flex-direction:column;gap:8px;",
+      "padding:10px 14px 12px;background:rgba(12,16,22,.98);border-bottom:1px solid #2a3441;",
+      "font-family:system-ui,-apple-system,sans-serif;font-size:14px;color:#c5d0da;}",
       "#urca-doc-nav + #urca-dt-cat-bar,#urca-doc-nav ~ #urca-dt-cat-bar{top:42px;}",
-      "#urca-dt-cat-bar label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#8a96a4;}",
-      "#urca-dt-cat-bar select{font:inherit;padding:5px 8px;border-radius:4px;border:1px solid #2a3441;",
-      "background:#1c2430;color:#e8eef4;min-width:16rem;}",
-      "#urca-dt-cat-bar .slots{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;}",
-      "#urca-dt-cat-bar .slots a{font-size:12px;padding:4px 9px;border-radius:4px;border:1px solid #2a3441;",
+      "#urca-dt-cat-bar .urca-teach-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;}",
+      "#urca-dt-cat-bar .urca-teach-row.views{padding-top:8px;border-top:1px solid #2a3441;}",
+      "#urca-dt-cat-bar .urca-k{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;",
+      "color:#8a96a4;min-width:4.5rem;}",
+      "#urca-dt-cat-bar label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}",
+      "#urca-dt-cat-bar select{font:inherit;font-size:14px;padding:6px 10px;border-radius:4px;border:1px solid #2a3441;",
+      "background:#1c2430;color:#e8eef4;min-width:18rem;max-width:min(28rem,90vw);}",
+      "#urca-dt-cat-bar .slots{display:flex;flex-wrap:wrap;gap:6px;}",
+      "#urca-dt-cat-bar .slots a{font-size:13px;padding:5px 10px;border-radius:4px;border:1px solid #2a3441;",
       "background:#171d25;color:#b8c4d0;text-decoration:none;}",
       "#urca-dt-cat-bar .slots a:hover{border-color:#3d9a8b;color:#e8eef4;}",
       "#urca-dt-cat-bar .slots a.here{color:#7ec8b8;border-color:rgba(61,154,139,.55);background:rgba(61,154,139,.14);}",
@@ -448,23 +533,41 @@
     var bar = document.createElement("div");
     bar.id = "urca-dt-cat-bar";
     bar.setAttribute("role", "navigation");
-    bar.setAttribute("aria-label", "Davis event category");
+    bar.setAttribute("aria-label", "Dynatrace teaching");
+
+    var rowCat = document.createElement("div");
+    rowCat.className = "urca-teach-row cat";
+    var kCat = document.createElement("span");
+    kCat.className = "urca-k";
+    kCat.textContent = "Category";
+    rowCat.appendChild(kCat);
 
     var labEl = document.createElement("label");
     labEl.htmlFor = "urca-dt-cat-select";
     labEl.textContent = "Davis category";
-    bar.appendChild(labEl);
+    rowCat.appendChild(labEl);
 
     var sel = document.createElement("select");
     sel.id = "urca-dt-cat-select";
     CATS.forEach(function (c) {
       var o = document.createElement("option");
       o.value = c.id;
-      o.textContent = c.title + (c.status === "planned" ? "  · planned" : "");
+      o.textContent =
+        c.title +
+        (c.status === "planned" ? "  · planned" : c.status === "agent_task" ? "  · agent task" : "");
       if (c.id === cat.id) o.selected = true;
+      o.dataset.status = c.status;
       sel.appendChild(o);
     });
-    bar.appendChild(sel);
+    rowCat.appendChild(sel);
+    bar.appendChild(rowCat);
+
+    var rowViews = document.createElement("div");
+    rowViews.className = "urca-teach-row views";
+    var kViews = document.createElement("span");
+    kViews.className = "urca-k";
+    kViews.textContent = "Views";
+    rowViews.appendChild(kViews);
 
     var slots = document.createElement("div");
     slots.className = "slots";
@@ -477,20 +580,29 @@
       var target = href.replace(/\/+$/, "");
       if (path === target || path.endsWith(target)) a.classList.add("here");
       if (kind === "lab" && cat.status === "planned") a.classList.add("muted");
+      if (kind === "lab" && cat.status === "agent_task") a.title = "Agent task ready — not yet Observed";
       slots.appendChild(a);
     }
     addSlot(TEACH.hub, "Hub", "hub");
     addSlot(TEACH.pipeline, "Thesis", "pipeline");
     addSlot(TEACH.mechanisms, "Breakdown", "mechanisms");
     addSlot(TEACH.e2e, "Dual-track", "e2e");
-    addSlot(cat.lab, cat.status === "observed" ? "Timeline" : "Timeline (planned)", "lab");
-    bar.appendChild(slots);
+    addSlot(
+      cat.lab,
+      cat.status === "observed"
+        ? "Timeline"
+        : cat.status === "agent_task"
+          ? "Timeline (task)"
+          : "Timeline (planned)",
+      "lab"
+    );
+    rowViews.appendChild(slots);
+    bar.appendChild(rowViews);
 
     sel.addEventListener("change", function () {
       var next = byId(sel.value);
       persist(next);
       var path = (location.pathname || "").toLowerCase();
-      // Stay on teaching canvases so Maintain/Detect data reloads for the new category
       if (
         /eleven-subsystem-mechanisms|dynatrace-production-pipeline|dt-e2e-smartscape/.test(path)
       ) {

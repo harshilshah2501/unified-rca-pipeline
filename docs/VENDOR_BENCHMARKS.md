@@ -22,7 +22,7 @@ There is no frozen vendor corpus + shared GT + top-1 / AC@k number released for 
 | Product demos | Scripted happy paths | No |
 | Academic-style AC@k on open corpus | **Not published** for these products | — |
 
-**Implication for decks:** Cite Dynatrace Davis as a *design philosophy* (causal / topology-first) and Datadog as *statistical deviation ranking* — not as measured top-1 rivals. Same discipline as Lean PRD Appendix E.
+**Implication for decks:** Cite Dynatrace Davis as *causal / topology-first packaging AI* (default Problem path) and Datadog as *evidence-first fabric + separable Watchdog ML Detect + optional Bits agent* — not as measured top-1 rivals, and **not** as “Datadog has more AI.” Same discipline as Lean PRD Appendix E. See [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) §0.4.
 
 ---
 

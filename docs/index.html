@@ -78,23 +78,40 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
     Browser entry for vendor unveil + lab compare docs served from the PoC console
     (<code>http://127.0.0.1:8765/</code>). Full markdown map remains in
     <a href="/docs/NAVIGATION.md">NAVIGATION.md</a>.
+    Site links live in the sticky <strong style="color:var(--text)">Site</strong> bar at the top of every page.
   </p>
-
-  <div class="bar">
-    <a class="console" href="/">PoC console</a>
-    <a href="/dt-davis-category-hub.html">DT · Davis categories</a>
-    <a href="/comparable-pipeline-dt-dd.html">DT vs DD compare</a>
-    <a href="/datadog-production-pipeline.html">Datadog</a>
-    <a href="/federated-vs-dt-pipeline-gaps.html">Fed vs DT gaps</a>
-    <a href="/multi-telemetry-rca-fac.html">Motadata FR/AC</a>
+  <div class="note" style="margin:0 0 1.25rem;padding:.85rem 1rem;border-radius:8px;background:rgba(79,209,160,.08);border:1px solid rgba(79,209,160,.3);color:var(--muted);font-size:.95rem;">
+    <strong style="color:var(--text)">Reading path:</strong>
+    Our HLD → <em>Dynatrace hub</em> (finish ERROR + SLOWDOWN) → <em>Datadog hub</em> (finish ERROR + SLOWDOWN) →
+    <em>DT vs DD</em> / Obs generations. Compare last — not first.
+    Stuck on a term? <a href="/urca-glossary.html">Glossary</a> (conflicts first).
   </div>
 
-  <h2>1 · Start here (vendor compare)</h2>
-  <div class="grid">
+  <h2>0 · Our pipeline (building blocks)</h2>
+  <div class="grid two">
+    <a class="card" href="/observeops-pipeline-hld.html">
+      <div class="k compare">ObserveOps · HLD</div>
+      <h3>Pipeline HLD — E1–E11 + Interpret layer</h3>
+      <p>Required engineering blocks (Collect→Package), information flow, open decisions. MTL/Bits are Interpret (one run), not BTS fabric. Next: LLD per block.</p>
+    </a>
+    <a class="card" href="/urca-glossary.html">
+      <div class="k compare">Reference</div>
+      <h3>Docs hub glossary</h3>
+      <p>Conflicts first (Maintain · Detect · Localize · Package · Scope/Tailor · Fan-out). Ours · DT · DD · Obs generations · lab ids. Bakeoff Tier/L0: <code>GLOSSARY.md</code>.</p>
+    </a>
+  </div>
+
+  <h2>1 · Later · DT vs DD (after both hubs)</h2>
+  <div class="grid two">
     <a class="card" href="/comparable-pipeline-dt-dd.html">
       <div class="k compare">Lab · identical scenario</div>
       <h3>Comparable pipeline — DT vs DD</h3>
-      <p>Same FE→product→inventory leaf 5xx. Dynatrace Problem P-26084 (<code>rootCauseEntity=inventory</code>) vs Datadog traces/map without packaged RC. Stage-by-stage for both vendors in one place.</p>
+      <p>Same FE→product→inventory leaf fault. Building blocks + AI/ML (§0.4) + Detect categories / twin-list honesty + Observed Host+APM <strong>11</strong> templates (§0.5). Read after independent DT and DD unveils.</p>
+    </a>
+    <a class="card" href="/observability-generations-dt-dd.html">
+      <div class="k compare">Philosophy · criteria</div>
+      <h3>Observability 1.0 / 2.0 / 3.0</h3>
+      <p>Must-pass criteria. Why correlate ≠ 2.0. Why DD/DT are hybrids — neither is a clean 2.0 or 3.0 match. Pass / Partial / Fail scorecard.</p>
     </a>
   </div>
 
@@ -109,7 +126,7 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
     <a class="card" href="/dt-davis-category-hub.html">
       <div class="k dt">Hub · dropdown</div>
       <h3>Davis event categories</h3>
-      <p>ERROR · SLOWDOWN (Observed) · MONITORING_UNAVAILABLE · AVAILABILITY · RESOURCE_CONTENTION (planned). Pick a category → Thesis → Breakdown → Dual-track → Timeline.</p>
+      <p>ERROR · SLOWDOWN · MONITORING_UNAVAILABLE · AVAILABILITY Observed (P-260831) · agent task ready (RESOURCE_CONTENTION). Pick a category → Thesis → Breakdown → Dual-track → Timeline.</p>
     </a>
   </div>
   <div class="grid two" style="margin-top:.75rem;">
@@ -123,20 +140,20 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
       <h3>Response time (P-260820)</h3>
       <p>Thesis / Breakdown / Dual-track + Timeline. Ledger-scan leaf · SERVICE_SLOWDOWN · null entity RCA · healed.</p>
     </a>
-    <a class="card" href="/dt-davis-category-hub.html?cat=monitoring_unavailable">
-      <div class="k dt">MONITORING_UNAVAILABLE</div>
-      <h3>Visibility dark · planned</h3>
-      <p>Teaching slots ready; lab stub. Agent/ingest unavailable Detect tip.</p>
+    <a class="card" href="/dt-cat-monitoring-unavailable-lab.html">
+      <div class="k dt">MONITORING_UNAVAILABLE · Observed</div>
+      <h3>Visibility dark (P-260826)</h3>
+      <p>Process up, telemetry off. CUSTOM_ALERT surface · HTTP 200 throughout · healed.</p>
     </a>
-    <a class="card" href="/dt-davis-category-hub.html?cat=availability">
-      <div class="k dt">AVAILABILITY</div>
-      <h3>Host / process down · planned</h3>
-      <p>Teaching slots ready; lab stub. Hard outage Detect tip.</p>
+    <a class="card" href="/dt-cat-availability-lab.html">
+      <div class="k dt">AVAILABILITY · Observed</div>
+      <h3>Host / process down (P-260831)</h3>
+      <p>Inventory container stopped. Severity AVAILABILITY · callers 000/500 · healed.</p>
     </a>
-    <a class="card" href="/dt-davis-category-hub.html?cat=resource_contention">
+    <a class="card" href="/dt-cat-resource-contention-lab.html">
       <div class="k dt">RESOURCE_CONTENTION</div>
-      <h3>CPU / memory · planned</h3>
-      <p>Teaching slots ready; lab stub. Saturation + runsOn Detect tip.</p>
+      <h3>CPU / memory · agent task</h3>
+      <p>Background CPU burn (not SLOWDOWN ledger-scan). Agent prompt ready.</p>
     </a>
     <a class="card" href="/federated-vs-dt-pipeline-gaps.html">
       <div class="k compare">Gap map · build order</div>
@@ -147,6 +164,9 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
   <ul class="list">
     <li><a href="/dt-lab-timeline-code-level.html">ERROR lab analysis (direct)</a><span>P-260817</span></li>
     <li><a href="/dt-lab-timeline-slowdown.html">SLOWDOWN lab analysis (direct)</a><span>P-260820</span></li>
+    <li><a href="/dt-cat-monitoring-unavailable-lab.html">MONITORING_UNAVAILABLE lab analysis</a><span>P-260826</span></li>
+    <li><a href="/dt-cat-availability-lab.html">AVAILABILITY lab analysis</a><span>P-260831</span></li>
+    <li><a href="/dt-agent-tasks.html">Agent tasks (remaining)</a><span>RESOURCE_CONTENTION</span></li>
     <li><a href="/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md">Dynatrace lab reference</a><span>Stages 0–5 · Problems</span></li>
     <li><a href="/docs/FEDERATED_VS_DT_PIPELINE_GAPS.md">Federated vs DT gaps (markdown)</a><span>Same content as HTML · Cursor canvas is IDE-only</span></li>
   </ul>
@@ -168,23 +188,52 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
     <li><a href="/docs/multi-telemetry-rca-functional-and-acceptance-criteria.md">FR/AC markdown source</a><span>Same content as the visual HTML</span></li>
   </ul>
 
-  <h2>3 · Datadog unveil</h2>
-  <div class="grid two">
+  <h2>3 · Datadog · Detect categories</h2>
+  <p class="lead" style="margin-top:-.35rem;margin-bottom:1rem;font-size:.95rem;">
+    Datadog teaching slots (vendor-native):
+    <strong style="color:var(--text)">Thesis</strong> · <strong style="color:var(--text)">Breakdown</strong> ·
+    <strong style="color:var(--text)">Three-rail</strong> (Metrics ∥ APM ∥ Logs) · <strong style="color:var(--text)">Timeline</strong>.
+    No Smartscape twin — Service Map is APM-derived.
+  </p>
+  <div class="grid">
+    <a class="card" href="/dd-detect-category-hub.html">
+      <div class="k dd">Hub · dropdown</div>
+      <h3>Detect categories</h3>
+      <p>ERROR · SLOWDOWN Observed. Engineering: Thesis → Breakdown → Three-rail → Timeline. Interpret (Layer I): MTL · Bits. Pick a category on the hub. Building blocks: Site → Our HLD.</p>
+    </a>
+  </div>
+  <div class="grid two" style="margin-top:.75rem;">
+    <a class="card" href="/dd-detect-category-hub.html?cat=error">
+      <div class="k dd">ERROR · Observed</div>
+      <h3>Failure rate (KeyError leaf)</h3>
+      <p>KeyError · env:rca-lab-e3 · clean telemetry (no fault.injected) · Bits peer tab · MTL deep + Timeline. Retired: rca-lab / rca-lab-e2.</p>
+    </a>
+    <a class="card" href="/dd-detect-category-hub.html?cat=slowdown">
+      <div class="k dd">SLOWDOWN · Observed</div>
+      <h3>Response time (ledger-scan)</h3>
+      <p>Thesis / Breakdown / Three-rail + Timeline. Slow HTTP 200 · Write loud / Detect empty · operator Localize · heal.</p>
+    </a>
     <a class="card" href="/datadog-production-pipeline.html">
-      <div class="k dd">Native map</div>
+      <div class="k dd">Thesis</div>
       <h3>Datadog production pipeline</h3>
       <p>Agent → APM/Metrics/Logs · Monitors + Watchdog · tag identity.</p>
     </a>
     <a class="card" href="/datadog-subsystem-mechanisms.html">
-      <div class="k dd">Storyboard</div>
+      <div class="k dd">Breakdown</div>
       <h3>Datadog subsystem mechanisms</h3>
-      <p>Animated product mechanisms for the Datadog path.</p>
+      <p>Lean <strong>8</strong> stages (01 Collect → 08 Package). No Maintain stage — Write is 03. Door A∥B Detect → leaf. ERROR + SLOWDOWN e2e before DT↔DD parallels.</p>
     </a>
   </div>
   <ul class="list">
-    <li><a href="/datadog-lab-evidence-2026-08-04.html">Lab evidence 2026-08-04</a><span>FE→product→inventory run notes</span></li>
+    <li><a href="/dd-lab-timeline-error.html">ERROR lab analysis</a><span>inventory 503 cascade</span></li>
+    <li><a href="/dd-error-mtl-dissection.html?cat=error">ERROR · MTL dissection</a><span>Metrics ∥ Traces ∥ Logs deep dive</span></li>
+    <li><a href="/dd-lab-timeline-slowdown.html">SLOWDOWN lab analysis</a><span>ledger-scan latency</span></li>
+    <li><a href="/dd-e2e-metrics-traces-logs.html">Three-rail Metrics ∥ APM ∥ Logs</a><span>shared; ?cat= · not dual-track</span></li>
+    <li><a href="/datadog-lab-evidence-mtl-error-2026-08-10.html">MTL evidence 2026-08-10</a><span>ERROR e3 MCP primary</span></li>
+    <li><a href="/datadog-lab-evidence-mtl-error-2026-08-07.html">MTL evidence 2026-08-07</a><span>prior ERROR appendix</span></li>
+    <li><a href="/datadog-lab-evidence-2026-08-04.html">Lab evidence 2026-08-04</a><span>ERROR APM appendix</span></li>
     <li><a href="/docs/datadog-tenant-evidence-2026-08-03.md">Tenant evidence 2026-08-03</a><span>MCP snapshot (markdown)</span></li>
-    <li><a href="/datadog-rca-lab/DATADOG_RCA_REFERENCE.md">Datadog lab reference</a><span>Lab layout · fault scripts</span></li>
+    <li><a href="/datadog-rca-lab/DATADOG_RCA_REFERENCE.md">Datadog lab reference</a><span>Lab layout · fault scripts · MTL</span></li>
   </ul>
 
   <h2>4 · Shared fabric / design</h2>
@@ -205,9 +254,11 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
   </ul>
 
   <p class="note">
-    <strong>Suggested path:</strong>
-    Comparable DT vs DD → Dynatrace pipeline → DT mechanisms → Datadog pipeline → DD mechanisms → lab evidence.
-    Markdown sources stay under <code>docs/</code>; this index is the browser hub.
+    <strong>Suggested path (matches Site bar):</strong>
+    <a href="/observeops-pipeline-hld.html">Our HLD</a> (E1–E11) →
+    DT hub (independent) → DD hub (independent; Interpret = MTL · Bits) →
+    <a href="/comparable-pipeline-dt-dd.html">DT vs DD</a> →
+    Motadata FR/AC. Site links live only in the sticky <strong style="color:var(--text)">Site</strong> bar — no duplicate page menus.
   </p>
 </div>
 

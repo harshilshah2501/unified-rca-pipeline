@@ -49,7 +49,8 @@ hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
 .doc-bar a { font-size:.78rem; padding:.35rem .65rem; border-radius:4px; border:1px solid var(--stroke); background:var(--bg-soft); color:var(--muted); text-decoration:none; }
 .doc-bar a:hover { color:var(--text); border-color:var(--accent); }
 .doc-bar a.here { color:var(--accent); border-color:rgba(61,154,139,.5); background:var(--accent-soft); }
-</style></head><body>
+</style><link rel="stylesheet" href="/urca-diagrams.css" />
+</head><body>
 <div class="shell"><nav class="toc">
 <div class="brand">Dynatrace pipeline</div>
 <a href="/docs.html">← Docs index</a>
@@ -67,13 +68,6 @@ hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
 <a href="#related-reading" class="l2">11. Related reading</a>
 <a href="#takeaway" class="l2">12. Takeaway</a>
 </nav><main>
-<div class="doc-bar">
-  <a href="/docs.html">Docs index</a>
-  <a class="here" href="/dynatrace-production-pipeline.html">Thesis</a>
-  <a href="/eleven-subsystem-mechanisms.html">Breakdown</a>
-  <a href="/comparable-pipeline-dt-dd.html">DT vs DD</a>
-  <a href="/datadog-production-pipeline.html">DD pipeline</a>
-</div>
 <h1 id="dynatrace-production-pipeline-clock-a-map-walkthroughs">Dynatrace production pipeline — Clock A map &amp; walkthroughs</h1>
 <p><strong>Audience:</strong> engineers who need Dynatrace’s always-on fabric clear <strong>before</strong> comparing any other RCA engine.<br />
 <strong>Status:</strong> teaching / design reference from public product framing + black-box lab observation.<br />
@@ -117,14 +111,24 @@ hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
 <hr />
 <h2 id="mental-model-one-page">1. Mental model (one page)</h2>
 <p>Dynatrace is best understood as:</p>
-<pre class="text"><code>OneAgent ──writes in parallel──► Smartscape (map)
-         └─────────────────────► Grail (evidence)
-                                      │
-                                      ▼
-                               Detectors → Events
-                                      │
-                                      ▼
-                         Davis (uses Events + Smartscape walk + Grail pull)</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Dynatrace mental model — parallel write, then Detect → Davis</div>
+  <div class="ud-fork">
+    <span class="ud-chip dt">OneAgent</span>
+    <div class="ud-down">▼ writes in parallel (∥)</div>
+    <div class="ud-rails two">
+      <div class="ud-panel dt"><h5>Smartscape</h5><p>Map — entities + relationships</p></div>
+      <div class="ud-panel dt"><h5>Grail</h5><p>Evidence — metrics · traces · logs · events</p></div>
+    </div>
+    <div class="ud-down">▼</div>
+    <div class="ud-flow" style="justify-content:center">
+      <span class="ud-chip">Detectors</span><span class="ud-arrow">→</span><span class="ud-chip hit">Events</span>
+    </div>
+    <div class="ud-down">▼</div>
+    <span class="ud-chip dt">Davis</span>
+  </div>
+  <p class="ud-note">Davis uses Events + Smartscape walk + Grail pull. <code>∥</code> = parallel fan-out, not “map then lake then Detect.”</p>
+</div>
 <p><strong>How to read that:</strong> <code>∥</code> was meant as <strong>parallel fan-out</strong>, not “Smartscape then Grail→Detectors.”</p>
 <table>
 <colgroup>
@@ -157,28 +161,86 @@ hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
 </tbody>
 </table>
 <p>It is <strong>not</strong>:</p>
-<pre class="text"><code>Alert fires → RCA wakes → pulls raw MELT from scratch for the whole estate</code></pre>
+<div class="ud-viz"><div class="ud-cap">Not this shape</div>
+<div class="ud-flow"><span class="ud-chip warn">Alert fires</span><span class="ud-arrow">→</span><span class="ud-chip warn">RCA wakes</span><span class="ud-arrow">→</span><span class="ud-chip warn">pull raw MELT for whole estate</span></div>
+<p class="ud-note">Fabric is always-on; Detect/Davis read what is already written.</p>
+</div>
 <p>And it is <strong>not</strong> a single chain <code>OneAgent → Smartscape → Grail → Detectors</code>.</p>
 <p><strong>Public framing / inferred:</strong> Davis is a <strong>thin</strong> ranking and packaging layer. Most of the hard work is continuous preprocessing keyed by <strong>entity + time</strong>.</p>
-<pre class="text"><code>OneAgent ─┬─► Smartscape   (map: entities + relationships)
-          └─► Grail        (evidence: metrics · traces · logs · events)
-
-Read path: Events → Davis → expand Smartscape neighborhood → pull Grail (DQL) → Problem</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Compact dual-write + read path</div>
+  <div class="ud-fork">
+    <span class="ud-chip dt">OneAgent</span>
+    <div class="ud-down">▼</div>
+    <div class="ud-rails two">
+      <div class="ud-panel dt"><h5>Smartscape</h5><p>Map: entities + relationships</p></div>
+      <div class="ud-panel dt"><h5>Grail</h5><p>Evidence: metrics · traces · logs · events</p></div>
+    </div>
+  </div>
+  <div class="ud-down">▼ read path</div>
+  <div class="ud-flow" style="justify-content:center;flex-wrap:wrap">
+    <span class="ud-chip">Events</span><span class="ud-arrow">→</span>
+    <span class="ud-chip dt">Davis</span><span class="ud-arrow">→</span>
+    <span class="ud-chip soft">Smartscape neighborhood</span><span class="ud-arrow">→</span>
+    <span class="ud-chip soft">Grail (DQL)</span><span class="ud-arrow">→</span>
+    <span class="ud-chip hit">Problem</span>
+  </div>
+</div>
 <p><strong>Myth to drop:</strong> Smartscape does <strong>not</strong> stay fresh by querying Grail with DQL. Map and lake stay aligned via a <strong>shared entity model</strong>, not lake→map rebuilds.</p>
 <h3 id="how-entityid-keeps-map-and-lake-consistent-complex-estate">1.1 How <code>entityId</code> keeps map and lake consistent (complex estate)</h3>
 <p><strong>Claim:</strong> the same string (teaching: <code>SERVICE-INV</code>) is both (a) the <strong>Smartscape node id</strong> and (b) the <strong>Grail partition key</strong> on evidence. Nothing “syncs the map from the lake.” Both sides were stamped from the <strong>same bind result</strong>.</p>
-<p>Using Walkthrough B’s inventory failure:</p>
-<pre class="text"><code>BEFORE bind (Collect/Normalize) — three dialects, three raw labels, NO shared id
-  span t3:   service.name=inventory   GET /stock 500   failed_call=true
-  metric:    service.errors{service=&quot;inventory&quot;} 0.92
-  log:       token=inventory  ERROR pool exhausted
-
-LUT HIT:  &quot;inventory&quot; | container=c8e91a  →  SERVICE-INV
-          (SERVICE-INV is already / becomes the Smartscape node for inventory)
-
-AFTER stamp + Fan-out
-  Smartscape node:   SERVICE-INV  (on HOST-B; edges API--calls--&gt;INV--calls--&gt;DB)
-  Grail rows:        entityId=SERVICE-INV + time  →  failed span, error%, pool ERROR log</code></pre>
+<p data-thesis-cat="error">Using Walkthrough B’s inventory <strong>5xx</strong> failure (ERROR teaching):</p>
+<p data-thesis-cat="slowdown" hidden>Same identity claim holds for SLOWDOWN — substitute slow <strong>200</strong> / <code>response_time ~9s</code> for the 500 / error_rate rows below. Observed Problem = <strong>P-260820</strong>, not P-26084.</p>
+<div class="ud-viz" data-thesis-cat="error">
+  <div class="ud-cap">Identity bind — BEFORE → LUT → AFTER (ERROR)</div>
+  <div class="ud-grid two">
+    <div class="ud-panel warn">
+      <h5>BEFORE · no shared id</h5>
+      <ul>
+        <li>span: <code>service.name=inventory</code> GET /stock 500 · failed_call</li>
+        <li>metric: <code>service.errors{service="inventory"}</code> 0.92</li>
+        <li>log: token=inventory ERROR pool exhausted</li>
+      </ul>
+    </div>
+    <div class="ud-panel accent">
+      <h5>AFTER stamp + Fan-out</h5>
+      <ul>
+        <li>Smartscape: <code>SERVICE-INV</code> on HOST-B · API→INV→DB</li>
+        <li>Grail: <code>entityId=SERVICE-INV</code> + time → failed span, error%, pool log</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ud-flow" style="justify-content:center;margin-top:.65rem">
+    <span class="ud-chip soft">LUT HIT</span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip dt"><code>"inventory"</code> | container → SERVICE-INV</span>
+  </div>
+</div>
+<div class="ud-viz" data-thesis-cat="slowdown" hidden>
+  <div class="ud-cap">Identity bind — BEFORE → LUT → AFTER (SLOWDOWN)</div>
+  <div class="ud-grid two">
+    <div class="ud-panel warn">
+      <h5>BEFORE · no shared id</h5>
+      <ul>
+        <li>span: <code>service.name=inventory</code> GET /inventory <strong>200</strong> · ~9s · slow_call</li>
+        <li>metric: <code>response_time{service="inventory"}</code> ~9s</li>
+        <li>log: optional slow path / ledger scan</li>
+      </ul>
+    </div>
+    <div class="ud-panel accent">
+      <h5>AFTER stamp + Fan-out</h5>
+      <ul>
+        <li>Smartscape: <code>SERVICE-INV</code> (same map)</li>
+        <li>Grail: <code>entityId=SERVICE-INV</code> + time → slow 200 span · RT ~9s</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ud-flow" style="justify-content:center;margin-top:.65rem">
+    <span class="ud-chip soft">LUT HIT</span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip dt"><code>"inventory"</code> | container → SERVICE-INV</span>
+  </div>
+</div>
 <table>
 <colgroup>
 <col style="width: 13%" />
@@ -211,7 +273,7 @@ AFTER stamp + Fan-out
 </tbody>
 </table>
 <p><strong>Consistency check (same minute):</strong></p>
-<pre class="text"><code>Smartscape walk from SERVICE-API
+<pre class="text" data-thesis-cat="error"><code>Smartscape walk from SERVICE-API
   → neighbor SERVICE-INV   ← map says “checkout path”
   → neighbor SERVICE-PAY   ← healthy side branch
   → (no edge to SERVICE-BATCH even though BATCH is on HOST-B)
@@ -219,6 +281,14 @@ AFTER stamp + Fan-out
 Grail pull for entityId=SERVICE-INV in the fault window
   → span t3 500 + error-rate 0.92 + pool ERROR
   → does NOT pull batch CPU (that is entityId=SERVICE-BATCH)</code></pre>
+<pre class="text" data-thesis-cat="slowdown" hidden><code>Smartscape walk from SERVICE-API
+  → neighbor SERVICE-INV   ← map says “checkout path”
+  → (no edge to SERVICE-BATCH)
+
+Grail pull for entityId=SERVICE-INV in the SLOWDOWN window (≈15:05–15:10 UTC)
+  → span 200 · duration≈9s + response_time ~9s
+  → does NOT pull batch CPU (entityId=SERVICE-BATCH)
+  → Problem packaging → P-260820 (rootCauseEntity=null)</code></pre>
 <p>If bind were wrong (soft-match <code>inv-svc-v2</code> → PAY by mistake), <strong>both</strong> map-facing stamps and lake evidence would lie together — identity alignment amplifies alias errors; it does not mean lake refreshes map.</p>
 <div class="viz" id="viz-entity-align">
   <p class="cap">Same pin · map node = lake key · <a href="/eleven-subsystem-mechanisms.html">animated mechanisms</a></p>
@@ -227,9 +297,13 @@ Grail pull for entityId=SERVICE-INV in the fault window
       <h5>Smartscape</h5>
       <p>Node <code>SERVICE-INV</code> on HOST-B<br/>Edges: API→INV→DB · (no BATCH)</p>
     </div>
-    <div class="viz-panel">
-      <h5>Grail</h5>
+    <div class="viz-panel" data-thesis-cat="error">
+      <h5>Grail (ERROR)</h5>
       <p><code>entityId=SERVICE-INV</code><br/>span t3 500 · errors 0.92 · pool ERROR</p>
+    </div>
+    <div class="viz-panel" data-thesis-cat="slowdown" hidden>
+      <h5>Grail (SLOWDOWN)</h5>
+      <p><code>entityId=SERVICE-INV</code><br/>span 200 · ~9s · response_time · P-260820</p>
     </div>
   </div>
   <p class="viz-note">Davis walks the <strong>node</strong>, then DQL-pulls Grail for that <strong>same id</strong> — not DQL to refresh Smartscape.</p>
@@ -365,21 +439,65 @@ Grail pull for entityId=SERVICE-INV in the fault window
 </table>
 <p><strong>Dynatrace reading of Fan-out / Maintain:</strong> parallel write is <strong>Smartscape ∥ Grail</strong> — but <strong>not twin dumps</strong>. Topology bind <strong>reads/stamps</strong> identity (<code>entityId</code>; auto-create may add a node). Fan-out then writes <strong>different facets</strong> of the same stream: Smartscape <strong>relationship/property upserts</strong> and Grail <strong>evidence</strong> (metrics/traces/logs/events). Lean/Fed and L0/F1 are <strong>out of scope</strong> on this unveil; the mechanisms page phase 3 is <strong>Davis</strong> (walk → Grail rank → Problem), not Lean/Fed.</p>
 <h4 id="maintain-as-one-checkout-timeline-lab">Maintain as one checkout timeline (lab)</h4>
-<p><strong>Clocks = dual-lab UTC</strong> (align with Dynatrace / P-26084): fault ≈<strong>05:54 UTC</strong> → Problem ≈<strong>06:04 UTC</strong> (~10 min). Mid-window Grail rows are illustrative inside that Observed window. <strong>Not IST.</strong> Detail: <a href="/comparable-pipeline-dt-dd.html">comparable pipeline §5</a>.</p>
-<p>Maintain is <strong>not</strong> “split a timeseries into shaded vs pulse.” It is housekeeping while the inventory fault story runs. Animated: <a href="/eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a> (Maintain step).</p>
-<div class="viz" id="viz-maintain-timeline">
-  <p class="cap">FE → PRD → INV · Maintain keeps both stores usable · Detect/Davis do RCA</p>
+<p>Maintain is <strong>not</strong> “split a timeseries into shaded vs pulse.” It is housekeeping while the inventory fault story runs. Animated: <a href="/eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a> (Maintain) — framed by Davis category (<code>?cat=</code>).</p>
+
+<div data-thesis-cat="error">
+<p><strong>ERROR dual-lab clocks</strong> (comparable / teaching map): <a href="/comparable-pipeline-dt-dd.html">comparable pipeline §5</a> · Problem <strong>P-26084</strong> — fault ≈<strong>05:54 UTC</strong> → Problem with RC ≈<strong>06:04 UTC</strong> (~10 min continuous <strong>5xx</strong> / error_rate). Mid-window rows illustrative. <strong>Not IST.</strong></p>
+<div class="viz" id="viz-maintain-timeline-error">
+  <p class="cap">ERROR · FE → PRD → INV · P-26084</p>
   <table>
     <thead><tr><th>Beat</th><th>Smartscape (same graph as Topology)</th><th>Grail</th></tr></thead>
     <tbody>
     <tr><td>① Healthy ≈<code>05:50</code> UTC</td><td>HOST-A/B · <code>FE→API→INV</code> (+ PAY, BATCH, DB) live</td><td><code>SERVICE-INV /stock 200</code>, low error_rate</td></tr>
-    <tr><td>② Fault <code>05:54–06:04</code> UTC</td><td><strong>Same shape</strong> — INV highlighted on checkout path</td><td>Rows <strong>accumulate</strong> ~10 min (Observed dual-lab): INV <code>500</code>, error_rate, API cascade</td></tr>
+    <tr><td>② Fault <code>05:54–06:04</code> UTC</td><td><strong>Same shape</strong> — INV highlighted on checkout path</td><td>Rows <strong>accumulate</strong> ~10 min: INV <code>500</code>, error_rate, API cascade</td></tr>
     <tr><td>③ Problem ≈<code>06:04</code> UTC</td><td>Davis <strong>walks this same map</strong></td><td>Davis <strong>pulls</strong> INV rows → <strong>P-26084</strong>, <code>rootCauseEntity=inventory</code></td></tr>
     <tr><td>④ Cleared (after fault off)</td><td>Topology unchanged</td><td>New INV <code>/stock 200</code> after clear — Problem can close</td></tr>
     </tbody>
   </table>
-  <p class="viz-note">Maintain does <strong>not</strong> pick the root cause and does <strong>not</strong> build a different map than Topology. It only keeps that Smartscape fresh while Grail fills.</p>
 </div>
+</div>
+
+<div data-thesis-cat="slowdown" hidden>
+<p><strong>SLOWDOWN Observed clocks</strong> — use these when category = SLOWDOWN. <strong>Do not</strong> reuse P-26084 / 5xx / <code>05:54–06:04</code>.</p>
+<p>Full write-up: <a href="/dt-lab-timeline-slowdown.html">SLOWDOWN Timeline · P-260820</a> · snapshot <code>p260820-slowdown-snapshot.json</code>.</p>
+<div class="viz" id="viz-maintain-timeline-slowdown">
+  <p class="cap">SLOWDOWN · FE → product → inventory · P-260820 · HTTP 200 slow</p>
+  <table>
+    <thead><tr><th>Beat</th><th>Smartscape</th><th>Grail</th></tr></thead>
+    <tbody>
+    <tr><td>① Healthy ≈<code>14:55</code> UTC</td><td>FE→API→INV live</td><td><code>/inventory 200</code> · ~50 ms</td></tr>
+    <tr><td>② Slowdown <code>15:05+</code></td><td>Same shape — INV hot</td><td><strong>Grail cascade staggers</strong>: INV ~15:05 · ~9s → API ~15:06 → FE ~15:07</td></tr>
+    <tr><td>③ Problem ≈<code>15:10</code> UTC</td><td>Davis walks same map</td><td><strong>P-260820</strong> · <code>rootCauseEntity=null</code> · severity PERFORMANCE</td></tr>
+    <tr><td>④ Healed</td><td>Topology unchanged</td><td>Fast 200s again (<code>heal_inventory_slow_code.sh</code>)</td></tr>
+    </tbody>
+  </table>
+</div>
+<p style="color:var(--muted);font-size:.95rem;">Leaf = ledger-scan CPU in <code>inventory/app.py</code> (not fault-flag sleep). Fixed RT thresholds median <strong>2 s</strong> / p90 <strong>3 s</strong> / min 1 rpm. <strong>Grail</strong> cascade can stagger; Observed <strong>Event starts</strong> still same minute bucket @ 15:05 → Problem @ 15:10 · <code>rootCauseEntity=null</code>.</p>
+</div>
+
+<p class="viz-note">Maintain does <strong>not</strong> pick the root cause and does <strong>not</strong> build a different map than Topology. It only keeps that Smartscape fresh while Grail fills.</p>
+
+<h4 id="code-level-enriched-run-p-260817" data-thesis-cat="error">Code-level enriched ERROR — P-260817 (Observed, 2026-08-06)</h4>
+<div data-thesis-cat="error">
+<p>Visual + curl: <a href="/dt-lab-timeline-code-level.html">ERROR Timeline</a> · snapshot <code>p260817-evidence-snapshot.json</code>.</p>
+<p>Real <code>KeyError</code> (missing <code>MACBOOK-PRO-14</code>). Events <code>SERVICE_ERROR_RATE_INCREASED</code> on FE/product/inventory @ 11:41 (all <code>rootCauseRelevant=false</code>) · Problem <strong>P-260817</strong> 11:46→12:11 · <code>rootCauseEntity=null</code>. Code pinpoint on traces/logs, not Problem evidence list.</p>
+</div>
+
+<h4 id="slowdown-run-p-260820" data-thesis-cat="slowdown" hidden>SLOWDOWN run — P-260820 (Observed, 2026-08-06)</h4>
+<div data-thesis-cat="slowdown" hidden>
+<p>Visual + curl: <a href="/dt-lab-timeline-slowdown.html">SLOWDOWN Timeline</a> · snapshot <code>p260820-slowdown-snapshot.json</code>.</p>
+<table>
+  <thead><tr><th>UTC</th><th>What Observed</th></tr></thead>
+  <tbody>
+  <tr><td>15:05</td><td>Three Events <code>SERVICE_SLOWDOWN</code> on product, frontend, inventory (all <code>rootCauseRelevant=false</code>, <strong>same start bucket</strong>)</td></tr>
+  <tr><td>15:10</td><td><strong>Problem P-260820</strong> OPEN · Response time degradation · severity <code>PERFORMANCE</code> · <code>rootCauseEntity=null</code></td></tr>
+  <tr><td>UI</td><td>Three Slowdown cards (P-260822/821/820) then <strong>merged</strong> into P-260820 Affected 3</td></tr>
+  </tbody>
+</table>
+<p><strong>Detect:</strong> Event type <code>SERVICE_SLOWDOWN</code> · signal = response time — <strong>not</strong> <code>SERVICE_ERROR_RATE_INCREASED</code> / chalk <code>0.30</code>. Fixed lab thresholds median <strong>2 s</strong> / p90 <strong>3 s</strong> / min 1 rpm. Leaf = ledger-scan CPU in <code>inventory/app.py</code> (HTTP <strong>200</strong> · ~9 s).</p>
+<p><strong>Teaching:</strong> Same-bucket Events → no temporal leaf ranking → null entity RCA. Problem analysis does not auto-promote file/line; drill traces for long Ok spans. Contrast ERROR dual-lab <strong>P-26084</strong> (RC set) and <strong>P-260814</strong> (INV Event earlier → RC=inventory). <strong>Do not cite P-26084 clocks or 5xx rows for this category.</strong></p>
+</div>
+
 <h3 id="lab-stages-05-clock-a">Lab stages 0–5 ↔︎ Clock A</h3>
 <table>
 <thead>
@@ -573,11 +691,14 @@ process.cpu{pid:4421,exe:python} 0.12</code></pre>
 <tbody>
 <tr class="odd"><td><strong>Input</strong></td><td>Entity-keyed series in <strong>Grail</strong> (error rate, response time, restarts, …) + baselines/thresholds</td></tr>
 <tr class="even"><td><strong>Process</strong></td><td>Async evaluation (<strong>inferred</strong> exact algos). <strong>Does not walk Smartscape</strong> to raise an Event</td></tr>
-<tr class="odd"><td><strong>Output</strong></td><td><strong>Events</strong> — e.g. <code>SERVICE_ERROR_RATE_INCREASED</code> — keyed by entity + time. <strong>Event ≠ Problem</strong></td></tr>
+<tr class="odd"><td><strong>Output</strong></td><td><strong>Events</strong> — e.g. <code>SERVICE_ERROR_RATE_INCREASED</code> (ERROR), <code>SERVICE_SLOWDOWN</code> (SLOWDOWN) — keyed by entity + time. <strong>Event ≠ Problem</strong></td></tr>
 </tbody>
 </table>
-<p><strong>Observed (lab):</strong> inventory fault → nearby service error-rate Events before Problem packaging.</p>
-<p><strong>Teaching threshold:</strong> mechanisms canvas gold line <code>0.30</code> so INV/API/FE bars clearly breach — <strong>Teaching</strong>, not a fitted Dynatrace SKU. Events land in a <strong>shared Event store</strong>; cascade ≠ one fused Detect alert.</p>
+<p data-thesis-cat="error"><strong>Observed (ERROR lab):</strong> inventory 5xx → nearby <code>SERVICE_ERROR_RATE_INCREASED</code> Events before Problem packaging (dual-lab <strong>P-26084</strong>; code-level <strong>P-260817</strong>).</p>
+<p data-thesis-cat="slowdown" hidden><strong>Observed (SLOWDOWN lab):</strong> inventory slow HTTP <strong>200</strong> → three <code>SERVICE_SLOWDOWN</code> Events (same start bucket ≈15:05) → Problem <strong>P-260820</strong> ≈15:10 · <code>rootCauseEntity=null</code>.</p>
+<p data-thesis-cat="error"><strong>Teaching threshold (ERROR):</strong> mechanisms canvas gold line <code>0.30</code> (error_rate) — <strong>Teaching</strong>, not a fitted Dynatrace SKU.</p>
+<p data-thesis-cat="slowdown" hidden><strong>Teaching threshold (SLOWDOWN):</strong> Observed lab used <strong>fixed</strong> response-time thresholds median <strong>2 s</strong> / p90 <strong>3 s</strong> / min 1 rpm — <strong>not</strong> the 0.30 error_rate chalk line.</p>
+<p>Events land in a <strong>shared Event store</strong>; cascade ≠ one fused Detect alert.</p>
 <h4 id="phase-2-teaching-glossary-detect-curate-tailor">Phase 2 teaching glossary (Detect → Curate → Tailor)</h4>
 <table>
 <thead><tr><th>Term</th><th>What it is</th><th>Product term?</th></tr></thead>
@@ -591,14 +712,16 @@ process.cpu{pid:4421,exe:python} 0.12</code></pre>
 </tbody>
 </table>
 <h4 id="phase-2-teaching-timeline-detect-curate-tailor">Phase 2 teaching timeline (Detect → Curate → Tailor)</h4>
-<p>Animated: <a href="/eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a> · Phase 2 Case opens. <strong>Event ≠ Problem.</strong></p>
+<p>Animated: <a href="/eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a> · Phase 2 · <code>?cat=</code>. <strong>Event ≠ Problem.</strong></p>
+
+<div data-thesis-cat="error">
 <pre class="flow">Grail series (Maintain’d)
   → Detect  → raw Events (per entity) → common Event store
   → Curate  → one case seed (entityId, t0)   // Tailor expands t0 → corridor
   → Tailor  → working set {entities[], timeRange}
   → Phase 3 Davis → Problem P-26084</pre>
-<div class="viz" id="viz-phase2-case">
-  <p class="cap">Detect · Curate · Tailor — checkout lab</p>
+<div class="viz" id="viz-phase2-case-error">
+  <p class="cap">Detect · Curate · Tailor — ERROR dual-lab</p>
   <p class="viz-note"><strong>Detect — how Events are raised</strong> (Grail only; teaching threshold 0.30)</p>
   <table>
     <thead><tr><th>Order</th><th>Teaching Event</th><th>entityId</th><th>Why</th></tr></thead>
@@ -616,9 +739,39 @@ process.cpu{pid:4421,exe:python} 0.12</code></pre>
     </div>
     <div class="viz-panel accent">
       <h5>Tailor</h5>
-      <p>Space: same Smartscape, expand FE←API←INV→DB. Time corridor: Observed <code>[05:54, 06:04] UTC</code> (includes evidence before t0). Out: working set → Phase 3.</p>
+      <p>Space: same Smartscape, expand FE←API←INV→DB. Time corridor: Observed <code>[05:54, 06:04] UTC</code>. Out: working set → Phase 3 → <strong>P-26084</strong>.</p>
     </div>
   </div>
+</div>
+</div>
+
+<div data-thesis-cat="slowdown" hidden>
+<pre class="flow">Grail series (Maintain’d)
+  → Detect  → SERVICE_SLOWDOWN Events (per entity) → common Event store
+  → Curate  → case seed (t0≈15:10; entity RC may stay unset)
+  → Tailor  → working set {entities[], timeRange ≈15:05–15:10+}
+  → Phase 3 Davis → Problem P-260820</pre>
+<div class="viz" id="viz-phase2-case-slowdown">
+  <p class="cap">Detect · Curate · Tailor — SLOWDOWN Observed P-260820</p>
+  <p class="viz-note"><strong>Detect — Observed Events</strong> (response time; fixed 2 s / 3 s — <strong>not</strong> error_rate 0.30)</p>
+  <table>
+    <thead><tr><th>Order</th><th>Observed Event</th><th>entityId</th><th>Why</th></tr></thead>
+    <tbody>
+    <tr><td>1–3 (same bucket ≈15:05)</td><td><code>SERVICE_SLOWDOWN</code></td><td>product · frontend · inventory</td><td>RT above fixed thresholds; HTTP <strong>200</strong> · ~9 s leaf</td></tr>
+    <tr><td>(noise)</td><td>e.g. CPU</td><td><code>SERVICE-BATCH</code></td><td>co-timed; no checkout <code>calls</code> edge</td></tr>
+    </tbody>
+  </table>
+  <div class="viz-grid" style="margin-top:.85rem;">
+    <div class="viz-panel warn">
+      <h5>Curate</h5>
+      <p>Same-bucket SLOWDOWN Events → no temporal leaf ranking → packaged <code>rootCauseEntity=null</code> on <strong>P-260820</strong>. Still Event ≠ Problem until Davis packages.</p>
+    </div>
+    <div class="viz-panel accent">
+      <h5>Tailor</h5>
+      <p>Space: same Smartscape FE←API←INV. Time corridor around Observed fault window <code>[15:05, 15:10+]</code> UTC. Out → Phase 3 → <strong>P-260820</strong>.</p>
+    </div>
+  </div>
+</div>
 </div>
 <h3 id="davis-problems-curate-localize-package">3.7 Davis → Problems (curate + localize package)</h3>
 <table>
@@ -694,13 +847,27 @@ process.cpu{pid:4421,exe:python} 0.12</code></pre>
 </tr>
 </tbody>
 </table>
-<pre class="text"><code>Workloads
-   → OneAgent
-   → Enrichment / failure label
-   → Entity resolution ─┬─► Smartscape (graph upserts)
-                        └─► Grail (evidence writes)
-                              → Detectors → Events
-                                   → Davis → Problem</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Compact I/O chain</div>
+  <div class="ud-flow">
+    <span class="ud-chip">Workloads</span><span class="ud-arrow">→</span>
+    <span class="ud-chip dt">OneAgent</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">Enrichment</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">Entity resolution</span>
+  </div>
+  <div class="ud-down">▼ fan-out</div>
+  <div class="ud-grid two">
+    <div class="ud-panel dt"><h5>Smartscape</h5><p>Graph upserts</p></div>
+    <div class="ud-panel dt"><h5>Grail</h5><p>Evidence writes</p></div>
+  </div>
+  <div class="ud-down">▼</div>
+  <div class="ud-flow" style="justify-content:center">
+    <span class="ud-chip">Detectors</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">Events</span><span class="ud-arrow">→</span>
+    <span class="ud-chip dt">Davis</span><span class="ud-arrow">→</span>
+    <span class="ud-chip hit">Problem</span>
+  </div>
+</div>
 <hr />
 <h2 id="dynatrace-stores-what-gets-updated-when">4. Dynatrace stores — what gets updated when</h2>
 <table>
@@ -787,8 +954,14 @@ process.cpu{pid:4421,exe:python} 0.12</code></pre>
 </table>
 <h3 id="topology-bind-two-independent-things">5.2 Topology bind = two independent things</h3>
 <p>“Topology bind” is a <strong>teaching umbrella</strong> for two sibling outputs that share discovery-era inputs. They are <strong>not</strong> one algorithm.</p>
-<pre class="text"><code>Discovery / OneAgent cues  ──►  CI Graph (Smartscape)     nodes + typed edges
-Telemetry stream           ──►  Bind LUT → stamp entityId on each envelope</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Topology bind — two independent things</div>
+  <div class="ud-grid two">
+    <div class="ud-panel dt"><h5>CI Graph (Smartscape)</h5><p>Discovery / OneAgent cues → nodes + typed edges</p></div>
+    <div class="ud-panel accent"><h5>Bind LUT</h5><p>Telemetry stream → stamp <code>entityId</code> on each envelope</p></div>
+  </div>
+  <p class="ud-note">Graph walk ≠ LUT stamp. Do not collapse them.</p>
+</div>
 <table>
 <colgroup>
 <col style="width: 3%" />
@@ -826,9 +999,17 @@ Telemetry stream           ──►  Bind LUT → stamp entityId on each envelo
 <p>LUT helps traversal <strong>indirectly</strong>: once an Event is stamped <code>entityId=SERVICE-INV</code>, Davis knows <strong>which node</strong> to start the walk from. The walk itself uses <code>calls</code> / containment edges, not the LUT.</p>
 <h4 id="walkthrough-complex-estate-both-products-in-play">Walkthrough (complex estate) — both products in play</h4>
 <p><strong>CI Graph (relationships):</strong></p>
-<pre class="text"><code>HOST-B: SERVICE-INV, SERVICE-BATCH, SERVICE-DB
-FE --calls--&gt; API --calls--&gt; INV --calls--&gt; DB
-               API --calls--&gt; PAY</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">HOST-B services + call path</div>
+  <p class="ud-note" style="margin:0 0 .55rem">HOST-B: <code>SERVICE-INV</code> · <code>SERVICE-BATCH</code> · <code>SERVICE-DB</code></p>
+  <div class="ud-flow">
+    <span class="ud-chip">FE</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">API</span><span class="ud-arrow">→</span>
+    <span class="ud-chip warn">INV</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">DB</span>
+    <span class="ud-chip soft">∥ API → PAY</span>
+  </div>
+</div>
 <p>Davis can walk INV’s neighborhood on this graph. BATCH shares HOST-B but is <strong>not</strong> on the checkout path — that distinction is <strong>graph structure</strong>, not LUT.</p>
 <p><strong>Bind LUT (identity):</strong></p>
 <pre class="text"><code>&quot;inventory&quot; | container=c8e91a  →  SERVICE-INV
@@ -918,12 +1099,21 @@ FE --calls--&gt; API --calls--&gt; INV --calls--&gt; DB
 <p><strong>CMDB-first designs</strong> (classic infra / strict “provisioned CIs only”) flip this: graph nodes come from inventory first; telemetry must <strong>bind</strong> to those CIs; unresolved streams orphan or wait. That is a different philosophy than Dynatrace’s default.</p>
 <h3 id="unresolved-streams-three-conditional-actions">5.3.1 Unresolved streams — three conditional actions</h3>
 <p><strong>Trigger:</strong> a record’s identity keys (e.g. <code>service.name=inv-svc-v2</code>) <strong>miss</strong> the Bind LUT — no known <code>entityId</code> yet.</p>
-<pre class="text"><code>raw service.name=&quot;inv-svc-v2&quot;  →  LUT lookup  →  MISS
-                                      │
-              ┌───────────────────────┼───────────────────────┐
-              ▼                       ▼                       ▼
-        (1) Auto-create         (2) Orphan              (3) Soft-match
-            new entity              quarantine              alias to existing</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Unresolved stream — three conditional actions</div>
+  <div class="ud-flow" style="justify-content:center;margin-bottom:.65rem">
+    <span class="ud-chip soft">raw <code>service.name="inv-svc-v2"</code></span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip">LUT lookup</span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip warn">MISS</span>
+  </div>
+  <div class="ud-policies">
+    <div class="ud-panel"><h5>(1) Auto-create</h5><p>New entity</p></div>
+    <div class="ud-panel warn"><h5>(2) Orphan</h5><p>Quarantine</p></div>
+    <div class="ud-panel accent"><h5>(3) Soft-match</h5><p>Alias to existing</p></div>
+  </div>
+</div>
 <h4 id="auto-create-entity-dynatrace-like-default-for-many-cases">(1) Auto-create entity (Dynatrace-like default for many cases)</h4>
 <table>
 <colgroup>
@@ -1080,9 +1270,9 @@ prep: lookup keys ready → LUT → entityId=SERVICE-INV</code></pre>
 
 
 <h4 id="normalize-as-a-fork-teaching">Normalize as a fork (teaching)</h4>
-<p>STEP 1 builds <strong>one envelope</strong>, then two jobs use <strong>different fields</strong> from it:</p>
-<div class="viz" id="viz-normalize-fork">
-  <p class="cap">Normalize fork · STEP 3 from STEP 1 only · <a href="/eleven-subsystem-mechanisms.html">animated mechanisms</a></p>
+<p>STEP 1 builds <strong>one envelope</strong>, then two jobs use <strong>different fields</strong> from it. Framed by Davis category (<code>?cat=</code>):</p>
+<div class="viz" id="viz-normalize-fork" data-thesis-cat="error">
+  <p class="cap">Normalize fork · ERROR · <a href="/eleven-subsystem-mechanisms.html">animated mechanisms</a></p>
   <div class="viz-panel accent" style="margin-bottom:.75rem;">
     <h5>STEP 1 Enrichment</h5>
     <p style="margin:0;"><code>envelope = { status=500, raw_ids=[service.name=inventory, container.id=c8e91a], … }</code></p>
@@ -1093,25 +1283,44 @@ prep: lookup keys ready → LUT → entityId=SERVICE-INV</code></pre>
       <p><code>status</code> → Failure label → <code>failed_call=true</code></p>
       <p class="viz-note" style="margin:.35rem 0 0;">Used later by failure-rate Detect. <strong>Not</strong> an input to the LUT.</p>
     </div>
-    <div class="viz-panel accent">
+    <div class="viz-panel">
       <h5>STEP 3 · Bind path</h5>
-      <p><code>raw_ids</code> → Entity prep → <code>lookup_keys=["inventory","c8e91a"]</code></p>
-      <p class="viz-note" style="margin:.35rem 0 0;">Does <strong>not</strong> read <code>failed_call</code>. Still no <code>entityId</code> until Topology.</p>
+      <p><code>raw_ids</code> → Entity prep → LUT → <code>entityId=SERVICE-INV</code></p>
+      <p class="viz-note" style="margin:.35rem 0 0;">Identity only — does <strong>not</strong> read <code>failed_call</code>.</p>
     </div>
   </div>
-  <p class="viz-note" style="margin:1rem 0 .4rem;"><strong>Bind LUT preview</strong> (what Topology tries next — flat table, not a graph). First HIT among <code>lookup_keys[]</code> stamps <code>entityId</code>.</p>
-  <table>
-    <thead><tr><th>lookup_key</th><th>entityId</th><th>notes</th></tr></thead>
-    <tbody>
-    <tr><td><code>inventory</code></td><td><code>SERVICE-INV</code></td><td>HIT · primary</td></tr>
-    <tr><td><code>c8e91a</code></td><td><code>SERVICE-INV</code></td><td>HIT · same Smartscape node</td></tr>
-    <tr><td><code>orders-api</code></td><td><code>SERVICE-API</code></td><td>HIT</td></tr>
-    <tr><td><code>payments</code></td><td><code>SERVICE-PAY</code></td><td>HIT · healthy side branch</td></tr>
-    <tr><td><code>batch-job</code></td><td><code>SERVICE-BATCH</code></td><td>HIT · red herring (no checkout edge)</td></tr>
-    <tr><td><code>inv-svc-v2</code></td><td>—</td><td>MISS → auto-create / orphan / soft-match</td></tr>
-    </tbody>
-  </table>
 </div>
+<div class="viz" id="viz-normalize-fork-slow" data-thesis-cat="slowdown" hidden>
+  <p class="cap">Normalize fork · SLOWDOWN P-260820 · <a href="/eleven-subsystem-mechanisms.html">animated mechanisms</a></p>
+  <div class="viz-panel accent" style="margin-bottom:.75rem;">
+    <h5>STEP 1 Enrichment</h5>
+    <p style="margin:0;"><code>envelope = { status=200, duration≈9s, raw_ids=[service.name=inventory, container.id=c8e91a], … }</code></p>
+  </div>
+  <div class="viz-grid">
+    <div class="viz-panel warn">
+      <h5>STEP 2 · Detect path</h5>
+      <p><code>status=200 · duration≈9s</code> → <code>slow_call=true</code> · <code>failed_call=false</code></p>
+      <p class="viz-note" style="margin:.35rem 0 0;">Feeds response-time Detect (<code>SERVICE_SLOWDOWN</code>). <strong>Not</strong> 5xx / error_rate.</p>
+    </div>
+    <div class="viz-panel">
+      <h5>STEP 3 · Bind path</h5>
+      <p><code>raw_ids</code> → Entity prep → LUT → <code>entityId=SERVICE-INV</code></p>
+      <p class="viz-note" style="margin:.35rem 0 0;">Same identity job as ERROR — duration does not change the pin.</p>
+    </div>
+  </div>
+</div>
+<p class="viz-note" style="margin:1rem 0 .4rem;"><strong>Bind LUT preview</strong> (what Topology tries next — flat table, not a graph). First HIT among <code>lookup_keys[]</code> stamps <code>entityId</code>. Same LUT for ERROR and SLOWDOWN — identity is category-neutral.</p>
+<table>
+  <thead><tr><th>lookup_key</th><th>entityId</th><th>notes</th></tr></thead>
+  <tbody>
+  <tr><td><code>inventory</code></td><td><code>SERVICE-INV</code></td><td>HIT · primary</td></tr>
+  <tr><td><code>c8e91a</code></td><td><code>SERVICE-INV</code></td><td>HIT · same Smartscape node</td></tr>
+  <tr><td><code>orders-api</code></td><td><code>SERVICE-API</code></td><td>HIT</td></tr>
+  <tr><td><code>payments</code></td><td><code>SERVICE-PAY</code></td><td>HIT · healthy side branch</td></tr>
+  <tr><td><code>batch-job</code></td><td><code>SERVICE-BATCH</code></td><td>HIT · red herring (no checkout edge)</td></tr>
+  <tr><td><code>inv-svc-v2</code></td><td>—</td><td>MISS → auto-create / orphan / soft-match</td></tr>
+  </tbody>
+</table>
 
 <h3 id="failure-labeling-is-not-always-binary">5.5 Failure labeling is not always binary</h3>
 <p><strong>Question:</strong> Is it always possible to flag failures as binary (<code>status=200</code> vs everything else)? What if there is no status?</p>
@@ -1329,12 +1538,27 @@ log         → {modality=log, level=ERROR, raw_ids=[token=inventory],
 <p>Not one fused step: <strong>(A) CI Graph</strong> then/alongside <strong>(B) Bind LUT</strong>, then stamp → Grail.</p>
 <h4 id="a-ci-graph-smartscape-relationships-only">A) CI Graph (Smartscape) — relationships only</h4>
 <p>Discovery observes processes; call peers from spans. <strong>Auto-create</strong> entities if first sighting (§5.3.1) — <strong>does not</strong> write CMDB.</p>
-<pre class="text"><code>HOST-DD001
-  ├─ SERVICE-FE7A00  (frontend)
-  ├─ SERVICE-PRD4C1B (product)
-  └─ SERVICE-INV9F2A (inventory)
-
-FE --calls--&gt; PRD --calls--&gt; INV</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Lab topology — containment + calls</div>
+  <div class="ud-grid two">
+    <div class="ud-panel dt">
+      <h5>HOST-DD001</h5>
+      <ul>
+        <li><code>SERVICE-FE7A00</code> frontend</li>
+        <li><code>SERVICE-PRD4C1B</code> product</li>
+        <li><code>SERVICE-INV9F2A</code> inventory</li>
+      </ul>
+    </div>
+    <div class="ud-panel">
+      <h5>Call path</h5>
+      <div class="ud-flow" style="margin-top:.35rem">
+        <span class="ud-chip">FE</span><span class="ud-arrow">→</span>
+        <span class="ud-chip">PRD</span><span class="ud-arrow">→</span>
+        <span class="ud-chip warn">INV</span>
+      </div>
+    </div>
+  </div>
+</div>
 <p><strong>Traversal</strong> (later Tailor/Davis) walks these edges. The LUT is not used for neighbor expansion.</p>
 <h4 id="b-bind-lut-identity-only">B) Bind LUT — identity only</h4>
 <pre class="text"><code>&quot;inventory&quot; | service.name=inventory | container=c8e91a → SERVICE-INV9F2A
@@ -1412,18 +1636,34 @@ FE --calls--&gt; PRD --calls--&gt; INV</code></pre>
 <hr />
 <h2 id="walkthrough-b-complex-multi-host-estate">7. Walkthrough B — complex multi-host estate</h2>
 <h3 id="estate">7.1 Estate</h3>
-<pre class="text"><code>HOST-A (k8s-node-a)
-  SERVICE-FE    frontend
-  SERVICE-API   orders-api
-  SERVICE-PAY   payments          ← healthy side branch
-
-HOST-B (k8s-node-b)
-  SERVICE-INV   inventory         ← failing (pool / 500s)
-  SERVICE-BATCH batch-job         ← high CPU (red herring)
-  SERVICE-DB    inventory-db      ← lock waits (shared dependency)
-
-Calls:  FE → API → INV → DB
-        FE → API → PAY</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Teaching estate — hosts + call graph</div>
+  <div class="ud-grid two">
+    <div class="ud-panel">
+      <h5>HOST-A · k8s-node-a</h5>
+      <ul>
+        <li><code>SERVICE-FE</code> frontend</li>
+        <li><code>SERVICE-API</code> orders-api</li>
+        <li><code>SERVICE-PAY</code> payments <em>(healthy side branch)</em></li>
+      </ul>
+    </div>
+    <div class="ud-panel warn">
+      <h5>HOST-B · k8s-node-b</h5>
+      <ul>
+        <li><code>SERVICE-INV</code> inventory — failing</li>
+        <li><code>SERVICE-BATCH</code> batch-job — CPU red herring</li>
+        <li><code>SERVICE-DB</code> inventory-db — lock waits</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ud-flow" style="margin-top:.75rem;justify-content:center">
+    <span class="ud-chip">FE</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">API</span><span class="ud-arrow">→</span>
+    <span class="ud-chip warn">INV</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">DB</span>
+    <span class="ud-chip soft" style="margin-left:.5rem">∥ API → PAY</span>
+  </div>
+</div>
 <p><strong>Prerequisites:</strong> OneAgent on both hosts; UTC; <strong>discovery-first</strong> (no CMDB gate); teaching ids <code>SERVICE-FE</code> … <code>SERVICE-DB</code>. Insights from §5.2–5.5 applied below.</p>
 <h3 id="raw-bag-same-minute">7.2 Raw bag (same ~minute)</h3>
 <p><strong>Traces</strong></p>
@@ -1665,11 +1905,20 @@ Unknown key:           inv-svc-v2  →  LUT MISS in §7.5 unless alias/auto-crea
 </table>
 <h3 id="topology-bind-ci-graph-bind-lut-grail">7.5 Topology bind — CI Graph ∥ Bind LUT → Grail</h3>
 <h4 id="a-ci-graph-smartscape-for-traversal">A) CI Graph (Smartscape) — for traversal</h4>
-<pre class="text"><code>HOST-A: FE, API, PAY
-HOST-B: INV, BATCH, DB
-
-FE --calls--&gt; API --calls--&gt; INV --calls--&gt; DB
-               API --calls--&gt; PAY</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Compact topology reminder</div>
+  <div class="ud-grid two">
+    <div class="ud-panel"><h5>HOST-A</h5><p>FE · API · PAY</p></div>
+    <div class="ud-panel"><h5>HOST-B</h5><p>INV · BATCH · DB</p></div>
+  </div>
+  <div class="ud-flow" style="margin-top:.65rem;justify-content:center">
+    <span class="ud-chip">FE</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">API</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">INV</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">DB</span>
+    <span class="ud-chip soft">∥ API → PAY</span>
+  </div>
+</div>
 <p>Davis/Tailor <strong>walk</strong> INV→API→FE and INV→DB on these edges. BATCH shares HOST-B but has <strong>no</strong> checkout <code>calls</code> edge — graph structure, not LUT, separates the red herring.</p>
 <h4 id="b-bind-lut-for-identity-not-traversal">B) Bind LUT — for identity (not traversal)</h4>
 <pre class="text"><code>LUT (teaching):
@@ -1683,13 +1932,19 @@ FE --calls--&gt; API --calls--&gt; INV --calls--&gt; DB
 <p><strong>HIT path:</strong> try <code>lookup_keys[]</code> in order → first match → stamp <code>entityId</code> on the record → Fan-out may write <strong>Grail</strong> under that id (and Smartscape edge/property upserts).</p>
 <h4 id="unresolved-keys-three-miss-policies-5.3.1">Unresolved keys — three MISS policies (§5.3.1)</h4>
 <p><strong>Important:</strong> Grail’s <em>clean</em> join needs an <code>entityId</code>. <strong>Not all three policies provide one.</strong></p>
-<pre class="text"><code>lookup_keys → LUT → MISS (e.g. service.name=inv-svc-v2)
-                      │
-      ┌───────────────┼───────────────┐
-      ▼               ▼               ▼
- (1) Auto-create  (2) Orphan      (3) Soft-match
-     NEW entityId     NO entityId     EXISTING entityId
-     → Grail yes      → Grail no*     → Grail yes</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">LUT MISS policies (entityId outcome)</div>
+  <div class="ud-flow" style="justify-content:center;margin-bottom:.65rem">
+    <span class="ud-chip soft">lookup_keys</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">LUT</span><span class="ud-arrow">→</span>
+    <span class="ud-chip warn">MISS</span>
+  </div>
+  <div class="ud-policies">
+    <div class="ud-panel"><h5>(1) Auto-create</h5><p><strong>NEW</strong> entityId → Grail yes</p></div>
+    <div class="ud-panel warn"><h5>(2) Orphan</h5><p><strong>NO</strong> entityId → Grail no*</p></div>
+    <div class="ud-panel accent"><h5>(3) Soft-match</h5><p><strong>EXISTING</strong> entityId → Grail yes</p></div>
+  </div>
+</div>
 <p>*Orphan may still store bytes in a quarantine / unbound bucket; they are <strong>not</strong> first-class Grail evidence under a production <code>entityId</code> for Detect/Davis.</p>
 <table>
 <colgroup>
@@ -1837,12 +2092,17 @@ inv-svc-v2    resolved only if soft-match/orphan/auto-create policy says so</cod
 </ul>
 <h3 id="timing-honesty">7.7 Timing honesty</h3>
 <p>Production is continuous and async:</p>
-<pre class="text"><code>OneAgent ──async──► Smartscape updates     (continuous; auto-create entities)
-OneAgent ──async──► Grail writes           (continuous; after/with entity ids)
-Detectors ─async──► Events                 (continuous; series ± failed_call rates)
-Davis ────react──► Problem open/update    (event-driven; walk graph + pull Grail)
-UI drill-down ──query──► Grail DQL         (on-demand)
-CMDB sync (optional) ──mediated──► not implied by Smartscape auto-create</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Timing honesty — async lanes</div>
+  <div class="ud-lanes">
+    <div class="ud-lane"><div class="ud-who">OneAgent</div><div class="ud-bar dt">async → Smartscape updates (continuous · auto-create)</div></div>
+    <div class="ud-lane"><div class="ud-who">OneAgent</div><div class="ud-bar dt">async → Grail writes (continuous · after/with entity ids)</div></div>
+    <div class="ud-lane"><div class="ud-who">Detectors</div><div class="ud-bar">async → Events (continuous · series ± failed_call)</div></div>
+    <div class="ud-lane"><div class="ud-who">Davis</div><div class="ud-bar warn">react → Problem open/update (event-driven · walk + Grail pull)</div></div>
+    <div class="ud-lane"><div class="ud-who">UI</div><div class="ud-bar">query → Grail DQL (on-demand)</div></div>
+    <div class="ud-lane"><div class="ud-who">CMDB</div><div class="ud-bar">optional mediated sync — not implied by Smartscape auto-create</div></div>
+  </div>
+</div>
 <p>Teaching order Collect → Normalize (3 jobs) → Topology bind (graph ∥ LUT) remains the right <strong>logical</strong> sequence.</p>
 <hr />
 <h2 id="concrete-record-examples-bind-in-one-glance">8. Concrete record examples (bind in one glance)</h2>
@@ -2002,4 +2262,32 @@ container &quot;c8e91a…&quot;       →  SERVICE-INV9F2A</code></pre>
 </main></div>
 <script src="/doc-nav.js" defer></script>
 <script src="/dt-davis-categories.js" defer></script>
+<script>
+(function () {
+  function applyThesisCat() {
+    if (!window.URCA_DT_CATS) return;
+    var id = URCA_DT_CATS.current().id;
+    var slow = id === "slowdown";
+    document.querySelectorAll("[data-thesis-cat]").forEach(function (el) {
+      var want = el.getAttribute("data-thesis-cat");
+      if (want === "slowdown") el.hidden = !slow;
+      else if (want === "error") el.hidden = slow;
+    });
+    // Keep mechanisms / E2E links category-framed
+    document.querySelectorAll('a[href*="eleven-subsystem-mechanisms"],a[href*="dt-e2e-smartscape"]').forEach(function (a) {
+      try {
+        var u = new URL(a.getAttribute("href"), location.origin);
+        a.href = URCA_DT_CATS.withCat(u.pathname, URCA_DT_CATS.current());
+      } catch (e) {}
+    });
+  }
+  function ready(fn) {
+    if (window.URCA_DT_CATS) fn();
+    else setTimeout(function () { ready(fn); }, 20);
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    ready(applyThesisCat);
+  });
+})();
+</script>
 </body></html>

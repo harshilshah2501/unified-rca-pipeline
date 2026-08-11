@@ -1,6 +1,5 @@
-# Datadog RCA lab — same topology as dynatrace-rca-lab:
-#   frontend (8080) → product (8081) → inventory (8082)
-# Traces go to host Datadog Agent (DD_AGENT_HOST / :8126).
+# Datadog RCA lab — FE → product → inventory
+# Telemetry: ddtrace (:8126) · DogStatsD (:8125) · JSON file logs → Agent
 
 services:
   frontend:
@@ -14,19 +13,29 @@ services:
       PORT: "8080"
       PRODUCT_URL: http://product:8081
       FAULT_DIR: /faults
+      CTRL_DIR: /faults
+      LOG_DIR: /logs
       DD_SERVICE: frontend
-      DD_ENV: rca-lab
-      DD_VERSION: "1.0.0"
+      DD_ENV: rca-lab-e3
+      DD_VERSION: "slowdown-20260811T045553Z"
       DD_AGENT_HOST: host.docker.internal
       DD_TRACE_AGENT_PORT: "8126"
+      DD_DOGSTATSD_PORT: "8125"
       DD_LOGS_INJECTION: "true"
+      DD_RUNTIME_METRICS_ENABLED: "true"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./faults:/faults
       - ./frontend/app.py:/app/app.py:ro
+      - ./common:/app/common:ro
+      - ./logs:/logs
     depends_on:
       - product
+    labels:
+      com.datadoghq.tags.env: rca-lab-e3
+      com.datadoghq.tags.service: frontend
+      com.datadoghq.tags.version: "keyerror-20260810T072333Z"
 
   product:
     build:
@@ -39,19 +48,29 @@ services:
       PORT: "8081"
       INVENTORY_URL: http://inventory:8082
       FAULT_DIR: /faults
+      CTRL_DIR: /faults
+      LOG_DIR: /logs
       DD_SERVICE: product
-      DD_ENV: rca-lab
-      DD_VERSION: "1.0.0"
+      DD_ENV: rca-lab-e3
+      DD_VERSION: "slowdown-20260811T045553Z"
       DD_AGENT_HOST: host.docker.internal
       DD_TRACE_AGENT_PORT: "8126"
+      DD_DOGSTATSD_PORT: "8125"
       DD_LOGS_INJECTION: "true"
+      DD_RUNTIME_METRICS_ENABLED: "true"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./faults:/faults
       - ./product/app.py:/app/app.py:ro
+      - ./common:/app/common:ro
+      - ./logs:/logs
     depends_on:
       - inventory
+    labels:
+      com.datadoghq.tags.env: rca-lab-e3
+      com.datadoghq.tags.service: product
+      com.datadoghq.tags.version: "keyerror-20260810T072333Z"
 
   inventory:
     build:
@@ -63,14 +82,24 @@ services:
     environment:
       PORT: "8082"
       FAULT_DIR: /faults
+      CTRL_DIR: /faults
+      LOG_DIR: /logs
       DD_SERVICE: inventory
-      DD_ENV: rca-lab
-      DD_VERSION: "1.0.0"
+      DD_ENV: rca-lab-e3
+      DD_VERSION: "slowdown-20260811T045553Z"
       DD_AGENT_HOST: host.docker.internal
       DD_TRACE_AGENT_PORT: "8126"
+      DD_DOGSTATSD_PORT: "8125"
       DD_LOGS_INJECTION: "true"
+      DD_RUNTIME_METRICS_ENABLED: "true"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./faults:/faults
       - ./inventory/app.py:/app/app.py:ro
+      - ./common:/app/common:ro
+      - ./logs:/logs
+    labels:
+      com.datadoghq.tags.env: rca-lab-e3
+      com.datadoghq.tags.service: inventory
+      com.datadoghq.tags.version: "keyerror-20260810T072333Z"

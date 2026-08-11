@@ -24,15 +24,15 @@ h2{font-size:1.15rem;font-weight:650;margin:1.75rem 0 .75rem;}
 .lead code,td code,li code,p code,.note code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#9bc0ff;}
 .note{margin:1rem 0;padding:.75rem .9rem;border-radius:var(--radius);background:rgba(61,154,139,.12);border-left:3px solid var(--accent);color:var(--muted);font-size:.95rem;}
 .warn{border-left-color:var(--lean);background:rgba(240,179,90,.08);}
-.picker{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin:1.25rem 0 1.5rem;padding:1rem 1.1rem;
+.summary{margin:1.25rem 0 1.5rem;padding:1rem 1.1rem;
   background:var(--bg-elev);border:1px solid var(--stroke);border-radius:10px;}
-.picker label{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);}
-.picker select{font:inherit;font-size:1rem;padding:.55rem .75rem;border-radius:6px;border:1px solid var(--stroke);
-  background:var(--bg-soft);color:var(--text);min-width:min(100%,22rem);flex:1;}
+.summary .cat-name{font-size:1.15rem;font-weight:650;margin:0 0 .5rem;}
+.summary .hint{font-size:.85rem;color:var(--faint);margin:0 0 .65rem;}
 .meta{display:flex;flex-wrap:wrap;gap:.5rem;margin:.35rem 0 0;}
 .pill{font-family:var(--mono);font-size:.72rem;padding:.2rem .5rem;border-radius:4px;border:1px solid var(--stroke);color:var(--faint);}
 .pill.ok{color:#5FE0B0;border-color:rgba(95,224,176,.45);}
 .pill.plan{color:var(--lean);border-color:rgba(240,179,90,.45);}
+.pill.task{color:#7ec8b8;border-color:rgba(61,154,139,.5);}
 .blurb{color:var(--muted);margin:.85rem 0 0;max-width:44rem;}
 .grid{display:grid;gap:.75rem;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:1rem;}
 @media (max-width:720px){.grid{grid-template-columns:1fr;}}
@@ -57,17 +57,18 @@ th{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.
     <strong style="color:var(--text)">Thesis</strong> (explanatory prose) →
     <strong style="color:var(--text)">Breakdown</strong> (stage-by-stage canvas) →
     <strong style="color:var(--text)">Dual-track</strong> (Smartscape ∥ Grail) →
-    <strong style="color:var(--text)">Timeline</strong> (Observed lab clocks when we have run it).
+    <strong style="color:var(--text)">Timeline</strong> (Observed write-up, or an agent task when the lab is ready to run).
   </p>
 
   <div class="note">
     Thesis / Breakdown / Dual-track are <em>shared</em> pages framed by the selected category
     (<code>?cat=</code>). Timeline pages are <em>per-category</em> Observed (or planned stubs).
+    Switch category with the <strong style="color:var(--text)">Davis category</strong> dropdown in the bar above — one control for Hub and every teaching slot.
   </div>
 
-  <div class="picker">
-    <label for="hub-cat">Category</label>
-    <select id="hub-cat" aria-label="Davis event category"></select>
+  <div class="summary" id="hub-summary">
+    <p class="hint">Active category (from bar above)</p>
+    <h2 class="cat-name" id="hub-cat-name"></h2>
     <div class="meta" id="hub-meta"></div>
     <p class="blurb" id="hub-blurb"></p>
   </div>
@@ -84,8 +85,11 @@ th{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.
   </table>
 
   <div class="note warn">
-    Official ladder also includes CUSTOM_ALERT and INFO/WARNING. We teach the five operational
-    categories above first (ERROR + SLOWDOWN Observed; three more planned).
+    Official ladder also includes CUSTOM_ALERT and INFO/WARNING. We teach five operational
+    categories: ERROR + SLOWDOWN + MONITORING_UNAVAILABLE + AVAILABILITY <strong style="color:var(--text)">Observed</strong>
+    (P-260817 · P-260820 · P-260826 · P-260831);
+    RESOURCE_CONTENTION has an
+    <a href="/dt-agent-tasks.html">agent task</a> ready to run.
   </div>
 </div>
 <script src="/doc-nav.js" defer></script>
@@ -100,25 +104,20 @@ document.addEventListener("DOMContentLoaded", function () {
     var API = window.URCA_DT_CATS;
     API.mountSwitcher({ banner: false });
 
-    var sel = document.getElementById("hub-cat");
+    var catName = document.getElementById("hub-cat-name");
     var meta = document.getElementById("hub-meta");
     var blurb = document.getElementById("hub-blurb");
     var cards = document.getElementById("hub-cards");
     var table = document.getElementById("hub-table");
 
-    API.list.forEach(function (c) {
-      var o = document.createElement("option");
-      o.value = c.id;
-      o.textContent = c.title;
-      sel.appendChild(o);
-    });
-
     function render(cat) {
       API.persist(cat);
-      sel.value = cat.id;
+      catName.textContent = cat.title;
       meta.innerHTML = "";
       var p1 = document.createElement("span");
-      p1.className = "pill " + (cat.status === "observed" ? "ok" : "plan");
+      p1.className =
+        "pill " +
+        (cat.status === "observed" ? "ok" : cat.status === "agent_task" ? "task" : "plan");
       p1.textContent = API.statusLabel(cat.status);
       meta.appendChild(p1);
       if (cat.problem) {
@@ -133,11 +132,32 @@ document.addEventListener("DOMContentLoaded", function () {
       meta.appendChild(p3);
       blurb.textContent = cat.blurb;
 
+      var timelineK =
+        cat.status === "observed"
+          ? "Lab · timeline"
+          : cat.status === "agent_task"
+            ? "Lab · agent task"
+            : "Lab · planned";
+      var timelineH =
+        cat.status === "observed"
+          ? "Timeline"
+          : cat.status === "agent_task"
+            ? "Timeline (agent task)"
+            : "Timeline (planned)";
+      var timelineP =
+        cat.status === "observed"
+          ? "Clocked Observed write-up for " + (cat.problem || "this category") + " — Events, Problem, heal."
+          : cat.status === "agent_task"
+            ? "Ready-to-run agent prompt + break/heal scripts. Paste <code style=\"font-family:var(--mono);font-size:.85em\">" +
+              (cat.agentTask || "docs/agent-tasks/…") +
+              "</code> into Cursor Agent, then promote to Observed."
+            : "Stub — run the lab for this category next; same FE→product→inventory leaf pattern.";
+
       var slots = [
         { href: API.withCat(API.teach.pipeline, cat), k: "Teaching · thesis", h: "Thesis", p: "Explanatory long-form: OneAgent · Smartscape · Grail · Davis. Read Detect with this category’s signal in mind." },
         { href: API.withCat(API.teach.mechanisms, cat), k: "Teaching · breakdown", h: "Breakdown", p: "Detailed stage canvas: fabric → Detect → Curate → Davis. Same skeleton; Detect tip = this category’s series." },
         { href: API.withCat(API.teach.e2e, cat), k: "Teaching · dual-track", h: "Dual-track", p: "One signal across Smartscape ∥ Grail. Coordination board for all 11 subsystems." },
-        { href: API.withCat(cat.lab, cat), k: cat.status === "observed" ? "Lab · timeline" : "Lab · planned", h: cat.status === "observed" ? "Timeline" : "Timeline (planned)", p: cat.status === "observed" ? ("Clocked Observed write-up for " + (cat.problem || "this category") + " — Events, Problem, heal.") : "Stub — run the lab for this category next; same FE→product→inventory leaf pattern.", disabled: false }
+        { href: API.withCat(cat.lab, cat), k: timelineK, h: timelineH, p: timelineP, disabled: false }
       ];
       cards.innerHTML = "";
       slots.forEach(function (s) {
@@ -148,23 +168,20 @@ document.addEventListener("DOMContentLoaded", function () {
         cards.appendChild(a);
       });
 
-      // keep URL in sync
       try {
         history.replaceState(null, "", API.withCat(API.teach.hub, cat));
       } catch (e) {}
     }
 
-    sel.addEventListener("change", function () {
-      render(API.byId(sel.value));
-    });
-
     table.innerHTML = "";
     API.list.forEach(function (c) {
+      var labLabel =
+        c.status === "observed" ? "Open analysis" : c.status === "agent_task" ? "Agent task" : "Stub";
       var tr = document.createElement("tr");
       tr.innerHTML =
         "<td><a href=\"" + API.withCat(API.teach.hub, c) + "\"><strong>" + c.name + "</strong></a><br/><span style=\"color:#8a96a4;font-size:.85em\">" + c.title.split("·")[1].trim() + "</span></td>" +
         "<td><code>" + c.detect + "</code></td>" +
-        "<td><a href=\"" + API.withCat(c.lab, c) + "\">" + (c.status === "observed" ? "Open analysis" : "Stub") + "</a></td>" +
+        "<td><a href=\"" + API.withCat(c.lab, c) + "\">" + labLabel + "</a></td>" +
         "<td>" + API.statusLabel(c.status) + (c.problem ? " · " + c.problem : "") + "</td>";
       table.appendChild(tr);
     });

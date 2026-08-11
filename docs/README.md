@@ -21,8 +21,9 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | Dynatrace Clock A unveil (OneAgent / Smartscape / Grail) · [HTML](./dynatrace-production-pipeline.html) |
 | [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) | Gap map: Federated Part 1 vs DT 5+3+3 · [HTML](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html) |
 | [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](./multi-telemetry-rca-functional-and-acceptance-criteria.md) | Motadata multi-telemetry RCA FR/AC · [visual HTML](./multi-telemetry-rca-fac.html) · [`:8765`](http://127.0.0.1:8765/multi-telemetry-rca-fac.html) |
-| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | Same-scenario Dynatrace vs Datadog (P-26084) · [HTML](./comparable-pipeline-dt-dd.html) |
-| [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | Datadog-native unveil (Agent / M·T·L / Monitors+Watchdog) · [HTML](./datadog-production-pipeline.html) · [mechanisms](./datadog-subsystem-mechanisms.html) · [evidence](./datadog-tenant-evidence-2026-08-03.md) |
+| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | Same-scenario Dynatrace vs Datadog (building blocks + AI/ML §0.4 · P-26084 + e3) · [HTML](./comparable-pipeline-dt-dd.html) |
+| [`dd-detect-category-hub.html`](./dd-detect-category-hub.html) | **DD Detect hub** (ERROR · SLOWDOWN) · Thesis / Breakdown / Three-rail / Timeline · [`:8765`](http://127.0.0.1:8765/dd-detect-category-hub.html) |
+| [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | Datadog Thesis (Agent / M·T·L / Monitors+Watchdog) · [HTML](./datadog-production-pipeline.html) · [mechanisms](./datadog-subsystem-mechanisms.html) · [three-rail](./dd-e2e-metrics-traces-logs.html) · [evidence](./datadog-tenant-evidence-2026-08-03.md) |
 | [`rca-use-cases-only.md`](./rca-use-cases-only.md) | Sole evaluation corpus spec (ObserveOps UC-1..UC-5; UC-3b + events schema specified) |
 | [`UC_LEARNING_BRAINSTORM.md`](./UC_LEARNING_BRAINSTORM.md) | **Learning / brainstorm** — simplified UC frames (problem → RCA output); not bakeoff GT |
 | [`ROADMAP.md`](./ROADMAP.md) | End-to-end phases and status |

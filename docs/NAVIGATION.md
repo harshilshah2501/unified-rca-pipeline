@@ -37,7 +37,8 @@ Read these before diving into folders.
 | [`POC_BRIEFING.md`](./POC_BRIEFING.md) | End-to-end story: objective → design → bakeoff → conclusion (slides / NotebookLM) |
 | [`ROADMAP.md`](./ROADMAP.md) | PoC **journey**: Compare → Deepen → Ship → Transfer → Connect (+ later Federate/Scale) |
 | [`ADR-001-lean-primary-engine.md`](./ADR-001-lean-primary-engine.md) | Lean favored on ObserveOps — **evaluation finding**, not a finalized GTM lock |
-| [`GLOSSARY.md`](./GLOSSARY.md) | Tier namespaces · Dynatrace teaching terms (Event/Storm/Seed/Smartscape on Grail) · corpus names |
+| [`urca-glossary.html`](./urca-glossary.html) | **Docs hub glossary** (hosted `:8765`) — conflict terms first · Ours / DT / DD / Obs generations / lab |
+| [`GLOSSARY.md`](./GLOSSARY.md) | Bakeoff/engine: Tier namespaces · L0/F1 · Panorama · Dynatrace teaching terms · corpus names |
 | [`README.md`](./README.md) | Four qualities, five roadblocks, lean vs federated decision guide (long-form) |
 
 **Do not merge scoreboards:** ObserveOps UC bakeoff ≠ OpenObserve peer track ≠ Motadata L1 ≠ e-com checkout scenario. Treat them as separate surfaces.
@@ -99,7 +100,8 @@ Understand **what** was measured before reading engine internals.
 | [`../datasets/scenario.md`](../datasets/scenario.md) | E-com cross-NUMA checkout scenario (design + Postgres dump) |
 | [`ECOM_CHECKOUT_RCA_ANALYSIS.md`](./ECOM_CHECKOUT_RCA_ANALYSIS.md) | **Lean vs Federated write-up** for `ecom-numa-001` |
 | [`index.html`](./index.html) | **Browser docs hub** — [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) |
-| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | **Same-scenario DT vs DD** (P-26084) · [HTML](./comparable-pipeline-dt-dd.html) · [`:8765`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) |
+| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | **DT vs DD after independent unveils** (same-scenario lab) · [HTML](./comparable-pipeline-dt-dd.html) · [`:8765`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) |
+| [`observability-generations-dt-dd.html`](./observability-generations-dt-dd.html) | **Obs 1.0 / 2.0 / 3.0 must-pass criteria** · why DD/DT are hybrids (not clean 2.0/3.0) · [`:8765`](http://127.0.0.1:8765/observability-generations-dt-dd.html) · Cursor canvas IDE-only |
 | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | **Thesis (MD):** Clock A → OneAgent/Smartscape/Grail · Phase 2 glossary · [HTML](./dynatrace-production-pipeline.html) · [`:8765`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
 | [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) | **Gap map:** Federated Part 1 vs DT 5+3+3 · [HTML](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html) · §8 Motadata FR/AC alignment · Cursor canvas IDE-only |
 | [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](./multi-telemetry-rca-functional-and-acceptance-criteria.md) | Motadata ObserveOps **acceptance** FRs/ACs · [visual HTML](./multi-telemetry-rca-fac.html) · [`:8765`](http://127.0.0.1:8765/multi-telemetry-rca-fac.html) · architecture in gap map §2/§8 |
@@ -109,13 +111,23 @@ Understand **what** was measured before reading engine internals.
 | [`dt-e2e-smartscape-grail.html`](./dt-e2e-smartscape-grail.html) | **Dual-track** Smartscape ∥ Grail journey (shared; `?cat=`) · [`:8765`](http://127.0.0.1:8765/dt-e2e-smartscape-grail.html) |
 | [`dt-lab-timeline-code-level.html`](./dt-lab-timeline-code-level.html) | **ERROR Timeline** Observed · P-260817 · [`:8765`](http://127.0.0.1:8765/dt-lab-timeline-code-level.html) |
 | [`dt-lab-timeline-slowdown.html`](./dt-lab-timeline-slowdown.html) | **SLOWDOWN Timeline** Observed · P-260820 · [`:8765`](http://127.0.0.1:8765/dt-lab-timeline-slowdown.html) |
-| [`dt-cat-monitoring-unavailable-lab.html`](./dt-cat-monitoring-unavailable-lab.html) | **MONITORING_UNAVAILABLE** Timeline stub (planned) |
-| [`dt-cat-availability-lab.html`](./dt-cat-availability-lab.html) | **AVAILABILITY** Timeline stub (planned) |
-| [`dt-cat-resource-contention-lab.html`](./dt-cat-resource-contention-lab.html) | **RESOURCE_CONTENTION** Timeline stub (planned) |
-| [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | **Datadog-native:** Agent → Metrics/APM/Logs · Monitors+Watchdog · MCP evidence · [HTML](./datadog-production-pipeline.html) |
+| [`dt-cat-monitoring-unavailable-lab.html`](./dt-cat-monitoring-unavailable-lab.html) | **MONITORING_UNAVAILABLE** Timeline · **Observed P-260826** · [prompt](./agent-tasks/dt-monitoring-unavailable.md) |
+| [`dt-cat-availability-lab.html`](./dt-cat-availability-lab.html) | **AVAILABILITY** Timeline · **Observed P-260831** · [prompt](./agent-tasks/dt-availability.md) |
+| [`dt-cat-resource-contention-lab.html`](./dt-cat-resource-contention-lab.html) | **RESOURCE_CONTENTION** Timeline · **agent task** · [prompt](./agent-tasks/dt-resource-contention.md) |
+| [`dt-agent-tasks.html`](./dt-agent-tasks.html) | Index of remaining agent tasks · [`:8765`](http://127.0.0.1:8765/dt-agent-tasks.html) |
+| [`dd-detect-category-hub.html`](./dd-detect-category-hub.html) | **DD hub:** Detect categories (ERROR · SLOWDOWN) · shared Method/IPO/Doors guide · Thesis / Breakdown / Three-rail / Timeline · [`:8765`](http://127.0.0.1:8765/dd-detect-category-hub.html) |
+| [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | **Datadog Thesis (MD):** Agent → Metrics/APM/Logs · Monitors+Watchdog · [HTML](./datadog-production-pipeline.html) (`?cat=`) |
 | [`datadog-production-pipeline.html`](./datadog-production-pipeline.html) | Same — browser / [`:8765/datadog-production-pipeline.html`](http://127.0.0.1:8765/datadog-production-pipeline.html) |
-| [`datadog-subsystem-mechanisms.html`](./datadog-subsystem-mechanisms.html) | Animated Datadog product mechanisms · [`:8765`](http://127.0.0.1:8765/datadog-subsystem-mechanisms.html) |
-| [`datadog-lab-evidence-2026-08-04.md`](./datadog-lab-evidence-2026-08-04.md) | Lab evidence · [HTML](./datadog-lab-evidence-2026-08-04.html) · [`:8765`](http://127.0.0.1:8765/datadog-lab-evidence-2026-08-04.html) |
+| [`datadog-subsystem-mechanisms.html`](./datadog-subsystem-mechanisms.html) | Datadog **Breakdown** · bifurcated step cards under each animation · [`:8765`](http://127.0.0.1:8765/datadog-subsystem-mechanisms.html) (`?cat=`) |
+| [`dd-e2e-metrics-traces-logs.html`](./dd-e2e-metrics-traces-logs.html) | **Three-rail journey** — animated how M∥APM∥Logs write along stages (shared) · [`:8765`](http://127.0.0.1:8765/dd-e2e-metrics-traces-logs.html) |
+| [`dd-error-mtl-dissection.html`](./dd-error-mtl-dissection.html) | **ERROR · MTL workbook** — emit · queries · MCP counts · leaf (not the journey) · [`:8765`](http://127.0.0.1:8765/dd-error-mtl-dissection.html?cat=error) |
+| [`dd-behind-the-scenes-error.html`](./dd-behind-the-scenes-error.html) | **Behind the scenes** ERROR — screenshot Metrics∥Logs∥Traces → lean 8-stage IPO → Bits · [`:8765`](http://127.0.0.1:8765/dd-behind-the-scenes-error.html?cat=error) |
+| [`dd-bits-error-review.html`](./dd-bits-error-review.html) | **Bits** peer tab (ERROR packaging · Hypothesis Tree · 500 vs 502) · [`:8765`](http://127.0.0.1:8765/dd-bits-error-review.html?cat=error) |
+| [`dd-lab-timeline-error.html`](./dd-lab-timeline-error.html) | **ERROR Timeline** Observed · KeyError 500 · `env:rca-lab-e3` · MCP 2026-08-10 · [`:8765`](http://127.0.0.1:8765/dd-lab-timeline-error.html) |
+| [`dd-lab-timeline-slowdown.html`](./dd-lab-timeline-slowdown.html) | **SLOWDOWN Timeline** Observed · ledger-scan · [`:8765`](http://127.0.0.1:8765/dd-lab-timeline-slowdown.html) |
+| [`datadog-lab-evidence-mtl-error-2026-08-10.md`](./datadog-lab-evidence-mtl-error-2026-08-10.md) | **Primary** ERROR MTL MCP appendix (e3) · [HTML](./datadog-lab-evidence-mtl-error-2026-08-10.html) · [`:8765`](http://127.0.0.1:8765/datadog-lab-evidence-mtl-error-2026-08-10.html) |
+| [`datadog-lab-evidence-mtl-error-2026-08-07.md`](./datadog-lab-evidence-mtl-error-2026-08-07.md) | Prior ERROR MTL appendix (retired env) · [HTML](./datadog-lab-evidence-mtl-error-2026-08-07.html) |
+| [`datadog-lab-evidence-2026-08-04.md`](./datadog-lab-evidence-2026-08-04.md) | ERROR lab APM appendix · [HTML](./datadog-lab-evidence-2026-08-04.html) · [`:8765`](http://127.0.0.1:8765/datadog-lab-evidence-2026-08-04.html) |
 | [`datadog-tenant-evidence-2026-08-03.md`](./datadog-tenant-evidence-2026-08-03.md) | Dated MCP snapshot grounding Observed claims |
 | [`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) | **Team reference:** Clock A/B · classes A–E · Grail/Smartscape/Vector · solution path |
 | [`rca-data-lake-brainstorm.html`](./rca-data-lake-brainstorm.html) | Same — browser / [`:8765/rca-data-lake-brainstorm.html`](http://127.0.0.1:8765/rca-data-lake-brainstorm.html) |
@@ -147,10 +159,10 @@ Conceptual boundary: **ingestion is not RCA**. Shared fabric feeds both engines.
 | Topic | Where |
 |-------|--------|
 | **Dynatrace Clock A map + walkthroughs** | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) · [HTML](./dynatrace-production-pipeline.html) |
-| **Datadog Clock A map + walkthroughs** | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) · [HTML](./datadog-production-pipeline.html) · [mechanisms](./datadog-subsystem-mechanisms.html) · [evidence](./datadog-tenant-evidence-2026-08-03.md) · [lab evidence](./datadog-lab-evidence-2026-08-04.md) |
+| **Datadog Detect hub + native map** | [`dd-detect-category-hub.html`](./dd-detect-category-hub.html) · [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) · [HTML](./datadog-production-pipeline.html) · [mechanisms](./datadog-subsystem-mechanisms.html) · [three-rail](./dd-e2e-metrics-traces-logs.html) · [Behind the scenes](./dd-behind-the-scenes-error.html) · [ERROR MTL](./dd-error-mtl-dissection.html) · [ERROR Bits](./dd-bits-error-review.html) · [ERROR timeline](./dd-lab-timeline-error.html) · [SLOWDOWN timeline](./dd-lab-timeline-slowdown.html) |
 | Dynatrace lab (stages 0–5, P-26076) | [`../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) |
-| Datadog lab (FE→product→inventory) | [`../datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../datadog-rca-lab/DATADOG_RCA_REFERENCE.md) · [lab evidence](./datadog-lab-evidence-2026-08-04.md) |
-| **Comparable DT vs DD pipeline (same scenario)** | [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) · [HTML](./comparable-pipeline-dt-dd.html) · [`:8765/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) · Problem **P-26084** |
+| Datadog lab (FE→product→inventory) | [`../datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../datadog-rca-lab/DATADOG_RCA_REFERENCE.md) · [ERROR](./dd-lab-timeline-error.html) · [MTL](./dd-error-mtl-dissection.html) · [SLOWDOWN](./dd-lab-timeline-slowdown.html) |
+| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) · [HTML](./comparable-pipeline-dt-dd.html) | DT vs DD after independent unveils · P-26084 lab |
 | **Hosted docs index (browser hub)** | [`index.html`](./index.html) · [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) — navigate DT / DD / compare / mechanisms |
 | Vector design (shared fabric → Lean / Federated artifacts) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
 | PoC plan (M1–M3, hardware, weekly gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
@@ -270,7 +282,7 @@ Use this **after** you have the map — or when you already know the goal.
 | Run bakeoff / scoreboard | [`../benchmarking/README.md`](../benchmarking/README.md) → [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) |
 | Open PoC console | [`dashboard/README.md`](../benchmarking/dashboard/README.md) → `:8765` (`#guide` · `#incident` · `#samples` · `#conduct` · [`rca-workflow-sim`](../benchmarking/dashboard/rca-workflow-sim.html)) |
 | Evaluate any RCA method fairly | [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) |
-| Resolve terminology drift | [`GLOSSARY.md`](./GLOSSARY.md) |
+| Resolve terminology drift | [`urca-glossary.html`](./urca-glossary.html) · [`GLOSSARY.md`](./GLOSSARY.md) |
 | Vendor landscape survey (PDF) | [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf) · [notes](./RCA_Vendor_Comparison_NOTES.md) |
 
 ---

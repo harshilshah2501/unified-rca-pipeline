@@ -20,6 +20,7 @@ code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padd
 ul, ol { margin:.4rem 0 .8rem 1.2rem; } li { margin:.25rem 0; }
 .badge { display:inline-block; font-family:var(--mono); font-size:.72rem; padding:.15rem .45rem; border-radius:4px; border:1px solid var(--stroke); color:var(--muted); margin-bottom:1rem; }
 </style>
+<link rel="stylesheet" href="/urca-diagrams.css" />
 </head>
 <body>
 <main>
@@ -192,14 +193,20 @@ architecture. Gaps G1–G4 are <strong>architecture vs DT unveil</strong>,
 not “Motadata AC fails Federated.”</p>
 <hr />
 <h2 id="stage-cheatsheet-dt-533">1. Stage cheatsheet — DT 5+3+3</h2>
-<pre class="text"><code>Phase 1 · Always-on fabric (5)
-  Collect → Normalize → Topology bind → Fan-out → Maintain
-
-Phase 2 · Case opens (3)
-  Detect → Curate → Tailor
-
-Phase 3 · Davis diagnose (3)
-  Localize → Identify → Package</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">DT teaching — 5 + 3 + 3</div>
+  <div class="ud-grid three">
+    <div class="ud-panel dt"><h5>Phase 1 · Fabric (5)</h5>
+      <div class="ud-flow" style="margin-top:.35rem"><span class="ud-chip">Collect</span><span class="ud-arrow">→</span><span class="ud-chip">Normalize</span><span class="ud-arrow">→</span><span class="ud-chip">Topology</span><span class="ud-arrow">→</span><span class="ud-chip">Fan-out</span><span class="ud-arrow">→</span><span class="ud-chip">Maintain</span></div>
+    </div>
+    <div class="ud-panel"><h5>Phase 2 · Case (3)</h5>
+      <div class="ud-flow" style="margin-top:.35rem"><span class="ud-chip">Detect</span><span class="ud-arrow">→</span><span class="ud-chip">Curate</span><span class="ud-arrow">→</span><span class="ud-chip">Tailor</span></div>
+    </div>
+    <div class="ud-panel accent"><h5>Phase 3 · Diagnose (3)</h5>
+      <div class="ud-flow" style="margin-top:.35rem"><span class="ud-chip">Localize</span><span class="ud-arrow">→</span><span class="ud-chip">Identify</span><span class="ud-arrow">→</span><span class="ud-chip hit">Package</span></div>
+    </div>
+  </div>
+</div>
 <table>
 <colgroup>
 <col style="width: 10%" />
@@ -442,18 +449,27 @@ and evidence sinks</td>
 <p>Think of Vector (or OTel Collector / Fluent Bit — same
 <em>class</em>) as the <strong>plumbing</strong>, not the filing
 cabinet:</p>
-<pre class="text"><code>Agents / collectors / traps / flow exporters
-        │
-        ▼
-  Vector-class pipeline     ← Collect + Normalize (+ help Topology bind keys)
-   • accept vendor-shaped bytes
-   • build joinable Signal / envelope (type, time, ci keys, severity, …)
-   • route copies to the right sinks
-        │
-        ├──────────────────────────────┐
-        ▼                              ▼
-  Event Graph (Dragonfly)      Knowledge Graph (Vortex + DashMap)
-  &quot;what / when&quot;                &quot;who / why&quot; (+ LOS / metrics)</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Vector-class Collect — plumbing into dual sinks</div>
+  <div class="ud-fork">
+    <span class="ud-chip soft">Agents · collectors · traps · flow exporters</span>
+    <div class="ud-down">▼</div>
+    <div class="ud-panel accent" style="width:100%;max-width:36rem;justify-self:center">
+      <h5>Vector-class pipeline</h5>
+      <ul>
+        <li>Accept vendor-shaped bytes</li>
+        <li>Build joinable Signal / envelope (type, time, CI keys, severity…)</li>
+        <li>Route copies to the right sinks</li>
+      </ul>
+      <p>Collect + Normalize (+ help Topology bind keys)</p>
+    </div>
+    <div class="ud-down">▼ fan-out</div>
+    <div class="ud-rails two" style="width:100%;display:grid;grid-template-columns:1fr 1fr;gap:.65rem">
+      <div class="ud-panel"><h5>Event Graph</h5><p>Dragonfly — <em>what / when</em></p></div>
+      <div class="ud-panel"><h5>Knowledge Graph</h5><p>Vortex + DashMap — <em>who / why</em> (+ LOS / metrics)</p></div>
+    </div>
+  </div>
+</div>
 <p><strong>Why §2’s short ingest line looked incomplete</strong></p>
 <p>The Motadata architecture brief often writes:</p>
 <p><code>NATS → Rust → Dragonfly</code></p>
@@ -594,13 +610,16 @@ Vortex CSR (cyclic deps)</td>
 </table>
 <h3 id="end-to-end-rca-flow-motadata-architecture">2.3 End-to-end RCA
 flow (Motadata architecture)</h3>
-<pre class="text"><code>Ingestion (1B EPS):  collectors → Vector-class pipeline → NATS → Rust
-                     → pattern hash → Dragonfly  ∥  Vortex/DashMap (topo + LOS + metrics)
-Detection:           Panorama in-situ → DashMap LOS → gray-failure flags
-Macro localization:  anomaly → Murphy on Vortex CSR (Gibbs / counterfactual)
-Micro localization:  Rust → 256 Lua fans → Dragonfly Nezha scores → broken path
-                     e.g. Auth→DB_Query  ⇒  Auth→DB_Timeout
-Package:             fused verdict / Motadata incident (root CI + evidence + blast radius)</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">Motadata end-to-end (architecture brief)</div>
+  <div class="ud-score">
+    <div class="ud-row"><div class="ud-k">Ingestion</div><div class="ud-v">collectors → Vector-class → NATS → Rust → pattern hash → Dragonfly <strong>∥</strong> Vortex/DashMap</div></div>
+    <div class="ud-row"><div class="ud-k">Detection</div><div class="ud-v">Panorama in-situ → DashMap LOS → gray-failure flags</div></div>
+    <div class="ud-row"><div class="ud-k">Macro</div><div class="ud-v">anomaly → Murphy on Vortex CSR (Gibbs / counterfactual)</div></div>
+    <div class="ud-row"><div class="ud-k">Micro</div><div class="ud-v">Rust → 256 Lua fans → Dragonfly Nezha scores → broken path (e.g. Auth→DB_Query ⇒ Auth→DB_Timeout)</div></div>
+    <div class="ud-row"><div class="ud-k">Package</div><div class="ud-v">Fused verdict / Motadata incident (root CI + evidence + blast radius)</div></div>
+  </div>
+</div>
 <h3 id="collect-path-spelled-out-vector-dual-sinks">2.4 Collect path
 spelled out (Vector → dual sinks)</h3>
 <table>
@@ -834,8 +853,15 @@ product semantics (<strong>Observed</strong> P-26084)</td>
 </tr>
 </tbody>
 </table>
-<pre class="text"><code>Federated:  Ingest → Panorama → Murphy → Nezha
-DT teach:   Fabric(5) → Detect → Curate → Tailor → Localize → Identify → Package</code></pre>
+<div class="ud-viz"><div class="ud-cap">One-line pipeline mapping</div>
+<div class="ud-grid two">
+  <div class="ud-panel"><h5>Federated</h5>
+    <div class="ud-flow"><span class="ud-chip">Ingest</span><span class="ud-arrow">→</span><span class="ud-chip">Panorama</span><span class="ud-arrow">→</span><span class="ud-chip">Murphy</span><span class="ud-arrow">→</span><span class="ud-chip">Nezha</span></div>
+  </div>
+  <div class="ud-panel dt"><h5>DT teach</h5>
+    <div class="ud-flow"><span class="ud-chip">Fabric(5)</span><span class="ud-arrow">→</span><span class="ud-chip">Detect</span><span class="ud-arrow">→</span><span class="ud-chip">Curate</span><span class="ud-arrow">→</span><span class="ud-chip">Tailor</span><span class="ud-arrow">→</span><span class="ud-chip">Localize</span><span class="ud-arrow">→</span><span class="ud-chip">Identify</span><span class="ud-arrow">→</span><span class="ud-chip hit">Package</span></div>
+  </div>
+</div></div>
 <p>Shared <em>intent</em>: continuous fabric, then detect, then localize
 root with evidence.<br />
 Divergent <em>machinery</em>: two-tier Dragonfly/Vortex + named algos vs
@@ -1170,19 +1196,20 @@ the Motadata runtime</td>
 </table>
 <hr />
 <h2 id="one-page-verdict">7. One-page verdict</h2>
-<pre class="text"><code>DT 5+3+3              =  how we *explain* Dynatrace-shaped RCA (lab-proven Problem packaging)
-Motadata architecture =  how Motadata *proposes to build* extreme-EPS causal RCA (§2)
-Motadata FR/AC        =  broad *acceptance* bar (engine-agnostic product outcomes)
-
-Objectives (not clones):
-  &quot;who&quot; map     → Knowledge Graph     (DT teaching label: Smartscape)
-  &quot;what/when&quot;   → Event Graph (+ LOS) (DT teaching label: Grail)
-  Collect pipe  → Vector-class        (NOT a lake; fills both sinks)
-
-Overlap:  fabric jobs, map∥evidence idea, detect-then-localize-then-package intent
-Gaps:     Event Graph, Nezha, Murphy, Panorama LOS, 1B EPS ingest, CSR/LSM stacks,
-          Vector under-named in short Motadata ingest line (G9)
-          (architecture ↔ DT unveil — not FR/AC vs architecture)</code></pre>
+<div class="ud-viz">
+  <div class="ud-cap">One-page verdict — what each doc is for</div>
+  <div class="ud-score">
+    <div class="ud-row"><div class="ud-k">DT 5+3+3</div><div class="ud-v">How we <em>explain</em> Dynatrace-shaped RCA (lab-proven Problem packaging)</div></div>
+    <div class="ud-row"><div class="ud-k">Motadata arch</div><div class="ud-v">How Motadata <em>proposes to build</em> extreme-EPS causal RCA (§2)</div></div>
+    <div class="ud-row"><div class="ud-k">Motadata FR/AC</div><div class="ud-v">Broad <em>acceptance</em> bar (engine-agnostic product outcomes)</div></div>
+  </div>
+  <div class="ud-grid three" style="margin-top:.75rem">
+    <div class="ud-panel"><h5>“who” map</h5><p>Knowledge Graph <span class="ud-note">(DT label: Smartscape)</span></p></div>
+    <div class="ud-panel"><h5>“what/when”</h5><p>Event Graph (+ LOS) <span class="ud-note">(DT label: Grail)</span></p></div>
+    <div class="ud-panel accent"><h5>Collect pipe</h5><p>Vector-class — not a lake; fills both sinks</p></div>
+  </div>
+  <p class="ud-note"><strong>Overlap:</strong> fabric jobs, map∥evidence, detect→localize→package. <strong>Gaps:</strong> Event Graph, Nezha, Murphy, Panorama LOS, 1B EPS, CSR/LSM, Vector under-named in short Motadata ingest (G9).</p>
+</div>
 <p><strong>Do not</strong> treat the DT teaching pipeline as
 implementation of Motadata §2. Use this gap map to see which Federated
 blocks are still <strong>missing</strong> after the unveil. Treat

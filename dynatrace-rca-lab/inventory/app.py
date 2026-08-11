@@ -35,6 +35,10 @@ def lookup_stock_in_warehouse(sku: str = "MACBOOK-PRO-14") -> dict:
 
 # --- end LOOKUP_ ---
 
+# --- RESOURCE_BURN markers (break/heal scripts swap IDLE / BURN) ---
+# IDLE: no background CPU burn (RESOURCE_CONTENTION lab off).
+# --- end RESOURCE_BURN ---
+
 
 @app.route("/inventory")
 def inventory():

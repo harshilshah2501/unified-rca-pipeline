@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dynatrace · Agent tasks (planned Davis labs)</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{--bg:#0f1419;--bg-elev:#171d25;--bg-soft:#1c2430;--stroke:#2a3441;--text:#e8eef4;--muted:#c5d0da;--faint:#8a96a4;--accent:#3d9a8b;--ok:#5FE0B0;--radius:8px;--font:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;}
+*{box-sizing:border-box;}body{margin:0;font-family:var(--font);font-size:15.5px;line-height:1.55;color:var(--text);background:var(--bg);}
+a{color:var(--accent);} .wrap{max-width:54rem;margin:0 auto;padding:2rem 1.5rem 4rem;}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);}
+h1{font-size:1.65rem;font-weight:700;margin:.35rem 0 .75rem;}
+.lead{color:var(--muted);max-width:46rem;}
+.grid{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));margin:1.25rem 0;}
+.card{display:block;padding:1rem 1.05rem;border-radius:var(--radius);background:var(--bg-elev);border:1px solid var(--stroke);color:inherit;text-decoration:none;}
+.card:hover{border-color:rgba(61,154,139,.5);text-decoration:none;}
+.card .k{font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ok);margin:0 0 .35rem;}
+.card h3{margin:0 0 .35rem;font-size:1.02rem;}
+.card p{margin:0;font-size:.88rem;color:var(--muted);}
+code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#9bc0ff;}
+ul{color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Dynatrace · docs hub</div>
+  <h1>Agent tasks — remaining Davis categories</h1>
+  <p class="lead">
+    Cursor-ready lab prompts for categories not yet Observed.
+    <strong style="color:var(--text)">AVAILABILITY</strong> is now Observed
+    (<a href="/dt-cat-availability-lab.html">P-260831</a>).
+    Remaining: RESOURCE_CONTENTION — Timeline + break/heal scripts under
+    <code>dynatrace-rca-lab/scripts/</code>.
+  </p>
+  <div class="grid">
+    <a class="card" href="/dt-cat-monitoring-unavailable-lab.html">
+      <div class="k">Observed</div>
+      <h3>MONITORING_UNAVAILABLE · P-260826</h3>
+      <p>Visibility dark — process up, telemetry off. Timeline promoted.</p>
+    </a>
+    <a class="card" href="/dt-cat-availability-lab.html">
+      <div class="k">Observed</div>
+      <h3>AVAILABILITY · P-260831</h3>
+      <p>Hard down — inventory container stopped. Severity AVAILABILITY · healed.</p>
+    </a>
+    <a class="card" href="/dt-cat-resource-contention-lab.html">
+      <div class="k">Agent task</div>
+      <h3>RESOURCE_CONTENTION</h3>
+      <p>Background CPU burn — Detect tip = cpu/mem. Prompt: <code>dt-resource-contention.md</code></p>
+    </a>
+  </div>
+  <ul>
+    <li>Prompts folder: <a href="/docs/agent-tasks/dt-availability.md">agent-tasks/</a></li>
+    <li>Observed already: <a href="/dt-lab-timeline-code-level.html">ERROR</a> · <a href="/dt-lab-timeline-slowdown.html">SLOWDOWN</a> · <a href="/dt-cat-monitoring-unavailable-lab.html">MU</a> · <a href="/dt-cat-availability-lab.html">AVAILABILITY</a></li>
+    <li><a href="/dt-davis-category-hub.html">← Davis category hub</a></li>
+  </ul>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dt-davis-categories.js" defer></script>
+</body>
+</html>
