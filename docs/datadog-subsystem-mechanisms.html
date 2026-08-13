@@ -4,25 +4,13 @@
 <meta charset="UTF-8">
 <title>Datadog products — Mechanism Simulator</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0A0C10; --panel:#12151C; --panel-2:#171B24; --line:#2A3140;
-    --text:#F2F5F8; --muted:#C5D0DA;
-    --dd:#7BA8F5; --dd2:#A8C4F8; --seed:#EF4444;
-    --ok:#4FD1A0; --lake:#38BDF8; --map:#F472B6; --wd:#FBBF24;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+html,body{margin:0;padding:0;}
   body{
     background:radial-gradient(1200px 600px at 15% -10%, #1a2438 0%, transparent 60%), var(--bg);
     color:var(--text); font-family:'Space Grotesk',sans-serif;
     min-height:100vh; padding:28px 18px 70px; font-size:16px;
   }
-  .wrap{max-width:960px;margin:0 auto;}
-  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
-  h1{font-size:26px;font-weight:700;margin:0 0 8px;letter-spacing:-0.01em;color:var(--text);}
   .sub{color:var(--muted);font-size:16px;line-height:1.6;max-width:740px;margin-bottom:20px;}
   .sub b{color:var(--text);font-weight:600;}
   .sub a{color:var(--dd2);}
@@ -128,9 +116,10 @@
   .shot-lightbox{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:24px;cursor:zoom-out;}
   .shot-lightbox img{max-width:min(1200px,96vw);max-height:92vh;border-radius:8px;border:1px solid #2A3140;}
 </style>
+<link rel="stylesheet" href="/urca-docs.css" />
 </head>
-<body>
-<div class="wrap">
+<body class="vendor-dd article">
+<div class="wrap article">
   <div class="eyebrow">Datadog-native — screenshot-grounded · env:rca-lab-e3</div>
   <h1>8 Datadog product mechanisms</h1>
   <div class="sub">

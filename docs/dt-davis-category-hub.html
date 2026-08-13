@@ -5,65 +5,143 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dynatrace · Davis event categories</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<style>
-:root {
-  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441;
-  --text:#e8eef4; --muted:#c5d0da; --faint:#8a96a4; --accent:#3d9a8b; --lean:#F0B35A;
-  --radius:8px; --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
-}
-*{box-sizing:border-box;}
-body{margin:0;font-family:var(--font);font-size:15.5px;line-height:1.55;color:var(--text);
-  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%),var(--bg);}
-a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
-.wrap{max-width:54rem;margin:0 auto;padding:2rem 1.5rem 4rem;}
-.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);}
-h1{font-size:1.75rem;font-weight:700;margin:.35rem 0 .75rem;}
-h2{font-size:1.15rem;font-weight:650;margin:1.75rem 0 .75rem;}
-.lead{color:var(--muted);margin:0 0 1.25rem;max-width:46rem;}
-.lead code,td code,li code,p code,.note code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#9bc0ff;}
-.note{margin:1rem 0;padding:.75rem .9rem;border-radius:var(--radius);background:rgba(61,154,139,.12);border-left:3px solid var(--accent);color:var(--muted);font-size:.95rem;}
-.warn{border-left-color:var(--lean);background:rgba(240,179,90,.08);}
-.summary{margin:1.25rem 0 1.5rem;padding:1rem 1.1rem;
-  background:var(--bg-elev);border:1px solid var(--stroke);border-radius:10px;}
-.summary .cat-name{font-size:1.15rem;font-weight:650;margin:0 0 .5rem;}
-.summary .hint{font-size:.85rem;color:var(--faint);margin:0 0 .65rem;}
-.meta{display:flex;flex-wrap:wrap;gap:.5rem;margin:.35rem 0 0;}
-.pill{font-family:var(--mono);font-size:.72rem;padding:.2rem .5rem;border-radius:4px;border:1px solid var(--stroke);color:var(--faint);}
-.pill.ok{color:#5FE0B0;border-color:rgba(95,224,176,.45);}
-.pill.plan{color:var(--lean);border-color:rgba(240,179,90,.45);}
-.pill.task{color:#7ec8b8;border-color:rgba(61,154,139,.5);}
-.blurb{color:var(--muted);margin:.85rem 0 0;max-width:44rem;}
-.grid{display:grid;gap:.75rem;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:1rem;}
-@media (max-width:720px){.grid{grid-template-columns:1fr;}}
-.card{display:block;padding:1rem 1.05rem;border-radius:var(--radius);background:var(--bg-elev);
-  border:1px solid var(--stroke);color:inherit;text-decoration:none;}
-.card:hover{border-color:rgba(61,154,139,.5);text-decoration:none;}
-.card .k{font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);margin:0 0 .35rem;}
-.card h3{margin:0 0 .35rem;font-size:1.02rem;font-weight:600;}
-.card p{margin:0;font-size:.88rem;color:var(--muted);}
-.card.disabled{opacity:.55;pointer-events:none;}
-table{width:100%;border-collapse:collapse;font-size:.9rem;margin:1rem 0;}
-th,td{text-align:left;vertical-align:top;padding:.4rem .5rem;border-bottom:1px solid var(--stroke);}
-th{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;}
-</style>
+<link rel="stylesheet" href="/urca-diagrams.css" />
+<link rel="stylesheet" href="/urca-docs.css" />
 </head>
-<body>
-<div class="wrap">
-  <div class="eyebrow">Dynatrace · teaching structure</div>
+<body class="article vendor-dt">
+<div class="wrap article">
+  <div class="eyebrow">Dynatrace · L0 vendor launchpad</div>
   <h1>Davis event categories</h1>
   <p class="lead">
-    One spine for every Davis alerting category — read in this order:
-    <strong style="color:var(--text)">Thesis</strong> (explanatory prose) →
-    <strong style="color:var(--text)">Breakdown</strong> (stage-by-stage canvas) →
-    <strong style="color:var(--text)">Dual-track</strong> (Smartscape ∥ Grail) →
-    <strong style="color:var(--text)">Timeline</strong> (Observed write-up, or an agent task when the lab is ready to run).
+    Native Dynatrace reading, then the shared abstract pipeline and ObserveOps HLD.
+    Same template and chronology as the Datadog hub — vendor terms unchanged.
+    Return to <a href="/docs.html">docs index</a> for the full L0–L3 ladder.
   </p>
+  <div class="spine" aria-label="Hub chronology">
+    <span>01 Thesis</span><span class="arr">→</span>
+    <span>02 Breakdown</span><span class="arr">→</span>
+    <span>03 Dual-track</span><span class="arr">→</span>
+    <span>04 Timeline</span>
+  </div>
+
+  <div id="urca-hub-launchpad" data-vendor="dt"></div>
+  <script src="/urca-hub-launchpad.js" defer></script>
 
   <div class="note">
-    Thesis / Breakdown / Dual-track are <em>shared</em> pages framed by the selected category
-    (<code>?cat=</code>). Timeline pages are <em>per-category</em> Observed (or planned stubs).
-    Switch category with the <strong style="color:var(--text)">Davis category</strong> dropdown in the bar above — one control for Hub and every teaching slot.
+    Category switcher (<code>?cat=</code>) frames every slot below. Use the ladder when moving L0 → L1 → L2 → L3.
+  </div>
+
+  <h2 id="chronology">L0 chronology — read in this order (every category)</h2>
+  <table>
+    <thead>
+      <tr><th>Step</th><th>Slot</th><th>Input focus</th><th>Processing focus</th><th>Output focus</th><th>Unfolds toward</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>01 · Thesis</strong></td>
+        <td>Mental model + product framing</td>
+        <td>Raw telemetry under category lens</td>
+        <td>How fabric + Detect + packaging coordinate (Dynatrace-native)</td>
+        <td>Expected signal and packaging shape for this category</td>
+        <td>L1 phase contracts</td>
+      </tr>
+      <tr>
+        <td><strong>02 · Breakdown</strong></td>
+        <td>Stage IPO canvas</td>
+        <td>Per-stage artifacts (X at each block)</td>
+        <td>Input → process → output per mechanism</td>
+        <td>Stage outputs and handoffs</td>
+        <td>E1–E11 block map</td>
+      </tr>
+      <tr>
+        <td><strong>03 · Dual-track</strong></td>
+        <td>Smartscape ∥ Grail journey</td>
+        <td>Category signal on map + evidence planes</td>
+        <td>Cross-plane joins and neighbor traversal</td>
+        <td>Leaf + corroboration readiness</td>
+        <td>E3/E4/E9/E10 anchors</td>
+      </tr>
+      <tr>
+        <td><strong>04 · Timeline</strong></td>
+        <td>Observed or agent-task run</td>
+        <td>Break / load / heal windows</td>
+        <td>Event storm → Curate → Localize in time</td>
+        <td>Problem packaging behavior Observed</td>
+        <td>Lab proof for HLD/LLD gates</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="phase-lens">Phase outputs (compare lens — for cross-reading only)</h2>
+  <table>
+    <thead>
+      <tr><th>Phase</th><th>Input artifact</th><th>Processing job</th><th>Output artifact</th><th>DT-native anchor</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>F · Fabric</strong></td>
+        <td>Edge telemetry + discovery streams</td>
+        <td>Ingest, enrich, bind topology, persist, maintain freshness</td>
+        <td>Estate (join keys + topology + evidence stores + baseline freshness)</td>
+        <td>OneAgent → Smartscape ∥ Grail</td>
+      </tr>
+      <tr>
+        <td><strong>T · Triage</strong></td>
+        <td>Detect signals/events</td>
+        <td>Merge signals, choose seed, lock time/space</td>
+        <td>Working set (<code>seed + time + candidate CIs</code>)</td>
+        <td>Davis Event merge and scope cut</td>
+      </tr>
+      <tr>
+        <td><strong>D · Diagnose</strong></td>
+        <td>Working set + multimodal evidence</td>
+        <td>Localize leaf, corroborate, package</td>
+        <td>Verdict card (<code>leaf claim + corroboration + operator handoff</code>)</td>
+        <td>Problem object (default packaging path)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="tabs">L0 slots — what each tab is for</h2>
+  <table>
+    <thead>
+      <tr><th>Slot</th><th>Job</th><th>Use for</th><th>Not for</th><th>Next layer</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>01 · Thesis</strong></td>
+        <td>Mental model</td>
+        <td>Category framing · OneAgent · Smartscape · Grail · Davis roles</td>
+        <td>Step-by-step Observed replay</td>
+        <td><a href="/comparable-pipeline-dt-dd.html#fcd-overview">L1 F→T→D</a></td>
+      </tr>
+      <tr>
+        <td><strong>02 · Breakdown</strong></td>
+        <td>IPO mechanics</td>
+        <td>Per-stage X → process → Y with Detect-class context</td>
+        <td>Clock narrative · scalar counts</td>
+        <td><a href="/observeops-pipeline-hld.html#contracts">E-block contracts</a></td>
+      </tr>
+      <tr>
+        <td><strong>03 · Dual-track</strong></td>
+        <td>Map ∥ evidence correlation</td>
+        <td>Smartscape + Grail read path for <code>?cat=</code></td>
+        <td>Category taxonomy essay</td>
+        <td>E3/E4 reference geometry</td>
+      </tr>
+      <tr>
+        <td><strong>04 · Timeline</strong></td>
+        <td>Observed execution</td>
+        <td>Break/load/heal · Events · Problem for one category</td>
+        <td>General architecture teaching</td>
+        <td>LLD lab-proof gate</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    Thesis / Breakdown / Dual-track are shared pages framed by <code>?cat=</code>.
+    Timeline is per-category Observed (or agent task). Layer I on Dynatrace = Timeline deep-dive only.
   </div>
 
   <div class="summary" id="hub-summary">
@@ -73,7 +151,7 @@ th{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.
     <p class="blurb" id="hub-blurb"></p>
   </div>
 
-  <h2>For this category</h2>
+  <h2>L0 · For this category</h2>
   <div class="grid" id="hub-cards"></div>
 
   <h2>All categories</h2>
@@ -86,10 +164,10 @@ th{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.
 
   <div class="note warn">
     Official ladder also includes CUSTOM_ALERT and INFO/WARNING. We teach five operational
-    categories: ERROR + SLOWDOWN + MONITORING_UNAVAILABLE + AVAILABILITY <strong style="color:var(--text)">Observed</strong>
-    (P-260817 · P-260820 · P-260826 · P-260831);
-    RESOURCE_CONTENTION has an
-    <a href="/dt-agent-tasks.html">agent task</a> ready to run.
+    categories, all <strong style="color:var(--text)">Observed</strong>:
+    ERROR P-260817 · SLOWDOWN P-260820 · MONITORING_UNAVAILABLE P-260826 ·
+    AVAILABILITY P-260831 (organic cascade P-260854 PERFORMANCE) ·
+    RESOURCE_CONTENTION code-only 2026-08-12 (no Problem in-window).
   </div>
 </div>
 <script src="/doc-nav.js" defer></script>
@@ -132,12 +210,6 @@ document.addEventListener("DOMContentLoaded", function () {
       meta.appendChild(p3);
       blurb.textContent = cat.blurb;
 
-      var timelineK =
-        cat.status === "observed"
-          ? "Lab · timeline"
-          : cat.status === "agent_task"
-            ? "Lab · agent task"
-            : "Lab · planned";
       var timelineH =
         cat.status === "observed"
           ? "Timeline"
@@ -154,17 +226,17 @@ document.addEventListener("DOMContentLoaded", function () {
             : "Stub — run the lab for this category next; same FE→product→inventory leaf pattern.";
 
       var slots = [
-        { href: API.withCat(API.teach.pipeline, cat), k: "Teaching · thesis", h: "Thesis", p: "Explanatory long-form: OneAgent · Smartscape · Grail · Davis. Read Detect with this category’s signal in mind." },
-        { href: API.withCat(API.teach.mechanisms, cat), k: "Teaching · breakdown", h: "Breakdown", p: "Detailed stage canvas: fabric → Detect → Curate → Davis. Same skeleton; Detect tip = this category’s series." },
-        { href: API.withCat(API.teach.e2e, cat), k: "Teaching · dual-track", h: "Dual-track", p: "One signal across Smartscape ∥ Grail. Coordination board for all 11 subsystems." },
-        { href: API.withCat(cat.lab, cat), k: timelineK, h: timelineH, p: timelineP, disabled: false }
+        { href: API.withCat(API.teach.pipeline, cat), k: "01 · Thesis", h: "Thesis", p: "Mental model + category framing: OneAgent · Smartscape · Grail · Davis.", not: "Not Observed clock replay." },
+        { href: API.withCat(API.teach.mechanisms, cat), k: "02 · Breakdown", h: "Breakdown", p: "Stage IPO canvas: fabric → Detect → Curate → Davis. Detect tip = this category’s series.", not: "Not compare-lens distillation → L1 page." },
+        { href: API.withCat(API.teach.e2e, cat), k: "03 · Dual-track", h: "Dual-track", p: "One signal across Smartscape ∥ Grail — coordination board for 11 subsystems.", not: "Not E-block LLD spec." },
+        { href: API.withCat(cat.lab, cat), k: "04 · Timeline", h: timelineH, p: timelineP, disabled: false, not: cat.status === "observed" ? "Lab proof input for HLD/LLD gates." : "Run lab to promote to Observed." }
       ];
       cards.innerHTML = "";
       slots.forEach(function (s) {
         var a = document.createElement("a");
         a.className = "card" + (s.disabled ? " disabled" : "");
         a.href = s.href;
-        a.innerHTML = '<div class="k">' + s.k + '</div><h3>' + s.h + '</h3><p>' + s.p + '</p>';
+        a.innerHTML = '<div class="k">' + s.k + '</div><h3>' + s.h + '</h3><p>' + s.p + '</p>' + (s.not ? '<p class="not">' + s.not + '</p>' : '');
         cards.appendChild(a);
       });
 

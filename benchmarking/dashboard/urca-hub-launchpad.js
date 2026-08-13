@@ -1,0 +1,1 @@
+../../docs/urca-hub-launchpad.js

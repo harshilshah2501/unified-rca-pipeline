@@ -21,7 +21,7 @@ Produce a Dynatrace **AVAILABILITY** Problem whose seed tip is **inventory proce
 
 ## Constraints
 
-- Prefer `docker compose stop inventory` (or equivalent) — do not rely on KeyError 5xx.
+- Induce the fault by **Python code change only** (`inventory/app.py` `SCENARIO_MODE="AVAILABILITY_DOWN"`).
 - Do not use ledger-scan SLOWDOWN or monitoring-dark OTEL disable as the primary fault.
 - Heal before finishing.
 - Prefer real Problems API evidence.
@@ -29,10 +29,10 @@ Produce a Dynatrace **AVAILABILITY** Problem whose seed tip is **inventory proce
 ## Steps
 
 1. Confirm healthy: `curl -s http://localhost:19080/` OK.
-2. Break: `./scripts/break_inventory_availability.sh` (stops inventory container; FE/product stay up).
+2. Break: `./scripts/break_inventory_availability.sh` (patches `SCENARIO_MODE="AVAILABILITY_DOWN"` and rebuilds inventory).
 3. Drive load while down: `./scripts/run_availability_rca.sh --minutes 10` (expect caller failures).
 4. Poll Dynatrace for AVAILABILITY / process unavailable / connection-lost Events → Problem. Record id, clocks, evidence, RC entity.
-5. Heal: `./scripts/heal_inventory_availability.sh` — `docker compose start inventory`, probe 200.
+5. Heal: `./scripts/heal_inventory_availability.sh` — restores `SCENARIO_MODE="HEALTHY"` and probes 200.
 6. Snapshot + rewrite Timeline to Observed; update `dt-davis-categories.js` (`status`, `problem`).
 
 ## Success criteria
@@ -42,6 +42,12 @@ Produce a Dynatrace **AVAILABILITY** Problem whose seed tip is **inventory proce
 - [x] Cascade visible on product/FE (failed calls / unavailable) — organic **P-260829** PERFORMANCE.
 - [x] Problem id + UTC on Timeline; lab healed.
 
+## Comprehensive rerun evidence pack
+
+- Capture 3 snapshots: pre-break, outage mid-window, post-heal.
+- Save evidence for both primary and co-fired Problems (availability + caller performance if present).
+- Record UTC anchors: break-start, first caller failure, first availability Event, Problem open, heal, close.
+
 ## Observed notes (2026-08-07)
 
 - Break: `docker compose stop inventory` @ **07:00:29 UTC** (Exited 137); FE/product stayed up; checkout HTTP 000 / 500.
@@ -50,13 +56,21 @@ Produce a Dynatrace **AVAILABILITY** Problem whose seed tip is **inventory proce
 - Surfaced **P-260831** via `events.ingest` `AVAILABILITY_EVENT` on inventory `PROCESS_GROUP` at **07:10:53 UTC** (siblings P-260832 / P-260833 on SERVICE inventory).
 - Healed ~07:11:49 UTC; probe HTTP 200.
 
+## Code-only rerun (2026-08-12)
+
+- Fault: `SCENARIO_MODE="AVAILABILITY_DOWN"` → `os._exit(1)` ~2s after boot (no docker stop, no ingest).
+- Break **09:49:33 UTC** · load ~09:49–10:00 · heal **10:00:11 UTC**.
+- Organic primary: **P-260854** CLOSED `PERFORMANCE` “Response time degradation” **09:54→10:04 UTC**; RC=**product**; affected FE+product; evidence RT Events @09:49 + Requests to unmonitored hosts. Siblings **P-260852** / **P-260853**.
+- No organic severity `AVAILABILITY` on inventory (same cascade shape as P-260829).
+- Snapshots: `p260854-availability-codeonly-organic-snapshot.json` · `code-only-rerun-2026-08-12-snapshot.json`.
+
 ## Scripts
 
 | Script | Role |
 |--------|------|
-| `scripts/break_inventory_availability.sh` | Stop inventory |
-| `scripts/heal_inventory_availability.sh` | Start inventory |
-| `scripts/run_availability_rca.sh` | Stop → load → optional start |
+| `scripts/break_inventory_availability.sh` | Patch `SCENARIO_MODE="AVAILABILITY_DOWN"` + rebuild |
+| `scripts/heal_inventory_availability.sh` | Restore `SCENARIO_MODE="HEALTHY"` + rebuild |
+| `scripts/run_availability_rca.sh` | Break → load → optional heal |
 
 ## Teaching cross-links
 

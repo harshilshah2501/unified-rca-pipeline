@@ -1,9 +1,10 @@
 # Agent task · RESOURCE_CONTENTION (CPU / memory)
 
-**Status:** Ready to run (not yet Observed)  
+**Status:** Observed (negative Detect) — code-only **2026-08-12** · **no Problem**  
 **Docs Timeline:** http://127.0.0.1:8765/dt-cat-resource-contention-lab.html  
 **Hub:** http://127.0.0.1:8765/dt-davis-category-hub.html?cat=resource_contention  
-**Lab root:** `dynatrace-rca-lab/`
+**Lab root:** `dynatrace-rca-lab/`  
+**Snapshot:** `docs/vendor-source/dynatrace/code-only-rc-2026-08-12-snapshot.json`
 
 ## Goal
 
@@ -20,6 +21,7 @@ Prefer a **background CPU burn** that keeps `/inventory` HTTP reasonably fast so
 
 ## Constraints
 
+- Induce the fault by **Python code change only** (RESOURCE_BURN markers in `inventory/app.py`).
 - Do **not** reuse ledger-scan SLOWDOWN as the only fault (that lab already Observed P-260820).
 - Do not stop the container (AVAILABILITY) or disable telemetry (MONITORING_UNAVAILABLE).
 - Heal before finishing.
@@ -34,11 +36,26 @@ Prefer a **background CPU burn** that keeps `/inventory` HTTP reasonably fast so
 5. Heal: `./scripts/heal_inventory_resource_burn.sh`.
 6. Snapshot + rewrite Timeline to Observed; update `dt-davis-categories.js`.
 
+## Comprehensive rerun evidence pack
+
+- Capture 3 snapshots: pre-break, sustained burn (~8–10 min), post-heal.
+- Save CPU/process metrics and Event list side-by-side with any co-fired SLOWDOWN evidence.
+- Record UTC anchors: burn-start, first CPU Event, first Problem open, any slowdown co-fire, heal, close.
+
 ## Success criteria
 
-- [ ] Host or process CPU (or mem) clearly elevated in Dynatrace.
-- [ ] Primary teaching claim is RESOURCE_CONTENTION (document any co-occurring SLOWDOWN).
-- [ ] Problem id + UTC on Timeline; code healed to no burn thread.
+- [x] Background burn induced by Python only; HTTP stayed fast 200.
+- [ ] Host or process CPU (or mem) clearly elevated in Dynatrace — **blocked**: Metrics API `403` (`metrics.read` not on token).
+- [x] Primary teaching claim documented: **no** RESOURCE_CONTENTION Problem in-window (Detect honesty).
+- [x] UTC on Timeline; code healed to IDLE / HEALTHY.
+
+## Code-only rerun (2026-08-12)
+
+- Break ~**10:00:30 UTC** · load+burn → heal **10:15:53 UTC**.
+- HTTP **200** fast throughout (load ok=10/10; post-heal ~28ms).
+- Organic Problems for RC / HIGH_CPU / SLOWDOWN in window: **none**.
+- Insight: resource-gauge Detect ≠ request-path SLOWDOWN; burn alone did not package an RC card here.
+- Combined pack: `docs/vendor-source/dynatrace/code-only-rerun-2026-08-12-snapshot.json`.
 
 ## Scripts
 

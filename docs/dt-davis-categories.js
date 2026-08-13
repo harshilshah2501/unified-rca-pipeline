@@ -51,7 +51,7 @@
       id: "availability",
       name: "AVAILABILITY",
       title: "AVAILABILITY · Host / process down",
-      blurb: "Hard outage — inventory container stopped; callers fail. Severity AVAILABILITY on PG.",
+      blurb: "Hard outage — process exit / container down; callers fail. Severity card P-260831; organic code-only cascade P-260854 PERFORMANCE.",
       detect: "availability / process / host down",
       status: "observed",
       problem: "P-260831",
@@ -63,9 +63,9 @@
       id: "resource_contention",
       name: "RESOURCE_CONTENTION",
       title: "RESOURCE_CONTENTION · CPU / memory",
-      blurb: "Saturation on host/process. Agent task ready to run (background CPU burn).",
+      blurb: "Background CPU burn (HTTP stayed fast). Code-only 2026-08-12: no RC Problem in-window — Detect honesty.",
       detect: "CPU / memory / resource saturation",
-      status: "agent_task",
+      status: "observed",
       problem: null,
       lab: "/dt-cat-resource-contention-lab.html",
       signal: "resource",
@@ -226,7 +226,7 @@
     monitoring_unavailable: {
       id: "monitoring_unavailable",
       problem: "P-260826",
-      problemNote: "Observed lab UTC (CUSTOM_ALERT surface; organic platform MONITORING_UNAVAILABLE not auto-fired)",
+      problemNote: "Observed P-260826 (CUSTOM_ALERT); code-only 2026-08-12 = negative Detect (no Problem)",
       rcEntity: "PROCESS_GROUP inventory",
       rcLabel: "seed tip = inventory PG visibility dark (HTTP still 200)",
       clocks: ["06:20", "06:21→06:36", "06:42", "06:43"],
@@ -295,35 +295,35 @@
     availability: {
       id: "availability",
       problem: "P-260831",
-      problemNote: "Observed lab UTC (AVAILABILITY_EVENT surface; organic cascade was PERFORMANCE on callers)",
+      problemNote: "Severity card P-260831; organic code-only cascade P-260854 PERFORMANCE (2026-08-12)",
       rcEntity: "PROCESS_GROUP inventory",
       rcLabel: "seed tip = inventory process/container down (hard outage)",
-      clocks: ["07:00", "07:00→07:11", "07:10", "07:11"],
-      faultWindow: "07:00–07:11",
-      problemAt: "07:10",
-      seenFault: "07:00",
+      clocks: ["09:49", "09:49→10:00", "09:54", "10:00"],
+      faultWindow: "09:49–10:00",
+      problemAt: "09:54",
+      seenFault: "09:49",
       maintainTitles: [
-        "① Healthy — INV container up · checkout 200",
-        "② INV stopped — map marks unavailable · callers 000/500",
-        "③ Davis packages Problem P-260831 (AVAILABILITY on inventory PG)",
-        "④ Process back — heal · checkout 200"
+        "① Healthy — INV process up · checkout 200",
+        "② INV hard down (code-only exit) — callers 500 · map unavailable",
+        "③ Organic PERFORMANCE P-260854 on FE+product (RC=product)",
+        "④ Process back — heal · checkout 200 · P-260854 closes 10:04"
       ],
       grailRows: [
-        { e: "SERVICE-INV", ts: "06:55", w: "process UP", tone: "ok", from: 0 },
-        { e: "SERVICE-INV", ts: "07:00", w: "container STOPPED", tone: "seed", from: 1 },
-        { e: "SERVICE-API", ts: "07:00", w: "connection refused", tone: "seed", from: 1 },
-        { e: "SERVICE-FE", ts: "07:00", w: "upstream fail / 500", tone: "muted", from: 1 },
-        { e: "SERVICE-INV", ts: "07:10", w: "AVAILABILITY_EVENT → P-260831", tone: "seed", from: 1 },
-        { e: "SERVICE-INV", ts: "07:11", w: "process UP · healed", tone: "ok", from: 3 }
+        { e: "SERVICE-INV", ts: "09:45", w: "process UP", tone: "ok", from: 0 },
+        { e: "SERVICE-INV", ts: "09:49", w: "AVAILABILITY_DOWN exit", tone: "seed", from: 1 },
+        { e: "SERVICE-API", ts: "09:49", w: "upstream fail / 500", tone: "seed", from: 1 },
+        { e: "SERVICE-FE", ts: "09:49", w: "RT Event / 500", tone: "muted", from: 1 },
+        { e: "SERVICE-API", ts: "09:54", w: "P-260854 PERFORMANCE", tone: "seed", from: 1 },
+        { e: "SERVICE-INV", ts: "10:00", w: "process UP · healed", tone: "ok", from: 3 }
       ],
       detectSignal: "availability",
       detectThr: 0.5,
       detectMax: 1.0,
       detectTitles: [
         "① Watch — process / host availability",
-        "② Breach — INV container stop (graceful stop ≠ organic PGI_UNAVAILABLE in-window)",
-        "③ Cascade — FE/product PERFORMANCE P-260829 · surface AVAILABILITY_EVENT",
-        "④ Storm — raw Event; then Problem card P-260831"
+        "② Breach — INV process exit (code-only; no organic AVAILABILITY severity)",
+        "③ Cascade — FE/product PERFORMANCE P-260854 · unmonitored hosts",
+        "④ Storm — RT Events @09:49; Problem card @09:54 (severity teaching: P-260831)"
       ],
       detectSeries: [
         { id: "SERVICE-INV", signal: "available", y: 110, healthy: 1.0, fault: 0.0, order: 0 },
@@ -331,20 +331,20 @@
         { id: "SERVICE-FE", signal: "available", y: 230, healthy: 1.0, fault: 0.4, order: 2 }
       ],
       events: [
-        { type: "AVAILABILITY_EVENT", e: "SERVICE-INV", ts: "07:10", v: "down", from: 1 },
-        { type: "SERVICE_SLOWDOWN", e: "SERVICE-API", ts: "07:02", v: "cascade", from: 2 },
-        { type: "SERVICE_SLOWDOWN", e: "SERVICE-FE", ts: "07:02", v: "cascade", from: 3 }
+        { type: "AVAILABILITY_EVENT", e: "SERVICE-INV", ts: "09:49", v: "down", from: 1 },
+        { type: "SERVICE_SLOWDOWN", e: "SERVICE-API", ts: "09:49", v: "cascade", from: 2 },
+        { type: "SERVICE_SLOWDOWN", e: "SERVICE-FE", ts: "09:49", v: "cascade", from: 3 }
       ],
       packageLines: [
         ["category", "AVAILABILITY"],
-        ["problem", "P-260831"],
-        ["seed tip", "inventory PG"],
-        ["severity", "AVAILABILITY"]
+        ["organic", "P-260854 PERFORMANCE"],
+        ["severity card", "P-260831"],
+        ["seed tip", "inventory down"]
       ],
-      identifyRows: ["process down INV", "conn refused API", "FE 500s", "noise"],
+      identifyRows: ["process down INV", "API/FE 500s", "P-260854 cascade", "noise"],
       clearMetric: "availability",
       clockIntro:
-        "Clock = Observed AVAILABILITY lab UTC (<code>P-260831</code>: stop 07:00 → Problem 07:10). Hard down — not soft error_rate or latency-only.",
+        "Clock = code-only AVAILABILITY rerun UTC (<code>P-260854</code>: break 09:49 → Problem 09:54). Organic = PERFORMANCE cascade; severity card remains <code>P-260831</code>.",
       normalize: {
         fieldsLine: "fields: available · raw_ids · modality",
         outA: "OUT A · available=false",
@@ -363,56 +363,57 @@
     },
     resource_contention: {
       id: "resource_contention",
-      problem: "(planned)",
-      problemNote: "illustrative — lab not run",
-      rcEntity: "HOST-B",
-      rcLabel: "seed tip = HOST-B CPU/mem (illustrative)",
-      clocks: ["t0", "saturate", "Problem", "eased"],
-      faultWindow: "CPU/mem high",
-      problemAt: "Problem",
-      seenFault: "hot",
+      problem: "(none organic)",
+      problemNote: "Code-only 2026-08-12 — burn ran; no RC Problem in-window",
+      rcEntity: "HOST-B / inventory process",
+      rcLabel: "seed tip = inventory host/process CPU (intended; Problem not packaged)",
+      clocks: ["10:00", "10:00→10:15", "—", "10:15"],
+      faultWindow: "10:00–10:15",
+      problemAt: "—",
+      seenFault: "10:00",
       maintainTitles: [
-        "① Healthy — HOST-B resources normal",
-        "② INV host CPU/mem saturation — Grail resource series fill",
-        "③ RESOURCE_CONTENTION Problem (illustrative)",
-        "④ Pressure eased"
+        "① Healthy — resources normal · HTTP ~30ms",
+        "② Background CPU burn on INV — request path stays fast 200",
+        "③ No RESOURCE_CONTENTION Problem packaged in-window",
+        "④ Burn IDLE · healed"
       ],
       grailRows: [
-        { e: "HOST-B", ts: "t0", w: "cpu 0.25", tone: "ok", from: 0 },
-        { e: "HOST-B", ts: "t1", w: "cpu 0.97", tone: "seed", from: 1 },
-        { e: "SERVICE-INV", ts: "t1", w: "latency↑ under pressure", tone: "seed", from: 1 },
-        { e: "SERVICE-API", ts: "t1", w: "slow calls to INV", tone: "muted", from: 1 },
-        { e: "HOST-B", ts: "t2", w: "mem pressure", tone: "seed", from: 1 },
-        { e: "HOST-B", ts: "t3", w: "cpu 0.30", tone: "ok", from: 3 }
+        { e: "HOST-B", ts: "09:55", w: "cpu normal", tone: "ok", from: 0 },
+        { e: "SERVICE-INV", ts: "10:00", w: "RESOURCE_BURN on", tone: "seed", from: 1 },
+        { e: "SERVICE-INV", ts: "10:05", w: "HTTP 200 fast", tone: "muted", from: 1 },
+        { e: "SERVICE-API", ts: "10:05", w: "calls INV · OK", tone: "muted", from: 1 },
+        { e: "HOST-B", ts: "10:10", w: "no RC Problem", tone: "seed", from: 1 },
+        { e: "SERVICE-INV", ts: "10:15", w: "burn IDLE · healed", tone: "ok", from: 3 }
       ],
       detectSignal: "cpu",
       detectThr: 0.85,
       detectMax: 1.0,
       detectTitles: [
         "① Watch — host/process CPU & memory",
-        "② Breach — HOST-B resource Event",
-        "③ Related — INV latency may rise",
-        "④ Storm — raw Events"
+        "② Burn — background thread (HTTP path O(1))",
+        "③ Gap — no RC / HIGH_CPU Problem in 15m window",
+        "④ Contrast — SLOWDOWN needs request-path latency (P-260820)"
       ],
       detectSeries: [
-        { id: "HOST-B", signal: "cpu", y: 110, healthy: 0.25, fault: 0.97, order: 0 },
-        { id: "SERVICE-INV", signal: "cpu", y: 170, healthy: 0.2, fault: 0.9, order: 1 },
-        { id: "SERVICE-API", signal: "cpu", y: 230, healthy: 0.15, fault: 0.35, order: 2 }
+        { id: "HOST-B", signal: "cpu", y: 110, healthy: 0.25, fault: 0.9, order: 0 },
+        { id: "SERVICE-INV", signal: "cpu", y: 170, healthy: 0.2, fault: 0.85, order: 1 },
+        { id: "SERVICE-API", signal: "cpu", y: 230, healthy: 0.15, fault: 0.2, order: 2 }
       ],
       events: [
-        { type: "RESOURCE_CONTENTION", e: "HOST-B", ts: "t1", v: "cpu 0.97", from: 1 },
-        { type: "SERVICE_SLOWDOWN", e: "SERVICE-INV", ts: "t1", v: "latency", from: 2 },
-        { type: "RESOURCE_CONTENTION", e: "HOST-B", ts: "t2", v: "mem", from: 3 }
+        { type: "RESOURCE_BURN", e: "SERVICE-INV", ts: "10:00", v: "on", from: 1 },
+        { type: "(no Problem)", e: "HOST-B", ts: "10:10", v: "—", from: 2 },
+        { type: "HEAL", e: "SERVICE-INV", ts: "10:15", v: "IDLE", from: 3 }
       ],
       packageLines: [
         ["category", "RESOURCE_CONTENTION"],
-        ["seed tip", "HOST-B"],
-        ["note", "lab planned"]
+        ["organic Problem", "none"],
+        ["HTTP", "200 fast"],
+        ["note", "Detect honesty"]
       ],
-      identifyRows: ["HOST-B cpu", "INV latency", "runsOn INV→HOST-B", "noise"],
+      identifyRows: ["INV burn on", "HTTP still fast", "no RC card", "runsOn INV→HOST"],
       clearMetric: "cpu",
       clockIntro:
-        "Illustrative RESOURCE_CONTENTION path (lab planned). Detect tip = CPU/mem; Smartscape runsOn matters.",
+        "Clock = code-only RESOURCE_CONTENTION rerun UTC (burn 10:00 → heal 10:15). No Problem packaged — Detect tip remains CPU/mem vs SLOWDOWN request-path.",
       normalize: {
         fieldsLine: "fields: cpu · mem · raw_ids · modality",
         outA: "OUT A · cpu=0.97",
@@ -503,32 +504,6 @@
     if (document.getElementById("urca-dt-cat-bar")) return;
     var cat = current();
     persist(cat);
-
-    var style = document.createElement("style");
-    style.textContent = [
-      "#urca-dt-cat-bar{position:sticky;top:0;z-index:9998;display:flex;flex-direction:column;gap:8px;",
-      "padding:10px 14px 12px;background:rgba(12,16,22,.98);border-bottom:1px solid #2a3441;",
-      "font-family:system-ui,-apple-system,sans-serif;font-size:14px;color:#c5d0da;}",
-      "#urca-doc-nav + #urca-dt-cat-bar,#urca-doc-nav ~ #urca-dt-cat-bar{top:42px;}",
-      "#urca-dt-cat-bar .urca-teach-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;}",
-      "#urca-dt-cat-bar .urca-teach-row.views{padding-top:8px;border-top:1px solid #2a3441;}",
-      "#urca-dt-cat-bar .urca-k{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;",
-      "color:#8a96a4;min-width:4.5rem;}",
-      "#urca-dt-cat-bar label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}",
-      "#urca-dt-cat-bar select{font:inherit;font-size:14px;padding:6px 10px;border-radius:4px;border:1px solid #2a3441;",
-      "background:#1c2430;color:#e8eef4;min-width:18rem;max-width:min(28rem,90vw);}",
-      "#urca-dt-cat-bar .slots{display:flex;flex-wrap:wrap;gap:6px;}",
-      "#urca-dt-cat-bar .slots a{font-size:13px;padding:5px 10px;border-radius:4px;border:1px solid #2a3441;",
-      "background:#171d25;color:#b8c4d0;text-decoration:none;}",
-      "#urca-dt-cat-bar .slots a:hover{border-color:#3d9a8b;color:#e8eef4;}",
-      "#urca-dt-cat-bar .slots a.here{color:#7ec8b8;border-color:rgba(61,154,139,.55);background:rgba(61,154,139,.14);}",
-      "#urca-dt-cat-bar .slots a.muted{opacity:.55;}",
-      "#urca-dt-cat-banner{margin:0;padding:10px 14px;background:rgba(61,154,139,.1);border-bottom:1px solid #2a3441;",
-      "font-family:system-ui,-apple-system,sans-serif;font-size:13px;color:#c5d0da;line-height:1.45;}",
-      "#urca-dt-cat-banner b{color:#e8eef4;} #urca-dt-cat-banner code{font-family:ui-monospace,monospace;font-size:12px;",
-      "background:#1c2430;padding:1px 5px;border-radius:3px;color:#9bc0ff;}"
-    ].join("");
-    document.head.appendChild(style);
 
     var bar = document.createElement("div");
     bar.id = "urca-dt-cat-bar";

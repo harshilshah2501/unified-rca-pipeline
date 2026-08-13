@@ -5,31 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dynatrace lab · MONITORING_UNAVAILABLE · Visibility dark observed (P-260826)</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-:root {
-  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441;
-  --text:#e8eef4; --muted:#c5d0da; --faint:#8a96a4; --accent:#3d9a8b;
-  --seed:#e07a7a; --ok:#5FE0B0; --lean:#F0B35A;
-  --radius:8px; --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
-}
-*{box-sizing:border-box;}
 body{margin:0;font-family:var(--font);font-size:15.5px;line-height:1.55;color:var(--text);
   background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%),var(--bg);}
 a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
-.wrap{max-width:54rem;margin:0 auto;padding:2rem 1.5rem 4rem;}
-.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);}
-h1{font-size:1.7rem;font-weight:700;margin:.35rem 0 .75rem;}
-h2{font-size:1.15rem;font-weight:650;margin:2rem 0 .75rem;padding-top:.85rem;border-top:1px solid var(--stroke);}
 h3{font-size:1rem;font-weight:600;margin:1.25rem 0 .5rem;color:#d5dde6;}
-.lead{color:var(--muted);margin:0 0 1.25rem;max-width:46rem;}
 .lead code,.note code,td code,li code,p code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#9bc0ff;}
 .note{margin:1rem 0;padding:.75rem .9rem;border-radius:var(--radius);background:rgba(61,154,139,.12);border-left:3px solid var(--accent);color:var(--muted);font-size:.95rem;}
 .warn{border-left-color:var(--lean);background:rgba(240,179,90,.08);}
 .ok{border-left-color:var(--ok);background:rgba(95,224,176,.08);}
-table{width:100%;border-collapse:collapse;font-size:.92rem;margin:.6rem 0 1rem;}
-th,td{text-align:left;vertical-align:top;padding:.45rem .55rem;border-bottom:1px solid var(--stroke);}
-th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
 .tl{border:1px solid var(--stroke);border-radius:10px;background:var(--bg-elev);padding:0;margin:1rem 0;overflow:hidden;}
 .tl-row{display:grid;grid-template-columns:8.5rem 1fr;gap:0;border-bottom:1px solid var(--stroke);}
 .tl-row:last-child{border-bottom:none;}
@@ -42,9 +26,10 @@ ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li stro
 .toc{margin:1rem 0 0;padding:.75rem 1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
 .toc a{display:inline-block;margin:.2rem .75rem .2rem 0;font-size:.9rem;}
 </style>
+<link rel="stylesheet" href="/urca-docs.css" />
 </head>
-<body>
-<div class="wrap">
+<body class="vendor-dt article">
+<div class="wrap article">
   <div class="eyebrow">Davis category · MONITORING_UNAVAILABLE · Observed + teaching analysis</div>
   <h1>MONITORING_UNAVAILABLE — Visibility dark (P-260826)</h1>
   <p class="lead">
@@ -66,9 +51,10 @@ ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li stro
     <a href="#defect">1 Defect</a>
     <a href="#detect">2 Detect reality</a>
     <a href="#observed">3 Observed Problem</a>
-    <a href="#contrast">4 vs ERROR / SLOWDOWN / AVAIL</a>
-    <a href="#host">5 Host-class cousin</a>
-    <a href="#scripts">6 Scripts</a>
+    <a href="#codeonly">4 Code-only rerun (2026-08-12)</a>
+    <a href="#contrast">5 vs ERROR / SLOWDOWN / AVAIL</a>
+    <a href="#host">6 Host-class cousin</a>
+    <a href="#scripts">7 Scripts</a>
   </nav>
 
   <h2 id="defect">1) The defect (visibility dark, not app fault)</h2>
@@ -170,7 +156,30 @@ ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li stro
     </div>
   </div>
 
-  <h2 id="contrast">4) vs ERROR / SLOWDOWN / AVAILABILITY</h2>
+  <h2 id="codeonly">4) Code-only rerun (2026-08-12) — negative Detect</h2>
+  <div class="note warn">
+    Constraint: induce fault by <strong style="color:var(--text)">Python only</strong>
+    (<code>SCENARIO_MODE="MONITORING_DARK"</code> → <code>OTEL_SDK_DISABLED</code> /
+    <code>DT_DISABLE</code> at boot). No PG <code>MONITORING_OFF</code>, no
+    <code>systemctl stop oneagent</code>, no <code>events.ingest</code>.
+  </div>
+  <table>
+    <tr><th>Anchor</th><th>UTC</th></tr>
+    <tr><td>Break</td><td>~2026-08-12 <strong>09:33</strong></td></tr>
+    <tr><td>Load window</td><td>09:33 → 09:48</td></tr>
+    <tr><td>HTTP during fault</td><td><strong>200</strong> throughout (load ok)</td></tr>
+    <tr><td>Organic Problems / Events</td><td><strong>none</strong> for MU / CUSTOM_ALERT / OSI_*</td></tr>
+    <tr><td>Heal</td><td>09:48:54 · <code>SCENARIO_MODE=HEALTHY</code> · probe 200</td></tr>
+  </table>
+  <p style="color:var(--muted)">
+    Snapshot:
+    <code>docs/vendor-source/dynatrace/code-only-mu-2026-08-12-snapshot.json</code>.
+    Teaching takeaway: in-process OTEL env flags alone did not open a Davis MU card in this
+    tenant/window. Keep <strong style="color:var(--text)">P-260826</strong> as the Observed
+    Problems-API teaching surface (prior ingest + infra dark path).
+  </p>
+
+  <h2 id="contrast">5) vs ERROR / SLOWDOWN / AVAILABILITY</h2>
   <table>
     <tr><th></th><th>ERROR · P-260817</th><th>SLOWDOWN · P-260820</th><th>This · P-260826</th><th>AVAIL · P-260831</th></tr>
     <tr>
@@ -203,7 +212,7 @@ ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li stro
     </tr>
   </table>
 
-  <h2 id="host">5) Host-class cousin (P-260810)</h2>
+  <h2 id="host">6) Host-class cousin (P-260810)</h2>
   <p style="color:var(--muted)">
     Earlier on this tenant, <code>P-260810</code> was <strong style="color:var(--text)">Host or monitoring unavailable</strong>
     with evidence <code>OSI_UNEXPECTEDLY_UNAVAILABLE</code> on
@@ -212,15 +221,13 @@ ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li stro
     <code>P-260826</code> — process up, callers fine, visibility intentionally dark.
   </p>
 
-  <h2 id="scripts">6) Lab scripts</h2>
+  <h2 id="scripts">7) Lab scripts</h2>
   <div class="pre">cd dynatrace-rca-lab
-./scripts/break_inventory_monitoring_dark.sh   # OTEL off; HTTP stays up
-# If host OneAgent still injects inventory: set PG MONITORING_OFF (Settings API), recreate
-./scripts/load.sh                              # sustain checkout
-# Optional host dark: sudo systemctl stop oneagent  (do not stop inventory container)
-# Problem surface used here: events.ingest CUSTOM_ALERT → inventory PROCESS_GROUP
-./scripts/heal_inventory_monitoring_dark.sh    # restore OTEL + recreate
-# Restore PG MONITORING_ON + start oneagent</div>
+# Code-only (preferred constraint):
+./scripts/break_inventory_monitoring_dark.sh   # SCENARIO_MODE=MONITORING_DARK + rebuild
+./scripts/run_monitoring_unavailable_rca.sh --minutes 15 --heal-after
+./scripts/heal_inventory_monitoring_dark.sh    # SCENARIO_MODE=HEALTHY + rebuild
+# Prior Observed P-260826 also used PG MONITORING_OFF + OA stop + events.ingest CUSTOM_ALERT</div>
 
   <h2 id="related">Related</h2>
   <ul>

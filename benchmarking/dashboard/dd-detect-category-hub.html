@@ -5,78 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Datadog · Detect categories</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<style>
-:root {
-  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441;
-  --text:#f2f5f8; --muted:#d8e0e8; --faint:#b0bac6; --accent:#7BA8F5; --lean:#F0B35A; --ok:#7aecc4;
-  --radius:8px; --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
-}
-*{box-sizing:border-box;}
-body{margin:0;font-family:var(--font);font-size:17px;line-height:1.65;color:var(--text);
-  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2438 0%,transparent 55%),var(--bg);}
-a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
-.wrap{max-width:56rem;margin:0 auto;padding:2rem 1.5rem 4rem;}
-.eyebrow{font-size:.85rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);}
-h1{font-size:1.9rem;font-weight:700;margin:.35rem 0 .75rem;color:var(--text);}
-h2{font-size:1.28rem;font-weight:650;margin:1.75rem 0 .75rem;color:var(--text);}
-.lead{color:var(--muted);margin:0 0 1.25rem;max-width:48rem;font-size:1.05rem;}
-.lead code,td code,li code,p code,.note code{font-family:var(--mono);font-size:.92em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#b8d4ff;}
-.note{margin:1rem 0;padding:.85rem 1rem;border-radius:var(--radius);background:rgba(91,141,239,.14);border-left:3px solid var(--accent);color:var(--muted);font-size:1rem;}
-.warn{border-left-color:var(--lean);background:rgba(240,179,90,.1);}
-.ok{border-left-color:var(--ok);background:rgba(95,224,176,.1);}
-.summary{margin:1.25rem 0 1.5rem;padding:1.1rem 1.2rem;
-  background:var(--bg-elev);border:1px solid var(--stroke);border-radius:10px;}
-.summary .cat-name{font-size:1.28rem;font-weight:650;margin:0 0 .5rem;color:var(--text);}
-.summary .hint{font-size:.95rem;color:var(--faint);margin:0 0 .65rem;}
-.meta{display:flex;flex-wrap:wrap;gap:.5rem;margin:.35rem 0 0;}
-.pill{font-family:var(--mono);font-size:.8rem;padding:.25rem .55rem;border-radius:4px;border:1px solid var(--stroke);color:var(--muted);}
-.pill.ok{color:#7aecc4;border-color:rgba(95,224,176,.55);}
-.blurb{color:var(--muted);margin:.85rem 0 0;max-width:44rem;font-size:1.02rem;}
-.grid{display:grid;gap:.75rem;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:1rem;}
-@media (max-width:720px){.grid{grid-template-columns:1fr;}}
-.card{display:block;padding:1.1rem 1.15rem;border-radius:var(--radius);background:var(--bg-elev);
-  border:1px solid var(--stroke);color:inherit;text-decoration:none;}
-.card:hover{border-color:rgba(91,141,239,.5);text-decoration:none;}
-.card .k{font-family:var(--mono);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);margin:0 0 .4rem;}
-.card h3{margin:0 0 .4rem;font-size:1.12rem;font-weight:600;color:var(--text);}
-.card p{margin:0;font-size:1rem;color:var(--muted);line-height:1.55;}
-.card .not{margin:.55rem 0 0;font-size:.92rem;color:var(--faint);}
-.spine{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin:1rem 0 1.25rem;}
-.spine span{font-family:var(--mono);font-size:.78rem;padding:.35rem .55rem;border-radius:4px;border:1px solid var(--stroke);color:var(--muted);background:var(--bg-elev);}
-.spine .arr{border:none;background:transparent;color:var(--faint);padding:0 .1rem;}
-table{width:100%;border-collapse:collapse;font-size:1rem;margin:1rem 0;}
-th,td{text-align:left;vertical-align:top;padding:.5rem .55rem;border-bottom:1px solid var(--stroke);color:var(--muted);}
-th{color:var(--faint);font-size:.85rem;text-transform:uppercase;letter-spacing:.04em;}
-td strong,td a{color:var(--text);}
-.pre{font-family:var(--mono);font-size:.88rem;background:var(--bg-soft);border:1px solid var(--stroke);border-radius:6px;padding:.85rem 1rem;overflow-x:auto;white-space:pre;color:#d0dbe6;margin:1rem 0;}
-</style>
 <link rel="stylesheet" href="/urca-diagrams.css" />
+<link rel="stylesheet" href="/urca-docs.css" />
 </head>
-<body>
-<div class="wrap">
-  <div class="eyebrow">Datadog · teaching structure</div>
+<body class="article vendor-dd">
+<div class="wrap article">
+  <div class="eyebrow">Datadog · L0 vendor launchpad</div>
   <h1>Detect categories</h1>
   <p class="lead">
-    One spine for Datadog teaching. Product rails stay <strong style="color:var(--text)">Metrics ∥ APM ∥ Logs</strong>
-    (tag join). Backend is <strong style="color:var(--text)">not</strong> three equal peer DBs:
-    classic <strong style="color:var(--text)">Metrics timeseries</strong> ∥
-    <strong style="color:var(--text)">Husky</strong> event store (logs + traces + NPM/RUM/…).
+    Native Datadog reading, then the shared abstract pipeline and ObserveOps HLD.
+    Same template and chronology as the Dynatrace hub — vendor terms unchanged.
+    Return to <a href="/docs.html">docs index</a> for the full L0–L3 ladder.
   </p>
 
-  <div class="spine" aria-label="Teaching spine">
-    <span>Thesis</span><span class="arr">→</span>
-    <span>Breakdown</span><span class="arr">→</span>
-    <span>Three-rail</span><span class="arr">→</span>
-    <span>Timeline</span>
+  <div class="spine" aria-label="Hub chronology">
+    <span>01 Thesis</span><span class="arr">→</span>
+    <span>02 Breakdown</span><span class="arr">→</span>
+    <span>03 Three-rail</span><span class="arr">→</span>
+    <span>04 Timeline</span>
     <span class="arr">·</span>
-    <span style="border-color:rgba(232,184,109,.45);color:#e8b86d">Interpret: MTL · Bits</span>
+    <span style="border-color:rgba(232,184,109,.45);color:#e8b86d">Layer I · MTL · Bits</span>
   </div>
+
+  <div id="urca-hub-launchpad" data-vendor="dd"></div>
+  <script src="/urca-hub-launchpad.js" defer></script>
+
   <div class="note">
-    <strong style="color:var(--text)">Engineering vs Interpret.</strong>
-    First four slots unveil Datadog fabric + clocks.
-    MTL / Bits are <em>one-run interpretation</em> (not BTS blocks) —
-    see <a href="/observeops-pipeline-hld.html">ObserveOps HLD</a>.
+    Category switcher (<code>?cat=</code>) frames every L0 slot below. Use the ladder when moving from vendor study → compare lens → HLD → LLDs.
+    <strong style="color:var(--text)">Layer I</strong> (MTL · Bits) is optional interpretation — not E-blocks. See
+    <a href="/observeops-pipeline-hld.html#overview">ObserveOps HLD</a>.
   </div>
 
   <div class="note ok">
@@ -88,7 +45,129 @@ td strong,td a{color:var(--text);}
     Teaching still joins rails with <code>service</code> / <code>env</code> / <code>version</code> (+ <code>trace_id</code>).
   </div>
 
-  <h2 id="clocks">ERROR e3 clocks — baseline vs fault windows</h2>
+  <h2 id="chronology">L0 chronology — read in this order (every category)</h2>
+  <table>
+    <thead>
+      <tr><th>Step</th><th>Slot</th><th>Input focus</th><th>Processing focus</th><th>Output focus</th><th>Unfolds toward</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>01 · Thesis</strong></td>
+        <td>Mental model + product framing</td>
+        <td>Raw telemetry under category lens</td>
+        <td>How fabric + Detect doors + packaging coordinate (Datadog-native)</td>
+        <td>Expected signal and packaging shape for this category</td>
+        <td>L1 phase contracts</td>
+      </tr>
+      <tr>
+        <td><strong>02 · Breakdown</strong></td>
+        <td>Stage IPO canvas</td>
+        <td>Per-stage artifacts (X at each block)</td>
+        <td>Input → process → output per mechanism</td>
+        <td>Stage outputs and handoffs</td>
+        <td>E1–E11 block map</td>
+      </tr>
+      <tr>
+        <td><strong>03 · Three-rail journey</strong></td>
+        <td>Metrics ∥ APM ∥ Logs walk</td>
+        <td>Category signal on rails and map</td>
+        <td>Cross-rail joins and map traversal</td>
+        <td>Leaf + corroboration readiness</td>
+        <td>E3/E4/E9/E10 anchors</td>
+      </tr>
+      <tr>
+        <td><strong>04 · Timeline</strong></td>
+        <td>Observed category run</td>
+        <td>Break / load / heal windows</td>
+        <td>Door A/B + Curate + leaf sequence in time</td>
+        <td>Packaging behavior Observed</td>
+        <td>Lab proof for HLD/LLD gates</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="phase-lens">Phase outputs (compare lens — for cross-reading only)</h2>
+  <table>
+    <thead>
+      <tr><th>Phase</th><th>Input artifact</th><th>Processing job</th><th>Output artifact</th><th>DD-native anchor</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>F · Fabric</strong></td>
+        <td>Edge telemetry + discovery streams</td>
+        <td>Ingest, tag/normalize, derive topology, persist, maintain freshness</td>
+        <td>Estate (join keys + topology + evidence stores + baseline freshness)</td>
+        <td>Metrics store ∥ Husky + APM-derived Service Map</td>
+      </tr>
+      <tr>
+        <td><strong>T · Triage</strong></td>
+        <td>Detect signals/stories</td>
+        <td>Sort/merge signals, choose seed, lock time/space</td>
+        <td>Working set (<code>seed + time + candidate CIs</code>)</td>
+        <td>Monitors/Watchdog + operator/related scoping</td>
+      </tr>
+      <tr>
+        <td><strong>D · Diagnose</strong></td>
+        <td>Working set + multimodal evidence</td>
+        <td>Localize leaf, corroborate, optional packaging</td>
+        <td>Verdict card (<code>leaf claim + corroboration + operator handoff</code>)</td>
+        <td>Leaf from MTL; Bits/Incident optional handoff</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="tabs">L0 slots — what each tab is for</h2>
+  <table>
+    <thead>
+      <tr><th>Slot</th><th>Job</th><th>Use for</th><th>Not for</th><th>Next layer</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>01 · Thesis</strong></td>
+        <td>Mental model + evidence</td>
+        <td>Agent → tags → rails → Detect → leaf · Metrics vs Husky</td>
+        <td>Animation · query cookbook</td>
+        <td><a href="/comparable-pipeline-dt-dd.html#fcd-overview">L1 F→T→D</a></td>
+      </tr>
+      <tr>
+        <td><strong>02 · Breakdown</strong></td>
+        <td>IPO mechanics</td>
+        <td>Per-stage X → process → Y · Host Metrics + Logs + Traces</td>
+        <td>Break/heal clocks · MCP scalars</td>
+        <td><a href="/observeops-pipeline-hld.html#contracts">E-block contracts</a></td>
+      </tr>
+      <tr>
+        <td><strong>03 · Three-rail journey</strong></td>
+        <td>Animated write path</td>
+        <td>How M∥APM∥Logs write for <code>?cat=</code></td>
+        <td>Copy-paste queries · Observed counts</td>
+        <td>E3/E4 reference geometry</td>
+      </tr>
+      <tr>
+        <td><strong>04 · Timeline</strong></td>
+        <td>Observed execution</td>
+        <td>Break/load/heal · Detect surfaces for one category</td>
+        <td>Pipeline animation</td>
+        <td>LLD lab-proof gate</td>
+      </tr>
+      <tr>
+        <td><strong>Layer I · MTL</strong></td>
+        <td>One-run interpretation workbook</td>
+        <td>Emit · queries · Detect doors · leaf for one Observed run</td>
+        <td>Collect/Detect/Localize engineering</td>
+        <td>Not LLD-E*</td>
+      </tr>
+      <tr>
+        <td><strong>Layer I · Bits</strong></td>
+        <td>Optional packaging walk</td>
+        <td>Hypothesis loop · optional E11 narrator</td>
+        <td>Required leaf naming</td>
+        <td>Not LLD-E11 substitute</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="lab-context">Lab context — ERROR e3 clocks (category example)</h2>
   <table>
     <thead>
       <tr><th>Window (UTC · 2026-08-10)</th><th>Kind</th><th>What happened</th></tr>
@@ -176,51 +255,6 @@ td strong,td a{color:var(--text);}
     <p class="ud-note">Join across explorers: <code>Unified Service Tags</code> (+ <code>trace_id</code>). UI three rails ≠ three equal peer DBs.</p>
   </div>
 
-  <h2 id="tabs">What each tab is for</h2>
-  <table>
-    <thead>
-      <tr><th>Tab</th><th>Job</th><th>Use for</th><th>Not for</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>Thesis</strong></td>
-        <td>Mental model + evidence</td>
-        <td>Agent → tags → rails → Detect → leaf → packaging; Metrics vs Husky; Observed §7</td>
-        <td>Animation · ERROR query cookbook</td>
-      </tr>
-      <tr>
-        <td><strong>Breakdown</strong></td>
-        <td>8 mechanisms · screenshot IPO</td>
-        <td>Lean stages with Input→Process→Output · Host Metrics + Logs + Traces embedded · Detect→leaf→Bits</td>
-        <td>Break/heal clocks · MCP scalar tables</td>
-      </tr>
-      <tr>
-        <td><strong>Three-rail journey</strong></td>
-        <td>Animated write path</td>
-        <td>How M∥APM∥Logs appear at each stage for <code>?cat=</code></td>
-        <td>Copy-paste queries · Observed counts</td>
-      </tr>
-      <tr>
-        <td><strong>Timeline</strong></td>
-        <td>Clocked Observed narrative</td>
-        <td>Break / load / heal / Detect surfaces for one category</td>
-        <td>Pipeline animation · full query cookbook</td>
-      </tr>
-      <tr>
-        <td><strong>MTL workbook</strong></td>
-        <td>Interpret · one-run workbook</td>
-        <td>Emit · queries · MCP counts · Detect doors · leaf — Layer I (not fabric)</td>
-        <td>Collect/Detect/Localize engineering</td>
-      </tr>
-      <tr>
-        <td><strong>Bits</strong></td>
-        <td>Interpret · optional packaging walk</td>
-        <td>Hypothesis loop for one investigation · optional E11 narrator</td>
-        <td>MTL query cookbook · required leaf naming</td>
-      </tr>
-    </tbody>
-  </table>
-
   <div class="summary" id="hub-summary">
     <p class="hint">Active category (from bar above)</p>
     <h2 class="cat-name" id="hub-cat-name"></h2>
@@ -228,7 +262,7 @@ td strong,td a{color:var(--text);}
     <p class="blurb" id="hub-blurb"></p>
   </div>
 
-  <h2>For this category</h2>
+  <h2>L0 · For this category</h2>
   <div class="grid" id="hub-cards"></div>
 
   <h2>All categories</h2>
@@ -256,7 +290,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   ready(function () {
     var API = window.URCA_DD_CATS;
-    API.mountSwitcher({ banner: true });
+    API.mountSwitcher({ banner: false });
     var cat = API.current();
     API.persist(cat);
 
@@ -291,52 +325,52 @@ document.addEventListener("DOMContentLoaded", function () {
           k: "01 · Thesis",
           h: "Thesis",
           p: "Mental model + Observed evidence. Metrics timeseries vs Husky events. Detect doors · leaf · packaging limits.",
-          not: "Not the animation or ERROR query cookbook."
+          not: "Not compare-lens distillation → L1 page."
         },
         {
           href: API.withCat(API.teach.mechanisms, cat),
           k: "02 · Breakdown",
           h: "Breakdown",
-          p: "Lean 8-stage screenshot IPO (Host Metrics · Logs · Traces) → Bits RCA. Dynatrace-style unveil, Datadog terms. Method maps Detect→leaf→package onto 05 / 07 / 08.",
+          p: "Lean 8-stage screenshot IPO (Host Metrics · Logs · Traces) → leaf/Bits. Per-stage X → process → Y.",
           not: "Not break/heal clocks or MCP scalars."
         },
         {
           href: API.withCat(API.teach.e2e, cat),
           k: "03 · Three-rail journey",
           h: "Three-rail journey",
-          p: "Animated how Metrics ∥ APM ∥ Logs write along stages for this category. Backend: Metrics store ∥ Husky (traces+logs).",
-          not: "Not queries or Observed counts → MTL workbook."
+          p: "Animated how Metrics ∥ APM ∥ Logs write along stages for this category. Backend: Metrics store ∥ Husky.",
+          not: "Not E-block LLD spec."
         },
         {
           href: API.withCat(cat.lab, cat),
           k: "04 · Timeline",
           h: "Timeline",
           p: "Clocked Observed Detect→leaf→package for " + (cat.evidence || "this category") + ".",
-          not: "Not the pipeline animation."
+          not: "Lab proof input for HLD/LLD gates."
         }
       ];
       if (cat.mtlDoc) {
         slots.push({
           href: API.withCat(cat.mtlDoc, cat),
-          k: "Interpret · MTL",
+          k: "Layer I · MTL",
           h: cat.name + " · MTL workbook",
           p:
             cat.id === "slowdown"
-              ? "Layer I: @duration queries · MCP latency · Detect doors · self-time leaf for one Observed run."
-              : "Layer I: emit · queries · MCP counts · Detect doors · leaf for one Observed run.",
-          not: "Not a fabric stage (see ObserveOps HLD). Not a second Three-rail journey."
+              ? "@duration queries · MCP latency · Detect doors · self-time leaf for one Observed run."
+              : "Emit · queries · MCP counts · Detect doors · leaf for one Observed run.",
+          not: "Not LLD-E* — Layer I only."
         });
       }
       if (cat.bitsDoc) {
         slots.push({
           href: API.withCat(cat.bitsDoc, cat),
-          k: "Interpret · Bits",
+          k: "Layer I · Bits",
           h: "Bits",
           p:
             cat.id === "slowdown"
-              ? "Layer I: optional packaging walk · inventory.stock self-time · demote equal-duration callers."
-              : "Layer I: optional packaging walk · 500 vs 502 ranking · example 90a88d93….",
-          not: "Not required to name the leaf. Optional E11 narrator, not a separate Collect/Detect block."
+              ? "Optional packaging walk · inventory.stock self-time · demote equal-duration callers."
+              : "Optional packaging walk · 500 vs 502 ranking · example 90a88d93….",
+          not: "Not required E11 — optional narrator."
         });
       }
       cards.innerHTML = "";

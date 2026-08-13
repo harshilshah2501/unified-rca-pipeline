@@ -4,25 +4,8 @@
 <meta charset="UTF-8">
 <title>Fan-out / Tailor — Time-Domain Simulator</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0A0C10;
-    --panel:#12151C;
-    --panel-2:#171B24;
-    --line:#1E222B;
-    --text:#E6E8EB;
-    --muted:#7A8290;
-    --lean:#E8A33D;
-    --lean-dim:#5A431F;
-    --fed:#4FD1C5;
-    --fed-dim:#1E3D3A;
-    --seed:#EF4444;
-    --seed-dim:#4A1E1E;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+html,body{margin:0;padding:0;}
   body{
     background:
       radial-gradient(1200px 600px at 15% -10%, #141822 0%, transparent 60%),
@@ -32,7 +15,6 @@
     min-height:100vh;
     padding:32px 20px 64px;
   }
-  .wrap{max-width:920px;margin:0 auto;}
   .eyebrow{
     font-family:'IBM Plex Mono',monospace;
     font-size:12px;
@@ -259,9 +241,10 @@
   }
   .note b{color:var(--text);}
 </style>
+<link rel="stylesheet" href="/urca-docs.css" />
 </head>
-<body>
-<div class="wrap">
+<body class="urca-doc article">
+<div class="wrap article">
   <div class="eyebrow">Lean RCA — §3.2b reference build</div>
   <h1>Fan-out writes continuously. Tailor reads on demand.</h1>
   <div class="sub">

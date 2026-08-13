@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MONITORING_UNAVAILABLE agent task runner: break visibility → load → optional heal.
+# MONITORING_UNAVAILABLE runner: code-induced telemetry dark → load → optional heal.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -17,7 +17,7 @@ done
 
 ./scripts/break_inventory_monitoring_dark.sh
 STARTED_UTC=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-echo "== Load ${MINUTES}m from $STARTED_UTC (HTTP should stay up; telemetry dark) =="
+echo "== Load ${MINUTES}m from $STARTED_UTC (HTTP should stay up; telemetry reduced/dark) =="
 END=$((SECONDS + MINUTES * 60))
 while (( SECONDS < END )); do
   ./scripts/load.sh 8 || true

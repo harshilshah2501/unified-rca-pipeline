@@ -13,6 +13,14 @@ import sys, re
 p = Path(sys.argv[1])
 text = p.read_text()
 
+# Ensure the service stays in healthy availability/telemetry mode for this scenario.
+text = re.sub(
+    r'SCENARIO_MODE\s*=\s*"(HEALTHY|MONITORING_DARK|AVAILABILITY_DOWN)"',
+    'SCENARIO_MODE = "HEALTHY"',
+    text,
+    count=1,
+)
+
 idle = '''# --- RESOURCE_BURN markers (break/heal scripts swap IDLE / BURN) ---
 # IDLE: no background CPU burn (RESOURCE_CONTENTION lab off).
 # --- end RESOURCE_BURN ---'''
@@ -37,7 +45,8 @@ log.info("RESOURCE_CONTENTION lab: background CPU burn thread started")
 # --- end RESOURCE_BURN ---'''
 
 if "_resource_burn_loop" in text:
-    print("already burning")
+    p.write_text(text)
+    print("already burning (SCENARIO_MODE normalized)")
     raise SystemExit(0)
 pat = re.compile(r"# --- RESOURCE_BURN markers.*?\# --- end RESOURCE_BURN ---", re.S)
 if not pat.search(text):

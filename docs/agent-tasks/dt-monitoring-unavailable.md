@@ -21,6 +21,7 @@ Produce a Dynatrace Problem in the **MONITORING_UNAVAILABLE** (or equivalent age
 
 ## Constraints
 
+- Induce the fault by **Python code change only** (`inventory/app.py` `SCENARIO_MODE="MONITORING_DARK"`).
 - Do **not** stop the inventory container (that is AVAILABILITY).
 - Do **not** inject 5xx or the ledger-scan slowdown.
 - Heal before finishing; leave the lab healthy.
@@ -31,11 +32,11 @@ Produce a Dynatrace Problem in the **MONITORING_UNAVAILABLE** (or equivalent age
 
 1. Confirm lab healthy: `curl -s http://localhost:19080/` → product + inventory stock JSON.
 2. Break visibility only: `./scripts/break_inventory_monitoring_dark.sh`  
-   - Recreates inventory with OTLP/SDK disabled so Dynatrace stops receiving inventory spans/metrics while HTTP stays up.  
-   - If host OneAgent is instrumenting the container, also note/disable deep monitoring for that process (document what you did).
+   - Script patches `inventory/app.py` to `SCENARIO_MODE="MONITORING_DARK"` and rebuilds inventory.
+   - HTTP should stay up while telemetry is reduced/dark.
 3. Sustain checkout load 10–15 min: `./scripts/load.sh` in a loop (or `./scripts/run_monitoring_unavailable_rca.sh --minutes 15`).
 4. Poll Dynatrace Problems/Events for monitoring-unavailable / agent dark on inventory (or HOST running inventory). Record Problem id, start time, evidence types, `rootCauseEntity`.
-5. Heal: `./scripts/heal_inventory_monitoring_dark.sh` — confirm OTLP/telemetry resumes and `/inventory` still 200.
+5. Heal: `./scripts/heal_inventory_monitoring_dark.sh` — restores `SCENARIO_MODE="HEALTHY"` and confirms `/inventory` 200.
 6. Write snapshot JSON under `docs/vendor-source/dynatrace/` and rewrite the Timeline page to Observed (mirror SLOWDOWN page structure).
 7. Set category `status: "observed"` and `problem: "P-…"` in `docs/dt-davis-categories.js`.
 
@@ -46,6 +47,12 @@ Produce a Dynatrace Problem in the **MONITORING_UNAVAILABLE** (or equivalent age
 - [x] Problem id + UTC clocks documented on the Timeline page.
 - [x] Lab healed; scripts idempotent.
 
+## Comprehensive rerun evidence pack
+
+- Capture 3 snapshots: pre-break, mid-window (~5 min), post-heal.
+- For each snapshot, save: Problem list, matching Events list, and one Problem details payload.
+- Record these UTC anchors in Timeline: break-start, first matching Event, Problem open, heal, Problem close.
+
 ## Observed notes (2026-08-07)
 
 - Break: OTEL off + PG `MONITORING_OFF` (OneAgent Python inject cleared) + host `oneagent` stopped 06:31–06:43 UTC.
@@ -53,12 +60,20 @@ Produce a Dynatrace Problem in the **MONITORING_UNAVAILABLE** (or equivalent age
 - Surfaced **P-260826** via `events.ingest` `CUSTOM_ALERT` on inventory `PROCESS_GROUP` at **06:42:35 UTC**.
 - Healed ~06:43 UTC; reinject verified.
 
+## Code-only rerun (2026-08-12)
+
+- Fault: `SCENARIO_MODE="MONITORING_DARK"` only (no PG OFF, no OA stop, no ingest).
+- Window ~**09:33–09:48 UTC**; HTTP **200** throughout.
+- Organic Problems/Events for MU / CUSTOM_ALERT / OSI_*: **none**.
+- Snapshot: `docs/vendor-source/dynatrace/code-only-mu-2026-08-12-snapshot.json`.
+- Teaching: keep **P-260826** as Problems-API surface; code-only env flags alone did not open a card.
+
 ## Scripts
 
 | Script | Role |
 |--------|------|
-| `scripts/break_inventory_monitoring_dark.sh` | Inject visibility dark |
-| `scripts/heal_inventory_monitoring_dark.sh` | Restore telemetry |
+| `scripts/break_inventory_monitoring_dark.sh` | Patch `SCENARIO_MODE="MONITORING_DARK"` + rebuild |
+| `scripts/heal_inventory_monitoring_dark.sh` | Restore `SCENARIO_MODE="HEALTHY"` + rebuild |
 | `scripts/run_monitoring_unavailable_rca.sh` | Break → load → optional heal |
 
 ## Teaching cross-links

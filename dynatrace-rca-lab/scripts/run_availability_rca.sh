@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AVAILABILITY agent task runner: stop inventory → load → optional start.
+# AVAILABILITY agent task runner: code-induced process down → load → optional heal.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -26,7 +26,7 @@ done
 if [[ "$HEAL_AFTER" == "1" ]]; then
   ./scripts/heal_inventory_availability.sh
 else
-  echo "Leaving inventory STOPPED — heal: ./scripts/heal_inventory_availability.sh"
+  echo "Leaving AVAILABILITY_DOWN mode ON — heal: ./scripts/heal_inventory_availability.sh"
 fi
 echo "Docs task: http://127.0.0.1:8765/dt-cat-availability-lab.html"
 echo "Agent prompt: docs/agent-tasks/dt-availability.md"

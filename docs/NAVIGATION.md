@@ -37,7 +37,7 @@ Read these before diving into folders.
 | [`POC_BRIEFING.md`](./POC_BRIEFING.md) | End-to-end story: objective → design → bakeoff → conclusion (slides / NotebookLM) |
 | [`ROADMAP.md`](./ROADMAP.md) | PoC **journey**: Compare → Deepen → Ship → Transfer → Connect (+ later Federate/Scale) |
 | [`ADR-001-lean-primary-engine.md`](./ADR-001-lean-primary-engine.md) | Lean favored on ObserveOps — **evaluation finding**, not a finalized GTM lock |
-| [`urca-glossary.html`](./urca-glossary.html) | **Docs hub glossary** (hosted `:8765`) — conflict terms first · Ours / DT / DD / Obs generations / lab |
+| [`urca-glossary.html`](./urca-glossary.html) | **Glossary** (hosted `:8765`) — A–Z lookup, search, one-line definitions; same-word conflicts at top |
 | [`GLOSSARY.md`](./GLOSSARY.md) | Bakeoff/engine: Tier namespaces · L0/F1 · Panorama · Dynatrace teaching terms · corpus names |
 | [`README.md`](./README.md) | Four qualities, five roadblocks, lean vs federated decision guide (long-form) |
 
@@ -101,6 +101,7 @@ Understand **what** was measured before reading engine internals.
 | [`ECOM_CHECKOUT_RCA_ANALYSIS.md`](./ECOM_CHECKOUT_RCA_ANALYSIS.md) | **Lean vs Federated write-up** for `ecom-numa-001` |
 | [`index.html`](./index.html) | **Browser docs hub** — [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) |
 | [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | **DT vs DD after independent unveils** (same-scenario lab) · [HTML](./comparable-pipeline-dt-dd.html) · [`:8765`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) |
+| [`DT_DD_COMPARATIVE_STUDY.md`](./DT_DD_COMPARATIVE_STUDY.md) | **Inception, philosophy, and terminology** — company history, why each vendor's vocabulary exists, narrated 11-stage walkthrough |
 | [`observability-generations-dt-dd.html`](./observability-generations-dt-dd.html) | **Obs 1.0 / 2.0 / 3.0 must-pass criteria** · why DD/DT are hybrids (not clean 2.0/3.0) · [`:8765`](http://127.0.0.1:8765/observability-generations-dt-dd.html) · Cursor canvas IDE-only |
 | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | **Thesis (MD):** Clock A → OneAgent/Smartscape/Grail · Phase 2 glossary · [HTML](./dynatrace-production-pipeline.html) · [`:8765`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
 | [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) | **Gap map:** Federated Part 1 vs DT 5+3+3 · [HTML](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html) · §8 Motadata FR/AC alignment · Cursor canvas IDE-only |
@@ -112,9 +113,9 @@ Understand **what** was measured before reading engine internals.
 | [`dt-lab-timeline-code-level.html`](./dt-lab-timeline-code-level.html) | **ERROR Timeline** Observed · P-260817 · [`:8765`](http://127.0.0.1:8765/dt-lab-timeline-code-level.html) |
 | [`dt-lab-timeline-slowdown.html`](./dt-lab-timeline-slowdown.html) | **SLOWDOWN Timeline** Observed · P-260820 · [`:8765`](http://127.0.0.1:8765/dt-lab-timeline-slowdown.html) |
 | [`dt-cat-monitoring-unavailable-lab.html`](./dt-cat-monitoring-unavailable-lab.html) | **MONITORING_UNAVAILABLE** Timeline · **Observed P-260826** · [prompt](./agent-tasks/dt-monitoring-unavailable.md) |
-| [`dt-cat-availability-lab.html`](./dt-cat-availability-lab.html) | **AVAILABILITY** Timeline · **Observed P-260831** · [prompt](./agent-tasks/dt-availability.md) |
-| [`dt-cat-resource-contention-lab.html`](./dt-cat-resource-contention-lab.html) | **RESOURCE_CONTENTION** Timeline · **agent task** · [prompt](./agent-tasks/dt-resource-contention.md) |
-| [`dt-agent-tasks.html`](./dt-agent-tasks.html) | Index of remaining agent tasks · [`:8765`](http://127.0.0.1:8765/dt-agent-tasks.html) |
+| [`dt-cat-availability-lab.html`](./dt-cat-availability-lab.html) | **AVAILABILITY** Timeline · **Observed P-260831** · organic cascade **P-260854** · [prompt](./agent-tasks/dt-availability.md) |
+| [`dt-cat-resource-contention-lab.html`](./dt-cat-resource-contention-lab.html) | **RESOURCE_CONTENTION** Timeline · **Observed (negative Detect)** · [prompt](./agent-tasks/dt-resource-contention.md) |
+| [`dt-agent-tasks.html`](./dt-agent-tasks.html) | Agent-task archive (all five Observed) · [`:8765`](http://127.0.0.1:8765/dt-agent-tasks.html) |
 | [`dd-detect-category-hub.html`](./dd-detect-category-hub.html) | **DD hub:** Detect categories (ERROR · SLOWDOWN) · shared Method/IPO/Doors guide · Thesis / Breakdown / Three-rail / Timeline · [`:8765`](http://127.0.0.1:8765/dd-detect-category-hub.html) |
 | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | **Datadog Thesis (MD):** Agent → Metrics/APM/Logs · Monitors+Watchdog · [HTML](./datadog-production-pipeline.html) (`?cat=`) |
 | [`datadog-production-pipeline.html`](./datadog-production-pipeline.html) | Same — browser / [`:8765/datadog-production-pipeline.html`](http://127.0.0.1:8765/datadog-production-pipeline.html) |

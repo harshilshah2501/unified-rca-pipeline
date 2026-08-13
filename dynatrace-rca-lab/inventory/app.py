@@ -8,6 +8,9 @@ long unsorted WAREHOUSE_LEDGER and runs a leftover per-row checksum — classic
 perf regression (HTTP 200, elevated response time). Not a fault-flag sleep.
 """
 import logging
+import os
+import threading
+import time
 
 from flask import Flask
 
@@ -24,6 +27,23 @@ WAREHOUSE_SKU_INDEX = {
     "WATCH-ULTRA": 15,
     "MACBOOK-PRO-14": 100,
 }
+
+# --- SCENARIO_MODE markers (break/heal scripts swap HEALTHY / MONITORING_DARK / AVAILABILITY_DOWN) ---
+SCENARIO_MODE = "HEALTHY"
+# --- end SCENARIO_MODE ---
+
+if SCENARIO_MODE == "MONITORING_DARK":
+    # Best-effort code-only telemetry suppression for lab reruns.
+    # Applied before request handling so instrumentation can read env on boot.
+    os.environ["OTEL_SDK_DISABLED"] = "true"
+    os.environ["DT_DISABLE"] = "true"
+elif SCENARIO_MODE == "AVAILABILITY_DOWN":
+    # Code-induced hard outage: process exits shortly after boot.
+    def _exit_soon():
+        time.sleep(2)
+        os._exit(1)
+
+    threading.Thread(target=_exit_soon, name="lab-avail-down", daemon=True).start()
 
 
 # --- LOOKUP_ impl markers (break/heal scripts swap between FAST and SLOW) ---

@@ -4,18 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Multi-Telemetry RCA — Functional &amp; Acceptance Criteria</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-:root {
-  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441;
-  --text:#e8eef4; --muted:#b8c4d0; --faint:#8a96a4; --accent:#3d9a8b;
-  --accent-soft:rgba(61,154,139,.14); --warn:#e8a33d; --danger:#e07070;
-  --metric:#5B8DEF; --log:#7ec8b8; --flow:#c9a46c; --trap:#d4846a;
-  --trace:#9b8fd4; --event:#6ec0d4;
-  --radius:8px; --nav-w:14rem; --max:54rem;
-  --font:"IBM Plex Sans",system-ui,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,monospace;
-}
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; }
 body {
@@ -195,8 +184,9 @@ table.data th { color:var(--muted); font-weight:600; font-size:.72rem; text-tran
   .meta { grid-template-columns:1fr; }
 }
 </style>
+<link rel="stylesheet" href="/urca-docs.css" />
 </head>
-<body>
+<body class="urca-doc">
 <div class="shell">
 <nav class="toc" aria-label="Contents">
   <div class="brand">Motadata · FR/AC</div>
@@ -212,7 +202,7 @@ table.data th { color:var(--muted); font-weight:600; font-size:.72rem; text-tran
   <a href="#related">Related</a>
 </nav>
 
-<main>
+<main class="article">
   <p class="badge">MOTADATA OBSERVEOPS</p>
   <p class="badge draft">DRAFT · 2026-07-31</p>
   <h1 id="overview">Multi-Telemetry RCA — Functional &amp; Acceptance Criteria</h1>

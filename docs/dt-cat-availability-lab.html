@@ -5,31 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dynatrace lab · AVAILABILITY · Process down observed (P-260831)</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-:root {
-  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441;
-  --text:#e8eef4; --muted:#c5d0da; --faint:#8a96a4; --accent:#3d9a8b;
-  --seed:#e07a7a; --ok:#5FE0B0; --lean:#F0B35A;
-  --radius:8px; --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
-}
-*{box-sizing:border-box;}
 body{margin:0;font-family:var(--font);font-size:15.5px;line-height:1.55;color:var(--text);
   background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%),var(--bg);}
 a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
-.wrap{max-width:54rem;margin:0 auto;padding:2rem 1.5rem 4rem;}
-.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);}
-h1{font-size:1.7rem;font-weight:700;margin:.35rem 0 .75rem;}
-h2{font-size:1.15rem;font-weight:650;margin:2rem 0 .75rem;padding-top:.85rem;border-top:1px solid var(--stroke);}
 h3{font-size:1rem;font-weight:600;margin:1.25rem 0 .5rem;color:#d5dde6;}
-.lead{color:var(--muted);margin:0 0 1.25rem;max-width:46rem;}
 .lead code,.note code,td code,li code,p code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#9bc0ff;}
 .note{margin:1rem 0;padding:.75rem .9rem;border-radius:var(--radius);background:rgba(61,154,139,.12);border-left:3px solid var(--accent);color:var(--muted);font-size:.95rem;}
 .warn{border-left-color:var(--lean);background:rgba(240,179,90,.08);}
 .ok{border-left-color:var(--ok);background:rgba(95,224,176,.08);}
-table{width:100%;border-collapse:collapse;font-size:.92rem;margin:.6rem 0 1rem;}
-th,td{text-align:left;vertical-align:top;padding:.45rem .55rem;border-bottom:1px solid var(--stroke);}
-th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
 .tl{border:1px solid var(--stroke);border-radius:10px;background:var(--bg-elev);padding:0;margin:1rem 0;overflow:hidden;}
 .tl-row{display:grid;grid-template-columns:8.5rem 1fr;gap:0;border-bottom:1px solid var(--stroke);}
 .tl-row:last-child{border-bottom:none;}
@@ -42,33 +26,37 @@ ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li stro
 .toc{margin:1rem 0 0;padding:.75rem 1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
 .toc a{display:inline-block;margin:.2rem .75rem .2rem 0;font-size:.9rem;}
 </style>
+<link rel="stylesheet" href="/urca-docs.css" />
 </head>
-<body>
-<div class="wrap">
+<body class="vendor-dt article">
+<div class="wrap article">
   <div class="eyebrow">Davis category · AVAILABILITY · Observed + teaching analysis</div>
   <h1>AVAILABILITY — Host / process down (P-260831)</h1>
   <p class="lead">
     Category write-up for <strong style="color:var(--text)">AVAILABILITY</strong>.
-    Inventory container was <strong style="color:var(--text)">stopped</strong> while FE/product stayed up —
-    callers failed with connection / 500 errors (hard outage, not soft error_rate chalk).
-    Primary Problem <strong style="color:var(--text)">P-260831</strong> severity
-    <code>AVAILABILITY</code>. Defect is <strong style="color:var(--text)">healed</strong>.
+    Hard outage on inventory (process/container down) while FE/product stay up —
+    callers fail (connection / 500), not soft error_rate chalk.
+    Teaching severity card <strong style="color:var(--text)">P-260831</strong>
+    (<code>AVAILABILITY</code>); organic code-only cascade
+    <strong style="color:var(--text)">P-260854</strong> (<code>PERFORMANCE</code>).
+    Defect is <strong style="color:var(--text)">healed</strong>.
     Hub: <a href="/dt-davis-category-hub.html?cat=availability">Davis event categories</a>.
   </p>
 
   <div class="note ok">
     <span class="pill">HEALED</span>
     <code>./scripts/heal_inventory_availability.sh</code> ·
-    <code>docker compose start inventory</code> · probe HTTP 200 · stock+product JSON
+    <code>SCENARIO_MODE=HEALTHY</code> · probe HTTP 200 · stock+product JSON
   </div>
 
   <nav class="toc" aria-label="On this page">
     <a href="#defect">1 Defect</a>
     <a href="#detect">2 Detect reality</a>
-    <a href="#observed">3 Observed Problem</a>
-    <a href="#cascade">4 Cascade</a>
-    <a href="#contrast">5 vs ERROR / SLOWDOWN / MU</a>
-    <a href="#scripts">6 Scripts</a>
+    <a href="#observed">3 Observed Problem (severity card)</a>
+    <a href="#codeonly">4 Code-only organic (P-260854)</a>
+    <a href="#cascade">5 Cascade</a>
+    <a href="#contrast">6 vs ERROR / SLOWDOWN / MU</a>
+    <a href="#scripts">7 Scripts</a>
   </nav>
 
   <h2 id="defect">1) The defect (hard down, not soft 5xx)</h2>
@@ -170,17 +158,77 @@ ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li stro
     </div>
   </div>
 
-  <h2 id="cascade">4) Cascade (organic PERFORMANCE)</h2>
+  <h2 id="codeonly">4) Code-only organic — P-260854 (2026-08-12)</h2>
+  <div class="note warn">
+    Constraint: <code>SCENARIO_MODE="AVAILABILITY_DOWN"</code> → inventory
+    <code>os._exit(1)</code> ~2s after boot (Python only; no <code>docker stop</code>).
+    No <code>events.ingest</code>. Callers saw mostly HTTP <strong style="color:var(--text)">500</strong>.
+  </div>
+  <div class="note">
+    <span class="pill">FETCHED</span>
+    Snapshot
+    <code>docs/vendor-source/dynatrace/p260854-availability-codeonly-organic-snapshot.json</code>
+  </div>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>displayId</td><td><code>P-260854</code></td></tr>
+    <tr><td>title</td><td>Response time degradation</td></tr>
+    <tr><td>status</td><td>CLOSED</td></tr>
+    <tr><td>severityLevel</td><td><code>PERFORMANCE</code> (not AVAILABILITY)</td></tr>
+    <tr><td>impactLevel</td><td><code>SERVICES</code></td></tr>
+    <tr><td>Problem window</td><td><strong>09:54 → 10:04 UTC</strong> (2026-08-12)</td></tr>
+    <tr><td>rootCauseEntity</td><td><strong>product</strong></td></tr>
+    <tr><td>affected</td><td>frontend + product</td></tr>
+    <tr><td>siblings</td><td><code>P-260852</code> (product) · <code>P-260853</code> (frontend) @ 09:53</td></tr>
+  </table>
+  <h3>Evidence (API)</h3>
+  <table>
+    <tr><th>Type</th><th>Display</th><th>Entity</th><th>start</th></tr>
+    <tr><td>EVENT</td><td>Response time degradation</td><td>product</td><td>09:49</td></tr>
+    <tr><td>EVENT</td><td>Response time degradation</td><td>frontend</td><td>09:49</td></tr>
+    <tr><td>TRANSACTIONAL</td><td>Client error rate increase</td><td>Requests to unmonitored hosts</td><td>09:35</td></tr>
+    <tr><td>TRANSACTIONAL</td><td>Server response time</td><td>product</td><td>09:35</td></tr>
+  </table>
+  <div class="tl">
+    <div class="tl-row">
+      <div class="tl-t">09:49:33</div>
+      <div class="tl-b"><strong>Break</strong> — <code>AVAILABILITY_DOWN</code> rebuild · process exits · callers 500</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">09:49–10:00</div>
+      <div class="tl-b">Load while down · RT Events on FE/product @ 09:49</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">09:54</div>
+      <div class="tl-b"><strong>P-260854</strong> PERFORMANCE packaged · RC=product · unmonitored-hosts evidence</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">10:00:11</div>
+      <div class="tl-b"><strong>Heal</strong> — <code>SCENARIO_MODE=HEALTHY</code> · probe 200</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">10:04</div>
+      <div class="tl-b">P-260854 CLOSED</div>
+    </div>
+  </div>
   <p style="color:var(--muted)">
-    While inventory was down, Davis opened <strong style="color:var(--text)">P-260829</strong>
-    (<code>PERFORMANCE</code> / Response time degradation) on frontend + product with evidence
-    <code>SERVICE_SLOWDOWN</code> + transactional client error rate toward
-    <code>Requests to unmonitored hosts</code>. That is the cascade symptom shape — teaching
-    seed tip for this category remains inventory hard-down → <code>P-260831</code> severity
-    <code>AVAILABILITY</code>.
+    Same organic shape as prior docker-stop cascade (<code>P-260829</code>): hard inventory
+    outage surfaces as caller <strong style="color:var(--text)">PERFORMANCE / RT degradation</strong>,
+    not severity <code>AVAILABILITY</code> on inventory. Keep <code>P-260831</code> for the
+    severity-<code>AVAILABILITY</code> teaching card.
   </p>
 
-  <h2 id="contrast">5) vs ERROR / SLOWDOWN / MONITORING_UNAVAILABLE</h2>
+  <h2 id="cascade">5) Cascade (organic PERFORMANCE)</h2>
+  <p style="color:var(--muted)">
+    Two isolated hard-down runs, same Detect reality:
+    docker-stop → <strong style="color:var(--text)">P-260829</strong>;
+    code-only exit → <strong style="color:var(--text)">P-260854</strong>.
+    Both are <code>PERFORMANCE</code> on FE/product with unmonitored-hosts / RT evidence.
+    Teaching seed tip for this category remains inventory hard-down → severity card
+    <code>P-260831</code> (<code>AVAILABILITY</code> via ingest when organic severity does not fire).
+  </p>
+
+  <h2 id="contrast">6) vs ERROR / SLOWDOWN / MONITORING_UNAVAILABLE</h2>
   <table>
     <tr><th></th><th>ERROR · P-260817</th><th>SLOWDOWN · P-260820</th><th>MU · P-260826</th><th>This · P-260831</th></tr>
     <tr>
@@ -213,13 +261,14 @@ ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li stro
     </tr>
   </table>
 
-  <h2 id="scripts">6) Lab scripts</h2>
+  <h2 id="scripts">7) Lab scripts</h2>
   <div class="pre">cd dynatrace-rca-lab
-./scripts/break_inventory_availability.sh   # docker compose stop inventory
-./scripts/load.sh                           # sustain checkout (expect failures)
-# Organic cascade may open PERFORMANCE on FE/product; AVAILABILITY severity on INV:
-#   POST /api/v2/events/ingest  eventType=AVAILABILITY_EVENT → PROCESS_GROUP inventory
-./scripts/heal_inventory_availability.sh    # start inventory; probe 200</div>
+# Code-only (preferred):
+./scripts/break_inventory_availability.sh   # SCENARIO_MODE=AVAILABILITY_DOWN + rebuild
+./scripts/run_availability_rca.sh --minutes 10 --heal-after
+# Expect organic PERFORMANCE on FE/product (e.g. P-260854); not severity AVAILABILITY
+./scripts/heal_inventory_availability.sh    # SCENARIO_MODE=HEALTHY + rebuild
+# Prior severity card P-260831: events.ingest AVAILABILITY_EVENT → PROCESS_GROUP inventory</div>
 
   <h2 id="related">Related</h2>
   <ul>

@@ -144,10 +144,10 @@ Most → least severe ([Event categories](https://docs.dynatrace.com/docs/dynatr
 | Category | Meaning | Opens Problem? | Our lab hub |
 |----------|---------|----------------|-------------|
 | **MONITORING_UNAVAILABLE** | Widespread OneAgent / visibility dark | Yes | Observed P-260826 |
-| **AVAILABILITY** | Host / process / service outage | Yes | Observed P-260831 |
+| **AVAILABILITY** | Host / process / service outage | Yes | Observed P-260831 · organic cascade P-260854 PERFORMANCE |
 | **ERROR** | Error-rate / error incidents | Yes | Observed (KeyError) |
 | **SLOWDOWN** | Performance / response-time degradation | Yes | Observed P-260820 |
-| **RESOURCE_CONTENTION** | CPU / memory (and similar) saturation | Yes | Agent task |
+| **RESOURCE_CONTENTION** | CPU / memory (and similar) saturation | Yes | Observed (negative Detect, 2026-08-12) |
 | **CUSTOM_ALERT** | User-defined metric thresholds | Yes (merge often restricted) | — |
 | **INFO / Warning** | Deploy / config / early warnings | Typically **no** | — |
 
@@ -216,35 +216,145 @@ Lab ERROR Door A (`310925690` family) sits in the **Flask High Error Rate** APM-
 
 ---
 
-## 1. Optional pattern lens (Clock A — after native reading)
+## 1. Pattern lens — `F → T → D` (after native reading)
 
-We keep **our** stage names as a **later** compare lens only — not as either vendor’s product model. Read §0 first.
+Shared stage names are a **compare lens**, not either vendor’s product model. Read §0 first.
 
-### Phase 1 — Always-on fabric
+**Quick acronyms (5 + 3 + 3):**
 
-| Our stage | Dynatrace (confirmed) | Datadog (confirmed) | Fit |
-|-----------|----------------------|---------------------|-----|
-| **Collect** | OneAgent / OTLP | Agent + ddtrace | Strong both |
-| **Normalize** | Enrichment + failure labeling + entity prep | Unified Service Tags + span status/HTTP codes | Strong both (different ID model) |
-| **Topology bind** | Smartscape + bind LUT → **`entityId`** | Catalog + APM Service Map / `peer.hostname` | Both reconstruct FE→PRD→INV; DT = typed entity graph, DD = tag/trace-derived |
-| **Fan-out** | **Smartscape upserts ∥ Grail evidence** (dual-track) | Write **Metrics ∥ APM ∥ Logs** (three-rail); backend Metrics store ∥ Husky; map mostly **derived from APM** | Continuous write both; **different geometry** — do not call DD dual-track |
-| **Maintain** | Grail lifecycle + Smartscape freshness (**named DT fabric stage**) | **No named Maintain stage** — continuous **03 Write** + retention/indexing/discovery in product stores | DT yes · DD remap (do not call DD “Maintain”) |
+| Acronym | Phase | Stages |
+|---------|-------|--------|
+| **F** | **Fabric** (always-on) | Collect → Normalize → Topology bind → Fan-out → Maintain |
+| **T** | **Triage** (per incident) | Detect → Curate → Tailor |
+| **D** | **Diagnose** (per case) | Localize → Identify → Package |
 
-### Phase 2 — Case opens
+**Phase outputs (compare-lens contracts):**
 
-| Our stage | Dynatrace (confirmed) | Datadog (confirmed) | Gaps |
-|-----------|----------------------|---------------------|------|
-| **Detect** | Failure-rate **Events** (e.g. inventory + upstream) | **APM error spans/rates** always visible; Door A **Monitors** ∥ Door B **Watchdog** | Early cascade: auto High Error Rate often **OK** (`min(last_15m)`); Watchdog quiet. **e3:** Door A Alert after sustain; APM Watchdog **0**; logs Watchdog stories **yes** |
-| **Curate** | Davis merges nearby Events toward one Problem narrative | Monitor/story grouping; optional Incident seed; Bits scopes later | **DD gap:** no auto merge to one seed — FE/PRD/INV all `error` |
-| **Tailor** | Smartscape neighborhood + Grail DQL time cut | Operator (or **Bits**) scopes services + time + Related | **DD:** human / Bits cut; not a first-class auto neighborhood expand |
+| Phase | Output | Elements (abstract) | Fundamental question |
+|-------|--------|---------------------|----------------------|
+| **F · Fabric** | **Estate** | `join keys + topology + evidence stores + freshness baseline` | Is the world written and walkable before alert? |
+| **T · Triage** | **Working set** | `seed + time + candidate CIs` | What space ∩ time are we diagnosing? |
+| **D · Diagnose** | **Verdict card** | `leaf claim + corroboration + operator handoff` | What can on-call act on without re-diagnosing? |
 
-### Phase 3 — Diagnose
+Element lists are **as many parts as the job needs** — not forced to match stage count or align across phases. Vendor geometry lives inside the elements, not the phase name.
 
-| Our stage | Dynatrace (confirmed) | Datadog (confirmed) | Gaps |
-|-----------|----------------------|---------------------|------|
-| **Localize** | Smartscape walk from seed → candidate entities | Trace / Service Map; deepest error span | DD: **operator (or Bits) on flamegraph**, not `rootCauseEntity` |
-| **Identify** | Rank `rootCauseRelevant` evidence (inferred scoring) | Status codes, resources, related metrics/logs on the trace; Bits Hypothesis Tree | Both correlational at packaging layer; DT packages by default |
-| **Verify / Package** | **Problem** card (`rootCauseEntity`, evidence, impact) — Davis AI default | **Bits** peer tab ∥ **Incidents** | **DD:** Incident often **0**; Bits optional (e3: [`90a88d93…`](https://app.datadoghq.com/bits-ai/investigations/90a88d93-2570-40c6-9706-d186290ea2b6?v=tree)); leaf claim still valid from MTL alone |
+**Workflow (conceptual):** [`assets/fcd-focusing.svg`](./assets/fcd-focusing.svg) — *Estate → Seed → Leaf* · rendered on [`comparable-pipeline-dt-dd.html`](./comparable-pipeline-dt-dd.html)#fcd-overview
+
+Stage-by-stage I/O tables below remain the precise reference; the diagram is the mental model.
+### Volatility — high → low (F → T → D)
+
+**Yes.** Volatility falls as you move right:
+
+| Phase | Volatility | Why |
+|-------|------------|-----|
+| **F · Fabric** | **High** | Continuous high-rate writes (spans, metrics, logs, map upserts) |
+| **T · Triage** | **Medium** | Episodic signals; storm then merge into a seed |
+| **D · Diagnose** | **Low** | Locked working set — candidates + time corridor change slowly until close |
+
+Do not confuse volatility with importance: **D** is where the leaf claim is made.
+
+### F · Fabric — always-on (5)
+
+Continuous path. Output of F is an **estate** — not an incident. Four abstract parts:
+
+#### Estate elements
+
+| Element | Meaning |
+|---------|---------|
+| **Join keys** | Shared identity + time axis on every record so modalities about the same workload can correlate. Without this → orphan telemetry. |
+| **Topology** | Walkable structure: who connects to whom / runs where — neighbors and edges queryable before an alert. Map ≠ leaf. |
+| **Evidence stores** | Durable persisted telemetry history (however many planes) addressable by join keys. Later stages **read** stores; they do not re-collect the company per alert. |
+| **Freshness baseline** | Retention, indexes, discovery, deploy/version feed — estate trusted enough for Detect to run. Stale fabric → wrong baseline. |
+
+**Acid test:** given a workload identity and a UTC window, can you pull multimodal history *and* walk neighbors without re-instrumenting? If yes, Fabric worked.
+
+#### What “joinable, queryable” adds (teaching shorthand)
+
+| Shorthand | Maps to |
+|-----------|---------|
+| **Joinable** | Join keys present and consistent |
+| **Queryable** | Topology + evidence stores written |
+| **Detect-ready** | Above + freshness baseline you can trust |
+
+| Stage | Contribution to estate element |
+|-------|-------------------------------|
+| **Collect** | Raw intake — estate elements not built yet |
+| **Normalize** | **Join keys** (+ failure cues) |
+| **Topology bind** | **Topology** |
+| **Fan-out** | **Evidence stores** (+ topology persistence where map is a write facet) |
+| **Maintain** | **Freshness baseline** on join keys, topology, and stores |
+
+| Stage | Common job | Input → Output | Dynatrace | Datadog |
+|-------|------------|----------------|-----------|---------|
+| **Collect** | Edge intake only — no RCA yet | **In:** host/app/log/stats signals → **Out:** near-raw payloads at Agent | OneAgent / OTLP → tenant | Agent + `ddtrace` + DogStatsD + log tails → HQ |
+| **Normalize** *(Identity)* | Stamp join keys so modalities correlate | **In:** raw → **Out:** join-ready records (tags and/or entity id) + failure cues | Enrichment · failure label · entity prep → `entityId` | Unified Service Tags (`service`·`env`·`version`·host) · span status/HTTP |
+| **Topology bind** | Make the call path walkable; Map ≠ leaf | **In:** discovery + peer/call cues → **Out:** neighbors + edges | Smartscape + Bind LUT → stamp `entityId` | Catalog + APM Service Map / `peer.hostname` (derived) |
+| **Fan-out** | Persist continuous evidence plane(s) | **In:** join-ready records → **Out:** durable map facet ∥ evidence facet(s) | **Dual-track:** Smartscape ∥ Grail | **Three-rail:** Metrics ∥ APM ∥ Logs (Metrics store ∥ Husky); map mostly APM-derived |
+| **Maintain** | Keep fabric Detect-ready (retention, index, discovery, deploy feed). Does not pick RC | **In:** written stores → **Out:** fresh indexes / warm catalog | Named stage: Grail lifecycle + Smartscape freshness | **No named Maintain** — continuous **03 Write** + product retention/indexing (remap) |
+
+**F contract:** continuous joinable evidence + walkable neighbors. **Not common:** dual-track vs three-rail geometry; named Maintain on Datadog.
+
+### T · Triage — per incident (3)
+
+Something crossed a line. **Triage** is the one-word phase name (in sync with Fabric and Diagnose): sort what fired, merge to one seed, lock scope. Output of T is a **working set** — `seed + time + candidate CIs` — still not a verdict card. (Our HLD still labels this block E2 “Case opens”; Datadog product stage 06 is also named Triage — same spirit, wider phase here.)
+
+#### Working set elements
+
+| Element | Meaning |
+|---------|---------|
+| **Seed** | Primary tip from Curate: the entity/service (or symptom locus), incident start (`t0`), and Detect class — *where to start*, not the leaf. |
+| **Time** | Locked UTC corridor (and often compare/baseline window) for everything downstream. |
+| **Candidate CIs** | Configuration items / services / hosts in scope for Localize — the space half of space ∩ time. |
+
+| Stage | Common job | Input → Output | Dynatrace | Datadog |
+|-------|------------|----------------|-----------|---------|
+| **Detect** | Emit fault *signals* for a Detect class. Write ≠ Detect. Signal ≠ leaf | **In:** fabric under join keys → **Out:** Events / alerts / stories | Detectors → **Event** objects | Door A **Monitors** ∥ Door B **Watchdog** (independent; can be empty while Write is loud) |
+| **Curate** | Collapse related signals into **one case seed** | **In:** signal storm → **Out:** seed `(primary, t0, class)` | Davis merges nearby Events (strong) | Thin/absent auto-seed; FE/PRD/INV can all look hot; operator/Bits often seeds |
+| **Tailor** *(Scope)* | Lock space ∩ time for diagnosis | **In:** seed → **Out:** working set = `seed + time + candidate CIs` | Smartscape neighborhood + Grail DQL cut | Operator/Bits scopes env/version/time + Related |
+
+**T contract:** signals → (ideally) one seed → locked working set. Hardest gap: DD auto-Curate weak; empty Detect still allows Triage if an operator chooses a window (SLOWDOWN).
+
+### D · Diagnose — per case (3)
+
+Runs on Tailor’s working set. Lowest volatility — the cut is fixed. Output of D is a **verdict card** — `leaf claim + corroboration + operator handoff` — not raw explorer panes alone.
+
+#### Verdict card elements
+
+| Element | Meaning |
+|---------|---------|
+| **Leaf claim** | Named locus where work failed or burned time — by Detect-class rule. Answers *where* (deepest fault **or** longest self-time). |
+| **Corroboration** | Multimodal evidence under the same join keys supporting the leaf — ranked, tagged, or narrated. Answers *why you believe it*. |
+| **Operator handoff** | Shareable packaged artifact on-call can act on without re-running Localize/Identify. Vendor policy varies; element exists either way. |
+
+**Acid test:** can on-call act from the handoff without re-diagnosing? Vendor skins (Problem, Bits, Incident, thin card) are implementations of **operator handoff**.
+
+| Stage | Common job | Input → Output | Dynatrace | Datadog |
+|-------|------------|----------------|-----------|---------|
+| **Localize** | Name the **leaf** by Detect class (deepest error **or** longest self-time) | **In:** working set → **Out:** leaf claim | Smartscape walk; `rootCauseEntity` may be null | Flamegraph leaf (operator/Bits); no `rootCauseEntity` field |
+| **Identify** | Corroborate leaf with multimodal evidence | **In:** leaf claim + scoped evidence → **Out:** corroboration | `rootCauseRelevant` ranking on Grail + Events | Tag join across rails; Bits Hypothesis Tree optional |
+| **Package** *(Verify)* | Emit operator verdict (default or optional policy) | **In:** leaf + corroboration → **Out:** verdict card = `leaf claim + corroboration + operator handoff` | **Problem** — default handoff | **Bits** optional handoff · **Incident** often 0; thin handoff from leaf + MTL alone |
+
+**D contract:** leaf rule by class → corroboration → **verdict card**. Policy fork: DT packages by default; DD often optional Package.
+
+### Distilled I/O spine
+
+Each row names **X** (input artifact) and **Y** (output artifact) abstractly — vendor mechanics sit inside the transform.
+
+| Stage | X (input) | Y (output) |
+|-------|-----------|------------|
+| **F Collect** | **Edge bytes** — host/app/container/log/stats telemetry at the platform boundary, vendor-shaped | **Near-raw intake** — payloads accepted at edge; not join-ready |
+| **F Normalize** | Near-raw intake | **Join-ready records** — stamped join keys (+ failure cues); builds estate **join keys** |
+| **F Topology bind** | Join-ready records + discovery/peer cues | **Topology slice** — walkable neighbors + edges; builds estate **topology** |
+| **F Fan-out** | Join-ready records (+ topology cues) | **Persisted planes** — durable evidence stores (+ map facet where written); builds estate **evidence stores** |
+| **F Maintain** | Persisted planes (stores + topology) | **Detect-ready estate** — join keys + topology + evidence stores + freshness baseline |
+| **T Detect** | Detect-ready estate | **Fault signals** — Detect-class signal objects (alert/Event/story); not leaf, not case |
+| **T Curate** | Fault signals (storm in time/topo neighborhood) | **Seed** — primary tip: locus + `t0` + Detect class |
+| **T Tailor** | Seed | **Working set** — `seed + time + candidate CIs` |
+| **D Localize** | Working set | **Leaf claim** — named locus where work failed or burned time |
+| **D Identify** | Leaf claim (+ estate evidence scoped to working set) | **Corroboration** — multimodal evidence bundle supporting the leaf |
+| **D Package** | Leaf claim + corroboration | **Verdict card** — `leaf claim + corroboration + operator handoff` |
+
+**Phase handoffs:** F → estate · T → working set · D → verdict card.
 
 ---
 

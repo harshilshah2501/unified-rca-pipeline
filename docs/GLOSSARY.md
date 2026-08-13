@@ -1,59 +1,64 @@
-# Glossary — disambiguation
+# Glossary — engine and bakeoff terms
 
-Terms reused across lean, federated, and benchmarking docs.
+Short definitions for lean, federated, ingest, and corpus docs.
 
-> **Docs hub (HLD / DT / DD / Obs generations):** use the browser glossary first —
-> [`urca-glossary.html`](./urca-glossary.html) (`:8765/urca-glossary.html`).
-> This file stays bakeoff/engine + lean Tier / L0·F1 / Panorama / corpus.
+Hub terms (HLD, Dynatrace, Datadog, flamegraph, Detect class, …) live in the browser glossary:
 
-## Tier (three namespaces)
+[`urca-glossary.html`](./urca-glossary.html) (`:8765/urca-glossary.html`).
 
-| Namespace | Where | Meaning |
-|-----------|-------|---------|
-| **Lean evidentiary tier** | Lean verdict / SRE report | **Tier 1** = main path, temporal + rules, no causal claim. **Tier 2** = CARE correlational ranking when Δt is ambiguous. **Tier 3** = CARE + scoped causal check. See [`POC_BRIEFING.md`](./POC_BRIEFING.md) §15. |
-| **Federated pipeline step** | Panorama → Murphy → Nezha orchestration | Hop order in the federated stack — **not** the same as lean Tier 1/2/3. |
-| **Storage tier** | [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) | Speed vs structural persistence design (Dragonfly / graph store) — unrelated to lean evidentiary tiers. |
+---
 
-When a doc says “Tier 3” without qualification, assume **lean evidentiary tier** unless the path is under `federated-pipeline/docs/STORAGE_TIERS.md`.
+## A–Z
 
-## Ingest profiles (L0 / F1)
+**CARE** — Lean correlational ranking when several onsets sit in the same Δt window. Not a causal claim by itself.
 
-| Tag | Plain meaning | Not |
-|-----|---------------|-----|
-| **L0** | Write stores **only for Lean** (cheaper baseline) | — |
-| **F1** | Write for Lean **and** Federated (dual-sink; L0 + Federated feeds) | **Not** “Federated only” — there is no F0 in this PoC |
-| **F2** | Heavier Federated path (more traces/logs) | Optional / stretch |
+**Corpus A** — Deferred microservice / DeathStarBench-style track in the Lean PRD. Not the ObserveOps bakeoff.
 
-Cost compare asks: same input bytes, how much **extra** does dual-sink cost? See [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) §6.
+**Corpus B / ObserveOps UC** — Frozen synthetic classic-infra use cases in `datasets/observeops/` (v1.1.0). Shared ground truth; primary lean vs federated bakeoff.
 
-## Shared Detect / symptom seed
+**F1** — Ingest profile: write for Lean **and** Federated (dual-sink). Not “Federated only.” There is no F0 in this PoC.
 
-| Term | Plain meaning |
-|------|----------------|
-| **parity-shared-detect** | Both engines get the same alerts from one threshold detector; score Localize only. |
-| **symptom seed** | CI/signal where pain showed — **start** of the search, usually **not** the root. |
-| **Panorama (fair bakeoff)** | Off the ObserveOps UC scoreboard; Federated Hop-1 consumes shared Detect. |
+**F2** — Heavier Federated ingest (more traces/logs). Optional / stretch.
 
-## Dynatrace teaching (Clock A / Phase 2)
+**fallback_fired** — Bakeoff flag. `false` = main path; `true` = engine used a rescue path. Coarser than lean Tier 1/2/3.
 
-Canonical: [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) §3.4–3.6 · [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html).
+**Federated hop** — Orchestrator step order Panorama → Murphy → Nezha. Not the same numbering as lean evidentiary tiers.
 
-| Term | Plain meaning |
-|------|----------------|
-| **Smartscape** | Live who-graph (`calls` + containment). Not a DAG requirement; teaching walk is **unweighted**. Not rebuilt by DQL on Grail. |
-| **Grail** | Evidence lake by `entityId`+time; Detectors read this (not Smartscape) to raise Events. |
-| **Smartscape on Grail** | Product evolution: entity attrs also Grail-native (`dt.smartscape.*`). Jobs still map∥evidence. |
-| **Event** | One Detect breach record in a **shared Event store**. |
-| **Storm** | Teaching: pile of raw Events before Curate merge. |
-| **Beat** | Teaching UI step only (storyboard). |
-| **Seed** | Curate `(entityId, t0)` tip for Tailor — not `rootCauseEntity`. Tailor expands time corridor. |
-| **Teaching threshold 0.30** | ERROR Detect chalk line on storyboard — not a fitted Dynatrace SKU. **SLOWDOWN** Observed used fixed RT thresholds **2 s / 3 s**, not 0.30. |
-| **Lab UTC clocks (ERROR dual-lab P-26084)** | Fault ≈**05:54 UTC** → Problem ≈**06:04 UTC** ([`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) §5). Use only for ERROR teaching — **not** fictional `07:xx` or IST. |
-| **Lab UTC clocks (SLOWDOWN P-260820)** | Events ≈**15:05 UTC** → Problem ≈**15:10 UTC** · HTTP **200** ~9 s · `rootCauseEntity=null`. **Do not reuse P-26084 / 06:04 for this category.** |
+**L0** — Ingest profile: write stores only for Lean (cheaper baseline).
 
-## Fault buckets (Samples / coverage)
+**main-path %** — Share of verdicts with `fallback_fired: false`. Not “more Tier 1.” Lean can fire CARE (Tier 2/3) and still be more verifiable.
 
-Dashboard labels (ids stay `1_symptom` … in data):
+**Motadata ingest stream** — `datasets/ingest_samples/motadata-ingest/` — derived `ingest.v1` plus L1 incident packs with human GT.
+
+**Motadata resolved dump** — `datasets/ingest_samples/jsonl_resolved/` — local ClickHouse export (large files gitignored).
+
+**Murphy** — Federated hop: which upstream entity best explains the symptom (MRF / Gibbs).
+
+**Nezha** — Federated hop: which execution-path or event patterns shifted inside that entity.
+
+**ObserveOps replay (`ingest.v1`)** — `datasets/ingest_samples/observeops-replay/` — normalized JSONL from frozen UCs for Vector / writers. Not a second bakeoff corpus.
+
+**OpenObserve incidents** — `datasets/openobserve_incidents/v1/` — real incident packs; different GT contract. Do not merge with the ObserveOps 5/5 scoreboard.
+
+**Panorama (fair bakeoff)** — Off the ObserveOps UC scoreboard; Federated Hop-1 consumes shared Detect.
+
+**parity-shared-detect** — Both engines get the same alerts from one threshold detector; score Localize only.
+
+**Seed (teaching)** — Curate tip `(entityId, t0)` for Tailor. Not `rootCauseEntity`.
+
+**Storage tier** — Speed vs structural persistence (Dragonfly / graph store) in [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md). Unrelated to lean evidentiary tiers.
+
+**Storm (teaching)** — Pile of raw Events before Curate merge.
+
+**symptom seed** — CI/signal where pain showed. Start of the search; usually not the root.
+
+**Tier (lean evidentiary)** — Lean verdict depth. **Tier 1** = main path, temporal + rules, no causal claim. **Tier 2** = CARE ranking when Δt is ambiguous. **Tier 3** = CARE + scoped causal check. Default reading of “Tier 3” unless the doc is about storage tiers.
+
+**Teaching threshold 0.30** — ERROR Detect chalk line on the storyboard. Not a fitted Dynatrace SKU. SLOWDOWN Observed used 2 s / 3 s, not 0.30.
+
+---
+
+## Fault-bucket labels (dashboard)
 
 | Id | Label | Meaning |
 |----|-------|---------|
@@ -64,30 +69,8 @@ Dashboard labels (ids stay `1_symptom` … in data):
 
 See [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md).
 
-## Corpus names
+---
 
-| Name | Path | Role |
-|------|------|------|
-| **ObserveOps UC / Corpus B** | `datasets/observeops/` v1.1.0 | Frozen synthetic classic-infra UCs; shared GT; primary lean vs federated bakeoff (`adr001-rerun-20260723`). |
-| **Corpus A** | Deferred | Microservice / DeathStarBench-style track in Lean PRD — not the ObserveOps bakeoff. |
-| **OpenObserve incidents** | `datasets/openobserve_incidents/v1/` | Real incident packs; different GT contract — **do not merge** with ObserveOps 5/5 scoreboard. |
-| **ObserveOps replay (`ingest.v1`)** | `datasets/ingest_samples/observeops-replay/` | Normalized JSONL from frozen UCs for Vector / writers — not a second bakeoff corpus. |
-| **Motadata resolved dump** | `datasets/ingest_samples/jsonl_resolved/` | Local ClickHouse export (gitignored large files); product-shaped ingest source. |
-| **Motadata ingest stream** | `datasets/ingest_samples/motadata-ingest/` | Derived `ingest.v1` + L1 incident packs (`incidents/motadata-*`) with human GT — shown on console `#incident` + `#samples`. |
-
-## Verifiability vs main-path %
-
-**Lean Tier 1/2/3** is lean-only (evidentiary depth). Federated does not use that ladder.
-
-The bakeoff’s shared **main-path %** is a different, coarser metric: % of verdicts with `fallback_fired: false`.
-
-| Engine | `fallback_fired: false` | `fallback_fired: true` |
-|--------|-------------------------|------------------------|
-| Lean | CARE did not fire (Tier 1) | CARE fired (Tier 2/3) |
-| Federated | Fusion path (no lean-rule rescue) | Fell back to lean helpers after weak Murphy |
-
-Lean may score **lower** main-path % when CARE fires (UC-1, UC-3) while still winning **Verifiability** for SRE audit: explicit tier labels, CARE flags, causal logs, and evidence citations. Federated’s higher no-fallback % is **not** “more Tier 1.” See [`benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md).
-
-## Evaluation verdict (standard phrase)
+## Evaluation phrase
 
 **Bakeoff evaluation finding:** lean is the primary evaluation engine for the ObserveOps UC corpus ([ADR-001](./ADR-001-lean-primary-engine.md)); **not a finalized GTM or product commitment.**

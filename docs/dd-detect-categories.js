@@ -708,35 +708,6 @@
     var cat = current();
     persist(cat);
 
-    var style = document.createElement("style");
-    style.textContent = [
-      "#urca-dd-cat-bar{position:sticky;top:0;z-index:9998;display:flex;flex-direction:column;gap:8px;",
-      "padding:10px 14px 12px;background:rgba(12,16,22,.98);border-bottom:1px solid #2a3441;",
-      "font-family:system-ui,-apple-system,sans-serif;font-size:14px;color:#e2e8f0;}",
-      "#urca-doc-nav + #urca-dd-cat-bar,#urca-doc-nav ~ #urca-dd-cat-bar{top:42px;}",
-      "#urca-dd-cat-bar .urca-teach-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;}",
-      "#urca-dd-cat-bar .urca-teach-row.views{padding-top:8px;border-top:1px solid #2a3441;}",
-      "#urca-dd-cat-bar .urca-k{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;",
-      "color:#8a96a4;min-width:4.5rem;}",
-      "#urca-dd-cat-bar .urca-k.interp{color:#e8b86d;}",
-      "#urca-dd-cat-bar label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}",
-      "#urca-dd-cat-bar select{font:inherit;font-size:14px;padding:6px 10px;border-radius:4px;border:1px solid #3a4554;",
-      "background:#1c2430;color:#f2f5f8;min-width:18rem;max-width:min(28rem,90vw);}",
-      "#urca-dd-cat-bar .slots{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}",
-      "#urca-dd-cat-bar .slots a{font-size:13px;padding:5px 10px;border-radius:4px;border:1px solid #3a4554;",
-      "background:#171d25;color:#e2e8f0;text-decoration:none;}",
-      "#urca-dd-cat-bar .slots a:hover{border-color:#7BA8F5;color:#f2f5f8;}",
-      "#urca-dd-cat-bar .slots a.here{color:#c5d8ff;border-color:rgba(123,168,245,.65);background:rgba(91,141,239,.2);}",
-      "#urca-dd-cat-bar .slots a.interp{border-color:rgba(232,184,109,.4);}",
-      "#urca-dd-cat-bar .slots a.interp.here{color:#f5e0b8;border-color:rgba(232,184,109,.7);background:rgba(232,184,109,.14);}",
-      "#urca-dd-cat-bar .urca-teach-spacer{flex:1 1 8px;min-width:8px;}",
-      "#urca-dd-cat-banner{margin:0;padding:12px 16px;background:rgba(91,141,239,.14);border-bottom:1px solid #2a3441;",
-      "font-family:system-ui,-apple-system,sans-serif;font-size:15px;color:#e2e8f0;line-height:1.55;}",
-      "#urca-dd-cat-banner b{color:#f2f5f8;} #urca-dd-cat-banner code{font-family:ui-monospace,monospace;font-size:14px;",
-      "background:#1c2430;padding:2px 6px;border-radius:3px;color:#c5d8ff;}"
-    ].join("");
-    document.head.appendChild(style);
-
     var bar = document.createElement("div");
     bar.id = "urca-dd-cat-bar";
     bar.setAttribute("role", "navigation");

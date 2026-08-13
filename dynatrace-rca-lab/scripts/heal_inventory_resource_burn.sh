@@ -11,13 +11,20 @@ import sys, re
 
 p = Path(sys.argv[1])
 text = p.read_text()
+text = re.sub(
+    r'SCENARIO_MODE\s*=\s*"(HEALTHY|MONITORING_DARK|AVAILABILITY_DOWN)"',
+    'SCENARIO_MODE = "HEALTHY"',
+    text,
+    count=1,
+)
 
 idle = '''# --- RESOURCE_BURN markers (break/heal scripts swap IDLE / BURN) ---
 # IDLE: no background CPU burn (RESOURCE_CONTENTION lab off).
 # --- end RESOURCE_BURN ---'''
 
 if "_resource_burn_loop" not in text:
-    print("already idle (no burn thread)")
+    p.write_text(text)
+    print("already idle (no burn thread) and SCENARIO_MODE normalized")
     raise SystemExit(0)
 pat = re.compile(r"# --- RESOURCE_BURN markers.*?\# --- end RESOURCE_BURN ---", re.S)
 if not pat.search(text):

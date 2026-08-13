@@ -757,7 +757,7 @@ In the complex walkthrough: INV’s 500 span is a classic `failed_call=true`; BA
 5. Discovery-first (not full CMDB preload) — §5.3  
 6. Teaching IDs only (not a real tenant dump)  
 7. Logical order; in production Topology runs **beside** Collect  
-8. This section stops after Topology bind (+ Grail land)  
+8. This section stops after Topology bind (+ Grail land)
 9. Applies §5.2–5.5: three Normalize jobs; graph ∥ LUT; non-binary failure labels; unresolved-stream policies
 
 ### 6.2 Raw bag

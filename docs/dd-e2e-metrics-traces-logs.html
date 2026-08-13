@@ -5,22 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Datadog E2E — Metrics ∥ APM ∥ Logs journey</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-:root {
-  --bg:#0f1419; --bg-elev:#171d25; --bg-soft:#1c2430; --stroke:#2a3441; --line:#2A3140;
-  --text:#f2f5f8; --muted:#d8e0e8; --faint:#b0bac6; --accent:#7BA8F5;
-  --metrics:#7ec8b8; --apm:#9bb8f5; --logs:#e8b86d; --ok:#7aecc4; --lean:#F0B35A; --seed:#e07a7a;
-  --font:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
-}
-*{box-sizing:border-box;}
 body{margin:0;font-family:var(--font);font-size:17px;line-height:1.65;color:var(--text);
   background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2438 0%,transparent 55%),var(--bg);}
 a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
-.wrap{max-width:58rem;margin:0 auto;padding:2rem 1.5rem 4rem;}
-.eyebrow{font-size:.85rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);}
-h1{font-size:1.85rem;font-weight:700;margin:.35rem 0 .75rem;}
-.lead{color:var(--muted);margin:0 0 1rem;max-width:48rem;font-size:1.05rem;}
 .lead code,.note code,td code,p code,.teach code{font-family:var(--mono);font-size:.92em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#b8d4ff;}
 .links{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 1.25rem;}
 .links a{font-family:var(--mono);font-size:13px;padding:7px 11px;border-radius:6px;border:1px solid var(--stroke);background:var(--bg-elev);color:var(--muted);text-decoration:none;}
@@ -67,13 +55,11 @@ canvas#cv{width:100%;height:320px;display:block;border-radius:10px;background:#0
 .legend .dot.m{background:var(--metrics);} .legend .dot.a{background:var(--apm);} .legend .dot.l{background:var(--logs);}
 .legend .dot.det{background:var(--seed);} .legend .dot.ok{background:var(--ok);}
 .note{margin:1.25rem 0 0;padding:.85rem 1rem;border-radius:8px;background:rgba(91,141,239,.14);border-left:3px solid var(--accent);color:var(--muted);font-size:1rem;}
-table{width:100%;border-collapse:collapse;font-size:1rem;margin:1rem 0 0;}
-th,td{text-align:left;vertical-align:top;padding:.45rem .5rem;border-bottom:1px solid var(--stroke);color:var(--muted);}
-th{color:var(--faint);font-size:.85rem;text-transform:uppercase;}
 </style>
+<link rel="stylesheet" href="/urca-docs.css" />
 </head>
-<body>
-<div class="wrap">
+<body class="vendor-dd article">
+<div class="wrap article">
   <div class="eyebrow">Datadog · end-to-end · three-rail journey</div>
   <h1>Follow one fault across Metrics ∥ APM ∥ Logs</h1>
   <p class="lead">
