@@ -17,6 +17,7 @@ import threading
 import time
 import uuid
 from datetime import datetime, timezone
+from html import escape
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -289,6 +290,56 @@ def start_job(kind: str, *, target: str = "local", run_id: str | None = None) ->
     return {k: v for k, v in job.items() if k != "log_q"}
 
 
+def _md_title(text: str, fallback: str) -> str:
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("# "):
+            return s[2:].strip()
+    return fallback
+
+
+def _markdown_page(url_path: str, text: str) -> bytes:
+    title = _md_title(text, Path(url_path).name)
+    payload = json.dumps(text, ensure_ascii=False)
+    raw_href = escape(url_path + ("&" if "?" in url_path else "?") + "raw=1")
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{escape(title)}</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="urca-doc article">
+<div class="wrap article md-page">
+  <p class="md-src">Rendered from <code>{escape(url_path)}</code>
+    · <a href="{raw_href}">raw markdown</a></p>
+  <div id="md-content">Loading…</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+<script>
+(function () {{
+  var src = {payload};
+  if (typeof marked === "undefined") {{
+    document.getElementById("md-content").textContent = src;
+    return;
+  }}
+  marked.setOptions({{ gfm: true, headerIds: true, mangle: false }});
+  document.getElementById("md-content").innerHTML = marked.parse(src);
+  var hash = decodeURIComponent((location.hash || "").replace(/^#/, ""));
+  if (hash) {{
+    var el = document.getElementById(hash);
+    if (el) el.scrollIntoView();
+  }}
+}})();
+</script>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>
+""".encode("utf-8")
+
+
 def job_public(job: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": job["id"],
@@ -307,6 +358,19 @@ class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(DASH), **kwargs)
 
+    def guess_type(self, path: str) -> str:
+        ctype = super().guess_type(path)
+        if ctype.split(";", 1)[0] in (
+            "text/html",
+            "text/css",
+            "text/javascript",
+            "application/javascript",
+            "text/markdown",
+            "text/plain",
+        ) and "charset=" not in ctype:
+            ctype = f"{ctype}; charset=utf-8"
+        return ctype
+
     def end_headers(self) -> None:
         # Teaching HTML changes often; avoid stale Detect clock in the browser.
         path = urlparse(self.path).path.lower()
@@ -317,6 +381,29 @@ class Handler(SimpleHTTPRequestHandler):
 
     def log_message(self, fmt: str, *args: Any) -> None:
         sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % args))
+
+    def _markdown_file(self, url_path: str) -> Path | None:
+        fs = Path(self.translate_path(url_path)).resolve()
+        try:
+            fs.relative_to(REPO.resolve())
+        except ValueError:
+            return None
+        if not fs.is_file() or fs.suffix.lower() != ".md":
+            return None
+        return fs
+
+    def _send_markdown_html(self, url_path: str, send_body: bool) -> bool:
+        fs = self._markdown_file(url_path)
+        if fs is None:
+            return False
+        body = _markdown_page(url_path, fs.read_text(encoding="utf-8"))
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        if send_body:
+            self.wfile.write(body)
+        return True
 
     def _check_token(self) -> bool:
         if not TOKEN:
@@ -431,10 +518,35 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(HTTPStatus.NOT_FOUND, {"error": "unknown kind"})
             return
 
+        # Markdown: browsers get a hub HTML page; ?raw=1 keeps the source file.
+        if path.lower().endswith(".md"):
+            qs = parse_qs(parsed.query)
+            want_raw = (qs.get("raw") or [""])[0].lower() in ("1", "true", "yes")
+            if not want_raw:
+                if self._send_markdown_html(path, send_body=True):
+                    return
+                self.send_error(HTTPStatus.NOT_FOUND, "markdown not found")
+                return
+            self.path = path
+
         # static
         if path == "/":
             self.path = "/index.html"
         return SimpleHTTPRequestHandler.do_GET(self)
+
+    def do_HEAD(self) -> None:  # noqa: N802
+        parsed = urlparse(self.path)
+        path = parsed.path
+        if path.lower().endswith(".md"):
+            qs = parse_qs(parsed.query)
+            want_raw = (qs.get("raw") or [""])[0].lower() in ("1", "true", "yes")
+            if not want_raw:
+                if self._send_markdown_html(path, send_body=False):
+                    return
+                self.send_error(HTTPStatus.NOT_FOUND, "markdown not found")
+                return
+            self.path = path
+        return SimpleHTTPRequestHandler.do_HEAD(self)
 
     def do_POST(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)

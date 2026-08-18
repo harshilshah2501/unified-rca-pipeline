@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Motadata 3 pillars vs ObserveOps shift-left — A4 study sheet</title>
+<style>
+  @page { size: A4; margin: 12mm 12mm 14mm 12mm; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10pt; line-height: 1.38; color: #111;
+    background: #fff;
+  }
+  h1 { font-size: 16.5pt; font-weight: 700; margin: 0 0 4pt; }
+  h2 { font-size: 12pt; font-weight: 700; margin: 13pt 0 5pt; padding-top: 6pt; border-top: 1.2pt solid #222; page-break-after: avoid; }
+  h3 { font-size: 10.5pt; font-weight: 700; margin: 9pt 0 4pt; page-break-after: avoid; }
+  p { margin: 0 0 5pt; }
+  ul { margin: 0 0 6pt; padding-left: 16pt; }
+  li { margin: 1.5pt 0; }
+  .meta { font-size: 8.5pt; color: #333; margin: 0 0 8pt; }
+  .kicker { font-size: 8pt; letter-spacing: .08em; text-transform: uppercase; color: #444; margin: 0 0 3pt; }
+  .callout {
+    border: 1pt solid #222; padding: 6pt 8pt; margin: 0 0 8pt;
+    background: #f6f6f6; page-break-inside: avoid;
+  }
+  .callout.warn { border-width: 1.4pt; }
+  .grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6pt; margin: 0 0 8pt; }
+  .stat { border: 1pt solid #222; padding: 5pt 6pt; page-break-inside: avoid; }
+  .stat b { display: block; font-size: 11pt; }
+  .stat span { font-size: 8.5pt; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 8pt; font-size: 8.3pt; }
+  th, td { border: 0.6pt solid #444; padding: 3pt 4pt; vertical-align: top; text-align: left; }
+  th { background: #eee; font-weight: 700; }
+  tr { page-break-inside: avoid; }
+  code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 8pt; }
+  .fit { font-weight: 700; }
+  .covered { }
+  .partial { }
+  .footer-note { font-size: 8pt; color: #333; margin-top: 4pt; }
+  .keep { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<p class="kicker">ObserveOps study sheet · 2026-08-18 · D5 stays Review</p>
+<h1>Motadata 3 pillars mapped onto shift-left E1–E11</h1>
+<p class="meta">
+  Source: Motadata Observability 3 Pillars Architecture PDF (4 pages).
+  Target: same HLD clock; Node / optional Gateway / our SaaS locus.
+  This is a <b>job map</b>, not a claim Motadata already built our pipeline.
+  Operator path always on. Issue ≠ Problem ≠ Bits ≠ Incident. Thread ≠ Issue.
+</p>
+
+<div class="grid4">
+  <div class="stat"><b>P1</b><span>Pillars A + B live here (stores, write path)</span></div>
+  <div class="stat"><b>P3</b><span>Pillar C lives here (diagnose / close)</span></div>
+  <div class="stat"><b>P2</b><span>Reads A+B; not a third pillar</span></div>
+  <div class="stat"><b>Last</b><span>Build C after E7–E8; Gate D / D5 optional</span></div>
+</div>
+
+<div class="callout warn">
+  <b>Orthogonal axes — do not collapse.</b>
+  The PDF is centralize-then-analyze: Telemetry → NATS → percentile + graph builders → Vortex/S3 → bounded retrieval → Rust ReAct agent → Explain / ITSM / Remediate.
+  That fills the <b>SaaS column</b> of shift-left. It does <b>not</b> specify the left column (OTel Node E1–E2, mask/Drain, door A, optional Gateway door B).
+  Pillars = store / RCA-algorithm choices. Shift-left = <i>where</i> E1–E6 execute. Same clock; different hop.
+</div>
+
+<h2>0. Locus reminder (our pipeline, not the PDF)</h2>
+<p>Same eleven steps. Work can start on the Node (+1 hop) or optional Gateway (+2) before our SaaS. E3 ≠ Gateway. Normalize = E2. Verify is decided in E10 and closed in E11. D5 / Layer I stays Review.</p>
+<table>
+  <thead>
+    <tr><th>Stage</th><th>Job</th><th>Node</th><th>Gateway (optional)</th><th>Our SaaS</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><b>E1 Collect</b> · P1</td><td>Admit telemetry. No CI bind. No ticket Collect this pass.</td><td>OTel receivers</td><td>OTLP from nodes — not a second raw Collect</td><td>Cloud ingest (webhooks, GitHub, APIs)</td></tr>
+    <tr><td><b>E2 Identity</b> · P1</td><td>Stamp <code>tenant</code>+<code>ci_id</code>. Mask / Drain here.</td><td>Primary bind</td><td>Optional re-key if nodes are thin</td><td>Bind-miss queue only</td></tr>
+    <tr><td><b>E3 Topology</b> · P1</td><td>Walkable graph for neighborhood reasoning.</td><td>Relationship cues only</td><td>Assist (service graph, tail sample)</td><td>Canonical <code>GraphSnapshot</code></td></tr>
+    <tr><td><b>E4 Stores</b> · P1</td><td>Persist queryable evidence.</td><td>Buffer only — not the lake</td><td>Buffer, not retain</td><td>Ingest API + tenant dest (Q1 store)</td></tr>
+    <tr><td><b>E5 Maintain</b> · P1</td><td>Freshness, retention, fleet config.</td><td>Execute pushed config</td><td>Same for GW fleet</td><td>OpAMP control plane</td></tr>
+    <tr><td><b>E6 Detect</b> · P2</td><td>Emit a <code>Signal</code>. No root-cause claim.</td><td><b>Door A</b></td><td><b>Door B</b></td><td><b>Door C</b></td></tr>
+    <tr><td><b>E7 Curate</b> · P2 · D3</td><td>One <code>CaseSeed</code> before diagnose.</td><td>May stamp correlation id; no estate merge</td><td>No estate merge</td><td>Merge policy</td></tr>
+    <tr><td><b>E8 Scope</b> · P2</td><td>Lock <code>WorkingSet</code> (time + hops + evidence budget).</td><td>—</td><td>—</td><td>k-hop on E3 + dest corridor</td></tr>
+    <tr><td><b>E9 Localize</b> · P3</td><td>Choose the leaf.</td><td>—</td><td>—</td><td>Operator path always on; Layer I optional</td></tr>
+    <tr><td><b>E10 Identify</b> · P3</td><td>Corroborate leaf; Verify decided here.</td><td>—</td><td>—</td><td>Multimodal dest query in WorkingSet</td></tr>
+    <tr><td><b>E11 Package</b> · P3 · D4</td><td><code>VerdictCard</code>. Narrator optional (D5).</td><td>—</td><td>—</td><td>Our card / optional ticket. Dest UI is not Package.</td></tr>
+  </tbody>
+</table>
+<p class="footer-note">If Gateway is omitted: E3 still runs on SaaS (weaker assist); E6 is doors A+C only; E7–E11 unchanged.</p>
+
+<h2>1. Which phase owns each pillar</h2>
+<p>A pillar is not a phase. A and B are always-on P1 stores. P2/P3 only read them. C is Clock B (diagnose/close), optional Layer I.</p>
+<table>
+  <thead>
+    <tr><th>Pillar</th><th>Owns (write path)</th><th>Read by</th><th>Does not own</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>A · Percentiles</b></td>
+      <td>P1 <b>E4</b> sketch store · P1 <b>E5</b> seasonal refresh</td>
+      <td>P2 <b>E6 door C</b> · P3 <b>E10</b> <code>get_metric_baseline()</code></td>
+      <td>E1/E2 (needs identity first) · E9 leaf rule</td>
+    </tr>
+    <tr>
+      <td><b>B · Knowledge graph</b></td>
+      <td>P1 <b>E3</b> <code>GraphSnapshot</code> · P1 <b>E5</b> versions / changes / writeback</td>
+      <td>P2 <b>E8</b> hop/time · P3 <b>E9</b> walk · P3 <b>E10</b> <code>query_graph()</code></td>
+      <td>E6 Detect (Alert is a node, not the detector) · E11 executor</td>
+    </tr>
+    <tr>
+      <td><b>C · Rust ReAct agent</b></td>
+      <td>P3 <b>E9</b> Localize · P3 <b>E10</b> Identify · P3 <b>E11</b> Package (explain/ticket)</td>
+      <td>Tools read A+B via <b>E8</b>-bounded retrieval</td>
+      <td>P1 fabric · P2 <b>E7</b> Curate (keep as a stage) · remediation</td>
+    </tr>
+  </tbody>
+</table>
+<div class="callout">
+  <b>P2 has no Motadata pillar.</b>
+  Case-open (E6–E8) is not A, B, or C. Door C is a consumer of A. Scope knobs are the PDF’s “RCA retrieval layer.”
+  Curate stays a required stage (<b>D3</b>) in front of C — do not implement it only as <code>deduplicate_incident()</code>.
+</div>
+<ul>
+  <li><b>A Percentiles</b> — T-Digest + buckets + seasonal baseline on Vortex/S3. Thresholds = platform Detect (door C). Seasonal update = E5. Windowing sits after the bus — not Node E2.</li>
+  <li><b>B Knowledge graph</b> — Typed entities/edges match “SaaS owns <code>GraphSnapshot</code>; Gateway only assists.” Mixes Change (E5), Alert (E6), Incident / ITSMTicket (E7/E11) into the same store. Traversal recipe is E9’s walk.</li>
+  <li><b>C Rust ReAct agent</b> — Observe → retrieve baseline/graph → correlate → hypothesize → validate → act = Localize + Identify + Package with tools. <code>deduplicate_incident</code> leaks into E7. <code>execute_remediation</code> is outside E1–E11. LLM proposes; policy authorizes. D5 stays Review.</li>
+</ul>
+
+<h2>2. Recommended implementation order</h2>
+<p>Do <b>not</b> ship A → B → C as three products. A and B are <b>parallel P1 writers</b> after E2 keys exist. C is last and opt-in (Gate D / D5 Review). LLD-E1/E2 already Done.</p>
+<table>
+  <thead>
+    <tr><th>Seq</th><th>Build</th><th>HLD stages</th><th>Exit</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><b>0</b></td><td>Edge admit + identity (PDF is silent — we still need this)</td><td>E1 Collect · E2 Identity (Node)</td><td><code>ingest.v1</code> with <code>tenant</code>+<code>ci_id</code>. No pillar yet.</td></tr>
+    <tr><td><b>1</b></td><td>Ingest path into SaaS (NATS optional)</td><td>E1 SaaS ingest · E4 write path</td><td>Shaped stream lands. Gate B: Vortex/S3 may be <b>one</b> dest, not the only dest.</td></tr>
+    <tr><td><b>2</b></td><td>Pillar A <b>∥</b> Pillar B</td><td>A: E4 sketches + E5 season · B: E3 graph + E5 change feed</td><td>Query p95 by <code>entity_id</code> without raw scan. <code>GraphSnapshot</code> walkable. Same <code>entity_id</code> namespace.</td></tr>
+    <tr><td><b>3</b></td><td>Platform Detect on sketches</td><td>E6 door C</td><td>Gate C: which classes are platform-only. Doors A/B still separate.</td></tr>
+    <tr><td><b>4</b></td><td>Case open without an LLM</td><td>E7 Curate · E8 Scope</td><td>One <code>CaseSeed</code> (D3). <code>WorkingSet</code> with time/entity/hop/evidence budget.</td></tr>
+    <tr><td><b>5</b></td><td>Deterministic diagnose + close</td><td>E9 · E10 · E11 <code>VerdictCard</code></td><td>Operator path works using A+B only. D4 required. No agent yet.</td></tr>
+    <tr><td><b>6</b></td><td>Pillar C as Layer I (opt-in)</td><td>Same E9–E11, tools only inside the <code>WorkingSet</code></td><td>Gate D: default off. Never owns E7 or E1.</td></tr>
+    <tr><td><b>7</b></td><td>Remediation (later, not this clock)</td><td>Outside E1–E11</td><td>Reuse policy/audit/idempotency. Do not call it Package.</td></tr>
+  </tbody>
+</table>
+<p><b>So:</b> identity → stores (A+B) → detect/curate/scope → deterministic RCA → optional agent.</p>
+
+<h2>3. E1–E11 vs the PDF</h2>
+<p><b>Covered</b> = same job exists. <b>Partial</b> = analogous block, different locus or missing contract.</p>
+<table>
+  <thead>
+    <tr><th>Stage</th><th>PDF implementation</th><th>Our shift-left locus</th><th>Fit</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>E1 Collect</td><td>Telemetry in (logs/metrics/APM/eBPF/events/<b>ITSM</b>) → NATS</td><td>OTel Node receivers + SaaS cloud ingest; telemetry-only this pass</td><td class="fit">Partial · bus after sources; ITSM-as-Collect conflicts</td></tr>
+    <tr><td>E2 Identity</td><td><code>entity_id</code> on sketches and graph nodes; no bind overlay named</td><td>Node: k8sattributes / mask / Drain; SaaS bind-miss queue only</td><td class="fit">Partial · identity implied, not an edge Normalize stage</td></tr>
+    <tr><td>E3 Topology</td><td>Pillar B: typed entities/edges, <code>valid_from</code>/<code>to</code>, confidence, source</td><td>SaaS canonical <code>GraphSnapshot</code>; Gateway assist optional</td><td class="fit">Covered · SaaS graph matches; no Gateway assist described</td></tr>
+    <tr><td>E4 Stores</td><td>Vortex + S3: historical observability + percentile sketches</td><td>Ingest API + tenant dest fan-out (dest is Q1 store)</td><td class="fit">Partial · first-party lake vs dest-agnostic (Gate B open)</td></tr>
+    <tr><td>E5 Maintain</td><td>Seasonal keys; graph versions; outcomes written back</td><td>SaaS OpAMP fleet + retention; agents execute</td><td class="fit">Partial · freshness yes; fleet/config channel absent</td></tr>
+    <tr><td>E6 Detect</td><td>thresholds / anomaly bounds on sketches; Alert entity</td><td>Door A Node · Door B Gateway · Door C platform</td><td class="fit">Partial · door C only; no edge triggers</td></tr>
+    <tr><td>E7 Curate</td><td><code>CORRELATED_WITH</code>; <code>deduplicate_incident()</code> as an agent tool</td><td>SaaS required one <code>CaseSeed</code> (D3 Signed) before diagnose</td><td class="fit">Partial · merge is a tool, not a required pre-agent stage</td></tr>
+    <tr><td>E8 Scope</td><td>Retrieval bounded by time, entity, hop count, evidence budget</td><td>SaaS Tailor: <code>WorkingSet</code> from seed + graph + dest corridor</td><td class="fit">Partial · same knobs, folded into agent retrieve not a WorkingSet object</td></tr>
+    <tr><td>E9 Localize</td><td>Incident → service → deps → changes → abnormal metrics → candidates</td><td>SaaS/operator leaf rule (ERROR deepest-error, SLOWDOWN self-time)</td><td class="fit">Covered · graph walk is the leaf search; agent is the actor</td></tr>
+    <tr><td>E10 Identify</td><td>Retrieve baseline + traces/log patterns; validate hypothesis; evidence not LLM assertion</td><td>Multimodal dest query; Verify decided here</td><td class="fit">Covered · baseline + graph constrain the claim</td></tr>
+    <tr><td>E11 Package</td><td>Explain / <code>create_ticket</code> / ITSM; also Remediate</td><td><code>VerdictCard</code> required (D4); narrator optional (D5)</td><td class="fit">Partial · ticket ≈ Package; remediation is out of HLD scope</td></tr>
+  </tbody>
+</table>
+
+<h2>4. Operating loop vs our phases</h2>
+<table>
+  <thead>
+    <tr><th>PDF loop step</th><th>HLD phase / stage</th><th>Shift-left hop</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Telemetry</td><td>P1 E1 (admission)</td><td>Unspecified collectors — not OTel Node</td></tr>
+    <tr><td>NATS streaming</td><td>ingest bus (between E1 and E4)</td><td>SaaS / Motadata fabric — not Gateway</td></tr>
+    <tr><td>Percentile engine</td><td>E4 sketches + E6 door C + E5 season</td><td>SaaS after the bus</td></tr>
+    <tr><td>Graph builder</td><td>E3 + change facts (E5)</td><td>SaaS Vortex/S3</td></tr>
+    <tr><td>RCA retrieval layer</td><td>E8 Scope knobs</td><td>SaaS index in front of Vortex</td></tr>
+    <tr><td>Rust RCA agent</td><td>E9 → E10 (and some E7)</td><td>SaaS; our Layer I is optional</td></tr>
+    <tr><td>Explain / ITSM</td><td>E11 Package</td><td>SaaS</td></tr>
+    <tr><td>Remediate</td><td>outside E1–E11</td><td>not on the shift-left page</td></tr>
+    <tr><td>Outcome → graph context</td><td>E5 writeback + E3 version</td><td>SaaS closed loop</td></tr>
+  </tbody>
+</table>
+
+<h2>5. Conflicts with locked (or Review) HLD defaults</h2>
+<table>
+  <thead>
+    <tr><th>Topic</th><th>PDF</th><th>Our HLD / shift-left</th><th>Handle</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Where processing runs</td><td>Central bus then Vortex</td><td>Shape + mask + optional door A before TLS</td><td>Keep shift-left; treat PDF as SaaS half</td></tr>
+    <tr><td>Store</td><td>Vortex + S3 is the lake</td><td>Q1 dest-agnostic fan-out (Gate B open)</td><td>Vortex can be one dest profile, not the only E4</td></tr>
+    <tr><td>Detect doors</td><td>Alerting on sketches (platform)</td><td>Both doors; Node-first default is Open (Gate C)</td><td>PDF implements door C. Doors A/B still ours to build</td></tr>
+    <tr><td>AI / D5</td><td>Agent is the RCA engine</td><td>D5 Review; operator path always on; Layer I optional</td><td><b>Do not flip D5</b> because the PDF is agentic</td></tr>
+    <tr><td>Curate D3</td><td>Dedupe as an agent tool</td><td>Required one seed before diagnose</td><td>Keep E7 in front of the agent, not inside it</td></tr>
+    <tr><td>E1 sources</td><td>ITSM listed with telemetry</td><td>Telemetry-only Collect; ticket is reserved <code>signal_class</code></td><td>ITSM stays E11 egress / future join, not E1</td></tr>
+    <tr><td>Remediation</td><td><code>execute_remediation()</code> with policy</td><td>HLD scope-out: no remediation execution</td><td>Policy pattern is reusable; executor is not E11</td></tr>
+  </tbody>
+</table>
+
+<h2>6. What to take vs what not to copy</h2>
+<div class="callout keep">
+  <p><b>Take:</b> mergeable percentile sketches as an E4 modality; typed RCA graph with <code>valid_from</code>/<code>to</code> and confidence as E3; bounded retrieval as E8; hypothesis-plus-evidence language for E10; LLM never owns authorization if Layer I ships.</p>
+  <p style="margin-bottom:0"><b>Do not copy:</b> skipping Node E1–E2; treating NATS+Vortex as the whole product; folding Curate into the agent; making ReAct the default Package path; calling ITSM or remediation Collect.</p>
+</div>
+<p class="footer-note">
+  Formal contracts: ObserveOps Pipeline HLD. Locus: shift-processing-left architecture.
+  This PDF is a Motadata implementation sketch of the SaaS column, not a rewrite of the clock.
+</p>
+
+</body>
+</html>

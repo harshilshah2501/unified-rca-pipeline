@@ -4,8 +4,6 @@
 
 **Browser:** [`federated-vs-dt-pipeline-gaps.html`](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html)
 
-**Cursor canvas (IDE only):** `canvases/federated-vs-dt-pipeline-gaps.canvas.tsx` beside chat — not served by the PoC console.
-
 **Related:** [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) · [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) · [`federated-pipeline/docs/REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md) · [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](./multi-telemetry-rca-functional-and-acceptance-criteria.md) · [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) · [`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) §6
 
 ---

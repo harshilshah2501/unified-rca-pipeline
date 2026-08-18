@@ -1,13 +1,13 @@
 /**
  * Shared vendor-hub launchpad: documentation ladder + E-block engineering map.
- * Mount: <div id="urca-hub-launchpad" data-vendor="dt|dd"></div>
+ * Mount: <div id="urca-hub-launchpad" data-vendor="dt|dd|ed"></div>
  */
 (function () {
   "use strict";
 
   var BLOCKS = [
     { id: "E1", phase: "P1 · F", stage: "Collect", x: "Edge bytes", y: "TelemetryEnvelope", lld: "LLD-E1" },
-    { id: "E2", phase: "P1 · F", stage: "Identity", x: "TelemetryEnvelope", y: "IdentifiedRecord (join keys)", lld: "LLD-E2" },
+    { id: "E2", phase: "P1 · F", stage: "Identity (Normalize)", x: "TelemetryEnvelope", y: "IdentifiedRecord overlay", lld: "LLD-E2" },
     { id: "E3", phase: "P1 · F", stage: "Topology", x: "IdentifiedRecord + discovery cues", y: "GraphSnapshot (topology)", lld: "LLD-E3" },
     { id: "E4", phase: "P1 · F", stage: "Stores", x: "IdentifiedRecord", y: "Evidence stores (history)", lld: "LLD-E4" },
     { id: "E5", phase: "P1 · F", stage: "Maintain", x: "Stores + topology", y: "Freshness baseline (Detect-ready estate)", lld: "LLD-E5" },
@@ -45,6 +45,19 @@
       E9: "Flamegraph / deepest error or self-time",
       E10: "Tag join across M/T/L rails",
       E11: "Bits optional · Incident often 0"
+    },
+    ed: {
+      E1: "Node ∥ Gateway collect (Cloud ingest is an exception)",
+      E2: "OTel / OCSF + pipeline tags at the agent",
+      E3: "eBPF Service Map at Node (Gateway assists)",
+      E4: "Platform index persists; pipelines only route",
+      E5: "Coordinator control plane · Packs · liveness",
+      E6: "Three doors: Node trigger · Gateway · org Monitor",
+      E7: "AI Team Issue match (Issues 0 after Node lab)",
+      E8: "AI Team working set; pipelines are evidence",
+      E9: "SRE teammate names the leaf (not a Smartscape walk)",
+      E10: "Edge Delta MCP corroboration",
+      E11: "Issue card + Overview (Team on the platform)"
     }
   };
 
@@ -54,7 +67,7 @@
       title: "Vendor unveil",
       here: true,
       href: null,
-      blurb: "Native product reading for one Detect category — thesis, breakdown, journey, timeline."
+      blurb: "Native product reading — thesis, breakdown, journey, timeline. DT/DD use Detect categories; ED does not."
     },
     {
       level: "L1",
@@ -75,7 +88,7 @@
       title: "Block LLDs",
       here: false,
       href: "/observeops-pipeline-hld.html#contracts",
-      blurb: "Per-block low-level designs (LLD-E1 … LLD-E11) — same template as HLD stage catalog; backlog until each block is specced."
+      blurb: "Per-block low-level designs (LLD-E1 … LLD-E11) — E1 Collect and E2 Identity/Normalize Done; E3–E4 Draft; rest backlog until specced."
     }
   ];
 
@@ -96,7 +109,7 @@
 
   function renderLaunchpad(vendor) {
     var anchors = ANCHORS[vendor] || ANCHORS.dt;
-    var vendorName = vendor === "dd" ? "Datadog" : "Dynatrace";
+    var vendorName = vendor === "dd" ? "Datadog" : vendor === "ed" ? "Edge Delta" : "Dynatrace";
 
     var ladderRows = LADDER.map(function (step) {
       var titleCell = step.href
@@ -149,7 +162,7 @@
       '<h2 id="e-blocks">Engineering block map (E1–E11)</h2>' +
       "<p class=\"launchpad-lead\">Same abstract I/O at every row — " +
       vendorName +
-      " column shows where this category run anchors in product. LLD column links to HLD contract until dedicated LLD pages land.</p>" +
+      " column shows where this vendor run anchors in product. LLD column links to HLD contract until dedicated LLD pages land.</p>" +
       "<table><thead><tr><th>Block</th><th>Phase</th><th>Stage</th><th>X (input)</th><th>Y (output)</th><th>" +
       esc(vendorName) +
       " anchor</th><th>Spec</th></tr></thead><tbody>" +

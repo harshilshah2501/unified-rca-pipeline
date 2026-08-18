@@ -6,7 +6,8 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 **Full repo doc map:** [`NAVIGATION.md`](./NAVIGATION.md) — **start here** if you are lost.
 
 **Browser hub (PoC console):** [`index.html`](./index.html) → [`http://127.0.0.1:8765/docs.html`](http://127.0.0.1:8765/docs.html)  
-**Comparable DT vs DD:** [`comparable-pipeline-dt-dd.html`](./comparable-pipeline-dt-dd.html) → [`http://127.0.0.1:8765/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html)
+**Comparable DT vs DD vs ED:** [`comparable-pipeline-dt-dd.html`](./comparable-pipeline-dt-dd.html) → [`http://127.0.0.1:8765/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html)  
+**Edge Delta (third independent lens):** [`ed-ai-team-hub.html`](./ed-ai-team-hub.html) → [`http://127.0.0.1:8765/ed-ai-team-hub.html`](http://127.0.0.1:8765/ed-ai-team-hub.html) · **lab:** [`ed-lab-setup.html`](./ed-lab-setup.html)
 
 ## Index (common docs only)
 
@@ -22,7 +23,7 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) | Gap map: Federated Part 1 vs DT 5+3+3 · [HTML](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html) |
 | [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](./multi-telemetry-rca-functional-and-acceptance-criteria.md) | Motadata multi-telemetry RCA FR/AC · [visual HTML](./multi-telemetry-rca-fac.html) · [`:8765`](http://127.0.0.1:8765/multi-telemetry-rca-fac.html) |
 | [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | Same-scenario Dynatrace vs Datadog (building blocks + AI/ML §0.4 · P-26084 + e3) · [HTML](./comparable-pipeline-dt-dd.html) |
-| [`dd-detect-category-hub.html`](./dd-detect-category-hub.html) | **DD Detect hub** (ERROR · SLOWDOWN) · Thesis / Breakdown / Three-rail / Timeline · [`:8765`](http://127.0.0.1:8765/dd-detect-category-hub.html) |
+| [`dd-detect-category-hub.html`](./dd-detect-category-hub.html) | **DD Detect hub** — ERROR · SLOWDOWN (full Thesis/Breakdown/Three-rail/Timeline/MTL/Bits) + RESOURCE_CONTENTION/AVAILABILITY/MONITORING_UNAVAILABLE (Timeline-only, local, MCP pending) · [`:8765`](http://127.0.0.1:8765/dd-detect-category-hub.html) |
 | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | Datadog Thesis (Agent / M·T·L / Monitors+Watchdog) · [HTML](./datadog-production-pipeline.html) · [mechanisms](./datadog-subsystem-mechanisms.html) · [three-rail](./dd-e2e-metrics-traces-logs.html) · [evidence](./datadog-tenant-evidence-2026-08-03.md) |
 | [`rca-use-cases-only.md`](./rca-use-cases-only.md) | Sole evaluation corpus spec (ObserveOps UC-1..UC-5; UC-3b + events schema specified) |
 | [`UC_LEARNING_BRAINSTORM.md`](./UC_LEARNING_BRAINSTORM.md) | **Learning / brainstorm** — simplified UC frames (problem → RCA output); not bakeoff GT |
@@ -34,6 +35,8 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) | Ingestion PoC milestones, hardware, weekly checklist |
 | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) | `ingest.v1` contract + ObserveOps/Motadata converters |
 | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) | Fair Lean vs Federated compare (shared detect) |
+| [`observeops-pipeline-hld.html`](./observeops-pipeline-hld.html) | **Our HLD** — [Pipeline HLD](./OBSERVEOPS_PIPELINE_HLD.md) (written spec) · [Fusion](./observeops-fusion-guide.html) (clickable) · [operational graph](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) (chapter, not a second HLD) · [example map](./observeops-ci-graph.html) |
+| [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) · [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) · [`LLD-E4-Stores.md`](./LLD-E4-Stores.md) | Block-level LLDs — E1 Collect **Done**, E2 Identity/Normalize **Done**; E3–E4 Draft; E5–E11 backlog in the HLD §18 |
 | Visual simulation guides | Lean: [`../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md`](../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md) · Federated: [`../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md`](../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md) |
 | [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) | Lean RCA product requirements (**canonical**; includes Appendix E) · [`.pdf`](./Lean_RCA_PRD.pdf) export · [`.docx`](./Lean_RCA_PRD.docx) |
 | [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md) | Lean RCA simple guide (**canonical**) · [`.pdf`](./Lean_RCA_Simple_Guide.pdf) export · [`.docx`](./Lean_RCA_Simple_Guide.docx) |

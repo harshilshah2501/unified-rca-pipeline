@@ -1,8 +1,10 @@
 # Datadog production pipeline — native map & evidence
 
+**Hub Thesis (curated):** [`datadog-production-pipeline.html`](./datadog-production-pipeline.html) is the reading path — one mental model (tags + three rails), native stages once, one lab walkthrough. This markdown keeps full depth (host-only tenant snapshot, dual-vendor appendix, related-reading table, full 8-stage IPO) as archive.
+
 **Audience:** engineers who need Datadog’s always-on fabric clear **on Datadog’s own terms** before comparing any other vendor.  
 **Status:** teaching / design reference — public product framing + **live MCP tenant evidence** + local Agent observation.  
-**Date:** 2026-08-03 · lab update 2026-08-04  
+**Date:** 2026-08-13  
 
 **Honesty labels**
 

@@ -53,6 +53,12 @@ body.vendor-dd {
   background: radial-gradient(ellipse 80% 50% at 10% -10%, #1a2438 0%, transparent 55%), var(--bg);
 }
 
+body.vendor-ed {
+  --accent: #7ec8b8;
+  --accent-soft: rgba(61, 154, 139, 0.16);
+  background: radial-gradient(ellipse 80% 50% at 10% -10%, #1a2830 0%, transparent 55%), var(--bg);
+}
+
 a {
   color: var(--accent);
   text-decoration: none;
@@ -218,6 +224,10 @@ body.vendor-dd .card:hover {
   color: #8eb0f5;
 }
 
+.card .k.ed {
+  color: #7ec8b8;
+}
+
 .card .k.compare {
   color: #e8b86d;
 }
@@ -352,6 +362,16 @@ body.vendor-dd .card:hover {
 .pill.task {
   color: #7ec8b8;
   border-color: rgba(61, 154, 139, 0.5);
+}
+
+.pill.park {
+  color: #c9a4f0;
+  border-color: rgba(201, 164, 240, 0.45);
+}
+
+.pill.block {
+  color: #fca5a5;
+  border-color: rgba(252, 165, 165, 0.4);
 }
 
 .blurb {
@@ -509,6 +529,18 @@ body.vendor-dd .card:hover {
 .shell > nav.toc a.l2 {
   padding-left: 1rem;
   font-size: 0.72rem;
+}
+
+.shell > nav.toc a.here {
+  color: var(--text);
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+  font-weight: 600;
+}
+
+.article h2,
+.article h3 {
+  scroll-margin-top: calc(var(--urca-nav-h) + 12px);
 }
 
 .shell > main {
@@ -749,6 +781,12 @@ body.vendor-dd .note {
   border-top: 1px solid var(--stroke);
 }
 
+/* Thesis: Views only — no Category row, so drop the divider. */
+[id$="-cat-bar"].thesis-neutral .urca-teach-row.views {
+  padding-top: 0;
+  border-top: none;
+}
+
 [id$="-cat-bar"] .urca-k {
   font-size: var(--fs-eyebrow);
   font-weight: 700;
@@ -823,6 +861,16 @@ body.vendor-dd [id$="-cat-bar"] .slots a.here {
   background: rgba(91, 141, 239, 0.2);
 }
 
+body.vendor-ed [id$="-cat-bar"] .slots a:hover {
+  border-color: var(--accent, #7ec8b8);
+}
+
+body.vendor-ed [id$="-cat-bar"] .slots a.here {
+  color: #9ee0d2;
+  border-color: rgba(126, 200, 184, 0.65);
+  background: rgba(61, 154, 139, 0.18);
+}
+
 [id$="-cat-bar"] .slots a.interp {
   border-color: rgba(232, 184, 109, 0.4);
 }
@@ -860,8 +908,36 @@ body.vendor-dd [id$="-cat-banner"] {
   background: rgba(91, 141, 239, 0.12);
 }
 
+body.vendor-ed [id$="-cat-banner"] {
+  background: rgba(61, 154, 139, 0.12);
+}
+
 [id$="-cat-banner"] b {
   color: var(--text);
+}
+
+.md-src {
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin: 0 0 1rem;
+}
+
+.md-page table {
+  display: block;
+  overflow-x: auto;
+}
+
+.md-page pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.md-page h1:first-child {
+  margin-top: 0;
 }
 
 [id$="-cat-banner"] code {

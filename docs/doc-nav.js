@@ -37,7 +37,8 @@
     { href: "/observeops-pipeline-hld.html", label: "Our HLD" },
     { href: "/dt-davis-category-hub.html", label: "DT hub" },
     { href: "/dd-detect-category-hub.html", label: "DD hub" },
-    { href: "/comparable-pipeline-dt-dd.html", label: "DT vs DD" },
+    { href: "/ed-ai-team-hub.html", label: "ED hub" },
+    { href: "/comparable-pipeline-dt-dd.html", label: "DT vs DD vs ED" },
     { href: "/observability-generations-dt-dd.html", label: "Obs 1.0 / 2.0 / 3.0" },
     { href: "/federated-vs-dt-pipeline-gaps.html", label: "Fed vs DT" },
     { href: "/multi-telemetry-rca-fac.html", label: "Motadata FR/AC" },
@@ -85,7 +86,7 @@
     }
     if (
       item.href === "/observeops-pipeline-hld.html" &&
-      /observeops-pipeline-hld|OBSERVEOPS_PIPELINE_HLD|lld-e\d/i.test(path)
+      /observeops-pipeline-hld|OBSERVEOPS_PIPELINE_HLD|OBSERVEOPS_HLD_OPERATIONAL_GRAPH|OBSERVEOPS_USE_CASES|observeops-fusion-guide|observeops-ci-graph|observeops-pipeline-diagram|observeops-shift-left|lld-e\d/i.test(path)
     ) {
       return true;
     }
@@ -100,6 +101,14 @@
     if (
       item.href === "/dd-detect-category-hub.html" &&
       /dd-lab-timeline|dd-e2e-metrics|datadog-subsystem-mechanisms|datadog-production-pipeline|dd-detect-category|dd-bits-|dd-error-mtl|dd-slowdown-mtl|dd-behind-the-scenes/.test(
+        path
+      )
+    ) {
+      return true;
+    }
+    if (
+      item.href === "/ed-ai-team-hub.html" &&
+      /ed-ai-team-hub|edgedelta-production-pipeline|EDGEDELTA_PRODUCTION_PIPELINE|edgedelta-subsystem-mechanisms|ed-e2e-pipelines-team|ed-portal-walkthrough|ed-lab-timeline|edgedelta-tenant-evidence|edgedelta-lab-run|edgedelta-uc9|ed-lab-setup|EDGEDELTA_LAB_SETUP|ed-supported-scenarios/.test(
         path
       )
     ) {

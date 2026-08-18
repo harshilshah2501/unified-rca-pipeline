@@ -37,7 +37,15 @@ Read these before diving into folders.
 | [`POC_BRIEFING.md`](./POC_BRIEFING.md) | End-to-end story: objective → design → bakeoff → conclusion (slides / NotebookLM) |
 | [`ROADMAP.md`](./ROADMAP.md) | PoC **journey**: Compare → Deepen → Ship → Transfer → Connect (+ later Federate/Scale) |
 | [`ADR-001-lean-primary-engine.md`](./ADR-001-lean-primary-engine.md) | Lean favored on ObserveOps — **evaluation finding**, not a finalized GTM lock |
-| [`urca-glossary.html`](./urca-glossary.html) | **Glossary** (hosted `:8765`) — A–Z lookup, search, one-line definitions; same-word conflicts at top |
+| [`observeops-pipeline-hld.html`](./observeops-pipeline-hld.html) | **Our HLD** (`:8765`) — door to one pipeline (E1–E11). D5 stays Review. |
+| [`observeops-fusion-guide.html`](./observeops-fusion-guide.html) | **Fusion** — the same pipeline, clickable. Does not add steps. [`:8765`](http://127.0.0.1:8765/observeops-fusion-guide.html) |
+| [`OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) | **Operational graph (chapter, Draft)** — how the map is recorded. Not a second HLD. [example map](./observeops-ci-graph.html) |
+| [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) | **Pipeline HLD** — the one written spec: what each step is for, identity keys, ADRs. [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) (Done) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) (Done) · [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) · [`LLD-E4-Stores.md`](./LLD-E4-Stores.md) (E3–E4 Draft) |
+| [`observeops-shift-left-architecture.html`](./observeops-shift-left-architecture.html) | **Locus, not a second HLD:** same E1–E11 clock; Node / optional Gateway / our SaaS · [`:8765`](http://127.0.0.1:8765/observeops-shift-left-architecture.html) |
+| [`motadata-3pillars-vs-shift-left.html`](./motadata-3pillars-vs-shift-left.html) | **Motadata 3 pillars vs E1–E11:** A+B = P1 stores; C = optional P3. PDF is the SaaS column, not the Node. Canonical [`MOTADATA_3PILLARS_VS_SHIFT_LEFT.md`](./MOTADATA_3PILLARS_VS_SHIFT_LEFT.md) · [`:8765`](http://127.0.0.1:8765/motadata-3pillars-vs-shift-left.html) |
+| [`OBSERVEOPS_USE_CASES.md`](./OBSERVEOPS_USE_CASES.md) | **8 ObserveOps Detect UCs** (not ED’s 10 AI Team jobs). Walk them on Fusion → Use Cases. |
+| [`urca-glossary.html`](./urca-glossary.html) | **Glossary** (hosted `:8765`) — A–Z lookup; same-word conflicts at top |
+| [`CANVASES.md`](./CANVASES.md) | **Hub page map** — former canvas jobs → `:8765` HTML. Do not use `vscode://` from the hub. ED subset [`ED_CANVASES.md`](./ED_CANVASES.md) |
 | [`GLOSSARY.md`](./GLOSSARY.md) | Bakeoff/engine: Tier namespaces · L0/F1 · Panorama · Dynatrace teaching terms · corpus names |
 | [`README.md`](./README.md) | Four qualities, five roadblocks, lean vs federated decision guide (long-form) |
 
@@ -58,6 +66,7 @@ Ingest → Detect → Localize → Identify → Verify
 | [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) | Workflow stages + stage readiness + **current next** (`LIVE` → `CHANGE`) |
 | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) | Fair compare: shared Detect, then engines diverge on Localize/Identify |
 | [`two-step-rca-white-space.md`](./two-step-rca-white-space.md) | Vendor gap: Step 1 “where” vs Step 2 “what happened there” (path / signature depth) |
+| [`rca-pipeline-step-io.md`](./rca-pipeline-step-io.md) | Full step I/O reference (§3.2b) — Detect → Curate → Tailor sequencing, topology as sibling not gate |
 | [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) | How we score *any* RCA method (4 axes + 5 roadblocks + provenance) |
 
 Vendor landscape (context, not scoreboard): [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf) · [notes](./RCA_Vendor_Comparison_NOTES.md) · [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) · [`VENDOR_BENCHMARKS.md`](./VENDOR_BENCHMARKS.md)
@@ -100,15 +109,16 @@ Understand **what** was measured before reading engine internals.
 | [`../datasets/scenario.md`](../datasets/scenario.md) | E-com cross-NUMA checkout scenario (design + Postgres dump) |
 | [`ECOM_CHECKOUT_RCA_ANALYSIS.md`](./ECOM_CHECKOUT_RCA_ANALYSIS.md) | **Lean vs Federated write-up** for `ecom-numa-001` |
 | [`index.html`](./index.html) | **Browser docs hub** — [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) |
-| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | **DT vs DD after independent unveils** (same-scenario lab) · [HTML](./comparable-pipeline-dt-dd.html) · [`:8765`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) |
+| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) | **DT vs DD after independent unveils** (same-scenario lab) · [HTML](./comparable-pipeline-dt-dd.html) · [`:8765`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) · §0 geometry includes Edge Delta (not a third lab) · [ED hub](./ed-ai-team-hub.html) |
 | [`DT_DD_COMPARATIVE_STUDY.md`](./DT_DD_COMPARATIVE_STUDY.md) | **Inception, philosophy, and terminology** — company history, why each vendor's vocabulary exists, narrated 11-stage walkthrough |
-| [`observability-generations-dt-dd.html`](./observability-generations-dt-dd.html) | **Obs 1.0 / 2.0 / 3.0 must-pass criteria** · why DD/DT are hybrids (not clean 2.0/3.0) · [`:8765`](http://127.0.0.1:8765/observability-generations-dt-dd.html) · Cursor canvas IDE-only |
+| [`observability-generations-dt-dd.html`](./observability-generations-dt-dd.html) | **Obs 1.0 / 2.0 / 3.0 must-pass criteria** · why DD/DT are hybrids (not clean 2.0/3.0) · [`:8765`](http://127.0.0.1:8765/observability-generations-dt-dd.html) |
 | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | **Thesis (MD):** Clock A → OneAgent/Smartscape/Grail · Phase 2 glossary · [HTML](./dynatrace-production-pipeline.html) · [`:8765`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
-| [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) | **Gap map:** Federated Part 1 vs DT 5+3+3 · [HTML](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html) · §8 Motadata FR/AC alignment · Cursor canvas IDE-only |
+| [`FEDERATED_VS_DT_PIPELINE_GAPS.md`](./FEDERATED_VS_DT_PIPELINE_GAPS.md) | **Gap map:** Federated Part 1 vs DT 5+3+3 · [HTML](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html) · §8 Motadata FR/AC alignment |
 | [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](./multi-telemetry-rca-functional-and-acceptance-criteria.md) | Motadata ObserveOps **acceptance** FRs/ACs · [visual HTML](./multi-telemetry-rca-fac.html) · [`:8765`](http://127.0.0.1:8765/multi-telemetry-rca-fac.html) · architecture in gap map §2/§8 |
 | [`dt-davis-category-hub.html`](./dt-davis-category-hub.html) | **DT hub:** Davis event categories · Thesis / Breakdown / Dual-track / Timeline per category · [`:8765`](http://127.0.0.1:8765/dt-davis-category-hub.html) |
 | [`dynatrace-production-pipeline.html`](./dynatrace-production-pipeline.html) | Dynatrace **Thesis** (shared; `?cat=`) · [`:8765`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
 | [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) | Dynatrace **Breakdown** canvas (shared; `?cat=`) · [`:8765`](http://127.0.0.1:8765/eleven-subsystem-mechanisms.html) |
+| [`eleven-subsystem-mechanisms-storyboard.html`](./eleven-subsystem-mechanisms-storyboard.html) | Storyboard variant of the Breakdown canvas — mechanisms along the flow, sequential panels · [`:8765`](http://127.0.0.1:8765/eleven-subsystem-mechanisms-storyboard.html) |
 | [`dt-e2e-smartscape-grail.html`](./dt-e2e-smartscape-grail.html) | **Dual-track** Smartscape ∥ Grail journey (shared; `?cat=`) · [`:8765`](http://127.0.0.1:8765/dt-e2e-smartscape-grail.html) |
 | [`dt-lab-timeline-code-level.html`](./dt-lab-timeline-code-level.html) | **ERROR Timeline** Observed · P-260817 · [`:8765`](http://127.0.0.1:8765/dt-lab-timeline-code-level.html) |
 | [`dt-lab-timeline-slowdown.html`](./dt-lab-timeline-slowdown.html) | **SLOWDOWN Timeline** Observed · P-260820 · [`:8765`](http://127.0.0.1:8765/dt-lab-timeline-slowdown.html) |
@@ -116,7 +126,10 @@ Understand **what** was measured before reading engine internals.
 | [`dt-cat-availability-lab.html`](./dt-cat-availability-lab.html) | **AVAILABILITY** Timeline · **Observed P-260831** · organic cascade **P-260854** · [prompt](./agent-tasks/dt-availability.md) |
 | [`dt-cat-resource-contention-lab.html`](./dt-cat-resource-contention-lab.html) | **RESOURCE_CONTENTION** Timeline · **Observed (negative Detect)** · [prompt](./agent-tasks/dt-resource-contention.md) |
 | [`dt-agent-tasks.html`](./dt-agent-tasks.html) | Agent-task archive (all five Observed) · [`:8765`](http://127.0.0.1:8765/dt-agent-tasks.html) |
-| [`dd-detect-category-hub.html`](./dd-detect-category-hub.html) | **DD hub:** Detect categories (ERROR · SLOWDOWN) · shared Method/IPO/Doors guide · Thesis / Breakdown / Three-rail / Timeline · [`:8765`](http://127.0.0.1:8765/dd-detect-category-hub.html) |
+| [`dd-detect-category-hub.html`](./dd-detect-category-hub.html) | **DD hub:** Detect categories — ERROR · SLOWDOWN full depth (Thesis/Breakdown/Three-rail/Timeline/MTL/Bits) + RESOURCE_CONTENTION/AVAILABILITY/MONITORING_UNAVAILABLE Timeline-only (local, MCP pending) · shared Method/IPO/Doors guide · [`:8765`](http://127.0.0.1:8765/dd-detect-category-hub.html) |
+| [`dd-lab-timeline-resource-contention.html`](./dd-lab-timeline-resource-contention.html) | **RESOURCE_CONTENTION** Timeline · **Observed (local, negative Detect)** · [prompt](./agent-tasks/dd-resource-contention.md) |
+| [`dd-lab-timeline-availability.html`](./dd-lab-timeline-availability.html) | **AVAILABILITY** Timeline · **Observed (local)** · caller 502 · [prompt](./agent-tasks/dd-availability.md) |
+| [`dd-lab-timeline-monitoring-unavailable.html`](./dd-lab-timeline-monitoring-unavailable.html) | **MONITORING_UNAVAILABLE** Timeline · **Observed (local)** · HTTP stays 200 · [prompt](./agent-tasks/dd-monitoring-unavailable.md) |
 | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | **Datadog Thesis (MD):** Agent → Metrics/APM/Logs · Monitors+Watchdog · [HTML](./datadog-production-pipeline.html) (`?cat=`) |
 | [`datadog-production-pipeline.html`](./datadog-production-pipeline.html) | Same — browser / [`:8765/datadog-production-pipeline.html`](http://127.0.0.1:8765/datadog-production-pipeline.html) |
 | [`datadog-subsystem-mechanisms.html`](./datadog-subsystem-mechanisms.html) | Datadog **Breakdown** · bifurcated step cards under each animation · [`:8765`](http://127.0.0.1:8765/datadog-subsystem-mechanisms.html) (`?cat=`) |
@@ -130,7 +143,20 @@ Understand **what** was measured before reading engine internals.
 | [`datadog-lab-evidence-mtl-error-2026-08-07.md`](./datadog-lab-evidence-mtl-error-2026-08-07.md) | Prior ERROR MTL appendix (retired env) · [HTML](./datadog-lab-evidence-mtl-error-2026-08-07.html) |
 | [`datadog-lab-evidence-2026-08-04.md`](./datadog-lab-evidence-2026-08-04.md) | ERROR lab APM appendix · [HTML](./datadog-lab-evidence-2026-08-04.html) · [`:8765`](http://127.0.0.1:8765/datadog-lab-evidence-2026-08-04.html) |
 | [`datadog-tenant-evidence-2026-08-03.md`](./datadog-tenant-evidence-2026-08-03.md) | Dated MCP snapshot grounding Observed claims |
-| [`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) | **Team reference:** Clock A/B · classes A–E · Grail/Smartscape/Vector · solution path |
+| [`ed-ai-team-hub.html`](./ed-ai-team-hub.html) | **ED hub:** Thesis → Breakdown → Dual-layer → Timeline · 10 use-case switcher (not ERROR/SLOWDOWN) · [`:8765`](http://127.0.0.1:8765/ed-ai-team-hub.html) |
+| [`edgedelta-production-pipeline.html`](./edgedelta-production-pipeline.html) | **01 Thesis** — dual-layer fabric map (no `?uc=`) · [`:8765`](http://127.0.0.1:8765/edgedelta-production-pipeline.html) |
+| [`edgedelta-subsystem-mechanisms.html`](./edgedelta-subsystem-mechanisms.html) | **02 Breakdown** — native stage IPO canvas · [`:8765`](http://127.0.0.1:8765/edgedelta-subsystem-mechanisms.html) |
+| [`ED_CANVASES.md`](./ED_CANVASES.md) | **ED canvas subset** — E1–E11 scenarios · production deploy · AI Team use cases · parent catalog [`CANVASES.md`](./CANVASES.md) |
+| [`ed-e2e-pipelines-team.html`](./ed-e2e-pipelines-team.html) | **03 Dual-layer** — Pipelines ∥ AI Team journey · [`:8765`](http://127.0.0.1:8765/ed-e2e-pipelines-team.html) |
+| [`ed-lab-timeline.html`](./ed-lab-timeline.html) | **04 Timeline** — 14 Aug empty fabric · 17 Aug Node lab · [`:8765`](http://127.0.0.1:8765/ed-lab-timeline.html) |
+| [`ed-portal-walkthrough.html`](./ed-portal-walkthrough.html) | **Portal** — numbered `app.edgedelta.com` clicks per use case · [`:8765`](http://127.0.0.1:8765/ed-portal-walkthrough.html) |
+| [`ed-supported-scenarios.html`](./ed-supported-scenarios.html) | **ED catalogs:** Packs shape → monitors notice → use cases investigate · [MD](./EDGEDELTA_SUPPORTED_SCENARIOS.md) · [`:8765`](http://127.0.0.1:8765/ed-supported-scenarios.html) |
+| [`ed-lab-setup.html`](./ed-lab-setup.html) | **ED lab setup:** Node lab 2026-08-17 · [run note](./edgedelta-lab-run-2026-08-17.md) · [MD](./EDGEDELTA_LAB_SETUP.md) · [`:8765`](http://127.0.0.1:8765/ed-lab-setup.html) |
+| [`edgedelta-uc9-github-2026-08-17.md`](./edgedelta-uc9-github-2026-08-17.md) | **UC9 Observed:** Daily GitHub Engineering Risk Report 2026-08-17 |
+| [`edgedelta-lab-run-2026-08-17.md`](./edgedelta-lab-run-2026-08-17.md) | **Node lab 2026-08-17:** WSL k3d ingest · RTX · analysis |
+| [`EDGEDELTA_PRODUCTION_PIPELINE.md`](./EDGEDELTA_PRODUCTION_PIPELINE.md) | **Edge Delta Thesis (MD):** Pipelines ∥ AI Team · Overview/Issues · [HTML](./edgedelta-production-pipeline.html) |
+| [`edgedelta-tenant-evidence-2026-08-14.md`](./edgedelta-tenant-evidence-2026-08-14.md) | Dated UI snapshot grounding Observed claims |
+| [`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) | **Team reference:** Clock A/B · classes A–E · Grail/Smartscape/Vector · [HTML](./rca-data-lake-brainstorm.html) · [Clock A/B cards](./clock-ab-stage-reference.html) |
 | [`rca-data-lake-brainstorm.html`](./rca-data-lake-brainstorm.html) | Same — browser / [`:8765/rca-data-lake-brainstorm.html`](http://127.0.0.1:8765/rca-data-lake-brainstorm.html) |
 
 ### Benchmarking & scoreboards
@@ -155,19 +181,23 @@ Symlinks at repo root: [`../rca-use-cases-only.md`](../rca-use-cases-only.md), [
 
 Conceptual boundary: **ingestion is not RCA**. Shared fabric feeds both engines.
 
-**Vendor-first (production reference, no Lean/Fed):** read Dynatrace then Datadog before designing our Vector/sinks analogue — same Clock A skeleton, different Localize philosophy.
+**Vendor-first (production reference, no Lean/Fed):** read Dynatrace then Datadog before designing our Vector/sinks analogue — same Clock A skeleton, different Localize philosophy. Edge Delta is a **third independent lens** (edge pipelines + AI Team); do not treat it as a Vector drop-in.
 
 | Topic | Where |
 |-------|--------|
 | **Dynatrace Clock A map + walkthroughs** | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) · [HTML](./dynatrace-production-pipeline.html) |
 | **Datadog Detect hub + native map** | [`dd-detect-category-hub.html`](./dd-detect-category-hub.html) · [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) · [HTML](./datadog-production-pipeline.html) · [mechanisms](./datadog-subsystem-mechanisms.html) · [three-rail](./dd-e2e-metrics-traces-logs.html) · [Behind the scenes](./dd-behind-the-scenes-error.html) · [ERROR MTL](./dd-error-mtl-dissection.html) · [ERROR Bits](./dd-bits-error-review.html) · [ERROR timeline](./dd-lab-timeline-error.html) · [SLOWDOWN timeline](./dd-lab-timeline-slowdown.html) |
+| **Edge Delta AI Team hub + native map** | [`ed-ai-team-hub.html`](./ed-ai-team-hub.html) · [Thesis](./edgedelta-production-pipeline.html) · [Breakdown](./edgedelta-subsystem-mechanisms.html) · [Dual-layer](./ed-e2e-pipelines-team.html) · [Timeline](./ed-lab-timeline.html) · [Portal](./ed-portal-walkthrough.html) · [MD](./EDGEDELTA_PRODUCTION_PIPELINE.md) — independent third lens; geometry compare on [DT vs DD §0](./comparable-pipeline-dt-dd.html) |
 | Dynatrace lab (stages 0–5, P-26076) | [`../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) |
 | Datadog lab (FE→product→inventory) | [`../datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../datadog-rca-lab/DATADOG_RCA_REFERENCE.md) · [ERROR](./dd-lab-timeline-error.html) · [MTL](./dd-error-mtl-dissection.html) · [SLOWDOWN](./dd-lab-timeline-slowdown.html) |
-| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) · [HTML](./comparable-pipeline-dt-dd.html) | DT vs DD after independent unveils · P-26084 lab |
-| **Hosted docs index (browser hub)** | [`index.html`](./index.html) · [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) — navigate DT / DD / compare / mechanisms |
+| [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) · [HTML](./comparable-pipeline-dt-dd.html) | DT vs DD after independent unveils · P-26084 lab · §0 Edge Delta geometry |
+| **Hosted docs index (browser hub)** | [`index.html`](./index.html) · [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) — Our HLD pack · DT / DD / ED / compare |
 | Vector design (shared fabric → Lean / Federated artifacts) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
 | PoC plan (M1–M3, hardware, weekly gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
 | `ingest.v1` contract + converters | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
+| Collect LLD (E1) | [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) — **Done** |
+| Normalize / Identity LLD (E2) | [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) — **Done** |
+| Topology LLD (E3) + graph HLD | [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) (Draft) · [`OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) · [Fusion guide](./observeops-fusion-guide.html) |
 | Motadata → `ingest.v1` adapter | [`../ingestion-poc/adapters/`](../ingestion-poc/adapters/) |
 | Shared threshold Detect | [`../ingestion-poc/detect/`](../ingestion-poc/detect/) |
 | Vector skeletons (L0 / F1) | [`../ingestion-poc/vector/`](../ingestion-poc/vector/) |
@@ -232,6 +262,7 @@ After the path above, these fill algorithm intuition (not status).
 
 | Document | Purpose |
 |----------|---------|
+| [`learning/README.md`](./learning/README.md) | Learning-folder index (non-authoritative — points back here for canonical numbers) |
 | [`RCA-learning-cheatsheet.md`](./learning/RCA-learning-cheatsheet.md) | Side-by-side revision + ingest cost PoC notes (study only) |
 | [`Lean-decoded.md`](./learning/Lean-decoded.md) | Lean study notes (`[Implemented]` / `[Simulated]` / `[Aspirational]`) |
 | [`Federated-decoded.md`](./learning/Federated-decoded.md) | Federated study notes (same tags) |
@@ -267,8 +298,9 @@ Use this **after** you have the map — or when you already know the goal.
 | **OO UC fairness checklist** | [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md) |
 | Lean × Fed × OO UC compare | [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) |
 | Design ingestion (Vector → graphs) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
-| **Understand Dynatrace production Clock A first** | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) · [HTML `:8765`](http://127.0.0.1:8765/dynatrace-production-pipeline.html) |
+| **Understand our HLD** | [Our HLD](http://127.0.0.1:8765/observeops-pipeline-hld.html) → [Fusion](http://127.0.0.1:8765/observeops-fusion-guide.html) → [Pipeline HLD](./OBSERVEOPS_PIPELINE_HLD.md) → [example map](http://127.0.0.1:8765/observeops-ci-graph.html). [Operational-graph chapter](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) only if you need how a connection is recorded. [shift-left](http://127.0.0.1:8765/observeops-shift-left-architecture.html) · [Motadata 3 pillars vs E1–E11](http://127.0.0.1:8765/motadata-3pillars-vs-shift-left.html) · [8 Detect UCs](./OBSERVEOPS_USE_CASES.md) |
 | **Understand Datadog production fabric** | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) · [HTML `:8765`](http://127.0.0.1:8765/datadog-production-pipeline.html) · [mechanisms](http://127.0.0.1:8765/datadog-subsystem-mechanisms.html) · [evidence](./datadog-tenant-evidence-2026-08-03.md) |
+| **Understand Edge Delta (third independent lens)** | [`ed-ai-team-hub.html`](./ed-ai-team-hub.html) · [Thesis](http://127.0.0.1:8765/edgedelta-production-pipeline.html) · [Breakdown](http://127.0.0.1:8765/edgedelta-subsystem-mechanisms.html) · [Portal](http://127.0.0.1:8765/ed-portal-walkthrough.html) · [`ed-lab-setup.html`](./ed-lab-setup.html) · [evidence](./edgedelta-tenant-evidence-2026-08-14.md) |
 | Ingestion PoC plan (hardware + gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
 | `ingest.v1` format / converters | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
 | Fair Lean vs Federated (shared Detect) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
@@ -321,4 +353,4 @@ Unified-RCA/
 |----------|------|
 | [`lean_rca_prd_insights_ae5f991e.plan.md`](../lean-pipeline/docs/lean_rca_prd_insights_ae5f991e.plan.md) | Early PRD plan — superseded by ROADMAP + ARCHITECTURE |
 
-*Last indexed: 2026-07-28 (Incident Analysis · Motadata L1 in `#incident` · plain L0/F1 / Detect gloss)*
+*Last indexed: 2026-08-13 (HLD v1.1 identity-join patch; LLD-E1 Collect and LLD-E2 Identity/Normalize **Done**; D1–D4 / D-E2-1 / D-E2-2 Signed). Same-day prior: DT/DD vendor-teaching hub, `COMPARABLE_PIPELINE_DT_DD`, `OBSERVEOPS_PIPELINE_HLD` v1.0, DD RESOURCE_CONTENTION/AVAILABILITY/MONITORING_UNAVAILABLE local labs. Connect-stage `LIVE` status: **unconfirmed** as of this index — see [`RCA_WORKFLOW_AND_NEXT.md`](./RCA_WORKFLOW_AND_NEXT.md) §3 for the current source of truth, do not assume it ran.*

@@ -1,8 +1,10 @@
 # Dynatrace production pipeline — Clock A map & walkthroughs
 
+**Hub Thesis (curated):** [`dynatrace-production-pipeline.html`](./dynatrace-production-pipeline.html) is the reading path — one Clock A map, one `entityId` story, one walkthrough. This markdown keeps full depth (simple-lab walkthrough, extra bind JSON, lab 0–5 aliases) as archive.
+
 **Audience:** engineers who need Dynatrace’s always-on fabric clear **before** comparing any other RCA engine.  
 **Status:** teaching / design reference from public product framing + black-box lab observation.  
-**Date:** 2026-08-03  
+**Date:** 2026-08-13  
 
 **Honesty labels used below**
 
@@ -64,46 +66,58 @@ Read path: Events → Davis → expand Smartscape neighborhood → pull Grail (D
 
 **Myth to drop:** Smartscape does **not** stay fresh by querying Grail with DQL. Map and lake stay aligned via a **shared entity model**, not lake→map rebuilds.
 
-### 1.1 How `entityId` keeps map and lake consistent (complex estate)
+### 1.1 One id for the map and the lake (`entityId`)
 
-**Claim:** the same string (teaching: `SERVICE-INV`) is both (a) the **Smartscape node id** and (b) the **Grail partition key** on evidence. Nothing “syncs the map from the lake.” Both sides were stamped from the **same bind result**.
+**In one sentence:** Dynatrace stamps every piece of telemetry with one stable id (teaching example: `SERVICE-INV`). That same string is the Smartscape *node* and the Grail *evidence key*. The map and the lake never copy from each other — they both received the id at write time.
 
-Using Walkthrough B’s inventory failure:
+| Store | Job |
+|-------|-----|
+| **Smartscape** | Who talks to whom (the map you walk) |
+| **Grail** | What happened, when (spans, metrics, logs you query) |
 
-```text
-BEFORE bind (Collect/Normalize) — three dialects, three raw labels, NO shared id
-  span t3:   service.name=inventory   GET /stock 500   failed_call=true
-  metric:    service.errors{service="inventory"} 0.92
-  log:       token=inventory  ERROR pool exhausted
+Without a shared id, “inventory” in a span, a metric label, and a log line are three different strings. Later steps cannot join them.
 
-LUT HIT:  "inventory" | container=c8e91a  →  SERVICE-INV
-          (SERVICE-INV is already / becomes the Smartscape node for inventory)
+**What “bind” means here:** a lookup that turns raw labels into that stable id. Teaching shorthand: **LUT** (lookup table) — e.g. `"inventory"` + container → `SERVICE-INV`. Bind runs on the way in (Topology bind), before Fan-out writes to Smartscape and Grail.
 
-AFTER stamp + Fan-out
-  Smartscape node:   SERVICE-INV  (on HOST-B; edges API--calls-->INV--calls-->DB)
-  Grail rows:        entityId=SERVICE-INV + time  →  failed span, error%, pool ERROR log
-```
-
-| Store | What “SERVICE-INV” means | How it got there |
-|-------|--------------------------|------------------|
-| **Smartscape** | A **node** you can walk (neighbors: API, DB; not BATCH) | Discovery / CI graph upsert |
-| **Grail** | Key on **evidence documents** for DQL / detectors | Bind stamped the envelope, then lake write |
-| **Later Davis** | Seed/walk this **node**, then `fetch` Grail where `entityId == SERVICE-INV` | Same id string — no DQL rebuild of Smartscape |
-
-**Consistency check (same minute):**
+Using Walkthrough B’s inventory **5xx** failure (ERROR teaching). For SLOWDOWN, substitute slow **200** / ~9s evidence; the bind story is the same (Observed Problem **P-260820**).
 
 ```text
-Smartscape walk from SERVICE-API
-  → neighbor SERVICE-INV   ← map says “checkout path”
-  → neighbor SERVICE-PAY   ← healthy side branch
-  → (no edge to SERVICE-BATCH even though BATCH is on HOST-B)
+① ARRIVE — no shared id yet
+  span:   service.name=inventory   GET /stock 500
+  metric: service.errors{service="inventory"} 0.92
+  log:    token=inventory  ERROR pool exhausted
 
-Grail pull for entityId=SERVICE-INV in the fault window
-  → span t3 500 + error-rate 0.92 + pool ERROR
-  → does NOT pull batch CPU (that is entityId=SERVICE-BATCH)
+② BIND — LUT picks one id
+  "inventory" | container=c8e91a  →  SERVICE-INV
+
+③ FAN-OUT — stamp both stores with that id
+  Smartscape node:  SERVICE-INV  (on HOST-B; edges API→INV→DB)
+  Grail rows:       entityId=SERVICE-INV + time  →  failed span, error%, pool ERROR
 ```
 
-If bind were wrong (soft-match `inv-svc-v2` → PAY by mistake), **both** map-facing stamps and lake evidence would lie together — identity alignment amplifies alias errors; it does not mean lake refreshes map.
+| Where | What `SERVICE-INV` is | What you do with it |
+|-------|------------------------|---------------------|
+| **Smartscape** | A **node** on the live map | Walk neighbors (API, DB). BATCH on the same host is a different node unless traffic created an edge. |
+| **Grail** | A **key** on evidence rows | DQL / detectors pull everything for this entity in a time window. |
+| **Davis (later)** | The join between those two | Walk the *node*, then fetch Grail where `entityId == SERVICE-INV`. No DQL rebuild of Smartscape. |
+
+**Why this matters for RCA:** Detect raises Events per entity; Curate/Tailor/Davis need to walk the map and pull matching evidence. Different ids → three half-stories instead of one inventory case.
+
+**Myth to drop:** Smartscape does **not** refresh by querying Grail. Consistency is “we stamped the same id twice,” not “the lake syncs the map.”
+
+**Quick check (same minute):**
+
+```text
+Map:  walk from SERVICE-API → neighbor SERVICE-INV (checkout path)
+      → SERVICE-PAY may exist as a side branch
+      → no edge to SERVICE-BATCH just because it shares HOST-B
+
+Lake: pull entityId=SERVICE-INV in the fault window
+      → span 500 + error-rate 0.92 + pool ERROR
+      → does NOT return batch CPU (that is entityId=SERVICE-BATCH)
+```
+
+**If bind is wrong** (soft-match `inv-svc-v2` → PAY by mistake), *both* the map stamp and the lake stamp lie together. Shared identity amplifies alias mistakes; it does not mean “Grail fixed Smartscape.”
 
 ---
 
@@ -132,12 +146,22 @@ Same stages as a contract table. Dynatrace product names are in the map above; t
 |------|--------|---------|--------|
 | **Collect** | Agents, scrapes, OTel, traps, APIs… | Receive/pull raw telemetry | Raw streams (vendor-shaped) |
 | **Normalize** | Raw streams | Map to joinable envelope: `ci_id`, signal, `ts`, value… | Normalized stream |
-| **Topology bind** | Discovery / CMDB / service map | Build CI relationship/dependency graph (nodes + typed edges) + bind LUT (hostname→`ci_id`) | Graph + bind table |
+| **Topology bind** | Discovery (required) · CMDB (optional) · see definitions below | Build CI relationship/dependency graph (nodes + typed edges) + bind LUT (raw labels → `entityId`) | Graph + bind table |
 | **Fan-out** | Normalized envelopes | Parallel write to map + lake (Dynatrace: Smartscape ∥ Grail) — **not** a second Detect; **not** Lean/Fed | Populated stores |
 | **Maintain** | Sinks + graph | Keep Smartscape edges fresh + Grail rows accumulating (lab timeline below) | Usable map + lake for Detect/Davis |
 | **Detect** | Streams/stores | Thresholds / anomalies — noisy by design | Raw alert storm |
 | **Curate** | Detect’s raw alerts + humans | Storm→one seed, GT, quality flags, no coaching | One honest seed `(CI, signal, t0)` |
 | **Tailor** | Seed + graph + stores | Cut space/time/modality | Working set → Clock B |
+
+**Topology bind inputs — what those words mean here (Dynatrace):**
+
+| Word in Clock A I/O | What it is | Role on this unveil |
+|---------------------|------------|---------------------|
+| **Discovery** | OneAgent / OTLP *seeing* hosts, processes, services, ports, and who-calls-whom from live traffic | **Required input.** How Smartscape nodes and `calls` / `runsOn` edges appear in the lab (discovery-first). Not a CMDB import. |
+| **CMDB** | Separate inventory of record (ServiceNow-style): approved CIs, owners, change windows | **Optional enrich only.** Can merge/tag. Davis does **not** walk CMDB. Smartscape exists even if CMDB is empty. |
+| **Service map** | Clock A shorthand for “a walkable who-calls-whom picture” | **Not a third Dynatrace ingest source.** On DT that picture *is* **Smartscape** — the *output* of Topology bind, built from Discovery. Not Datadog’s APM Service Map. |
+
+Normalized envelopes (raw labels from Collect) are the other half of bind: Discovery/CMDB tell you *which nodes exist*; the LUT stamps each record with an `entityId`.
 
 **Dynatrace reading of Fan-out / Maintain:** parallel write is **Smartscape ∥ Grail** — but **not twin dumps**. Topology bind **reads/stamps** identity (`entityId`; auto-create may add a node). Fan-out then writes **different facets** of the same stream: Smartscape **relationship/property upserts** and Grail **evidence** (metrics/traces/logs/events). Lean/Fed and L0/F1 are **out of scope** on this unveil; the mechanisms page phase 3 is **Davis** (walk → Grail rank → Problem), not Lean/Fed.
 
@@ -207,7 +231,14 @@ Real code defect in `inventory/app.py`: 50k-row ledger scan + leftover checksum 
 | 2 Topology | Topology (Smartscape) |
 | 3 Metricize | Fan-out / Maintain (rollups into Grail) |
 | 4 Eventize | Detect (Events) |
-| 5 Index | Maintain (Grail entity+time); Tailor **reads** via DQL |
+| 5 Index | Maintain — Grail becomes queryable by `(entityId, time)`. DQL is the **read** language, used later (not at index time). |
+
+**Do not read row 5 as “Tailor/Davis = Index.”** Index is always-on housekeeping. After a case opens:
+
+- **Tailor (Clock A, last stage)** — cut working set: Smartscape neighborhood + a **scoped** Grail pull (DQL) for those ids + time window.
+- **Davis Identify (Clock B)** — rank/corroborate using that working set; **also** pulls Grail (DQL) for evidence on the Problem.
+
+Same query language, two later readers. Neither of them *is* lab stage 5.
 
 ---
 

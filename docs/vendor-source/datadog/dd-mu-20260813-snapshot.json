@@ -1,0 +1,48 @@
+{
+  "scenario": "monitoring_unavailable",
+  "vendor": "datadog",
+  "framing": "semantic (no Datadog twin category)",
+  "env": "rca-lab-e3",
+  "version_compose": "mu-20260813T071758Z",
+  "version_datadog": "mu-20260813t071758z",
+  "window": {
+    "start_utc": "2026-08-13T07:19:46Z",
+    "end_utc": "2026-08-13T07:29:46Z",
+    "minutes": 10
+  },
+  "fault": {
+    "mechanism": "SCENARIO_MODE=MONITORING_DARK → skip patch_all + DogStatsD no-op (code-only)",
+    "http_during_fault": "inventory health scenario=MONITORING_DARK; stock+checkout HTTP 200 throughout"
+  },
+  "local_probes": {
+    "health_during_fault": {"scenario": "MONITORING_DARK", "status": "ok"},
+    "stock_checkout_during_fault": "200/200 sustained",
+    "after_heal": "SCENARIO_MODE=HEALTHY · stock/checkout 200"
+  },
+  "detect_honesty": {
+    "mcp_pulled": "2026-08-14",
+    "datadog_category_stamp": null,
+    "apm": {
+      "query": "env:rca-lab-e3 version:mu-20260813t071758z",
+      "frontend_ok_spans": 6168,
+      "product_ok_spans": 6168,
+      "inventory_spans_in_window": 0,
+      "note": "APM dark on inventory succeeded; callers still instrumented and OK"
+    },
+    "logs": {
+      "query": "env:rca-lab-e3",
+      "inventory_count": 1564,
+      "product_count": 1472,
+      "frontend_count": 1472,
+      "note": "Partial dark — stdout/file logs still wrote (stock request ok); APM gap is the teaching signal"
+    },
+    "door_a": {
+      "note": "No monitoring-unavailable twin Alert observed; Flask error Door irrelevant (HTTP 200)"
+    },
+    "door_b": {
+      "watchdog_stories": "toolset not available on this MCP connection — not claimed"
+    },
+    "note": "No Datadog twin for MONITORING_UNAVAILABLE. Observed: inventory APM 0 vs FE/product writing; logs still present."
+  },
+  "healed": true
+}

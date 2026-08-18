@@ -31,7 +31,7 @@
   <script src="/urca-hub-launchpad.js" defer></script>
 
   <div class="note">
-    Category switcher (<code>?cat=</code>) frames every L0 slot below. Use the ladder when moving from vendor study → compare lens → HLD → LLDs.
+    Category switcher (<code>?cat=</code>) frames Hub, Breakdown, Three-rail, Timeline, and Interpret. Thesis is shared fabric — no category on that page. Use the ladder when moving from vendor study → compare lens → HLD → LLDs.
     <strong style="color:var(--text)">Layer I</strong> (MTL · Bits) is optional interpretation — not E-blocks. See
     <a href="/observeops-pipeline-hld.html#overview">ObserveOps HLD</a>.
   </div>
@@ -53,11 +53,11 @@
     <tbody>
       <tr>
         <td><strong>01 · Thesis</strong></td>
-        <td>Mental model + product framing</td>
-        <td>Raw telemetry under category lens</td>
-        <td>How fabric + Detect doors + packaging coordinate (Datadog-native)</td>
-        <td>Expected signal and packaging shape for this category</td>
-        <td>L1 phase contracts</td>
+        <td>Shared fabric map (this page)</td>
+        <td>Raw telemetry (Agent / tags) — not a Detect class</td>
+        <td>Mental model · native stages once · tag join · one lab walkthrough</td>
+        <td>Metrics ∥ APM ∥ Logs + tags</td>
+        <td>02 Breakdown (not a second Thesis)</td>
       </tr>
       <tr>
         <td><strong>02 · Breakdown</strong></td>
@@ -124,9 +124,9 @@
     <tbody>
       <tr>
         <td><strong>01 · Thesis</strong></td>
-        <td>Mental model + evidence</td>
-        <td>Agent → tags → rails → Detect → leaf · Metrics vs Husky</td>
-        <td>Animation · query cookbook</td>
+        <td>Shared fabric map</td>
+        <td>Mental model · stages once · tag join · one walkthrough</td>
+        <td>Breakdown animation · Three-rail journey · Observed replay (those are 02–04)</td>
         <td><a href="/comparable-pipeline-dt-dd.html#fcd-overview">L1 F→T→D</a></td>
       </tr>
       <tr>
@@ -273,9 +273,36 @@
     <tbody id="hub-table"></tbody>
   </table>
 
+  <h2>Related on this hub</h2>
+  <div class="grid two">
+    <a class="card" href="/comparable-pipeline-dt-dd.html">
+      <div class="k compare">L1</div>
+      <h3>DT vs DD vs ED compare</h3>
+      <p>Door A ∥ B vs Davis <code>event.category</code> lives in §0.5. Not a twin list.</p>
+    </a>
+    <a class="card" href="/observability-generations-dt-dd.html">
+      <div class="k compare">Philosophy</div>
+      <h3>Obs 1.0 / 2.0 / 3.0</h3>
+      <p>Must-pass criteria · why DD is a hybrid, not a clean 2.0.</p>
+    </a>
+    <a class="card" href="/observeops-pipeline-hld.html">
+      <div class="k compare">L2</div>
+      <h3>Our HLD</h3>
+      <p>Our E1–E11 after this unveil. D5 stays Review.</p>
+    </a>
+    <a class="card" href="/observeops-fusion-guide.html">
+      <div class="k compare">Detect UCs</div>
+      <h3>ObserveOps Fusion guide</h3>
+      <p>8 Detect use cases (not ED’s 10 Team jobs). Same catalog as the Pipeline HLD.</p>
+    </a>
+  </div>
+
   <div class="note warn">
-    Scope: <strong style="color:var(--text)">ERROR</strong> + <strong style="color:var(--text)">SLOWDOWN</strong>
-    on <code>env:rca-lab-e3</code>. Finish both end-to-end (Detect → leaf → packaging) before Dynatrace ↔ Datadog parallels.
+    Full end-to-end depth (Thesis/Breakdown/Three-rail/MTL/Bits, MCP-grounded): <strong style="color:var(--text)">ERROR</strong> +
+    <strong style="color:var(--text)">SLOWDOWN</strong> on <code>env:rca-lab-e3</code>.
+    <strong style="color:var(--text)">RESOURCE_CONTENTION</strong>, <strong style="color:var(--text)">AVAILABILITY</strong>,
+    <strong style="color:var(--text)">MONITORING_UNAVAILABLE</strong> are Timeline-only local labs (Write + local probes;
+    no Datadog MCP pull yet, no MTL/Bits workbook) — see each Timeline's Detect-honesty note before citing them as Observed evidence.
     SLOWDOWN Observed: Detect can be <em>empty</em> while Write is loud — see
     <a href="/dd-lab-timeline-slowdown.html?cat=slowdown#insight">Timeline §2 Write ≠ Detect ≠ Localize</a>.
   </div>
@@ -321,11 +348,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
       var slots = [
         {
-          href: API.withCat(API.teach.pipeline, cat),
+          href: API.teach.pipeline,
           k: "01 · Thesis",
           h: "Thesis",
-          p: "Mental model + Observed evidence. Metrics timeseries vs Husky events. Detect doors · leaf · packaging limits.",
-          not: "Not compare-lens distillation → L1 page."
+          p: "Shared fabric map: mental model · stages once · tag join · one walkthrough. Detect classes live on Hub and Timeline.",
+          not: "Not 02 Breakdown, 03 Three-rail, or 04 Timeline."
         },
         {
           href: API.withCat(API.teach.mechanisms, cat),

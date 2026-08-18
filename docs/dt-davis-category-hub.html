@@ -28,7 +28,7 @@
   <script src="/urca-hub-launchpad.js" defer></script>
 
   <div class="note">
-    Category switcher (<code>?cat=</code>) frames every slot below. Use the ladder when moving L0 → L1 → L2 → L3.
+    Category switcher (<code>?cat=</code>) frames Hub, Breakdown, Dual-track, and Timeline. Thesis is shared fabric — no category on that page. Use the ladder when moving L0 → L1 → L2 → L3.
   </div>
 
   <h2 id="chronology">L0 chronology — read in this order (every category)</h2>
@@ -39,11 +39,11 @@
     <tbody>
       <tr>
         <td><strong>01 · Thesis</strong></td>
-        <td>Mental model + product framing</td>
-        <td>Raw telemetry under category lens</td>
-        <td>How fabric + Detect + packaging coordinate (Dynatrace-native)</td>
-        <td>Expected signal and packaging shape for this category</td>
-        <td>L1 phase contracts</td>
+        <td>Shared fabric map (this page)</td>
+        <td>Raw telemetry (OneAgent / OTLP) — not a Detect class</td>
+        <td>Mental model · Clock A once · bind LUT · one estate walkthrough</td>
+        <td>Smartscape ∥ Grail + <code>entityId</code></td>
+        <td>02 Breakdown (not a second Thesis)</td>
       </tr>
       <tr>
         <td><strong>02 · Breakdown</strong></td>
@@ -110,9 +110,9 @@
     <tbody>
       <tr>
         <td><strong>01 · Thesis</strong></td>
-        <td>Mental model</td>
-        <td>Category framing · OneAgent · Smartscape · Grail · Davis roles</td>
-        <td>Step-by-step Observed replay</td>
+        <td>Shared fabric map</td>
+        <td>Mental model · Clock A once · bind · one walkthrough</td>
+        <td>Breakdown animation · Dual-track journey · Observed replay (those are 02–04)</td>
         <td><a href="/comparable-pipeline-dt-dd.html#fcd-overview">L1 F→T→D</a></td>
       </tr>
       <tr>
@@ -140,7 +140,7 @@
   </table>
 
   <div class="note">
-    Thesis / Breakdown / Dual-track are shared pages framed by <code>?cat=</code>.
+    Thesis is shared fabric (no <code>?cat=</code> on that page). Breakdown / Dual-track are one copy each, framed by <code>?cat=</code>.
     Timeline is per-category Observed (or agent task). Layer I on Dynatrace = Timeline deep-dive only.
   </div>
 
@@ -161,6 +161,30 @@
     </thead>
     <tbody id="hub-table"></tbody>
   </table>
+
+  <h2>Related on this hub</h2>
+  <div class="grid two">
+    <a class="card" href="/comparable-pipeline-dt-dd.html">
+      <div class="k compare">L1</div>
+      <h3>DT vs DD vs ED compare</h3>
+      <p>Davis <code>event.category</code> vs Door A ∥ B lives in §0.5. Not a twin list.</p>
+    </a>
+    <a class="card" href="/observability-generations-dt-dd.html">
+      <div class="k compare">Philosophy</div>
+      <h3>Obs 1.0 / 2.0 / 3.0</h3>
+      <p>Must-pass criteria · why DT is a hybrid, not a clean 3.0.</p>
+    </a>
+    <a class="card" href="/federated-vs-dt-pipeline-gaps.html">
+      <div class="k compare">Gap map</div>
+      <h3>Federated vs DT gaps</h3>
+      <p>Part 1 vs DT 5+3+3 teaching map.</p>
+    </a>
+    <a class="card" href="/observeops-pipeline-hld.html">
+      <div class="k compare">L2</div>
+      <h3>Our HLD</h3>
+      <p>Our E1–E11 after this unveil. D5 stays Review.</p>
+    </a>
+  </div>
 
   <div class="note warn">
     Official ladder also includes CUSTOM_ALERT and INFO/WARNING. We teach five operational
@@ -226,7 +250,7 @@ document.addEventListener("DOMContentLoaded", function () {
             : "Stub — run the lab for this category next; same FE→product→inventory leaf pattern.";
 
       var slots = [
-        { href: API.withCat(API.teach.pipeline, cat), k: "01 · Thesis", h: "Thesis", p: "Mental model + category framing: OneAgent · Smartscape · Grail · Davis.", not: "Not Observed clock replay." },
+        { href: API.teach.pipeline, k: "01 · Thesis", h: "Thesis", p: "Shared fabric map: mental model · Clock A once · bind · one walkthrough. Detect classes live on Hub and Timeline.", not: "Not 02 Breakdown, 03 Dual-track, or 04 Timeline." },
         { href: API.withCat(API.teach.mechanisms, cat), k: "02 · Breakdown", h: "Breakdown", p: "Stage IPO canvas: fabric → Detect → Curate → Davis. Detect tip = this category’s series.", not: "Not compare-lens distillation → L1 page." },
         { href: API.withCat(API.teach.e2e, cat), k: "03 · Dual-track", h: "Dual-track", p: "One signal across Smartscape ∥ Grail — coordination board for 11 subsystems.", not: "Not E-block LLD spec." },
         { href: API.withCat(cat.lab, cat), k: "04 · Timeline", h: timelineH, p: timelineP, disabled: false, not: cat.status === "observed" ? "Lab proof input for HLD/LLD gates." : "Run lab to promote to Observed." }

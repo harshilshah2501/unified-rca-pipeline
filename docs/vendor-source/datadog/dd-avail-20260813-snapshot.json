@@ -1,0 +1,48 @@
+{
+  "scenario": "availability",
+  "vendor": "datadog",
+  "framing": "semantic (not Davis enum)",
+  "env": "rca-lab-e3",
+  "version_compose": "avail-20260813T070424Z",
+  "version_datadog": "avail-20260813t070424z",
+  "window": {
+    "start_utc": "2026-08-13T07:05:45Z",
+    "end_utc": "2026-08-13T07:17:04Z",
+    "minutes": 10
+  },
+  "fault": {
+    "mechanism": "SCENARIO_MODE=AVAILABILITY_DOWN → os._exit(1) ~2s after boot",
+    "http_during_fault": "inventory down; checkout HTTP 502 connection to inventory refused/retries exceeded"
+  },
+  "local_probes": {
+    "checkout_during_fault": 502,
+    "stock_after_heal_http": 200,
+    "checkout_after_heal_http": 200
+  },
+  "detect_honesty": {
+    "mcp_pulled": "2026-08-14",
+    "datadog_category_stamp": null,
+    "apm": {
+      "query": "env:rca-lab-e3 version:avail-20260813t070424z",
+      "frontend_error_spans": 243,
+      "product_error_spans": 243,
+      "inventory_spans_in_window": 0,
+      "sample_trace_id": "6a7d6f6700000000beccc5940dfa62d7",
+      "sample_error": "UpstreamProductError · product upstream failed status=502 · GET /api/checkout → 502"
+    },
+    "infra": {
+      "docker_events": "inventory DIE ~2026-08-13T07:05:35Z (change-tracking / container events)"
+    },
+    "door_a": {
+      "flask_high_error_rate": {
+        "monitor_id": 310925690,
+        "note": "Post-heal state OK; no Alert event locked for this short ~11m window — Write shows caller errors regardless"
+      }
+    },
+    "door_b": {
+      "watchdog_stories": "toolset not available on this MCP connection — not claimed"
+    },
+    "note": "Native Write: caller APM 502 cascade + inventory absent + docker DIE. No Datadog AVAILABILITY category stamp."
+  },
+  "healed": true
+}

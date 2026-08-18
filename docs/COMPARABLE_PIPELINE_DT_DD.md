@@ -1,24 +1,46 @@
-# Comparable pipeline — Dynatrace vs Datadog
+# Comparable pipeline — DT vs DD vs ED
 
 **Method (read this first):**
 
-1. **Understand each vendor independently** — Dynatrace on Dynatrace terms ([DT hub](./dt-davis-category-hub.html) · [DT thesis](./DYNATRACE_PRODUCTION_PIPELINE.md)); Datadog on Datadog terms ([DD hub](./dd-detect-category-hub.html) · [DD thesis](./DATADOG_PRODUCTION_PIPELINE.md)).
-2. **Then** use this page to line up a same-scenario lab and **derive common patterns** — without forcing one vendor’s geometry onto the other.
-3. **Our pipeline HLD** (building blocks we will build) — [OBSERVEOPS_PIPELINE_HLD.md](./OBSERVEOPS_PIPELINE_HLD.md) · [HTML](./observeops-pipeline-hld.html). Engineering blocks E1–E11; MTL/Bits = Interpret layer, not fabric.
+1. **Understand each vendor independently** — Dynatrace on Dynatrace terms ([DT hub](./dt-davis-category-hub.html) · [DT thesis](./DYNATRACE_PRODUCTION_PIPELINE.md)); Datadog on Datadog terms ([DD hub](./dd-detect-category-hub.html) · [DD thesis](./DATADOG_PRODUCTION_PIPELINE.md)); Edge Delta on Edge Delta terms ([ED hub](./ed-ai-team-hub.html) · [ED thesis](./EDGEDELTA_PRODUCTION_PIPELINE.md)).
+2. **Then** use this page to **derive common patterns** — without forcing one vendor’s geometry onto another. Same-scenario lab tables (§3–§6) remain **DT vs DD**. Edge Delta enters **geometry / AI / E-block unfold** (§0), not those lab clocks.
+3. **Our HLD** — pack launchpad [`observeops-pipeline-hld.html`](./observeops-pipeline-hld.html); canonical contracts [Pipeline HLD](./OBSERVEOPS_PIPELINE_HLD.md). Engineering blocks E1–E11; MTL/Bits = Interpret layer, not fabric.
 
 **Goal (shared destination):** From continuous telemetry on a service chain, surface *what broke*, *where*, and *what an operator should look at* — without re-collecting the estate from scratch on every alert.
 
+> **Special note — two philosophies, one destination**
+>
+> Both want the same answer: *what broke, where, with evidence.* They disagree on **where the thinking happens**.
+>
+> - **DT / DD — centralize-then-analyze:** ship the stream to HQ, then think there (map, lake, Detect, Package).
+> - **ED — shift processing left:** think at the source (shape / reduce), then send less, cleaner data — then a standing Team.
+>
+> Dual-track vs three-rail is a later split *inside* the centralized camp. “Left” does not mean “no platform.”
+
 ### Geometry honesty (do not twin)
 
-| | Dynatrace | Datadog |
-|--|-----------|---------|
-| **Teaching journey** | **Dual-track:** Smartscape ∥ Grail (two real write facets) | **Three-rail:** Metrics ∥ APM ∥ Logs (tag join) |
-| **Topology** | Smartscape typed entity graph (`entityId`) | Service Map ≈ **APM-derived view** (not a peer write track) |
-| **Evidence store** | Grail (multimodal lake + DQL) | Product explorers stay separate; backend = classic **Metrics timeseries** ∥ **Husky** event store (traces + logs + …) — **not** three equal peer DBs and **not** Grail |
-| **Join key** | `entityId` | `service` + `env` (+ `host` / `version`) tags |
-| **AI geometry** | Causal AI folded into **Davis** (default Problem path) | Separable surfaces: **Watchdog** (ML Detect) + **Bits** (agentic packaging) — optional on dense MTL |
+| | Dynatrace | Datadog | Edge Delta |
+|--|-----------|---------|------------|
+| **Teaching journey** | **Dual-track:** Smartscape ∥ Grail (two real write facets) | **Three-rail:** Metrics ∥ APM ∥ Logs (tag join) | **Dual-layer:** Telemetry Pipelines ∥ AI Team (hygiene, then a standing team) |
+| **Topology** | Smartscape typed entity graph (`entityId`) | Service Map ≈ **APM-derived view** (not a peer write track) | eBPF Service Map at Node Pipeline (**Public framing**). This tenant: UI present, empty / error (**Observed UI**) |
+| **Evidence store** | Grail (multimodal lake + DQL) | Product explorers stay separate; backend = classic **Metrics timeseries** ∥ **Husky** event store (traces + logs + …) — **not** three equal peer DBs and **not** Grail | Platform index of *already processed* telemetry; optional fan-out to 3rd-party lakes (**Public framing**). This tenant: Logs 0 · Traces 0 (**Observed UI**) |
+| **Join key** | `entityId` | `service` + `env` (+ `host` / `version`) tags | OTel / OCSF + pipeline metadata tags (**Public framing**). Not Observed on this tenant |
+| **AI geometry** | Causal AI folded into **Davis** (default Problem path) | Separable surfaces: **Watchdog** (ML Detect) + **Bits** (agentic packaging) — optional on dense MTL | Persistent **AI Team** (OnCall + specialists); Issues + Overview; human-in-the-loop for actions |
+| **Processing locus** | **Centralize-then-analyze** — collect at the edge; bind / map / lake / detect **in platform** (**Observed lab**) | **Centralize-then-analyze** — collect tagged; rails write continuously **in platform** (**Observed lab**) | **Shift processing left** — parse / enrich / mask / pattern / route **before egress** (**Public framing**). This tenant: no named pipeline (**Observed UI**) |
+| **Peer vs composition** | Full-stack observability peer | Full-stack observability peer | Peer *and* can sit **in front of** DT/DD as a destination (**Public framing**). This tenant: no Datadog/Splunk dest (**Observed UI**) |
 
-There is **no Smartscape-like dual-track** on Datadog. Comparing “dual-track vs dual-track” or “Grail vs Husky as twin lakes” is a category error.
+There is **no Smartscape-like dual-track** on Datadog. There is **no Dual-track and no Three-rail twin** on Edge Delta. Dual-layer ≠ Dual-track. Comparing “Grail vs Husky vs ED Platform as twin lakes” is a category error.
+
+### Processing locus (derived — not twins)
+
+Plain language is in the **Special note** at the top of this page. Detail follows.
+
+**Teaching names (ours):** Dynatrace and Datadog **centralize-then-analyze**. Edge Delta **shifts processing left**. Same destination; different *when* the estate is shaped.
+
+- **Centralize-then-analyze** (DT, DD): the agent/tracer is collect (+ light tag). Topology, evidence store, Detect, and Package run on **platform-side** data. OneAgent and `ddtrace` are not dumb pipes — the *analyze* still happens after ingest.
+- **Shift processing left** (ED): Telemetry Pipelines are the product lift — hygiene and reduction **at Node / Gateway before egress**, then a standing AI Team on that cleaned stream (**Public framing**). Overview / Issues still land centrally; the hygiene is left. That is why ED can sit **in front of** a DT/DD destination.
+
+Same locus ≠ same geometry. Dual-track and three-rail both centralize; they are still not twins. Do not read “left” as “no platform.”
 
 ### Lab vintages (read before equating counts)
 
@@ -27,12 +49,13 @@ There is **no Smartscape-like dual-track** on Datadog. Comparing “dual-track v
 | **Early same-scenario cascade** | DT **P-26084** (`rootCauseEntity=inventory`) · early DD inventory **503** / upstream **502** · dense APM, packaging doors quiet | Detailed §4 stage tables below |
 | **Current DD ERROR primary** | `env:rca-lab-e3` · KeyError / HTTP **500** leaf · Door A Alert after sustain · APM Watchdog **0** · logs Watchdog stories **yes** · Bits investigation · Incident **0** | Building-block + AI/ML honesty; hubs / MTL / Bits tabs |
 | **DT code-level follow-ons** | e.g. **P-260817** KeyError enrich · other Davis category timelines | Independent DT unveil — do not overwrite P-26084 clocks |
+| **ED tenant snapshot (2026-08-14)** | Org `gmailcom_d4486595` Free · AI Team provisioned · Issues **0** · Logs/traces **0** · Pipeline Liveness **OK** | Geometry / AI / E-block unfold only — **not** a same-scenario lab |
 
 Same causal story across vintages: inventory leaf sick → callers fail. Status codes and Detect surfaces can differ by stack and run.
 
 ### What we ran (and why it is “identical”)
 
-We needed one fault both vendors could see, so differences would come from **pipeline behavior**, not from different apps or different bugs.
+We needed one fault both vendors could see, so differences would come from **pipeline behavior**, not from different apps or different bugs. Edge Delta is **not** in this lab — its column is geometry only (§0), from the 2026-08-14 tenant snapshot.
 
 Both labs run the same three-service checkout chain: **frontend** calls **product**, which calls **inventory**. Traffic hits the edge checkout URL; when healthy, inventory returns stock and the request succeeds. For the fault we only break the **leaf** — inventory’s stock API starts returning **5xx** — then keep driving checkout traffic for many minutes so detectors and maps have time to react, then clear the fault and confirm recovery.
 
@@ -57,10 +80,11 @@ Claims in this doc are tagged so you can tell **what we saw** from **what we are
 | Label | Means | Use it when… |
 |-------|--------|----------------|
 | **Observed (lab)** | Seen in our controlled `dynatrace-rca-lab` / `datadog-rca-lab` runs (API, UI, or MCP against *this* traffic) | Default for stage outcomes, counts, Problem/Incident presence, span status codes |
-| **Public framing** | How the vendor describes the product in docs/marketing — useful vocabulary, not a lab proof | Naming building blocks (Grail, Watchdog, Service Map) when we did not open the black box |
+| **Observed (UI)** | Seen in a live vendor console that is **not** our same-scenario lab (Edge Delta org `gmailcom_d4486595`, 2026-08-14) | ED geometry claims: teammates, monitors, empty explorers, Issues 0 |
+| **Public framing** | How the vendor describes the product in docs/marketing — useful vocabulary, not a lab proof | Naming building blocks (Grail, Watchdog, Service Map, ED Pipelines) when we did not open the black box |
 | **Inferred** | Reasonable model that fits observations + public framing, but is **not** an internal vendor spec | e.g. “Davis is a thin packager,” exact ranking math, how map and lake stay aligned |
 
-Unless a sentence is marked otherwise, treat it as **Observed (lab)**. Where we generalize beyond this single cascade, we say so.
+Unless a sentence is marked otherwise, treat DT/DD stage tables as **Observed (lab)**. Treat Edge Delta columns as **Observed (UI)** + **Public framing**. There is no `edgedelta-rca-lab`.
 
 Labs: [`dynatrace-rca-lab`](../dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) · [`datadog-rca-lab`](../datadog-rca-lab/DATADOG_RCA_REFERENCE.md)  
 Browser: [`comparable-pipeline-dt-dd.html`](./comparable-pipeline-dt-dd.html) · [`:8765`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) · [docs hub](http://127.0.0.1:8765/docs.html)
@@ -69,11 +93,11 @@ Browser: [`comparable-pipeline-dt-dd.html`](./comparable-pipeline-dt-dd.html) ·
 
 ## 0. Philosophy — independent building blocks first
 
-Both platforms are trying to answer:
+Three platforms are trying to answer:
 
 > *Something is wrong in checkout — what is the root, and what evidence proves it?*
 
-They do **not** disagree on that destination. They disagree on **building-block geometry** and **who does the last mile**.
+They do **not** disagree on that destination. They disagree on **building-block geometry**, **processing locus** (centralize-then-analyze vs shift processing left), and **who does the last mile**. Same-scenario lab clocks (§3–§6) remain **two vendors**. Geometry, AI placement, and E-block unfold in this section are **three**.
 
 ### 0.1 Dynatrace building blocks (native)
 
@@ -101,41 +125,57 @@ Teaching path: Thesis → Breakdown → **Dual-track (Smartscape ∥ Grail)** �
 
 Teaching path: Thesis → Breakdown → **Three-rail (Metrics ∥ APM ∥ Logs)** → Timeline → MTL workbook → **Bits**.
 
+### 0.2b Edge Delta building blocks (native — Observed UI + Public framing)
+
+Not lab-hardened. No `edgedelta-rca-lab`. Independent unveil: [ED hub](./ed-ai-team-hub.html) · [ED thesis](./EDGEDELTA_PRODUCTION_PIPELINE.md) · [tenant evidence 2026-08-14](./edgedelta-tenant-evidence-2026-08-14.md).
+
+| Block | Role |
+|-------|------|
+| Telemetry Pipelines | Shape at the edge: admit / parse / enrich / mask / pattern / route. Node / Gateway / Cloud / Coordinator (**Public framing**). This tenant: no Pipelines nav; `/pipelines` redirected to AI Overview (**Observed UI**) |
+| Platform index | Evidence of *already processed* telemetry; optional 3rd-party destination (**Public framing**). Logs **0** · traces **0** (**Observed UI**) |
+| Service Map | eBPF at Node Pipeline (**Public framing**). UI present, empty / error (**Observed UI**) |
+| Monitors | Event Threshold · Pattern Anomaly · Metric Threshold — not a Davis `event.category` enum (**Observed UI**: 5 monitors) |
+| **AI Team** | Persistent OnCall + specialists (Security / Software / SRE / Work Tracker **Observed**). Human-in-the-loop for actions (**Public framing**) |
+| **Issue ∥ Overview** | Recurring-problem package + health landing page. Issue ≠ Problem ≠ Bits ≠ Incident. **Observed:** Issues **0**, Overview 100% Healthy |
+
+Teaching path: Thesis → **Dual-layer (Pipelines ∥ AI Team)** → tenant snapshot.
+
 ### 0.3 Common patterns (derived later — not forced twins)
 
-| Pattern (ours) | Appears on Dynatrace as… | Appears on Datadog as… |
-|----------------|--------------------------|------------------------|
-| Continuous edge collect | OneAgent | Agent + ddtrace |
-| Identity on every record | `entityId` | tags (`service`/`env`/`host`/`version`) |
-| Call-path reconstruction | Smartscape edges | APM peers / Service Map |
-| Always-on evidence | Grail | Metrics ∥ APM ∥ Logs (Husky behind traces+logs) |
-| Fault signal | Detectors → **Events** | Spans / rates + Door A Monitors ∥ Door B Watchdog |
-| Named packaged root | **Problem** + `rootCauseEntity` (Davis default) | Flamegraph leaf always; **Bits** optional package; **Incident** often absent |
-| AI / ML assist | Folded into Davis | Separable Watchdog + Bits surfaces |
+| Pattern (ours) | Appears on Dynatrace as… | Appears on Datadog as… | Appears on Edge Delta as… |
+|----------------|--------------------------|------------------------|---------------------------|
+| Continuous edge collect | OneAgent | Agent + ddtrace | Node / Gateway / Cloud Pipelines (**Public framing**; none named **Observed UI**) |
+| Identity on every record | `entityId` | tags (`service`/`env`/`host`/`version`) | OTel / OCSF + pipeline metadata (**Public framing**) |
+| Call-path reconstruction | Smartscape edges | APM peers / Service Map | eBPF Service Map at Node (**Public framing**). Empty / error **Observed UI** |
+| Always-on evidence | Grail | Metrics ∥ APM ∥ Logs (Husky behind traces+logs) | Platform index of processed telemetry; optional fan-out. Logs/traces **0 Observed UI** |
+| Fault signal | Detectors → **Events** | Spans / rates + Door A Monitors ∥ Door B Watchdog | Pattern anomaly + Platform monitors (Event Threshold / Pattern Anomaly / Metric Threshold) |
+| Named packaged root | **Problem** + `rootCauseEntity` (Davis default) | Flamegraph leaf always; **Bits** optional package; **Incident** often absent | **Issue** + Overview (**Public framing**). Issues **0 Observed UI** |
+| AI / ML assist | Folded into Davis | Separable Watchdog + Bits surfaces | Persistent **AI Team** (OnCall + specialists); actions need approval |
+| Where the heavy lift sits | Bind / map / lake **in platform** — **centralize-then-analyze** | Rails write continuously **in platform** — **centralize-then-analyze** | **Shift processing left** — shape at the edge before egress (**Public framing**) |
 
-**One sentence:** Dynatrace **pre-computes a joinable world and packages a verdict**; Datadog **maximizes inspectable evidence and leaves AI packaging optional**.
+**One sentence:** Dynatrace and Datadog **centralize-then-analyze** (DT packages a verdict; DD leaves packaging optional); Edge Delta **shifts processing left**, then runs a standing AI Team whose landing page is Overview / Issues.
 
 ### 0.4 AI / ML comparison (derived — not twins)
 
-**Honesty:** Datadog is **not** “more AI/ML” overall. Both are AI-heavy. Datadog **exposes more separable AI product surfaces**; Dynatrace **runs AI as the packaging engine** (Davis) by default.
+**Honesty:** None of the three is “more AI/ML” as a blanket claim. They **place** AI differently. Datadog **exposes more separable AI product surfaces**; Dynatrace **runs AI as the packaging engine** (Davis) by default; Edge Delta **runs a persistent Team** whose packaging object is an Issue.
 
-**Generation criteria:** neither vendor is a clean Observability 2.0 or 3.0 match — score layers with must-pass checks (correlate ≠ 2.0; AI surfaces ≠ 3.0). See [`observability-generations-dt-dd.html`](./observability-generations-dt-dd.html).
+**Generation criteria:** neither DT nor DD is a clean Observability 2.0 or 3.0 match — score layers with must-pass checks (correlate ≠ 2.0; AI surfaces ≠ 3.0). Edge Delta is not scored on that page. See [`observability-generations-dt-dd.html`](./observability-generations-dt-dd.html).
 
-| Layer | Dynatrace | Datadog | Do not equate |
-|-------|-----------|---------|---------------|
-| Anomaly / Detect AI | Detectors + auto baselining → **Events** | **Watchdog** unsupervised stories (+ anomaly monitors) | Event ≠ Watchdog story |
-| Diagnose / package AI | **Davis** causal ranking → Problem + `rootCauseEntity` | **Bits** observe → hypothesize → validate (Hypothesis Tree); Incident separate | Problem ≠ Bits ≠ Incident |
-| Topology role in AI | Smartscape walk is first-class input to Davis | Service Map assist; Bits / operator still rank on traces | Smartscape ≠ Service Map |
-| Default vs optional | AI package path is **default** | ML Detect door + agentic Bits are **optional surfaces** on dense MTL | — |
-| Lab honesty | Packaged RC Observed (e.g. **P-26084**) | e3: Door A Alert after sustain; APM Watchdog **0**; logs Watchdog **yes**; Bits [`90a88d93…`](https://app.datadoghq.com/bits-ai/investigations/90a88d93-2570-40c6-9706-d186290ea2b6?v=tree); Incident **0** | — |
+| Layer | Dynatrace | Datadog | Edge Delta | Do not equate |
+|-------|-----------|---------|------------|---------------|
+| Anomaly / Detect AI | Detectors + auto baselining → **Events** | **Watchdog** unsupervised stories (+ anomaly monitors) | Pattern Anomaly monitor + Event / Metric Threshold (**Observed UI**) | Event ≠ Watchdog story ≠ Pattern Anomaly |
+| Diagnose / package AI | **Davis** causal ranking → Problem + `rootCauseEntity` | **Bits** observe → hypothesize → validate (Hypothesis Tree); Incident separate | Persistent **AI Team** → **Issue** + Overview; actions need approval | Problem ≠ Bits ≠ Incident ≠ Issue |
+| Topology role in AI | Smartscape walk is first-class input to Davis | Service Map assist; Bits / operator still rank on traces | eBPF Service Map at Node (**Public framing**); empty **Observed UI** | Smartscape ≠ Service Map ≠ ED Service Map |
+| Default vs optional | AI package path is **default** | ML Detect door + agentic Bits are **optional surfaces** on dense MTL | Team is **standing** (default product surface); Issue may still be **0** | — |
+| Honesty | Packaged RC **Observed (lab)** (e.g. **P-26084**) | e3 **Observed (lab):** Door A Alert after sustain; APM Watchdog **0**; logs Watchdog **yes**; Bits [`90a88d93…`](https://app.datadoghq.com/bits-ai/investigations/90a88d93-2570-40c6-9706-d186290ea2b6?v=tree); Incident **0** | **Observed (UI):** Team provisioned; Issues **0**; one GitHub workflow thread; no MELT | — |
 
-Teaching one-liner: **Datadog shows more separate AI product surfaces; Dynatrace runs AI as the packaging engine.** Exact Davis / Watchdog / Bits scoring internals remain unpublished (black-box) — no public top-1 bakeoff ([`VENDOR_BENCHMARKS.md`](./VENDOR_BENCHMARKS.md)).
+Teaching one-liner: **Datadog shows more separate AI product surfaces; Dynatrace runs AI as the packaging engine; Edge Delta runs AI as a standing Team with human-in-the-loop actions.** Exact Davis / Watchdog / Bits / Issue-match internals remain unpublished (black-box) — no public top-1 bakeoff ([`VENDOR_BENCHMARKS.md`](./VENDOR_BENCHMARKS.md)). HLD **D5** stays Review.
 
 ### 0.5 Detect signal categories — twin list? (Public framing + Observed packs)
 
 **Question:** Are Datadog’s default monitors the same kind of thing as Dynatrace Davis **event categories**?
 
-**Answer:** Same *layer* of the stack (Detect inputs) — **not** the same taxonomy. Dynatrace publishes one official **`event.category`** list (fault semantics + severity). Datadog has **no twin list**: it splits Door A (monitor types / packs) and Door B (Watchdog by product rail).
+**Answer:** Same *layer* of the stack (Detect inputs) — **not** the same taxonomy. Dynatrace publishes one official **`event.category`** list (fault semantics + severity). Datadog has **no twin list**: it splits Door A (monitor types / packs) and Door B (Watchdog by product rail). Edge Delta also has **no twin list**: Observed types are Event Threshold · Pattern Anomaly · Metric Threshold — product-surface monitors, not ERROR / SLOWDOWN / AVAILABILITY. Do not invent a Davis category matrix for ED.
 
 #### Dynatrace — official twin list (`event.category`)
 
@@ -179,39 +219,61 @@ Lab ERROR Door A (`310925690` family) sits in the **Flask High Error Rate** APM-
 
 #### Crosswalk (semantics → where it lives)
 
-| Fault semantics | Dynatrace category | Datadog (typical) |
-|-----------------|--------------------|-------------------|
-| Failure / error rate | **ERROR** | APM High Error Rate pack · Watchdog APM error rate · log error anomalies |
-| Latency / slow | **SLOWDOWN** | APM latency monitor (often **custom**) · Watchdog APM latency |
-| Hard down | **AVAILABILITY** | Process / service check / synthetics — **not** host CPU pack |
-| CPU / mem saturation | **RESOURCE_CONTENTION** | Host monitor pack · Watchdog infra |
-| Agent / ingest dark | **MONITORING_UNAVAILABLE** | No single twin category |
-| Custom threshold | **CUSTOM_ALERT** | Any Metric / Log / … monitor you author |
+| Fault semantics | Dynatrace category | Datadog (typical) | Edge Delta (this tenant) |
+|-----------------|--------------------|-------------------|--------------------------|
+| Failure / error rate | **ERROR** | APM High Error Rate pack · Watchdog APM error rate · log error anomalies | No ERROR twin. Pattern Anomaly exists as a type, not a fault class |
+| Latency / slow | **SLOWDOWN** | APM latency monitor (often **custom**) · Watchdog APM latency | No SLOWDOWN twin |
+| Hard down | **AVAILABILITY** | Process / service check / synthetics — **not** host CPU pack | No AVAILABILITY twin |
+| CPU / mem saturation | **RESOURCE_CONTENTION** | Host monitor pack · Watchdog infra | No RESOURCE_CONTENTION twin |
+| Agent / ingest dark | **MONITORING_UNAVAILABLE** | No single twin category | Default Pipeline Liveness (**Metric Threshold**, **OK Observed UI**) — control-plane heartbeat, not a Davis twin |
+| Custom threshold | **CUSTOM_ALERT** | Any Metric / Log / … monitor you author | Event Threshold / Metric Threshold you author (GitHub Event Thresholds **No Data Observed**) |
 
-**Our HLD implication:** E6 Detect should use **semantic Detect classes** (Dynatrace-like), implemented with threshold and/or anomaly doors (Datadog-like) — do not copy `monitor_pack` names as the category system.
+**Our HLD implication:** E6 Detect should use **semantic Detect classes** (Dynatrace-like), implemented with threshold and/or anomaly doors (Datadog-like) — do not copy `monitor_pack` names, and do not copy ED monitor *types*, as the category system.
+
+### 0.6 Edge Delta comparative unfold (geometry — not a third lab)
+
+**Honesty:** this is **Observed (UI)** + **Public framing**, not **Observed (lab)**. Dual-layer ≠ Dual-track ≠ Three-rail. Processing locus: ED **shifts processing left**; DT/DD **centralize-then-analyze**. ED can be a **peer** *and* can sit **in front of** DT/DD as a destination (**Public framing**). This tenant fans out to GitHub + Edge Delta MCP + Edge Delta Documentation only — no Datadog/Splunk dest (**Observed UI**).
+
+Same abstract I/O as Our HLD. Columns are native anchors, not twins.
+
+| Block | Dynatrace | Datadog | Edge Delta |
+|-------|-----------|---------|------------|
+| **E1 Collect** | OneAgent / OTLP | Agent + ddtrace | Node / Gateway / Cloud Pipelines admit (**Public framing**). No pipeline options **Observed UI** |
+| **E2 Identity** | `entityId` | Unified Service Tags | OTel / OCSF + pipeline metadata (**Public framing**) |
+| **E3 Topology** | Smartscape typed write | APM-derived Service Map | eBPF Service Map at Node (**Public framing**). UI error **Observed UI** |
+| **E4 Stores** | Grail | Metrics timeseries ∥ Husky | Platform index of processed telemetry; optional fan-out. Logs/traces **0 Observed UI** |
+| **E5 Maintain** | OneAgent health / entity freshness | Agent / intake health | Coordinator, Packs, Pipeline Liveness **OK Observed UI** |
+| **E6 Detect** | Detectors → Events (`event.category`) | Door A Monitors ∥ Door B Watchdog | Pattern anomaly + Platform monitors. No Davis twin list |
+| **E7 Curate** | Davis merge into Problem | Operator / Bits / monitor grouping | Issue match (join or create). Issues **0 Observed UI** |
+| **E8 Scope** | Problem entity set | Tag + time + related | Issue adds services/envs. Not Observed (no Issue) |
+| **E9 Localize** | Davis + Smartscape walk | Flamegraph / related | SRE teammate investigation — not a Smartscape walk |
+| **E10 Identify** | Grail DQL / code-level | MTL / Bits citations | Edge Delta MCP. Connected; no MELT **Observed UI** |
+| **E11 Package** | Problem + `rootCauseEntity` (**default**) | Bits optional; Incident often **0** | Issue card + Overview. Issues **0 Observed UI** |
+
+**Do not equate:** Problem ↔ Incident ↔ Issue; Davis ↔ Bits ↔ AI Team; Event ↔ Watchdog story ↔ Pattern Anomaly; Smartscape ↔ Service Map ↔ ED Service Map; Dual-track ↔ Three-rail ↔ Dual-layer.
 
 ### Simplified illustration
 
-> **Browser:** the HTML page renders this as a two-column visual — open [`comparable-pipeline-dt-dd.html`](./comparable-pipeline-dt-dd.html)#simplified-illustration.
+> **Browser:** the HTML page renders this as a three-column visual — open [`comparable-pipeline-dt-dd.html`](./comparable-pipeline-dt-dd.html)#simplified-illustration.
 
 ```text
-                    SAME DESTINATION
-   “Name the causal leaf on the shared FE → product → inventory workload”
-                           │
-           ┌───────────────┴───────────────┐
-           ▼                               ▼
-     DYNATRACE (native)              DATADOG (native)
-     ──────────────────              ────────────────
-     Dual-track fabric               Three-rail stores
-     Smartscape ∥ Grail              Metrics ∥ APM ∥ Logs
-     join = entityId                 join = tags
-     map = typed write path          map = APM-derived view
-     lake = Grail                    backend = Metrics store ∥ Husky
+                         SAME DESTINATION
+        “Name the causal leaf — with evidence an operator can act on”
+                                    │
+              ┌─────────────────────┼─────────────────────┐
+              ▼                     ▼                     ▼
+        DYNATRACE             DATADOG              EDGE DELTA
+        Dual-track            Three-rail           Dual-layer
+        centralize-then-      centralize-then-     shift processing
+          analyze               analyze              left
+        Smartscape ∥ Grail    Metrics ∥ APM ∥ Logs Pipelines ∥ AI Team
+        join = entityId       join = tags          join = OTel/OCSF (Public)
+        map = typed write     map = APM-derived    map = eBPF at Node (Public)
+        lake = Grail          backend = Metrics∥Husky  index of processed + optional fan-out
 
-     Detect → Event objects          Door A Monitors ∥ Door B Watchdog
-     Davis (causal AI) → Problem     Signal = spans / rates / logs
-       rootCauseEntity (may be null) Flamegraph leaf by Detect class
-                                     Bits (optional) · Incident often 0
+        Detect → Event        Door A ∥ Door B      Pattern Anomaly + Thresholds
+        Davis → Problem       Flamegraph leaf      AI Team → Issue + Overview
+          (default package)   Bits optional          Team standing; Issue may be 0
 ```
 
 ---
@@ -535,13 +597,15 @@ dynatrace-rca-lab/scripts/load.sh 20
 
 ## 7. Design takeaways
 
-1. **Independent first** — finish DT and DD unveils on each vendor’s own terms; this page is for **derived** patterns, not a twining template.
-2. **Same destination** — name the root of a cascade with evidence; **different geometry** — DT dual-track (Smartscape ∥ Grail) vs DD three-rail (Metrics ∥ APM ∥ Logs) + Husky + APM-derived Service Map.
-3. **Do not equate** Problem ↔ Incident, Smartscape ↔ Service Map, Grail ↔ Husky / “Datadog lake,” Dual-track ↔ Three-rail, Davis ↔ Bits, Event ↔ Watchdog story.
-4. **Fabric is not the wedge** — both collect/map/evidence work; the wedge is **merge → package** (DT strong / default; DD thin unless Bits/Incident).
-5. **AI geometry, not AI volume** — Datadog shows more **separable** AI surfaces (Watchdog + Bits); Dynatrace runs AI as the **Davis packaging engine**. Neither is “more AI” as a blanket claim (§0.4).
-6. **Detect categories are not twin lists** — Dynatrace `event.category` (ERROR · SLOWDOWN · …) ≠ Datadog `monitor_pack` / Watchdog `apm|infrastructure|logs`. Observed Host+APM packs = **11 templates** on one screen, not a Davis taxonomy (§0.5).
-7. **Gaps to own in our design:** explicit Curate (storm → one seed), investigation cut contract, and whether Package is mandatory or optional — lab shows optional packaging can leave a clear fault **unpackaged**.
+1. **Independent first** — finish DT, DD, and ED unveils on each vendor’s own terms; this page is for **derived** patterns, not a twining template. Same-scenario lab remains DT vs DD.
+2. **Same destination** — name the root of a cascade with evidence; **three geometries** — DT dual-track (Smartscape ∥ Grail); DD three-rail (Metrics ∥ APM ∥ Logs) + Husky + APM-derived Service Map; ED dual-layer (Telemetry Pipelines ∥ AI Team). Dual-layer ≠ Dual-track.
+3. **Processing locus** — DT and DD **centralize-then-analyze**; ED **shifts processing left**. Same locus ≠ same geometry. Composition follows: left-shifted hygiene can feed a centralized analyzer.
+4. **Do not equate** Problem ↔ Incident ↔ Issue, Smartscape ↔ Service Map ↔ ED Service Map, Grail ↔ Husky ↔ ED Platform, Dual-track ↔ Three-rail ↔ Dual-layer, Davis ↔ Bits ↔ AI Team, Event ↔ Watchdog story ↔ Pattern Anomaly.
+5. **Fabric is not the only wedge** — collect/map/evidence work on all three; a second wedge is **merge → package** (DT strong / default; DD thin unless Bits/Incident; ED Team is standing but Issue can still be **0** while stores are empty).
+6. **AI geometry, not AI volume** — Datadog shows more **separable** AI surfaces (Watchdog + Bits); Dynatrace runs AI as the **Davis packaging engine**; Edge Delta runs AI as a **standing Team** with human-in-the-loop actions. None is “more AI” as a blanket claim (§0.4). HLD **D5** stays Review.
+7. **Detect categories are not twin lists** — Dynatrace `event.category` (ERROR · SLOWDOWN · …) ≠ Datadog `monitor_pack` / Watchdog `apm|infrastructure|logs` ≠ ED Event Threshold / Pattern Anomaly / Metric Threshold. Observed Host+APM packs = **11 templates** on one screen, not a Davis taxonomy (§0.5).
+8. **Composition vs peer** — DT and DD are full-stack peers. ED is a peer *and* can sit **in front of** them as a destination (**Public framing**). This tenant does not.
+9. **Gaps to own in our design:** explicit Curate (storm → one seed), investigation cut contract, and whether Package is mandatory or optional — lab shows optional packaging can leave a clear fault **unpackaged**; ED snapshot shows a loud Detect/Team surface over empty E4 stores.
 
 ---
 
@@ -551,8 +615,11 @@ dynatrace-rca-lab/scripts/load.sh 20
 |-----|------|
 | [`dt-davis-category-hub.html`](./dt-davis-category-hub.html) | DT hub (independent) |
 | [`dd-detect-category-hub.html`](./dd-detect-category-hub.html) | DD hub (independent) |
+| [`ed-ai-team-hub.html`](./ed-ai-team-hub.html) | ED hub (independent) |
 | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) · [HTML](./dynatrace-production-pipeline.html) | DT unveil |
 | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) · [HTML](./datadog-production-pipeline.html) | DD unveil |
+| [`EDGEDELTA_PRODUCTION_PIPELINE.md`](./EDGEDELTA_PRODUCTION_PIPELINE.md) · [HTML](./edgedelta-production-pipeline.html) | ED unveil |
+| [`edgedelta-tenant-evidence-2026-08-14.md`](./edgedelta-tenant-evidence-2026-08-14.md) | ED Observed (UI) snapshot |
 | [`dt-e2e-smartscape-grail.html`](./dt-e2e-smartscape-grail.html) | DT Dual-track Smartscape ∥ Grail |
 | [`dd-e2e-metrics-traces-logs.html`](./dd-e2e-metrics-traces-logs.html) | DD Three-rail Metrics ∥ APM ∥ Logs |
 | [`eleven-subsystem-mechanisms.html`](./eleven-subsystem-mechanisms.html) | DT mechanisms (Davis) |

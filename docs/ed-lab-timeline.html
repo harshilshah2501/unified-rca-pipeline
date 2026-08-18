@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Edge Delta · Timeline</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link rel="stylesheet" href="/urca-diagrams.css" />
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="article vendor-ed">
+<div class="wrap article">
+  <div class="eyebrow">Edge Delta · 04 Timeline</div>
+  <h1>Observed clocks — empty fabric then Node lab</h1>
+  <p class="lead">
+    This page is the <strong style="color:var(--text)">Observed execution</strong> slot, not architecture teaching.
+    14 Aug = provisioned Team, empty explorers.
+    17 Aug = UC9 SaaS report, then Node lab (WSL ingest, RTX Pro).
+    Use-case bar frames which row to read first. Full notes stay in markdown.
+  </p>
+
+  <div class="note">
+    Evidence:
+    <a href="/docs/edgedelta-tenant-evidence-2026-08-14.md">14 Aug snapshot</a> ·
+    <a href="/docs/edgedelta-uc9-github-2026-08-17.md">UC9 GitHub</a> ·
+    <a href="/docs/edgedelta-lab-run-2026-08-17.md">Node lab 17 Aug</a> ·
+    <a href="/ed-lab-setup.html">Lab setup</a>.
+    Org <code>gmailcom_d4486595</code>. D5 stays Review. Issue ≠ Problem ≠ Bits ≠ Incident.
+  </div>
+
+  <div class="summary" id="hub-summary">
+    <p class="hint">Active use case on this Timeline</p>
+    <h2 class="cat-name" id="uc-title"></h2>
+    <div class="meta" id="uc-meta"></div>
+    <p class="blurb" id="uc-blurb"></p>
+  </div>
+  <div id="uc-clock"></div>
+
+  <h2 id="day">Sequence — 2026-08-17</h2>
+  <div class="ud-viz">
+    <div class="ud-cap">One day, three ingest stories</div>
+    <div class="ud-flow" style="justify-content:center;flex-wrap:wrap;">
+      <span class="ud-chip ed">Morning · UC9 GitHub</span>
+      <span class="ud-arrow">→</span>
+      <span class="ud-chip ed">Midday · WSL k3d ingest</span>
+      <span class="ud-arrow">→</span>
+      <span class="ud-chip">Afternoon · RTX Pro ingest</span>
+    </div>
+    <div class="ud-grid three" style="margin-top:.85rem;">
+      <div class="ud-panel ed">
+        <h5>1 · UC9 (SaaS only)</h5>
+        <p>Daily GitHub Engineering Risk Report Resolved in <code>#code-issues</code> (391.1 K tokens). Hidden <code>AI-Connector-Telemetry-Pipeline</code>. No cluster.</p>
+      </div>
+      <div class="ud-panel ed">
+        <h5>2 · WSL k3d — lake filled</h5>
+        <p>Node-only Helm. Pipeline tag <code>kubernetes</code> (<code>5f43e54d-…ce93ba</code>). <code>ed-lab</code>: noisy-logger / crash-loop / fake-ingest. Agent later removed so RTX would be the sole sender.</p>
+      </div>
+      <div class="ud-panel">
+        <h5>3 · RTX k3s — Pro ingest</h5>
+        <p><code>pro6000-server</code>. Same pipeline ID. Node + Coordinator. Gateway not installed (no Gateway pipeline ID). Earlier 402 quota lifted after plan upgrade.</p>
+      </div>
+    </div>
+    <p class="ud-note" style="margin-top:.65rem">
+      Term key: <strong>WSL k3d ingest</strong> = local test cluster with Node agent writes; <strong>RTX Pro ingest</strong> = remote k3s node writing to the same SaaS tenant;
+      <strong>Cloud ingest</strong> = connector-driven SaaS pipeline (no cluster agent path).
+    </p>
+  </div>
+
+  <h2 id="scoreboard">Use-case scoreboard</h2>
+  <table>
+    <thead><tr><th>UC</th><th>This pass</th><th>Evidence</th><th>Honesty</th></tr></thead>
+    <tbody>
+      <tr><td><strong>9</strong></td><td>Fully done</td><td>GitHub daily report Resolved <code>#code-issues</code></td><td>Observed (UI). Thread ≠ Issue</td></tr>
+      <tr><td><strong>8</strong></td><td>Completed — team recipe, no Issue card</td><td>Pod Crash → OnCall in <code>#alerts</code>. kubectl leaf: missing <code>INVENTORY_DSN</code></td><td>SaaS log search 500. Thread ≠ Issue. Do not Test again</td></tr>
+      <tr><td><strong>4</strong></td><td>Partial</td><td>eBPF traces <code>checkout-api-db</code> → <code>checkout-db</code></td><td>No DB OnCall. No Gateway/OTLP</td></tr>
+      <tr><td><strong>1</strong></td><td>Parked</td><td>Patterns + tuned monitor + Test API</td><td>Live Pattern Anomaly No Data. Do not Test</td></tr>
+      <tr><td><strong>6</strong></td><td>Lite</td><td>fake kafka timeout patterns</td><td>No thread</td></tr>
+      <tr><td><strong>10</strong></td><td>MCP demo</td><td>Native ED MCP saw events / patterns / traces</td><td>Not a Detect door</td></tr>
+      <tr><td><strong>2 · 3 · 5 · 7</strong></td><td>Blocked</td><td>AWS / Elastic / CircleCI / PagerDuty absent</td><td>Do not invent recipes</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="empty">14 Aug — empty fabric (before Node)</h2>
+  <p>
+    Brand-new Free org. AI Team fully provisioned. Explorers empty or erroring.
+    Default Pipeline Liveness <strong>OK</strong> (heartbeat). Issues <strong>0</strong>. Health <strong>100%</strong>.
+    One GitHub workflow thread already existed. Same honesty as Datadog’s 2026-08-03 host-only snapshot.
+  </p>
+  <table>
+    <thead><tr><th>Surface</th><th>Observed</th></tr></thead>
+    <tbody>
+      <tr><td>Overview</td><td>100% Healthy · Issues 0 · Live Ops “No agent activity yet”</td></tr>
+      <tr><td>Monitors</td><td>5: Event Threshold ×3 No Data · Pattern Anomaly No Data · Pipeline Liveness OK</td></tr>
+      <tr><td>Explorers</td><td>Logs 0 · Metrics empty <code>ed.pipeline.node.read_bytes</code> · Traces none · Service Map error · Pipeline filter “No options found”</td></tr>
+      <tr><td>Nav</td><td>No Pipelines item. <code>/pipelines</code> → Overview</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="analysis">Analysis (Inferred on Observed)</h2>
+  <table>
+    <thead><tr><th>#</th><th>Claim</th><th>Why this pass</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Node-only is enough for UC1 patterns and UC8 K8s events.</strong></td><td>Gateway is a job (traces OTLP / dedup), not a mandatory third SKU. UC4 eBPF traces also landed without Gateway.</td></tr>
+      <tr><td>2</td><td><strong>Detect can be loud while E11 stays quiet.</strong></td><td>BackOff + negative patterns ≠ Issue ≠ Pattern Anomaly fire. The Team consumes a monitor/workflow.</td></tr>
+      <tr><td>3</td><td><strong>Thread ≠ Issue.</strong></td><td>UC9 and UC8 packaged as channel threads. Issues remained 0. Health 100% matches the Issue formula.</td></tr>
+      <tr><td>4</td><td><strong>Test Notification ≠ skyline ALERT.</strong></td><td>UC1 Test API accepted; live Pattern Anomaly stayed No Data; workflow runs 0.</td></tr>
+      <tr><td>5</td><td><strong>E4 is after egress and can still fail.</strong></td><td>402 on Free (17 Aug), then again on Pro (18 Aug) while noisy-logger kept bursting locally. Shift-left does not skip platform quota.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note warn">
+    Still open: Gateway needs its own classic pipeline ID (do not reuse Node or GitHub IDs).
+    Pattern Anomaly live fire (blocked on 402). UC2/3/5/7 connectors. Do not resume UC1 unless quota is clear.
+  </div>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/ed-use-cases.js" defer></script>
+<script>
+(function () {
+  var CLOCKS = {
+    uc9: "<h2>UC9 clock</h2><table><thead><tr><th>When</th><th>What</th></tr></thead><tbody><tr><td>14–16 Aug ~05:30</td><td>Prior daily GitHub reports (same workflow)</td></tr><tr><td>17 Aug ~05:34</td><td>Daily GitHub Engineering Risk Report Resolved · #code-issues · 391.1 K tokens · Software Engineer</td></tr><tr><td>All day</td><td>Issues 0. GitHub Event Threshold monitors often No Data</td></tr></tbody></table>",
+    uc8: "<h2>UC8 clock</h2><table><thead><tr><th>When</th><th>What</th></tr></thead><tbody><tr><td>WSL midday</td><td>crash-loop BackOff events indexed from k3d</td></tr><tr><td>RTX evening</td><td>Same workload on pro6000-server. Pod Crash Monitor ALERT. OnCall Investigating in #alerts</td></tr><tr><td>kubectl</td><td>inventory-api ERROR refusing to start: missing INVENTORY_DSN. Container boom, CrashLoopBackOff</td></tr><tr><td>Do not</td><td>Approve boom log search again · Test UC8 again</td></tr></tbody></table>",
+    uc4: "<h2>UC4 clock</h2><table><thead><tr><th>When</th><th>What</th></tr></thead><tbody><tr><td>RTX evening</td><td>checkout-db + checkout-api-db + checkout-nginx deployed</td></tr><tr><td>Traces</td><td>eBPF checkout-api-db → checkout-db without Gateway</td></tr><tr><td>Not done</td><td>DB OnCall · OTLP Gateway</td></tr></tbody></table>",
+    uc1: "<h2>UC1 clock (parked)</h2><table><thead><tr><th>When</th><th>What</th></tr></thead><tbody><tr><td>WSL / RTX 17 Aug</td><td>Negative patterns: payment_auth failed, then noisy-logger ERROR burst (New / past_count 0 / anomaly 0)</td></tr><tr><td>Monitor</td><td>Default Service Anomaly live list No Data. Editor preview ≠ skyline</td></tr><tr><td>18 Aug</td><td>Ingest 402 again. noisy-logger / fake-ingest / checkout-auth-spike scaled to 0</td></tr><tr><td>Do not</td><td>Test the monitor. Do not unpark until quota clears</td></tr></tbody></table>",
+    uc6: "<h2>UC6 clock</h2><p>Lite only. fake-ingest wrote kafka produce timeout patterns. No Kafka, no monitor fire, no thread.</p>",
+    uc10: "<h2>UC10 clock</h2><p>Native Edge Delta MCP on this org saw events, patterns, and traces after Node write. No portal thread. Teaching: locality — MCP reads the same index as explorers.</p>",
+    uc2: "<h2>Blocked</h2><p>AWS connector not connected. No clock.</p>",
+    uc3: "<h2>Blocked</h2><p>Elastic MCP not connected. No clock.</p>",
+    uc5: "<h2>Blocked</h2><p>CircleCI not connected. GitHub CI Event Threshold is not this use case.</p>",
+    uc7: "<h2>Blocked</h2><p>PagerDuty not connected. No clock.</p>"
+  };
+
+  function ready(fn) {
+    if (window.URCA_ED_UCS) fn();
+    else setTimeout(function () { ready(fn); }, 20);
+  }
+
+  ready(function () {
+    var API = window.URCA_ED_UCS;
+    API.mountSwitcher({ banner: true });
+    var uc = API.current();
+    document.getElementById("uc-title").textContent = uc.title;
+    var meta = document.getElementById("uc-meta");
+    meta.innerHTML = "";
+    var p1 = document.createElement("span");
+    p1.className = "pill " + API.statusPill(uc.status);
+    p1.textContent = API.statusLabel(uc.status);
+    meta.appendChild(p1);
+    document.getElementById("uc-blurb").textContent = uc.blurb + " " + uc.honesty;
+    document.getElementById("uc-clock").innerHTML =
+      CLOCKS[uc.id] +
+      "<p><a href=\"" +
+      API.withUc(API.teach.portal, uc) +
+      "\">Walk this use case in the app</a></p>";
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 /**
  * Datadog Detect-category registry + switcher for docs hub (:8765).
  *
- * Shared teaching pages (Thesis / Breakdown / Three-rail) stay one copy each;
- * ?cat=<id> frames Detect signal. Timeline "Observed" pages are per-category.
+ * Thesis is category-neutral (shared fabric). Breakdown / Three-rail stay one
+ * copy each; ?cat=<id> frames Detect there and on Hub. Timeline is per-category.
  *
  * Include: <script src="/dd-detect-categories.js" defer></script>
  * Sticky slots:
@@ -46,6 +46,45 @@
       mtlDoc: "/dd-slowdown-mtl-dissection.html",
       bitsDoc: "/dd-bits-slowdown-review.html",
       signal: "response_time"
+    },
+    {
+      id: "resource_contention",
+      name: "RESOURCE_CONTENTION",
+      title: "RESOURCE_CONTENTION · CPU / memory (semantic)",
+      blurb:
+        "Background CPU burn on inventory; HTTP stays fast 200. No Davis stamp — Host pack load Alert fired; Flask/APM-error doors stayed quiet.",
+      detect: "Door A Host pack load Alert (310484611) · no category stamp",
+      status: "observed",
+      evidence: "MCP 2026-08-14 · rc-20260813t065225z · load Triggered 06:56:31Z / Recovered 07:07:31Z",
+      lab: "/dd-lab-timeline-resource-contention.html",
+      signal: "resource",
+      agentTask: "/docs/agent-tasks/dd-resource-contention.md"
+    },
+    {
+      id: "availability",
+      name: "AVAILABILITY",
+      title: "AVAILABILITY · Process down (semantic)",
+      blurb:
+        "Code-only inventory process exit; callers 502. Native Detect = absent inventory APM + caller errors + docker DIE — not a Datadog AVAILABILITY enum.",
+      detect: "Caller APM 502 cascade · inventory DIE · no category stamp",
+      status: "observed",
+      evidence: "MCP 2026-08-14 · avail-20260813t070424z · FE/product error · inventory 0 spans · DIE ~07:05:35Z",
+      lab: "/dd-lab-timeline-availability.html",
+      signal: "availability",
+      agentTask: "/docs/agent-tasks/dd-availability.md"
+    },
+    {
+      id: "monitoring_unavailable",
+      name: "MONITORING_UNAVAILABLE",
+      title: "MONITORING_UNAVAILABLE · Visibility dark (semantic)",
+      blurb:
+        "MONITORING_DARK: HTTP 200; inventory APM 0 while FE/product still write. Logs continued (partial dark). No Datadog twin category.",
+      detect: "Inventory APM gap · logs still present · no twin Alert",
+      status: "observed",
+      evidence: "MCP 2026-08-14 · mu-20260813t071758z · inventory APM 0 · logs 1564 · HTTP 200",
+      lab: "/dd-lab-timeline-monitoring-unavailable.html",
+      signal: "monitoring",
+      agentTask: "/docs/agent-tasks/dd-monitoring-unavailable.md"
     }
   ];
 
@@ -173,8 +212,8 @@
         tab: "Thesis",
         job: "Mental model + evidence map",
         why:
-          "What Datadog is: Agent → tags → product rails → Detect doors → leaf → thin packaging. Where Metrics timeseries vs Husky events fit. Observed tenant + lab §7.",
-        not: "Not the animated stage walk; not the ERROR query workbook."
+          "What Datadog is: Agent → tags → product rails → Detect doors → leaf → thin packaging. Where Metrics timeseries vs Husky events fit. One lab walkthrough; Detect classes are examples, not Thesis modes.",
+        not: "Not the animated stage walk; not the ERROR query workbook; not a category switcher."
       },
       {
         tab: "Breakdown",
@@ -358,7 +397,8 @@
   }
 
   /**
-   * Teaching payloads — drive Three-rail (M∥T∥L), Breakdown tips, Thesis swaps.
+   * Teaching payloads — drive Three-rail (M∥T∥L) and Breakdown tips.
+   * Thesis is category-neutral (both ERROR and SLOWDOWN as examples).
    * Datadog-native: monitors · Watchdog · tags · flamegraph · Incident-absent honesty.
    */
   var LAB = {
@@ -702,16 +742,34 @@
     return LAB[cat.id] || LAB.error;
   }
 
+  function isThesisPage(path) {
+    path = (path || location.pathname || "").toLowerCase();
+    return path.indexOf("datadog-production-pipeline") >= 0;
+  }
+
+  function stripCatFromLocation() {
+    try {
+      var u = new URL(location.href);
+      if (!u.searchParams.has("cat")) return;
+      u.searchParams.delete("cat");
+      var q = u.searchParams.toString();
+      history.replaceState(null, "", u.pathname + (q ? "?" + q : "") + u.hash);
+    } catch (e) {}
+  }
+
   function mountSwitcher(opts) {
     opts = opts || {};
     if (document.getElementById("urca-dd-cat-bar")) return;
     var cat = current();
     persist(cat);
+    var thesis = isThesisPage();
+    if (thesis) stripCatFromLocation();
 
     var bar = document.createElement("div");
     bar.id = "urca-dd-cat-bar";
     bar.setAttribute("role", "navigation");
     bar.setAttribute("aria-label", "Datadog teaching");
+    if (thesis) bar.classList.add("thesis-neutral");
 
     var rowCat = document.createElement("div");
     rowCat.className = "urca-teach-row cat";
@@ -735,7 +793,7 @@
       sel.appendChild(o);
     });
     rowCat.appendChild(sel);
-    bar.appendChild(rowCat);
+    if (!thesis) bar.appendChild(rowCat);
 
     var rowViews = document.createElement("div");
     rowViews.className = "urca-teach-row views";
@@ -748,7 +806,7 @@
     slots.className = "slots";
     function addSlot(parent, href, label, kind, interp) {
       var a = document.createElement("a");
-      a.href = withCat(href, cat);
+      a.href = kind === "pipeline" ? href : withCat(href, cat);
       a.textContent = label;
       a.dataset.kind = kind;
       if (interp) a.classList.add("interp");
@@ -764,7 +822,7 @@
     addSlot(slots, cat.lab, "Timeline", "lab", false);
     rowViews.appendChild(slots);
 
-    if (cat.mtlDoc || cat.bitsDoc) {
+    if (!thesis && (cat.mtlDoc || cat.bitsDoc)) {
       var spacer = document.createElement("span");
       spacer.className = "urca-teach-spacer";
       spacer.setAttribute("aria-hidden", "true");
@@ -787,9 +845,7 @@
       var next = byId(sel.value);
       persist(next);
       var path = (location.pathname || "").toLowerCase();
-      if (
-        /datadog-subsystem-mechanisms|datadog-production-pipeline|dd-e2e-metrics-traces/.test(path)
-      ) {
+      if (/datadog-subsystem-mechanisms|dd-e2e-metrics-traces/.test(path)) {
         location.href = withCat(location.pathname, next);
         return;
       }
@@ -803,7 +859,7 @@
       if (nav && nav.parentNode) nav.parentNode.insertBefore(bar, nav.nextSibling);
       else body.insertBefore(bar, body.firstChild);
 
-      if (opts.banner !== false && !document.getElementById("urca-dd-cat-banner")) {
+      if (!thesis && opts.banner !== false && !document.getElementById("urca-dd-cat-banner")) {
         var ban = document.createElement("div");
         ban.id = "urca-dd-cat-banner";
         ban.innerHTML =

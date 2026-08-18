@@ -563,8 +563,8 @@ function sceneTopology(ctx,W,H,p){
 
   // ── Right panel: Bind LUT as a table ──
   roundRect(ctx,428,40,418,168,8);ctx.fillStyle='#12151C';ctx.fill();ctx.strokeStyle=COL.clockB;ctx.stroke();
-  label(ctx,438,56,'B · Bind LUT (flat table)',COL.clockB,12);
-  label(ctx,438,72,'lookup_key  →  entityId   (point lookup, not a graph walk)',COL.muted,10);
+  label(ctx,438,56,'B · Bind LUT (example lookups)',COL.clockB,12);
+  label(ctx,438,72,'raw label → entityId   (not the list of graph nodes)',COL.muted,10);
 
   // table header
   label(ctx,450,88,'lookup_key',COL.muted,10);
@@ -1179,7 +1179,7 @@ const STAGES={
     legend:'STEP 1 fork · STEP 2 Detect signal · STEP 3 Bind · LUT preview at bottom',
     draw:sceneNormalize},
   topology:{key:'topology',name:'Topology bind',short:'Topology',tag:'A',phase:0,loop:8000,h:348,
-    blurb:'Walkthrough B: Smartscape graph FE→API→INV→DB (+ API→PAY); BATCH on HOST-B with no checkout edge. LUT is a flat table lookup_key→entityId — e.g. inventory and c8e91a both → SERVICE-INV. Try keys in order; MISS → policy.',
+    blurb:'Left = the map (FE, API, INV, DB, PAY, BATCH are all nodes). Right = example lookups that stamp a record with an entityId. We only show INV/API/PAY keys plus one miss — not because FE or DB are missing from the graph.',
     legend:'HIT → stamp entityId · MISS → policy · Fan-out writes map ∥ lake next',
     draw:sceneTopology},
   fanout:{key:'fanout',name:'Fan-out',short:'Fan-out',tag:'A',phase:0,loop:4800,h:300,
@@ -1348,7 +1348,7 @@ const DETAIL={
     cls:'two',
     cards:[
       {h:'A · CI Graph',b:'Walkthrough B: HOST-A (FE, API, PAY) · HOST-B (INV, BATCH, DB). Edges <code>FE→API→INV→DB</code> and <code>API→PAY</code>. BATCH on HOST-B has <strong>no</strong> checkout <code>calls</code> edge. Davis walks this graph — not the LUT.', tone:'a'},
-      {h:'B · Bind LUT table',b:'Flat map, not a graph:<br/><code>inventory → SERVICE-INV</code><br/><code>c8e91a → SERVICE-INV</code> (same node)<br/><code>orders-api → SERVICE-API</code><br/><code>payments → SERVICE-PAY</code><br/><code>inv-svc-v2 → MISS</code> → auto-create / orphan / soft-match.<br/>Try <code>lookup_keys[]</code> in order; first HIT stamps <code>entityId</code>.', tone:'b'}
+      {h:'B · Bind LUT table',b:'This table is <strong>not</strong> the list of services on the left. The graph already has FE, API, INV, DB, PAY, and BATCH as nodes (<code>SERVICE-FE</code>, <code>SERVICE-DB</code>, …).<br/><br/>The LUT is a separate lookup: raw label on a record → which node to stamp. Below are only the example keys this demo needs (INV bind + one miss). A full LUT would also have rows like <code>frontend → SERVICE-FE</code>.<br/><br/><code>inventory → SERVICE-INV</code><br/><code>c8e91a → SERVICE-INV</code> (same node as inventory)<br/><code>orders-api → SERVICE-API</code><br/><code>payments → SERVICE-PAY</code><br/><code>inv-svc-v2 → MISS</code> → auto-create / orphan / soft-match.<br/>Try <code>lookup_keys[]</code> in order; first HIT stamps <code>entityId</code>.', tone:'b'}
     ]
   },
   fanout:{

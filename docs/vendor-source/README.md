@@ -5,6 +5,7 @@ External PDFs kept for reference. **Canonical teaching docs** live in `docs/` (h
 | Path | Notes |
 |------|--------|
 | [`dynatrace/`](./dynatrace/) | Dynatrace unveil / preprocessing PDFs (moved from retired `docs/Dynatrace-Datadog/` dump) |
+| [`edgedelta/`](./edgedelta/) | Edge Delta UI screenshots: 2026-08-14 tenant snapshot + UC9 GitHub thread 2026-08-17 (`ed-uc9-github-thread-2026-08-17.png`) |
 
 The old `docs/Dynatrace-Datadog/` HTML/MD dump (stale CMDB-first mechanisms, duplicate explorers) was **removed** — use:
 

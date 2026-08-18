@@ -1,8 +1,8 @@
 /**
  * Dynatrace Davis event-category registry + switcher for docs hub (:8765).
  *
- * Shared teaching pages (Thesis / Breakdown / Dual-track) stay one copy each;
- * ?cat=<id> frames Detect signal. Timeline "Observed" pages are per-category.
+ * Thesis is category-neutral (shared fabric). Breakdown / Dual-track stay one
+ * copy each; ?cat=<id> frames Detect there and on Hub. Timeline is per-category.
  *
  * Include after or instead of plain links:
  *   <script src="/dt-davis-categories.js" defer></script>
@@ -498,17 +498,35 @@
     return s;
   }
 
+  function isThesisPage(path) {
+    path = (path || location.pathname || "").toLowerCase();
+    return path.indexOf("dynatrace-production-pipeline") >= 0;
+  }
+
+  function stripCatFromLocation() {
+    try {
+      var u = new URL(location.href);
+      if (!u.searchParams.has("cat")) return;
+      u.searchParams.delete("cat");
+      var q = u.searchParams.toString();
+      history.replaceState(null, "", u.pathname + (q ? "?" + q : "") + u.hash);
+    } catch (e) {}
+  }
+
   /** Inject sticky teaching chrome under #urca-doc-nav (or at top). */
   function mountSwitcher(opts) {
     opts = opts || {};
     if (document.getElementById("urca-dt-cat-bar")) return;
     var cat = current();
     persist(cat);
+    var thesis = isThesisPage();
+    if (thesis) stripCatFromLocation();
 
     var bar = document.createElement("div");
     bar.id = "urca-dt-cat-bar";
     bar.setAttribute("role", "navigation");
     bar.setAttribute("aria-label", "Dynatrace teaching");
+    if (thesis) bar.classList.add("thesis-neutral");
 
     var rowCat = document.createElement("div");
     rowCat.className = "urca-teach-row cat";
@@ -535,7 +553,7 @@
       sel.appendChild(o);
     });
     rowCat.appendChild(sel);
-    bar.appendChild(rowCat);
+    if (!thesis) bar.appendChild(rowCat);
 
     var rowViews = document.createElement("div");
     rowViews.className = "urca-teach-row views";
@@ -548,7 +566,7 @@
     slots.className = "slots";
     function addSlot(href, label, kind) {
       var a = document.createElement("a");
-      a.href = withCat(href, cat);
+      a.href = kind === "pipeline" ? href : withCat(href, cat);
       a.textContent = label;
       a.dataset.kind = kind;
       var path = (location.pathname || "").replace(/\/+$/, "") || "/";
@@ -578,9 +596,7 @@
       var next = byId(sel.value);
       persist(next);
       var path = (location.pathname || "").toLowerCase();
-      if (
-        /eleven-subsystem-mechanisms|dynatrace-production-pipeline|dt-e2e-smartscape/.test(path)
-      ) {
+      if (/eleven-subsystem-mechanisms|dt-e2e-smartscape/.test(path)) {
         location.href = withCat(location.pathname, next);
         return;
       }
@@ -594,7 +610,7 @@
       if (nav && nav.parentNode) nav.parentNode.insertBefore(bar, nav.nextSibling);
       else body.insertBefore(bar, body.firstChild);
 
-      if (opts.banner !== false && !document.getElementById("urca-dt-cat-banner")) {
+      if (!thesis && opts.banner !== false && !document.getElementById("urca-dt-cat-banner")) {
         var ban = document.createElement("div");
         ban.id = "urca-dt-cat-banner";
         ban.innerHTML =
