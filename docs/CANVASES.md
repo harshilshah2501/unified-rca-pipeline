@@ -8,7 +8,7 @@ Former `.canvas.tsx` companions (Cursor IDE only) map onto these hub pages:
 |-------------------|-----------------|
 | ObserveOps HLD | [`observeops-pipeline-hld.html`](./observeops-pipeline-hld.html) |
 | Shift-processing-left | [`observeops-shift-left-architecture.html`](./observeops-shift-left-architecture.html) |
-| Motadata 3 pillars vs shift-left | [`motadata-3pillars-vs-shift-left.html`](./motadata-3pillars-vs-shift-left.html) |
+| Motadata 3 pillars vs shift-left | [`motadata-3pillars-architecture.html`](./motadata-3pillars-architecture.html) (explained) · [`motadata-3pillars-vs-shift-left.html`](./motadata-3pillars-vs-shift-left.html) (job map) · [`motadata-3pillars-study-qna.html`](./motadata-3pillars-study-qna.html) (study Q&A) · [`MOTADATA_3PILLARS_STUDY_QNA.md`](./MOTADATA_3PILLARS_STUDY_QNA.md) (canonical markdown) |
 | ObserveOps Detect UCs | [`observeops-fusion-guide.html`](./observeops-fusion-guide.html) · [`OBSERVEOPS_USE_CASES.md`](./OBSERVEOPS_USE_CASES.md) |
 | ED E1–E11 scenarios | [`edgedelta-subsystem-mechanisms.html`](./edgedelta-subsystem-mechanisms.html) |
 | ED production deploy | [`edgedelta-production-pipeline.html`](./edgedelta-production-pipeline.html) · [`ed-lab-setup.html`](./ed-lab-setup.html) |

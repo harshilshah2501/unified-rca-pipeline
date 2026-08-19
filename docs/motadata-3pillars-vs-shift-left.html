@@ -36,10 +36,12 @@ h3{font-size:1.05rem;font-weight:600;margin:1.25rem 0 .5rem;}
   <h1>3 pillars mapped onto E1–E11</h1>
   <p class="lead">
     Source: Motadata Observability 3 Pillars Architecture PDF (4 pages).
-    Target: <a href="/observeops-shift-left-architecture.html">shift-processing-left</a> — same HLD clock, Node / optional Gateway / our SaaS locus.
-    This is a <strong style="color:var(--text)">job map</strong>, not a claim Motadata already built our pipeline.
-    Canonical markdown: <a href="/docs/MOTADATA_3PILLARS_VS_SHIFT_LEFT.md">MOTADATA_3PILLARS_VS_SHIFT_LEFT.md</a>.
-    Print: <a href="/docs/print/motadata-3pillars-vs-shift-left-A4.pdf">A4 PDF</a> (4 pages).
+    Start with the <a href="/motadata-3pillars-architecture.html">explained architecture</a> (what / why / how + diagrams).
+    This page is the <strong style="color:var(--text)">job map</strong> (phase ownership, build order, E1–E11 fit).
+    Target: <a href="/observeops-shift-left-architecture.html">shift-left</a>.
+    Markdown: <a href="/docs/MOTADATA_3PILLARS_VS_SHIFT_LEFT.md">MOTADATA_3PILLARS_VS_SHIFT_LEFT.md</a>.
+    Study notes: <a href="/motadata-3pillars-study-qna.html">Q&amp;A</a>.
+    Print: <a href="/docs/print/motadata-3pillars-architecture-explained-A4.pdf">explained A4 PDF</a>.
   </p>
 
   <div class="grid">
@@ -57,7 +59,7 @@ h3{font-size:1.05rem;font-weight:600;margin:1.25rem 0 .5rem;}
     </div>
     <div class="card stat">
       <div class="val">Last</div>
-      <p>Build C after E7–E8; D5 optional</p>
+      <p>Build Pillar C after E7–E8; D5 optional</p>
     </div>
   </div>
 
@@ -65,11 +67,48 @@ h3{font-size:1.05rem;font-weight:600;margin:1.25rem 0 .5rem;}
     <strong style="color:var(--text)">Orthogonal axes — do not collapse.</strong>
     The PDF is centralize-then-analyze: Telemetry → NATS → percentile + graph builders → Vortex/S3 → bounded retrieval → Rust ReAct agent → Explain / ITSM / Remediate.
     That fills the <strong style="color:var(--text)">SaaS column</strong> of the shift-left diagram.
-    It does not specify the left column (OTel Node E1–E2, mask/Drain, door A, optional Gateway door B).
-    Three pillars are store and RCA-algorithm choices. Shift-left is where E1–E6 execute. Same clock; different hop.
+    It does not specify the left column (OTel Node E1–E2, mask/Drain, Detect <strong style="color:var(--text)">door A</strong>, optional Gateway <strong style="color:var(--text)">door B</strong>).
+    Three <em>pillars</em> are store and RCA-algorithm choices. Shift-left is where E1–E6 execute. Same clock; different hop.
   </div>
 
+  <h2 id="letters">A / B / C are not one series</h2>
+  <p>Three lettered systems sit on this page. They do not line up 1:1. Bare “A”, “B”, or “C” means <strong style="color:var(--text)">pillar</strong> unless the word <strong style="color:var(--text)">door</strong> or <strong style="color:var(--text)">Gate</strong> is in front.</p>
+  <table>
+    <tr><th>Letter</th><th>Kind</th><th>What it is</th><th>Not</th></tr>
+    <tr>
+      <td><strong style="color:var(--text)">Pillar A / B / C</strong></td>
+      <td>Motadata PDF products</td>
+      <td>A = percentile sketches · B = knowledge graph · C = Rust ReAct agent</td>
+      <td>Not Detect doors. Not phases. Not Gates.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Door A / B / C</strong></td>
+      <td>E6 Detect entry points</td>
+      <td>A = Node trigger · B = Gateway trigger · C = platform monitor</td>
+      <td>Not pillars. Door C <em>reads</em> Pillar A; it is not Pillar C.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Gate A / B / C / D</strong></td>
+      <td>Shift-left decision checkpoints</td>
+      <td>A = Node vs Gateway · B = dest profile · C = which Detect classes are platform-only · D = Layer I on/off</td>
+      <td>Not pillars. Not doors. Gate D ≠ HLD <strong style="color:var(--text)">D5</strong>.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">P1 / P2 / P3</strong></td>
+      <td>HLD phases</td>
+      <td>P1 fabric E1–E5 · P2 case-open E6–E8 · P3 diagnose/close E9–E11</td>
+      <td>Never written as A/B/C.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Clock A / Clock B</strong></td>
+      <td>Always-on vs on-incident</td>
+      <td>Clock A ≈ P1 · Clock B ≈ P3</td>
+      <td>Clock B is not Pillar B.</td>
+    </tr>
+  </table>
+
   <nav class="toc" aria-label="On this page">
+    <a href="#letters">0 Letters</a>
     <a href="#own">1 Phase ownership</a>
     <a href="#order">2 Build order</a>
     <a href="#stages">3 E1–E11 vs PDF</a>
@@ -81,8 +120,8 @@ h3{font-size:1.05rem;font-weight:600;margin:1.25rem 0 .5rem;}
 
   <h2 id="own">1. Which phase owns each pillar</h2>
   <p>
-    A pillar is not a phase. A and B are always-on P1 stores. P2/P3 only read them.
-    C is Clock B (diagnose/close), optional Layer I.
+    A pillar is not a phase. <strong style="color:var(--text)">Pillar A</strong> and <strong style="color:var(--text)">Pillar B</strong> are always-on P1 stores. P2/P3 only read them.
+    <strong style="color:var(--text)">Pillar C</strong> runs in P3 (Clock B — diagnose/close) as optional Layer I. It is not Detect <strong style="color:var(--text)">door C</strong>.
   </p>
   <table>
     <tr><th>Pillar</th><th>Owns (write path)</th><th>Read by</th><th>Does not own</th></tr>
@@ -108,8 +147,9 @@ h3{font-size:1.05rem;font-weight:600;margin:1.25rem 0 .5rem;}
 
   <div class="note">
     <strong style="color:var(--text)">P2 has no Motadata pillar.</strong>
-    Case-open (E6–E8) is not A, B, or C. Door C is a consumer of A. Scope knobs are the PDF’s “RCA retrieval layer.”
-    Curate stays a required stage (<strong style="color:var(--text)">D3</strong>) in front of C — do not implement it only as <code>deduplicate_incident()</code>.
+    Case-open (E6–E8) is not Pillar A, B, or C. Detect <strong style="color:var(--text)">door C</strong> (platform thresholds) is a <em>consumer</em> of <strong style="color:var(--text)">Pillar A</strong> (sketches).
+    Scope knobs are the PDF’s “RCA retrieval layer.”
+    Curate stays a required stage (<strong style="color:var(--text)">D3</strong>) in front of <strong style="color:var(--text)">Pillar C</strong> — do not implement it only as <code>deduplicate_incident()</code>.
   </div>
 
   <div class="grid three">
@@ -279,6 +319,10 @@ h3{font-size:1.05rem;font-weight:600;margin:1.25rem 0 .5rem;}
   </table>
 
   <h2 id="conflicts">5. Conflicts with locked (or Review) HLD defaults</h2>
+  <p>
+    Working ToDo (leadership ask vs resolution):
+    <a href="/motadata-3pillars-study-qna.html#todo">study Q&amp;A §10</a>.
+  </p>
   <table>
     <tr><th>Topic</th><th>PDF</th><th>Our HLD / shift-left</th><th>Handle</th></tr>
     <tr>
@@ -347,7 +391,7 @@ h3{font-size:1.05rem;font-weight:600;margin:1.25rem 0 .5rem;}
     <li><a href="/observeops-pipeline-hld.html">Our HLD</a> · <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a> — D5 stays Review</li>
     <li><a href="/docs/LLD-E1-Collect.md">LLD-E1 Collect</a> (Done) · <a href="/docs/LLD-E2-Identity.md">LLD-E2 Identity</a> (Done)</li>
     <li><a href="/federated-vs-dt-pipeline-gaps.html#motadata-multi-telemetry-frac-supplementary-acceptance-bar">Federated vs DT gaps · Motadata FR/AC</a></li>
-    <li><a href="/docs.html">Docs hub index</a></li>
+    <li><a href="/motadata-3pillars-study-qna.html">Study Q&amp;A</a> — pillars vs doors, CI vs event nodes, four topology designs, graph time ≠ Detect</li>
   </ul>
 </div>
 <script src="/doc-nav.js" defer></script>

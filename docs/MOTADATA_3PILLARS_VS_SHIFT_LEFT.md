@@ -2,33 +2,62 @@
 
 **Status:** Working map (2026-08-18) — not a claim Motadata already built our pipeline  
 **Source:** [`KR Plan/Motadata_Observability_3_Pillars_Architecture.pdf`](../KR%20Plan/Motadata_Observability_3_Pillars_Architecture.pdf) (4 pages)  
-**Target:** same HLD clock, shift-left locus — [HTML](./motadata-3pillars-vs-shift-left.html) · [`:8765`](http://127.0.0.1:8765/motadata-3pillars-vs-shift-left.html)  
-**Print:** [A4 PDF](../exports/motadata-3pillars-vs-shift-left-A4.pdf) (4 pages · paper layout) · [print HTML](./print/motadata-3pillars-vs-shift-left-A4.html)  
+**Target:** same HLD clock, shift-left locus — [explained HTML](./motadata-3pillars-architecture.html) · [job map](./motadata-3pillars-vs-shift-left.html) · [`:8765`](http://127.0.0.1:8765/motadata-3pillars-architecture.html)  
+**Explained (diagrams + what/why/how):** [HTML](./motadata-3pillars-architecture.html) · [`:8765`](http://127.0.0.1:8765/motadata-3pillars-architecture.html) · [A4 PDF](./print/motadata-3pillars-architecture-explained-A4.pdf) (also [`KR Plan/Motadata_Observability_3_Pillars_Architecture_Explained.pdf`](../KR%20Plan/Motadata_Observability_3_Pillars_Architecture_Explained.pdf))
+**Job-map print:** [A4 PDF](./print/motadata-3pillars-vs-shift-left-A4.pdf) · [print HTML](./print/motadata-3pillars-vs-shift-left-A4.html)  
 **Contracts:** [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) · locus [`observeops-shift-left-architecture.html`](./observeops-shift-left-architecture.html)  
-**D5:** stays Review. Operator path always on.
+**Study Q&A (2026-08-19):** [HTML](./motadata-3pillars-study-qna.html) · [`MOTADATA_3PILLARS_STUDY_QNA.md`](./MOTADATA_3PILLARS_STUDY_QNA.md) — pillars vs doors, sketches, CI vs event nodes, service map / Smartscape / E3 / Motadata, graph time ≠ Detect time.
 
 This is a **job map**. Pillars are store / RCA-algorithm choices. Shift-left is *where* E1–E6 execute. Same clock; different hop.
+
+**A / B / C are not one series.** Three lettered systems sit on this page. They do not line up 1:1.
+
+| Letter | Kind | What it is | Not |
+|--------|------|------------|-----|
+| **Pillar A / B / C** | Motadata PDF products | A = percentile sketches · B = knowledge graph · C = Rust ReAct agent | Not Detect doors. Not phases. Not Gates. |
+| **Door A / B / C** | E6 Detect entry points | A = Node trigger · B = Gateway trigger · C = platform monitor | Not pillars. Door C *reads* Pillar A; it is not Pillar C. |
+| **Gate A / B / C / D** | Shift-left decision checkpoints | A = Node vs Gateway · B = dest profile · C = which Detect classes are platform-only · D = Layer I on/off | Not pillars. Not doors. Gate D ≠ HLD **D5**. |
+| **P1 / P2 / P3** | HLD phases | P1 fabric E1–E5 · P2 case-open E6–E8 · P3 diagnose/close E9–E11 | Never written as A/B/C. |
+| **Clock A / Clock B** | Always-on vs on-incident | Clock A ≈ P1 · Clock B ≈ P3 | Clock B is not Pillar B. |
+
+Bare “A”, “B”, or “C” on this page always means **pillar** unless the word **door** or **Gate** is in front.
 
 ---
 
 ## 0. One-line assignment
 
-**A and B belong to P1 (always-on fabric). C belongs to P3 (diagnose/close). P2 has no Motadata pillar** — it only *reads* A and B.
+**Pillar A and Pillar B belong to P1 (always-on fabric). Pillar C belongs to P3 (diagnose/close). P2 has no Motadata pillar** — it only *reads* Pillars A and B.
 
 | | |
 |--|--|
-| **A + B** | P1 stores (write path) |
-| **C** | P3 diagnose (optional Layer I) |
-| **P2** | Reads A+B; not a third pillar |
-| **Build C** | After E7–E8; Gate D / D5 optional |
+| **Pillar A + B** | P1 stores (write path) |
+| **Pillar C** | P3 diagnose (optional Layer I) |
+| **P2** | Reads Pillars A+B; not a third pillar |
+| **Build Pillar C** | After E7–E8; Gate D / D5 optional |
 
-The PDF is **centralize-then-analyze**: Telemetry → NATS → percentile + graph builders → Vortex/S3 → bounded retrieval → Rust ReAct agent → Explain / ITSM / Remediate. That fills the **SaaS column** of the shift-left diagram. It does **not** specify the left column (OTel Node E1–E2, mask/Drain, door A, optional Gateway door B).
+The PDF is **centralize-then-analyze**: Telemetry → NATS → percentile + graph builders → Vortex/S3 → bounded retrieval → Rust ReAct agent → Explain / ITSM / Remediate. That fills the **SaaS column** of the shift-left diagram. It does **not** specify the left column (OTel Node E1–E2, mask/Drain, Detect **door A**, optional Gateway **door B**).
+
+---
+
+## 0.1 Five Motadata machines (what / why / how → our steps)
+
+These are the boxes on the PDF’s executive stack. Full diagrams: [explained HTML](./motadata-3pillars-architecture.html).
+
+| Machine | What | Why | How | Writes | Reads | Not |
+|---------|------|-----|-----|--------|-------|-----|
+| **T-Digest + buckets + seasonal baselines** | Compact “is this weird for this hour of this weekday?” — mergeable percentiles, cheap histogram, calendar-aware expected range | Cannot scan weeks of samples per alert; Monday 9am ≠ outage | Window samples; fold into T-Digest *and* fixed bins; key baseline by hour-of-day × weekday | **E4** sketches · **E5** season refresh | **E6 door C** · **E10** `get_metric_baseline()` | E1/E2 (needs identity) · E9 leaf rule |
+| **Graph builder — entities + edges + changes** | Typed RCA map: who exists, how they connect, what changed (`valid_from`/`to`, confidence) | Alert without a map is not RCA | Upsert typed nodes/edges; changes are nodes; walk Incident → service → deps → changes → abnormal metrics → candidates | **E3** `GraphSnapshot` · **E5** versions/writeback | **E8** hop/time · **E9** walk · **E10** `query_graph()` | E6 Detect (Alert is a node type) · E11 executor |
+| **Vortex + S3** | Durable lake: historical observability (sketches) + knowledge graph (map). Same `entity_id` | Builders are useless if results evaporate; no expensive historical UPDATE | A and B write in parallel; S3 cold, Vortex analytical; agent never dumps the lake | **E4** dest (one profile, Gate B open) · E3 tables live here | everything downstream via retrieval | Node/Gateway (buffers, not the lake) · not the only dest |
+| **RCA retrieval layer** | Bounded fetch of baseline + graph + events + changes = our `WorkingSet` | Unscoped walks hallucinate and explode cost | From curated seed: k hops, time window, evidence budget | **is E8 Scope** | needs **E7** one `CaseSeed` first; feeds E9/E10 | not a pillar (P2 has none) |
+| **Rust RCA agent (bounded ReAct)** | Reason → typed tool → reason again. LLM proposes; policy authorizes | Not “LLM + observability”; evidence and policy constrain | Observe, retrieve A+B, correlate, hypothesize, validate, decide. Timeouts, audit, dry-run, cancel | plays **E9–E11** (Layer I, opt-in) | tools only inside WorkingSet | P1 · **E7 Curate** · remediation · **do not flip D5** |
+
+**Operator path always on:** A+B → E7 → E8 → deterministic E9–E11 must work with the agent off.
 
 ---
 
 ## 1. Which phase owns each pillar
 
-A pillar is not a phase. A and B are always-on P1 stores. P2/P3 only read them. C is Clock B (diagnose/close), optional Layer I.
+A pillar is not a phase. **Pillar A** and **Pillar B** are always-on P1 stores. P2/P3 only read them. **Pillar C** runs in P3 (Clock B — diagnose/close) as optional Layer I. It is not Detect **door C**.
 
 | Pillar | Owns (write path) | Read by | Does not own |
 |--------|-------------------|---------|--------------|
@@ -36,7 +65,7 @@ A pillar is not a phase. A and B are always-on P1 stores. P2/P3 only read them. 
 | **B · Knowledge graph** | P1 **E3** `GraphSnapshot` · P1 **E5** versions / changes / writeback | P2 **E8** hop/time budget · P3 **E9** walk · P3 **E10** `query_graph()` | E6 Detect (Alert is a node, not the detector) · E11 executor |
 | **C · Rust ReAct agent** | P3 **E9** Localize · P3 **E10** Identify · P3 **E11** Package (explain/ticket) | Tools read A+B via **E8**-bounded retrieval | P1 fabric · P2 **E7** Curate (keep as a stage) · remediation |
 
-**P2 has no Motadata pillar.** Case-open (E6–E8) is not A, B, or C. Door C is a consumer of A. Scope knobs are the PDF’s “RCA retrieval layer.” Curate stays a required stage (**D3**) in front of C — do not implement it only as `deduplicate_incident()`.
+**P2 has no Motadata pillar.** Case-open (E6–E8) is not Pillar A, B, or C. Detect **door C** (platform thresholds) is a *consumer* of **Pillar A** (sketches). Scope knobs are the PDF’s “RCA retrieval layer.” Curate stays a required stage (**D3**) in front of **Pillar C** — do not implement it only as `deduplicate_incident()`.
 
 ### Pillar jobs in one paragraph each
 
@@ -103,6 +132,8 @@ Fit: **Covered** = same job exists. **Partial** = analogous block, different loc
 
 ## 5. Conflicts with locked (or Review) HLD defaults
 
+Working ToDo (leadership ask vs resolution): [study Q&A §10](./motadata-3pillars-study-qna.html#todo) · [`MOTADATA_3PILLARS_STUDY_QNA.md`](./MOTADATA_3PILLARS_STUDY_QNA.md#10-todo--leadership-pdf-vs-our-pipeline).
+
 | Topic | PDF | Our HLD / shift-left | Handle |
 |-------|-----|----------------------|--------|
 | Where processing runs | Central bus then Vortex | Shape + mask + optional door A before TLS | Keep shift-left; treat PDF as SaaS half |
@@ -117,8 +148,10 @@ Fit: **Covered** = same job exists. **Partial** = analogous block, different loc
 
 ## 6. What to take vs what not to copy
 
-**Take:** mergeable percentile sketches as an E4 modality; typed RCA graph with `valid_from`/`to` and confidence as E3; bounded retrieval as E8; hypothesis-plus-evidence language for E10; LLM never owns authorization if Layer I ships.
+**Take:** mergeable percentile sketches as an E4 modality; typed RCA graph with `valid_from`/`to` (graph time, E3/E5 — not E6) and confidence as E3; bounded retrieval as E8; hypothesis-plus-evidence language for E10; LLM never owns authorization if Layer I ships.
 
-**Do not copy:** skipping Node E1–E2; treating NATS+Vortex as the whole product; folding Curate into the agent; making ReAct the default Package path; calling ITSM or remediation Collect.
+**Do not copy:** skipping Node E1–E2; treating NATS+Vortex as the whole product; folding Curate into the agent; making ReAct the default Package path; calling ITSM or remediation Collect; Alert/Incident as E3 vertices.
+
+**Hybrid (design 3 + 4):** one `GraphSnapshot` = our CI plane + Motadata temporal CI edges + Change-as-fact. Four-column compare and merge rules: [study Q&A](./motadata-3pillars-study-qna.html) §7 · [`MOTADATA_3PILLARS_STUDY_QNA.md`](./MOTADATA_3PILLARS_STUDY_QNA.md).
 
 Formal contracts stay on [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md). This PDF is a Motadata implementation sketch of the **SaaS column**, not a rewrite of the clock.

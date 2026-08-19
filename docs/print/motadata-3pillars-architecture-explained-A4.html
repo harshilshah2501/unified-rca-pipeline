@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Motadata Observability 3.0 — three pillars explained</title>
+<style>
+  @page { size: A4; margin: 11mm 11mm 13mm 11mm; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9.6pt; line-height: 1.38; color: #111; background: #fff;
+  }
+  h1 { font-size: 16pt; font-weight: 700; margin: 0 0 6pt; }
+  h2 { font-size: 12pt; font-weight: 700; margin: 12pt 0 5pt; padding-top: 7pt; border-top: 1.2pt solid #222; page-break-after: avoid; }
+  h3 { font-size: 10pt; font-weight: 700; margin: 0 0 3pt; }
+  p { margin: 0 0 5pt; }
+  a { color: #1f6b5c; text-decoration: none; }
+  .eyebrow, .term-id { font-size: 8pt; letter-spacing: .08em; text-transform: uppercase; color: #555; margin: 0 0 3pt; }
+  .lead { margin: 0 0 8pt; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6pt; margin: 0 0 8pt; }
+  .card.stat, .stat { border: 1pt solid #222; padding: 5pt 6pt; }
+  .stat .val { font-family: Consolas, monospace; font-size: 11pt; font-weight: 700; text-align: center; }
+  .stat p { text-align: center; margin: 2pt 0 0; font-size: 8.5pt; }
+  .toc { display: none; }
+  .arch, .note, .ex, .wwh div, .abox, .amap {
+    border: 0.8pt solid #444; padding: 6pt 8pt; margin: 0 0 6pt; page-break-inside: avoid;
+  }
+  .note { background: #f3f4f6; }
+  .note.warn { border-left: 3pt solid #8a5a00; }
+  .note.ok { border-left: 3pt solid #1a6b4a; }
+  .ex { border-left: 3pt solid #1f6b5c; background: #eef6f3; }
+  .arch { background: #fafafa; }
+  .arch-row { display: grid; grid-template-columns: minmax(0,1fr) 9.8rem; gap: 6pt; }
+  .arch-join { text-align: center; font-family: Consolas, monospace; font-size: 8pt; color: #555; padding: 2pt 0; }
+  .abox b, .amap b { display: block; font-size: 9pt; }
+  .abox span { display: block; font-size: 8.3pt; color: #333; }
+  .amap { font-size: 8.2pt; background: #f3f4f6; }
+  .split2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; }
+  .wwh { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6pt; margin: 0 0 7pt; }
+  .wwh p { margin: 0; font-size: 8.6pt; }
+  .term { page-break-before: auto; }
+  .term + .term { page-break-before: always; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.2pt; margin: 0 0 8pt; }
+  th, td { border: 0.6pt solid #555; padding: 3pt 4pt; vertical-align: top; text-align: left; }
+  th { background: #eee; }
+  tr, .viz, figure { page-break-inside: avoid; }
+  code { font-family: Consolas, "Liberation Mono", monospace; font-size: 8pt; }
+  .chip { display: inline-block; font-family: Consolas, monospace; font-size: 7.4pt; padding: 1pt 4pt; border: 0.6pt solid #555; margin: 1pt 2pt 1pt 0; }
+  .viz { background: #f4f5f7; padding: 4pt; margin: 0 0 7pt; }
+  .viz svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: 8pt; color: #555; font-family: Consolas, monospace; }
+</style>
+</head>
+<body>
+<div class="eyebrow">Motadata KR Plan · explained · mapped onto ObserveOps · D5 stays Review</div>
+  <h1>Three pillars, five machines</h1>
+  <p class="lead">
+    The Motadata PDF is a <strong style="color:#111">SaaS-side</strong> design: centralize telemetry, keep compact statistics and a typed map, then diagnose with bounded evidence.
+    It is <strong style="color:#111">not</strong> a second ObserveOps pipeline. Each box below has a what / why / how and an E1–E11 mapping.
+  </p>
+
+  <div class="grid">
+    <div class="card stat"><div class="val">A + B</div><p>P1 stores (always-on write)</p></div>
+    <div class="card stat"><div class="val">C</div><p>Optional P3 diagnose (Layer I)</p></div>
+    <div class="card stat"><div class="val">P2</div><p>Reads A+B — not a fourth pillar</p></div>
+    <div class="card stat"><div class="val">D5</div><p>Stays Review. Operator path on.</p></div>
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#stack">Stack</a>
+    <a href="#tdigest">1 T-Digest</a>
+    <a href="#graph">2 Graph builder</a>
+    <a href="#vortex">3 Vortex + S3</a>
+    <a href="#retrieval">4 Retrieval</a>
+    <a href="#agent">5 Rust agent</a>
+    <a href="#own">Phase map</a>
+    <a href="#order">Build order</a>
+    <a href="#take">Take vs skip</a>
+  </nav>
+
+  <h2 id="stack">The Motadata stack as a picture</h2>
+  <p>
+    Read top to bottom as <em>write, then diagnose</em>. The right column is our pipeline — not Motadata’s names.
+    ITSM is listed in the PDF as an input; we keep tickets out of Collect.
+  </p>
+
+  <figure class="arch">
+    <div class="arch-row">
+      <div class="abox"><b>Telemetry in</b><span>Logs, metrics, APM, eBPF, events. PDF also lists ITSM here — we do not.</span></div>
+      <div class="amap"><b>E1 Collect</b>Admit raw. No CI bind. Telemetry only this pass.</div>
+    </div>
+    <div class="arch-join">↓ streaming bus (NATS) — not a pipeline step; sits between Collect and Stores</div>
+    <div class="arch-row">
+      <div class="split2">
+        <div class="abox a"><b>A · Percentile engine</b><span>T-Digest + buckets + seasonal baselines</span></div>
+        <div class="abox b"><b>B · Graph builder</b><span>Entities + edges + changes</span></div>
+      </div>
+      <div class="amap"><b>E4 + E5 ∥ E3 + E5</b>Parallel P1 writers after identity exists. Windowing is not Node E2.</div>
+    </div>
+    <div class="arch-join">↓ durable lake</div>
+    <div class="arch-row">
+      <div class="abox"><b>Vortex + S3</b><span>Historical observability (sketches / history) + knowledge graph (who is connected)</span></div>
+      <div class="amap"><b>E4 Stores</b>One dest profile. Gate B: not the only lake we may write.</div>
+    </div>
+    <div class="arch-join">↓ case opens — P2 has no Motadata pillar</div>
+    <div class="arch-row">
+      <div class="abox"><b>RCA retrieval layer</b><span>baseline + graph + events + changes, with a budget</span></div>
+      <div class="amap"><b>E8 Scope</b>Build a <code>WorkingSet</code>. Do not scan the lake.</div>
+    </div>
+    <div class="arch-join">↓ diagnose / close</div>
+    <div class="arch-row">
+      <div class="abox c"><b>C · Rust RCA agent</b><span>Bounded ReAct: hypothesize, fetch evidence, never self-authorize</span></div>
+      <div class="amap"><b>E9 → E10 → E11</b>Layer I, opt-in. Operator path must work without it.</div>
+    </div>
+    <div class="arch-join">↓ package, then learn</div>
+    <div class="arch-row">
+      <div class="split2">
+        <div class="abox"><b>Explain / ITSM</b><span>Verdict + ticket</span></div>
+        <div class="abox out"><b>Remediate</b><span>Outside E1–E11</span></div>
+      </div>
+      <div class="amap"><b>E11 Package</b>Required <code>VerdictCard</code> (D4). Ticket is egress. Remediation is later.</div>
+    </div>
+    <div class="arch-join">↓ outcome written back as graph context = E5 Maintain + E3 version</div>
+    <figcaption>Fig. 1 — Motadata operating loop (left) vs our steps (right). Identity (E2) is assumed on every sketch and node; the PDF never names it as a step. We still bind on the Node.</figcaption>
+  </figure>
+
+  <div class="note warn">
+    <strong style="color:#111">Same clock, SaaS column only.</strong>
+    This picture does not specify OTel Node Collect/Identity, mask/Drain, Detect door A, or optional Gateway door B.
+    Shift-left is <em>where</em> E1–E6 run. Pillars are <em>what</em> the SaaS stores and (optionally) how P3 reasons.
+  </div>
+
+  <section class="term" id="tdigest">
+    <p class="term-id">1 · Pillar A · statistics</p>
+    <h2>T-Digest + explicit buckets + seasonal baselines</h2>
+    <p>One job, three parts: keep a <em>mergeable percentile</em>, keep a <em>cheap histogram</em>, keep a <em>usual range for this hour of this weekday</em>. Together they answer “is this weird?” without replaying weeks of raw samples.</p>
+    <div class="viz" role="img" aria-label="Percentile engine: samples fold into a sketch, then into baseline and alert bounds">
+      <svg viewBox="0 0 720 268" xmlns="http://www.w3.org/2000/svg">
+        <rect width="720" height="268" fill="#f4f5f7"/>
+        <text x="16" y="22" fill="#555555" font-size="11" font-family="ui-monospace,monospace">PILLAR A WRITE PATH</text>
+        <rect x="16" y="36" width="130" height="52" rx="8" fill="#ffffff" stroke="#5a6570"/>
+        <text x="81" y="58" text-anchor="middle" fill="#111111" font-size="13" font-weight="600">samples</text>
+        <text x="81" y="76" text-anchor="middle" fill="#555555" font-size="11">1m / 5m / 1h</text>
+        <rect x="176" y="36" width="150" height="52" rx="8" fill="#ffffff" stroke="#1d4f91"/>
+        <text x="251" y="58" text-anchor="middle" fill="#111111" font-size="13" font-weight="600">T-Digest</text>
+        <text x="251" y="76" text-anchor="middle" fill="#555555" font-size="11">mergeable p50/p95/p99</text>
+        <rect x="344" y="36" width="150" height="52" rx="8" fill="#ffffff" stroke="#1d4f91"/>
+        <text x="419" y="58" text-anchor="middle" fill="#111111" font-size="13" font-weight="600">explicit buckets</text>
+        <text x="419" y="76" text-anchor="middle" fill="#555555" font-size="11">fixed bins · cheap alerts</text>
+        <rect x="512" y="36" width="192" height="52" rx="8" fill="#ffffff" stroke="#1f6b5c"/>
+        <text x="608" y="58" text-anchor="middle" fill="#111111" font-size="13" font-weight="600">seasonal baseline</text>
+        <text x="608" y="76" text-anchor="middle" fill="#555555" font-size="11">hour-of-day × weekday</text>
+        <path d="M146 62 H176 M251 88 V118 M419 88 V118 M608 88 V118" stroke="#555555" stroke-width="1.5" fill="none"/>
+        <rect x="176" y="118" width="528" height="44" rx="8" fill="#ffffff" stroke="#5a6570"/>
+        <text x="440" y="146" text-anchor="middle" fill="#111111" font-size="13">one sketch row per metric + entity + window + season_key → Vortex/S3</text>
+        <text x="16" y="188" fill="#555555" font-size="11" font-family="ui-monospace,monospace">WHO READS IT</text>
+        <rect x="16" y="200" width="220" height="48" rx="8" fill="#f7f8fa" stroke="#5a6570"/>
+        <text x="126" y="220" text-anchor="middle" fill="#111111" font-size="12">dashboards</text>
+        <text x="126" y="236" text-anchor="middle" fill="#555555" font-size="11">O(1) p95 lookup</text>
+        <rect x="250" y="200" width="220" height="48" rx="8" fill="#f7f8fa" stroke="#8a5a00"/>
+        <text x="360" y="220" text-anchor="middle" fill="#111111" font-size="12">E6 door C · Detect</text>
+        <text x="360" y="236" text-anchor="middle" fill="#555555" font-size="11">threshold / anomaly bound</text>
+        <rect x="484" y="200" width="220" height="48" rx="8" fill="#f7f8fa" stroke="#7a5a10"/>
+        <text x="594" y="220" text-anchor="middle" fill="#111111" font-size="12">E10 Identify</text>
+        <text x="594" y="236" text-anchor="middle" fill="#555555" font-size="11">get_metric_baseline()</text>
+      </svg>
+    </div>
+    <div class="wwh">
+      <div><h3>What</h3><p>A small, stored summary of how a metric usually behaves — not the raw time series. T-Digest ≈ percentiles. Buckets ≈ histogram. Seasonal baseline ≈ “normal for this slot in the week.”</p></div>
+      <div><h3>Why</h3><p>Weeks of samples cannot be scanned on every alert. Monday 9am traffic is not an outage. You need mergeable summaries and a calendar-aware expected range, or Detect lies.</p></div>
+      <div><h3>How</h3><p>Window samples (1m/5m/1h/1d). Fold into a T-Digest (mergeable p50/p95/p99) <em>and</em> fixed buckets (deterministic bins). Key the expected range by hour-of-day + day-of-week. Query is a key lookup, not a raw scan. “O(1)” means O(1) in sample count — still a bounded index read.</p></div>
+    </div>
+    <p class="ex"><b>Example.</b> Checkout p95 = 180&nbsp;ms. Tuesday 14:00 baseline p95 ≈ 200&nbsp;ms → normal. Sunday 02:00 baseline p95 ≈ 40&nbsp;ms → 180&nbsp;ms is abnormal. Same number; different season_key.</p>
+    <table class="maptable">
+      <tr><th>Role in Motadata</th><td>Pillar A write path after the bus. Feeds dashboards, platform alerts, and the agent. Does not walk the graph and does not pick a leaf.</td></tr>
+      <tr><th>Our pipeline</th><td>
+        <span class="chip write">writes E4 Stores</span>
+        <span class="chip write">writes E5 Maintain</span> (seasonal refresh)<br>
+        <span class="chip read">read by E6 door C</span> (platform Detect on sketches)<br>
+        <span class="chip read">read by E10 Identify</span> <code>get_metric_baseline()</code><br>
+        <span class="chip not">not E1 / E2</span> needs identity first · windowing ≠ Node Normalize<br>
+        <span class="chip not">not E9 leaf rule</span> percentiles do not name the root CI
+      </td></tr>
+    </table>
+    <p>Why both T-Digest <em>and</em> buckets? Percentiles merge cleanly across windows and entities. Buckets make histogram queries and alert rules deterministic and cheap. Seasonal baselines stop business cycles from looking like faults.</p>
+  </section>
+
+  <section class="term" id="graph">
+    <p class="term-id">2 · Pillar B · map</p>
+    <h2>Graph builder — entities + edges + changes</h2>
+    <p>Continuously maintain a <em>typed</em> picture of the estate: what exists, how it connects, and what recently changed. This is an RCA map, not a generic enterprise knowledge graph.</p>
+    <div class="viz" role="img" aria-label="Graph traversal from incident to candidate leaf">
+      <svg viewBox="0 0 720 210" xmlns="http://www.w3.org/2000/svg">
+        <rect width="720" height="210" fill="#f4f5f7"/>
+        <text x="16" y="22" fill="#555555" font-size="11" font-family="ui-monospace,monospace">E9 WALK THE PDF CALLS “RCA GRAPH TRAVERSAL”</text>
+        <rect x="16" y="40" width="100" height="56" rx="8" fill="#ffffff" stroke="#7a5a10"/>
+        <text x="66" y="64" text-anchor="middle" fill="#111111" font-size="12" font-weight="600">Incident</text>
+        <text x="66" y="82" text-anchor="middle" fill="#555555" font-size="10">case seed</text>
+        <rect x="148" y="40" width="108" height="56" rx="8" fill="#ffffff" stroke="#1f6b5c"/>
+        <text x="202" y="64" text-anchor="middle" fill="#111111" font-size="12" font-weight="600">Service</text>
+        <text x="202" y="82" text-anchor="middle" fill="#555555" font-size="10">symptom CI</text>
+        <rect x="288" y="40" width="108" height="56" rx="8" fill="#ffffff" stroke="#1f6b5c"/>
+        <text x="342" y="64" text-anchor="middle" fill="#111111" font-size="12" font-weight="600">deps</text>
+        <text x="342" y="82" text-anchor="middle" fill="#555555" font-size="10">CALLS / RUNS_ON</text>
+        <rect x="428" y="40" width="108" height="56" rx="8" fill="#ffffff" stroke="#1d4f91"/>
+        <text x="482" y="64" text-anchor="middle" fill="#111111" font-size="12" font-weight="600">Change</text>
+        <text x="482" y="82" text-anchor="middle" fill="#555555" font-size="10">CHANGED_BY</text>
+        <rect x="568" y="40" width="136" height="56" rx="8" fill="#ffffff" stroke="#8a5a00"/>
+        <text x="636" y="64" text-anchor="middle" fill="#111111" font-size="12" font-weight="600">candidates</text>
+        <text x="636" y="82" text-anchor="middle" fill="#555555" font-size="10">+ abnormal metrics</text>
+        <path d="M116 68 H148 M256 68 H288 M396 68 H428 M536 68 H568" stroke="#555555" stroke-width="1.5"/>
+        <text x="16" y="128" fill="#555555" font-size="11">TYPED EDGES (subset)</text>
+        <text x="16" y="148" fill="#333333" font-size="12">CALLS · DEPENDS_ON · RUNS_ON · CONTAINS · CONNECTS_TO · PRODUCES · CONSUMES</text>
+        <text x="16" y="166" fill="#333333" font-size="12">AFFECTS · CHANGED_BY · DEPLOYED_AS · TRIGGERED · CORRELATED_WITH · RESOLVED_BY</text>
+        <text x="16" y="192" fill="#555555" font-size="11">Every node/edge carries valid_from / valid_to, confidence, source — so the walk can say why we believe a link.</text>
+      </svg>
+    </div>
+    <div class="wwh">
+      <div><h3>What</h3><p>A living map: typed things (Service, Host, Pod, Database, Change, Alert, …) plus typed links, plus change facts. Time-bounded: edges expire (<code>valid_from</code> / <code>valid_to</code>).</p></div>
+      <div><h3>Why</h3><p>A detector without a map produces an alert. A detector with a map can say which neighbor sits under the symptom, whether a deploy landed, and how sure we are that the link is real.</p></div>
+      <div><h3>How</h3><p>Builders upsert entities and edges from telemetry and discovery. Changes are first-class nodes, not log lines you grep later. Traversal: Incident → service → deps → recent changes → abnormal metrics → traces/log patterns → candidate leaves.</p></div>
+    </div>
+    <p class="ex"><b>Example.</b> Pain shows on <code>checkout-api</code>. Walk CALLS → <code>checkout-db</code>. A CHANGED_BY deploy landed 12 minutes ago on the db. API p95 is high; db p95 is worse. The leaf candidate is the database, not the API.</p>
+    <table class="maptable">
+      <tr><th>Role in Motadata</th><td>Pillar B writer into Vortex/S3. The agent must not scan this store hop-by-hop; it uses the retrieval layer. Alert is a <em>node type</em>, not the detector.</td></tr>
+      <tr><th>Our pipeline</th><td>
+        <span class="chip write">writes E3 Topology</span> <code>GraphSnapshot</code> (SaaS owns it; Gateway only assists)<br>
+        <span class="chip write">writes E5 Maintain</span> versions, change feed, outcome writeback<br>
+        <span class="chip read">read by E8 Scope</span> hop / time budget<br>
+        <span class="chip read">read by E9 Localize</span> the walk <em>is</em> the leaf search<br>
+        <span class="chip read">read by E10</span> <code>query_graph()</code><br>
+        <span class="chip not">not E6 Detect</span> storing an Alert ≠ firing Detect<br>
+        <span class="chip not">not E11 executor</span>
+      </td></tr>
+    </table>
+  </section>
+
+  <section class="term" id="vortex">
+    <p class="term-id">3 · the lake · Pillars A and B land here</p>
+    <h2>Vortex + S3 — historical observability + knowledge graph</h2>
+    <p>Two rooms in one warehouse. Room 1 holds compact history (sketches, and whatever raw you still keep). Room 2 holds the typed map. Vortex/S3 is durability. It is not the agent, and it is not Detect.</p>
+    <div class="viz" role="img" aria-label="Vortex plus S3 as two rooms: history and graph">
+      <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="720" height="200" fill="#f4f5f7"/>
+        <rect x="16" y="16" width="688" height="168" rx="10" fill="#f7f8fa" stroke="#5a6570"/>
+        <text x="36" y="40" fill="#111111" font-size="14" font-weight="600">Vortex + S3 · durable analytical store</text>
+        <text x="36" y="58" fill="#555555" font-size="11">Keep raw telemetry, sketches, graph facts, and agent decisions separately addressable</text>
+        <rect x="36" y="76" width="310" height="88" rx="8" fill="#ffffff" stroke="#1d4f91"/>
+        <text x="191" y="104" text-anchor="middle" fill="#1d4f91" font-size="11" font-family="ui-monospace,monospace">HISTORICAL OBSERVABILITY</text>
+        <text x="191" y="126" text-anchor="middle" fill="#111111" font-size="13">percentile sketches · windows</text>
+        <text x="191" y="146" text-anchor="middle" fill="#555555" font-size="11">Pillar A · our E4 modality</text>
+        <rect x="374" y="76" width="310" height="88" rx="8" fill="#ffffff" stroke="#1f6b5c"/>
+        <text x="529" y="104" text-anchor="middle" fill="#1a6b4a" font-size="11" font-family="ui-monospace,monospace">KNOWLEDGE GRAPH</text>
+        <text x="529" y="126" text-anchor="middle" fill="#111111" font-size="13">entities · edges · changes</text>
+        <text x="529" y="146" text-anchor="middle" fill="#555555" font-size="11">Pillar B · our E3 GraphSnapshot</text>
+      </svg>
+    </div>
+    <div class="wwh">
+      <div><h3>What</h3><p>The long-lived store. “Historical observability” = queryable past (especially sketches). “Knowledge graph” = who-is-connected, versioned. Same <code>entity_id</code> namespace in both rooms.</p></div>
+      <div><h3>Why</h3><p>Builders are useless if the result evaporates. RCA also must not mutate history in place — mergeable / immutable analytical state, no expensive historical UPDATE.</p></div>
+      <div><h3>How</h3><p>Percentile engine and graph builder write in parallel after identity exists. S3 holds cold/large objects; Vortex is the analytical engine on top. The agent never opens this as a dump — it goes through retrieval.</p></div>
+    </div>
+    <table class="maptable">
+      <tr><th>Role in Motadata</th><td>The lake the PDF centralizes onto. First-party by default.</td></tr>
+      <tr><th>Our pipeline</th><td>
+        <span class="chip write">E4 Stores</span> dest fan-out — Vortex/S3 may be <em>one</em> profile<br>
+        <span class="chip write">E3 lives here</span> as graph tables, not as a second clock<br>
+        <span class="chip not">Gate B open</span> we do not freeze Vortex as the only E4 dest<br>
+        <span class="chip not">not Node / Gateway</span> those buffer; they are not the lake
+      </td></tr>
+    </table>
+  </section>
+
+  <section class="term" id="retrieval">
+    <p class="term-id">4 · P2 Scope · the budget in front of the lake</p>
+    <h2>RCA retrieval layer — baseline + graph + events + changes</h2>
+    <p>A funnel, not a search engine. When a case opens, fetch <em>only</em> what diagnose is allowed to see: the usual range, the neighborhood, the events, the recent changes — inside a budget.</p>
+    <div class="viz" role="img" aria-label="Retrieval funnel with four evidence kinds and four budgets">
+      <svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg">
+        <rect width="720" height="250" fill="#f4f5f7"/>
+        <text x="16" y="22" fill="#555555" font-size="11" font-family="ui-monospace,monospace">FOUR KINDS IN · FOUR KNOBS BOUNDING THE FETCH</text>
+        <rect x="16" y="40" width="150" height="50" rx="8" fill="#ffffff" stroke="#1d4f91"/>
+        <text x="91" y="62" text-anchor="middle" fill="#111111" font-size="12" font-weight="600">baseline</text>
+        <text x="91" y="78" text-anchor="middle" fill="#555555" font-size="10">from Pillar A</text>
+        <rect x="178" y="40" width="150" height="50" rx="8" fill="#ffffff" stroke="#1f6b5c"/>
+        <text x="253" y="62" text-anchor="middle" fill="#111111" font-size="12" font-weight="600">graph</text>
+        <text x="253" y="78" text-anchor="middle" fill="#555555" font-size="10">from Pillar B</text>
+        <rect x="340" y="40" width="150" height="50" rx="8" fill="#ffffff" stroke="#5a6570"/>
+        <text x="415" y="62" text-anchor="middle" fill="#111111" font-size="12" font-weight="600">events</text>
+        <text x="415" y="78" text-anchor="middle" fill="#555555" font-size="10">Detect storm</text>
+        <rect x="502" y="40" width="202" height="50" rx="8" fill="#ffffff" stroke="#1d4f91"/>
+        <text x="603" y="62" text-anchor="middle" fill="#111111" font-size="12" font-weight="600">changes</text>
+        <text x="603" y="78" text-anchor="middle" fill="#555555" font-size="10">deploys / config</text>
+        <rect x="210" y="124" width="300" height="44" rx="8" fill="#ffffff" stroke="#7a5a10"/>
+        <text x="360" y="142" text-anchor="middle" fill="#111111" font-size="13" font-weight="600">retrieval layer = E8 WorkingSet</text>
+        <text x="360" y="158" text-anchor="middle" fill="#555555" font-size="11">time window · entity scope · hop count · evidence budget</text>
+        <rect x="130" y="186" width="460" height="44" rx="8" fill="#f7f8fa" stroke="#5a6570"/>
+        <text x="360" y="206" text-anchor="middle" fill="#111111" font-size="12">operator path and (optional) agent may only read this set</text>
+        <text x="360" y="222" text-anchor="middle" fill="#555555" font-size="11">E7 Curate still runs first — one CaseSeed. Retrieval does not merge the storm.</text>
+      </svg>
+    </div>
+    <div class="wwh">
+      <div><h3>What</h3><p>A bounded index in front of Vortex: “give me these four evidence kinds, for this seed, under these limits.” In our language that object is the <code>WorkingSet</code>.</p></div>
+      <div><h3>Why</h3><p>Unscoped RCA walks the estate and hallucinates. Cost, latency, and wrong neighbors all explode. The PDF’s production principle: retrieval bounded by time, entity, hop count, and evidence budget.</p></div>
+      <div><h3>How</h3><p>Start from the curated seed (not from the raw alert storm). Expand k hops on the graph. Pull matching baselines, events, and changes inside the time window. Stop when the budget is spent. Then Localize.</p></div>
+    </div>
+    <p class="ex"><b>Example.</b> Seed = <code>checkout-api</code> at 14:02. Budget: 30 minutes, 2 hops, 40 evidence items. You get the API, its db, the last deploy, p95 vs Tuesday baseline — not the whole cluster.</p>
+    <table class="maptable">
+      <tr><th>Role in Motadata</th><td>The PDF folds this into the agent’s “retrieve” steps. We name it as its own step so diagnose cannot skip the budget.</td></tr>
+      <tr><th>Our pipeline</th><td>
+        <span class="chip write">is E8 Scope</span> lock <code>WorkingSet</code> from seed + graph + dest corridor<br>
+        <span class="chip read">needs E7 first</span> one <code>CaseSeed</code> (D3 Signed) — do not replace Curate with <code>deduplicate_incident()</code><br>
+        <span class="chip read">feeds E9 / E10</span> and any Layer I tools<br>
+        <span class="chip not">not a pillar</span> P2 has no Motadata pillar; this is a reader of A+B
+      </td></tr>
+    </table>
+  </section>
+
+  <section class="term" id="agent">
+    <p class="term-id">5 · Pillar C · optional Layer I</p>
+    <h2>Rust RCA agent — bounded ReAct execution</h2>
+    <p>ReAct means <em>reason, then act, then reason again</em> — but every act is a typed tool with a timeout, a permission, and an audit line. The model proposes. A policy engine authorizes. The model never owns the switch.</p>
+    <div class="viz" role="img" aria-label="Bounded ReAct loop with policy gate before any write">
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg">
+        <rect width="720" height="280" fill="#f4f5f7"/>
+        <text x="16" y="22" fill="#555555" font-size="11" font-family="ui-monospace,monospace">STATE MACHINE · READ TOOLS LEFT · WRITE TOOLS MUST PASS POLICY</text>
+        <rect x="16" y="40" width="88" height="42" rx="8" fill="#ffffff" stroke="#5a6570"/>
+        <text x="60" y="66" text-anchor="middle" fill="#111111" font-size="11">Observe</text>
+        <rect x="116" y="40" width="100" height="42" rx="8" fill="#ffffff" stroke="#1d4f91"/>
+        <text x="166" y="66" text-anchor="middle" fill="#111111" font-size="11">Retrieve A+B</text>
+        <rect x="228" y="40" width="88" height="42" rx="8" fill="#ffffff" stroke="#5a6570"/>
+        <text x="272" y="66" text-anchor="middle" fill="#111111" font-size="11">Correlate</text>
+        <rect x="328" y="40" width="100" height="42" rx="8" fill="#ffffff" stroke="#7a5a10"/>
+        <text x="378" y="66" text-anchor="middle" fill="#111111" font-size="11">Hypothesize</text>
+        <rect x="440" y="40" width="88" height="42" rx="8" fill="#ffffff" stroke="#1f6b5c"/>
+        <text x="484" y="66" text-anchor="middle" fill="#111111" font-size="11">Validate</text>
+        <rect x="540" y="40" width="164" height="42" rx="8" fill="#ffffff" stroke="#8a5a00"/>
+        <text x="622" y="66" text-anchor="middle" fill="#111111" font-size="11">Decide action</text>
+        <rect x="200" y="110" width="320" height="52" rx="8" fill="#f7f8fa" stroke="#8a5a00"/>
+        <text x="360" y="132" text-anchor="middle" fill="#111111" font-size="13" font-weight="600">policy engine — not the LLM</text>
+        <text x="360" y="150" text-anchor="middle" fill="#555555" font-size="11">permission · risk · dry-run · audit · idempotency · cancel</text>
+        <rect x="16" y="180" width="168" height="78" rx="8" fill="#ffffff" stroke="#1f6b5c"/>
+        <text x="100" y="204" text-anchor="middle" fill="#1a6b4a" font-size="11">E11 · explain</text>
+        <text x="100" y="224" text-anchor="middle" fill="#111111" font-size="12">VerdictCard</text>
+        <text x="100" y="242" text-anchor="middle" fill="#555555" font-size="10">operator path always on</text>
+        <rect x="200" y="180" width="168" height="78" rx="8" fill="#ffffff" stroke="#1d4f91"/>
+        <text x="284" y="204" text-anchor="middle" fill="#1d4f91" font-size="11">E11 · create_ticket</text>
+        <text x="284" y="224" text-anchor="middle" fill="#111111" font-size="12">ITSM egress</text>
+        <text x="284" y="242" text-anchor="middle" fill="#555555" font-size="10">not Collect</text>
+        <rect x="384" y="180" width="152" height="78" rx="8" fill="#ffffff" stroke="#5a6570" stroke-dasharray="5 3"/>
+        <text x="460" y="204" text-anchor="middle" fill="#555555" font-size="11">not our E7</text>
+        <text x="460" y="224" text-anchor="middle" fill="#111111" font-size="12">dedupe tool</text>
+        <text x="460" y="242" text-anchor="middle" fill="#555555" font-size="10">keep Curate a step</text>
+        <rect x="552" y="180" width="152" height="78" rx="8" fill="#ffffff" stroke="#5a6570" stroke-dasharray="5 3"/>
+        <text x="628" y="204" text-anchor="middle" fill="#555555" font-size="11">outside E1–E11</text>
+        <text x="628" y="224" text-anchor="middle" fill="#111111" font-size="12">remediate</text>
+        <text x="628" y="242" text-anchor="middle" fill="#555555" font-size="10">reuse policy later</text>
+      </svg>
+    </div>
+    <div class="wwh">
+      <div><h3>What</h3><p>A production ReAct loop in Rust: observe the case, retrieve A+B through the budget, correlate, score hypotheses, validate with evidence, then propose an action. Tools are structs + serde, not free-form HTTP.</p></div>
+      <div><h3>Why</h3><p>The differentiator is not “LLM + observability.” Baselines and the graph constrain reasoning; policy constrains action. An unconstrained chat over Vortex is not RCA.</p></div>
+      <div><h3>How</h3><p>Each tool: typed input, capability, timeout, retry, risk class, dry-run for writes, audit event, idempotency key, cancellation. Parallel investigation is bounded (JoinSet). Failures are <code>Result</code>. Rust, not Python/GIL, for the hot path.</p></div>
+    </div>
+    <p class="ex"><b>Example.</b> Hypothesis: “db saturation after deploy.” Validate by <code>get_metric_baseline()</code> + <code>query_graph()</code> + <code>get_recent_changes()</code>. If evidence disagrees, drop it. If it holds, Package a verdict. Ticket only if policy allows. Never let the model fire <code>execute_remediation()</code> itself.</p>
+    <table class="maptable">
+      <tr><th>Role in Motadata</th><td>Pillar C — the PDF’s default RCA actor. Tools: <code>get_metric_baseline</code> · <code>query_graph</code> · <code>search_events</code> · <code>get_recent_changes</code> · <code>create_ticket</code> · <code>deduplicate_incident</code> · <code>execute_remediation</code>.</td></tr>
+      <tr><th>Our pipeline</th><td>
+        <span class="chip write">plays E9 Localize</span> walk / leaf choice with tools<br>
+        <span class="chip write">plays E10 Identify</span> corroborate; Verify decided here<br>
+        <span class="chip write">plays E11 Package</span> explain / ticket (D4 still required)<br>
+        <span class="chip not">not P1</span> never Collect or bind<br>
+        <span class="chip not">not E7 Curate</span> keep merge in front of the agent (D3)<br>
+        <span class="chip not">D5 Review</span> Layer I optional; operator path using A+B only always on<br>
+        <span class="chip not">remediation later</span> not Package
+      </td></tr>
+    </table>
+  </section>
+
+  <h2 id="own">Which phase owns each pillar</h2>
+  <p>A pillar is not a phase. A and B are always-on P1 stores. P2/P3 only read them. C is Clock B (diagnose/close), optional Layer I.</p>
+  <table>
+    <tr><th>Pillar</th><th>Owns (write path)</th><th>Read by</th><th>Does not own</th></tr>
+    <tr>
+      <td><strong style="color:#111">A · Percentiles</strong></td>
+      <td>P1 <strong style="color:#111">E4</strong> sketch store · P1 <strong style="color:#111">E5</strong> seasonal refresh</td>
+      <td>P2 <strong style="color:#111">E6 door C</strong> · P3 <strong style="color:#111">E10</strong> <code>get_metric_baseline()</code></td>
+      <td>E1/E2 · E9 leaf rule</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#111">B · Knowledge graph</strong></td>
+      <td>P1 <strong style="color:#111">E3</strong> <code>GraphSnapshot</code> · P1 <strong style="color:#111">E5</strong> versions / changes / writeback</td>
+      <td>P2 <strong style="color:#111">E8</strong> hop/time · P3 <strong style="color:#111">E9</strong> walk · P3 <strong style="color:#111">E10</strong> <code>query_graph()</code></td>
+      <td>E6 Detect · E11 executor</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#111">C · Rust ReAct agent</strong></td>
+      <td>P3 <strong style="color:#111">E9</strong> Localize · P3 <strong style="color:#111">E10</strong> Identify · P3 <strong style="color:#111">E11</strong> Package (explain/ticket)</td>
+      <td>Tools read A+B via <strong style="color:#111">E8</strong></td>
+      <td>P1 fabric · P2 <strong style="color:#111">E7</strong> Curate · remediation</td>
+    </tr>
+  </table>
+
+  <h2 id="order">Recommended implementation order</h2>
+  <p>Do <strong style="color:#111">not</strong> ship A → B → C as three products. A and B are <strong style="color:#111">parallel P1 writers</strong> after E2 keys exist. C is last and opt-in (Gate D / D5 Review).</p>
+  <p><strong style="color:#111">So:</strong> identity → stores (A+B) → detect/curate/scope → deterministic RCA → optional agent.</p>
+  <table>
+    <tr><th>Seq</th><th>Build</th><th>HLD steps</th><th>Exit</th></tr>
+    <tr><td><strong style="color:#111">0</strong></td><td>Edge admit + identity (PDF is silent)</td><td>E1 · E2 (Node)</td><td><code>ingest.v1</code> with <code>tenant</code>+<code>ci_id</code>. No pillar yet.</td></tr>
+    <tr><td><strong style="color:#111">1</strong></td><td>Ingest path into SaaS (NATS optional)</td><td>E1 SaaS · E4 write</td><td>Shaped stream lands. Vortex/S3 may be one dest.</td></tr>
+    <tr><td><strong style="color:#111">2</strong></td><td>Pillar A <strong style="color:#111">∥</strong> Pillar B</td><td>A: E4+E5 · B: E3+E5</td><td>p95 by <code>entity_id</code> without raw scan. Graph walkable.</td></tr>
+    <tr><td><strong style="color:#111">3</strong></td><td>Platform Detect on sketches</td><td>E6 door C</td><td>Doors A/B still ours.</td></tr>
+    <tr><td><strong style="color:#111">4</strong></td><td>Case open without an LLM</td><td>E7 · E8</td><td>One <code>CaseSeed</code>. <code>WorkingSet</code> with a budget.</td></tr>
+    <tr><td><strong style="color:#111">5</strong></td><td>Deterministic diagnose + close</td><td>E9 · E10 · E11</td><td>Operator path on A+B only. No agent yet.</td></tr>
+    <tr><td><strong style="color:#111">6</strong></td><td>Pillar C as Layer I (opt-in)</td><td>same E9–E11, tools inside WorkingSet</td><td>Default off. Never owns E7 or E1.</td></tr>
+    <tr><td><strong style="color:#111">7</strong></td><td>Remediation (later)</td><td>outside E1–E11</td><td>Reuse policy. Do not call it Package.</td></tr>
+  </table>
+
+  <h2 id="take">What to take vs what not to copy</h2>
+  <div class="note ok">
+    <strong style="color:#111">Take:</strong>
+    mergeable percentile sketches as an E4 modality; typed RCA graph with <code>valid_from</code>/<code>to</code> and confidence as E3;
+    bounded retrieval as E8; hypothesis-plus-evidence language for E10; LLM never owns authorization if Layer I ships.
+  </div>
+  <div class="note warn">
+    <strong style="color:#111">Do not copy:</strong>
+    skipping Node E1–E2; treating NATS+Vortex as the whole product; folding Curate into the agent;
+    making ReAct the default Package path; calling ITSM or remediation Collect.
+    <strong style="color:#111">Do not flip D5</strong> because the PDF is agentic.
+  </div>
+  <p>
+    Formal contracts stay on the <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a>.
+    Tables twin: <a href="/motadata-3pillars-vs-shift-left.html">job map</a>
+    · <a href="/docs/MOTADATA_3PILLARS_VS_SHIFT_LEFT.md">MOTADATA_3PILLARS_VS_SHIFT_LEFT.md</a>.
+    This is a Motadata implementation sketch of the <strong style="color:#111">SaaS column</strong>, not a rewrite of the clock.
+  </p>
+</div>
+
+</body>
+</html>
