@@ -1,0 +1,1 @@
+../pillar-ab-implementation/scope/MOTADATA_3PILLARS_PILLAR_SPLIT_SCOPE_OKR.md

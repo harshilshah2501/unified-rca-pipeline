@@ -1,0 +1,45 @@
+# UC1: burst a NEW negative pattern so Pattern Anomaly can leave No Data.
+# Steady noisy-logger errors become baseline (anomaly:0). A new high-rate
+# whitespace-token ERROR line is the spike the default monitor scores.
+# Scale to 0 after the monitor ALERTs.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-auth-spike
+  namespace: ed-lab
+  labels:
+    app: checkout-auth-spike
+    urca.uc: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkout-auth-spike
+  template:
+    metadata:
+      labels:
+        app: checkout-auth-spike
+        urca.uc: "1"
+    spec:
+      containers:
+        - name: logger
+          image: busybox:1.36
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          command:
+            - /bin/sh
+            - -c
+            - |
+              i=0
+              while true; do
+                i=$((i+1))
+                echo "ERROR payment refused timeout failed checkout spike n=$i"
+                echo "ERROR inventory lookup failed refused timeout spike n=$i"
+                echo "ERROR cart checkout declined failed timeout spike n=$i"
+                sleep 0.2
+              done

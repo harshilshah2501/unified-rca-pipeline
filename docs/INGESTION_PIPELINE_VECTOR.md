@@ -4,6 +4,8 @@
 **Scope:** **Ingestion + detection front door** — builds RCA-ready graphs / incident windows **and** marks anomalies / seeds. Does **not** implement Lean or Federated localization.  
 **Related:** [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) · [`RCA-learning-cheatsheet.md`](./learning/RCA-learning-cheatsheet.md) §1c–§3 · [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`NAVIGATION.md`](./NAVIGATION.md) · [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md)
 
+Edge Delta Telemetry Pipelines are a **vendor analog** for this ingest+detect front door (process at the edge, then route) — not a drop-in replacement for Vector in this design. See [`EDGEDELTA_PRODUCTION_PIPELINE.md`](./EDGEDELTA_PRODUCTION_PIPELINE.md).
+
 ---
 
 ## 1. Boundary (read first)
@@ -197,7 +199,7 @@ vCenter / CMDB / K8s API / static export
 | Filter | Drop noise; sample traces for Federated path |
 | Route tags | `route=lean|federated_speed|both` |
 
-CI bind failure → dead-letter sink (do not invent roots in RCA).
+CI bind miss → **D-E2-1** (HLD v1.1, [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) §4): synthesize a flagged placeholder (`identity.status` in `{unattributed, synthesized}`); do **not** treat it as a localize or ServiceOps-ticket target; do **not** silently drop (FR-B1). Schema-invalid poison still goes to a dead-letter sink (E1; Vector D5). The older sentence "CI bind failure → dead-letter" is superseded.
 
 ### 5.3 Sinks → post-Vector builders
 

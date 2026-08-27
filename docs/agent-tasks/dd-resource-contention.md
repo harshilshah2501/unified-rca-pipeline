@@ -3,7 +3,7 @@
 **Status:** agent_task → promote after Observed run  
 **Hub:** http://127.0.0.1:8765/dd-detect-category-hub.html?cat=resource_contention  
 **Timeline:** http://127.0.0.1:8765/dd-lab-timeline-resource-contention.html  
-**Lab root:** `datadog-rca-lab/`
+**Lab root:** `labs/datadog-rca-lab/`
 
 ## Guardrails
 
@@ -19,7 +19,7 @@ Induce background CPU burn on inventory while `/api/stock` stays fast HTTP 200. 
 ## Steps
 
 ```bash
-cd datadog-rca-lab
+cd labs/datadog-rca-lab
 ./scripts/run_resource_contention_rca.sh --minutes 10
 ```
 

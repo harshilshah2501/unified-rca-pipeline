@@ -32,8 +32,8 @@ OpenObserve **peer-29** % is **out of PoC console scope** (hidden in the UI). Fa
 | URL hash | Show this |
 |----------|-----------|
 | [`#guide`](http://127.0.0.1:8765/#guide) | Newcomer path + **interactive ingest / Lean·Federated pipeline** (click nodes, Play flow) |
-| [`#incident`](http://127.0.0.1:8765/#incident) | **Incident Analysis** — OO-style human report; ObserveOps UC + Motadata L1 (Lean / Fed / OO tabs) |
 | [`/rca-workflow-sim.html`](http://127.0.0.1:8765/rca-workflow-sim.html) | **Algorithm sim** — shared threshold Detect → Lean (best-first / CARE) vs Federated (Murphy / fusion) |
+| [`#incident`](http://127.0.0.1:8765/#incident) | **Incident Analysis** — OO-style human report; ObserveOps UC + Motadata L1 (Lean / Fed / OO tabs) |
 | [`#samples`](http://127.0.0.1:8765/#samples) | **Manual verify** — UC + Motadata cards (GT vs Lean vs Fed, fault buckets) |
 | [`#conduct`](http://127.0.0.1:8765/#conduct) | Run Motadata broaden / UC bakeoff / lab EPS / Motadata L1 (live logs) |
 | [`#overview`](http://127.0.0.1:8765/#overview) | Bakeoff + Motadata L1 + lab EPS KPIs |

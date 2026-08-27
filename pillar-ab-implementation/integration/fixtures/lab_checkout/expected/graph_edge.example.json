@@ -1,0 +1,17 @@
+{
+  "schema_version": "graph_edge.v1",
+  "tenant": "default",
+  "edge_id": "e_jvm_runs_on_host",
+  "src_ci_id": "app-runtime-jvm",
+  "dst_ci_id": "linux-server-app-01",
+  "relation": "runs_on",
+  "discovered_via": {
+    "evidence_type": "authoritative",
+    "confidence": "high",
+    "telemetry_source": "agent/process-inventory/cgroup",
+    "direction_inference": "workload -> host",
+    "refresh": "poll 5m"
+  },
+  "valid_from": "2026-08-20T00:00:00Z",
+  "valid_to": null
+}

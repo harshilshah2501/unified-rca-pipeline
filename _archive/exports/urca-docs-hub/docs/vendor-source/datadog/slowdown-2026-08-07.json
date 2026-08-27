@@ -1,0 +1,47 @@
+{
+  "lab": "datadog-rca-lab",
+  "category": "SLOWDOWN",
+  "env": "rca-lab",
+  "host": "DESKTOP-MBPAQK1",
+  "window": {
+    "start_utc": "2026-08-07T08:10:44Z",
+    "end_utc": "2026-08-07T08:20:45Z",
+    "healed_utc": "2026-08-07T08:21:06Z",
+    "checkout_requests": 60,
+    "http_status": 200
+  },
+  "defect": {
+    "type": "code-level ledger scan",
+    "script": "scripts/break_inventory_slow_code.sh",
+    "heal": "scripts/heal_inventory_slow_code.sh",
+    "not_used": "faults/*.latency sleep"
+  },
+  "aggregates_env_rca_lab": {
+    "from": "2026-08-07T08:10:00Z",
+    "to": "2026-08-07T08:25:00Z",
+    "rows": [
+      {"service": "frontend", "status": "ok", "http": 200, "spans": 124, "p95_ns": 11330020376},
+      {"service": "product", "status": "ok", "http": 200, "spans": 124, "p95_ns": 11330020376},
+      {"service": "inventory", "status": "ok", "http": 200, "spans": 63, "p95_ns": 11330020376}
+    ],
+    "inventory_spans_over_5s": 315
+  },
+  "example_trace": {
+    "trace_id": "6a7595540000000010dc53dd1d843216",
+    "url": "https://app.datadoghq.com/apm/trace/6a7595540000000010dc53dd1d843216",
+    "checkout_ms": 9344,
+    "inventory_stock_ms": 9332,
+    "http_status_code": "200"
+  },
+  "packaging": {
+    "incidents": 0,
+    "watchdog_change_stories": [],
+    "alert_events_in_window": 0
+  },
+  "post_heal_probe": {
+    "checkout_http": 200,
+    "checkout_s": 0.019,
+    "stock_http": 200,
+    "stock_s": 0.004
+  }
+}

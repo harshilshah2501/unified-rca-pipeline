@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Datadog production pipeline — native map</title>
+<style>
+* { box-sizing:border-box; } html { scroll-behavior:smooth; }
+body { margin:0; font-family:var(--font); font-size:15px; line-height:1.55; color:var(--text); background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2438 0%,transparent 55%), var(--bg); }
+a { color:#9bb8f5; text-decoration:none; } a:hover { text-decoration:underline; }
+.shell { display:grid; grid-template-columns:var(--nav-w) minmax(0,1fr); max-width:calc(var(--nav-w) + var(--max) + 6rem); margin:0 auto; }
+nav.toc { position:sticky; top:0; height:100vh; overflow-y:auto; padding:1.5rem 1rem 2rem 1.25rem; border-right:1px solid var(--stroke); background:rgba(15,20,25,.9); }
+nav.toc .brand { font-size:.7rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); margin-bottom:.75rem; }
+nav.toc a { display:block; color:var(--muted); font-size:.78rem; padding:.28rem .4rem; border-radius:4px; margin-bottom:.08rem; text-decoration:none; }
+nav.toc a:hover { color:var(--text); background:var(--bg-soft); } nav.toc a.l2 { padding-left:1rem; font-size:.72rem; }
+nav.toc a.here { color:var(--text); background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent); font-weight:600; }
+main { padding:2rem 2rem 4rem; max-width:var(--max); }
+h1 { font-size:1.7rem; font-weight:700; margin:0 0 .65rem; } h2 { font-size:1.22rem; font-weight:650; margin:2.4rem 0 .85rem; padding-top:.5rem; border-top:1px solid var(--stroke); }
+h3 { font-size:1rem; font-weight:600; margin:1.4rem 0 .5rem; color:#e8eef4; } h4 { font-size:.92rem; font-weight:600; margin:1.1rem 0 .4rem; color:#c5d0da; }
+p { margin:.55rem 0; } .flow { font-family:var(--mono); font-size:.8rem; padding:.65rem .85rem; background:var(--bg-soft); border:1px solid var(--stroke); border-radius:var(--radius); overflow-x:auto; white-space:pre; color:#d0dbe6; margin:.75rem 0; }
+table { width:100%; border-collapse:collapse; font-size:.84rem; margin:.75rem 0 1rem; } th, td { text-align:left; vertical-align:top; padding:.45rem .55rem; border-bottom:1px solid var(--stroke); }
+th { color:var(--muted); font-weight:600; font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; }
+code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padding:.05rem .3rem; border-radius:3px; } pre.flow code { background:none; padding:0; }
+ul, ol { margin:.4rem 0 .8rem 1.2rem; } li { margin:.25rem 0; }
+hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
+@media (max-width:900px) { .shell { grid-template-columns:1fr; } nav.toc { position:relative; height:auto; border-right:none; border-bottom:1px solid var(--stroke); max-height:40vh; } }
+</style>
+<link rel="stylesheet" href="/urca-diagrams.css" />
+<link rel="stylesheet" href="/urca-docs.css" />
+</head><body class="vendor-dd">
+<div class="shell"><nav class="toc">
+<div class="brand">Datadog pipeline</div>
+<a href="/docs.html">← Docs index</a>
+<a href="#mental-model-one-page" class="l2">1. Mental model</a>
+<a href="#native-stages-datadog-products" class="l2">2. Native stages once</a>
+<a href="#product-io-contracts" class="l2">3. Product I/O</a>
+<a href="#stores-what-gets-updated-when" class="l2">4. Stores (when they update)</a>
+<a href="#tag-join-why-it-matters" class="l2">5. Tag join (deep)</a>
+<a href="#walkthrough-lab" class="l2">6. Walkthrough (lab)</a>
+<a href="#known-unknowns" class="l2">7. Known unknowns</a>
+<a href="#takeaway" class="l2">8. Takeaway</a>
+</nav><main class="article">
+<h1 id="datadog-production-pipeline-native-map-evidence">Datadog production pipeline — native map</h1>
+<p><strong>Audience:</strong> engineers who need Datadog’s always-on fabric clear <strong>on Datadog’s own terms</strong> before comparing any other vendor.<br />
+<strong>Status:</strong> teaching / design reference — public product framing + live MCP + lab observation.<br />
+<strong>Date:</strong> 2026-08-13</p>
+<p><strong>Hub index</strong> (same as <a href="/dd-detect-category-hub.html">DD hub</a>): <strong>01 Thesis</strong> (this page) → <strong>02 Breakdown</strong> → <strong>03 Three-rail</strong> → <strong>04 Timeline</strong>.</p>
+<p><strong>Inside 01 Thesis</strong> (not Hub 02–04):</p>
+<ol>
+  <li><strong>Mental model</strong> — three product rails (Metrics ∥ APM ∥ Logs) and one join key: <strong>tags</strong>.</li>
+  <li><strong>Native stages once</strong> — product chain + diagnose one-liner. Lab clocks live here too.</li>
+  <li><strong>I/O + stores</strong> — per-product contracts and when each store updates. Skip if stages-once is enough.</li>
+  <li><strong>Tag join</strong> — vs Service Map, miss policies. Unique depth — not a second mental model.</li>
+  <li><strong>One walkthrough</strong> — lab FE→product→inventory. The host-only tenant snapshot is the same fabric with one node.</li>
+</ol>
+<p>Then leave this page: <strong>02 Breakdown</strong> animates the stages · <strong>03 Three-rail</strong> is the Metrics ∥ APM ∥ Logs journey · <strong>04 Timeline</strong> holds Observed clocks. This page does not repeat those.</p>
+<p><strong>Detect classes are not Thesis modes.</strong> ERROR and SLOWDOWN are examples of the same Agent → tags → rails fabric. Switch them on Hub and Timeline — this page stays put.</p>
+<p><strong>Honesty labels:</strong> <em>Observed (MCP)</em> = tenant query · <em>Observed (agent)</em> = local Agent · <em>Observed (lab)</em> = <code>datadog-rca-lab</code> · <em>Public framing</em> = vendor language · <em>Inferred</em> = our model.</p>
+<p><strong>Out of scope:</strong> Lean vs Federated, L0/F1, CARE / Murphy / Nezha. Dynatrace is a separate hub — not a twin, not a bakeoff chapter here.</p>
+<hr />
+
+<h2 id="mental-model-one-page">1. Mental model (one page)</h2>
+<p>Datadog is best understood as:</p>
+<div class="ud-viz">
+  <div class="ud-cap">Datadog mental model — tagged write, then two Detect doors</div>
+  <div class="ud-fork">
+    <span class="ud-chip dd">Datadog Agent</span>
+    <div class="ud-down">▼ tagged intake (∥)</div>
+    <div class="ud-rails three">
+      <div class="ud-panel dd"><h5>Metrics</h5><p>Timeseries by tags</p></div>
+      <div class="ud-panel dd"><h5>APM</h5><p>Traces · resources · inferred Service Map</p></div>
+      <div class="ud-panel dd"><h5>Logs</h5><p>Indexed lines</p></div>
+    </div>
+    <div class="ud-down">▼</div>
+    <div class="ud-flow" style="justify-content:center">
+      <span class="ud-chip">Monitors</span>
+      <span class="ud-chip soft">∥</span>
+      <span class="ud-chip">Watchdog</span>
+    </div>
+    <div class="ud-down">▼</div>
+    <span class="ud-chip soft">Operator · flamegraph · optional Bits / Incident</span>
+  </div>
+  <p class="ud-note">Join key = tags. Detect doors are independent. Packaging is optional. <code>∥</code> = parallel, not fused.</p>
+</div>
+<table>
+<thead><tr><th>Path</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Agent → <strong>Metrics / APM / Logs</strong></td><td>Continuous productized intake, joined primarily by <strong>tags</strong> (<code>service</code>, <code>env</code>, <code>host</code>, …)</td></tr>
+<tr><td><strong>Monitors</strong> (Door A)</td><td>Explicit thresholds / forecasts / APM queries → alert states</td></tr>
+<tr><td><strong>Watchdog</strong> (Door B)</td><td>Statistical anomaly <strong>stories</strong> → events; may drive an <code>event-v2</code> monitor</td></tr>
+<tr><td>Insights / Bits AI / Incidents</td><td>Assist correlational packaging — <strong>not</strong> observed as a rich Incident card in this tenant</td></tr>
+</tbody>
+</table>
+<p>It is <strong>not</strong>:</p>
+<div class="ud-viz"><div class="ud-cap">Not this shape</div>
+<div class="ud-flow"><span class="ud-chip warn">Alert fires</span><span class="ud-arrow">→</span><span class="ud-chip warn">RCA wakes</span><span class="ud-arrow">→</span><span class="ud-chip warn">pull raw MELT for whole estate</span></div>
+<p class="ud-note">Fabric writes continuously first — Detect reads what is already written.</p>
+</div>
+<p><strong>Not a Dynatrace dual-track:</strong> explorers stay separate; join is tags, not a shared <code>entityId</code> stamped onto a map and a lake. Backend is still not “three equal peer DBs” — Metrics timeseries ∥ Husky events (traces + logs). Cite: <a href="https://www.datadoghq.com/blog/engineering/introducing-husky/">Introducing Husky</a> · <a href="https://www.datadoghq.com/blog/engineering/husky-query-architecture/">Husky query architecture</a>.</p>
+<p><strong>Myths to drop:</strong> (1) platform lake = Grail — no; (2) Service Map is written in parallel like Smartscape — it is largely <strong>APM-derived</strong>; (3) Detect = only monitors — Watchdog is a second door; (4) Alert = Incident — stories can fire with <strong>zero</strong> Incidents (<strong>Observed (MCP)</strong>).</p>
+
+<h3 id="one-join-key-tags">1.1 One join key for three explorers (tags)</h3>
+<p><strong>In one sentence:</strong> Datadog stamps every metric, span, and log with the same keys (<code>service</code>, <code>env</code>, <code>version</code>, <code>host</code>, …). Those strings are how Related, monitors, and the flamegraph pivot. The three explorers never copy from each other — they all received the tags at write time.</p>
+<div class="note ok">
+  <strong style="color:var(--text)">Three rails, one job each</strong>
+  <ul style="margin:.4rem 0 0 1.1rem">
+    <li><strong>Metrics</strong> = what the number did (timeseries).</li>
+    <li><strong>APM</strong> = what the call did (spans / flamegraph / inferred map).</li>
+    <li><strong>Logs</strong> = what the line said (indexed events).</li>
+  </ul>
+  Without shared tags, “inventory” in a span, a metric, and a log are three different strings. Later steps cannot join them.
+</div>
+<p><strong>What “bind” means here:</strong> Tagging. Not a LUT to <code>SERVICE-INV</code>. Teaching filter: <code>env:rca-lab-e3</code> + <code>service:inventory</code> + a <code>version</code> stamp.</p>
+<p data-thesis-cat="error"><strong>Lab example (ERROR):</strong> inventory KeyError → HTTP <strong>500</strong> leaf / callers <strong>502</strong> · <code>version:keyerror-20260810T072333Z</code>.</p>
+<p data-thesis-cat="slowdown"><strong>Lab example (SLOWDOWN):</strong> inventory ledger-scan → HTTP <strong>200 · ~9s</strong> leaf. Same Agent → tags → rails story; Detect and leaf evidence change.</p>
+<div class="ud-viz">
+  <div class="ud-cap">Three steps · same bind, two Detect classes</div>
+  <div class="ud-grid" style="grid-template-columns:1fr;gap:.55rem">
+    <div class="ud-panel warn">
+      <h5>① Arrive — dialects, no join yet</h5>
+      <p style="margin:0;color:var(--muted);font-size:.92rem">Span <code>service:inventory</code> · metric <code>rca.inventory.stock.*</code> · log <code>stock.error</code> / <code>stock.ok</code> — three products until tags match.</p>
+    </div>
+    <div class="ud-panel dd">
+      <h5>② Tag — stamp the join keys</h5>
+      <div class="ud-flow" style="justify-content:flex-start;margin:.35rem 0">
+        <span class="ud-chip soft">raw records</span>
+        <span class="ud-arrow">→</span>
+        <span class="ud-chip dd"><code>service</code> · <code>env</code> · <code>version</code></span>
+      </div>
+      <p style="margin:0;font-size:.92rem;color:var(--muted)">Lab: <code>DD_ENV=rca-lab-e3</code> on FE, product, and inventory.</p>
+    </div>
+    <div class="ud-panel accent">
+      <h5>③ Join — explorers share the filter</h5>
+      <p style="margin:0;font-size:.92rem;color:var(--muted)">Same <code>env</code>/<code>service</code>/<code>version</code> on Metrics ∥ APM ∥ Logs. Service Map edges still come from <strong>spans</strong>, not from tags inventing topology.</p>
+    </div>
+  </div>
+</div>
+<hr />
+
+<h2 id="native-stages-datadog-products">2. Native stages → Datadog products</h2>
+<p>Datadog teaching uses a <strong>lean 8-stage</strong> product chain. There is <strong>no Maintain stage</strong> — continuous write <em>is</em> stage 03. Clock A vocabulary is a lens, not a twin of Dynatrace’s 11.</p>
+<table>
+<thead><tr><th>Job (our lens)</th><th>Datadog product</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><strong>Collect</strong></td><td><strong>Datadog Agent</strong> (+ ddtrace, DogStatsD, log tail)</td><td>Edge capture; export to intake</td></tr>
+<tr><td><strong>Identity</strong></td><td><strong>Unified Service Tags</strong></td><td>Stamp <code>service</code> · <code>env</code> · <code>version</code> · <code>host</code> so explorers join</td></tr>
+<tr><td><strong>Write (fan-out)</strong></td><td><strong>Metrics ∥ APM ∥ Logs</strong></td><td>Continuous product rails. Backend: Metrics timeseries ∥ Husky events (traces/logs)</td></tr>
+<tr><td><strong>Topology view</strong></td><td><strong>Service Catalog + Service Map</strong></td><td>Mostly <strong>APM-derived</strong> peers — not a parallel map write like Smartscape</td></tr>
+<tr><td><strong>Detect</strong></td><td><strong>Monitors ∥ Watchdog</strong></td><td>Door A = query + threshold. Door B = anomaly stories. <strong>Alert ≠ Incident</strong></td></tr>
+<tr><td><strong>Scope</strong></td><td><strong>Related + time/tag filter</strong></td><td>Operator (or Bits) cuts env/service/version + UTC window — not whole-estate diagnosis</td></tr>
+</tbody>
+</table>
+<p><strong>After Detect = diagnose (Clock B analog)</strong> — not another write stage: <strong>Localize</strong> (flamegraph leaf: deepest error <em>or</em> longest self-time) → <strong>Identify</strong> (tag-join Metrics ∥ Logs ∥ traces) → <strong>Package</strong> (optional Bits Investigation / Incident — often absent).</p>
+<p>8-stage IPO (Input → Process → Output) lives on Hub and Breakdown. This page does not reprint it.</p>
+
+<h3 id="lab-clocks">Lab clocks (same fabric)</h3>
+<p>Teaching isolate: <code>env:rca-lab-e3</code>. Full replay: Timeline. Do not reuse ERROR clocks for SLOWDOWN.</p>
+<div data-thesis-cat="error">
+<p><strong>ERROR · 2026-08-10</strong> · <code>version:keyerror-20260810T072333Z</code> · Timeline: <a href="/dd-lab-timeline-error.html">ERROR Timeline</a></p>
+<table>
+<thead><tr><th>Beat</th><th>Write (03)</th><th>Detect (05)</th></tr></thead>
+<tbody>
+<tr><td>Fault on</td><td>inventory KeyError / 500 · callers 502 · Metrics <code>rca.inventory.stock.errors</code>≈2403 · APM≈2427 · Logs≈2486</td><td>Door A Flask <code>310925690</code> → <strong>Alert</strong> after <code>min(last_15m)</code></td></tr>
+<tr><td>Door B</td><td>Spans + logs already written</td><td>APM Watchdog <strong>0</strong> (bridge <code>310485027</code> OK) · logs_pattern_anomaly present</td></tr>
+<tr><td>Package</td><td>—</td><td><strong>Incident 0</strong> · Bits optional</td></tr>
+</tbody>
+</table>
+</div>
+<div data-thesis-cat="slowdown">
+<p><strong>SLOWDOWN · 2026-08-11</strong> · <code>version:slowdown-20260811T045553Z</code> · window 04:58:07Z–05:10:34Z · Timeline: <a href="/dd-lab-timeline-slowdown.html">SLOWDOWN Timeline</a></p>
+<table>
+<thead><tr><th>Beat</th><th>Write (03)</th><th>Detect (05)</th></tr></thead>
+<tbody>
+<tr><td>Slow on</td><td>inventory HTTP <strong>200</strong> · p95 ~9–22s · 295 ok spans &gt;5s — <em>loud Write</em></td><td><strong>Empty foghorn</strong> — error Door A OK · latency Door A <em>absent</em> · Watchdog 0</td></tr>
+<tr><td>Localize</td><td>Flamegraph still has the long <code>inventory.stock</code> self-time</td><td>Operator opened APM for the known UTC window — not a Door</td></tr>
+<tr><td>Package</td><td>—</td><td>Incident 0</td></tr>
+</tbody>
+</table>
+<p style="color:var(--muted);font-size:.95rem;"><strong>Teaching:</strong> Write ≠ Detect ≠ Localize. Slow charts in explorers are Write, not a Detected incident.</p>
+</div>
+<hr />
+
+<h2 id="product-io-contracts">3. Product I/O contracts</h2>
+<p>Each block as <strong>Input → Process → Output</strong>. This is <em>not</em> a second stage map — that is §2. Skip if §2 was enough.</p>
+
+<h3 id="agent">3.1 Datadog Agent</h3>
+<table><tr><th>Role</th><th>Content</th></tr>
+<tr><td><strong>Input</strong></td><td>Host OS / processes / containers; optional APM libraries; log files / journal</td></tr>
+<tr><td><strong>Process</strong></td><td>Collect; dogstatsd; optional APM / log forward; attach host tags; export</td></tr>
+<tr><td><strong>Output</strong></td><td>Streams into Metrics / APM / Logs intake</td></tr></table>
+<p><strong>Observed (agent):</strong> Agent v7 on WSL; hostname must be set or Agent exits. <strong>Observed (MCP):</strong> host <code>DESKTOP-MBPAQK1</code>, Agent <code>7.81.3</code>, <code>env:dev</code>.</p>
+
+<h3 id="tagging-io">3.2 Tagging (identity)</h3>
+<table><tr><th>Role</th><th>Content</th></tr>
+<tr><td><strong>Input</strong></td><td>Raw points / spans / logs</td></tr>
+<tr><td><strong>Process</strong></td><td>Stamp <code>service</code> · <code>env</code> · <code>version</code> · <code>host</code> (app, Agent, APM enrichment)</td></tr>
+<tr><td><strong>Output</strong></td><td>Tag-joinable envelopes — still not an Incident</td></tr></table>
+<p>Depth (sources, miss policies, Map vs tags): <a href="#tag-join-why-it-matters">§5</a>.</p>
+
+<h3 id="rails">3.3 Metrics / APM / Logs (product rails · backend honesty)</h3>
+<table><tr><th>Product rail</th><th>Holds (operator)</th><th>Backend (official eng)</th></tr>
+<tr><td><strong>Metrics</strong></td><td>Timeseries by tags</td><td><strong>Classic Metrics timeseries</strong> — <code>&lt;timeseries_id, timestamp, float64&gt;</code>; bounded cardinality. <em>Not</em> Husky.</td></tr>
+<tr><td><strong>APM / Traces</strong></td><td>Spans, resources, flamegraph</td><td><strong>Husky / Event Platform</strong> — spans as events</td></tr>
+<tr><td><strong>Logs</strong></td><td>Indexed log lines</td><td><strong>Husky / Event Platform</strong> — high-cardinality events</td></tr></table>
+<p><strong>Write = continuous. Query = on-demand</strong> per explorer. APM can also emit Metrics series (e.g. <code>trace.flask.request.errors</code>) while spans land as Husky events — dual emission, still tag-joined.</p>
+
+<h3 id="service-map">3.4 Service Catalog + Service Map</h3>
+<table><tr><th>Role</th><th>Content</th></tr>
+<tr><td><strong>Input</strong></td><td>APM peers, process discovery, optional catalog YAML</td></tr>
+<tr><td><strong>Process</strong></td><td>Upsert names; materialize <strong>calls / peer</strong> edges from traces</td></tr>
+<tr><td><strong>Output</strong></td><td>Catalog + dependency list (can lag traces)</td></tr></table>
+<p><strong>Observed (MCP):</strong> host catalog is discovery-heavy (<code>node</code> → peer hostnames). Lab map is FE→product→inventory from spans. Does <strong>not</strong> store metric history.</p>
+
+<h3 id="monitors">3.5 Monitors (Door A)</h3>
+<table><tr><th>Role</th><th>Content</th></tr>
+<tr><td><strong>Input</strong></td><td>Metric / log / APM queries + thresholds</td></tr>
+<tr><td><strong>Process</strong></td><td>Async eval → OK / Warn / Alert / No Data</td></tr>
+<tr><td><strong>Output</strong></td><td>Monitor status + notifications</td></tr></table>
+<p><strong>Observed:</strong> host query monitors OK on the laptop snapshot. Lab ERROR: Flask error-rate <code>310925690</code> Alert after sustain. Lab SLOWDOWN: that same error Door stays OK on HTTP 200 (no latency Door scoped).</p>
+
+<h3 id="watchdog">3.6 Watchdog (Door B)</h3>
+<table><tr><th>Role</th><th>Content</th></tr>
+<tr><td><strong>Input</strong></td><td>Platform series (APM / infra / logs)</td></tr>
+<tr><td><strong>Process</strong></td><td>Anomaly → <strong>story</strong> → <code>source:watchdog</code> events</td></tr>
+<tr><td><strong>Output</strong></td><td>Stories + events; optional bridge monitor</td></tr></table>
+<p><strong>Observed (MCP) host:</strong> error_rate story on <code>service:node</code> / <code>/bin/bash</code>; APM bridge Alert. <strong>Lab ERROR:</strong> 0 APM stories, logs Insights present. <strong>Lab SLOWDOWN:</strong> 0 APM stories. Alert ≠ Incident.</p>
+
+<h3 id="package">3.7 Insights / Bits AI / Incidents (package — thin)</h3>
+<table><tr><th>Role</th><th>Content</th></tr>
+<tr><td><strong>Input</strong></td><td>Alerts / stories; related services; scoped M/T/L</td></tr>
+<tr><td><strong>Process</strong></td><td>Correlational relatedness / UI pivots (<strong>Inferred</strong> scoring)</td></tr>
+<tr><td><strong>Output</strong></td><td>Insight assists / optional Incident card</td></tr></table>
+<p><strong>Observed (MCP + lab):</strong> <strong>0</strong> Incidents. Bits is a separate click (Interpret tab), not started by Detect.</p>
+<hr />
+
+<h2 id="stores-what-gets-updated-when">4. Stores — what gets updated when</h2>
+<p>Skip if §2 was enough.</p>
+<table><tr><th>Store</th><th>Holds</th><th>Touched at</th></tr>
+<tr><td>Agent (edge)</td><td>Collectors, buffers, export</td><td>Continuous collect</td></tr>
+<tr><td>Metrics</td><td>Tag-keyed series</td><td>Continuous write; explorer = read</td></tr>
+<tr><td>APM</td><td>Spans / resources / peers</td><td>Continuous write; trace search = read</td></tr>
+<tr><td>Logs</td><td>Indexed lines</td><td>Continuous write; log search = read</td></tr>
+<tr><td>Service Catalog / Map</td><td>Names + APM-derived edges</td><td>Discovery / trace materialization</td></tr>
+<tr><td>Monitors</td><td>Alert state machines</td><td>Detect evaluation</td></tr>
+<tr><td>Watchdog</td><td>Stories + events</td><td>Anomaly Detect</td></tr>
+<tr><td>Incidents</td><td>Packaged operator cards</td><td>Optional; <strong>absent</strong> in Observed snapshots</td></tr></table>
+<hr />
+
+<h2 id="tag-join-why-it-matters">5. Tag join — why it matters</h2>
+<p>Unique depth. Not a second mental model — §1 already said “join = tags.”</p>
+<h3 id="where-tags-come-from">5.1 Where tags come from</h3>
+<ol>
+<li><strong>App / tracer</strong> — <code>DD_SERVICE</code>, <code>DD_ENV</code>, <code>DD_VERSION</code> (lab: <code>datadog-rca-lab/docker-compose.yml</code>).</li>
+<li><strong>Agent</strong> — host tags, Docker/K8s auto-tags, <code>datadog.yaml</code> / <code>DD_TAGS</code>.</li>
+<li><strong>APM enrichment</strong> — peers and status on spans as traces are processed.</li>
+</ol>
+<p><strong>Lab reminder:</strong> teaching filter is <code>DD_ENV=rca-lab-e3</code> plus the per-run <code>DD_VERSION</code> on FE, product, and inventory. Retire <code>rca-lab</code> / <code>rca-lab-e2</code> for ERROR teaching queries.</p>
+
+<h3 id="two-artifacts">5.2 Two artifacts — do not conflate</h3>
+<div class="ud-viz"><div class="ud-cap">Two artifacts — do not conflate</div>
+<div class="ud-grid two">
+  <div class="ud-panel accent"><h5>Tagging (this stage)</h5><p>Telemetry stream → identity on each record</p></div>
+  <div class="ud-panel"><h5>Service Map</h5><p>APM discovery → call / peer edges</p></div>
+</div>
+<p class="ud-note">Tags do not invent the map; spans do. Map can lag traces — trust flamegraph / <code>peer.hostname</code> first on a fresh lab.</p>
+</div>
+
+<h3 id="if-unbound">5.3 If unbound / mistagged</h3>
+<table><tr><th>Later stage</th><th>Needs</th><th>If unbound / mistagged</th></tr>
+<tr><td>Metrics / Logs / APM write</td><td>consistent <code>service</code> / <code>host</code> / <code>env</code></td><td>Orphan series, weak Related</td></tr>
+<tr><td>Service Map edges</td><td>peer services from traces</td><td>Floating peers / inferred hostnames</td></tr>
+<tr><td>Monitors / Watchdog</td><td>tag scope on queries / stories</td><td>Wrong entity or noisy story</td></tr>
+<tr><td>Related / flamegraph</td><td>related + scoped pull</td><td>Cannot name culprit honestly</td></tr></table>
+<p>Unresolved <code>service:inv-svc-v2</code>: first-seen auto service, weak Related, or remapping (<strong>Public framing</strong>).</p>
+<hr />
+
+<h2 id="walkthrough-lab">6. Walkthrough — lab FE → product → inventory</h2>
+<p><strong>One worked example.</strong> Same topology as the Dynatrace lab, told Datadog-native. Host-only MCP snapshot (one laptop, <code>service:node</code>, Watchdog on <code>/bin/bash</code>, Incident 0) is this fabric with fewer nodes — archive in the markdown companion, not a second story here.</p>
+<p>Detail: <a href="./datadog-lab-evidence-mtl-error-2026-08-10.md">ERROR evidence 2026-08-10</a> · Timelines: <a href="./dd-lab-timeline-error.html">ERROR</a> · <a href="./dd-lab-timeline-slowdown.html">SLOWDOWN</a>.</p>
+
+<div class="ud-viz">
+  <div class="ud-cap">Lab call path · same topology</div>
+  <div class="ud-chain">
+    <div class="ud-node"><span class="ud-role">Entry</span><code>curl :18080/api/checkout</code></div>
+    <div class="ud-link"></div>
+    <div class="ud-node"><span class="ud-role">Service</span>frontend <span class="ud-side" style="margin:0;margin-left:auto">ddtrace → Agent :8126 → APM · <code>env:rca-lab-e3</code></span></div>
+    <div class="ud-link"></div>
+    <div class="ud-node"><span class="ud-role">Service</span>product</div>
+    <div class="ud-link"></div>
+    <div class="ud-node leaf"><span class="ud-role">Leaf</span>inventory — ERROR: HTTP <strong>500</strong> KeyError · SLOWDOWN: HTTP <strong>200</strong> ~9s</div>
+  </div>
+</div>
+
+<table>
+<thead><tr><th>Stage</th><th>ERROR example</th><th>SLOWDOWN example</th></tr></thead>
+<tbody>
+<tr><td><strong>Agent</strong></td><td>Trace Agent · DogStatsD <code>:8125</code> · log tail <code>rca_lab_logs.d</code></td><td>Same path · <code>version:slowdown-20260811T045553Z</code></td></tr>
+<tr><td><strong>Tagging</strong></td><td><code>env:rca-lab-e3</code> · <code>version:keyerror-20260810T072333Z</code></td><td>Same join keys; span status stays <code>ok</code> / HTTP 200</td></tr>
+<tr><td><strong>Write (03)</strong></td><td>errors series + KeyError spans + stock.error logs</td><td>Loud duration / ok spans &gt;5s — <em>not</em> a Detect Alert</td></tr>
+<tr><td><strong>Service Map</strong></td><td>FE→product→inventory (can lag)</td><td>Same peers — Map ≠ leaf</td></tr>
+<tr><td><strong>Detect (05)</strong></td><td>Door A Alert after sustain · Door B APM quiet · logs Insights</td><td><strong>Empty</strong> — error Door OK · no latency Door · Watchdog 0</td></tr>
+<tr><td><strong>Flamegraph (07)</strong></td><td>Deepest <code>500</code>/<code>KeyError</code> on inventory; upstream 502 are symptoms</td><td>Longest <strong>self-time</strong> <code>inventory.stock</code> (~11s) — not status:error</td></tr>
+</tbody>
+</table>
+<p id="thesis-detect-blurb" data-thesis-cat="error"></p>
+<p id="thesis-detect-blurb-slow" data-thesis-cat="slowdown"></p>
+
+<h3 id="pipeline-insight">6.1 Pipeline insight</h3>
+<ul>
+<li><strong>Join key is tags</strong> — evidence lives in APM / Metrics / Logs scoped by <code>env:rca-lab-e3</code> / <code>service</code> / <code>version</code>.</li>
+<li><strong>Detect surfaces are not fused</strong> — Door A can Alert while Door B APM stays quiet (ERROR); both can stay quiet while Write is loud (SLOWDOWN).</li>
+<li><strong>Leaf rule changes with class</strong> — ERROR: deepest error. SLOWDOWN: longest self-time. Service Map chip is not the leaf.</li>
+<li><strong>Packaging stayed thin</strong> — Incident 0 in every Observed snapshot here.</li>
+</ul>
+<hr />
+
+<h2 id="known-unknowns">7. Known unknowns</h2>
+<table><tr><th>Topic</th><th>Status</th></tr>
+<tr><td>Exact Watchdog / Bits AI scoring internals</td><td>Not published; black-box</td></tr>
+<tr><td>When Insights auto-opens an Incident</td><td>Environment-dependent; <strong>not observed</strong> here</td></tr>
+<tr><td>Retention / sampling SKUs</td><td>Not specified in this repo</td></tr>
+<tr><td>Automated Step-2 path-diff fused into Incident</td><td><strong>Not verified</strong> — <a href="./two-step-rca-white-space.md">two-step-rca-white-space.md</a></td></tr>
+<tr><td>Public top-1 RCA accuracy scoreboard</td><td>Self-reported / absent — <a href="./VENDOR_BENCHMARKS.md">VENDOR_BENCHMARKS.md</a></td></tr></table>
+<hr />
+
+<h2 id="takeaway">8. Takeaway</h2>
+<ol>
+<li>Describe Datadog <strong>as Datadog</strong>: Agent → Tagging → Metrics/APM/Logs → Monitors <strong>and</strong> Watchdog → flamegraph / Related → optional Bits/Incident.</li>
+<li>Service Map is largely <strong>APM-derived</strong>; product rails are separate explorers joined by <strong>tags</strong>; backend is Metrics timeseries ∥ Husky events.</li>
+<li>Host snapshot proved <strong>fabric + Watchdog</strong>; the lab proved <strong>microservice APM + Door A</strong> — still <strong>not</strong> a packaged Incident RCA card.</li>
+<li>Write ≠ Detect. SLOWDOWN can be loud in explorers with an empty foghorn.</li>
+</ol>
+<p><strong>Next:</strong> Breakdown (mechanisms) · Three-rail · Timeline. Markdown companion: <a href="/docs/DATADOG_PRODUCTION_PIPELINE.md">DATADOG_PRODUCTION_PIPELINE.md</a> (full depth, including the host-only tenant snapshot and dual-vendor appendix omitted here). Lab ref: <a href="../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md">DATADOG_RCA_REFERENCE.md</a>. Compare after vendor hubs: <a href="/comparable-pipeline-dt-dd.html">DT vs DD vs ED</a>.</p>
+</main></div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dd-detect-categories.js" defer></script>
+<script src="/toc-spy.js" defer></script>
+<script>
+(function () {
+  function frameOutbound() {
+    if (!window.URCA_DD_CATS) return;
+    var API = URCA_DD_CATS;
+    var e = document.getElementById("thesis-detect-blurb");
+    var s = document.getElementById("thesis-detect-blurb-slow");
+    if (e) e.innerHTML = "<strong>Detect tip (ERROR):</strong> " + (API.lab.error.thesisDetect || "");
+    if (s) s.innerHTML = "<strong>Detect tip (SLOWDOWN):</strong> " + (API.lab.slowdown.thesisDetect || "");
+    document.querySelectorAll('a[href*="datadog-subsystem-mechanisms"],a[href*="dd-e2e-metrics"],a[href*="dd-lab-timeline"]').forEach(function (a) {
+      try {
+        var u = new URL(a.getAttribute("href"), location.origin);
+        a.href = API.withCat(u.pathname, API.current());
+      } catch (err) {}
+    });
+  }
+  function ready(fn) {
+    if (window.URCA_DD_CATS) fn();
+    else setTimeout(function () { ready(fn); }, 20);
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    ready(frameOutbound);
+  });
+})();
+</script>
+</body></html>

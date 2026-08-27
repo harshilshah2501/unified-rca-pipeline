@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Datadog · Detect categories</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link rel="stylesheet" href="/urca-diagrams.css" />
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="article vendor-dd">
+<div class="wrap article">
+  <div class="eyebrow">Datadog · L0 vendor launchpad</div>
+  <h1>Detect categories</h1>
+  <p class="lead">
+    Native Datadog reading, then the shared abstract pipeline and ObserveOps HLD.
+    Same template and chronology as the Dynatrace hub — vendor terms unchanged.
+    Return to <a href="/docs.html">docs index</a> for the full L0–L3 ladder.
+  </p>
+
+  <div class="spine" aria-label="Hub chronology">
+    <span>01 Thesis</span><span class="arr">→</span>
+    <span>02 Breakdown</span><span class="arr">→</span>
+    <span>03 Three-rail</span><span class="arr">→</span>
+    <span>04 Timeline</span>
+    <span class="arr">·</span>
+    <span style="border-color:rgba(232,184,109,.45);color:#e8b86d">Layer I · MTL · Bits</span>
+  </div>
+
+  <div id="urca-hub-launchpad" data-vendor="dd"></div>
+  <script src="/urca-hub-launchpad.js" defer></script>
+
+  <div class="note">
+    Category switcher (<code>?cat=</code>) frames Hub, Breakdown, Three-rail, Timeline, and Interpret. Thesis is shared fabric — no category on that page. Use the ladder when moving from vendor study → compare lens → HLD → LLDs.
+    <strong style="color:var(--text)">Layer I</strong> (MTL · Bits) is optional interpretation — not E-blocks. See
+    <a href="/observeops-pipeline-hld.html#overview">ObserveOps HLD</a>.
+  </div>
+
+  <div class="note ok">
+    <strong style="color:var(--text)">Official eng (Husky):</strong>
+    Metrics = pre-aggregated timeseries.
+    Husky = Event Platform columnar event store for logs, traces, network data, and more
+    (<a href="https://www.datadoghq.com/blog/engineering/introducing-husky/">Introducing Husky</a> ·
+    <a href="https://www.datadoghq.com/blog/engineering/husky-query-architecture/">query architecture</a>).
+    Teaching still joins rails with <code>service</code> / <code>env</code> / <code>version</code> (+ <code>trace_id</code>).
+  </div>
+
+  <h2 id="chronology">L0 chronology — read in this order (every category)</h2>
+  <table>
+    <thead>
+      <tr><th>Step</th><th>Slot</th><th>Input focus</th><th>Processing focus</th><th>Output focus</th><th>Unfolds toward</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>01 · Thesis</strong></td>
+        <td>Shared fabric map (this page)</td>
+        <td>Raw telemetry (Agent / tags) — not a Detect class</td>
+        <td>Mental model · native stages once · tag join · one lab walkthrough</td>
+        <td>Metrics ∥ APM ∥ Logs + tags</td>
+        <td>02 Breakdown (not a second Thesis)</td>
+      </tr>
+      <tr>
+        <td><strong>02 · Breakdown</strong></td>
+        <td>Stage IPO canvas</td>
+        <td>Per-stage artifacts (X at each block)</td>
+        <td>Input → process → output per mechanism</td>
+        <td>Stage outputs and handoffs</td>
+        <td>E1–E11 block map</td>
+      </tr>
+      <tr>
+        <td><strong>03 · Three-rail journey</strong></td>
+        <td>Metrics ∥ APM ∥ Logs walk</td>
+        <td>Category signal on rails and map</td>
+        <td>Cross-rail joins and map traversal</td>
+        <td>Leaf + corroboration readiness</td>
+        <td>E3/E4/E9/E10 anchors</td>
+      </tr>
+      <tr>
+        <td><strong>04 · Timeline</strong></td>
+        <td>Observed category run</td>
+        <td>Break / load / heal windows</td>
+        <td>Door A/B + Curate + leaf sequence in time</td>
+        <td>Packaging behavior Observed</td>
+        <td>Lab proof for HLD/LLD gates</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="phase-lens">Phase outputs (compare lens — for cross-reading only)</h2>
+  <table>
+    <thead>
+      <tr><th>Phase</th><th>Input artifact</th><th>Processing job</th><th>Output artifact</th><th>DD-native anchor</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>F · Fabric</strong></td>
+        <td>Edge telemetry + discovery streams</td>
+        <td>Ingest, tag/normalize, derive topology, persist, maintain freshness</td>
+        <td>Estate (join keys + topology + evidence stores + baseline freshness)</td>
+        <td>Metrics store ∥ Husky + APM-derived Service Map</td>
+      </tr>
+      <tr>
+        <td><strong>T · Triage</strong></td>
+        <td>Detect signals/stories</td>
+        <td>Sort/merge signals, choose seed, lock time/space</td>
+        <td>Working set (<code>seed + time + candidate CIs</code>)</td>
+        <td>Monitors/Watchdog + operator/related scoping</td>
+      </tr>
+      <tr>
+        <td><strong>D · Diagnose</strong></td>
+        <td>Working set + multimodal evidence</td>
+        <td>Localize leaf, corroborate, optional packaging</td>
+        <td>Verdict card (<code>leaf claim + corroboration + operator handoff</code>)</td>
+        <td>Leaf from MTL; Bits/Incident optional handoff</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="tabs">L0 slots — what each tab is for</h2>
+  <table>
+    <thead>
+      <tr><th>Slot</th><th>Job</th><th>Use for</th><th>Not for</th><th>Next layer</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>01 · Thesis</strong></td>
+        <td>Shared fabric map</td>
+        <td>Mental model · stages once · tag join · one walkthrough</td>
+        <td>Breakdown animation · Three-rail journey · Observed replay (those are 02–04)</td>
+        <td><a href="/comparable-pipeline-dt-dd.html#fcd-overview">L1 F→T→D</a></td>
+      </tr>
+      <tr>
+        <td><strong>02 · Breakdown</strong></td>
+        <td>IPO mechanics</td>
+        <td>Per-stage X → process → Y · Host Metrics + Logs + Traces</td>
+        <td>Break/heal clocks · MCP scalars</td>
+        <td><a href="/observeops-pipeline-hld.html#contracts">E-block contracts</a></td>
+      </tr>
+      <tr>
+        <td><strong>03 · Three-rail journey</strong></td>
+        <td>Animated write path</td>
+        <td>How M∥APM∥Logs write for <code>?cat=</code></td>
+        <td>Copy-paste queries · Observed counts</td>
+        <td>E3/E4 reference geometry</td>
+      </tr>
+      <tr>
+        <td><strong>04 · Timeline</strong></td>
+        <td>Observed execution</td>
+        <td>Break/load/heal · Detect surfaces for one category</td>
+        <td>Pipeline animation</td>
+        <td>LLD lab-proof gate</td>
+      </tr>
+      <tr>
+        <td><strong>Layer I · MTL</strong></td>
+        <td>One-run interpretation workbook</td>
+        <td>Emit · queries · Detect doors · leaf for one Observed run</td>
+        <td>Collect/Detect/Localize engineering</td>
+        <td>Not LLD-E*</td>
+      </tr>
+      <tr>
+        <td><strong>Layer I · Bits</strong></td>
+        <td>Optional packaging walk</td>
+        <td>Hypothesis loop · optional E11 narrator</td>
+        <td>Required leaf naming</td>
+        <td>Not LLD-E11 substitute</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="lab-context">Lab context — ERROR e3 clocks (category example)</h2>
+  <table>
+    <thead>
+      <tr><th>Window (UTC · 2026-08-10)</th><th>Kind</th><th>What happened</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Before 07:24:50Z</strong></td>
+        <td><strong style="color:var(--ok)">Baseline</strong></td>
+        <td>Healthy checkouts under <code>env:rca-lab-e3</code> — live baseline + warm discovery for Detect</td>
+      </tr>
+      <tr>
+        <td><strong>07:24:50Z – 07:31:13Z</strong></td>
+        <td><strong>Fault W1</strong></td>
+        <td>Break #1 (KeyError) → load → heal. <em>Not</em> baseline.</td>
+      </tr>
+      <tr>
+        <td><strong>~07:31Z – 07:45:54Z</strong></td>
+        <td>Healthy again</td>
+        <td>Post-heal · catalog restored</td>
+      </tr>
+      <tr>
+        <td><strong>07:45:54Z – ~07:56:42Z</strong></td>
+        <td><strong>Fault W2</strong></td>
+        <td>Heavy re-break + sustained load (Door A Alert after sustain)</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="note warn">
+    Related scope / Bits investigation time locks use <strong style="color:var(--text)">W1 and/or W2</strong>.
+    Baseline is the healthy period <em>before</em> break #1 — always-on fabric stage teaches that.
+  </div>
+
+  <h2 id="baseline">Live baseline &amp; warm discovery (e3 example)</h2>
+  <table>
+    <thead>
+      <tr><th>Term</th><th>Meaning</th><th>This run (<code>env:rca-lab-e3</code>)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Live baseline</strong></td>
+        <td>Ongoing <em>healthy</em> telemetry under the same tags — what “normal” looks like right now (still writing every request)</td>
+        <td><strong>Before 07:24:50Z</strong>: checkout/stock mostly 200 · error rate ≈ 0 · spans mostly <code>ok</code> · no KeyError log flood. Door A later compares the fault against this fabric (<code>min(last_15m)</code> needs those healthy minutes).</td>
+      </tr>
+      <tr>
+        <td><strong>Warm discovery</strong></td>
+        <td>Services / map / resources already known because traffic has been flowing</td>
+        <td>Same pre-break period: catalog has <code>frontend</code> · <code>product</code> · <code>inventory</code>; Service Map FE→product→inventory warm; APM already has <code>GET /api/stock</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="ud-viz">
+    <div class="ud-cap">Live baseline → fault windows (e3 ERROR clocks)</div>
+    <div class="ud-strip">
+      <div class="ud-seg base"><span class="ud-lab">Live baseline + warm discovery</span><span class="ud-val">before 07:24:50Z</span></div>
+      <div class="ud-seg fault"><span class="ud-lab">Fault W1</span><span class="ud-val">07:24–07:31</span></div>
+      <div class="ud-seg"><span class="ud-lab">Healthy gap</span><span class="ud-val">07:31–07:45</span></div>
+      <div class="ud-seg fault"><span class="ud-lab">Fault W2</span><span class="ud-val">07:45–07:56</span></div>
+    </div>
+    <p class="ud-note">Detect judges W1/W2 against the pre-break fabric — it does not invent the baseline at alert time. Stage <strong>03 Write</strong> (Always-on fabric) animates this path — not stage 05 Detect.</p>
+  </div>
+  <div class="note">
+    <strong style="color:var(--text)">W1 is not baseline.</strong>
+    W1 (07:24–07:31Z) and W2 (07:45–07:56Z) are <em>fault</em> scopes for Related / Bits.
+    Short W1 often left Door A OK; long W2 filled <code>min(last_15m)</code> → Alert.
+  </div>
+
+  <div id="urca-dd-pipeline-guide" data-variant="full"></div>
+
+  <div class="ud-viz">
+    <div class="ud-cap">Product rails → backend stores</div>
+    <div class="ud-fork">
+      <span class="ud-chip dd">Operator explorers</span>
+      <div class="ud-down">▼</div>
+      <div class="ud-rails two">
+        <div class="ud-panel dd">
+          <h5>Metrics</h5>
+          <p>→ classic <strong>timeseries</strong> store</p>
+        </div>
+        <div class="ud-panel dd">
+          <h5>APM / Traces ∥ Logs</h5>
+          <p>(+ NPM, RUM, …) → <strong>Husky / Event Platform</strong></p>
+        </div>
+      </div>
+    </div>
+    <p class="ud-note">Join across explorers: <code>Unified Service Tags</code> (+ <code>trace_id</code>). UI three rails ≠ three equal peer DBs.</p>
+  </div>
+
+  <div class="summary" id="hub-summary">
+    <p class="hint">Active category (from bar above)</p>
+    <h2 class="cat-name" id="hub-cat-name"></h2>
+    <div class="meta" id="hub-meta"></div>
+    <p class="blurb" id="hub-blurb"></p>
+  </div>
+
+  <h2>L0 · For this category</h2>
+  <div class="grid" id="hub-cards"></div>
+
+  <h2>All categories</h2>
+  <table>
+    <thead>
+      <tr><th>Category</th><th>Detect signal</th><th>Timeline</th><th>Status</th></tr>
+    </thead>
+    <tbody id="hub-table"></tbody>
+  </table>
+
+  <h2>Related on this hub</h2>
+  <div class="grid two">
+    <a class="card" href="/comparable-pipeline-dt-dd.html">
+      <div class="k compare">L1</div>
+      <h3>DT vs DD vs ED compare</h3>
+      <p>Door A ∥ B vs Davis <code>event.category</code> lives in §0.5. Not a twin list.</p>
+    </a>
+    <a class="card" href="/observability-generations-dt-dd.html">
+      <div class="k compare">Philosophy</div>
+      <h3>Obs 1.0 / 2.0 / 3.0</h3>
+      <p>Must-pass criteria · why DD is a hybrid, not a clean 2.0.</p>
+    </a>
+    <a class="card" href="/observeops-pipeline-hld.html">
+      <div class="k compare">L2</div>
+      <h3>Our HLD</h3>
+      <p>Our E1–E11 after this unveil. D5 stays Review.</p>
+    </a>
+    <a class="card" href="/observeops-fusion-guide.html">
+      <div class="k compare">Detect UCs</div>
+      <h3>ObserveOps Fusion guide</h3>
+      <p>8 Detect use cases (not ED’s 10 Team jobs). Same catalog as the Pipeline HLD.</p>
+    </a>
+  </div>
+
+  <div class="note warn">
+    Full end-to-end depth (Thesis/Breakdown/Three-rail/MTL/Bits, MCP-grounded): <strong style="color:var(--text)">ERROR</strong> +
+    <strong style="color:var(--text)">SLOWDOWN</strong> on <code>env:rca-lab-e3</code>.
+    <strong style="color:var(--text)">RESOURCE_CONTENTION</strong>, <strong style="color:var(--text)">AVAILABILITY</strong>,
+    <strong style="color:var(--text)">MONITORING_UNAVAILABLE</strong> are Timeline-only local labs (Write + local probes;
+    no Datadog MCP pull yet, no MTL/Bits workbook) — see each Timeline's Detect-honesty note before citing them as Observed evidence.
+    SLOWDOWN Observed: Detect can be <em>empty</em> while Write is loud — see
+    <a href="/dd-lab-timeline-slowdown.html?cat=slowdown#insight">Timeline §2 Write ≠ Detect ≠ Localize</a>.
+  </div>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dd-detect-categories.js" defer></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  function ready(fn) {
+    if (window.URCA_DD_CATS) fn();
+    else setTimeout(function () { ready(fn); }, 20);
+  }
+  ready(function () {
+    var API = window.URCA_DD_CATS;
+    API.mountSwitcher({ banner: false });
+    var cat = API.current();
+    API.persist(cat);
+
+    var name = document.getElementById("hub-cat-name");
+    var meta = document.getElementById("hub-meta");
+    var blurb = document.getElementById("hub-blurb");
+    var cards = document.getElementById("hub-cards");
+    var table = document.getElementById("hub-table");
+
+    function paint(cat) {
+      name.textContent = cat.title || cat.name;
+      meta.innerHTML = "";
+      var p1 = document.createElement("span");
+      p1.className = "pill ok";
+      p1.textContent = cat.status;
+      meta.appendChild(p1);
+      if (cat.evidence) {
+        var p2 = document.createElement("span");
+        p2.className = "pill ok";
+        p2.textContent = cat.evidence;
+        meta.appendChild(p2);
+      }
+      var p3 = document.createElement("span");
+      p3.className = "pill";
+      p3.textContent = cat.detect;
+      meta.appendChild(p3);
+      blurb.textContent = cat.blurb;
+
+      var slots = [
+        {
+          href: API.teach.pipeline,
+          k: "01 · Thesis",
+          h: "Thesis",
+          p: "Shared fabric map: mental model · stages once · tag join · one walkthrough. Detect classes live on Hub and Timeline.",
+          not: "Not 02 Breakdown, 03 Three-rail, or 04 Timeline."
+        },
+        {
+          href: API.withCat(API.teach.mechanisms, cat),
+          k: "02 · Breakdown",
+          h: "Breakdown",
+          p: "Lean 8-stage screenshot IPO (Host Metrics · Logs · Traces) → leaf/Bits. Per-stage X → process → Y.",
+          not: "Not break/heal clocks or MCP scalars."
+        },
+        {
+          href: API.withCat(API.teach.e2e, cat),
+          k: "03 · Three-rail journey",
+          h: "Three-rail journey",
+          p: "Animated how Metrics ∥ APM ∥ Logs write along stages for this category. Backend: Metrics store ∥ Husky.",
+          not: "Not E-block LLD spec."
+        },
+        {
+          href: API.withCat(cat.lab, cat),
+          k: "04 · Timeline",
+          h: "Timeline",
+          p: "Clocked Observed Detect→leaf→package for " + (cat.evidence || "this category") + ".",
+          not: "Lab proof input for HLD/LLD gates."
+        }
+      ];
+      if (cat.mtlDoc) {
+        slots.push({
+          href: API.withCat(cat.mtlDoc, cat),
+          k: "Layer I · MTL",
+          h: cat.name + " · MTL workbook",
+          p:
+            cat.id === "slowdown"
+              ? "@duration queries · MCP latency · Detect doors · self-time leaf for one Observed run."
+              : "Emit · queries · MCP counts · Detect doors · leaf for one Observed run.",
+          not: "Not LLD-E* — Layer I only."
+        });
+      }
+      if (cat.bitsDoc) {
+        slots.push({
+          href: API.withCat(cat.bitsDoc, cat),
+          k: "Layer I · Bits",
+          h: "Bits",
+          p:
+            cat.id === "slowdown"
+              ? "Optional packaging walk · inventory.stock self-time · demote equal-duration callers."
+              : "Optional packaging walk · 500 vs 502 ranking · example 90a88d93….",
+          not: "Not required E11 — optional narrator."
+        });
+      }
+      cards.innerHTML = "";
+      slots.forEach(function (s) {
+        var a = document.createElement("a");
+        a.className = "card";
+        a.href = s.href;
+        a.innerHTML =
+          '<div class="k">' + s.k + "</div><h3>" + s.h + "</h3><p>" + s.p + "</p>" +
+          (s.not ? '<p class="not">' + s.not + "</p>" : "");
+        cards.appendChild(a);
+      });
+
+      try {
+        history.replaceState(null, "", API.withCat(API.teach.hub, cat));
+      } catch (e) {}
+    }
+
+    paint(cat);
+
+    table.innerHTML = "";
+    API.list.forEach(function (c) {
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td><strong><a href=\"" +
+        API.withCat(API.teach.hub, c) +
+        "\">" +
+        c.name +
+        "</a></strong></td><td>" +
+        c.detect +
+        "</td><td><a href=\"" +
+        API.withCat(c.lab, c) +
+        "\">Timeline</a></td><td>" +
+        c.status +
+        "</td>";
+      table.appendChild(tr);
+    });
+  });
+});
+</script>
+</body>
+</html>

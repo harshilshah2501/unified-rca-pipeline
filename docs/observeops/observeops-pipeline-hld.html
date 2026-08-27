@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Our HLD — ObserveOps pipeline</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+body{
+  margin:0;font-family:var(--font);font-size:17px;line-height:1.65;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,var(--bg-glow) 0%,transparent 55%),var(--bg);
+}
+a{color:var(--eng);text-decoration:none;} a:hover{text-decoration:underline;}
+h3{font-size:1.05rem;font-weight:650;margin:1.2rem 0 .55rem;color:#e8eef4;}
+p,li{color:var(--muted);}
+.headerCard{
+  border:1px solid var(--stroke);background:var(--bg-elev);border-radius:10px;padding:1rem;
+}
+.badge{display:inline-block;font-family:var(--mono);font-size:.76rem;padding:.18rem .45rem;border-radius:4px;margin-right:.4rem;}
+.bReview{border:1px solid rgba(122,236,196,.55);color:var(--ok);}
+.bVersion{border:1px solid rgba(123,168,245,.5);color:var(--eng);}
+.bLayerI{border:1px solid rgba(232,184,109,.6);color:var(--interp);}
+.note{margin:.9rem 0;padding:.8rem 1rem;border-radius:8px;background:rgba(91,141,239,.1);border-left:3px solid var(--eng);}
+.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media (max-width:860px){.twoCol{grid-template-columns:1fr;}}
+.panel{border:1px solid var(--stroke);border-radius:10px;padding:.9rem;background:var(--bg-elev);}
+.panel h3{margin:0 0 .4rem;font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;}
+.panel.e h3{color:var(--eng);} .panel.i h3{color:var(--interp);}
+th,td{border-bottom:1px solid var(--stroke);padding:.46rem .5rem;vertical-align:top;text-align:left;color:var(--muted);}
+th{font-size:.83rem;color:var(--faint);text-transform:uppercase;letter-spacing:.04em;}
+.phaseRail{display:grid;gap:8px;margin:1rem 0;}
+.phaseRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.bb{min-width:8rem;border:1px solid var(--stroke);border-radius:8px;background:var(--bg-elev);padding:.5rem .65rem;}
+.bb .id{font-family:var(--mono);font-size:.74rem;color:var(--eng);}
+.bb .nm{color:var(--text);font-weight:600;font-size:.92rem;}
+.arrow{font-family:var(--mono);color:var(--faint);}
+.stickyNav{
+  position:sticky;top:0;z-index:10;margin:1rem 0;padding:.7rem .9rem;
+  border:1px solid var(--stroke);border-radius:8px;background:var(--sticky-bg);backdrop-filter:blur(3px);
+}
+.stickyNav a{display:inline-block;margin:.22rem .7rem .22rem 0;font-size:.95rem;}
+details{
+  border:1px solid var(--stroke);border-radius:8px;background:var(--bg-elev);margin:.55rem 0;padding:.55rem .7rem;
+}
+summary{cursor:pointer;font-weight:600;color:var(--text);}
+summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
+.fieldList{margin:.65rem 0 0 0;padding-left:1.1rem;}
+.fieldList li{margin:.2rem 0;}
+.fieldKey{color:var(--text);font-weight:600;}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+<script src="/theme-init.js"></script>
+</head>
+<body class="urca-doc article">
+<div class="wrap article">
+  <div class="eyebrow">Our HLD · ObserveOps pipeline</div>
+  <h1>ObserveOps pipeline</h1>
+  <p class="lead">
+    There is <strong style="color:var(--text)">one pipeline</strong>: eleven steps from Collect to Package (E1–E11).
+    That written spec is the <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a>.
+    <a href="/observeops-fusion-guide.html">Fusion</a> is the same pipeline, clickable.
+    The operational-graph chapter is extra detail on the <em>map</em> those steps walk — not a second HLD.
+  </p>
+
+  <div class="headerCard">
+    <span class="badge bReview">APPROVED FOR BUILD</span>
+    <span class="badge bLayerI">LAYER I IS OPTIONAL</span>
+    <p style="margin:.65rem 0 0;">
+      Vendor labs sit on the site bar (DT · DD · ED). They are teaching annexes, not this pipeline.
+      AI placement (D5) stays Review.
+    </p>
+  </div>
+
+  <h2 id="hld-pack">How to read this</h2>
+  <p>
+    A <strong style="color:var(--text)">step</strong> is one box on the pipeline (Collect, Detect, Localize, …).
+    What goes <em>in</em> and <em>out</em> of that box is the step’s job — the written spec calls that a contract.
+    An <strong style="color:var(--text)">ADR</strong> is a signed design choice (topology, stores, Curate, Package). D5 (where AI sits) is not signed.
+  </p>
+  <ol>
+    <li><a href="/observeops-fusion-guide.html">Fusion</a> — start here. Pick a breakage (error rate, slowdown, disk full…). See what each of the eleven steps takes in and puts out.</li>
+    <li>This page, then the <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a> — the written spec: what each step is for, and which design choices are signed.</li>
+    <li><a href="/motadata-3pillars-implementation-scope.html">3 pillars implementation scope</a> — Block-2 kickoff: ingest.v1 contract, E3–E5 deliverables, answers before start.</li>
+    <li><a href="/observeops-shift-left-architecture.html">Shift-left</a> — where each step runs (Node / Gateway / SaaS), not a second pipeline.</li>
+    <li><a href="/hld-archive.html">HLD archive</a> — example map, Motadata study pack, operational-graph chapter, LLDs, print exports.</li>
+  </ol>
+  <div class="grid two">
+    <a class="card" href="/observeops-fusion-guide.html">
+      <div class="k compare">Start here</div>
+      <h3>Fusion</h3>
+      <p>Click a use case. Walk the eleven steps. Same eight Detect use cases as the written spec — not Edge Delta’s ten Team jobs.</p>
+    </a>
+    <a class="card" href="/docs/OBSERVEOPS_PIPELINE_HLD.md">
+      <div class="k compare">Written spec</div>
+      <h3>Pipeline HLD</h3>
+      <p>What each step is for, what it must produce, identity keys, signed ADRs. This page is the summary; that file is canonical.</p>
+    </a>
+    <a class="card" href="/motadata-3pillars-implementation-scope.html">
+      <div class="k kickoff">Kickoff scope</div>
+      <h3>3 pillars implementation scope</h3>
+      <p>Answers before start · E1/E2 ingest.v1 · E3–E5 deliverables · eng vs management docs. Block-2 workstream entry.</p>
+    </a>
+    <a class="card" href="/observeops-shift-left-architecture.html">
+      <div class="k compare">Where it runs</div>
+      <h3>Shift-processing-left</h3>
+      <p>Same eleven steps. Work can run on the Node (or optional Gateway) before our SaaS. Not a second pipeline.</p>
+    </a>
+    <a class="card" href="/hld-archive.html">
+      <div class="k compare">Archive index</div>
+      <h3>More HLD articles</h3>
+      <p>Motadata study pack, example map, operational-graph chapter, LLDs, print exports — searchable index, not on this menu.</p>
+    </a>
+  </div>
+  <p class="note" style="margin-top:.75rem;">
+    Examples, Motadata study Q&amp;A, block LLDs, and deep chapters live in the
+    <a href="/hld-archive.html">HLD archive</a> — filterable index, same URLs as before.
+  </p>
+
+  <nav class="stickyNav" aria-label="Sections">
+    <a href="#hld-pack">Pack</a>
+    <a href="#overview">Overview</a>
+    <a href="#crosswalk">Crosswalk</a>
+    <a href="#p1">P1</a>
+    <a href="#p2">P2</a>
+    <a href="#p3">P3</a>
+    <a href="#contracts">Contracts</a>
+    <a href="#adrs">ADRs</a>
+    <a href="#refimpl">Ref impl</a>
+  </nav>
+
+  <h2 id="overview">Overview</h2>
+  <div class="twoCol">
+    <div class="panel e">
+      <h3>Layer E · Engineering</h3>
+      <p>Always-on fabric plus per-case pipeline. Must localize and package without requiring MTL/Bits.</p>
+    </div>
+    <div class="panel i">
+      <h3>Layer I · Interpret</h3>
+      <p>Timeline, MTL workbook, and Bits retell evidence. Useful for humans; not required to run E-stages.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    Formal destination: surface <strong style="color:var(--text)">what broke</strong>, <strong style="color:var(--text)">where</strong>, and <strong style="color:var(--text)">what to inspect</strong> from continuous telemetry, without re-collecting the estate for every alert.
+    The Pipeline HLD freezes a ServiceOps-joinable identity namespace (<code>tenant</code>+<code>ci_id</code>) so later CMDB/change/ticket records share the same keys. Collect still admits telemetry only.
+  </div>
+
+  <table>
+    <tr><th>Phase</th><th>Stages</th><th>IDs</th><th>Alias</th></tr>
+    <tr><td>P1 Always-on fabric</td><td>5</td><td>E1-E5</td><td>Clock A fabric / F</td></tr>
+    <tr><td>P2 Case opens</td><td>3</td><td>E6-E8</td><td>Triage / T</td></tr>
+    <tr><td>P3 Diagnose and close</td><td>3</td><td>E9-E11</td><td>Clock B / D</td></tr>
+  </table>
+
+  <div class="phaseRail">
+    <div class="phaseRow">
+      <div class="bb"><div class="id">E1</div><div class="nm">Collect</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E2</div><div class="nm">Identity</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E4</div><div class="nm">Stores</div></div><span class="arrow">∥</span>
+      <div class="bb"><div class="id">E3</div><div class="nm">Topology</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E5</div><div class="nm">Maintain</div></div>
+    </div>
+    <div class="phaseRow">
+      <div class="bb"><div class="id">E6</div><div class="nm">Detect</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E7</div><div class="nm">Curate</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E8</div><div class="nm">Scope</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E9</div><div class="nm">Localize</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E10</div><div class="nm">Identify</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E11</div><div class="nm">Package</div></div>
+    </div>
+  </div>
+
+  <h2 id="crosswalk">Stage-vocabulary crosswalk (normative)</h2>
+  <p>Three vocabularies describe this pipeline. This table translates between them — see source §5 for reading rules.</p>
+  <table>
+    <tr><th>5-stage product model</th><th>11-stage engineering model (this HLD)</th><th>Vendor "5+3+3" / Clock language</th></tr>
+    <tr><td>Ingest</td><td>E1 Collect → E2 Identity → E3 Topology → E4 Stores → E5 Maintain (all of P1)</td><td>Clock A / Always-on fabric (F)</td></tr>
+    <tr><td>Detect</td><td>E6 Detect</td><td>Fabric hands off to Triage (T)</td></tr>
+    <tr><td><em>(no product-level name)</em></td><td>E7 Curate → E8 Scope</td><td>Triage (T)</td></tr>
+    <tr><td>Localize</td><td>E9 Localize</td><td>Clock B / Diagnose begins (D)</td></tr>
+    <tr><td>Identify</td><td>E10 Identify</td><td>Diagnose (D)</td></tr>
+    <tr><td>Verify</td><td>Spans E10 (confidence rationale) through E11 Package — <strong style="color:var(--text)">not a dedicated E-stage</strong></td><td>Diagnose close (D)</td></tr>
+  </table>
+  <div class="note">
+    Reading rules: Ingest is a phase rollup over E1–E5, which can each be at different readiness levels. Verify has no dedicated E-stage — it is the evidentiary-tier judgment made inside E10 and locked at E11. "5+3+3" and "P1(5)+P2(3)+P3(3)" are the same partition under different vendor-native vs internal names. <strong style="color:var(--text)">Normalize = E2 Identity</strong> — not a twelfth stage and not E10 Identify.
+  </div>
+
+  <h2 id="p1">P1 — Always-on fabric (E1-E5)</h2>
+  <details>
+    <summary><span>E1</span>Collect</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> ingest edge telemetry payloads (wire-format admission only; no CI bind).</li>
+      <li><span class="fieldKey">Trigger:</span> continuous stream.</li>
+      <li><span class="fieldKey">Input/Output:</span> external telemetry to <code>TelemetryEnvelope</code> (<code>ingest.v1</code>).</li>
+      <li><span class="fieldKey">Failure:</span> no data enters pipeline.</li>
+      <li><span class="fieldKey">LLD:</span> <a href="/docs/LLD-E1-Collect.md">LLD-E1 Collect</a> — Done.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E2</span>Identity (Normalize)</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> stamp join keys so records are correlation-ready (Fabric: Normalize).</li>
+      <li><span class="fieldKey">Output:</span> <code>IdentifiedRecord</code> — overlay on the same <code>ingest.v1</code> line (<code>identity.status</code> / aliases).</li>
+      <li><span class="fieldKey">Pre/Post:</span> configured mapping, record becomes joinable with topology, stores, and a future ServiceOps CI.</li>
+      <li><span class="fieldKey">Failure:</span> cross-modal joins break. Synthesized CIs are not localize/ticket targets (D-E2-1).</li>
+      <li><span class="fieldKey">LLD:</span> <a href="/docs/LLD-E2-Identity.md">LLD-E2 Identity</a> — Done.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E3</span>Topology</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> maintain walkable dependency graph.</li>
+      <li><span class="fieldKey">Output:</span> <code>GraphSnapshot</code>.</li>
+      <li><span class="fieldKey">Degradation:</span> staleness increases ambiguity.</li>
+      <li><span class="fieldKey">Lab proof:</span> required for cascade/path reasoning.</li>
+      <li><span class="fieldKey">Map detail:</span> <a href="/observeops-fusion-guide.html">Fusion</a> · <a href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md">operational graph chapter</a> · <a href="/observeops-ci-graph.html">example map</a>. Authored picture, not live E3 output.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E4</span>Stores</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> persist queryable evidence history.</li>
+      <li><span class="fieldKey">Output:</span> modality query surfaces keyed by identity.</li>
+      <li><span class="fieldKey">Failure:</span> Detect/Identify cannot corroborate.</li>
+      <li><span class="fieldKey">NFR sketch:</span> retention + query latency budgets.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E5</span>Maintain</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> keep estate fresh (retention/indexing/discovery).</li>
+      <li><span class="fieldKey">Output:</span> detect-ready freshness baseline.</li>
+      <li><span class="fieldKey">Failure:</span> quality decays silently over time.</li>
+      <li><span class="fieldKey">Policy:</span> explicit required stage in our HLD.</li>
+    </ul>
+  </details>
+
+  <h2 id="p2">P2 — Case opens (E6-E8)</h2>
+  <details>
+    <summary><span>E6</span>Detect</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> emit fault <code>Signal</code> objects only.</li>
+      <li><span class="fieldKey">Inputs:</span> stores + topology context.</li>
+      <li><span class="fieldKey">Failure:</span> no automatic case opening.</li>
+      <li><span class="fieldKey">Class plug-ins:</span> ERROR, SLOWDOWN — Grounded (DT + DD, MCP-backed). AVAILABILITY, MONITORING_UNAVAILABLE, RESOURCE_CONTENTION — Grounded on DT, <strong style="color:var(--text)">Local-only</strong> on DD (Write + local probes, no MCP pull yet). A negative Detect outcome (no signal fires) is a valid result for RESOURCE_CONTENTION-class semantics, not a coverage gap.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E7</span>Curate</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> merge signals into one <code>CaseSeed</code>.</li>
+      <li><span class="fieldKey">Policy:</span> required by default (D3).</li>
+      <li><span class="fieldKey">Failure:</span> storm reaches operator unfused.</li>
+      <li><span class="fieldKey">Postcondition:</span> one seed with rationale.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E8</span>Scope</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> lock time and candidate working set.</li>
+      <li><span class="fieldKey">Output:</span> <code>WorkingSet</code>.</li>
+      <li><span class="fieldKey">Failure:</span> global/noisy diagnosis.</li>
+      <li><span class="fieldKey">Alias:</span> Tailor in the 5+3+3 lens.</li>
+    </ul>
+  </details>
+
+  <h2 id="p3">P3 — Diagnose and close (E9-E11)</h2>
+  <details>
+    <summary><span>E9</span>Localize</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> produce one <code>LeafClaim</code>.</li>
+      <li><span class="fieldKey">Rule:</span> deepest error leaf or longest self-time leaf by class.</li>
+      <li><span class="fieldKey">Failure:</span> no actionable RCA target.</li>
+      <li><span class="fieldKey">Degradation:</span> ranked candidates with lower confidence.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E10</span>Identify</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> build corroborated <code>EvidenceBundle</code>.</li>
+      <li><span class="fieldKey">Failure:</span> verdict cannot be trusted/explained.</li>
+      <li><span class="fieldKey">Degradation:</span> thin bundle must be marked incomplete.</li>
+      <li><span class="fieldKey">Emphasis:</span> stack/log/span for ERROR; self-time/CPU for SLOWDOWN.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E11</span>Package</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> emit operator-facing <code>VerdictCard</code>.</li>
+      <li><span class="fieldKey">Policy:</span> required close stage (D4).</li>
+      <li><span class="fieldKey">Optional:</span> narrative layer (Bits-style), incident payload.</li>
+      <li><span class="fieldKey">Failure:</span> RCA output remains engineering-only.</li>
+    </ul>
+  </details>
+
+  <h2 id="contracts">Contracts</h2>
+  <table>
+    <tr><th>Edge</th><th>Contract object</th></tr>
+    <tr><td>E1 → E2</td><td><code>TelemetryEnvelope</code> (<code>ingest.v1</code>)</td></tr>
+    <tr><td>E2 → E3,E4</td><td><code>IdentifiedRecord</code> (same <code>ingest.v1</code> + identity overlay)</td></tr>
+    <tr><td>E3 → E6,E7,E9</td><td><code>GraphSnapshot</code></td></tr>
+    <tr><td>E6 → E7</td><td><code>Signal</code></td></tr>
+    <tr><td>E7 → E8</td><td><code>CaseSeed</code></td></tr>
+    <tr><td>E8 → E9</td><td><code>WorkingSet</code></td></tr>
+    <tr><td>E9 → E10</td><td><code>LeafClaim</code></td></tr>
+    <tr><td>E10 → E11</td><td><code>EvidenceBundle</code></td></tr>
+    <tr><td>E11 → Ops</td><td><code>VerdictCard</code></td></tr>
+  </table>
+
+  <table>
+    <tr><th>Class</th><th>Worked handoff</th></tr>
+    <tr><td>ERROR</td><td>E1 envelope → E2 identified route → E6 error signal → E7 seed → E8 scope → E9 deepest error leaf → E10 stack/log/span evidence → E11 verdict.</td></tr>
+    <tr><td>SLOWDOWN</td><td>E1 envelope → E2 identified operation → E6 latency signal (or alternate seed) → E7 seed → E8 scope → E9 self-time leaf → E10 self-time/CPU evidence → E11 verdict.</td></tr>
+  </table>
+
+  <h2 id="adrs">ADRs and open decisions</h2>
+  <table>
+    <tr><th>ID</th><th>Decision</th><th>Default</th><th>Status</th></tr>
+    <tr><td>D1</td><td>Topology model</td><td>Hybrid derived edges + typed IDs when cheap</td><td>Signed</td></tr>
+    <tr><td>D2</td><td>Store geometry</td><td>Separate query planes, shared identity</td><td>Signed</td></tr>
+    <tr><td>D3</td><td>Curate strength</td><td>Required one-seed default</td><td>Signed</td></tr>
+    <tr><td>D4</td><td>Package policy</td><td>Required verdict card, narrative optional</td><td>Signed</td></tr>
+    <tr><td>D5</td><td>AI placement</td><td>Optional detect door and optional narrator</td><td>Review (unchanged) — third geometry documented: <a href="/ed-ai-team-hub.html">ED AI Team</a></td></tr>
+    <tr><td>D-E2-1</td><td>Bind-miss policy</td><td>Synthesize a flagged placeholder; not a localize/ticket target</td><td>Signed</td></tr>
+    <tr><td>D-E2-2</td><td>Service tags</td><td><code>service</code>/<code>env</code>/<code>version</code> stay optional labels; join key is <code>tenant</code>+<code>ci_id</code></td><td>Signed</td></tr>
+  </table>
+  <p>Pipeline HLD signs D1–D4, D-E2-1, and D-E2-2. D5 stays Review. Identity namespace: see source §11.1. Edge Delta L0 (2026-08-14) is a third teaching lens, not an ADR flip.</p>
+
+  <h2 id="refimpl">Reference implementations and next steps</h2>
+  <table>
+    <tr><th>Stage band</th><th>Lean (primary)</th><th>Federated (optional)</th><th>Future</th></tr>
+    <tr><td>E1-E5</td><td>Lean ingest/core paths</td><td>PoC stores and adapters</td><td><a href="/docs/INGESTION_PIPELINE_VECTOR.md">Vector ingest plan</a></td></tr>
+    <tr><td>E6-E8</td><td>Rule/anomaly and seed flow</td><td>Panorama-triggered orchestration</td><td>Shared signal model</td></tr>
+    <tr><td>E9-E11</td><td>Tiered escalation and signature checks</td><td>Murphy → Nezha fusion</td><td>Contract-preserving plug-ins</td></tr>
+  </table>
+
+  <p>
+    LLD backlog: <a href="/docs/LLD-E1-Collect.md"><code>LLD-E1 Collect</code></a> (Done) ·
+    <a href="/docs/LLD-E2-Identity.md"><code>LLD-E2 Identity / Normalize</code></a> (Done) ·
+    <a href="/docs/LLD-E3-Topology.md"><code>LLD-E3</code></a> (operational-graph chapter is the target map shape) ·
+    <a href="/docs/LLD-E4-Stores.md"><code>LLD-E4</code></a> (E3–E4 still Draft) ·
+    <code>LLD-E5</code> through <code>LLD-E11</code> still backlog. Layer I remains outside <code>LLD-E*</code> until explicit productization.
+  </p>
+  <div class="note">Contracts resync (2026-08-13): identity-join note, Normalize = E2, D1–D4 / D-E2-1 / D-E2-2 Signed, E1/E2 LLDs Done. Fusion is the teaching path for step-by-step detail. Full NFR / identity namespace / revision history lives in the Pipeline HLD markdown.</div>
+</div>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

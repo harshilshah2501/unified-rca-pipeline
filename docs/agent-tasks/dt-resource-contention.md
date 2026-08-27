@@ -3,7 +3,7 @@
 **Status:** Observed (negative Detect) — code-only **2026-08-12** · **no Problem**  
 **Docs Timeline:** http://127.0.0.1:8765/dt-cat-resource-contention-lab.html  
 **Hub:** http://127.0.0.1:8765/dt-davis-category-hub.html?cat=resource_contention  
-**Lab root:** `dynatrace-rca-lab/`  
+**Lab root:** `labs/dynatrace-rca-lab/`  
 **Snapshot:** `docs/vendor-source/dynatrace/code-only-rc-2026-08-12-snapshot.json`
 
 ## Goal

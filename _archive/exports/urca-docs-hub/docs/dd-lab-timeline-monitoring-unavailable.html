@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Datadog lab · MONITORING_UNAVAILABLE · Observed</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="vendor-dd article">
+<div class="wrap article">
+  <div class="eyebrow">Detect category · MONITORING_UNAVAILABLE · Observed (Write + MCP)</div>
+  <h1>MONITORING_UNAVAILABLE — Visibility dark (semantic)</h1>
+  <p class="lead">
+    Code-only <code>SCENARIO_MODE="MONITORING_DARK"</code>: HTTP stayed
+    <strong style="color:var(--text)">200</strong> while inventory skipped <code>patch_all</code>
+    and used a DogStatsD no-op. Datadog has <strong style="color:var(--text)">no twin</strong> Davis category —
+    partial Detect (APM gap, logs still present) is valid Observed teaching.
+    Hub: <a href="/dd-detect-category-hub.html?cat=monitoring_unavailable">Detect categories</a>.
+  </p>
+  <div class="note ok">
+    <code>env:rca-lab-e3</code> · compose <code>version:mu-20260813T071758Z</code>
+    (APM tag <code>mu-20260813t071758z</code>) ·
+    window <code>07:19:46Z–07:29:46Z</code> · MCP pull 2026-08-14 ·
+    snapshot <a href="/docs/vendor-source/datadog/dd-mu-20260813-snapshot.json">JSON</a>.
+  </div>
+  <h2 id="timeline">Observed timeline</h2>
+  <div class="tl">
+    <div class="tl-row"><div class="tl-t">07:17–07:19</div><div class="tl-b">After AVAILABILITY heal · break to MONITORING_DARK (compose hiccup recovered; fault left active)</div></div>
+    <div class="tl-row"><div class="tl-t">07:19:46Z</div><div class="tl-b">Health <code>scenario=MONITORING_DARK</code> · stock/checkout <strong>200</strong></div></div>
+    <div class="tl-row"><div class="tl-t">07:19–07:29</div><div class="tl-b">Sustained load 10m · HTTP 200 · inventory APM <strong>0</strong> · FE/product spans still writing</div></div>
+    <div class="tl-row"><div class="tl-t">07:29:46Z</div><div class="tl-b"><strong>Heal</strong> → HEALTHY · stock/checkout 200</div></div>
+  </div>
+  <h2 id="detect">Detect honesty (MCP 2026-08-14)</h2>
+  <table>
+    <tr><th>Surface</th><th>Observation</th></tr>
+    <tr><td>APM spans</td><td>frontend / product <strong>ok</strong> (~6168 each) · inventory <strong>0</strong> spans in fault window</td></tr>
+    <tr><td>Logs</td><td>inventory <strong>1564</strong> · product 1472 · frontend 1472 — stdout logs still wrote (<code>stock request ok</code>)</td></tr>
+    <tr><td>Door A</td><td>No monitoring-unavailable twin Alert · Flask error Door irrelevant (HTTP 200)</td></tr>
+    <tr><td>Door B · Watchdog</td><td>Stories toolset unavailable on this MCP — <strong>not claimed</strong></td></tr>
+    <tr><td>Davis-style stamp</td><td><strong>None</strong> — Datadog has no <code>MONITORING_UNAVAILABLE</code> twin</td></tr>
+  </table>
+  <div class="note warn">
+    <strong style="color:var(--text)">Partial dark:</strong> APM gap on inventory is the teaching signal;
+    file/stdout logs continued. Do not invent a full “monitoring unavailable” Alert from this run.
+  </div>
+  <h2 id="scripts">Scripts</h2>
+  <div class="pre">./scripts/run_monitoring_unavailable_rca.sh --minutes 10</div>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dd-detect-categories.js" defer></script>
+</body>
+</html>

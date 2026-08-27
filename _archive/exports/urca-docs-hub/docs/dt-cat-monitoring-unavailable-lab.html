@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dynatrace lab · MONITORING_UNAVAILABLE · Visibility dark observed (P-260826)</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+body{margin:0;font-family:var(--font);font-size:15.5px;line-height:1.55;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%),var(--bg);}
+a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+h3{font-size:1rem;font-weight:600;margin:1.25rem 0 .5rem;color:#d5dde6;}
+.lead code,.note code,td code,li code,p code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#9bc0ff;}
+.note{margin:1rem 0;padding:.75rem .9rem;border-radius:var(--radius);background:rgba(61,154,139,.12);border-left:3px solid var(--accent);color:var(--muted);font-size:.95rem;}
+.warn{border-left-color:var(--lean);background:rgba(240,179,90,.08);}
+.ok{border-left-color:var(--ok);background:rgba(95,224,176,.08);}
+.tl{border:1px solid var(--stroke);border-radius:10px;background:var(--bg-elev);padding:0;margin:1rem 0;overflow:hidden;}
+.tl-row{display:grid;grid-template-columns:8.5rem 1fr;gap:0;border-bottom:1px solid var(--stroke);}
+.tl-row:last-child{border-bottom:none;}
+.tl-t{padding:.85rem .9rem;font-family:var(--mono);font-size:.82rem;color:var(--ok);background:#0c1016;border-right:1px solid var(--stroke);}
+.tl-b{padding:.85rem 1rem;color:var(--muted);font-size:.95rem;}
+.tl-b strong{color:var(--text);font-weight:600;}
+.pill{display:inline-block;font-family:var(--mono);font-size:.72rem;padding:.15rem .45rem;border-radius:4px;border:1px solid rgba(95,224,176,.45);color:var(--ok);margin-right:.35rem;}
+.pre{font-family:var(--mono);font-size:.82rem;background:var(--bg-soft);border:1px solid var(--stroke);border-radius:6px;padding:.75rem .9rem;overflow-x:auto;white-space:pre;color:#b8c9d4;}
+ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li strong{color:var(--text);}
+.toc{margin:1rem 0 0;padding:.75rem 1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
+.toc a{display:inline-block;margin:.2rem .75rem .2rem 0;font-size:.9rem;}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="vendor-dt article">
+<div class="wrap article">
+  <div class="eyebrow">Davis category · MONITORING_UNAVAILABLE · Observed + teaching analysis</div>
+  <h1>MONITORING_UNAVAILABLE — Visibility dark (P-260826)</h1>
+  <p class="lead">
+    Category write-up for <strong style="color:var(--text)">MONITORING_UNAVAILABLE</strong>.
+    Inventory kept serving HTTP <strong style="color:var(--text)">200</strong> while OTLP + OneAgent deep monitoring went dark.
+    Problem packaged as <strong style="color:var(--text)">P-260826</strong> (not ERROR / SLOWDOWN). Defect is
+    <strong style="color:var(--text)">healed</strong>.
+    Hub: <a href="/dt-davis-category-hub.html?cat=monitoring_unavailable">Davis event categories</a>.
+  </p>
+
+  <div class="note ok">
+    <span class="pill">HEALED</span>
+    OneAgent restarted · PG <code>MONITORING_ON</code> · container rule removed ·
+    <code>./scripts/heal_inventory_monitoring_dark.sh</code> · probe HTTP 200 ·
+    <code>OTEL_SDK_DISABLED=false</code> · <code>liboneagentpython</code> reinjected
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#defect">1 Defect</a>
+    <a href="#detect">2 Detect reality</a>
+    <a href="#observed">3 Observed Problem</a>
+    <a href="#codeonly">4 Code-only rerun (2026-08-12)</a>
+    <a href="#contrast">5 vs ERROR / SLOWDOWN / AVAIL</a>
+    <a href="#host">6 Host-class cousin</a>
+    <a href="#scripts">7 Scripts</a>
+  </nav>
+
+  <h2 id="defect">1) The defect (visibility dark, not app fault)</h2>
+  <p style="color:var(--muted)">
+    Checkout path <code>frontend → product → inventory</code> stayed successful. Only telemetry for inventory was cut.
+  </p>
+  <table>
+    <tr><th></th><th>Healthy</th><th>Broken (this run)</th></tr>
+    <tr>
+      <td>HTTP</td>
+      <td>200 · stock JSON</td>
+      <td>200 · stock JSON (unchanged)</td>
+    </tr>
+    <tr>
+      <td>OTLP</td>
+      <td><code>OTEL_SDK_DISABLED=false</code></td>
+      <td><code>OTEL_SDK_DISABLED=true</code> via break script recreate</td>
+    </tr>
+    <tr>
+      <td>OneAgent deep</td>
+      <td>Python inject (<code>liboneagentpython</code>)</td>
+      <td>PG <code>MONITORING_OFF</code> → inject count <strong>0</strong></td>
+    </tr>
+    <tr>
+      <td>Host agent</td>
+      <td><code>oneagent</code> active</td>
+      <td><code>systemctl stop oneagent</code> 06:31–06:43 UTC (containers still up)</td>
+    </tr>
+    <tr>
+      <td>Not used</td>
+      <td colspan="2">Container stop · 5xx fault · ledger-scan slowdown</td>
+    </tr>
+  </table>
+
+  <h2 id="detect">2) Detect reality (Observed)</h2>
+  <div class="note warn">
+    Dynatrace’s native <code>MONITORING_UNAVAILABLE</code> severity is a <strong>platform-wide</strong> interruption
+    (majority of OneAgents lose SaaS connectivity) — not a per-service OTLP gap.
+    Intentional PG <code>MONITORING_OFF</code> + graceful <code>systemctl stop oneagent</code> did
+    <strong>not</strong> auto-open <code>OSI_UNEXPECTEDLY_UNAVAILABLE</code> or severity
+    <code>MONITORING_UNAVAILABLE</code> within the ~10–15 min lab window.
+  </div>
+  <p style="color:var(--muted)">
+    To still get a real Problems-API card for the inventory visibility-dark teaching path, we ingested a
+    <code>CUSTOM_ALERT</code> on <code>PROCESS_GROUP</code> inventory via
+    <code>POST /api/v2/events/ingest</code>. Davis packaged <strong style="color:var(--text)">P-260826</strong>.
+    Evidence type is <code>CUSTOM_ALERT</code> — not <code>SERVICE_ERROR_RATE_INCREASED</code> /
+    <code>SERVICE_SLOWDOWN</code>.
+  </p>
+
+  <h2 id="observed">3) Observed Problem (API)</h2>
+  <div class="note">
+    <span class="pill">FETCHED</span>
+    <code>GET /api/v2/problems/{id}?fields=evidenceDetails</code> ·
+    snapshot <code>docs/vendor-source/dynatrace/p260826-monitoring-unavailable-snapshot.json</code>
+  </div>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>displayId</td><td><code>P-260826</code></td></tr>
+    <tr><td>title</td><td>MONITORING_UNAVAILABLE lab: inventory telemetry dark while HTTP up</td></tr>
+    <tr><td>status (at pull)</td><td>OPEN</td></tr>
+    <tr><td>severityLevel</td><td><code>CUSTOM_ALERT</code></td></tr>
+    <tr><td>impactLevel</td><td><code>INFRASTRUCTURE</code></td></tr>
+    <tr><td>Problem start</td><td><strong>2026-08-07 06:42:35 UTC</strong></td></tr>
+    <tr><td>rootCauseEntity</td><td><strong>null</strong></td></tr>
+    <tr><td>affected / impacted</td><td>inventory (<code>PROCESS_GROUP-6E59A21625366AA5</code>)</td></tr>
+  </table>
+
+  <h3>Evidence Events</h3>
+  <table>
+    <tr><th>Entity</th><th>eventType</th><th>start</th><th>rootCauseRelevant</th></tr>
+    <tr><td>inventory (PG)</td><td><code>CUSTOM_ALERT</code></td><td>06:42:35 UTC</td><td>false</td></tr>
+  </table>
+
+  <div class="tl">
+    <div class="tl-row">
+      <div class="tl-t">06:20 UTC</div>
+      <div class="tl-b"><strong>Break</strong> — <code>break_inventory_monitoring_dark.sh</code> · OTEL off · HTTP still 200</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">06:22 UTC</div>
+      <div class="tl-b">PG <code>MONITORING_OFF</code> + recreate · OneAgent Python inject gone</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">06:21–06:36</div>
+      <div class="tl-b">Checkout load sustained · all probes HTTP 200</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">06:31 UTC</div>
+      <div class="tl-b">Host <code>oneagent</code> stopped (containers keep serving)</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">06:42:35</div>
+      <div class="tl-b"><strong>P-260826</strong> packaged from inventory PG <code>CUSTOM_ALERT</code></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">06:43 UTC</div>
+      <div class="tl-b"><strong>Heal</strong> — OA start · PG ON · heal script · reinject verified</div>
+    </div>
+  </div>
+
+  <h2 id="codeonly">4) Code-only rerun (2026-08-12) — negative Detect</h2>
+  <div class="note warn">
+    Constraint: induce fault by <strong style="color:var(--text)">Python only</strong>
+    (<code>SCENARIO_MODE="MONITORING_DARK"</code> → <code>OTEL_SDK_DISABLED</code> /
+    <code>DT_DISABLE</code> at boot). No PG <code>MONITORING_OFF</code>, no
+    <code>systemctl stop oneagent</code>, no <code>events.ingest</code>.
+  </div>
+  <table>
+    <tr><th>Anchor</th><th>UTC</th></tr>
+    <tr><td>Break</td><td>~2026-08-12 <strong>09:33</strong></td></tr>
+    <tr><td>Load window</td><td>09:33 → 09:48</td></tr>
+    <tr><td>HTTP during fault</td><td><strong>200</strong> throughout (load ok)</td></tr>
+    <tr><td>Organic Problems / Events</td><td><strong>none</strong> for MU / CUSTOM_ALERT / OSI_*</td></tr>
+    <tr><td>Heal</td><td>09:48:54 · <code>SCENARIO_MODE=HEALTHY</code> · probe 200</td></tr>
+  </table>
+  <p style="color:var(--muted)">
+    Snapshot:
+    <code>docs/vendor-source/dynatrace/code-only-mu-2026-08-12-snapshot.json</code>.
+    Teaching takeaway: in-process OTEL env flags alone did not open a Davis MU card in this
+    tenant/window. Keep <strong style="color:var(--text)">P-260826</strong> as the Observed
+    Problems-API teaching surface (prior ingest + infra dark path).
+  </p>
+
+  <h2 id="contrast">5) vs ERROR / SLOWDOWN / AVAILABILITY</h2>
+  <table>
+    <tr><th></th><th>ERROR · P-260817</th><th>SLOWDOWN · P-260820</th><th>This · P-260826</th><th>AVAIL · P-260831</th></tr>
+    <tr>
+      <td>App HTTP</td>
+      <td>5xx</td>
+      <td>200 slow</td>
+      <td><strong>200 OK</strong></td>
+      <td>connection refused / 500</td>
+    </tr>
+    <tr>
+      <td>Leaf</td>
+      <td>error_rate↑</td>
+      <td>response_time↑</td>
+      <td><strong>telemetry / agent dark</strong></td>
+      <td>process/container stop</td>
+    </tr>
+    <tr>
+      <td>eventType</td>
+      <td><code>SERVICE_ERROR_RATE_INCREASED</code></td>
+      <td><code>SERVICE_SLOWDOWN</code></td>
+      <td><code>CUSTOM_ALERT</code> (lab surface)</td>
+      <td><code>AVAILABILITY_EVENT</code></td>
+    </tr>
+    <tr>
+      <td>severity</td>
+      <td>ERROR</td>
+      <td>PERFORMANCE</td>
+      <td>CUSTOM_ALERT</td>
+      <td>AVAILABILITY</td>
+    </tr>
+  </table>
+
+  <h2 id="host">6) Host-class cousin (P-260810)</h2>
+  <p style="color:var(--muted)">
+    Earlier on this tenant, <code>P-260810</code> was <strong style="color:var(--text)">Host or monitoring unavailable</strong>
+    with evidence <code>OSI_UNEXPECTEDLY_UNAVAILABLE</code> on
+    <code>HOST-2FAAA6F0DAF83B21</code> (severity <code>AVAILABILITY</code>).
+    That is the organic “agent lost contact” shape. This lab’s inventory-scoped card is
+    <code>P-260826</code> — process up, callers fine, visibility intentionally dark.
+  </p>
+
+  <h2 id="scripts">7) Lab scripts</h2>
+  <div class="pre">cd dynatrace-rca-lab
+# Code-only (preferred constraint):
+./scripts/break_inventory_monitoring_dark.sh   # SCENARIO_MODE=MONITORING_DARK + rebuild
+./scripts/run_monitoring_unavailable_rca.sh --minutes 15 --heal-after
+./scripts/heal_inventory_monitoring_dark.sh    # SCENARIO_MODE=HEALTHY + rebuild
+# Prior Observed P-260826 also used PG MONITORING_OFF + OA stop + events.ingest CUSTOM_ALERT</div>
+
+  <h2 id="related">Related</h2>
+  <ul>
+    <li><a href="/dt-lab-timeline-code-level.html">ERROR / P-260817</a></li>
+    <li><a href="/dt-lab-timeline-slowdown.html">SLOWDOWN / P-260820</a></li>
+    <li><a href="/dt-cat-availability-lab.html">AVAILABILITY / P-260831</a></li>
+    <li><a href="/eleven-subsystem-mechanisms.html?cat=monitoring_unavailable">Breakdown · Detect tip = agent/ingest</a></li>
+    <li><a href="/dt-e2e-smartscape-grail.html?cat=monitoring_unavailable">Dual-track · Grail gaps</a></li>
+    <li>Agent prompt: <a href="/docs/agent-tasks/dt-monitoring-unavailable.md"><code>dt-monitoring-unavailable.md</code></a></li>
+  </ul>
+
+  <p><a href="/dt-davis-category-hub.html?cat=monitoring_unavailable">← Hub</a></p>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dt-davis-categories.js" defer></script>
+</body>
+</html>

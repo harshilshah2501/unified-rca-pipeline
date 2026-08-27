@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unified RCA — Documentation index</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="urca-doc hub-index">
+<div class="wrap hub-index">
+  <div class="eyebrow">Unified RCA · documentation hub</div>
+  <h1>Documentation index</h1>
+  <p class="lead">
+    Browser entry for vendor unveil → abstract pipeline → ObserveOps HLD → block LLDs.
+    Served at <code>http://127.0.0.1:8765/docs.html</code>.
+    Markdown map: <a href="/docs/NAVIGATION.md">NAVIGATION.md</a>.
+    IDE canvases: <a href="/docs/CANVASES.md">CANVASES.md</a> · <a href="#canvases">this page</a>.
+    Site navigation is the sticky bar above — same position on every page.
+  </p>
+
+  <div class="ladder" aria-label="Documentation ladder">
+    <a class="step here" href="/docs.html">
+      <div class="lv">L0 · Vendor launchpads</div>
+      <h3>DT hub · DD hub · ED hub</h3>
+      <p>Native unveil per vendor — you pick a lens here. ED has no Detect-category twins.</p>
+    </a>
+    <a class="step" href="/comparable-pipeline-dt-dd.html#optional-pattern-lens-clock-a-after-native-reading">
+      <div class="lv">L1 · Abstract compare</div>
+      <h3>F → T → D lens</h3>
+      <p>Common flow, blocks, I/O — after reading both vendors natively.</p>
+    </a>
+    <a class="step" href="/observeops-pipeline-hld.html">
+      <div class="lv">L2 · Engineering HLD</div>
+      <h3>E1–E11 contracts</h3>
+      <p>What we build — phase outputs, information objects, ADRs.</p>
+    </a>
+    <a class="step" href="/docs/LLD-E1-Collect.md">
+      <div class="lv">L3 · Block LLDs</div>
+      <h3>LLD-E1…E4 landed</h3>
+      <p>Per-block specs — Collect and Identity/Normalize Done; Topology/Stores Draft; E5–E11 still HLD contracts until each lands.</p>
+    </a>
+  </div>
+
+  <div class="note ok">
+    <strong style="color:var(--text)">Reading path:</strong>
+    <a href="/observeops-pipeline-hld.html">Our HLD</a> (skim) →
+    <a href="/dt-davis-category-hub.html">DT hub</a> (L0, finish ERROR + SLOWDOWN) →
+    <a href="/dd-detect-category-hub.html">DD hub</a> (L0, ERROR + SLOWDOWN done; RESOURCE_CONTENTION/AVAILABILITY/MONITORING_UNAVAILABLE local-only) →
+    <a href="/ed-ai-team-hub.html">ED hub</a> (L0, tenant snapshot 2026-08-14 — independent, not a third twin) →
+    <a href="/comparable-pipeline-dt-dd.html">DT vs DD vs ED</a> (L1) → Motadata FR/AC.
+    Terms: <a href="/urca-glossary.html">Glossary</a>.
+  </div>
+
+  <h2>0 · Our pipeline (L2)</h2>
+  <div class="grid two">
+    <a class="card" href="/observeops-pipeline-hld.html">
+      <div class="k compare">ObserveOps · HLD</div>
+      <h3>Pipeline HLD — E1–E11 + Interpret layer</h3>
+      <p>Required engineering blocks (Collect→Package), information flow, open decisions. MTL/Bits = Layer I (one run), not fabric.</p>
+    </a>
+    <a class="card" href="/observeops-shift-left-architecture.html">
+      <div class="k compare">ObserveOps · locus</div>
+      <h3>Shift-processing-left architecture</h3>
+      <p>Same E1–E11 clock. Node / optional Gateway before egress, then our SaaS. Stack, 13-week roadmap, decision log.</p>
+    </a>
+    <a class="card" href="/urca-glossary.html">
+      <div class="k compare">Reference</div>
+      <h3>Glossary</h3>
+      <p>A–Z lookup: one term, one short meaning. Search or jump by letter. Flamegraph, self-time, Husky, Signal, …</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/observeops-pipeline-hld.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>ObserveOps HLD</h3>
+      <p>E1–E11 + Layer I · D1–D4 Signed · D5 Review. Not served by <code>:8765</code>.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/observeops-shift-left-architecture.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Shift-processing-left</h3>
+      <p>Customer infra ∥ our SaaS · locus map · 13-week roadmap · decision log.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/observeops-detect-use-cases.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>ObserveOps Detect UCs</h3>
+      <p>8 Detect use cases (not ED’s 10 Team jobs). Companion to the fusion guide.</p>
+    </a>
+  </div>
+  <ul class="list">
+    <li><a href="/docs/LLD-E1-Collect.md">LLD-E1 Collect</a><span>Done · ingest.v1 + reserved signal_class + DLQ deferred to Vector D5</span></li>
+    <li><a href="/docs/LLD-E2-Identity.md">LLD-E2 Identity (Normalize)</a><span>Done · IdentifiedRecord overlay + D-E2-1 bind-miss policy</span></li>
+    <li><a href="/docs/LLD-E3-Topology.md">LLD-E3 Topology</a><span>Draft · InvocationGraph vs RelationshipGraph + reachability test</span></li>
+    <li><a href="/docs/LLD-E4-Stores.md">LLD-E4 Stores</a><span>Draft · flat-file bundle vs two-tier store, Dragonfly soak evidence</span></li>
+  </ul>
+
+  <h2>0b · Operational graph (L2 companion — Draft)</h2>
+  <p class="lead" style="margin-top:0">
+    Extends HLD v1.1; does <strong>not</strong> replace it. 8 ObserveOps Detect use cases (not ED’s 10 AI Team jobs).
+    Graph schema is Grounded as an authored artifact; live E3 discovery is Design-level.
+  </p>
+  <div class="grid two">
+    <a class="card" href="/observeops-fusion-guide.html">
+      <div class="k compare">Interactive</div>
+      <h3>Fusion RCA pipeline guide</h3>
+      <p>11 stages · 3 phases · 8 use cases · one operational graph. Primary teaching surface for this pack.</p>
+    </a>
+    <a class="card" href="/observeops-ci-graph.html">
+      <div class="k compare">Worked example</div>
+      <h3>Linux-server CI graph</h3>
+      <p>33 CIs / 40 edges — illustration of the schema, not a tenant target. Per-edge provenance visible.</p>
+    </a>
+    <a class="card" href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md">
+      <div class="k compare">HLD v0.2 Draft</div>
+      <h3>Stages, signals, operational graph</h3>
+      <p>Per-UC E6–E11 detail + graph schema. v1.1 stays normative on stage contracts.</p>
+    </a>
+    <a class="card" href="/docs/OBSERVEOPS_USE_CASES.md">
+      <div class="k compare">Catalog</div>
+      <h3>8 ObserveOps use cases</h3>
+      <p>UC1–5 = Detect classes. UC6–8 = RESOURCE_CONTENTION sub-signatures (split at E9/E10).</p>
+    </a>
+  </div>
+  <ul class="list">
+    <li><a href="/observeops-pipeline-diagram.html">Standalone pipeline diagram</a><span>Bundled visual of E1–E11</span></li>
+    <li><a href="/docs/linux-server-ci-telemetry.json">CI telemetry JSON</a><span>228 keys · 125 fault signatures · authored, not live E3</span></li>
+  </ul>
+
+  <h2>1 · Compare &amp; philosophy (L1 — after both hubs)</h2>
+  <div class="grid two">
+    <a class="card" href="/comparable-pipeline-dt-dd.html">
+      <div class="k compare">Lab · identical scenario</div>
+      <h3>Comparable pipeline — DT vs DD vs ED</h3>
+      <p>Same FE→product→inventory leaf fault (DT vs DD). §0 now includes Edge Delta geometry / AI / E1–E11 — not a third lab clock.</p>
+    </a>
+    <a class="card" href="/observability-generations-dt-dd.html">
+      <div class="k compare">Philosophy · criteria</div>
+      <h3>Observability 1.0 / 2.0 / 3.0</h3>
+      <p>Must-pass criteria. Why correlate ≠ 2.0. Why DD/DT are hybrids — neither is a clean 2.0 or 3.0 match.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/observability-generations-dt-dd.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Obs 1.0 / 2.0 / 3.0</h3>
+      <p>Same must-pass criteria, live beside chat. IDE only.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/signal-categories-dt-dd.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Signal categories DT vs DD</h3>
+      <p>Davis <code>event.category</code> vs Door A ∥ B. Not a twin list.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/federated-vs-dt-pipeline-gaps.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Federated vs DT gaps</h3>
+      <p>Part 1 vs DT 5+3+3. Companion to the gap-map HTML.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/docs-hub-building-blocks-audit.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Docs hub building-blocks audit</h3>
+      <p>Coverage of Collect→Package on this hub.</p>
+    </a>
+  </div>
+
+  <h2>2 · Dynatrace · L0 vendor launchpad</h2>
+  <p class="lead" style="margin-top:-.25rem;margin-bottom:1rem;">
+    <strong style="color:var(--text)">01 Thesis</strong> · <strong style="color:var(--text)">02 Breakdown</strong> ·
+    <strong style="color:var(--text)">03 Dual-track</strong> · <strong style="color:var(--text)">04 Timeline</strong>
+    — same chronology as DD hub. Hub includes E-block map + ladder to L1/L2/L3.
+  </p>
+  <div class="grid">
+    <a class="card" href="/dt-davis-category-hub.html">
+      <div class="k dt l0">L0 · DT hub</div>
+      <h3>Davis event categories</h3>
+      <p>Vendor launchpad: chronology · E1–E11 anchors · category cards. Five Davis categories Observed (RC = negative Detect).</p>
+    </a>
+  </div>
+  <div class="grid two" style="margin-top:.75rem;">
+    <a class="card" href="/dt-davis-category-hub.html?cat=error">
+      <div class="k dt">ERROR · Observed</div>
+      <h3>Failure rate (P-260817)</h3>
+      <p>01–04 slots + Timeline. KeyError leaf · SERVICE_ERROR_RATE_INCREASED.</p>
+    </a>
+    <a class="card" href="/dt-davis-category-hub.html?cat=slowdown">
+      <div class="k dt">SLOWDOWN · Observed</div>
+      <h3>Response time (P-260820)</h3>
+      <p>01–04 slots + Timeline. Ledger-scan leaf · healed.</p>
+    </a>
+    <a class="card" href="/dt-cat-monitoring-unavailable-lab.html">
+      <div class="k dt">MONITORING_UNAVAILABLE · Observed</div>
+      <h3>Visibility dark (P-260826)</h3>
+      <p>Process up, telemetry off · CUSTOM_ALERT surface.</p>
+    </a>
+    <a class="card" href="/dt-cat-availability-lab.html">
+      <div class="k dt">AVAILABILITY · Observed</div>
+      <h3>Host / process down (P-260831)</h3>
+      <p>Severity card P-260831 · organic code-only cascade P-260854 PERFORMANCE.</p>
+    </a>
+    <a class="card" href="/dt-cat-resource-contention-lab.html">
+      <div class="k dt">RESOURCE_CONTENTION · Observed</div>
+      <h3>CPU burn · negative Detect</h3>
+      <p>Code-only 2026-08-12 — HTTP stayed fast; no RC Problem in-window.</p>
+    </a>
+    <a class="card" href="/federated-vs-dt-pipeline-gaps.html">
+      <div class="k compare">Gap map · build order</div>
+      <h3>Federated vs DT 5+3+3</h3>
+      <p>Crosswalk to Clock A · P0 gaps and what DT already covers.</p>
+    </a>
+  </div>
+  <ul class="list">
+    <li><a href="/dt-lab-timeline-code-level.html">ERROR lab analysis (direct)</a><span>P-260817</span></li>
+    <li><a href="/dt-lab-timeline-slowdown.html">SLOWDOWN lab analysis (direct)</a><span>P-260820</span></li>
+    <li><a href="/dt-agent-tasks.html">Agent-task archive</a><span>all five Observed</span></li>
+    <li><a href="/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md">Dynatrace lab reference</a><span>Stages 0–5 · Problems</span></li>
+  </ul>
+
+  <h2>2b · Motadata acceptance</h2>
+  <div class="grid two">
+    <a class="card" href="/multi-telemetry-rca-fac.html">
+      <div class="k compare">FR / AC · visual</div>
+      <h3>Multi-telemetry RCA criteria</h3>
+      <p>Six signal classes → one incident. Filterable FR-A…M, S1–S6 scenarios, NFR targets.</p>
+    </a>
+    <a class="card" href="/federated-vs-dt-pipeline-gaps.html#motadata-multi-telemetry-frac-supplementary-acceptance-bar">
+      <div class="k compare">AC ↔ architecture</div>
+      <h3>How AC relates to Federated design</h3>
+      <p>Gap map §8 — Motadata FR/AC plus Federated layers.</p>
+    </a>
+  </div>
+
+  <h2>3 · Datadog · L0 vendor launchpad</h2>
+  <p class="lead" style="margin-top:-.25rem;margin-bottom:1rem;">
+    Same L0 chronology as DT: <strong style="color:var(--text)">01–04</strong> engineering slots +
+    <strong style="color:var(--text)">Layer I</strong> (MTL · Bits). Hub includes E-block map + ladder to L1/L2/L3.
+  </p>
+  <div class="grid">
+    <a class="card" href="/dd-detect-category-hub.html">
+      <div class="k dd l0">L0 · DD hub</div>
+      <h3>Detect categories</h3>
+      <p>Vendor launchpad: chronology · E1–E11 anchors · ERROR + SLOWDOWN Observed (full depth) · 3 more local-only Timelines · MTL/Bits = Layer I only.</p>
+    </a>
+  </div>
+  <div class="grid two" style="margin-top:.75rem;">
+    <a class="card" href="/dd-detect-category-hub.html?cat=error">
+      <div class="k dd">ERROR · Observed</div>
+      <h3>Failure rate (KeyError leaf)</h3>
+      <p>env:rca-lab-e3 · Bits peer · MTL + Timeline.</p>
+    </a>
+    <a class="card" href="/dd-detect-category-hub.html?cat=slowdown">
+      <div class="k dd">SLOWDOWN · Observed</div>
+      <h3>Response time (ledger-scan)</h3>
+      <p>Write loud / Detect empty teaching trap · heal.</p>
+    </a>
+    <a class="card" href="/dd-lab-timeline-resource-contention.html">
+      <div class="k dd">RESOURCE_CONTENTION · Observed (local)</div>
+      <h3>CPU burn · HTTP stays fast</h3>
+      <p>No Datadog MCP pull yet — negative Detect is a valid outcome, not confirmed evidence.</p>
+    </a>
+    <a class="card" href="/dd-lab-timeline-availability.html">
+      <div class="k dd">AVAILABILITY · Observed (local)</div>
+      <h3>Process down · caller 502</h3>
+      <p>Code-only exit after boot; native doors recorded as TBD (no Davis twin category).</p>
+    </a>
+    <a class="card" href="/dd-lab-timeline-monitoring-unavailable.html">
+      <div class="k dd">MONITORING_UNAVAILABLE · Observed (local)</div>
+      <h3>Visibility dark · HTTP stays 200</h3>
+      <p>APM/DogStatsD gap while app stays up — no Datadog twin category expected.</p>
+    </a>
+    <a class="card" href="/datadog-production-pipeline.html">
+      <div class="k dd">Thesis</div>
+      <h3>Datadog production pipeline</h3>
+      <p>Agent → APM/Metrics/Logs · Monitors + Watchdog.</p>
+    </a>
+    <a class="card" href="/datadog-subsystem-mechanisms.html">
+      <div class="k dd">Breakdown</div>
+      <h3>Datadog subsystem mechanisms</h3>
+      <p>Lean 8 stages (01 Collect → 08 Package). Door A∥B Detect → leaf.</p>
+    </a>
+  </div>
+  <ul class="list">
+    <li><a href="/docs/agent-tasks/dd-resource-contention.md">RESOURCE_CONTENTION agent-task prompt</a><span>local · 2026-08-13</span></li>
+    <li><a href="/docs/agent-tasks/dd-availability.md">AVAILABILITY agent-task prompt</a><span>local · 2026-08-13</span></li>
+    <li><a href="/docs/agent-tasks/dd-monitoring-unavailable.md">MONITORING_UNAVAILABLE agent-task prompt</a><span>local · 2026-08-13</span></li>
+  </ul>
+  <ul class="list">
+    <li><a href="/dd-lab-timeline-error.html">ERROR lab analysis</a><span>inventory KeyError cascade</span></li>
+    <li><a href="/dd-error-mtl-dissection.html?cat=error">ERROR · MTL dissection</a><span>Layer I workbook</span></li>
+    <li><a href="/dd-lab-timeline-slowdown.html">SLOWDOWN lab analysis</a><span>ledger-scan latency</span></li>
+    <li><a href="/dd-e2e-metrics-traces-logs.html">Three-rail journey</a><span>M ∥ APM ∥ Logs</span></li>
+    <li><a href="/datadog-rca-lab/DATADOG_RCA_REFERENCE.md">Datadog lab reference</a><span>Lab layout · MTL</span></li>
+  </ul>
+
+  <h2>3b · Edge Delta · L0 vendor launchpad</h2>
+  <p class="lead" style="margin-top:-.25rem;margin-bottom:1rem;">
+    Independent third lens. Same chronology as DT/DD:
+    <strong style="color:var(--text)">01 Thesis</strong> ·
+    <strong style="color:var(--text)">02 Breakdown</strong> ·
+    <strong style="color:var(--text)">03 Dual-layer</strong> ·
+    <strong style="color:var(--text)">04 Timeline</strong>
+    · Portal walkthrough.
+    Switcher is the <strong style="color:var(--text)">10 use cases</strong> — not ERROR/SLOWDOWN.
+  </p>
+  <div class="grid two">
+    <a class="card" href="/ed-ai-team-hub.html">
+      <div class="k ed l0">L0 · ED hub</div>
+      <h3>AI Team + Telemetry Pipelines</h3>
+      <p>Launchpad: Thesis → Breakdown → Dual-layer → Timeline. Use-case switcher. Portal clicks.</p>
+    </a>
+    <a class="card" href="/edgedelta-production-pipeline.html">
+      <div class="k ed">01 · Thesis</div>
+      <h3>Edge Delta production pipeline</h3>
+      <p>Shared fabric: dual-layer mental model · native stages once · unfold to E1–E11.</p>
+    </a>
+    <a class="card" href="/edgedelta-subsystem-mechanisms.html">
+      <div class="k ed">02 · Breakdown</div>
+      <h3>Native stage IPO</h3>
+      <p>Collect → index → detect → route → investigate → package. Click a step; use case frames the Detect tip.</p>
+    </a>
+    <a class="card" href="/ed-e2e-pipelines-team.html">
+      <div class="k ed">03 · Dual-layer</div>
+      <h3>Pipelines ∥ AI Team</h3>
+      <p>Hygiene writes continuously; standing Team consumes a door. Thread ≠ Issue.</p>
+    </a>
+    <a class="card" href="/ed-lab-timeline.html">
+      <div class="k ed">04 · Timeline</div>
+      <h3>14 Aug empty fabric · 17 Aug Node lab</h3>
+      <p>UC9 done · UC8 completed (team recipe, no Issue card) · UC4 partial · UC1 parked. Issues 0.</p>
+    </a>
+    <a class="card" href="/ed-portal-walkthrough.html">
+      <div class="k ed">Portal</div>
+      <h3>app.edgedelta.com walkthrough</h3>
+      <p>Sidebar map + numbered clicks per use case. What 100% Healthy actually means.</p>
+    </a>
+    <a class="card" href="/ed-supported-scenarios.html">
+      <div class="k ed">Catalogs</div>
+      <h3>Supported scenarios</h3>
+      <p>Packs shape → monitors notice → use cases investigate. Not Node / Gateway / Team.</p>
+    </a>
+    <a class="card" href="/ed-lab-setup.html">
+      <div class="k ed">Lab</div>
+      <h3>Use-case lab setup</h3>
+      <p>Node → Gateway → platform → Team. RTX Node-only. Gateway still needs its own pipeline ID.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/ed-e1-e11-scenarios.canvas.tsx">
+      <div class="k ed">Canvas</div>
+      <h3>ED E1–E11 scenarios</h3>
+      <p>Interactive 3-phase / 11-stage reach matrix for UC1–UC10 and blocked connectors.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/ed-production-deploy.canvas.tsx">
+      <div class="k ed">Canvas</div>
+      <h3>ED production deploy</h3>
+      <p>Interactive deployment topology (shared, multi-cluster, and 2026-08-17 lab view).</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/edgedelta-ai-team-use-cases.canvas.tsx">
+      <div class="k ed">Canvas</div>
+      <h3>ED AI Team use cases</h3>
+      <p>10 Team jobs. UC8 completed (team recipe, no Issue card). UC9 done. UC1 parked.</p>
+    </a>
+  </div>
+
+  <h2 id="canvases">Cursor canvases (IDE)</h2>
+  <p class="lead" style="margin-top:0">
+    Interactive <code>.canvas.tsx</code> companions live beside chat. They are <strong style="color:var(--text)">not</strong> served by <code>:8765</code>.
+    Browser cannot execute them — use the <code>vscode://file/…</code> links (or open the file in this Cursor project).
+    Catalog: <a href="/docs/CANVASES.md">CANVASES.md</a> · ED subset: <a href="/docs/ED_CANVASES.md">ED_CANVASES.md</a>.
+  </p>
+  <h3>L2 · ObserveOps</h3>
+  <div class="grid two">
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/observeops-pipeline-hld.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>ObserveOps HLD</h3>
+      <p>E1–E11 + Layer I · D1–D4 Signed · D5 Review.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/observeops-shift-left-architecture.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Shift-processing-left</h3>
+      <p>Customer infra ∥ our SaaS. Same E1–E11 clock; locus changes.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/observeops-detect-use-cases.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>ObserveOps Detect UCs</h3>
+      <p>8 Detect use cases — not ED’s 10 Team jobs.</p>
+    </a>
+  </div>
+  <h3>L0 · Edge Delta</h3>
+  <div class="grid two">
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/ed-e1-e11-scenarios.canvas.tsx">
+      <div class="k ed">Canvas</div>
+      <h3>ED E1–E11 scenarios</h3>
+      <p>Phase/stage selector + UC reach matrix.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/ed-production-deploy.canvas.tsx">
+      <div class="k ed">Canvas</div>
+      <h3>ED production deploy</h3>
+      <p>Node / Gateway / SaaS topology + lab view.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/edgedelta-ai-team-use-cases.canvas.tsx">
+      <div class="k ed">Canvas</div>
+      <h3>ED AI Team use cases</h3>
+      <p>10 Team jobs · UC8 completed (team recipe, no Issue card).</p>
+    </a>
+  </div>
+  <h3>L1 · Compare / philosophy</h3>
+  <div class="grid two">
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/observability-generations-dt-dd.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Obs 1.0 / 2.0 / 3.0</h3>
+      <p>Must-pass criteria · hybrid vendors.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/signal-categories-dt-dd.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Signal categories DT vs DD</h3>
+      <p>Davis <code>event.category</code> vs Door A ∥ B.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/federated-vs-dt-pipeline-gaps.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Federated vs DT gaps</h3>
+      <p>Part 1 vs DT 5+3+3.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/docs-hub-building-blocks-audit.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Docs hub building-blocks audit</h3>
+      <p>Collect→Package coverage on this hub.</p>
+    </a>
+  </div>
+  <h3>Shared fabric / engines / PoC</h3>
+  <div class="grid two">
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/clocks-tiers-orthogonality.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Clocks × tiers</h3>
+      <p>Clock A/B vs Fed tiers 2×2.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/rca-data-lake-grail-vector.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>RCA data lake</h3>
+      <p>Grail / Husky / Vector plane.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/rca-workflow-sim.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>RCA workflow sim</h3>
+      <p>Lean vs Fed Localize.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/lean-fed-oo-uc-compare.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Lean vs Fed vs OO UC</h3>
+      <p>Bakeoff vs ObserveOps use cases.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/incident-report-fields.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>Incident report fields</h3>
+      <p>Package field set.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/ecom-gold-report-compare.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>E-com gold report</h3>
+      <p>Checkout gold vs engine output.</p>
+    </a>
+    <a class="card" href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/rca-pipeline-reevaluation.canvas.tsx">
+      <div class="k compare">Canvas</div>
+      <h3>RCA pipeline re-eval</h3>
+      <p>Lean vs Fed timing / accuracy.</p>
+    </a>
+  </div>
+
+  <h2>4 · Shared fabric / design</h2>
+  <ul class="list">
+    <li><a href="/rca-data-lake-brainstorm.html">RCA data lake brainstorm</a><span>Clock A/B · modalities</span></li>
+    <li><a href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/clocks-tiers-orthogonality.canvas.tsx">Clocks × tiers canvas</a><span>IDE · 2×2 plane</span></li>
+    <li><a href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/rca-data-lake-grail-vector.canvas.tsx">RCA data lake canvas</a><span>IDE · Grail / Husky / Vector</span></li>
+    <li><a href="/clock-ab-stage-reference.html">Clock A/B stage reference</a><span>Stage I/O cards</span></li>
+    <li><a href="/fanout-tailor-simulator.html">Fan-out / Tailor simulator</a><span>Interactive cut sketch</span></li>
+    <li><a href="/docs/NAVIGATION.md">NAVIGATION.md</a><span>Full repo reading path</span></li>
+    <li><a href="/docs/CANVASES.md">CANVASES.md</a><span>All 17 IDE companions</span></li>
+  </ul>
+
+  <h2>5 · PoC console &amp; engines</h2>
+  <ul class="list">
+    <li><a href="/">PoC console home</a><span><code>:8765/</code></span></li>
+    <li><a href="/rca-workflow-sim.html">RCA workflow sim</a><span>Lean / Fed Localize</span></li>
+    <li><a href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/rca-workflow-sim.canvas.tsx">RCA workflow sim canvas</a><span>IDE companion</span></li>
+    <li><a href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/lean-fed-oo-uc-compare.canvas.tsx">Lean vs Fed vs OO UC canvas</a><span>IDE · bakeoff</span></li>
+    <li><a href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/incident-report-fields.canvas.tsx">Incident report fields canvas</a><span>IDE · Package fields</span></li>
+    <li><a href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/ecom-gold-report-compare.canvas.tsx">E-com gold report canvas</a><span>IDE · checkout gold</span></li>
+    <li><a href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/rca-pipeline-reevaluation.canvas.tsx">RCA pipeline re-eval canvas</a><span>IDE · timing / accuracy</span></li>
+    <li><a href="/docs/POC_DEMO_GUIDE.md">POC demo guide</a><span>15–20 min walkthrough</span></li>
+  </ul>
+
+  <p class="note">
+    <strong>Suggested path:</strong> L2 skim → L0 DT → L0 DD → L0 ED (independent) → L1 compare → FR/AC.
+    Typography and Site bar are shared via <code>urca-docs.css</code> + <code>doc-nav.js</code> on every hub page.
+  </p>
+</div>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

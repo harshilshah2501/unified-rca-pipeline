@@ -4,7 +4,7 @@
 
 Purpose: Build a comprehensive learning note for Lean that uses the same evidence tags as `Federated-decoded.md`.
 
-**Doc map:** [`docs/NAVIGATION.md`](docs/NAVIGATION.md)
+**Doc map:** [`docs/NAVIGATION.md`](../NAVIGATION.md)
 
 Tag legend:
 - [Implemented] Present and used in current repo flows.

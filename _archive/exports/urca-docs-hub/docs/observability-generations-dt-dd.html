@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Observability 1.0 / 2.0 / 3.0 — evaluation criteria</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+body{margin:0;font-family:var(--font);font-size:17px;line-height:1.65;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2438 0%,transparent 55%),var(--bg);}
+a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+h3{font-size:1.05rem;font-weight:600;margin:1.25rem 0 .5rem;}
+.note{margin:1rem 0;padding:.85rem 1rem;border-radius:var(--radius);background:rgba(91,141,239,.14);border-left:3px solid var(--accent);color:var(--muted);}
+.warn{border-left-color:var(--lean);background:rgba(240,179,90,.1);}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.85rem;margin:1rem 0;}
+@media (max-width:800px){.grid{grid-template-columns:1fr;}}
+.card{background:var(--bg-elev);border:1px solid var(--stroke);border-radius:10px;padding:1rem;}
+.card h3{margin:.2rem 0 .45rem;font-size:1rem;}
+.card .sub{color:var(--faint);font-family:var(--mono);font-size:.8rem;margin:0 0 .5rem;}
+.card p{margin:0 0 .65rem;color:var(--muted);font-size:.95rem;}
+.card ul{margin:0;padding:0 0 0 1.1rem;color:var(--muted);font-size:.92rem;}
+.card li{margin:.28rem 0;}
+.pill{display:inline-block;font-family:var(--mono);font-size:.75rem;padding:.15rem .45rem;border-radius:4px;border:1px solid var(--stroke);margin-right:.25rem;}
+.pill.ok{color:var(--ok);border-color:rgba(122,236,196,.45);}
+.pill.partial{color:var(--lean);border-color:rgba(240,179,90,.45);}
+.pill.fail{color:var(--bad);border-color:rgba(224,122,122,.45);}
+.toc{margin:1rem 0;padding:.85rem 1.1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
+.toc a{display:inline-block;margin:.25rem .85rem .25rem 0;}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="vendor-dt article">
+<div class="wrap article">
+  <div class="eyebrow">Teaching frame · DT vs DD</div>
+  <h1>Observability 1.0 / 2.0 / 3.0 — evaluation criteria</h1>
+  <p class="lead">
+    Exact must-pass checks. <strong style="color:var(--text)">Correlation alone is not 2.0.</strong>
+    <strong style="color:var(--text)">AI surfaces alone are not 3.0.</strong>
+    Datadog and Dynatrace are hybrids — score layers, not brands.
+  </p>
+
+  <div class="note warn">
+    A vendor “is 2.0” only if <strong style="color:var(--text)">all four</strong> 2.0 criteria Pass.
+    Same for 3.0. Any Partial/Fail → not a clean generation match.
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#criteria">1 Criteria</a>
+    <a href="#not-2">2 Why correlate ≠ 2.0</a>
+    <a href="#score">3 Scorecard</a>
+    <a href="#verdict">4 Verdicts</a>
+    <a href="#links">5 Related</a>
+  </nav>
+
+  <h2 id="criteria">1) Must-pass criteria</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="sub">1.0</div>
+      <h3>Three pillars</h3>
+      <p>Separate stores + write-time questions + operator joins tabs.</p>
+      <ul>
+        <li><strong style="color:var(--text)">C1 Pillars</strong> — metrics, logs, traces are separate first-class stores/tools</li>
+        <li><strong style="color:var(--text)">C2 Write-time</strong> — many metrics/questions fixed before the incident</li>
+        <li><strong style="color:var(--text)">C3 Manual join</strong> — correlation mostly after-the-fact (tags, IDs, tabs)</li>
+        <li><strong style="color:var(--text)">C4 Threshold Detect</strong> — alerts mainly static queries on series</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="sub">2.0</div>
+      <h3>Wide events</h3>
+      <p>One rich event fabric; derive views later; join is built-in.</p>
+      <ul>
+        <li><strong style="color:var(--text)">C1 Wide events</strong> — primary evidence is high-cardinality structured context</li>
+        <li><strong style="color:var(--text)">C2 Late binding</strong> — metrics/views can be derived after the fact</li>
+        <li><strong style="color:var(--text)">C3 Fabric join</strong> — correlation from event/entity model, not only tab pivots</li>
+        <li><strong style="color:var(--text)">C4 UX shape</strong> — event/entity-centric, not three peer pillar tabs</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="sub">3.0 · emerging</div>
+      <h3>AI assist</h3>
+      <p>Anomaly Detect + named RCA package are default, not optional.</p>
+      <ul>
+        <li><strong style="color:var(--text)">C1 Anomaly Detect</strong> — signal-aware / ML Detect is first-class</li>
+        <li><strong style="color:var(--text)">C2 Default package</strong> — named fault + evidence is the normal path</li>
+        <li><strong style="color:var(--text)">C3 Less babysitting</strong> — agents cut dashboard triage toil</li>
+        <li><strong style="color:var(--text)">C4 Cost selectivity</strong> (optional) — adaptive sampling / edge buffers when claimed</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="not-2">2) Why “they correlate” ≠ 2.0</h2>
+  <p>
+    1.0 already correlates (tags, trace IDs, dashboards). 2.0 requires the
+    <strong style="color:var(--text)">evidence model</strong> itself to be wide-event /
+    late-bound / entity-joined — not only that an operator can pivot tabs after an alert.
+  </p>
+
+  <h2 id="score">3) Scorecard — Datadog vs Dynatrace</h2>
+  <table>
+    <tr><th>Criterion</th><th>Era</th><th>Datadog</th><th>Why</th><th>Dynatrace</th><th>Why</th></tr>
+    <tr><td>Separate pillars</td><td>1.0 C1</td><td><span class="pill ok">Pass</span></td><td>Metrics ∥ APM ∥ Logs rails</td><td><span class="pill partial">Partial</span></td><td>UI entity-centric; stores still multimodal</td></tr>
+    <tr><td>Write-time metrics</td><td>1.0 C2</td><td><span class="pill ok">Pass</span></td><td>Classic timeseries + pre-agg common</td><td><span class="pill partial">Partial</span></td><td>Baselines + Grail; not only write-time</td></tr>
+    <tr><td>Manual / tag join</td><td>1.0 C3</td><td><span class="pill ok">Pass</span></td><td>Unified Service Tags join rails</td><td><span class="pill fail">Fail</span></td><td>Smartscape/entity join is first-class</td></tr>
+    <tr><td>Static threshold Detect</td><td>1.0 C4</td><td><span class="pill ok">Pass</span></td><td>Door A Monitors are primary teaching path</td><td><span class="pill partial">Partial</span></td><td>Thresholds exist; baselines feed Events</td></tr>
+    <tr><td>Wide-event primary</td><td>2.0 C1</td><td><span class="pill partial">Partial</span></td><td>Husky for traces/logs; metrics still classic</td><td><span class="pill partial">Partial</span></td><td>Grail rich; not one pure wide-log school</td></tr>
+    <tr><td>Late-bound views</td><td>2.0 C2</td><td><span class="pill partial">Partial</span></td><td>Span/log analytics yes; metrics often pre-agg</td><td><span class="pill ok">Pass</span></td><td>DQL / Grail derive views later</td></tr>
+    <tr><td>Fabric / entity join</td><td>2.0 C3</td><td><span class="pill partial">Partial</span></td><td>Tag join across rails — strong but 1.0-shaped</td><td><span class="pill ok">Pass</span></td><td>entityId + Smartscape typed walk</td></tr>
+    <tr><td>Entity/event UX</td><td>2.0 C4</td><td><span class="pill fail">Fail</span></td><td>Three peer explorers stay the teaching shape</td><td><span class="pill ok">Pass</span></td><td>Entity / Problem-centric UI</td></tr>
+    <tr><td>Anomaly Detect path</td><td>3.0 C1</td><td><span class="pill partial">Partial</span></td><td>Watchdog exists; lab often quiet / optional</td><td><span class="pill ok">Pass</span></td><td>Detectors → Events → Davis is default path</td></tr>
+    <tr><td>Default RCA package</td><td>3.0 C2</td><td><span class="pill fail">Fail</span></td><td>Bits/Incident optional; operator owns leaf</td><td><span class="pill partial">Partial</span></td><td>Problem default; rootCauseEntity can be null</td></tr>
+    <tr><td>Less dashboard babysitting</td><td>3.0 C3</td><td><span class="pill partial">Partial</span></td><td>Bits helps when used; not forced</td><td><span class="pill partial">Partial</span></td><td>Davis reduces toil; not full autonomy</td></tr>
+  </table>
+
+  <h2 id="verdict">4) Clean-match verdicts</h2>
+  <table>
+    <tr><th></th><th>1.0</th><th>2.0</th><th>3.0</th><th>Why not clean 2.0 / 3.0</th></tr>
+    <tr>
+      <td><strong style="color:var(--text)">Datadog</strong></td>
+      <td><span class="pill ok">Pass</span></td>
+      <td><span class="pill fail">No</span></td>
+      <td><span class="pill fail">No</span></td>
+      <td>Fails 2.0 mainly on three-rail UX + classic metrics store. Fails 3.0 because Watchdog/Bits/Incident packaging is optional (lab often leaves you on the flamegraph leaf).</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Dynatrace</strong></td>
+      <td><span class="pill partial">Partial</span></td>
+      <td><span class="pill partial">No (close)</span></td>
+      <td><span class="pill partial">No (close)</span></td>
+      <td>Closer to 2.0 (entity UX + Grail + Smartscape) but still dual-track, not one pure wide-event school. Closer to 3.0 (Davis default Problem) but not full autonomy — packaging can still miss a named <code>rootCauseEntity</code>.</td>
+    </tr>
+  </table>
+
+  <div class="note">
+    <strong style="color:var(--text)">One-liners.</strong>
+    Datadog = strong 1.0 explorers + hybrid backend; 3.0 pieces as optional doors.
+    Dynatrace = strong 2.0-leaning fabric + default Davis package; still not all-criteria 2.0 or 3.0.
+  </div>
+
+  <h2 id="links">5) Related</h2>
+  <ul>
+    <li><a href="/comparable-pipeline-dt-dd.html#ai-ml-comparison-derived-not-twins">DT vs DD vs ED compare · §0.4 AI/ML</a></li>
+    <li><a href="/dd-detect-category-hub.html">Datadog Detect hub</a> · <a href="/dt-davis-category-hub.html">Dynatrace Davis hub</a></li>
+    <li><a href="/docs.html">Docs hub index</a></li>
+  </ul>
+  <p>
+    Cursor canvas (IDE only — not served by <code>:8765</code>):
+    <a href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/observability-generations-dt-dd.canvas.tsx"><code>observability-generations-dt-dd.canvas.tsx</code></a>
+    — same criteria, live beside chat.
+    Catalog: <a href="/docs/CANVASES.md">CANVASES.md</a>.
+  </p>
+</div>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

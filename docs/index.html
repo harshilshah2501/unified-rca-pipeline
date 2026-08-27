@@ -6,6 +6,7 @@
 <title>Unified RCA — Documentation index</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <link rel="stylesheet" href="/urca-docs.css" />
+<script src="/theme-init.js"></script>
 </head>
 <body class="urca-doc hub-index">
 <div class="wrap hub-index">
@@ -51,8 +52,9 @@
     <strong style="color:var(--text)">Inside Our HLD:</strong>
     <a href="/observeops-fusion-guide.html">Fusion</a> (try a use case) →
     <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a> (written spec) →
-    <a href="/observeops-ci-graph.html">example map</a>.
-    Operational-graph chapter only if you need how connections are recorded.
+    <a href="/motadata-3pillars-implementation-scope.html">3 pillars kickoff scope</a> →
+    <a href="/observeops-shift-left-architecture.html">shift-left</a>.
+    More articles: <a href="/hld-archive.html">HLD archive</a>.
     Terms: <a href="/urca-glossary.html">Glossary</a>.
   </div>
 
@@ -78,41 +80,31 @@
       <h3>Pipeline HLD</h3>
       <p>What each step is for. Signed design choices.</p>
     </a>
-    <a class="card" href="/observeops-ci-graph.html">
-      <div class="k compare">Example</div>
-      <h3>Linux-server map</h3>
-      <p>33 CIs / 40 edges — we drew it; live E3 does not emit it yet.</p>
+    <a class="card" href="/motadata-3pillars-implementation-scope.html">
+      <div class="k kickoff">Kickoff scope</div>
+      <h3>3 pillars implementation scope</h3>
+      <p>Block-2 entry: answers before start · ingest.v1 · E3–E5 artifacts.</p>
     </a>
-    <a class="card" href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md">
-      <div class="k compare">Chapter · Draft</div>
-      <h3>Operational graph</h3>
-      <p>How the map is recorded and used. Same pipeline, not a second HLD.</p>
+    <a class="card" href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md">
+      <div class="k kickoff">Pillar A</div>
+      <h3>Percentiles deep dive</h3>
+      <p>Inputs, processing flowcharts, sketch.v1 artifacts, who reads what.</p>
     </a>
     <a class="card" href="/observeops-shift-left-architecture.html">
       <div class="k compare">Where it runs</div>
       <h3>Shift-processing-left</h3>
       <p>Same eleven steps. Node / optional Gateway / our SaaS. Not a second pipeline.</p>
     </a>
-    <a class="card" href="/motadata-3pillars-architecture.html">
-      <div class="k compare">Explained</div>
-      <h3>Motadata 3 pillars</h3>
-      <p>What / why / how for T-Digest, graph, Vortex, retrieval, ReAct — mapped onto E1–E11.</p>
-    </a>
-    <a class="card" href="/motadata-3pillars-study-qna.html">
-      <div class="k compare">Study Q&amp;A</div>
-      <h3>Leadership ToDo + merge</h3>
-      <p>PDF is a requirements sketch. Conflicts vs E1–E11 and resolutions. Hybrid = temporal CI graph, not Alert vertices. D5 stays Review.</p>
+    <a class="card" href="/hld-archive.html">
+      <div class="k compare">Archive index</div>
+      <h3>More HLD articles</h3>
+      <p>Motadata study, examples, LLDs, chapters — searchable; off the main menu.</p>
     </a>
   </div>
-  <ul class="list">
-    <li><a href="/docs/OBSERVEOPS_USE_CASES.md">8 ObserveOps Detect use cases</a><span>UC1–5 = classes · UC6–8 = RESOURCE_CONTENTION sub-signatures — not ED’s 10 Team jobs</span></li>
-    <li><a href="/observeops-pipeline-diagram.html">Standalone pipeline diagram</a><span>E1–E11 visual</span></li>
-    <li><a href="/docs/linux-server-ci-telemetry.json">CI telemetry JSON</a><span>228 keys · 125 fault signatures · authored, not live E3</span></li>
-    <li><a href="/docs/LLD-E1-Collect.md">LLD-E1 Collect</a><span>Done · ingest.v1</span></li>
-    <li><a href="/docs/LLD-E2-Identity.md">LLD-E2 Identity (Normalize)</a><span>Done · IdentifiedRecord overlay</span></li>
-    <li><a href="/docs/LLD-E3-Topology.md">LLD-E3 Topology</a><span>Draft · operational-graph chapter is the target map shape, not yet merged</span></li>
-    <li><a href="/docs/LLD-E4-Stores.md">LLD-E4 Stores</a><span>Draft</span></li>
-  </ul>
+  <p class="note" style="margin-top:.75rem;">
+    Full HLD article list (Motadata study Q&amp;A, example map, LLDs, print exports):
+    <a href="/hld-archive.html">HLD archive</a>.
+  </p>
 
   <h2>1 · Compare &amp; philosophy (L1 — after both hubs)</h2>
   <div class="grid two">

@@ -2,7 +2,7 @@
 
 **Audience:** Data owners preparing logs, metrics, traces for ingestion PoC  
 **Build order:** **Federated pipeline first (F1)**, then **Lean bundle writer (L0)** from the **same** normalized stream  
-**Related:** [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) §3.4 · [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md)
+**Related:** [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) §3.4 · [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · HLD v1.1 [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §11.1 · [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) (Normalize)
 
 ---
 
@@ -42,9 +42,9 @@ All sources should land as **`ingest.v1` JSONL** — one JSON object per line, t
 | `schema_version` | string | Yes | Always `"ingest.v1"` |
 | `ts` | ISO-8601 UTC | Yes | Event time |
 | `tenant` | string | Yes | e.g. `"default"` |
-| `ci_id` | string | Yes | Stable CI / service id (must match topology) |
-| `ci_type` | string | Yes | e.g. `Service`, `Pod`, `HypervisorHost` |
-| `signal_class` | enum | Yes | See §2 |
+| `ci_id` | string | Yes | Stable CI / service id after E2. At E1 this may be source-asserted or a placeholder; E2 resolves it. Primary join key with `tenant` for topology, stores, and a future ServiceOps ticket |
+| `ci_type` | string | Yes | e.g. `Service`, `HypervisorHost`. Additive taxonomy — see [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) §3 |
+| `signal_class` | enum | Yes | Admitted now: §2. Reserved unused: §2.1 |
 | `name` | string | Yes | Metric name, log type, span operation, etc. |
 | `value` | number | Usually | Numeric value; use `1.0` for boolean events |
 | `threshold` | number \| null | If known | For detect / anomaly marking |
@@ -63,6 +63,38 @@ All sources should land as **`ingest.v1` JSONL** — one JSON object per line, t
 | `event` | Speed tier + evidence | `A-EVT` (UC-2/4 class) |
 | `trace_span` | **Required for Nezha** — Dragonfly `tg:` / `pc:` | Optional |
 | `topo_update` | Structural graph refresh | `A-TOPO` refresh |
+
+### 2.1 Reserved `signal_class` values (do not emit this pass)
+
+Named so later ServiceOps / CMDB sources do not collide with today's enum. Collectors for these are **out of E1 this pass**. Unknown classes (not in §2 and not in this table) must be rejected or dead-lettered — do not guess. See [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) §2.2.
+
+| Class | Future producer |
+|-------|-----------------|
+| `change_event` | Change / deploy feed |
+| `cmdb_sync` | CMDB / discovery snapshot or delta |
+| `ticket` | ServiceOps incident / ITSM record |
+
+### 2.2 Identity overlay (E2 Normalize — not a second on-wire format)
+
+After E2, the same `ingest.v1` line carries an `identity` object. HLD `IdentifiedRecord` **is** this overlay. Full contract: [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) §3. Until converters emit it, Motadata `labels.bound` and ObserveOps `"Unknown"` `ci_type` are the implemented proxies.
+
+```json
+"identity": {
+  "status": "resolved",
+  "bind_source": "object.name",
+  "aliases": ["monitor-88", "esxi-host-01.lab.local"]
+}
+```
+
+| `identity.status` | Meaning | May be E9 leaf / ServiceOps ticket CI? |
+|-------------------|---------|----------------------------------------|
+| `resolved` | Bind succeeded against topology or named bind-table entry | Yes |
+| `unattributed` | No CI mapping; record kept (FR-B1 queue) | No |
+| `synthesized` | Placeholder id invented for visibility (`Unknown`, `monitor-{id}`, plugin fallback) | No |
+
+`service` / `env` / `version` stay optional `labels` (HLD D-E2-2). Primary join key is `tenant`+`ci_id`.
+
+Poison envelopes (bad JSON, wrong `schema_version`, unknown `signal_class`) are **E1 dead-letter**, not E2 synthesis. DLQ implementation is Vector D5.
 
 ---
 
@@ -228,7 +260,8 @@ For [`FEDERATED_JUSTIFICATION_REPORT.md`](./FEDERATED_JUSTIFICATION_REPORT.md), 
 ## 10. Checklist before handoff
 
 - [ ] All events have UTC `ts`
-- [ ] `ci_id` values exist in `topology.json`
+- [ ] After E2, resolved `ci_id` values exist in `topology.json` (E1 may carry unresolved ids; those must not become localize/ticket targets)
+- [ ] Every line has `schema_version == "ingest.v1"` and a §2 `signal_class` (not a reserved §2.1 class unless you are delivering a future source by agreement)
 - [ ] Incident window includes **baseline + fault** (≥15–30 min baseline for metrics)
 - [ ] Traces include `trace_id` + `span_id` + `parent_span_id` (Federated)
 - [ ] `ground_truth.json` per incident for scoring
@@ -287,3 +320,5 @@ Adapter: [`motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_inge
 - Vector skeleton: [`ingestion-poc/vector/`](../ingestion-poc/vector/)
 - Detect: [`ingestion-poc/detect/`](../ingestion-poc/detect/)
 - Storage tiers: [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md)
+- Collect LLD: [`LLD-E1-Collect.md`](./LLD-E1-Collect.md)
+- Normalize / Identity LLD: [`LLD-E2-Identity.md`](./LLD-E2-Identity.md)

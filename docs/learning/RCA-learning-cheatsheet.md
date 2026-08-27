@@ -2,7 +2,7 @@
 
 # RCA Learning Cheatsheet + Ingestion Cost PoC Plan
 
-**Doc map:** [`docs/NAVIGATION.md`](docs/NAVIGATION.md)
+**Doc map:** [`docs/NAVIGATION.md`](../NAVIGATION.md)
 
 ## 1) Lean vs Federated (quick revision)
 
@@ -65,7 +65,7 @@ Tag reminder for learning notes:
 
 ## 1c) Ingestion pipeline cost breakdown
 
-**Remember:** bakeoff RCA still uses **frozen** ObserveOps bundles. Ingest PoC has **normalized `ingest.v1`** (UC replay + Motadata smoke); Vector → writers still ahead — [`docs/INGESTION_POC_PLAN.md`](docs/INGESTION_POC_PLAN.md). Numbers below are a **cost structure** for planning — not measured production invoices.
+**Remember:** bakeoff RCA still uses **frozen** ObserveOps bundles. Ingest PoC has **normalized `ingest.v1`** (UC replay + Motadata smoke); Vector → writers still ahead — [`docs/INGESTION_POC_PLAN.md`](../INGESTION_POC_PLAN.md). Numbers below are a **cost structure** for planning — not measured production invoices.
 
 ### Cost equation
 
@@ -74,7 +74,7 @@ Total ops cost ≈ C_collect + C_detect + C_normalize + C_store + C_query_feed +
                  + C_rca_runtime   (separate — already bakeoff-comparable)
 ```
 
-**Detection (`C_detect`) is mandatory in product** — Lean does not include Panorama. Fair bakeoff now runs a **shared threshold detector** before both engines ([`docs/PIPELINE_PARITY.md`](docs/PIPELINE_PARITY.md)). Continuous detection often costs more than sparse RCA calls; real ingest + real Panorama come later. See also [`docs/INGESTION_PIPELINE_VECTOR.md`](docs/INGESTION_PIPELINE_VECTOR.md) §1b.
+**Detection (`C_detect`) is mandatory in product** — Lean does not include Panorama. Fair bakeoff now runs a **shared threshold detector** before both engines ([`docs/PIPELINE_PARITY.md`](../PIPELINE_PARITY.md)). Continuous detection often costs more than sparse RCA calls; real ingest + real Panorama come later. See also [`docs/INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) §1b.
 
 | Cost bucket | What it pays for | Lean (classic infra default) | Federated (full vision) |
 |-------------|------------------|------------------------------|-------------------------|
@@ -104,16 +104,16 @@ Total ops cost ≈ C_collect + C_detect + C_normalize + C_store + C_query_feed +
 | Federated CV edge didn’t buy top-1 here | Break-even: when does Nezha-tier ingest pay for itself? |
 
 Full experiment plan: §3 below.  
-**Vector ingest design (artifact contracts + L0/F1 sinks):** [`docs/INGESTION_PIPELINE_VECTOR.md`](docs/INGESTION_PIPELINE_VECTOR.md) · skeleton [`ingestion-poc/vector/`](ingestion-poc/vector/).  
-**Data format / converters:** [`docs/INGEST_DATA_FORMAT.md`](docs/INGEST_DATA_FORMAT.md) · Motadata adapter [`ingestion-poc/adapters/`](ingestion-poc/adapters/).  
-**Fair pipeline parity (shared detect):** [`docs/PIPELINE_PARITY.md`](docs/PIPELINE_PARITY.md) · [`ingestion-poc/detect/`](ingestion-poc/detect/).  
-**Next actions:** [`docs/RCA_WORKFLOW_AND_NEXT.md`](docs/RCA_WORKFLOW_AND_NEXT.md).
+**Vector ingest design (artifact contracts + L0/F1 sinks):** [`docs/INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) · skeleton [`ingestion-poc/vector/`](../../ingestion-poc/vector/).  
+**Data format / converters:** [`docs/INGEST_DATA_FORMAT.md`](../INGEST_DATA_FORMAT.md) · Motadata adapter [`ingestion-poc/adapters/`](../../ingestion-poc/adapters/).  
+**Fair pipeline parity (shared detect):** [`docs/PIPELINE_PARITY.md`](../PIPELINE_PARITY.md) · [`ingestion-poc/detect/`](../../ingestion-poc/detect/).  
+**Next actions:** [`docs/RCA_WORKFLOW_AND_NEXT.md`](../RCA_WORKFLOW_AND_NEXT.md).
 
 ---
 
 ## 1d) Learning links (algorithms & data structures)
 
-Use these as background reading. Prefer **primers** first, then **source papers**. Repo PDFs under [`federated-pipeline/docs/papers/`](federated-pipeline/docs/papers/README.md) when available offline.
+Use these as background reading. Prefer **primers** first, then **source papers**. Repo PDFs under [`federated-pipeline/docs/papers/`](../../federated-pipeline/docs/papers/README.md) when available offline.
 
 ### Shared foundations (both engines)
 
@@ -130,23 +130,23 @@ Use these as background reading. Prefer **primers** first, then **source papers*
 
 | Topic | Why it matters here | Start here |
 |-------|---------------------|------------|
-| Heuristic / rule-based diagnosis | `shared_upstream`, signatures, `upstream_healthy` | Pattern: expert systems + production runbooks (concept) · repo: [`lean-pipeline/docs/ARCHITECTURE.md`](lean-pipeline/docs/ARCHITECTURE.md) |
-| Spectrum / correlational ranking | CARE PoC ranks by severity under Δt ambiguity | CARE in papers is spectrum-based; our PoC is a **lighter** ranking — see [`LIMITATIONS_AND_FUTURE.md`](lean-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
+| Heuristic / rule-based diagnosis | `shared_upstream`, signatures, `upstream_healthy` | Pattern: expert systems + production runbooks (concept) · repo: [`lean-pipeline/docs/ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md) |
+| Spectrum / correlational ranking | CARE PoC ranks by severity under Δt ambiguity | CARE in papers is spectrum-based; our PoC is a **lighter** ranking — see [`LIMITATIONS_AND_FUTURE.md`](../../lean-pipeline/docs/LIMITATIONS_AND_FUTURE.md) |
 | Lightweight causal checks | Tier-3 `verify_care_root` (not full Pearl do-calculus) | [Causal inference (intro)](https://en.wikipedia.org/wiki/Causal_inference) · [Pearl’s ladder (gentle)](https://ftp.cs.ucla.edu/pub/stat_ser/r481.pdf) (advanced) |
-| Visual walkthrough | Sub-step Tier 1→2→3 | [`TIERED_ESCALATION_VISUAL_GUIDE.md`](lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md) |
+| Visual walkthrough | Sub-step Tier 1→2→3 | [`TIERED_ESCALATION_VISUAL_GUIDE.md`](../../lean-pipeline/docs/TIERED_ESCALATION_VISUAL_GUIDE.md) |
 
 ### Federated-specific (papers + primers)
 
 | Topic | Why it matters here | Start here |
 |-------|---------------------|------------|
-| **Panorama** (gray failure / observers) | Detection hop | Paper PDF (local): [`Panorama_OSDI2018.pdf`](federated-pipeline/docs/papers/Panorama_OSDI2018.pdf) · [Author pubs](https://www.cs.jhu.edu/~huang/pubs.html) · USENIX: [OSDI ’18 open access](https://www.usenix.org/conference/osdi18/presentation/huang) · Primer: [Gray failure (HotOS)](https://www.cs.jhu.edu/~huang/paper/grayfailure-hotos17.pdf) |
-| **Murphy** (MRF + Gibbs) | Macro localization | Open PDF: [Illinois copy](https://sachin.cs.illinois.edu/papers/murphy-harsh-sigcomm23.pdf) · Alt: [Godfrey lab](https://pbg.cs.illinois.edu/papers/harsh23murphy.pdf) · Local: [`Murphy_SIGCOMM2023.pdf`](federated-pipeline/docs/papers/Murphy_SIGCOMM2023.pdf) |
+| **Panorama** (gray failure / observers) | Detection hop | Paper PDF (local): [`Panorama_OSDI2018.pdf`](../../federated-pipeline/docs/papers/Panorama_OSDI2018.pdf) · [Author pubs](https://www.cs.jhu.edu/~huang/pubs.html) · USENIX: [OSDI ’18 open access](https://www.usenix.org/conference/osdi18/presentation/huang) · Primer: [Gray failure (HotOS)](https://www.cs.jhu.edu/~huang/paper/grayfailure-hotos17.pdf) |
+| **Murphy** (MRF + Gibbs) | Macro localization | Open PDF: [Illinois copy](https://sachin.cs.illinois.edu/papers/murphy-harsh-sigcomm23.pdf) · Alt: [Godfrey lab](https://pbg.cs.illinois.edu/papers/harsh23murphy.pdf) · Local: [`Murphy_SIGCOMM2023.pdf`](../../federated-pipeline/docs/papers/Murphy_SIGCOMM2023.pdf) |
 | Markov Random Field | Murphy dependency model | [MRF (Wikipedia)](https://en.wikipedia.org/wiki/Markov_random_field) · [Graphical models survey (Koller/Friedman book site)](https://ermongroup.github.io/cs228-notes/) |
 | Gibbs sampling | Murphy inference; source of repro variance | [Gibbs sampling](https://en.wikipedia.org/wiki/Gibbs_sampling) · [MCMC intro (Princeton)](https://www.cs.princeton.edu/courses/archive/fall11/cos513/docs/lec7.pdf) |
-| **Nezha** (event graphs / pattern drift) | Micro hop | ACM: [doi:10.1145/3611643.3616249](https://doi.org/10.1145/3611643.3616249) · Code: [IntelligentDDS/Nezha](https://github.com/IntelligentDDS/Nezha) · Local: [`Nezha_FSE2023.pdf`](federated-pipeline/docs/papers/Nezha_FSE2023.pdf) |
+| **Nezha** (event graphs / pattern drift) | Micro hop | ACM: [doi:10.1145/3611643.3616249](https://doi.org/10.1145/3611643.3616249) · Code: [IntelligentDDS/Nezha](https://github.com/IntelligentDDS/Nezha) · Local: [`Nezha_FSE2023.pdf`](../../federated-pipeline/docs/papers/Nezha_FSE2023.pdf) |
 | Event / execution graphs | Speed-tier substrate for Nezha | [Event graph (overview)](https://en.wikipedia.org/wiki/Event_graph) · distributed tracing primer: [OpenTelemetry Concepts](https://opentelemetry.io/docs/concepts/) |
-| Orchestration / fusion | Multi-engine hop contracts | Repo: [`ORCHESTRATOR.md`](federated-pipeline/docs/ORCHESTRATOR.md) · [`FEDERATED_PIPELINE_VISUAL_GUIDE.md`](federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md) |
-| Paper dissections (internal) | Guided reading | [`dissections/`](federated-pipeline/docs/dissections/) |
+| Orchestration / fusion | Multi-engine hop contracts | Repo: [`ORCHESTRATOR.md`](../../federated-pipeline/docs/ORCHESTRATOR.md) · [`FEDERATED_PIPELINE_VISUAL_GUIDE.md`](../../federated-pipeline/docs/FEDERATED_PIPELINE_VISUAL_GUIDE.md) |
+| Paper dissections (internal) | Guided reading | [`dissections/`](../../federated-pipeline/docs/dissections/) |
 
 ### Ingestion & storage (cost PoC background)
 
@@ -157,7 +157,7 @@ Use these as background reading. Prefer **primers** first, then **source papers*
 | Time-series / hot retention | Metric windows, TTL | [Time series database](https://en.wikipedia.org/wiki/Time_series_database) · Redis/Dragonfly sorted sets as hot windows (ops blogs vary) |
 | Knowledge / property graphs | Structural tier vision | [Knowledge graph](https://en.wikipedia.org/wiki/Knowledge_graph) · [Property graph model](https://en.wikipedia.org/wiki/Graph_database#Labeled-property_graph) |
 | Observability pillars | Metrics / logs / traces | [Observability](https://en.wikipedia.org/wiki/Observability) · [OpenTelemetry](https://opentelemetry.io/docs/) |
-| Repo storage vision | Federated dual-tier design | [`STORAGE_TIERS.md`](federated-pipeline/docs/STORAGE_TIERS.md) · [`CAPACITY.md`](federated-pipeline/docs/CAPACITY.md) |
+| Repo storage vision | Federated dual-tier design | [`STORAGE_TIERS.md`](../../federated-pipeline/docs/STORAGE_TIERS.md) · [`CAPACITY.md`](../../federated-pipeline/docs/CAPACITY.md) |
 
 ### Suggested reading order (1–2 evenings)
 
@@ -173,7 +173,7 @@ Use these as background reading. Prefer **primers** first, then **source papers*
 |------|--------|
 | [`Lean-decoded.md`](Lean-decoded.md) | Lean tagged study (corrected coach notes) |
 | [`Federated-decoded.md`](Federated-decoded.md) | Federated tagged study |
-| [`docs/UC_LEARNING_BRAINSTORM.md`](docs/UC_LEARNING_BRAINSTORM.md) | UC walkthroughs (not bakeoff GT) |
+| [`docs/UC_LEARNING_BRAINSTORM.md`](../UC_LEARNING_BRAINSTORM.md) | UC walkthroughs (not bakeoff GT) |
 
 ---
 
@@ -192,15 +192,15 @@ without mixing product claims.
 
 ## 3) Ingestion Pipeline Cost PoC (proposal)
 
-**Canonical plan:** [`docs/INGESTION_POC_PLAN.md`](docs/INGESTION_POC_PLAN.md) — milestones M1–M3, hardware tiers A–C, week-by-week checklist, sign-off gates.
+**Canonical plan:** [`docs/INGESTION_POC_PLAN.md`](../INGESTION_POC_PLAN.md) — milestones M1–M3, hardware tiers A–C, week-by-week checklist, sign-off gates.
 
 ### 3.0 Vector as the shared ingest fabric
 
-Design (not full implementation): [`docs/INGESTION_PIPELINE_VECTOR.md`](docs/INGESTION_PIPELINE_VECTOR.md).
+Design (not full implementation): [`docs/INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md).
 
 - **One** Vector collect/normalize path; **Lean-only (L0)** vs **dual-sink (F1)** profiles for cost compare.  
 - Topology crawler stays **beside** Vector; post-Vector builders materialize Lean bundles and Federated speed-tier keys.  
-- Skeleton: [`ingestion-poc/vector/`](ingestion-poc/vector/).
+- Skeleton: [`ingestion-poc/vector/`](../../ingestion-poc/vector/).
 
 ### 3.1 Objective
 

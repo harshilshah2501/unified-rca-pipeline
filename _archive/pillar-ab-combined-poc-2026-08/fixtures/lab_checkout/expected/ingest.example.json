@@ -1,0 +1,16 @@
+{
+  "schema_version": "ingest.v1",
+  "ts": "2026-08-20T03:30:12Z",
+  "tenant": "default",
+  "ci_id": "checkout-api",
+  "ci_type": "Service",
+  "signal_class": "metric_sample",
+  "name": "request.latency_ms",
+  "value": 92.1,
+  "labels": { "source": "lab-node" },
+  "identity": {
+    "status": "resolved",
+    "bind_source": "topology_lookup",
+    "aliases": ["svc:checkout-api"]
+  }
+}

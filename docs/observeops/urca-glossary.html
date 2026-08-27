@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unified RCA · Glossary</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link rel="stylesheet" href="/urca-docs.css" />
+<style>
+:root { --ours: #c4b5fd; }
+.lead { max-width: 42rem; }
+.searchRow {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  margin: 1rem 0 .75rem;
+}
+.searchRow input {
+  flex: 1; min-width: 16rem; font: inherit; font-size: 1rem;
+  padding: .55rem .75rem; border-radius: 8px;
+  border: 1px solid var(--stroke); background: var(--bg-elev); color: var(--text);
+}
+.searchRow input:focus { outline: 2px solid rgba(123,168,245,.45); border-color: var(--dd); }
+.count { font-family: var(--mono); font-size: .78rem; color: var(--faint); }
+.az {
+  display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 1.1rem;
+  position: sticky; top: var(--urca-nav-h, 42px); z-index: 5;
+  padding: .45rem 0 .5rem; background: linear-gradient(var(--bg) 70%, transparent);
+}
+.az a {
+  font-family: var(--mono); font-size: .78rem; min-width: 1.45rem; text-align: center;
+  padding: .2rem .15rem; border-radius: 4px; color: var(--faint);
+  border: 1px solid transparent;
+}
+.az a:hover { color: var(--text); border-color: var(--stroke); text-decoration: none; }
+.az a.empty { opacity: .28; pointer-events: none; }
+.letter {
+  font-family: var(--mono); font-size: .95rem; letter-spacing: .12em;
+  color: var(--ok); margin: 1.6rem 0 .35rem; padding-top: .4rem;
+  border-top: 1px solid var(--stroke);
+}
+.letter:first-of-type { border-top: 0; margin-top: .4rem; }
+.entry {
+  padding: .55rem 0 .65rem;
+  border-bottom: 1px solid rgba(42,52,65,.7);
+}
+.entry[hidden] { display: none; }
+.entry .term {
+  font-family: var(--mono); font-size: .95rem; font-weight: 600; color: var(--text);
+  margin: 0 0 .2rem;
+}
+.entry .def { margin: 0; color: var(--muted); font-size: .95rem; }
+.entry .not, .entry .see {
+  margin: .2rem 0 0; font-size: .86rem; color: var(--faint);
+}
+.entry .not strong, .entry .see strong { color: var(--faint); font-weight: 600; }
+.tags { display: inline; }
+.tag {
+  display: inline-block; font-family: var(--mono); font-size: .65rem;
+  letter-spacing: .04em; text-transform: uppercase;
+  padding: .08rem .32rem; border-radius: 3px; margin: 0 .28rem 0 0; vertical-align: middle;
+}
+.tag.ours { background: rgba(196,181,253,.16); color: var(--ours); }
+.tag.dt { background: rgba(61,154,139,.16); color: var(--dt); }
+.tag.dd { background: rgba(123,168,245,.16); color: var(--dd); }
+.tag.ed { background: rgba(126,200,184,.16); color: #7ec8b8; }
+.tag.shared { background: rgba(122,236,196,.1); color: var(--ok); }
+.conflictTable { font-size: .82rem; }
+.emptyMsg { display: none; color: var(--faint); margin: 1rem 0; }
+body.is-empty .emptyMsg { display: block; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 1rem; }
+.filters button {
+  font-family: var(--mono); font-size: 12px; padding: 5px 10px; border-radius: 5px;
+  border: 1px solid var(--stroke); background: var(--bg-soft); color: var(--muted); cursor: pointer;
+}
+.filters button.on { color: var(--ok); border-color: rgba(122,236,196,.5); background: rgba(122,236,196,.1); }
+</style>
+</head>
+<body class="urca-doc article">
+<div class="wrap article">
+  <div class="eyebrow">Docs hub · reference</div>
+  <h1>Glossary</h1>
+  <p class="lead">
+    One word, one meaning. Look a term up; do not read this as a lesson.
+    Vendor stories: <a href="/dt-davis-category-hub.html">DT hub</a> ·
+    <a href="/dd-detect-category-hub.html">DD hub</a> ·
+    <a href="/ed-ai-team-hub.html">ED hub</a>.
+    Our pack: <a href="/observeops-pipeline-hld.html">Our HLD</a>.
+  </p>
+
+  <div class="searchRow">
+    <input id="q" type="search" placeholder="Search terms…" autocomplete="off" aria-label="Search glossary" />
+    <span class="count" id="count"></span>
+  </div>
+  <div class="filters" role="group" aria-label="Filter by source">
+    <button type="button" class="on" data-src="all">All</button>
+    <button type="button" data-src="ours">Ours</button>
+    <button type="button" data-src="dt">Dynatrace</button>
+    <button type="button" data-src="dd">Datadog</button>
+    <button type="button" data-src="ed">Edge Delta</button>
+    <button type="button" data-src="shared">Shared</button>
+    <button type="button" data-src="lab">Lab</button>
+  </div>
+  <nav class="az" id="az" aria-label="Jump to letter"></nav>
+  <p class="emptyMsg">No terms match.</p>
+
+  <h2 id="conflicts">Same word, different meaning</h2>
+  <p>These words are reused. Do not treat the columns as twins.</p>
+  <table class="conflictTable">
+    <thead><tr><th>Term</th><th>Ours</th><th>Dynatrace</th><th>Datadog</th><th>Edge Delta</th></tr></thead>
+    <tbody>
+      <tr><td>Detect</td><td>E6 — a fault signal, not a root cause</td><td>Detectors raise Events</td><td>Monitors and/or Watchdog (either can be empty)</td><td>Skyline ALERT, Pattern Anomaly, or a Team job — not twins</td></tr>
+      <tr><td>Localize</td><td>E9 — name the leaf</td><td>Smartscape walk → <code>rootCauseEntity</code></td><td>Flamegraph leaf (operator or Bits)</td><td>eBPF Service Map assists; this tenant has no <code>rootCauseEntity</code> walk</td></tr>
+      <tr><td>Package</td><td>E11 — required verdict card</td><td>Problem (default)</td><td>Bits optional; Incident often missing</td><td>Issue card (this tenant Issues 0). Thread ≠ Issue</td></tr>
+      <tr><td>Maintain</td><td>E5 — keep fabric fresh</td><td>Named fabric stage</td><td>No named stage; continuous Write + retention</td><td>Pipeline hygiene / index on Node (no Gateway here)</td></tr>
+      <tr><td>Scope / Tailor</td><td>E8 Scope</td><td>Tailor = cut space ∩ time</td><td>Operator or Bits locks env / version / time</td><td>Team working set / OnCall — not E8 by another name</td></tr>
+      <tr><td>Map / lake</td><td>E3 Topology · E4 Stores</td><td>Smartscape · Grail</td><td>Service Map · Metrics store ∥ Husky</td><td>eBPF Service Map (runtime calls) · Knowledge Graph (Team entities). Same E3 slot, not the same product</td></tr>
+    </tbody>
+  </table>
+  <p class="note warn">
+    Do not equate: Problem ↔ Incident ↔ Issue · Event ↔ Watchdog story ↔ Pattern Anomaly ·
+    Smartscape ↔ Service Map ↔ ED Service Map · Grail ↔ Husky ↔ ED Platform ·
+    Dual-track ↔ Three-rail ↔ Dual-layer · Davis ↔ Bits ↔ AI Team ·
+    PurePath ↔ Flamegraph · Alert ↔ packaged RCA · Thread ↔ Issue ·
+    Test Notification ↔ skyline ALERT · ObserveOps UC-8 ↔ ED UC8.
+  </p>
+
+  <div id="entries"></div>
+
+  <h2 id="engine">Engine terms (bakeoff)</h2>
+  <p>
+    Lean tiers, L0/F1 ingest, Panorama / Murphy / Nezha, and corpus names:
+    <a href="/docs/GLOSSARY.md">GLOSSARY.md</a>.
+  </p>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script>
+(function () {
+  var TERMS = [
+    { t: "5+3+3", src: "shared", a: "533 five three three", d: "Teaching split of the pipeline: 5 fabric stages, 3 triage stages, 3 diagnose stages.", see: "Clock A, Clock B, F → T → D" },
+    { t: "Agent", src: "dd", d: "Datadog collector on a host. It ships metrics, logs, and traces into the product.", n: "Bits, or the Datadog website." },
+    { t: "Alert", src: "dd", d: "A Monitor that has fired. It is a Detect signal, not a finished RCA package." },
+    { t: "ADR", src: "ours", a: "architecture decision record signed choice", d: "A signed design choice in the Pipeline HLD (for example: how topology is stored, how Curate merges signals). D1–D4 and D-E2-1/D-E2-2 are signed. D5 (where AI sits) is not.", see: "D1–D5, Pipeline HLD" },
+    { t: "Always-on fabric", src: "shared", a: "fabric P1", d: "The continuous write path that runs even when nothing is broken: collect, identity, topology, stores, maintain." },
+    { t: "APM", src: "shared", a: "application performance monitoring traces", d: "Application tracing: spans that show which service called which, and how long each step took." },
+    { t: "AVAILABILITY", src: "dt", d: "Dynatrace Detect class for “this thing is down or unreachable,” not “it is slow” or “it returns errors.”" },
+    { t: "Bind LUT", src: "dt", a: "lookup table", d: "A flat stamp: raw key → entityId. It does not walk the graph." },
+    { t: "Bits", src: "dd", a: "Bits AI Bits review", d: "Optional Datadog investigation assistant. It can walk a hypothesis tree and write a narrative.", n: "Detect, an Incident, or a required engineering stage.", see: "Hypothesis Tree, Package, Layer I" },
+    { t: "Blast radius", src: "ours", d: "Downstream services or CIs hurt by the same fault, listed as impact — not as the cause." },
+    { t: "CARE", src: "ours", d: "Lean correlational ranking used when several onsets sit in the same time window. It is not the same as a causal claim." },
+    { t: "Cascade", src: "shared", d: "One leaf fault that shows up as many symptoms on callers (frontend → product → inventory)." },
+    { t: "Case opens", src: "ours", a: "P2 phase 2", d: "Our name for Detect → Curate → Scope: a case starts from signals, not from a packaged verdict." },
+    { t: "CaseSeed", src: "ours", a: "case seed", d: "Curate output: one primary CI, a start time, a fault class, and why related signals were merged.", n: "The packaged root cause." },
+    { t: "CI", src: "shared", a: "configuration item", d: "One managed thing on the map: host, service, interface, container, and so on." },
+    { t: "Clock A", src: "shared", d: "Teaching name for fabric + case open: Collect through Tailor/Scope." },
+    { t: "Clock B", src: "shared", d: "Teaching name for diagnose after the working set is locked: Localize → Identify → Package." },
+    { t: "CMDB", src: "shared", a: "configuration management database", d: "Optional inventory of record (ServiceNow-style). Useful for tags and governance.", n: "The live observability graph. Discovery can create CIs without a CMDB." },
+    { t: "Collect", src: "ours", a: "E1", d: "E1 — take in raw telemetry from agents, OTLP, logs, and stats." },
+    { t: "Contract", src: "ours", a: "stage contract I/O", d: "What one pipeline step must take in and put out. Not a legal document. Example: Detect takes a map snapshot and puts out a fault signal.", see: "Stage, Pipeline HLD" },
+    { t: "Correlation window", src: "ours", d: "The time range in which related signals may be grouped into one case." },
+    { t: "Corroboration", src: "ours", d: "Extra evidence (metrics, traces, logs) that supports the leaf claim. Identify’s job." },
+    { t: "Curate", src: "ours", a: "E7", d: "E7 — merge a storm of related signals into one case seed.", n: "Localize or Package." },
+    { t: "CUSTOM_ALERT", src: "dt", d: "Dynatrace Detect class for a user-defined alert that is not one of the built-in fault types." },
+    { t: "D1–D5", src: "ours", a: "ADR decisions", d: "Pipeline HLD design choices. D1 topology, D2 stores, D3 Curate, D4 Package, D-E2-1/D-E2-2 identity: Signed. D5 (where AI may sit) stays Review.", n: "Five still-open choices." },
+    { t: "Davis", src: "dt", d: "Dynatrace ranking/packaging engine. It merges Events and can emit a Problem by default.", n: "The whole RCA system, or Bits." },
+    { t: "Davis CoPilot", src: "dt", d: "Natural-language layer on top of Davis. It talks about a verdict; it does not replace Localize." },
+    { t: "ddtrace", src: "dd", d: "Language library that creates spans and sends them to the Datadog Agent trace port (:8126)." },
+    { t: "Detect", src: "ours", a: "E6", d: "E6 — emit a fault Signal (threshold or anomaly).", n: "A ranked root cause." },
+    { t: "Detect class", src: "ours", a: "ERROR SLOWDOWN", d: "Kind of breakage (ERROR, SLOWDOWN, …). Same pipeline; different Detect feature and Localize rule." },
+    { t: "Discovery", src: "shared", d: "Seeing processes, hosts, and call peers from live telemetry and upserting them onto the topology." },
+    { t: "DogStatsD", src: "dd", d: "UDP custom metrics to the Datadog Agent (:8125). Separate from ddtrace spans." },
+    { t: "Door A", src: "dd", a: "Monitors", d: "Datadog Detect path: a written Monitor query + threshold. Independent of Watchdog (Door B)." },
+    { t: "Door B", src: "dd", a: "Watchdog", d: "Datadog Detect path: unsupervised Watchdog anomaly stories. Independent of Monitors (Door A)." },
+    { t: "DQL", src: "dt", a: "Dynatrace Query Language", d: "Query language for Grail. It reads evidence; it does not rebuild Smartscape." },
+    { t: "Dual-track", src: "dt", d: "Dynatrace write geometry: Smartscape (map) in parallel with Grail (lake), joined by entityId.", n: "Datadog three-rail, or Edge Delta dual-layer." },
+    { t: "E1–E11", src: "ours", a: "stages blocks", d: "Our 11 engineering stages: Collect through Package. Layer I (Timeline / MTL / Bits) is not E12." },
+    { t: "Empty Detect", src: "dd", a: "foghorn", d: "Explorers are loud but no Monitor or Watchdog fired. A detect-coverage gap, not a Localize bug." },
+    { t: "entityId", src: "dt", d: "Stable Dynatrace identity for one Smartscape node. Also the join key into Grail." },
+    { t: "ERROR", src: "shared", d: "Detect class for failures (error rate, HTTP 5xx, exceptions). Localize rule: deepest error leaf." },
+    { t: "Estate", src: "ours", d: "Fabric output that Detect can trust: join keys + topology + stores + freshness." },
+    { t: "Event", src: "dt", d: "One Dynatrace Detect breach for an entity and time.", n: "A Problem." },
+    { t: "EvidenceBundle", src: "ours", d: "Identify output: ranked pointers (stack, span, log, metric) that support the leaf." },
+    { t: "Evidence stores", src: "ours", a: "E4 Stores", d: "Durable history you can query by identity and time (metrics, traces, logs, …)." },
+    { t: "F → T → D", src: "shared", a: "FTD fabric triage diagnose", d: "Compare-lens names for the three phases: Fabric, Triage, Diagnose." },
+    { t: "Fan-out", src: "shared", d: "Write the same identified records into more than one store or rail at once.", n: "Motadata L0/F1 cost routing." },
+    { t: "Federated", src: "ours", a: "Panorama Murphy Nezha", d: "Optional RCA path: Panorama → Murphy → Nezha, fused by an orchestrator. Bakeoff comparator, not the primary ObserveOps engine." },
+    { t: "FE → product → inventory", src: "lab", a: "frontend checkout call chain", d: "Shared lab call chain. Teaching leaf is inventory." },
+    { t: "Flamegraph", src: "dd", a: "flame graph flamegraph", d: "Trace picture: bars stacked by call depth, width = duration. The leaf is the bar where work actually fails or burns CPU. A human or Bits reads the leaf off this picture.", n: "PurePath, or Service Map.", see: "self-time, span, Localize, PurePath" },
+    { t: "Freshness baseline", src: "ours", d: "Indexes, retention, discovery, and deploy feed are current enough that Detect can trust the fabric." },
+    { t: "Grail", src: "dt", d: "Dynatrace evidence lake (logs, metrics, traces, …) keyed by entityId and time.", n: "Husky, or Smartscape." },
+    { t: "GraphSnapshot", src: "ours", d: "Topology output: walkable neighbors, direction, and depth at a point in time." },
+    { t: "Husky", src: "dd", d: "Datadog backend event store for traces and logs. Metrics live in a separate timeseries store. Sharing a store does not mean Watchdog models are fused.", n: "Grail." },
+    { t: "Hypothesis Tree", src: "dd", d: "Bits walk: observe → hypothesize → validate. Optional packaging path, not Detect." },
+    { t: "Identify", src: "ours", a: "E10", d: "E10 — gather and rank evidence around the leaf claim." },
+    { t: "IdentifiedRecord", src: "ours", d: "Identity output: a telemetry record with join keys / ci_ref stamped on it." },
+    { t: "Identity", src: "ours", a: "E2 Normalize", d: "E2 — stamp join keys (tags and/or entity id) so later stages can correlate." },
+    { t: "Incident", src: "dd", d: "Datadog declared case object. Often created by a human or Bits; often absent even when a fault is real.", n: "A Dynatrace Problem, or an Edge Delta Issue." },
+    { t: "Inferred", src: "shared", d: "Honesty label: fits lab plus public story; internals unpublished." },
+    { t: "IPO", src: "dd", a: "input processing output", d: "Breakdown teaching shape: Input → Processing → Output for one stage. Not a stock-market term here." },
+    { t: "Join keys", src: "ours", d: "Shared identity plus time so metrics, traces, and logs about the same workload can be lined up." },
+    { t: "KeyError", src: "lab", d: "Lab ERROR fault: Python KeyError → HTTP 500 on the inventory leaf." },
+    { t: "L0 / F1", src: "ours", a: "ingest profile", d: "Ingest cost tags: L0 writes Lean only; F1 writes Lean and Federated. See GLOSSARY.md." },
+    { t: "Layer E", src: "ours", a: "engineering", d: "Required pipeline: Collect through Package. Must name a leaf without MTL or Bits." },
+    { t: "Layer I", src: "ours", a: "interpret", d: "How a human reads one run: Timeline, MTL workbook, Bits. Optional. Not a Detect engine." },
+    { t: "Leaf", src: "shared", d: "The tip of the call path where the fault actually lives (deepest error, or longest self-time).", n: "The first alert, or the red node on the map." },
+    { t: "LeafClaim", src: "ours", d: "Localize output: entity + operation + fault class." },
+    { t: "Lean", src: "ours", d: "Primary ObserveOps evaluation engine: typed graph walk, rules, then optional CARE / causal check." },
+    { t: "Ledger-scan", src: "lab", d: "Lab SLOWDOWN fault: inventory.stock scans a ledger, HTTP 200, high self-time / CPU." },
+    { t: "Live baseline", src: "dd", d: "Healthy pre-break write — what normal looks like. Taught at Write, not at Detect." },
+    { t: "Localize", src: "ours", a: "E9", d: "E9 — pick the leaf using the Detect-class rule." },
+    { t: "Logs", src: "shared", d: "Line-oriented event text (errors, access, app logs), often joined to a span by trace_id." },
+    { t: "Maintain", src: "ours", a: "E5", d: "E5 — retention, indexing, discovery freshness, deploy feed. Keeps fabric Detect-ready." },
+    { t: "Metrics", src: "shared", d: "Numeric timeseries (rates, gauges, histograms) used for Detect and corroboration." },
+    { t: "monitor_pack", src: "dd", a: "monitor pack", d: "Datadog recommended Monitor templates grouped by integration (host, APM, …).", n: "A fault taxonomy like ERROR / SLOWDOWN." },
+    { t: "Monitors", src: "dd", d: "Datadog Door A: query + threshold alerts, authored or from a pack." },
+    { t: "MONITORING_UNAVAILABLE", src: "dt", a: "visibility dark", d: "Dynatrace Detect class: telemetry/agent is dark even if the process might still answer HTTP." },
+    { t: "MTL workbook", src: "ours", a: "metrics traces logs", d: "Layer I cheat sheet: Metrics ∥ Traces ∥ Logs queries and counts for one Observed window." },
+    { t: "Murphy", src: "ours", d: "Federated hop: which upstream entity best explains the symptom (MRF / Gibbs)." },
+    { t: "Nezha", src: "ours", d: "Federated hop: which execution-path or event patterns shifted inside that entity." },
+    { t: "Normalize", src: "shared", d: "Compare-lens name for Identity: stamp join keys on every record." },
+    { t: "Observability 1.0", src: "shared", a: "three pillars", d: "Separate pillar stores; many questions fixed at write time; manual join; threshold Detect." },
+    { t: "Observability 2.0", src: "shared", a: "wide events", d: "Wide-event primary evidence and late binding.", n: "“Any correlation.” 1.0 already correlates alerts." },
+    { t: "Observability 3.0", src: "shared", a: "AI assist", d: "Anomaly Detect as first-class and a default RCA package.", n: "“Has Watchdog or Bits.” Optional AI surfaces ≠ generation 3." },
+    { t: "Observed", src: "shared", a: "lab observed", d: "Honesty label: seen in our Dynatrace or Datadog lab runs." },
+    { t: "OneAgent", src: "dt", d: "Dynatrace host agent that auto-instruments processes and ships telemetry." },
+    { t: "Operator handoff", src: "ours", d: "Shareable packaged artifact on-call can act on (Problem, Bits write-up, Incident, or a thin card)." },
+    { t: "OTLP", src: "shared", a: "OpenTelemetry", d: "OpenTelemetry Protocol — a vendor-neutral way to send traces, metrics, and logs." },
+    { t: "p95", src: "shared", a: "percentile latency", d: "95th-percentile duration: 95% of requests were faster than this. Common SLOWDOWN Detect feature." },
+    { t: "Package", src: "ours", a: "E11", d: "E11 — emit the operator verdict card. Narrative (Bits-style) is optional on top." },
+    { t: "Panorama", src: "ours", d: "Federated hop: who looks unhealthy from observer evidence (gray failure)." },
+    { t: "Problem", src: "dt", d: "Dynatrace packaged RCA card after Curate → Tailor → Davis. Default, not opt-in. rootCauseEntity may still be null.", n: "A Datadog Incident, or an Edge Delta Issue." },
+    { t: "Public framing", src: "shared", d: "Honesty label: matches the vendor’s own public architecture language, not an audit of internals." },
+    { t: "PurePath", src: "dt", d: "Dynatrace full-fidelity transaction trace (method-level, historically unsampled). The engine captured the path; a human does not have to reconstruct it.", n: "A flamegraph." },
+    { t: "RCA", src: "shared", a: "root cause analysis", d: "Naming what broke, where, and what evidence to open — not a dump of every alert." },
+    { t: "RESOURCE_CONTENTION", src: "dt", d: "Dynatrace Detect class for saturation (CPU, memory, I/O), not application errors." },
+    { t: "rootCauseEntity", src: "dt", d: "Entity Davis put on the Problem as the cause. May be null when ranking is weak." },
+    { t: "rootCauseRelevant", src: "dt", d: "Per-Event flag: this evidence contributed to the ranked cause." },
+    { t: "Scope", src: "ours", a: "E8 Tailor", d: "E8 — lock time window, env/version, and candidate CIs before Localize. Alias of Tailor." },
+    { t: "Seed", src: "shared", d: "The tip Curate hands to Scope: (entity, t0). Start of search, usually not the packaged root." },
+    { t: "Self-time", src: "dd", a: "exclusive time", d: "Time spent inside a span itself, not waiting on children. SLOWDOWN leaf rule: longest self-time." },
+    { t: "Service Map", src: "dd", d: "Datadog dependency picture derived from APM traces after the fact. Map ≠ Leaf.", n: "Smartscape, or Edge Delta’s eBPF Service Map." },
+    { t: "Signal", src: "ours", d: "Normalized Detect object: type, ci_ref, time, severity, signature, attributes. Not a root cause." },
+    { t: "SLOWDOWN", src: "shared", d: "Detect class for latency (duration / p95) while HTTP may still be 200. Localize rule: longest self-time leaf." },
+    { t: "Smartscape", src: "dt", d: "Dynatrace live typed topology graph that Davis walks (who calls whom, runsOn, …).", n: "Grail, Datadog Service Map, or ED eBPF Service Map." },
+    { t: "Span", src: "shared", d: "One unit of work in a trace: an operation on a service, with start, duration, and often status." },
+    { t: "status:error", src: "dd", a: "span status", d: "APM span marked failed. ERROR leaf rule: deepest status:error span, not the first 502 on a caller." },
+    { t: "Stores", src: "ours", a: "E4", d: "E4 — persist queryable history under Identity. Product explorers may stay separate." },
+    { t: "Stage", src: "ours", a: "step E1 E11", d: "One box on the pipeline (Collect, Detect, Localize, …). Same thing as a step. The written spec lists eleven (E1–E11).", see: "Contract, Pipeline HLD" },
+    { t: "Storm", src: "shared", d: "Pile of raw Detect signals before Curate merges them into one seed." },
+    { t: "Symptom seed", src: "ours", d: "Where pain showed (the first hot CI). Search starts here; the root is often upstream or deeper." },
+    { t: "Tailor", src: "dt", a: "Scope", d: "Cut space ∩ time for diagnosis. Same job as our E8 Scope." },
+    { t: "Tag join", src: "dd", a: "Unified Service Tags", d: "Line up Metrics ∥ APM ∥ Logs by service / env / version / host, plus trace_id for log↔span." },
+    { t: "Teaching", src: "shared", d: "Honesty label: demo vocabulary or a simplified model, not a product-internal claim." },
+    { t: "TelemetryEnvelope", src: "ours", d: "Collect output: a raw or near-raw payload before identity is stamped." },
+    { t: "Three-rail", src: "dd", a: "metrics apm logs", d: "Datadog product surfaces: Metrics ∥ APM (traces) ∥ Logs, joined by tags.", n: "Dynatrace dual-track, or Edge Delta dual-layer." },
+    { t: "Tier 1 / 2 / 3", src: "ours", a: "lean evidentiary", d: "Lean evidence depth: main path, CARE ranking, then scoped causal check. Not federated hops. See GLOSSARY.md." },
+    { t: "Timeline", src: "ours", d: "Layer I clocked story of one run: break, load, heal, Detect surfaces." },
+    { t: "Topology", src: "ours", a: "E3", d: "E3 — walkable neighbors and edges. Corpus/runtime today is topology.json (LLD-E3). Target map shape with per-edge provenance is the operational-graph chapter — not merged into that LLD yet." },
+    { t: "trace_id", src: "shared", d: "Shared id that ties every span (and often log lines) of one request together." },
+    { t: "Triage", src: "shared", d: "Phase-2 lens: Detect → Curate → Scope/Tailor. Also Datadog product stage 06 (pick primary symptom and lock window)." },
+    { t: "Unified Service Tags", src: "dd", a: "UST tagging", d: "Datadog join labels: service, env, version, plus host. Flat tags, not a graph node id." },
+    { t: "Vector", src: "ours", d: "Collect/normalize ingest pipeline (not a data lake). See INGESTION_PIPELINE_VECTOR.md." },
+    { t: "VerdictCard", src: "ours", a: "verdict card", d: "Package output: leaf claim + corroboration + operator handoff." },
+    { t: "Volatility", src: "shared", d: "How often data changes: Fabric is high churn, Triage is episodic, Diagnose is a locked working set. Not the same as importance." },
+    { t: "Wall time", src: "shared", a: "duration", d: "Clock time from span start to finish, including waits on children. Contrast with self-time." },
+    { t: "Watchdog", src: "dd", d: "Datadog ML anomaly Detect (Door B), split by product rail (APM, infra, logs). APM Watchdog and Logs Watchdog do not automatically merge.", n: "Bits, or an Incident." },
+    { t: "Watchdog story", src: "dd", d: "One Watchdog anomaly card.", n: "A Dynatrace Event, or a Problem." },
+    { t: "Warm discovery", src: "dd", d: "Catalog and Service Map already known from prior traffic, before the fault window." },
+    { t: "Working set", src: "ours", a: "WorkingSet", d: "Scope output: seed + time window + candidate CIs Localize is allowed to walk." },
+    { t: "Write", src: "dd", a: "03 Write", d: "Datadog continuous ingest into Metrics ∥ Husky. Loud explorers are Write, not Detect." },
+    { t: "AI Team", src: "ed", a: "Team jobs", d: "Edge Delta standing investigation workflows (10 use cases in this tenant). Not ObserveOps’ 8 Detect UCs.", n: "Davis, Bits, or a required E-stage.", see: "Issue, Dual-layer, Pattern Anomaly" },
+    { t: "Dual-layer", src: "ed", a: "Pipelines Team", d: "Edge Delta write geometry: Telemetry Pipelines (hygiene) in parallel with AI Team (standing jobs). Joined by what the pipeline exposes, not by entityId.", n: "Dynatrace dual-track, or Datadog three-rail." },
+    { t: "Fusion", src: "ours", a: "Fusion guide", d: "The Pipeline HLD, clickable. Pick a use case and see what each step takes in and puts out. Does not add steps.", see: "Our HLD, Pipeline HLD" },
+    { t: "Graph HLD", src: "ours", a: "operational graph chapter", d: "Old name for the operational-graph chapter of the Pipeline HLD. Not a second HLD.", n: "A peer product to the Pipeline HLD.", see: "Operational graph, Pipeline HLD" },
+    { t: "Operational graph", src: "ours", a: "CI graph topology map", d: "The map of machines and how they connect. A chapter of the Pipeline HLD, not a second HLD. Live E3 does not emit this yet; the 33-CI picture is an example we drew.", see: "Topology, Pipeline HLD" },
+    { t: "Issue", src: "ed", d: "Edge Delta packaged investigation card from AI Team. This tenant: Issues 0.", n: "A Dynatrace Problem, a Datadog Incident, Bits, or a Thread." },
+    { t: "Knowledge Graph (ED)", src: "ed", a: "ED knowledge graph", d: "AI Team entity graph from connectors. K8s Service Map can stream in. Not Federated Tier 2 Knowledge Graph, not Smartscape.", n: "eBPF Service Map (ED), or Vortex." },
+    { t: "Knowledge Graph (Federated)", src: "ours", a: "Vortex Tier 2", d: "Federated storage hop: structural ‘who/why’ graph (design vision). Orthogonal to Clock A/B.", n: "ED Knowledge Graph, or Smartscape." },
+    { t: "Our HLD", src: "ours", a: "HLD door", d: "Door to the one ObserveOps pipeline: Fusion (clickable) and the Pipeline HLD (written spec). The operational-graph file is a chapter of that spec, not a second HLD.", see: "Fusion, Pipeline HLD, Operational graph" },
+    { t: "Pattern Anomaly", src: "ed", d: "Edge Delta Detect door on log/pattern deviation. Not a Davis Event, not a Watchdog story.", n: "Skyline ALERT, or Test Notification." },
+    { t: "Pipeline HLD", src: "ours", a: "OBSERVEOPS_PIPELINE_HLD written spec", d: "The one written spec: eleven steps, what each is for, identity keys, signed design choices. The HTML page is a summary; this markdown is canonical.", n: "A second Graph HLD.", see: "Fusion, Operational graph" },
+    { t: "Service Map (ED)", src: "ed", a: "eBPF Service Map", d: "Runtime call picture from eBPF at the Node pipeline. Same E3 slot as Smartscape / DD Service Map; not 1:1 with either. This tenant: checkout-api-db → checkout-db; no Gateway.", n: "Smartscape, Datadog Service Map, or ED Knowledge Graph." },
+    { t: "Test Notification", src: "ed", d: "Manual/test fire in Edge Delta. Not a skyline ALERT and not an Issue.", n: "Detect, or Package." },
+    { t: "Thread", src: "ed", d: "Edge Delta conversation around an investigation. Not the Issue card.", n: "Issue, Problem, or Incident." },
+    { t: "UC-8 (ED)", src: "ed", a: "ED UC8 kubernetes", d: "Edge Delta AI Team job: Kubernetes troubleshooting. Completed here as a team recipe with no Issue card.", n: "ObserveOps Detect UC-8 (host network traffic)." },
+    { t: "UC-8 (ObserveOps)", src: "ours", a: "network throughput", d: "ObserveOps Detect use case: network traffic sent/received high on host. RESOURCE_CONTENTION at E6; split at E9/E10.", n: "ED UC8 (K8s troubleshooting)." }
+  ];
+
+  var root = document.getElementById("entries");
+  var az = document.getElementById("az");
+  var q = document.getElementById("q");
+  var countEl = document.getElementById("count");
+  var srcFilter = "all";
+  var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  var used = {};
+
+  function letterOf(term) {
+    var ch = term.replace(/[^A-Za-z]/g, "").charAt(0).toUpperCase();
+    return ch || "#";
+  }
+
+  TERMS.sort(function (a, b) {
+    return a.t.localeCompare(b.t, undefined, { sensitivity: "base" });
+  });
+
+  var html = "";
+  var last = "";
+  TERMS.forEach(function (item, i) {
+    var L = letterOf(item.t);
+    used[L] = true;
+    if (L !== last) {
+      html += '<h3 class="letter" id="letter-' + L + '">' + L + "</h3>";
+      last = L;
+    }
+    var aliases = (item.a || "") + " " + item.t;
+    html +=
+      '<article class="entry" data-src="' +
+      item.src +
+      '" data-search="' +
+      (item.t + " " + aliases + " " + item.d + " " + (item.n || "")).toLowerCase() +
+      '">' +
+      '<p class="term"><span class="tag ' +
+      item.src +
+      '">' +
+      item.src +
+      "</span>" +
+      item.t +
+      "</p>" +
+      '<p class="def">' +
+      item.d +
+      "</p>" +
+      (item.n ? '<p class="not"><strong>Not:</strong> ' + item.n.replace(/^Not:\s*/i, "") + "</p>" : "") +
+      (item.see ? '<p class="see"><strong>See:</strong> ' + item.see + "</p>" : "") +
+      "</article>";
+  });
+  root.innerHTML = html;
+
+  az.innerHTML = letters
+    .map(function (L) {
+      return used[L]
+        ? '<a href="#letter-' + L + '">' + L + "</a>"
+        : '<a class="empty">' + L + "</a>";
+    })
+    .join("");
+
+  var entries = [].slice.call(document.querySelectorAll(".entry"));
+  var letterHeads = [].slice.call(document.querySelectorAll(".letter"));
+
+  function apply() {
+    var needle = (q.value || "").trim().toLowerCase();
+    var shown = 0;
+    entries.forEach(function (el) {
+      var srcOk = srcFilter === "all" || el.getAttribute("data-src") === srcFilter;
+      var textOk = !needle || (el.getAttribute("data-search") || "").indexOf(needle) !== -1;
+      var ok = srcOk && textOk;
+      el.hidden = !ok;
+      if (ok) shown += 1;
+    });
+    letterHeads.forEach(function (h) {
+      var n = h.nextElementSibling;
+      var any = false;
+      while (n && !n.classList.contains("letter")) {
+        if (n.classList.contains("entry") && !n.hidden) any = true;
+        n = n.nextElementSibling;
+      }
+      h.hidden = !any;
+    });
+    countEl.textContent = shown + " / " + entries.length;
+    document.body.classList.toggle("is-empty", shown === 0);
+  }
+
+  q.addEventListener("input", apply);
+  document.querySelectorAll(".filters button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      srcFilter = b.getAttribute("data-src");
+      document.querySelectorAll(".filters button").forEach(function (x) {
+        x.classList.toggle("on", x === b);
+      });
+      apply();
+    });
+  });
+  apply();
+})();
+</script>
+</body>
+</html>

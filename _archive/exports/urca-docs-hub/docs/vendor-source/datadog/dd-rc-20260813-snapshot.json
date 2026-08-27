@@ -1,0 +1,49 @@
+{
+  "scenario": "resource_contention",
+  "vendor": "datadog",
+  "framing": "semantic (not Davis enum)",
+  "env": "rca-lab-e3",
+  "version_compose": "rc-20260813T065225Z",
+  "version_datadog": "rc-20260813t065225z",
+  "window": {
+    "start_utc": "2026-08-13T06:53:04Z",
+    "end_utc": "2026-08-13T07:03:05Z",
+    "minutes": 10
+  },
+  "fault": {
+    "mechanism": "Python RESOURCE_BURN background thread in inventory/app.py",
+    "http_during_fault": "200 fast on /api/stock and checkout"
+  },
+  "local_probes": {
+    "stock_at_break_s": 0.097,
+    "checkout_at_break_http": 200,
+    "stock_after_heal_s": 0.026
+  },
+  "detect_honesty": {
+    "mcp_pulled": "2026-08-14",
+    "datadog_category_stamp": null,
+    "apm": {
+      "query": "env:rca-lab-e3 version:rc-20260813t065225z",
+      "services": "frontend/product/inventory all status ok",
+      "inventory_p95_ms_approx": 66,
+      "note": "HTTP stayed fast — APM does not stamp RESOURCE_CONTENTION"
+    },
+    "door_a": {
+      "host_pack": {
+        "monitor_id": 310484611,
+        "name": "System load is high for host DESKTOP-MBPAQK1",
+        "triggered_utc": "2026-08-13T06:56:31Z",
+        "recovered_utc": "2026-08-13T07:07:31Z"
+      },
+      "flask_high_error_rate": {
+        "monitor_id": 310925690,
+        "state_in_window": "OK"
+      }
+    },
+    "door_b": {
+      "watchdog_stories": "toolset not available on this MCP connection — not claimed"
+    },
+    "note": "Native Host-pack load Alert fired during burn. No Davis RESOURCE_CONTENTION stamp. Flask error Door stayed OK (correct for HTTP 200)."
+  },
+  "healed": true
+}

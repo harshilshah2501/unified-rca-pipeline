@@ -3,7 +3,7 @@
 **Status:** agent_task → promote after Observed run  
 **Hub:** http://127.0.0.1:8765/dd-detect-category-hub.html?cat=availability  
 **Timeline:** http://127.0.0.1:8765/dd-lab-timeline-availability.html  
-**Lab root:** `datadog-rca-lab/`
+**Lab root:** `labs/datadog-rca-lab/`
 
 ## Guardrails
 
@@ -19,7 +19,7 @@ Inventory process exits ~2s after boot; callers fail. Document native Detect sur
 ## Steps
 
 ```bash
-cd datadog-rca-lab
+cd labs/datadog-rca-lab
 ./scripts/run_availability_rca.sh --minutes 10
 ```
 

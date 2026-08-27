@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>map/ · history/ — animated remapping</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', Consolas, monospace;
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --border: rgba(15, 23, 42, 0.08);
+    --text: #0f172a;
+    --text-dim: #475569;
+    --text-faint: #94a3b8;
+    --primary: #1e3a5f;
+    --a: #059669;
+    --a-dim: rgba(5, 150, 105, 0.12);
+    --b: #be123c;
+    --b-dim: rgba(190, 18, 60, 0.12);
+    --join: #0369a1;
+    --join-dim: rgba(3, 105, 161, 0.10);
+    --warn: #d97706;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1220; --surface: #111a2e; --border: rgba(255,255,255,0.08);
+      --text: #e2e8f0; --text-dim: #94a3b8; --text-faint: #64748b;
+      --primary: #5e9ed6; --a: #34d399; --a-dim: rgba(52,211,153,0.14);
+      --b: #fb7185; --b-dim: rgba(251,113,133,0.14);
+      --join: #38bdf8; --join-dim: rgba(56,189,248,0.14); --warn: #fbbf24;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body); background: var(--bg); color: var(--text);
+    padding: 40px 24px 64px; min-height: 100vh;
+    background-image:
+      linear-gradient(rgba(30,58,95,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,58,95,0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-faint); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .lead { color: var(--text-dim); font-size: 14.5px; max-width: 720px; margin-bottom: 20px; line-height: 1.55; }
+  .lead a { color: var(--join); }
+
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    margin-bottom: 16px; padding: 12px 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  }
+  .btn {
+    font-family: var(--font-body); font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--join); }
+  .btn.primary { background: var(--join); color: #fff; border-color: var(--join); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .phase-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+  .pill {
+    font-family: var(--font-mono); font-size: 11px; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer;
+  }
+  .pill.active { background: var(--join-dim); color: var(--join); border-color: var(--join); }
+  .narration {
+    font-size: 14px; color: var(--text-dim); line-height: 1.55;
+    padding: 12px 14px; margin-bottom: 16px;
+    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--join);
+    border-radius: 0 10px 10px 0; min-height: 3.2em;
+  }
+  .narration strong { color: var(--text); }
+  .narration code {
+    font-family: var(--font-mono); font-size: 12px;
+    background: var(--join-dim); color: var(--join); padding: 1px 5px; border-radius: 3px;
+  }
+
+  .stage {
+    position: relative; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 20px 24px; overflow: hidden;
+  }
+  .stage-label {
+    position: absolute; top: 12px; left: 16px;
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-faint);
+  }
+
+  svg.anim { width: 100%; height: auto; display: block; }
+
+  .node { fill: var(--surface); stroke-width: 1.6; }
+  .node.e1 { stroke: var(--join); }
+  .node.e2 { stroke: var(--primary); }
+  .node.topo { stroke: var(--b); }
+  .node.sketch { stroke: var(--a); }
+  .node.room-b { fill: var(--b-dim); stroke: var(--b); stroke-dasharray: 5 3; }
+  .node.room-a { fill: var(--a-dim); stroke: var(--a); stroke-dasharray: 5 3; }
+  .node.ws { fill: var(--join-dim); stroke: var(--join); }
+  .node.ghost { opacity: 0.25; }
+
+  .lbl { font-family: var(--font-body); font-size: 13px; font-weight: 600; fill: var(--text); }
+  .sub { font-family: var(--font-mono); font-size: 10px; fill: var(--text-dim); }
+  .tag { font-family: var(--font-mono); font-size: 9px; fill: var(--text-faint); letter-spacing: 0.06em; }
+
+  .wire { fill: none; stroke-width: 2; stroke-linecap: round; opacity: 0.2; }
+  .wire.b { stroke: var(--b); }
+  .wire.a { stroke: var(--a); }
+  .wire.j { stroke: var(--join); }
+  .wire.active { opacity: 1; }
+
+  .packet {
+    opacity: 0; pointer-events: none;
+  }
+  .packet.on { opacity: 1; }
+
+  .xmark { stroke: var(--warn); stroke-width: 2.5; opacity: 0; }
+  .xmark.on { opacity: 1; }
+
+  .badge {
+    font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
+  }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; }
+
+  .hint {
+    margin-top: 18px; font-size: 12.5px; color: var(--text-faint);
+  }
+  .hint a { color: var(--join); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .packet, .wire, .xmark { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">ObserveOps · Motadata Pillar A + B</div>
+  <h1>Animated remapping: write fan-out → two rooms → read join</h1>
+  <p class="lead">
+    Step through how storage works after Identity. Writers fill <strong>map/</strong> and
+    <strong>history/</strong> independently. There is <strong>no sync arrow</strong> between rooms —
+    diagnose joins by <code>tenant</code> + <code>ci_id</code> ≡ <code>entity_id</code>.
+    Companion: <a href="./map-history-storage-blocks.html">storage blocks</a> ·
+    <a href="./e1-e5-pipeline-architecture.html">E1–E5 fan-out</a>.
+  </p>
+
+  <div class="controls">
+    <button class="btn" type="button" id="btnPrev" disabled>Previous</button>
+    <button class="btn primary" type="button" id="btnPlay">Play</button>
+    <button class="btn" type="button" id="btnNext">Next</button>
+    <div class="phase-pills" id="pills"></div>
+  </div>
+
+  <div class="narration" id="narration"></div>
+
+  <div class="stage">
+    <span class="stage-label">animation · storage remap</span>
+    <svg class="anim" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Animated pipeline showing fan-out writes to map and history then WorkingSet join">
+      <defs>
+        <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10z" fill="#be123c"/>
+        </marker>
+        <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10z" fill="#059669"/>
+        </marker>
+        <marker id="arrJ" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10z" fill="#0369a1"/>
+        </marker>
+      </defs>
+
+      <!-- E1 -->
+      <rect class="node e1" id="nE1" x="20" y="210" width="120" height="70" rx="10"/>
+      <text class="tag" x="36" y="232">E1</text>
+      <text class="lbl" x="36" y="252">Collect</text>
+      <text class="sub" x="36" y="268">raw signals</text>
+
+      <!-- E2 -->
+      <rect class="node e2" id="nE2" x="200" y="210" width="140" height="70" rx="10"/>
+      <text class="tag" x="216" y="232">E2</text>
+      <text class="lbl" x="216" y="252">Identity</text>
+      <text class="sub" x="216" y="268">ci_id · resolved</text>
+
+      <!-- wire E1-E2 -->
+      <path class="wire j" id="w12" d="M140 245 L200 245" marker-end="url(#arrJ)"/>
+
+      <!-- Pillar B branch -->
+      <path class="wire b" id="w2b" d="M340 230 C390 230 390 100 430 100" marker-end="url(#arrB)"/>
+      <rect class="node topo" id="nE3" x="430" y="55" width="150" height="90" rx="10"/>
+      <text class="tag" x="446" y="76">E3 · PILLAR B</text>
+      <text class="lbl" x="446" y="98">Topology</text>
+      <text class="sub" x="446" y="116">nodes · edges</text>
+      <text class="sub" x="446" y="132" opacity="0.75">GraphSnapshot</text>
+
+      <path class="wire b" id="wBmap" d="M580 100 L640 100" marker-end="url(#arrB)"/>
+      <rect class="node room-b" id="nMap" x="640" y="65" width="130" height="70" rx="10"/>
+      <text class="lbl" x="705" y="95" text-anchor="middle" fill="#be123c">map/</text>
+      <text class="sub" x="705" y="114" text-anchor="middle">≈ Smartscape</text>
+
+      <!-- Pillar A branch -->
+      <path class="wire a" id="w2a" d="M340 260 C390 260 390 390 430 390" marker-end="url(#arrA)"/>
+      <rect class="node sketch" id="nE4" x="430" y="345" width="150" height="90" rx="10"/>
+      <text class="tag" x="446" y="366">E4 · PILLAR A</text>
+      <text class="lbl" x="446" y="388">Stores sketches</text>
+      <text class="sub" x="446" y="406">digest · buckets</text>
+      <text class="sub" x="446" y="422" opacity="0.75">baseline</text>
+
+      <path class="wire a" id="wAhist" d="M580 390 L640 390" marker-end="url(#arrA)"/>
+      <rect class="node room-a" id="nHist" x="640" y="355" width="130" height="70" rx="10"/>
+      <text class="lbl" x="705" y="385" text-anchor="middle" fill="#059669">history/</text>
+      <text class="sub" x="705" y="404" text-anchor="middle">≈ Grail history</text>
+
+      <!-- Forbidden sync -->
+      <g id="syncGroup">
+        <path class="wire" id="wSync" d="M705 135 L705 355" stroke="#d97706" stroke-dasharray="4 4" opacity="0.15"/>
+        <line class="xmark" id="x1" x1="685" y1="230" x2="725" y2="270"/>
+        <line class="xmark" id="x2" x1="725" y1="230" x2="685" y2="270"/>
+        <text class="sub" id="syncLbl" x="760" y="255" fill="#d97706" opacity="0">NO SYNC</text>
+      </g>
+
+      <!-- WorkingSet join -->
+      <path class="wire j" id="wMapWs" d="M770 100 C860 100 860 245 820 245" marker-end="url(#arrJ)" opacity="0.15"/>
+      <path class="wire j" id="wHistWs" d="M770 390 C860 390 860 245 820 245" marker-end="url(#arrJ)" opacity="0.15"/>
+      <rect class="node ws ghost" id="nWs" x="820" y="210" width="150" height="70" rx="10"/>
+      <text class="tag" x="836" y="232" id="wsTag">E8+</text>
+      <text class="lbl" x="836" y="252" id="wsLbl">WorkingSet</text>
+      <text class="sub" x="836" y="268" id="wsSub">join at read</text>
+
+      <!-- packets -->
+      <circle class="packet" id="pB" r="7" fill="#be123c"/>
+      <circle class="packet" id="pA" r="7" fill="#059669"/>
+      <circle class="packet" id="pJ1" r="6" fill="#0369a1"/>
+      <circle class="packet" id="pJ2" r="6" fill="#0369a1"/>
+
+      <!-- identity badge -->
+      <text class="badge" id="idBadge" x="270" y="200" fill="#0369a1" opacity="0">tenant+ci_id</text>
+    </svg>
+
+    <div class="legend">
+      <span><i class="sw" style="border-color:var(--b);background:var(--b-dim)"></i> Pillar B → map/</span>
+      <span><i class="sw" style="border-color:var(--a);background:var(--a-dim)"></i> Pillar A → history/</span>
+      <span><i class="sw" style="border-color:var(--join);background:var(--join-dim)"></i> Read join (WorkingSet)</span>
+      <span><i class="sw" style="border-color:var(--warn);background:transparent"></i> No map↔history sync</span>
+    </div>
+  </div>
+
+  <p class="hint">
+    FAQ Q36 in the graph/sketch contract brief · Canvas tab “0 · Animate” in map-history-storage-blocks ·
+    Prefer reduced-motion? Use Previous/Next without Play.
+  </p>
+</div>
+
+<script>
+(function () {
+  const phases = [
+    {
+      id: "admit",
+      title: "1 · Admit + bind",
+      html: "<strong>E1 Collect</strong> admits raw signals. <strong>E2 Identity</strong> stamps <code>tenant</code> + <code>ci_id</code> with <code>identity.status = resolved</code>. Bind/LUT-like work lives here — not as a third store room."
+    },
+    {
+      id: "fanout",
+      title: "2 · Fan-out (parallel writers)",
+      html: "The resolved stream branches. <strong>Pillar B (E3)</strong> builds topology. <strong>Pillar A (E4)</strong> builds metric sketches. They do not wait on each other."
+    },
+    {
+      id: "writeB",
+      title: "3 · Write map/",
+      html: "E3 writes <code>graph_node.v1</code> / <code>graph_edge.v1</code> as a <code>GraphSnapshot</code> into <strong>map/</strong> (Smartscape-like). Provenance + validity live on edges."
+    },
+    {
+      id: "writeA",
+      title: "4 · Write history/",
+      html: "E4 writes <code>sketch.v1</code> (T-Digest + buckets + baseline) into <strong>history/</strong>. <code>entity_id</code> is the <em>same string</em> as map <code>ci_id</code>. No edges inside sketches."
+    },
+    {
+      id: "nosync",
+      title: "5 · No sync between rooms",
+      html: "There is <strong>no job</strong> that copies map ↔ history. E5 may refresh baselines (A) and validity (B) as <em>separate</em> writers — still not merging rooms."
+    },
+    {
+      id: "join",
+      title: "6 · Join at read (WorkingSet)",
+      html: "Detect reads <strong>history</strong> (digest vs baseline). Scope/Localize/Identify build a <code>WorkingSet</code>: neighbors from <strong>map</strong> + sketches from <strong>history</strong> for the same ids. That is the remapping join."
+    }
+  ];
+
+  let i = 0;
+  let playing = false;
+  let timer = null;
+
+  const narration = document.getElementById("narration");
+  const pills = document.getElementById("pills");
+  const btnPrev = document.getElementById("btnPrev");
+  const btnNext = document.getElementById("btnNext");
+  const btnPlay = document.getElementById("btnPlay");
+
+  phases.forEach((p, idx) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pill";
+    b.textContent = (idx + 1) + "";
+    b.title = p.title;
+    b.addEventListener("click", () => { stop(); go(idx); });
+    pills.appendChild(b);
+  });
+
+  function setActive(el, on) {
+    if (!el) return;
+    if (on) el.classList.add("active"); else el.classList.remove("active");
+  }
+  function setGhost(el, ghost) {
+    if (!el) return;
+    if (ghost) el.classList.add("ghost"); else el.classList.remove("ghost");
+  }
+  function setOn(el, on) {
+    if (!el) return;
+    if (on) el.classList.add("on"); else el.classList.remove("on");
+  }
+
+  function moveAlong(packet, path, t) {
+    const len = path.getTotalLength();
+    const pt = path.getPointAtLength(Math.max(0, Math.min(1, t)) * len);
+    packet.setAttribute("cx", pt.x);
+    packet.setAttribute("cy", pt.y);
+  }
+
+  function clearAnim() {
+    ["w12","w2b","w2a","wBmap","wAhist","wMapWs","wHistWs","wSync"].forEach(id => {
+      setActive(document.getElementById(id), false);
+    });
+    ["pB","pA","pJ1","pJ2"].forEach(id => setOn(document.getElementById(id), false));
+    setOn(document.getElementById("x1"), false);
+    setOn(document.getElementById("x2"), false);
+    document.getElementById("syncLbl").style.opacity = "0";
+    document.getElementById("idBadge").style.opacity = "0";
+    setGhost(document.getElementById("nWs"), true);
+    document.getElementById("wSync").style.opacity = "0.15";
+  }
+
+  function render(phaseIndex) {
+    clearAnim();
+    const p = phases[phaseIndex];
+    narration.innerHTML = p.html;
+    [...pills.children].forEach((el, idx) => {
+      el.classList.toggle("active", idx === phaseIndex);
+    });
+    btnPrev.disabled = phaseIndex === 0;
+    btnNext.disabled = phaseIndex === phases.length - 1;
+
+    const w12 = document.getElementById("w12");
+    const w2b = document.getElementById("w2b");
+    const w2a = document.getElementById("w2a");
+    const wBmap = document.getElementById("wBmap");
+    const wAhist = document.getElementById("wAhist");
+    const wMapWs = document.getElementById("wMapWs");
+    const wHistWs = document.getElementById("wHistWs");
+    const pB = document.getElementById("pB");
+    const pA = document.getElementById("pA");
+    const pJ1 = document.getElementById("pJ1");
+    const pJ2 = document.getElementById("pJ2");
+
+    if (phaseIndex >= 0) {
+      setActive(w12, true);
+      document.getElementById("idBadge").style.opacity = phaseIndex >= 0 ? "1" : "0";
+    }
+    if (phaseIndex >= 1) {
+      setActive(w2b, true);
+      setActive(w2a, true);
+    }
+    if (phaseIndex >= 2) {
+      setActive(wBmap, true);
+      setOn(pB, true);
+      moveAlong(pB, wBmap, 0.85);
+    }
+    if (phaseIndex >= 3) {
+      setActive(wAhist, true);
+      setOn(pA, true);
+      moveAlong(pA, wAhist, 0.85);
+    }
+    if (phaseIndex >= 4) {
+      document.getElementById("wSync").style.opacity = "0.55";
+      setOn(document.getElementById("x1"), true);
+      setOn(document.getElementById("x2"), true);
+      document.getElementById("syncLbl").style.opacity = "1";
+    }
+    if (phaseIndex >= 5) {
+      setGhost(document.getElementById("nWs"), false);
+      setActive(wMapWs, true);
+      setActive(wHistWs, true);
+      setOn(pJ1, true);
+      setOn(pJ2, true);
+      moveAlong(pJ1, wMapWs, 0.9);
+      moveAlong(pJ2, wHistWs, 0.9);
+    }
+  }
+
+  function animateWrite(done) {
+    // short packet travel for play mode
+    const wBmap = document.getElementById("wBmap");
+    const wAhist = document.getElementById("wAhist");
+    const pB = document.getElementById("pB");
+    const pA = document.getElementById("pA");
+    setOn(pB, true); setOn(pA, true);
+    let t = 0;
+    const step = () => {
+      t += 0.04;
+      moveAlong(pB, wBmap, t);
+      moveAlong(pA, wAhist, t);
+      if (t < 1) requestAnimationFrame(step);
+      else if (done) done();
+    };
+    requestAnimationFrame(step);
+  }
+
+  function go(n) {
+    i = Math.max(0, Math.min(phases.length - 1, n));
+    render(i);
+  }
+
+  function stop() {
+    playing = false;
+    btnPlay.textContent = "Play";
+    if (timer) { clearTimeout(timer); timer = null; }
+  }
+
+  function playNext() {
+    if (!playing) return;
+    if (i >= phases.length - 1) { stop(); return; }
+    go(i + 1);
+    if (i === 2 || i === 3) {
+      animateWrite(() => { timer = setTimeout(playNext, 1100); });
+    } else {
+      timer = setTimeout(playNext, 1600);
+    }
+  }
+
+  btnPrev.addEventListener("click", () => { stop(); go(i - 1); });
+  btnNext.addEventListener("click", () => { stop(); go(i + 1); });
+  btnPlay.addEventListener("click", () => {
+    if (playing) { stop(); return; }
+    playing = true;
+    btnPlay.textContent = "Pause";
+    if (i >= phases.length - 1) go(0);
+    timer = setTimeout(playNext, 900);
+  });
+
+  go(0);
+})();
+</script>
+</body>
+</html>

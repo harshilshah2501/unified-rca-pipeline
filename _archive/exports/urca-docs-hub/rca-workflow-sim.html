@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>RCA workflow sim — Lean × Federated (shared Detect)</title>
+  <style>
+    :root {
+      --bg: #0c1118;
+      --surface: #121a24;
+      --panel: #1a2433;
+      --border: #2a3748;
+      --muted: #8b9bb0;
+      --text: #e8eef6;
+      --shared: #38bdf8;
+      --lean: #34d399;
+      --fed: #f59e0b;
+      --symptom: #f87171;
+      --root: #a78bfa;
+      --ok: #6ee7b7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+      font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+      padding: 20px 18px 40px;
+    }
+    .wrap { width: min(1180px, 100%); margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+    header h1 { margin: 0; font-size: 1.35rem; font-weight: 650; letter-spacing: -0.02em; }
+    header p { margin: 6px 0 0; color: var(--muted); font-size: 0.88rem; line-height: 1.45; max-width: 70ch; }
+    .glossary {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    }
+    @media (max-width: 860px) { .glossary { grid-template-columns: 1fr; } }
+    .glossary dt {
+      margin: 0; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em;
+      text-transform: uppercase; color: var(--shared);
+    }
+    .glossary dd {
+      margin: 4px 0 0; font-size: 0.8rem; line-height: 1.45; color: #c5d0dc;
+    }
+    .glossary dd code { font-size: 0.74rem; color: #7dd3fc; }
+    .banner {
+      display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+      padding: 10px 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+      font-size: 0.8rem; color: var(--muted);
+    }
+    .banner strong { color: var(--shared); font-weight: 600; }
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    }
+    label { font-size: 0.78rem; color: var(--muted); }
+    select, button {
+      background: var(--panel); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; cursor: pointer;
+    }
+    button:hover { border-color: #4b5e75; }
+    button.primary { border-color: var(--shared); color: #bae6fd; font-weight: 600; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .chrono {
+      display: flex; align-items: stretch; gap: 0; overflow-x: auto;
+      padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    }
+    .chrono-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      min-width: 78px; max-width: 100px; padding: 6px 4px; border-radius: 8px;
+      border: 1px solid transparent; cursor: pointer; color: var(--muted);
+      font-size: 0.62rem; line-height: 1.2; text-align: center; flex-shrink: 0;
+    }
+    .chrono-item:hover { background: var(--panel); }
+    .chrono-item.done { color: var(--ok); }
+    .chrono-item.active {
+      color: #e0f2fe; border-color: var(--shared); background: rgba(56, 189, 248, 0.1);
+    }
+    .chrono-num {
+      width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+      font-weight: 700; font-size: 0.68rem; border: 1px solid #3d4f66;
+    }
+    .chrono-item.done .chrono-num { border-color: #22c55e; background: #14532d; color: #bbf7d0; }
+    .chrono-item.active .chrono-num { border-color: var(--shared); background: var(--shared); color: #0c4a6e; }
+    .chrono-item.shared-phase .chrono-num { border-color: #0ea5e9; }
+    .chrono-arrow { color: #3d4f66; align-self: center; padding: 0 2px; flex-shrink: 0; font-size: 0.75rem; }
+    .stage-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px;
+    }
+    .stage-card h2 { margin: 0 0 6px; font-size: 0.95rem; }
+    .stage-card .meta { margin: 0 0 10px; font-size: 0.75rem; color: var(--muted); }
+    .stage-card .body { margin: 0; font-size: 0.88rem; line-height: 1.5; color: #d5dee8; }
+    .stage-card .body strong { color: #f1f5f9; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .pill {
+      font-size: 0.68rem; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--panel);
+    }
+    .pill.shared { border-color: #0284c7; color: #7dd3fc; }
+    .pill.lean { border-color: #059669; color: #6ee7b7; }
+    .pill.fed { border-color: #d97706; color: #fcd34d; }
+    .split {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+    .lane {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 320px;
+    }
+    .lane.lean-lane { border-top: 3px solid var(--lean); }
+    .lane.fed-lane { border-top: 3px solid var(--fed); }
+    .lane h3 { margin: 0; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+    .lane h3 .tag {
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 2px 6px; border-radius: 4px; font-weight: 700;
+    }
+    .lean-lane .tag { background: rgba(52, 211, 153, 0.15); color: var(--lean); }
+    .fed-lane .tag { background: rgba(245, 158, 11, 0.15); color: var(--fed); }
+    .lane .blurb { margin: 0; font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 14px 20px; font-size: 0.72rem; color: var(--muted);
+      padding: 0 2px;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i {
+      display: inline-block; width: 22px; height: 0; border-top: 2px solid; border-radius: 0;
+    }
+    .legend .l-lean { border-color: var(--lean); }
+    .legend .l-fed { border-color: var(--fed); border-top-style: dashed; }
+    .graph {
+      background: #0a0f16; border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px; overflow: hidden;
+    }
+    .graph svg { display: block; width: 100%; height: auto; }
+    .node-label { font-size: 9px; fill: #94a3b8; font-family: ui-monospace, monospace; }
+    .node-circ { stroke-width: 1.5; }
+    .node-idle { fill: #1e293b; stroke: #475569; }
+    .node-symptom { fill: #450a0a; stroke: var(--symptom); }
+    .node-frontier { fill: #0c4a6e; stroke: var(--shared); }
+    .node-care { fill: #422006; stroke: var(--fed); }
+    .node-root { fill: #2e1065; stroke: var(--root); stroke-width: 2.5; }
+    .node-dim { opacity: 0.35; }
+    .edge { stroke: #334155; stroke-width: 1.4; fill: none; }
+    .edge-active { stroke: var(--shared); stroke-width: 2; }
+    .edge-lean { stroke: var(--lean); stroke-width: 2; }
+    .edge-fed { stroke: var(--fed); stroke-width: 2; stroke-dasharray: 4 3; }
+    .log {
+      font-family: ui-monospace, "IBM Plex Mono", monospace; font-size: 0.7rem;
+      line-height: 1.45; color: #9fb0c3; background: #0a0f16; border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 12px; white-space: pre-wrap; min-height: 7.5rem; flex: 1;
+    }
+    .log .hi-lean { color: var(--lean); }
+    .log .hi-fed { color: #fcd34d; }
+    .log .hi-shared { color: var(--shared); }
+    .log .hi-root { color: #c4b5fd; }
+    .verdicts {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+    }
+    @media (max-width: 860px) { .verdicts { grid-template-columns: 1fr; } }
+    .vcard {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+    }
+    .vcard h4 { margin: 0 0 8px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .vcard dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 0.8rem; }
+    .vcard dt { color: var(--muted); }
+    .vcard dd { margin: 0; font-family: ui-monospace, monospace; font-size: 0.76rem; }
+    .footnote { font-size: 0.72rem; color: var(--muted); line-height: 1.4; }
+    .footnote a { color: #7dd3fc; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>RCA workflow simulator</h1>
+      <p>
+        Prototype for demo narration: <strong>one shared detector</strong> finds “something is wrong,”
+        then <strong>Lean</strong> and <strong>Federated</strong> each try to find the root.
+        Numbers match ObserveOps bakeoff posture — not a live engine run.
+        Cursor canvas (IDE): <a href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/rca-workflow-sim.canvas.tsx"><code>rca-workflow-sim.canvas.tsx</code></a>
+        · <a href="vscode://file/root/.cursor/projects/root-Harshil-PoCs-Unified-RCA/canvases/lean-fed-oo-uc-compare.canvas.tsx"><code>lean-fed-oo-uc-compare.canvas.tsx</code></a>.
+      </p>
+    </header>
+
+    <dl class="glossary">
+      <div>
+        <dt>parity-shared-detect</dt>
+        <dd>
+          Both engines get the <strong>same alerts</strong> from one threshold detector.
+          We are not scoring who spotted the problem — only who finds the root.
+          Federated does <em>not</em> use Panorama as its own detector here.
+          Code tag: <code>pipeline_profile=parity-shared-detect</code>.
+        </dd>
+      </div>
+      <div>
+        <dt>symptom seed</dt>
+        <dd>
+          The CI where pain showed up first to the detector — e.g. <code>orders-api</code> latency —
+          <strong>not</strong> the root cause. Both engines start the walk / ranking from this seed and search upstream.
+        </dd>
+      </div>
+    </dl>
+
+    <div class="banner">
+      <span><strong>Flow:</strong> Collect → Detect (shared) → RCA fork</span>
+      <span>Lean: <strong>main path first</strong>; CARE only if onsets clump</span>
+      <span>Cite: <code>adr001-rerun-20260723</code></span>
+    </div>
+
+    <div class="controls">
+      <label for="uc">Scenario</label>
+      <select id="uc" aria-label="Use case scenario"></select>
+      <button type="button" class="primary" id="btn-play">Play</button>
+      <button type="button" id="btn-step">Step</button>
+      <button type="button" id="btn-reset">Reset</button>
+      <label style="margin-left:8px"><input type="checkbox" id="auto" checked/> auto-advance</label>
+    </div>
+
+    <div class="chrono" id="chrono" role="list"></div>
+
+    <div class="stage-card" id="stage">
+      <h2 id="stage-title">Ready</h2>
+      <p class="meta" id="stage-meta"></p>
+      <p class="body" id="stage-body">Choose a UC and press Play (or Step) to walk Detect → Localize.</p>
+      <div class="pill-row" id="stage-pills"></div>
+    </div>
+
+    <div class="split">
+      <section class="lane lean-lane" id="lean-lane">
+        <h3><span class="tag">Lean</span> typed CI walk</h3>
+        <p class="blurb">Usual case: best-first upstream + temporal onset → <strong>clean Tier‑1</strong> (no CARE). CARE / Tier‑2–3 only when several onsets clump in Δt · ~1–5&nbsp;ms · 100% N=20 repro</p>
+        <div class="graph" id="lean-graph"></div>
+        <div class="log" id="lean-log"></div>
+      </section>
+      <section class="lane fed-lane" id="fed-lane">
+        <h3><span class="tag">Federated</span> Murphy → fusion</h3>
+        <p class="blurb">Murphy MRF + Gibbs posteriors (rank entities — not a best-first walk) · then <strong>fusion / resolve</strong> picks root_ci · Nezha light on classic infra · ties accuracy · weaker repro</p>
+        <div class="graph" id="fed-graph"></div>
+        <div class="log" id="fed-log"></div>
+      </section>
+    </div>
+
+    <div class="legend" aria-hidden="true">
+      <span><i class="l-lean"></i> Lean: solid = typed CI walk (expand edges)</span>
+      <span><i class="l-fed"></i> Federated: dashed = dependency graph for Murphy (not a walk trail)</span>
+    </div>
+
+    <div class="verdicts" id="verdicts">
+      <div class="vcard">
+        <h4>Shared Detect</h4>
+        <dl>
+          <dt>seed</dt><dd id="v-seed">—</dd>
+          <dt>signal</dt><dd id="v-signal">—</dd>
+          <dt>C_detect</dt><dd id="v-detect">identical both sides</dd>
+        </dl>
+      </div>
+      <div class="vcard">
+        <h4>Lean verdict</h4>
+        <dl>
+          <dt>root_ci</dt><dd id="v-lean-root">—</dd>
+          <dt>signature</dt><dd id="v-lean-sig">—</dd>
+          <dt>path</dt><dd id="v-lean-tier">—</dd>
+          <dt>latency</dt><dd id="v-lean-lat">~1–5 ms</dd>
+          <dt>repro</dt><dd id="v-lean-repro">100% (N=20)</dd>
+        </dl>
+      </div>
+      <div class="vcard">
+        <h4>Federated verdict</h4>
+        <dl>
+          <dt>root_ci</dt><dd id="v-fed-root">—</dd>
+          <dt>how</dt><dd id="v-fed-sig">—</dd>
+          <dt>path</dt><dd id="v-fed-path">—</dd>
+          <dt>latency</dt><dd id="v-fed-lat">higher (Gibbs)</dd>
+          <dt>repro</dt><dd id="v-fed-repro">~40% bit-stable on corpus</dd>
+        </dl>
+      </div>
+    </div>
+
+    <p class="footnote">
+      Fair contract: <a href="../../docs/PIPELINE_PARITY.md">PIPELINE_PARITY.md</a>
+      · Lean policy: <a href="../../lean-pipeline/docs/ARCHITECTURE.md">lean ARCHITECTURE</a>
+      · Scoreboard: <a href="../results/comparison/COMPARISON.md">COMPARISON.md</a>
+      · Open beside PoC console <code>#guide</code> for ingest diagram; this page is the <em>algorithm</em> narration.
+    </p>
+  </div>
+
+<script>
+(function () {
+  /** @typedef {{ id: string, label: string, shared: boolean }} StepDef */
+
+  const GRAPH = {
+    nodes: [
+      { id: "core-switch-01", x: 50, y: 28, label: "core-sw" },
+      { id: "esxi-host-01", x: 160, y: 28, label: "esxi-01" },
+      { id: "datastore-01", x: 270, y: 28, label: "ds-01" },
+      { id: "vm-app-01", x: 110, y: 88, label: "vm-app" },
+      { id: "vm-db-01", x: 210, y: 88, label: "vm-db" },
+      { id: "guest-os-vm-app-01", x: 110, y: 148, label: "guest-os" },
+      { id: "orders-api", x: 110, y: 208, label: "orders-api" },
+    ],
+    edges: [
+      ["core-switch-01", "esxi-host-01"],
+      ["esxi-host-01", "vm-app-01"],
+      ["esxi-host-01", "vm-db-01"],
+      ["datastore-01", "vm-app-01"],
+      ["datastore-01", "vm-db-01"],
+      ["vm-app-01", "guest-os-vm-app-01"],
+      ["guest-os-vm-app-01", "orders-api"],
+    ],
+  };
+
+  const SCS = {
+    "UC-1": {
+      title: "UC-1 — ESXi CPU contention (CARE path)",
+      seed: "orders-api",
+      signal: "latency_p95 > thr",
+      root: "esxi-host-01",
+      signature: "cpu_contention",
+      leanTier: "Tier 3 · CARE + causal pass",
+      fedPath: "Murphy posterior → fusion",
+      walk: ["orders-api", "guest-os-vm-app-01", "vm-app-01", "esxi-host-01"],
+      care: ["vm-app-01", "vm-db-01", "esxi-host-01"],
+      needsCare: true,
+      narrative: "Several onsets clump inside Δt → Lean <strong>escalates to CARE</strong> (not the default). Shared-upstream prefers ESXi; scoped causal → Tier‑3.",
+    },
+    "UC-2": {
+      title: "UC-2 — Core switch link failure (clean Tier‑1)",
+      seed: "orders-api",
+      signal: "error_rate / loss",
+      root: "core-switch-01",
+      signature: "link_failure",
+      leanTier: "Tier 1 · main path · no CARE",
+      fedPath: "Murphy strong · Nezha light",
+      walk: ["orders-api", "guest-os-vm-app-01", "vm-app-01", "esxi-host-01", "core-switch-01"],
+      care: [],
+      needsCare: false,
+      narrative: "Clear network signal + events. Lean stays on the <strong>main path</strong>: best-first + onset → root, no CARE fallback.",
+    },
+    "UC-3": {
+      title: "UC-3 — Datastore storage contention (CARE path)",
+      seed: "orders-api",
+      signal: "latency / I/O wait",
+      root: "datastore-01",
+      signature: "storage_contention",
+      leanTier: "Tier 3 · CARE · contributor vm-neighbor-01",
+      fedPath: "Murphy posterior → fusion",
+      walk: ["orders-api", "guest-os-vm-app-01", "vm-app-01", "datastore-01"],
+      care: ["vm-app-01", "vm-db-01", "datastore-01"],
+      needsCare: true,
+      narrative: "Storage + VM onsets clump → CARE. Shared-upstream picks <strong>datastore-01</strong>; noisy neighbor is a <strong>contributor</strong>, not the root.",
+    },
+    "UC-4": {
+      title: "UC-4 — Guest OS resource exhaustion (clean Tier‑1)",
+      seed: "orders-api",
+      signal: "app latency + OS pressure",
+      root: "guest-os-vm-app-01",
+      signature: "os_resource_exhaustion",
+      leanTier: "Tier 1 · main path · no CARE",
+      fedPath: "Murphy strong · Nezha light",
+      walk: ["orders-api", "guest-os-vm-app-01"],
+      care: [],
+      needsCare: false,
+      narrative: "Clear OS-level signal + events. Best-first stops at <strong>guest-os-vm-app-01</strong> on the <strong>main path</strong> — no CARE.",
+    },
+    "UC-5": {
+      title: "UC-5 — App resource exhaustion (clean Tier‑1)",
+      seed: "orders-api",
+      signal: "pool / heap saturation",
+      root: "orders-api",
+      signature: "resource_exhaustion",
+      leanTier: "Tier 1 · upstream_healthy · no CARE",
+      fedPath: "Murphy + earliest-onset fallback",
+      walk: ["orders-api"],
+      care: [],
+      needsCare: false,
+      narrative: "Upstream CIs look healthy → gate keeps root at the app. Still <strong>main path</strong> (Tier‑1); no CARE.",
+    },
+  };
+
+  /** Path-check label is dynamic: Main path vs CARE path per UC. */
+  function stepsFor(uc) {
+    const pathLabel = uc.needsCare ? "CARE path" : "Main path";
+    return [
+      { id: "collect", label: "Collect", shared: true },
+      { id: "detect", label: "Detect", shared: true },
+      { id: "seed", label: "Symptom seed", shared: true },
+      { id: "fork", label: "RCA fork", shared: true },
+      { id: "localize", label: "Localize", shared: false },
+      { id: "ambiguity", label: pathLabel, shared: false },
+      { id: "emit", label: "Emit verdict", shared: false },
+      { id: "compare", label: "Compare", shared: true },
+    ];
+  }
+
+  let ucId = "UC-2";
+  let stepIdx = -1;
+  let playing = false;
+  let timer = null;
+
+  const $ = (id) => document.getElementById(id);
+
+  function sc() { return SCS[ucId]; }
+
+  function renderChrono() {
+    const el = $("chrono");
+    const STEPS = stepsFor(sc());
+    el.innerHTML = "";
+    STEPS.forEach((s, i) => {
+      if (i) {
+        const a = document.createElement("span");
+        a.className = "chrono-arrow";
+        a.textContent = "→";
+        el.appendChild(a);
+      }
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chrono-item" + (s.shared ? " shared-phase" : "")
+        + (i < stepIdx ? " done" : "") + (i === stepIdx ? " active" : "");
+      b.innerHTML = `<span class="chrono-num">${i + 1}</span><span>${s.label}</span>`;
+      b.addEventListener("click", () => { stopPlay(); go(i); });
+      el.appendChild(b);
+    });
+  }
+
+  function svgGraph(hl) {
+    const { symptom, frontier, care, root, dimOthers, edgeClass } = hl;
+    const nodeSet = new Set(GRAPH.nodes.map((n) => n.id));
+    const active = new Set([...(frontier || []), ...(care || []), root, symptom].filter(Boolean));
+    let edges = "";
+    for (const [a, b] of GRAPH.edges) {
+      const na = GRAPH.nodes.find((n) => n.id === a);
+      const nb = GRAPH.nodes.find((n) => n.id === b);
+      const hot = active.has(a) && active.has(b);
+      const cls = hot ? (edgeClass || "edge-active") : "edge";
+      edges += `<line class="${cls}" x1="${na.x}" y1="${na.y}" x2="${nb.x}" y2="${nb.y}"/>`;
+    }
+    let nodes = "";
+    for (const n of GRAPH.nodes) {
+      let cls = "node-idle";
+      if (n.id === root) cls = "node-root";
+      else if (care && care.includes(n.id)) cls = "node-care";
+      else if (frontier && frontier.includes(n.id)) cls = "node-frontier";
+      else if (n.id === symptom) cls = "node-symptom";
+      const dim = dimOthers && !active.has(n.id) ? " node-dim" : "";
+      nodes += `<circle class="node-circ ${cls}${dim}" cx="${n.x}" cy="${n.y}" r="11"/>`;
+      nodes += `<text class="node-label${dim}" x="${n.x}" y="${n.y + 24}" text-anchor="middle">${n.label}</text>`;
+    }
+    return `<svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">${edges}${nodes}</svg>`;
+  }
+
+  function setPills(kinds) {
+    const el = $("stage-pills");
+    el.innerHTML = kinds.map(([k, t]) => `<span class="pill ${k}">${t}</span>`).join("");
+  }
+
+  function applyStep(i) {
+    const s = sc();
+    const STEPS = stepsFor(s);
+    const step = STEPS[i];
+    $("stage-title").textContent = step ? `${step.label} — ${s.title}` : "Ready";
+    $("stage-meta").textContent = step
+      ? (step.shared ? "Shared front half (identical bytes both engines)" : "Divergent Localize")
+      : "";
+
+    let body = "";
+    let pills = [];
+    let leanLog = "";
+    let fedLog = "";
+    let leanHl = { symptom: null, frontier: [], care: [], root: null, dimOthers: false, edgeClass: "edge-lean" };
+    let fedHl = { symptom: null, frontier: [], care: [], root: null, dimOthers: false, edgeClass: "edge-fed" };
+
+    $("v-seed").textContent = "—";
+    $("v-signal").textContent = "—";
+    $("v-lean-root").textContent = "—";
+    $("v-lean-sig").textContent = "—";
+    $("v-lean-tier").textContent = "—";
+    $("v-fed-root").textContent = "—";
+    $("v-fed-sig").textContent = "—";
+    $("v-fed-path").textContent = "—";
+
+    if (!step) {
+      body = "Start with <strong>UC-2</strong> or <strong>UC-4</strong> (clean Tier‑1), then UC-1 / UC-3 for CARE. Press Play or Step.";
+      leanLog = "idle — waiting for shared Detect";
+      fedLog = "idle — waiting for shared Detect";
+    } else if (step.id === "collect") {
+      body = "Same UC pack: <strong>topology.json</strong>, metrics, events. No engine advantage yet.";
+      pills = [["shared", "topology"], ["shared", "metrics"], ["shared", "events"]];
+      leanLog = "load InvocationGraph from pack";
+      fedLog = "load KG slice / entity set from same pack";
+    } else if (step.id === "detect") {
+      body = "<strong>parity-shared-detect:</strong> both engines get the <strong>same alerts</strong> from one threshold detector. We only compare who finds the root — Federated does <em>not</em> use Panorama as its own detector on this scoreboard.";
+      pills = [["shared", "same alerts"], ["shared", "parity-shared-detect"]];
+      leanLog = "consume shared anomalies (not Lean-specific detect)";
+      fedLog = "Hop-1 = shared_detect (Panorama off scoreboard)";
+      leanHl.symptom = s.seed;
+      fedHl.symptom = s.seed;
+    } else if (step.id === "seed") {
+      body = `<strong>Symptom seed</strong> = where the customer pain showed up (<strong>${s.seed}</strong>, ${s.signal}). It is the <em>entry CI</em> for RCA — usually <em>not</em> the root. Both engines start from this same seed.`;
+      pills = [["shared", "symptom ≠ root"], ["shared", s.seed]];
+      $("v-seed").textContent = s.seed;
+      $("v-signal").textContent = s.signal;
+      leanLog = `seed ← ${s.seed}  (start walk here)\nsignal ← ${s.signal}\nroot still unknown`;
+      fedLog = `DetectionFlag / seed ← ${s.seed}\n(same threshold output)\nroot still unknown`;
+      leanHl.symptom = s.seed;
+      fedHl.symptom = s.seed;
+      leanHl.dimOthers = true;
+      fedHl.dimOthers = true;
+    } else if (step.id === "fork") {
+      body = "Front half done. <strong>Localize diverges:</strong> Lean walks the typed CI graph; Federated runs Murphy (+ light Nezha).";
+      pills = [["lean", "best-first (main path)"], ["fed", "Murphy MRF + Gibbs"]];
+      $("v-seed").textContent = s.seed;
+      $("v-signal").textContent = s.signal;
+      leanLog = "enter diagnose(): best_first_walk(seed)";
+      fedLog = "enter MurphyRequest → Gibbs sampling";
+      leanHl.symptom = s.seed;
+      fedHl.symptom = s.seed;
+    } else if (step.id === "localize") {
+      body = s.narrative + " Lean expands by <strong>info-gain / onset / severity</strong>; Federated ranks entities by <strong>posterior mass</strong>.";
+      pills = [["lean", "best-first upstream"], ["fed", "Gibbs posteriors"]];
+      $("v-seed").textContent = s.seed;
+      $("v-signal").textContent = s.signal;
+      const mid = s.walk.slice(0, Math.max(1, s.walk.length - 1));
+      leanHl = { symptom: s.seed, frontier: mid, care: [], root: null, dimOthers: true, edgeClass: "edge-lean" };
+      fedHl = { symptom: s.seed, frontier: mid, care: [], root: null, dimOthers: true, edgeClass: "edge-fed" };
+      leanLog = [
+        "best_first_walk from seed",
+        ...s.walk.map((c, idx) => `  expand[${idx}] ${c}`),
+        "score = onset + severity + decisive signals",
+      ].join("\n");
+      fedLog = [
+        "Murphy MRF factors over entities",
+        "Gibbs sweep → P(root | evidence)",
+        `top mass near ${s.root}`,
+        "Nezha: pattern/path drift (light on classic infra)",
+      ].join("\n");
+    } else if (step.id === "ambiguity") {
+      const care = s.needsCare;
+      body = care
+        ? "This UC is the <strong>exception</strong>: onsets within Δt (~10s) → Lean fires <strong>CARE</strong> and may run <code>verify_care_root</code> (Tier 2/3). Federated: weak/multi-modal posterior → fusion / earliest-onset."
+        : "This UC stays on Lean’s <strong>main path</strong>: no Δt clump → <strong>no CARE</strong>, evidentiary Tier‑1. Most ObserveOps UCs look like this. Federated may still use fusion only if Murphy is weak.";
+      pills = care
+        ? [["lean", "CARE / Tier-2–3"], ["fed", "fusion / earliest-onset"]]
+        : [["lean", "main path · Tier 1"], ["fed", "Murphy primary"]];
+      $("v-seed").textContent = s.seed;
+      $("v-signal").textContent = s.signal;
+      leanHl = {
+        symptom: s.seed, frontier: s.walk, care: s.care, root: null,
+        dimOthers: true, edgeClass: "edge-lean",
+      };
+      fedHl = {
+        symptom: s.seed, frontier: s.walk, care: s.care, root: null,
+        dimOthers: true, edgeClass: "edge-fed",
+      };
+      leanLog = care
+        ? [
+            "delta_t_ambiguous = true  → leave main path",
+            "CARE severity rank over crossed set",
+            "prefer shared_upstream if in crossed",
+            "verify_care_root → Tier 3 if pass",
+          ].join("\n")
+        : [
+            "delta_t_ambiguous = false  → stay on main path",
+            "shared_upstream / earliest-onset among walk ∩ crossed",
+            "fallback_fired = false · evidentiary_tier = 1",
+          ].join("\n");
+      fedLog = care
+        ? [
+            "θ_murphy / posterior weak or multi-modal",
+            "fusion + earliest-onset fallback",
+            "fallback_fired ≠ Lean CARE ladder",
+          ].join("\n")
+        : [
+            "posterior peak decisive",
+            "Nezha path drift not required",
+            "emit Murphy root (no lean-rule rescue)",
+          ].join("\n");
+    } else if (step.id === "emit") {
+      body = `Both emit machine <strong>root_ci</strong> (+ Lean <strong>signature</strong>). Accuracy ties on this corpus; Lean wins <strong>repro / audit trail</strong>.`;
+      pills = [["lean", "root + signature"], ["fed", "root_ci"], ["shared", "same GT"]];
+      $("v-seed").textContent = s.seed;
+      $("v-signal").textContent = s.signal;
+      $("v-lean-root").textContent = s.root;
+      $("v-lean-sig").textContent = s.signature;
+      $("v-lean-tier").textContent = s.leanTier;
+      $("v-fed-root").textContent = s.root;
+      $("v-fed-sig").textContent = "Murphy posterior + resolve_root_ci";
+      $("v-fed-path").textContent = s.fedPath;
+      leanHl = { symptom: s.seed, frontier: s.walk, care: s.care, root: s.root, dimOthers: true, edgeClass: "edge-lean" };
+      fedHl = { symptom: s.seed, frontier: s.walk, care: [], root: s.root, dimOthers: true, edgeClass: "edge-fed" };
+      leanLog = [
+        `<span class="hi-root">root_ci = ${s.root}</span>`,
+        `<span class="hi-lean">signature = ${s.signature}</span>`,
+        s.leanTier,
+        "latency_ms ≈ 1–5  ·  repro 100% N=20",
+      ].join("\n");
+      fedLog = [
+        "Murphy MRF + Gibbs → P(entity | evidence)",
+        "fuse_verdict: confidence = 0.2·pano + 0.4·murphy + 0.4·nezha",
+        "bakeoff resolve_root_ci: prefer upstream among high posteriors",
+        `<span class="hi-root">root_ci = ${s.root}</span>`,
+        s.fedPath,
+        "ties Lean accuracy · repro weaker (Gibbs variance)",
+      ].join("\n");
+    } else if (step.id === "compare") {
+      body = "Demo takeaway: <strong>Detect cancels</strong> in the delta. Lean often finishes on a <strong>clean Tier‑1</strong> walk; CARE is only for clumped onsets. Prefer Lean for bit-stable audit on classic infra; Federated when you want Murphy-style ranking.";
+      pills = [["lean", "main path or CARE"], ["fed", "ties root · weaker repro"], ["shared", "same Detect"]];
+      $("v-seed").textContent = s.seed;
+      $("v-signal").textContent = s.signal;
+      $("v-lean-root").textContent = s.root;
+      $("v-lean-sig").textContent = s.signature;
+      $("v-lean-tier").textContent = s.leanTier;
+      $("v-fed-root").textContent = s.root;
+      $("v-fed-sig").textContent = s.signature;
+      $("v-fed-path").textContent = s.fedPath;
+      leanHl = { symptom: s.seed, frontier: [], care: [], root: s.root, dimOthers: true, edgeClass: "edge-lean" };
+      fedHl = { symptom: s.seed, frontier: [], care: [], root: s.root, dimOthers: true, edgeClass: "edge-fed" };
+      leanLog = "scoreboard posture: primary evaluation engine (ADR-001)";
+      fedLog = "scoreboard posture: comparator / richer causal intent";
+    }
+
+    $("stage-body").innerHTML = body;
+    setPills(pills);
+    $("lean-graph").innerHTML = svgGraph(leanHl);
+    $("fed-graph").innerHTML = svgGraph(fedHl);
+    $("lean-log").innerHTML = leanLog;
+    $("fed-log").innerHTML = fedLog;
+    renderChrono();
+  }
+
+  function go(i) {
+    stepIdx = i;
+    applyStep(i);
+  }
+
+  function stopPlay() {
+    playing = false;
+    if (timer) { clearTimeout(timer); timer = null; }
+    $("btn-play").textContent = "Play";
+  }
+
+  function playNext() {
+    const n = stepsFor(sc()).length;
+    if (stepIdx >= n - 1) {
+      stopPlay();
+      return;
+    }
+    go(stepIdx + 1);
+    if (playing && $("auto").checked) {
+      timer = setTimeout(playNext, 1600);
+    } else {
+      stopPlay();
+    }
+  }
+
+  function initSelect() {
+    const sel = $("uc");
+    sel.innerHTML = Object.keys(SCS).map((k) => `<option value="${k}">${SCS[k].title}</option>`).join("");
+    sel.value = ucId;
+    sel.addEventListener("change", () => {
+      stopPlay();
+      ucId = sel.value;
+      stepIdx = -1;
+      applyStep(-1);
+    });
+  }
+
+  $("btn-reset").addEventListener("click", () => {
+    stopPlay();
+    stepIdx = -1;
+    applyStep(-1);
+  });
+
+  $("btn-step").addEventListener("click", () => {
+    stopPlay();
+    const n = stepsFor(sc()).length;
+    if (stepIdx >= n - 1) stepIdx = -1;
+    go(stepIdx + 1);
+  });
+
+  $("btn-play").addEventListener("click", () => {
+    if (playing) { stopPlay(); return; }
+    playing = true;
+    $("btn-play").textContent = "Pause";
+    const n = stepsFor(sc()).length;
+    if (stepIdx >= n - 1) stepIdx = -1;
+    playNext();
+  });
+
+  initSelect();
+  applyStep(-1);
+})();
+</script>
+
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

@@ -310,6 +310,21 @@ def _markdown_page(url_path: str, text: str) -> bytes:
 <title>{escape(title)}</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <link rel="stylesheet" href="/urca-docs.css" />
+<link rel="stylesheet" href="/urca-diagrams.css" />
+<script src="/theme-init.js"></script>
+<style>
+.md-page .ud-viz {{ margin: 1.25rem 0 1.5rem; }}
+.md-page .ud-chip small {{ font-weight: 400; font-size: .72rem; }}
+.md-page pre.mermaid-src {{ display: none; }}
+.md-page .mermaid {{
+  margin: 1.1rem 0 1.35rem;
+  padding: 1rem 1.1rem;
+  background: var(--bg-elev);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  overflow-x: auto;
+}}
+</style>
 </head>
 <body class="urca-doc article">
 <div class="wrap article md-page">
@@ -318,15 +333,43 @@ def _markdown_page(url_path: str, text: str) -> bytes:
   <div id="md-content">Loading…</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <script>
 (function () {{
   var src = {payload};
+  var root = document.getElementById("md-content");
   if (typeof marked === "undefined") {{
-    document.getElementById("md-content").textContent = src;
+    root.textContent = src;
     return;
   }}
   marked.setOptions({{ gfm: true, headerIds: true, mangle: false }});
-  document.getElementById("md-content").innerHTML = marked.parse(src);
+  root.innerHTML = marked.parse(src);
+
+  // Promote leftover ```mermaid fences (if any) into rendered diagrams
+  root.querySelectorAll("pre code.language-mermaid").forEach(function (code) {{
+    var pre = code.parentElement;
+    var div = document.createElement("div");
+    div.className = "mermaid";
+    div.textContent = code.textContent;
+    pre.replaceWith(div);
+  }});
+  if (typeof mermaid !== "undefined") {{
+    var dark = !document.documentElement.getAttribute("data-theme") ||
+      document.documentElement.getAttribute("data-theme") === "dark" ||
+      (!document.documentElement.getAttribute("data-theme") &&
+        window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    var themeAttr = document.documentElement.getAttribute("data-theme");
+    if (themeAttr === "light") dark = false;
+    if (themeAttr === "dark") dark = true;
+    mermaid.initialize({{
+      startOnLoad: false,
+      theme: dark ? "dark" : "default",
+      securityLevel: "loose",
+      flowchart: {{ curve: "basis", htmlLabels: true }}
+    }});
+    mermaid.run({{ querySelector: ".md-page .mermaid" }});
+  }}
+
   var hash = decodeURIComponent((location.hash || "").replace(/^#/, ""));
   if (hash) {{
     var el = document.getElementById(hash);

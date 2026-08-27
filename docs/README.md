@@ -3,7 +3,10 @@
 PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 `federated-pipeline/docs/` and `lean-pipeline/docs/`.
 
-**Full repo doc map:** [`NAVIGATION.md`](./NAVIGATION.md) — **start here** if you are lost.
+**Full repo doc map:** [`NAVIGATION.md`](./NAVIGATION.md) — **start here** if you are lost.  
+**Edit hygiene / folder map:** [`REPO_HYGIENE.md`](./REPO_HYGIENE.md).
+
+**Topic folders (not one flat dump):** [`fabric/`](./fabric/) · [`observeops/`](./observeops/) · [`motadata/`](./motadata/) · [`reference/`](./reference/) · [`vendors/`](./vendors/). Flat filenames at this root are compatibility symlinks for `:8765`.
 
 **Browser hub (PoC console):** [`index.html`](./index.html) → [`http://127.0.0.1:8765/docs.html`](http://127.0.0.1:8765/docs.html)  
 **Comparable DT vs DD vs ED:** [`comparable-pipeline-dt-dd.html`](./comparable-pipeline-dt-dd.html) → [`http://127.0.0.1:8765/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html)  

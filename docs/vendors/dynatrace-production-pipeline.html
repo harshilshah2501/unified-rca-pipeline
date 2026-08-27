@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dynatrace production pipeline — Clock A map</title>
+<style>
+* { box-sizing:border-box; } html { scroll-behavior:smooth; }
+body { margin:0; font-family:var(--font); font-size:15px; line-height:1.55; color:var(--text); background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%), var(--bg); }
+a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
+.shell { display:grid; grid-template-columns:var(--nav-w) minmax(0,1fr); max-width:calc(var(--nav-w) + var(--max) + 6rem); margin:0 auto; }
+nav.toc { position:sticky; top:0; height:100vh; overflow-y:auto; padding:1.5rem 1rem 2rem 1.25rem; border-right:1px solid var(--stroke); background:rgba(15,20,25,.9); }
+nav.toc .brand { font-size:.7rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); margin-bottom:.75rem; }
+nav.toc a { display:block; color:var(--muted); font-size:.78rem; padding:.28rem .4rem; border-radius:4px; margin-bottom:.08rem; text-decoration:none; }
+nav.toc a:hover { color:var(--text); background:var(--bg-soft); } nav.toc a.l2 { padding-left:1rem; font-size:.72rem; }
+nav.toc a.here { color:var(--text); background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent); font-weight:600; }
+main { padding:2rem 2rem 4rem; max-width:var(--max); }
+h1 { font-size:1.7rem; font-weight:700; margin:0 0 .65rem; } h2 { font-size:1.22rem; font-weight:650; margin:2.4rem 0 .85rem; padding-top:.5rem; border-top:1px solid var(--stroke); }
+h3 { font-size:1rem; font-weight:600; margin:1.4rem 0 .5rem; color:#d5dde6; } h4 { font-size:.92rem; font-weight:600; margin:1.1rem 0 .4rem; color:#c5d0da; }
+p { margin:.55rem 0; } .flow { font-family:var(--mono); font-size:.8rem; padding:.65rem .85rem; background:var(--bg-soft); border:1px solid var(--stroke); border-radius:var(--radius); overflow-x:auto; white-space:pre; color:#b8c9d4; margin:.75rem 0; }
+table { width:100%; border-collapse:collapse; font-size:.84rem; margin:.75rem 0 1rem; } th, td { text-align:left; vertical-align:top; padding:.45rem .55rem; border-bottom:1px solid var(--stroke); }
+th { color:var(--muted); font-weight:600; font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; }
+code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padding:.05rem .3rem; border-radius:3px; } pre.flow code { background:none; padding:0; }
+ul, ol { margin:.4rem 0 .8rem 1.2rem; } li { margin:.25rem 0; } blockquote { margin:.75rem 0; padding:.55rem .85rem; border-left:3px solid var(--accent); background:var(--accent-soft); color:var(--muted); }
+hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
+@media (max-width:900px) { .shell { grid-template-columns:1fr; } nav.toc { position:relative; height:auto; border-right:none; border-bottom:1px solid var(--stroke); max-height:40vh; } }
+
+.viz { margin:1.1rem 0 1.4rem; padding:1.1rem 1.15rem; background:var(--bg-elev); border:1px solid var(--stroke); border-radius:var(--radius); }
+.viz .cap { font-size:.85rem; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin:0 0 .75rem; }
+.viz-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem; }
+.viz-grid.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.viz-panel { background:var(--bg-soft); border:1px solid var(--stroke); border-radius:6px; padding:.85rem .9rem; font-size:.95rem; line-height:1.5; color:#c5d0da; }
+.viz-panel h5 { margin:0 0 .5rem; font-size:1rem; font-weight:600; color:var(--text); font-family:var(--mono); }
+.viz-panel.accent { border-color:rgba(61,154,139,.45); }
+.viz-panel.warn { border-color:rgba(232,163,61,.4); }
+.viz-panel code { font-size:.9em; }
+.viz-panel p { color:#c5d0da; }
+.viz-panel strong { color:var(--text); }
+.viz-flow { display:flex; flex-wrap:wrap; align-items:center; gap:.45rem; margin:.55rem 0; font-family:var(--mono); font-size:.85rem; }
+.viz-chip { padding:.3rem .55rem; border-radius:4px; background:#0f1419; border:1px solid var(--stroke); color:#d5dde6; }
+.viz-chip.hit { border-color:rgba(61,154,139,.5); color:#7ec8b8; }
+.viz-chip.miss { border-color:rgba(232,163,61,.5); color:#f0b35a; }
+.viz-arrow { color:var(--muted); }
+.viz-note { font-size:.88rem; color:var(--muted); margin:.6rem 0 0; }
+.viz a { color:#7ec8b8; }
+@media (max-width:720px) { .viz-grid, .viz-grid.three { grid-template-columns:1fr; } }
+
+.doc-bar { display:flex; flex-wrap:wrap; gap:.5rem; margin:0 0 1.25rem; }
+.doc-bar a { font-size:.78rem; padding:.35rem .65rem; border-radius:4px; border:1px solid var(--stroke); background:var(--bg-soft); color:var(--muted); text-decoration:none; }
+.doc-bar a:hover { color:var(--text); border-color:var(--accent); }
+.doc-bar a.here { color:var(--accent); border-color:rgba(61,154,139,.5); background:var(--accent-soft); }
+</style><link rel="stylesheet" href="/urca-diagrams.css" />
+<link rel="stylesheet" href="/urca-docs.css" />
+</head><body class="vendor-dt">
+<div class="shell"><nav class="toc">
+<div class="brand">Dynatrace pipeline</div>
+<a href="/docs.html">← Docs index</a>
+<a href="#mental-model-one-page" class="l2">1. Mental model</a>
+<a href="#clock-a-stages-dynatrace-technology" class="l2">2. Clock A → Dynatrace</a>
+<a href="#subsystem-io-contracts" class="l2">3. Subsystem I/O</a>
+<a href="#dynatrace-stores-what-gets-updated-when" class="l2">4. Stores (when they update)</a>
+<a href="#normalize-bind-lut-why-they-matter" class="l2">5. Normalize &amp; bind (deep)</a>
+<a href="#walkthrough-b-complex-multi-host-estate" class="l2">6. Walkthrough (complex estate)</a>
+<a href="#known-unknowns" class="l2">7. Known unknowns</a>
+<a href="#takeaway" class="l2">8. Takeaway</a>
+</nav><main class="article">
+<h1 id="dynatrace-production-pipeline-clock-a-map-walkthroughs">Dynatrace production pipeline — Clock A map &amp; walkthroughs</h1>
+<p><strong>Audience:</strong> engineers who need Dynatrace’s always-on fabric clear <strong>before</strong> comparing any other RCA engine.<br />
+<strong>Status:</strong> teaching / design reference from public product framing + black-box lab observation.<br />
+<strong>Date:</strong> 2026-08-13</p>
+<p><strong>Hub index</strong> (same as <a href="/dt-davis-category-hub.html">DT hub</a>): <strong>01 Thesis</strong> (this page) → <strong>02 Breakdown</strong> → <strong>03 Dual-track</strong> → <strong>04 Timeline</strong>.</p>
+<p><strong>Inside 01 Thesis</strong> (not Hub 02–04):</p>
+<ol>
+  <li><strong>Mental model</strong> — two stores (Smartscape ∥ Grail) and one <code>entityId</code>.</li>
+  <li><strong>Clock A once</strong> — stages + Clock B one-liner. Lab clocks live here too.</li>
+  <li><strong>I/O + stores</strong> — per-product contracts and when each store updates. Skip if Clock A is enough.</li>
+  <li><strong>Normalize &amp; bind</strong> — jobs, graph vs LUT, miss policies. Unique depth — not a second mental model.</li>
+  <li><strong>One walkthrough</strong> — complex estate. Simple lab FE→product→inventory is the same story with fewer nodes.</li>
+</ol>
+<p>Then leave this page: <strong>02 Breakdown</strong> animates the stages · <strong>03 Dual-track</strong> is the Smartscape ∥ Grail journey · <strong>04 Timeline</strong> holds Observed clocks. This page does not repeat those.</p>
+<p><strong>Detect classes are not Thesis modes.</strong> ERROR, SLOWDOWN, and the rest are examples of the same fabric. Switch them on Hub and Timeline — this page stays put.</p>
+<p><strong>Honesty labels:</strong> <em>Observed</em> = lab · <em>Public framing</em> = vendor language · <em>Inferred</em> = our model · <em>Teaching</em> = simplified storyboard name.</p>
+<p><strong>Out of scope:</strong> Lean vs Federated, L0/F1, CARE / Murphy / Nezha. Datadog is a separate hub.</p>
+<hr />
+<h2 id="mental-model-one-page">1. Mental model (one page)</h2>
+<p>Dynatrace is best understood as:</p>
+<div class="ud-viz">
+  <div class="ud-cap">Dynatrace mental model — parallel write, then Detect → Davis</div>
+  <div class="ud-fork">
+    <span class="ud-chip dt">OneAgent</span>
+    <div class="ud-down">▼ writes in parallel (∥)</div>
+    <div class="ud-rails two">
+      <div class="ud-panel dt"><h5>Smartscape</h5><p>Map — entities + relationships</p></div>
+      <div class="ud-panel dt"><h5>Grail</h5><p>Evidence — metrics · traces · logs · events</p></div>
+    </div>
+    <div class="ud-down">▼</div>
+    <div class="ud-flow" style="justify-content:center">
+      <span class="ud-chip">Detectors</span><span class="ud-arrow">→</span><span class="ud-chip hit">Events</span>
+    </div>
+    <div class="ud-down">▼</div>
+    <span class="ud-chip dt">Davis</span>
+  </div>
+  <p class="ud-note">Davis uses Events + Smartscape walk + Grail pull. <code>∥</code> = parallel fan-out, not “map then lake then Detect.”</p>
+</div>
+<p><strong>How to read that:</strong> <code>∥</code> was meant as <strong>parallel fan-out</strong>, not “Smartscape then Grail→Detectors.”</p>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Path</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>OneAgent → <strong>Smartscape</strong></td>
+<td>Topology / entity graph updates (containment + call edges)</td>
+</tr>
+<tr class="even">
+<td>OneAgent → <strong>Grail</strong></td>
+<td>Metrics, traces, logs (and later events) indexed by entity + time</td>
+</tr>
+<tr class="odd">
+<td><strong>Grail → Detectors</strong></td>
+<td>Detectors score entity-keyed series (baselines/thresholds) and emit <strong>Events</strong></td>
+</tr>
+<tr class="even">
+<td>Events + Smartscape + Grail → <strong>Davis</strong></td>
+<td>Merge/rank/package Problem (thin layer)</td>
+</tr>
+</tbody>
+</table>
+<p>It is <strong>not</strong>:</p>
+<div class="ud-viz"><div class="ud-cap">Not this shape</div>
+<div class="ud-flow"><span class="ud-chip warn">Alert fires</span><span class="ud-arrow">→</span><span class="ud-chip warn">RCA wakes</span><span class="ud-arrow">→</span><span class="ud-chip warn">pull raw MELT for whole estate</span></div>
+<p class="ud-note">Fabric is always-on; Detect/Davis read what is already written.</p>
+</div>
+<p>And it is <strong>not</strong> a single chain <code>OneAgent → Smartscape → Grail → Detectors</code>.</p>
+<p><strong>Public framing / inferred:</strong> Davis is a <strong>thin</strong> ranking and packaging layer. Most of the hard work is continuous preprocessing keyed by <strong>entity + time</strong>.</p>
+<div class="ud-viz">
+  <div class="ud-cap">Compact dual-write + read path</div>
+  <div class="ud-fork">
+    <span class="ud-chip dt">OneAgent</span>
+    <div class="ud-down">▼</div>
+    <div class="ud-rails two">
+      <div class="ud-panel dt"><h5>Smartscape</h5><p>Map: entities + relationships</p></div>
+      <div class="ud-panel dt"><h5>Grail</h5><p>Evidence: metrics · traces · logs · events</p></div>
+    </div>
+  </div>
+  <div class="ud-down">▼ read path</div>
+  <div class="ud-flow" style="justify-content:center;flex-wrap:wrap">
+    <span class="ud-chip">Events</span><span class="ud-arrow">→</span>
+    <span class="ud-chip dt">Davis</span><span class="ud-arrow">→</span>
+    <span class="ud-chip soft">Smartscape neighborhood</span><span class="ud-arrow">→</span>
+    <span class="ud-chip soft">Grail (DQL)</span><span class="ud-arrow">→</span>
+    <span class="ud-chip hit">Problem</span>
+  </div>
+</div>
+<p><strong>Myth to drop:</strong> Smartscape does <strong>not</strong> stay fresh by querying Grail with DQL. Map and lake stay aligned via a <strong>shared entity model</strong>, not lake→map rebuilds.</p>
+<h3 id="how-entityid-keeps-map-and-lake-consistent-complex-estate">1.1 One id for the map and the lake (<code>entityId</code>)</h3>
+
+<p><strong>In one sentence:</strong> Dynatrace stamps every piece of telemetry with one stable id (teaching example: <code>SERVICE-INV</code>). That same string is the Smartscape <em>node</em> and the Grail <em>evidence key</em>. The map and the lake never copy from each other — they both received the id at write time.</p>
+
+<div class="note ok">
+  <strong style="color:var(--text)">Two stores, one job each</strong>
+  <ul style="margin:.4rem 0 0 1.1rem">
+    <li><strong>Smartscape</strong> = who talks to whom (the map you walk).</li>
+    <li><strong>Grail</strong> = what happened, when (spans, metrics, logs you query).</li>
+  </ul>
+  Without a shared id, “inventory” in a span, a metric label, and a log line are three different strings. Later steps cannot join them.
+</div>
+
+<p><strong>What “bind” means here:</strong> a lookup step that turns raw labels into that stable id. Teaching shorthand: <strong>LUT</strong> (lookup table) — e.g. <code>"inventory"</code> + container → <code>SERVICE-INV</code>. Bind runs on the way in (Topology bind stage), before Fan-out writes to Smartscape and Grail.</p>
+
+<p data-thesis-cat="error"><strong>Lab example (ERROR):</strong> inventory returns HTTP <strong>500</strong> on <code>/stock</code> (Walkthrough B / P-26084 teaching).</p>
+<p data-thesis-cat="slowdown"><strong>Lab example (SLOWDOWN):</strong> inventory returns HTTP <strong>200</strong> but takes ~9s (P-260820). Same bind story; only the evidence rows change.</p>
+
+<div class="ud-viz">
+  <div class="ud-cap">Three steps · same bind, two Detect classes</div>
+  <div class="ud-grid" style="grid-template-columns:1fr;gap:.55rem">
+    <div class="ud-panel warn">
+      <h5>① Arrive — no shared id yet</h5>
+      <p style="margin:0 0 .35rem;color:var(--muted);font-size:.92rem">Three dialects all say “inventory,” but nothing has stamped a common key:</p>
+      <ul>
+        <li><strong>ERROR:</strong> span GET /stock · <strong>500</strong> · metric error% 0.92 · log pool exhausted</li>
+        <li><strong>SLOWDOWN:</strong> span GET /inventory · <strong>200 · ~9s</strong> · metric response_time ~9s</li>
+      </ul>
+    </div>
+    <div class="ud-panel dt">
+      <h5>② Bind — LUT picks one id</h5>
+      <div class="ud-flow" style="justify-content:flex-start;margin:.35rem 0">
+        <span class="ud-chip soft">raw labels</span>
+        <span class="ud-arrow">→</span>
+        <span class="ud-chip soft">LUT</span>
+        <span class="ud-arrow">→</span>
+        <span class="ud-chip dt"><code>SERVICE-INV</code></span>
+      </div>
+      <p style="margin:0;font-size:.92rem;color:var(--muted)"><code>"inventory"</code> + container → <code>SERVICE-INV</code>. One answer for every modality — ERROR and SLOWDOWN use the same row.</p>
+    </div>
+    <div class="ud-panel accent">
+      <h5>③ Fan-out — stamp both stores with that id</h5>
+      <ul>
+        <li><strong>Smartscape:</strong> node <code>SERVICE-INV</code> on HOST-B · path API → INV → DB (same map)</li>
+        <li><strong>Grail:</strong> documents keyed <code>entityId=SERVICE-INV</code> + time — ERROR: failed span · error% · pool log · SLOWDOWN: slow 200 span · RT ~9s</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <strong style="color:var(--text)">Arrive is in-flight, not a third store.</strong>
+  Before Fan-out the record lives on the <strong>ingest path</strong>: OneAgent/OTLP local buffer, then a vendor-shaped stream (Normalize envelope). It is <em>not</em> sitting in Grail or Smartscape waiting for an id — those two are written at step ③. Detect/Davis cannot DQL this stream. The Smartscape <em>node</em> may already exist from earlier discovery; Arrive only means <em>this</em> span/metric/log is not stamped yet.
+  <br /><br />
+  <strong style="color:var(--text)">LUT maps; it does not invent with semantics.</strong>
+  Steady state is lookup <code>raw labels → already-known entityId</code> (the node discovery already created). On miss, Dynatrace-like default is <strong>auto-create</strong> a new id/node — “seen ⇒ exists,” not NLP guessing that “inventory” means <code>SERVICE-INV</code>. That teaching string is shorthand; real Dynatrace ids are opaque. Miss policies (auto-create / orphan / explicit alias): <a href="#unresolved-streams-three-conditional-actions">§5.3.1</a>.
+</div>
+
+<table>
+<thead>
+<tr class="header">
+<th>Where</th>
+<th>What <code>SERVICE-INV</code> is</th>
+<th>What you do with it</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Smartscape</strong></td>
+<td>A <strong>node</strong> on the live map</td>
+<td>Walk neighbors (API, DB). BATCH on the same host is a different node — no edge unless traffic created one.</td>
+</tr>
+<tr class="even">
+<td><strong>Grail</strong></td>
+<td>A <strong>key</strong> on evidence rows</td>
+<td>DQL / detectors pull “everything for this entity in this time window.”</td>
+</tr>
+<tr class="odd">
+<td><strong>Davis (later)</strong></td>
+<td>The join between those two</td>
+<td>Walk the <em>node</em>, then fetch Grail where <code>entityId == SERVICE-INV</code>. No DQL rebuild of Smartscape.</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Why this matters for RCA:</strong> Detect raises Events per entity; Curate/Tailor/Davis need to walk the map and pull matching evidence. If span, metric, and log used different ids, you would get three half-stories instead of one inventory case.</p>
+
+<p><strong>Quick check (same minute):</strong> map walk is identical; lake rows differ by Detect class.</p>
+<pre class="text"><code>Map:  walk from SERVICE-API → neighbor SERVICE-INV (checkout path)
+      → SERVICE-PAY may exist as a side branch
+      → no edge to SERVICE-BATCH just because it shares HOST-B
+
+Lake: pull entityId=SERVICE-INV in the fault window
+      ERROR:     span 500 + error-rate 0.92 + pool ERROR
+      SLOWDOWN:  span 200 · ~9s + response_time ~9s  (≈15:05–15:10 UTC · P-260820)
+      → does NOT return batch CPU (that is entityId=SERVICE-BATCH)</code></pre>
+
+<p><strong>If bind is wrong</strong> (soft-match <code>inv-svc-v2</code> → PAY by mistake), <em>both</em> the map stamp and the lake stamp lie together. Shared identity amplifies alias mistakes; it does not mean “Grail fixed Smartscape.”</p>
+
+<hr />
+<h2 id="clock-a-stages-dynatrace-technology">2. Clock A stages → Dynatrace technology</h2>
+<p>We use <strong>our Clock A vocabulary</strong> against <strong>Dynatrace product names</strong>. “Fan-out” here means <strong>parallel write to map + lake</strong>, not a cost-tier bakeoff.</p>
+<table>
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 43%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Clock A stage</th>
+<th>Dynatrace technology</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Collect</strong></td>
+<td><strong>OneAgent</strong> (or OTLP into the tenant)</td>
+<td>Edge capture: spans/PurePaths, process/host metrics, log cues; continuous export</td>
+</tr>
+<tr class="even">
+<td><strong>Normalize</strong></td>
+<td><strong>Enrichment + failure rules + entity preparation</strong></td>
+<td>Uniform meaning (e.g. 5xx → failed call); raw identity fields ready for bind</td>
+</tr>
+<tr class="odd">
+<td><strong>Topology bind</strong></td>
+<td><strong>Smartscape</strong> + <strong>entity resolution (bind LUT role)</strong></td>
+<td>Live CI/relationship graph <strong>and</strong> stamp each record with stable <code>entityId</code></td>
+</tr>
+<tr class="even">
+<td><strong>Fan-out</strong></td>
+<td><strong>Parallel write: Smartscape + Grail</strong></td>
+<td>Same capture stream → map (relationships) and lake (evidence)</td>
+</tr>
+<tr class="odd">
+<td><strong>Maintain</strong></td>
+<td><strong>Grail lifecycle + Smartscape freshness</strong></td>
+<td>Retention/sampling/indexing; continuous topo updates</td>
+</tr>
+<tr class="even">
+<td><strong>Detect</strong></td>
+<td><strong>Detectors → Events</strong></td>
+<td>Async thresholds/baselines on indexed series. <strong>Event ≠ Problem</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Curate</strong></td>
+<td><strong>Davis event merge (partial)</strong></td>
+<td>Nearby Events → one Problem narrative / primary seed story</td>
+</tr>
+<tr class="even">
+<td><strong>Tailor</strong></td>
+<td><strong>Smartscape neighborhood + Grail scoped pull (DQL)</strong></td>
+<td>Case-triggered: related entities + time window — not whole-lake diagnosis</td>
+</tr>
+</tbody>
+</table>
+<p><strong>After Tailor = Clock B (Diagnose)</strong> — not another Clock A stage: Davis <strong>Localize</strong> (walk Smartscape) → <strong>Identify</strong> (Grail/DQL evidence) → <strong>Package</strong> (Problem: <code>rootCauseEntity</code>, evidence, impact).</p>
+<p>DQL is Grail’s <strong>read</strong> language. <strong>Index</strong> (Maintain) makes Grail queryable. <strong>Tailor</strong> uses a scoped DQL pull to cut the working set. <strong>Davis Identify</strong> uses DQL again to corroborate. Same language, three different times — see §2 Maintain timeline, not a separate “lab 0–5” table.</p>
+<h3 id="clock-a-step-io-our-vocabulary">Clock A step I/O (our vocabulary)</h3>
+<p>Same stages as a contract table. Dynatrace product names are in the map above; this is the abstract I/O we use across the repo.</p>
+<table>
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 25%" />
+<col style="width: 29%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Step</th>
+<th>Input</th>
+<th>Process</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Collect</strong></td>
+<td>Agents, scrapes, OTel, traps, APIs…</td>
+<td>Receive/pull raw telemetry</td>
+<td>Raw streams (vendor-shaped)</td>
+</tr>
+<tr class="even">
+<td><strong>Normalize</strong></td>
+<td>Raw streams</td>
+<td>Map to joinable envelope: <code>ci_id</code>, signal, <code>ts</code>, value…</td>
+<td>Normalized stream</td>
+</tr>
+<tr class="odd">
+<td><strong>Topology bind</strong></td>
+<td>Discovery (required) · CMDB (optional) · see definitions below</td>
+<td>Build CI relationship/dependency graph (nodes + typed edges) + bind LUT (raw labels → <code>entityId</code>)</td>
+<td>Graph + bind table</td>
+</tr>
+<tr class="even">
+<td><strong>Fan-out</strong></td>
+<td>Normalized envelopes</td>
+<td>Parallel write to map + lake (Dynatrace: Smartscape ∥ Grail) — <strong>not</strong> a second Detect; <strong>not</strong> Lean/Fed</td>
+<td>Populated stores</td>
+</tr>
+<tr class="odd">
+<td><strong>Maintain</strong></td>
+<td>Sinks + graph</td>
+<td>Keep Smartscape edges fresh + Grail rows accumulating (lab timeline below)</td>
+<td>Usable map + lake for Detect/Davis</td>
+</tr>
+<tr class="even">
+<td><strong>Detect</strong></td>
+<td>Streams/stores</td>
+<td>Thresholds / anomalies — noisy by design</td>
+<td>Raw alert storm</td>
+</tr>
+<tr class="odd">
+<td><strong>Curate</strong></td>
+<td>Detect’s raw alerts + humans</td>
+<td>Storm→one seed, GT, quality flags, no coaching</td>
+<td>One honest seed <code>(CI, signal, t0)</code></td>
+</tr>
+<tr class="even">
+<td><strong>Tailor</strong></td>
+<td>Seed + graph + stores</td>
+<td>Cut space/time/modality</td>
+<td>Working set → Clock B</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Topology bind inputs — what those words mean here (Dynatrace):</strong></p>
+<table>
+<thead>
+<tr class="header"><th>Word in Clock A I/O</th><th>What it is</th><th>Role on this unveil</th></tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Discovery</strong></td>
+<td>OneAgent / OTLP <em>seeing</em> hosts, processes, services, ports, and who-calls-whom from live traffic</td>
+<td><strong>Required input.</strong> This is how Smartscape nodes and <code>calls</code> / <code>runsOn</code> edges appear in the lab (discovery-first). Not a CMDB import.</td>
+</tr>
+<tr class="even">
+<td><strong>CMDB</strong></td>
+<td>A separate inventory of record (ServiceNow-style): approved CIs, owners, change windows</td>
+<td><strong>Optional enrich only.</strong> Can merge/tag. Davis does <strong>not</strong> walk CMDB. Smartscape exists even if CMDB is empty.</td>
+</tr>
+<tr class="odd">
+<td><strong>Service map</strong></td>
+<td>Clock A shorthand for “a walkable who-calls-whom picture”</td>
+<td><strong>Not a third Dynatrace ingest source.</strong> On DT that picture <em>is</em> <strong>Smartscape</strong> — the <em>output</em> of Topology bind, built from Discovery. Do not read this as Datadog’s APM Service Map.</td>
+</tr>
+</tbody>
+</table>
+<p>Normalized envelopes (raw labels from Collect) are the other half of bind: Discovery/CMDB tell you <em>which nodes exist</em>; the LUT stamps each record with an <code>entityId</code>.</p>
+<p><strong>Dynatrace reading of Fan-out / Maintain:</strong> parallel write is <strong>Smartscape ∥ Grail</strong> — but <strong>not twin dumps</strong>. Topology bind <strong>reads/stamps</strong> identity (<code>entityId</code>; auto-create may add a node). Fan-out then writes <strong>different facets</strong> of the same stream: Smartscape <strong>relationship/property upserts</strong> and Grail <strong>evidence</strong> (metrics/traces/logs/events). Lean/Fed and L0/F1 are <strong>out of scope</strong> on this unveil; the mechanisms page phase 3 is <strong>Davis</strong> (walk → Grail rank → Problem), not Lean/Fed.</p>
+<h4 id="maintain-as-one-checkout-timeline-lab">Maintain as one checkout timeline (lab)</h4>
+<p>Maintain is <strong>not</strong> “split a timeseries into shaded vs pulse.” It is housekeeping while the inventory fault story runs. Same Smartscape shape for both Detect classes — only Grail rows change. Animated: <a href="/eleven-subsystem-mechanisms.html">mechanisms · Maintain</a>. Full clocks: <a href="/dt-lab-timeline-code-level.html">ERROR Timeline</a> · <a href="/dt-lab-timeline-slowdown.html">SLOWDOWN Timeline</a>.</p>
+<div class="viz" id="viz-maintain-timeline">
+  <p class="cap">Maintain · same map · ERROR P-26084 vs SLOWDOWN P-260820</p>
+  <table>
+    <thead><tr><th>Beat</th><th>Smartscape (both)</th><th>Grail · ERROR</th><th>Grail · SLOWDOWN</th></tr></thead>
+    <tbody>
+    <tr><td>① Healthy</td><td>FE→API→INV live (+ PAY, BATCH, DB)</td><td>≈05:50 UTC · INV /stock <strong>200</strong>, low error_rate</td><td>≈14:55 UTC · /inventory <strong>200</strong> · ~50 ms</td></tr>
+    <tr><td>② Fault on</td><td><strong>Same shape</strong> — INV hot on checkout path</td><td>05:54–06:04 · INV <strong>500</strong> + error_rate + API cascade (~10 min)</td><td>15:05+ · INV ~9s then API ~15:06 then FE ~15:07 (Grail can stagger)</td></tr>
+    <tr><td>③ Problem</td><td>Davis <strong>walks this same map</strong></td><td>≈06:04 · <strong>P-26084</strong> · <code>rootCauseEntity=inventory</code></td><td>≈15:10 · <strong>P-260820</strong> · PERFORMANCE · <code>rootCauseEntity=null</code></td></tr>
+    <tr><td>④ Cleared</td><td>Topology unchanged</td><td>INV /stock 200 again</td><td>Fast 200s (<code>heal_inventory_slow_code.sh</code>)</td></tr>
+    </tbody>
+  </table>
+  <p class="viz-note">ERROR teaching map uses P-26084 clocks (comparable). Code-level Observed ERROR is <strong>P-260817</strong> (KeyError · Events @11:41 · Problem 11:46–12:11 · RC null — pinpoint on traces/logs). SLOWDOWN Detect = <code>SERVICE_SLOWDOWN</code> at fixed RT 2 s / 3 s — <strong>not</strong> error_rate 0.30. Do not reuse ERROR clocks for SLOWDOWN. Leaf = ledger-scan CPU. Event starts same minute bucket @15:05 despite Grail stagger.</p>
+</div>
+<p class="viz-note">Maintain does <strong>not</strong> pick the root cause and does <strong>not</strong> build a different map than Topology. It only keeps that Smartscape fresh while Grail fills.</p>
+
+<p>Lab ref names (Capture, Label, Topology, Metricize, Eventize, Index) are older storyboard aliases for the same Clock A slots in the table above. They are not extra stages. Index = Maintain (Grail queryable); DQL readers are Tailor and Davis Identify — see the Clock B note under the stage table.</p>
+<hr />
+<h2 id="subsystem-io-contracts">3. Subsystem I/O contracts</h2>
+<p>Each Dynatrace building block as <strong>Input → Process → Output</strong>. This is <em>not</em> a second Clock A map — that is §2. Labels: mostly <strong>public framing / inferred</strong>; lab-confirmed where noted.</p>
+<h3 id="oneagent-edge-collect">3.1 OneAgent (edge collect)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><strong>Input</strong></td>
+<td>Running processes / containers / hosts; inbound &amp; outbound calls; local logs/metrics sensors</td>
+</tr>
+<tr class="even">
+<td><strong>Process</strong></td>
+<td>Inject/hook; intercept HTTP (and tech-specific calls); attach resource attributes; sample/limit paths; export continuously</td>
+</tr>
+<tr class="odd">
+<td><strong>Output</strong></td>
+<td>Raw-ish telemetry streams: spans/PurePaths, process/host metrics, log cues, topology fingerprints (service name, host, PG, container, release tags)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Observed (lab):</strong> Python/Flask hooks + OTLP fallback; <code>service.name</code> / <code>DT_CLUSTER_ID</code> / release tags on paths.</p>
+<h4 id="collect-is-not-normalize">Collect is not Normalize</h4>
+<p>At Collect you <strong>receive/pull</strong> vendor-shaped bytes. Optional light edge work (drop noise, TLS) is fine. You do <strong>not</strong> yet build a joinable envelope (<code>entityId</code> / <code>ci_id</code>, <code>failed_call</code>, shared schema). That starts at <strong>Normalize</strong> (§5.4).</p>
+<p>In the mechanisms storyboard, <strong>shape + color = source dialect only</strong> (not severity):</p>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 17%" />
+<col style="width: 66%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Glyph</th>
+<th>Source</th>
+<th>Example raw (still unjoined)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>○ circle</td>
+<td>Agents</td>
+<td><code>system.cpu.user{host:DESKTOP-1} 5.2</code></td>
+</tr>
+<tr class="even">
+<td>□ square</td>
+<td>OTel / OTLP</td>
+<td><code>resourceSpans</code> → <code>service.name=inventory</code>, <code>http.status_code=500</code></td>
+</tr>
+<tr class="odd">
+<td>△ triangle</td>
+<td>SNMP traps</td>
+<td><code>snmpTrapOID=…</code> + <code>clogHistMsgText="Gi0/1 down"</code></td>
+</tr>
+<tr class="even">
+<td>◇ diamond</td>
+<td>Vendor APIs</td>
+<td><code>{"alert_id":"A-9182","device":"fw-edge-03",…}</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Agent-shaped (metrics):</strong></p>
+<pre class="text"><code>system.cpu.user{host:DESKTOP-1} 5.2
+process.cpu{pid:4421,exe:python} 0.12</code></pre>
+<p><strong>OTel-shaped (span excerpt):</strong></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;resource&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;attributes&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span><span class="dt">&quot;key&quot;</span><span class="fu">:</span> <span class="st">&quot;service.name&quot;</span><span class="fu">,</span> <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;inventory&quot;</span><span class="fu">}</span><span class="ot">]</span><span class="fu">},</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;spans&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;GET /api/stock&quot;</span><span class="fu">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;attributes&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span><span class="dt">&quot;key&quot;</span><span class="fu">:</span> <span class="st">&quot;http.status_code&quot;</span><span class="fu">,</span> <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="dv">500</span><span class="fu">}</span><span class="ot">]</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span><span class="ot">]</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>SNMP-shaped:</strong></p>
+<pre class="text"><code>SNMPv2-Trap
+  snmpTrapOID.0 = 1.3.6.1.4.1.9.9.41.2.0.1
+  clogHistMsgText = &quot;Interface GigabitEthernet0/1 down&quot;</code></pre>
+<p><strong>Vendor API-shaped:</strong></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;alert_id&quot;</span><span class="fu">:</span> <span class="st">&quot;A-9182&quot;</span><span class="fu">,</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;device&quot;</span><span class="fu">:</span> <span class="st">&quot;fw-edge-03&quot;</span><span class="fu">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;severity&quot;</span><span class="fu">:</span> <span class="st">&quot;critical&quot;</span><span class="fu">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;msg&quot;</span><span class="fu">:</span> <span class="st">&quot;tunnel peer unreachable&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>All four can sit in the same Collect bag. They only become comparable after Normalize (+ Topology bind for stable ids).</p>
+<p><strong>Animated:</strong> <a href="/eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a> · Collect step.</p>
+<h3 id="enrichment-failure-labeling-normalize-family">3.2 Enrichment + failure labeling (normalize family)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><strong>Input</strong></td>
+<td>OneAgent (or OTLP) streams — still vendor/OTel-shaped</td>
+</tr>
+<tr class="even">
+<td><strong>Process</strong></td>
+<td>Three related jobs — <strong>enrichment</strong>, <strong>failure labeling</strong> (when applicable), <strong>entity preparation</strong> — see <strong>§5.4–5.5</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Output</strong></td>
+<td>Enriched envelopes with optional <code>failed_call</code>, signal, ts, raw identity keys — <strong>not</strong> yet a Problem; often <strong>not</strong> yet final <code>entityId</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why:</strong> later failure-rate series and detectors prefer labeled calls when they exist; continuous signals still Detect without a binary fail flag.</p>
+<h3 id="entity-resolution-bind-lut-role">3.3 Entity resolution (bind LUT role)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><strong>Input</strong></td>
+<td>Raw identity keys on envelopes (<code>service.name</code>, hostname, container id, <code>DT_CLUSTER_ID</code>, …) + discovery cues</td>
+</tr>
+<tr class="even">
+<td><strong>Process</strong></td>
+<td>Resolve / create stable entity ids; maintain flat lookup <code>raw key → entityId</code>; auto-create when discovery-first</td>
+</tr>
+<tr class="odd">
+<td><strong>Output</strong></td>
+<td>Stamped stream: every record carries canonical <strong><code>entityId</code></strong> (and usually host/PG ids); LUT updated</td>
+</tr>
+</tbody>
+</table>
+<p><strong>This is not Smartscape.</strong> It only answers “which entity does this record belong to?”</p>
+<h3 id="smartscape-topology-ci-graph">3.4 Smartscape (topology / CI graph)</h3>
+<table>
+<tbody>
+<tr class="odd"><td><strong>Input</strong></td><td>Topology cues from OneAgent/discovery; call peers from traces; process-group / service detection rules</td></tr>
+<tr class="even"><td><strong>Process</strong></td><td>Upsert entities; maintain <strong>vertical</strong> containment (HOST→PG→…→SERVICE; teaching ≈ <code>runsOn</code>) and <strong>horizontal</strong> <code>calls</code> edges; keep graph fresh</td></tr>
+<tr class="odd"><td><strong>Output</strong></td><td>Live <strong>property graph</strong>: stable nodes (<code>SERVICE-…</code>, <code>HOST-…</code>, …) + <strong>typed</strong> edges — the map Davis expands</td></tr>
+</tbody>
+</table>
+<p><strong>Does not:</strong> store full metric history (that’s Grail). <strong>Not</strong> refreshed by DQL against Grail.</p>
+<p><strong>Graph shape (teaching / public framing):</strong> not required to be a DAG (cycles/fan-in/out OK). Edges are <strong>not weighted</strong> in our teaching walk — failure strength lives in Grail. Persistence job = keep the <strong>current</strong> who-graph true (<code>lastSeen</code> / upserts).</p>
+<h4 id="smartscape-on-grail-product-evolution-note">Smartscape on Grail (product evolution note)</h4>
+<p><strong>Observed (tenant UI, 2026-08):</strong> Apps may banner <em>“This app now uses Smartscape on Grail”</em> and prefer <code>dt.smartscape.*</code> over classic <code>dt.entity.*</code>. Map vs evidence <strong>jobs</strong> remain; collaboration moves toward a more shared persistence/query substrate — <strong>not</strong> “rebuild Smartscape by DQL every minute.”</p>
+<h3 id="grail-unified-lake-dql">3.5 Grail (unified lake + DQL)</h3>
+<table>
+<tbody>
+<tr class="odd"><td><strong>Input</strong></td><td>Entity-stamped metrics, traces, logs, and (later) events from the platform write path</td></tr>
+<tr class="even"><td><strong>Process</strong></td><td>Index / retain / make queryable by <strong><code>(entityId, timeRange)</code></strong>; serve DQL (and UI) reads</td></tr>
+<tr class="odd"><td><strong>Output</strong></td><td>On write: durable multimodal evidence store. On read: series, exemplars, logs, events for scoped queries</td></tr>
+</tbody>
+</table>
+<p><strong>Write = continuous. DQL = on-demand read.</strong> Grail is not the topology map. Persistence job = remember <strong>what happened</strong> (hot/warm/cold). Smartscape upserts <strong>present</strong>; Grail appends <strong>history</strong>.</p>
+<h3 id="detectors-events-detect">3.6 Detectors → Events (detect)</h3>
+<table>
+<tbody>
+<tr class="odd"><td><strong>Input</strong></td><td>Entity-keyed series in <strong>Grail</strong> (error rate, response time, restarts, …) + baselines/thresholds</td></tr>
+<tr class="even"><td><strong>Process</strong></td><td>Async evaluation (<strong>inferred</strong> exact algos). <strong>Does not walk Smartscape</strong> to raise an Event</td></tr>
+<tr class="odd"><td><strong>Output</strong></td><td><strong>Events</strong> — e.g. <code>SERVICE_ERROR_RATE_INCREASED</code> (ERROR), <code>SERVICE_SLOWDOWN</code> (SLOWDOWN) — keyed by entity + time. <strong>Event ≠ Problem</strong></td></tr>
+</tbody>
+</table>
+<p><strong>Observed labs (same Detect job, different signal):</strong></p>
+<table>
+<thead><tr><th></th><th>ERROR</th><th>SLOWDOWN</th></tr></thead>
+<tbody>
+<tr><td><strong>Events</strong></td><td>nearby <code>SERVICE_ERROR_RATE_INCREASED</code> (P-26084 teaching · P-260817 Observed)</td><td>three <code>SERVICE_SLOWDOWN</code> same start bucket ≈15:05 → P-260820 ≈15:10 · RC null</td></tr>
+<tr><td><strong>Teaching threshold</strong></td><td>canvas gold line <code>0.30</code> error_rate — <strong>Teaching</strong>, not a fitted SKU</td><td>fixed RT median <strong>2 s</strong> / p90 <strong>3 s</strong> / min 1 rpm — <strong>not</strong> the 0.30 chalk line</td></tr>
+</tbody>
+</table>
+<p>Events land in a <strong>shared Event store</strong>; cascade ≠ one fused Detect alert.</p>
+<h4 id="phase-2-teaching-glossary-detect-curate-tailor">Phase 2 teaching glossary (Detect → Curate → Tailor)</h4>
+<table>
+<thead><tr><th>Term</th><th>What it is</th><th>Product term?</th></tr></thead>
+<tbody>
+<tr><td><strong>Cascade</strong></td><td>Failure spreads along FE→API→INV</td><td>Everyday word</td></tr>
+<tr><td><strong>Event</strong></td><td>One Detect breach record</td><td>Yes</td></tr>
+<tr><td><strong>Storm</strong></td><td>Pile of raw Events (still unmerged)</td><td><strong>Teaching</strong></td></tr>
+<tr><td><strong>Beat</strong></td><td>Storyboard UI step only</td><td>No</td></tr>
+<tr><td><strong>Seed</strong></td><td>Curate handoff <code>(entityId, t0)</code> — Tailor expands time corridor</td><td><strong>Teaching</strong></td></tr>
+<tr><td><strong>Problem</strong></td><td>Packaged RCA after Curate→Tailor→Davis</td><td>Yes</td></tr>
+</tbody>
+</table>
+<h4 id="phase-2-teaching-timeline-detect-curate-tailor">Phase 2 teaching timeline (Detect → Curate → Tailor)</h4>
+<p>Same pipeline for both Detect classes. Animated: <a href="/eleven-subsystem-mechanisms.html">mechanisms · Phase 2</a>. <strong>Event ≠ Problem.</strong></p>
+<pre class="flow">Grail series (Maintain’d)
+  → Detect  → raw Events (per entity) → common Event store
+  → Curate  → one case seed (entityId, t0)   // Tailor expands t0 → corridor
+  → Tailor  → working set {entities[], timeRange}
+  → Phase 3 Davis → Problem</pre>
+<div class="viz" id="viz-phase2-case">
+  <p class="cap">Detect · Curate · Tailor — ERROR vs SLOWDOWN</p>
+  <table>
+    <thead><tr><th></th><th>ERROR (P-26084 teaching)</th><th>SLOWDOWN (P-260820 Observed)</th></tr></thead>
+    <tbody>
+    <tr><td><strong>Detect</strong></td><td><code>SERVICE_ERROR_RATE_INCREASED</code> on INV then API then FE (own detectors; teaching 0.30). BATCH CPU = noise (no checkout edge).</td><td>Three <code>SERVICE_SLOWDOWN</code> same bucket ≈15:05 (product · frontend · inventory). HTTP <strong>200</strong> · ~9s. RT 2 s / 3 s — not 0.30.</td></tr>
+    <tr><td><strong>Curate</strong></td><td>Storm → neighborhood → drop BATCH → seed <code>(SERVICE-INV, t0≈06:04)</code>. Not yet RC.</td><td>Same-bucket Events → no temporal leaf ranking → packaged RC <strong>null</strong>.</td></tr>
+    <tr><td><strong>Tailor</strong></td><td>Space FE←API←INV→DB · time <code>[05:54, 06:04]</code> UTC → P-26084</td><td>Same Smartscape · time <code>[15:05, 15:10+]</code> UTC → P-260820</td></tr>
+    </tbody>
+  </table>
+</div>
+<h3 id="davis-problems-curate-localize-package">3.7 Davis → Problems (curate + localize package)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><strong>Input</strong></td>
+<td>Recent Events; Smartscape neighborhood; scoped Grail evidence (metrics/traces/logs)</td>
+</tr>
+<tr class="even">
+<td><strong>Process</strong></td>
+<td>Merge by time + topology; score <code>rootCauseRelevant</code>; pick root / affected / impact; attach evidence list (<strong>inferred</strong> scoring)</td>
+</tr>
+<tr class="odd">
+<td><strong>Output</strong></td>
+<td><strong>Problem</strong> card — e.g. rootCauseEntity, affected entities, evidence package (lab: P-26076 style)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Does not:</strong> own primary capture, topology freshness, or full-lake scan at ticket time. Thin correlator / packager.</p>
+<h3 id="compact-io-chain">3.8 Compact I/O chain</h3>
+<p>Same chain as §1. Kept as a scan line: OneAgent → enrich/bind → Smartscape ∥ Grail → Detectors → Events → Davis → Problem.</p>
+<div class="ud-viz">
+  <div class="ud-cap">Compact I/O chain</div>
+  <div class="ud-flow">
+    <span class="ud-chip">Workloads</span><span class="ud-arrow">→</span>
+    <span class="ud-chip dt">OneAgent</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">Enrichment</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">Entity resolution</span>
+  </div>
+  <div class="ud-down">▼ fan-out</div>
+  <div class="ud-grid two">
+    <div class="ud-panel dt"><h5>Smartscape</h5><p>Graph upserts</p></div>
+    <div class="ud-panel dt"><h5>Grail</h5><p>Evidence writes</p></div>
+  </div>
+  <div class="ud-down">▼</div>
+  <div class="ud-flow" style="justify-content:center">
+    <span class="ud-chip">Detectors</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">Events</span><span class="ud-arrow">→</span>
+    <span class="ud-chip dt">Davis</span><span class="ud-arrow">→</span>
+    <span class="ud-chip hit">Problem</span>
+  </div>
+</div>
+<hr />
+<h2 id="dynatrace-stores-what-gets-updated-when">4. Dynatrace stores — what gets updated when</h2>
+<table>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 26%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Store</th>
+<th>Holds</th>
+<th>Touched at</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>OneAgent (edge)</strong></td>
+<td>Hooks, local buffers, export</td>
+<td>Collect (continuous)</td>
+</tr>
+<tr class="even">
+<td><strong>Smartscape</strong></td>
+<td>Entities + relationships</td>
+<td>Topology bind / discovery / call-edge materialization</td>
+</tr>
+<tr class="odd">
+<td><strong>Grail</strong></td>
+<td>Metrics, traces, logs, events by <code>entityId</code> + time</td>
+<td>After identity exists — continuous write; <strong>DQL = read</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Detectors → Events</strong></td>
+<td>Normalized “something changed” records</td>
+<td>Detect (after series exist)</td>
+</tr>
+<tr class="odd">
+<td><strong>Davis → Problems</strong></td>
+<td>Ranked package for operators</td>
+<td>After Events (thin correlator)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="normalize-bind-lut-why-they-matter">5. Normalize &amp; bind LUT — why they matter</h2>
+<p><code>entityId</code> itself is already §1.1. This section is the <strong>jobs</strong> that produce it: Normalize’s three forks, graph vs LUT as siblings, discovery vs CMDB, and LUT miss policies. Skip if you only need the mental model.</p>
+<p><strong>Animated illustrations:</strong> <a href="/eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a> · Normalize (three jobs) · Topology bind (graph ∥ LUT + miss policies) · also embedded figures in <a href="/dynatrace-production-pipeline.html"><code>dynatrace-production-pipeline.html</code></a> §5.2 / §5.4.</p>
+<h3 id="normalize-is-not-pretty-json">5.1 Normalize is not “pretty JSON”</h3>
+<p>Normalize makes later joins possible. Collect dumps vendor-shaped blobs; Detect, Tailor, and Davis need <strong><code>(entityId, time)</code></strong>.</p>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 21%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Later stage</th>
+<th>Needs</th>
+<th>If unbound</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Grail write</td>
+<td>entity-keyed series</td>
+<td>Orphan series</td>
+</tr>
+<tr class="even">
+<td>Smartscape edges</td>
+<td>endpoints are entityIds</td>
+<td>Call edge floats</td>
+</tr>
+<tr class="odd">
+<td>Detect → Event</td>
+<td><code>Event.entityId</code></td>
+<td>Wrong or unknown entity</td>
+</tr>
+<tr class="even">
+<td>Tailor / Davis</td>
+<td>neighborhood + Grail pull</td>
+<td>Cannot name <code>rootCauseEntity</code> honestly</td>
+</tr>
+</tbody>
+</table>
+<h3 id="topology-bind-two-independent-things">5.2 Topology bind = two independent things</h3>
+<p>“Topology bind” is a <strong>teaching umbrella</strong> for two sibling outputs that share discovery-era inputs. They are <strong>not</strong> one algorithm.</p>
+<div class="ud-viz">
+  <div class="ud-cap">Topology bind — two independent things</div>
+  <div class="ud-grid two">
+    <div class="ud-panel dt"><h5>CI Graph (Smartscape)</h5><p>Discovery / OneAgent cues → nodes + typed edges</p></div>
+    <div class="ud-panel accent"><h5>Bind LUT</h5><p>Telemetry stream → stamp <code>entityId</code> on each envelope</p></div>
+  </div>
+  <p class="ud-note">Graph walk ≠ LUT stamp. Do not collapse them.</p>
+</div>
+<table>
+<colgroup>
+<col style="width: 3%" />
+<col style="width: 40%" />
+<col style="width: 55%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>CI Graph (Smartscape)</th>
+<th>Bind LUT (entity resolution)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Shape</td>
+<td>Nodes + edges</td>
+<td>Flat <code>raw key → entityId</code></td>
+</tr>
+<tr class="even">
+<td>Purpose</td>
+<td>Relationship <strong>traversal</strong> (k-hop / Davis neighborhood)</td>
+<td>Identity on each record</td>
+</tr>
+<tr class="odd">
+<td>Access</td>
+<td>Neighbors / paths</td>
+<td>Point lookup per ingest record</td>
+</tr>
+</tbody>
+</table>
+<p><strong>“Pin on the map”</strong> (informal) = the stable <strong>entity / <code>entityId</code> / Smartscape node</strong> (e.g. <code>SERVICE-INV</code>). Prefer those exact terms in engineering talk.</p>
+<h4 id="does-bind-lut-help-ci-graph-traversal">Does Bind LUT help CI graph traversal?</h4>
+<p><strong>No.</strong> Traversal walks <strong>Smartscape edges</strong>. The LUT only answers “which <code>entityId</code> does this raw label belong to?”</p>
+<p>LUT helps traversal <strong>indirectly</strong>: once an Event is stamped <code>entityId=SERVICE-INV</code>, Davis knows <strong>which node</strong> to start the walk from. The walk itself uses <code>calls</code> / containment edges, not the LUT.</p>
+<h4 id="walkthrough-complex-estate-both-products-in-play">Walkthrough (complex estate) — both products in play</h4>
+<p><strong>CI Graph (relationships):</strong></p>
+<div class="ud-viz">
+  <div class="ud-cap">HOST-B services + call path</div>
+  <p class="ud-note" style="margin:0 0 .55rem">HOST-B: <code>SERVICE-INV</code> · <code>SERVICE-BATCH</code> · <code>SERVICE-DB</code></p>
+  <div class="ud-flow">
+    <span class="ud-chip">FE</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">API</span><span class="ud-arrow">→</span>
+    <span class="ud-chip warn">INV</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">DB</span>
+    <span class="ud-chip soft">∥ API → PAY</span>
+  </div>
+</div>
+<p>Davis can walk INV’s neighborhood on this graph. BATCH shares HOST-B but is <strong>not</strong> on the checkout path — that distinction is <strong>graph structure</strong>, not LUT.</p>
+<p><strong>Bind LUT (identity):</strong></p>
+<pre class="text"><code>&quot;inventory&quot; | container=c8e91a  →  SERVICE-INV
+&quot;batch-job&quot;                     →  SERVICE-BATCH
+&quot;inventory-db&quot;                  →  SERVICE-DB
+&quot;payments&quot;                      →  SERVICE-PAY</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Record</th>
+<th>After LUT</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>failed span GET /stock</td>
+<td><code>entityId=SERVICE-INV</code></td>
+</tr>
+<tr class="even">
+<td>error-rate metric</td>
+<td><code>entityId=SERVICE-INV</code></td>
+</tr>
+<tr class="odd">
+<td>pool ERROR log</td>
+<td><code>entityId=SERVICE-INV</code></td>
+</tr>
+<tr class="even">
+<td>batch CPU metric</td>
+<td><code>entityId=SERVICE-BATCH</code></td>
+</tr>
+</tbody>
+</table>
+<p>Same failing process’s span, metric, and log now share one node id so Grail joins them; the graph still decides who is upstream/downstream.</p>
+<h4 id="why-encapsulate-both-under-one-clock-a-step">Why encapsulate both under one Clock A step?</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Reason</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Shared upstream</td>
+<td>Both fed by discovery / OneAgent cues in the same pipeline era</td>
+</tr>
+<tr class="even">
+<td>Shared vocabulary</td>
+<td>Both answer “who is this entity in the estate?”</td>
+</tr>
+<tr class="odd">
+<td>Teaching convenience</td>
+<td>One stage means “we now have a map <strong>and</strong> stamped streams”</td>
+</tr>
+</tbody>
+</table>
+<p>Prefer naming them explicitly when precision matters: <strong>Topology (Smartscape)</strong> and <strong>Entity resolution (LUT)</strong> — sibling outputs of “Topology bind,” not one fused mechanism.</p>
+<h3 id="discovery-built-graph-vs-cmdb-as-ultimate-truth">5.3 Discovery-built graph vs CMDB as “ultimate truth”</h3>
+<p>Definitions of Discovery vs CMDB vs “service map” are in §2 (Topology bind inputs). This subsection is only the policy question: does Smartscape wait for CMDB?</p>
+<p><strong>Question:</strong> When the CI graph is created from raw telemetry, does Dynatrace verify it against CMDB because CMDB holds predefined truth?</p>
+<p><strong>Answer (public framing / lab):</strong> <strong>Usually no.</strong> Dynatrace Smartscape is <strong>discovery-first</strong>. Observed processes/services/call edges become graph nodes without waiting for a CMDB row. The lab’s <code>frontend</code> / <code>product</code> / <code>inventory</code> appear from OneAgent/OTLP observation even with almost no ServiceNow-style inventory.</p>
+<table>
+<colgroup>
+<col style="width: 57%" />
+<col style="width: 42%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Source</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Live discovery (OneAgent)</td>
+<td>Primary: create/update HOST / PG / SERVICE + <code>calls</code> edges from what is <em>seen</em></td>
+</tr>
+<tr class="even">
+<td>CMDB / provisioned inventory</td>
+<td>Optional: enrich, merge, tag — <strong>not</strong> required for Smartscape to exist</td>
+</tr>
+</tbody>
+</table>
+<p><strong>CMDB-first designs</strong> (classic infra / strict “provisioned CIs only”) flip this: graph nodes come from inventory first; telemetry must <strong>bind</strong> to those CIs; unresolved streams orphan or wait. That is a different philosophy than Dynatrace’s default.</p>
+<h3 id="unresolved-streams-three-conditional-actions">5.3.1 Unresolved streams — three conditional actions</h3>
+<p><strong>Trigger:</strong> a record’s identity keys (e.g. <code>service.name=inv-svc-v2</code>) <strong>miss</strong> the Bind LUT — no known <code>entityId</code> yet.</p>
+<div class="ud-viz">
+  <div class="ud-cap">Unresolved stream — three conditional actions</div>
+  <div class="ud-flow" style="justify-content:center;margin-bottom:.65rem">
+    <span class="ud-chip soft">raw <code>service.name="inv-svc-v2"</code></span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip">LUT lookup</span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip warn">MISS</span>
+  </div>
+  <div class="ud-policies">
+    <div class="ud-panel"><h5>(1) Auto-create</h5><p>New entity</p></div>
+    <div class="ud-panel warn"><h5>(2) Orphan</h5><p>Quarantine</p></div>
+    <div class="ud-panel accent"><h5>(3) Soft-match</h5><p>Alias to existing</p></div>
+  </div>
+</div>
+<h4 id="auto-create-entity-dynatrace-like-default-for-many-cases">(1) Auto-create entity (Dynatrace-like default for many cases)</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><strong>What happens</strong></td>
+<td>Platform creates a new Smartscape node (e.g. <code>SERVICE-NEWxxxx</code>), adds LUT rows for the raw keys, stamps the stream with that id, writes evidence to Grail under it</td>
+</tr>
+<tr class="even">
+<td><strong>Why</strong></td>
+<td>Don’t drop live traffic; microservices churn; discovery-first products assume “seen ⇒ exists”</td>
+</tr>
+<tr class="odd">
+<td><strong>Risk</strong></td>
+<td>Splits: same real service under two names (<code>inventory</code> vs <code>inv-svc-v2</code>) → two nodes, fractured metrics/Problems</td>
+</tr>
+<tr class="even">
+<td><strong>Reflect in CMDB?</strong></td>
+<td><strong>No, not automatically.</strong> Auto-create updates the <strong>observability graph</strong> (Smartscape) and LUT. CMDB is a separate system of record. Syncing a new CI <em>into</em> ServiceNow/CMDB is an optional integration / ITSM workflow — Dynatrace does not imply “every discovered service becomes a CMDB CI.”</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lab-shaped example:</strong> first time OneAgent sees <code>inventory</code>, there is no prior LUT row → auto-create <code>SERVICE-INV</code> in Smartscape. No CMDB ticket required.</p>
+<h4 id="orphan-quarantine-unboundtrue-stricter-cmdb-designs">(2) Orphan / quarantine (<code>unbound=true</code>) — stricter CMDB designs</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><strong>What happens</strong></td>
+<td>Keep the telemetry (or a sample) but <strong>do not</strong> attach a production <code>entityId</code>; flag <code>unbound=true</code> / park in an orphan bucket; Detect/Tailor/Davis often <strong>ignore</strong> or show as “unmonitored”</td>
+</tr>
+<tr class="even">
+<td><strong>Why it exists</strong></td>
+<td>CMDB/governance says: only <strong>approved</strong> CIs are first-class. Auto-creating graph nodes would pollute topology, tickets, and chargeback with shadow services, typos, and one-off test traffic</td>
+</tr>
+<tr class="odd">
+<td><strong>When to use</strong></td>
+<td>Regulated estates, classic infra with a frozen CI list, “unknown hostname must not become a root-cause candidate”</td>
+</tr>
+<tr class="even">
+<td><strong>Tradeoff</strong></td>
+<td>You <strong>don’t lose bytes</strong>, but you <strong>lose joinability</strong> until a human/rule adds the CI and bind mapping</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong> scrape arrives as <code>service.name=inv-svc-v2</code>. Policy forbids auto-create. Record stored with <code>unbound=true</code>. No Smartscape node, no Davis root on that name, until CMDB adds the CI and LUT maps <code>inv-svc-v2 → SERVICE-INV</code>.</p>
+<h4 id="soft-match-alias-risky-if-wrong">(3) Soft-match / alias — risky if wrong</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><strong>What happens</strong></td>
+<td>Heuristic or configured alias maps the unknown key onto an <strong>existing</strong> entity (<code>inv-svc-v2</code> → <code>SERVICE-INV</code>) without creating a new node</td>
+</tr>
+<tr class="even">
+<td><strong>Why it exists</strong></td>
+<td>Renames, env suffixes (<code>inventory-prod</code> vs <code>inventory</code>), IP↔︎hostname, temporary dual naming during cutover — you want <strong>one</strong> node so series don’t split</td>
+</tr>
+<tr class="odd">
+<td><strong>Risk</strong></td>
+<td>Wrong alias <strong>coaches the wrong root</strong>: noise from service B stamped as service A; Davis blames the wrong CI</td>
+</tr>
+<tr class="even">
+<td><strong>When to use</strong></td>
+<td>Explicit alias tables, high-confidence rules (same cluster id + port), never blind fuzzy match on production RCA path without review</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example (good):</strong> rule <code>inv-svc-v2</code> alias of <code>inventory</code> → stamp <code>SERVICE-INV</code> (merge).<br />
+<strong>Example (bad):</strong> fuzzy match <code>inv*</code> → <code>SERVICE-INV</code> also catches an unrelated <code>invoice-api</code> → corrupted join.</p>
+<h4 id="choosing-among-the-three">Choosing among the three</h4>
+<table>
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Goal</th>
+<th>Prefer</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Don’t miss new services; discovery-first SaaS</td>
+<td><strong>(1) Auto-create</strong></td>
+</tr>
+<tr class="even">
+<td>Don’t invent CIs; CMDB is gate</td>
+<td><strong>(2) Orphan</strong> until approved</td>
+</tr>
+<tr class="odd">
+<td>Known rename / dual name, keep one pin</td>
+<td><strong>(3) Soft-match</strong> with explicit aliases</td>
+</tr>
+<tr class="even">
+<td>Avoid silent wrong roots</td>
+<td>Never rely on aggressive fuzzy <strong>(3)</strong> alone</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Dynatrace default leaning:</strong> <strong>(1)</strong> for many process/service discoveries; CMDB sync is optional and <strong>one-way or mediated</strong>, not “auto-create ⇒ CMDB row.” Our ObserveOps-style kits can choose <strong>(2)</strong> when the CI list is frozen for fair bakeoffs.</p>
+<h3 id="enrichment-failure-labeling-entity-preparation-three-normalize-jobs">5.4 Enrichment · failure labeling · entity preparation (three Normalize jobs)</h3>
+<p>These are three <strong>Normalize-family</strong> jobs — not synonyms. Using the complex checkout raw scrap:</p>
+<pre class="text"><code>span: GET /stock  status=500  service.name=inventory  container=c8e91a
+metric: http_requests{service=&quot;inventory&quot;,status=&quot;500&quot;} 40
+log: [inventory] ERROR connection pool exhausted
+span: POST /charge status=200  service.name=payments   (healthy side branch)</code></pre>
+<h4 id="enrichment-shape-context">Enrichment — shape + context</h4>
+<p>Add fields so the record is usable later (modality, units, host/container hints, tech fingerprints). IDs may still be <strong>raw</strong>.</p>
+<pre class="text"><code>{ ts, modality=trace, signal=http.request, value=500,
+  raw_ids=[service.name=inventory, container=c8e91a],
+  host_hint=k8s-node-b, tech=python/flask }</code></pre>
+<h4 id="failure-labeling-meaning-of-bad-call-when-applicable">Failure labeling — meaning of “bad call” (when applicable)</h4>
+<p>Apply rulesets so request-shaped telemetry gets a discrete outcome flag.</p>
+<pre class="text"><code>status=500  →  failed_call=true    (e.g. INV stock span)
+status=200  →  failed_call=false   (e.g. PAY charge span)</code></pre>
+<p>Later failure-rate series and detectors prefer this flag over re-parsing “HTTP 500” strings. See <strong>§5.5</strong> — this is <strong>not</strong> always possible or always <code>status!=200</code>.</p>
+<h4 id="entity-preparation-identity-keys-ready-to-bind">Entity preparation — identity keys ready to bind</h4>
+<p>Normalize name tokens / cluster ids / aliases so entity resolution can stamp a stable id.</p>
+<pre class="text"><code>raw:  service.name=&quot;inventory&quot;, DT_CLUSTER_ID=inventory, container=c8e91a
+prep: lookup keys ready → LUT → entityId=SERVICE-INV</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Piece</th>
+<th>Job in one line</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Enrichment</td>
+<td>Shape + context</td>
+</tr>
+<tr class="even">
+<td>Failure labeling</td>
+<td>Discrete success/fail when the modality has one</td>
+</tr>
+<tr class="odd">
+<td>Entity preparation</td>
+<td>Identity keys ready for the bind LUT</td>
+</tr>
+</tbody>
+</table>
+
+<h4 id="normalize-as-a-fork-teaching">Normalize as a fork (teaching)</h4>
+<p>STEP 1 builds <strong>one envelope</strong>, then two jobs use <strong>different fields</strong> from it. Bind path is the same for both Detect classes.</p>
+<div class="viz" id="viz-normalize-fork">
+  <p class="cap">Normalize fork · ERROR vs SLOWDOWN · <a href="/eleven-subsystem-mechanisms.html">animated mechanisms</a></p>
+  <div class="viz-panel accent" style="margin-bottom:.75rem;">
+    <h5>STEP 1 Enrichment</h5>
+    <p style="margin:0;"><strong>ERROR:</strong> <code>{ status=500, raw_ids=[inventory, c8e91a], … }</code><br /><strong>SLOWDOWN:</strong> <code>{ status=200, duration≈9s, raw_ids=[inventory, c8e91a], … }</code></p>
+  </div>
+  <div class="viz-grid">
+    <div class="viz-panel warn">
+      <h5>STEP 2 · Detect path</h5>
+      <p><strong>ERROR:</strong> <code>status</code> → <code>failed_call=true</code> (failure-rate Detect)</p>
+      <p><strong>SLOWDOWN:</strong> <code>duration≈9s</code> → <code>slow_call=true</code> · <code>failed_call=false</code> (RT Detect)</p>
+      <p class="viz-note" style="margin:.35rem 0 0;"><strong>Not</strong> an input to the LUT.</p>
+    </div>
+    <div class="viz-panel">
+      <h5>STEP 3 · Bind path</h5>
+      <p><code>raw_ids</code> → Entity prep → LUT → <code>entityId=SERVICE-INV</code></p>
+      <p class="viz-note" style="margin:.35rem 0 0;">Identity only — duration / 5xx do <strong>not</strong> change the pin.</p>
+    </div>
+  </div>
+</div>
+<p class="viz-note" style="margin:1rem 0 .4rem;"><strong>Bind LUT preview</strong> (what Topology tries next — flat table, not a graph). First HIT among <code>lookup_keys[]</code> stamps <code>entityId</code>. Same LUT for ERROR and SLOWDOWN — identity is category-neutral.</p>
+<table>
+  <thead><tr><th>lookup_key</th><th>entityId</th><th>notes</th></tr></thead>
+  <tbody>
+  <tr><td><code>inventory</code></td><td><code>SERVICE-INV</code></td><td>HIT · primary</td></tr>
+  <tr><td><code>c8e91a</code></td><td><code>SERVICE-INV</code></td><td>HIT · same Smartscape node</td></tr>
+  <tr><td><code>orders-api</code></td><td><code>SERVICE-API</code></td><td>HIT</td></tr>
+  <tr><td><code>payments</code></td><td><code>SERVICE-PAY</code></td><td>HIT · healthy side branch</td></tr>
+  <tr><td><code>batch-job</code></td><td><code>SERVICE-BATCH</code></td><td>HIT · red herring (no checkout edge)</td></tr>
+  <tr><td><code>inv-svc-v2</code></td><td>—</td><td>MISS → auto-create / orphan / soft-match</td></tr>
+  </tbody>
+</table>
+
+<h3 id="failure-labeling-is-not-always-binary">5.5 Failure labeling is not always binary</h3>
+<p><strong>Question:</strong> Is it always possible to flag failures as binary (<code>status=200</code> vs everything else)? What if there is no status?</p>
+<p><strong>Answer:</strong> No. Failed-call labeling is a <strong>convenience for request-shaped telemetry with a clear outcome</strong>, not a universal Normalize law. It is <strong>ruleset-driven</strong>, not a naive <code>status!=200</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Case</th>
+<th>Typical rule</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>HTTP 5xx / many exceptions</td>
+<td><code>failed_call=true</code></td>
+</tr>
+<tr class="even">
+<td>HTTP 2xx (sometimes 3xx)</td>
+<td><code>failed_call=false</code></td>
+</tr>
+<tr class="odd">
+<td>HTTP 4xx</td>
+<td>Often <strong>not</strong> counted as <em>server</em> failure (client error)</td>
+</tr>
+<tr class="even">
+<td>Timeouts / cancels</td>
+<td>Own rules — not the same as 500</td>
+</tr>
+</tbody>
+</table>
+<p><strong>When there is no status</strong> — do <strong>not</strong> invent a fake HTTP failure bit. Use other signals; leave <code>failed_call</code> unset:</p>
+<table>
+<colgroup>
+<col style="width: 34%" />
+<col style="width: 65%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Situation</th>
+<th>What to use instead</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>All 200s but slow</td>
+<td>Response-time / SLO Detect — no <code>failed_call</code></td>
+</tr>
+<tr class="even">
+<td>Process crash / OOM / restart</td>
+<td>Process / availability Events</td>
+</tr>
+<tr class="odd">
+<td>Queue depth / pool exhaustion</td>
+<td>Saturation metrics + thresholds</td>
+</tr>
+<tr class="even">
+<td>DB lock wait, disk full</td>
+<td>Infra/DB metrics + logs</td>
+</tr>
+<tr class="odd">
+<td>Gray / soft unhealth</td>
+<td>Baselines / LOS-style Detect</td>
+</tr>
+<tr class="even">
+<td>Metrics-only (CPU, memory)</td>
+<td>Entity-level anomaly — never a per-call <code>failed_call</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="text"><code>Has discrete outcome?  (HTTP status, exception, explicit error code)
+  → yes: apply failure ruleset → failed_call true/false (or unknown)
+  → no:  enrich only → Detect on metrics / events / baselines</code></pre>
+<p><strong>Dynatrace-shaped:</strong> failed-call labeling feeds <strong>failure-rate</strong> on services with request paths; many Problems still start from <strong>other</strong> Events (restarts, response-time increase, mixed error signals) when status is not the story.</p>
+<p>In the complex walkthrough: INV’s 500 span is a classic <code>failed_call=true</code>; BATCH high CPU and DB lock waits are <strong>not</strong> HTTP failure labels — they become Detect inputs as continuous series.</p>
+<hr />
+<h2 id="walkthrough-b-complex-multi-host-estate">6. Walkthrough — complex estate (one worked example)</h2>
+<p>The live lab is the simpler chain <code>frontend → product → inventory</code> (Observed ERROR <strong>P-26084</strong> / SLOWDOWN <strong>P-260820</strong>). Same bind as §1.1. This section adds HOST-A/B, PAY (healthy branch), BATCH (same-host red herring), and a LUT miss so you can see why the graph is not “everything on HOST-B.”</p>
+<h3 id="estate">6.1 Estate</h3>
+<div class="ud-viz">
+  <div class="ud-cap">Teaching estate — hosts + call graph</div>
+  <div class="ud-grid two">
+    <div class="ud-panel">
+      <h5>HOST-A · k8s-node-a</h5>
+      <ul>
+        <li><code>SERVICE-FE</code> frontend</li>
+        <li><code>SERVICE-API</code> orders-api</li>
+        <li><code>SERVICE-PAY</code> payments <em>(healthy side branch)</em></li>
+      </ul>
+    </div>
+    <div class="ud-panel warn">
+      <h5>HOST-B · k8s-node-b</h5>
+      <ul>
+        <li><code>SERVICE-INV</code> inventory — failing</li>
+        <li><code>SERVICE-BATCH</code> batch-job — CPU red herring</li>
+        <li><code>SERVICE-DB</code> inventory-db — lock waits</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ud-flow" style="margin-top:.75rem;justify-content:center">
+    <span class="ud-chip">FE</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">API</span><span class="ud-arrow">→</span>
+    <span class="ud-chip warn">INV</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">DB</span>
+    <span class="ud-chip soft" style="margin-left:.5rem">∥ API → PAY</span>
+  </div>
+</div>
+<p><strong>Prerequisites:</strong> OneAgent on both hosts; UTC; <strong>discovery-first</strong> (no CMDB gate); teaching ids <code>SERVICE-FE</code> … <code>SERVICE-DB</code>. Insights from §5.2–5.5 applied below.</p>
+<h3 id="raw-bag-same-minute">6.2 Raw bag (same ~minute)</h3>
+<p><strong>Traces</strong></p>
+<pre class="text"><code># Broken checkout
+t1 FE    GET /checkout     200  → API
+t2 API   POST /order       200  → INV, also → PAY
+t3 INV   GET /stock        500  → DB (timeout)
+t4 PAY   POST /charge      200     (side branch OK)
+
+# Noise
+t5 BATCH run-job           200
+
+# Unresolved name (teaching) — dual labeling during a rename
+t6 INV   GET /stock        500  service.name=inv-svc-v2   ← not yet in LUT</code></pre>
+<p><strong>Metrics</strong></p>
+<pre class="text"><code>service.errors{service=&quot;inventory&quot;}           ↑
+service.responsetime{service=&quot;orders-api&quot;}    p95 ↑
+cpu{service=&quot;batch-job&quot;}                      0.88   ← red herring; no HTTP status
+db.lock_wait{service=&quot;inventory-db&quot;}          ↑       ← no HTTP status
+cpu{host=&quot;k8s-node-b&quot;}                        ↑</code></pre>
+<p><strong>Logs</strong></p>
+<pre class="text"><code>INV   ERROR  connection pool exhausted
+DB    WARN   lock wait timeout
+API   WARN   upstream inventory 500
+BATCH INFO   job progress 80%</code></pre>
+<h3 id="collect-what-dynatrace-updates">6.3 Collect → what Dynatrace updates</h3>
+<p>Hooks on HOST-A/B; export spans/metrics/logs + process fingerprints. No CMDB verification.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Store</th>
+<th>Update</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>OneAgent</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>Smartscape / Grail</td>
+<td>Not yet a coherent joined incident view</td>
+</tr>
+<tr class="odd">
+<td>Events / Davis / CMDB</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3 id="normalize-enrichment-failure-label-entity-prep">6.4 Normalize — enrichment · failure label · entity prep</h3>
+<p>Normalize does <strong>not</strong> assign <code>entityId</code>. It builds a joinable <em>envelope</em> with <strong>raw identity cues</strong> so Topology bind can look them up.</p>
+<h4 id="where-do-raw_ids-come-from">Where do <code>raw_ids</code> come from?</h4>
+<p><code>raw_ids</code> = the <strong>identity-bearing fields already present on the vendor record</strong> (or lightly copied from resource attributes / metric labels / log parse). Teaching name only — Dynatrace does not require this exact JSON key.</p>
+<table>
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Source dialect</th>
+<th>Typical fields copied into <code>raw_ids</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Trace / span</strong></td>
+<td><code>service.name</code>, optional <code>service.namespace</code>, <code>container.id</code> / <code>k8s.pod.name</code>, <code>dt.entity.process_group</code> cues, peer service on client spans</td>
+</tr>
+<tr class="even">
+<td><strong>Metric</strong></td>
+<td>Label set used for the series: <code>service=…</code>, <code>host=…</code>, <code>dt.entity.service=…</code> if already enriched</td>
+</tr>
+<tr class="odd">
+<td><strong>Log</strong></td>
+<td>Parsed tokens: service/app name from structured field, or a <strong>token</strong> scraped from the message / MDC (teaching: <code>token=inventory</code>) — not a Dynatrace product type named “token”</td>
+</tr>
+<tr class="even">
+<td><strong>Discovery</strong></td>
+<td>Process exe, listen ports, host name, k8s workload name</td>
+</tr>
+</tbody>
+</table>
+<p><strong>“token”</strong> in log examples = “whatever string we extracted as a <em>candidate identity key</em>” (structured <code>service=</code> field preferred; message scrape is fallback and fragile).</p>
+<h4 id="concrete-envelopes-after-normalize-still-raw-ids">Concrete envelopes after Normalize (still <strong>raw</strong> ids)</h4>
+<pre class="text"><code># span t3 — broken INV call
+{
+  ts: &quot;…T12:00:03Z&quot;,
+  modality: &quot;trace&quot;,
+  signal: &quot;http.request&quot;,
+  value: 500,
+  failed_call: true,                    // failure labeling (has HTTP status)
+  raw_ids: [
+    &quot;service.name=inventory&quot;,
+    &quot;container.id=c8e91a&quot;,
+    &quot;k8s.pod.name=inventory-7f2…&quot;
+  ],
+  host_hint: &quot;k8s-node-b&quot;,
+  tech: &quot;python/flask&quot;
+}
+
+# metric — same service, different dialect
+{
+  ts: &quot;…T12:00:00Z&quot;,
+  modality: &quot;metric&quot;,
+  signal: &quot;service.errors&quot;,
+  value: 0.92,
+  failed_call: unset,                   // rate series — not a per-call bit
+  raw_ids: [&quot;service=inventory&quot;]        // from metric labels {service=&quot;inventory&quot;}
+}
+
+# log INV — identity from structured field or message token
+{
+  ts: &quot;…T12:00:04Z&quot;,
+  modality: &quot;log&quot;,
+  level: &quot;ERROR&quot;,
+  msg: &quot;connection pool exhausted&quot;,
+  raw_ids: [&quot;token=inventory&quot;]          // teaching: extracted name candidate
+}
+
+# metric BATCH — red herring (no HTTP status)
+{
+  signal: &quot;cpu&quot;, value: 0.88,
+  failed_call: unset,
+  raw_ids: [&quot;service=batch-job&quot;]
+}
+
+# span t6 — rename dual-write (will MISS LUT unless alias exists)
+{
+  failed_call: true,
+  raw_ids: [&quot;service.name=inv-svc-v2&quot;]
+}</code></pre>
+<h4 id="how-are-lookup_keys-prepared-entity-preparation">How are <code>lookup_keys</code> prepared? (entity preparation)</h4>
+<p>Entity prep <strong>canonicalizes</strong> <code>raw_ids</code> into an ordered list of keys the Bind LUT will try (first HIT wins). It still does <strong>not</strong> invent <code>entityId</code>.</p>
+<pre class="text"><code>raw_ids:  service.name=inventory, container.id=c8e91a, k8s.pod.name=inventory-7f2…
+     │
+     ▼  entity preparation (normalize case, strip env suffixes if configured,
+        prefer stable keys, drop junk)
+lookup_keys[] (ordered):
+  1. &quot;inventory&quot;              ← from service.name (primary)
+  2. &quot;c8e91a&quot;                 ← container (secondary; often already maps to same SERVICE)
+  3. &quot;inventory-7f2…&quot;         ← pod (optional; may auto-create PG/pod entities in real DT)</code></pre>
+<table>
+<colgroup>
+<col style="width: 55%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Prep step</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Lowercase / trim</td>
+<td><code>"Inventory "</code> → <code>"inventory"</code></td>
+</tr>
+<tr class="even">
+<td>Prefer service over ephemeral</td>
+<td>Use <code>service.name</code> before pod hash for <em>service</em>-level RCA</td>
+</tr>
+<tr class="odd">
+<td>Alias hints (optional)</td>
+<td>Config says <code>inv-svc-v2</code> is a rename of <code>inventory</code> → emit both keys, or only the canonical</td>
+</tr>
+<tr class="even">
+<td>Host keys</td>
+<td><code>k8s-node-b</code> → lookup key for <code>HOST-B</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="text"><code>Known keys after prep: inventory, orders-api, payments, batch-job, inventory-db, k8s-node-a, …
+Unknown key:           inv-svc-v2  →  LUT MISS in §7.5 unless alias/auto-create/orphan policy</code></pre>
+<h4 id="failure-labeling-only-where-statusexception-exists-5.5">Failure labeling — only where status/exception exists (§5.5)</h4>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 66%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Record</th>
+<th><code>failed_call</code>?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>span t3 INV 500</td>
+<td><code>true</code></td>
+</tr>
+<tr class="even">
+<td>span t4 PAY 200</td>
+<td><code>false</code></td>
+</tr>
+<tr class="odd">
+<td>span t5 BATCH 200</td>
+<td><code>false</code> (job OK — CPU issue is separate)</td>
+</tr>
+<tr class="even">
+<td>span t6 <code>inv-svc-v2</code> 500</td>
+<td><code>true</code> (has status) — identity still unresolved</td>
+</tr>
+<tr class="odd">
+<td><code>cpu{batch-job}</code></td>
+<td><strong>unset</strong> — no status; continuous signal only</td>
+</tr>
+<tr class="even">
+<td><code>db.lock_wait</code></td>
+<td><strong>unset</strong> — Detect on metric later, not a failed HTTP call</td>
+</tr>
+<tr class="odd">
+<td>pool ERROR log</td>
+<td>text corroboration, not a span failure bit</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th>Store</th>
+<th>Update</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Pipeline / failure rules</td>
+<td>Yes (on HTTP spans only)</td>
+</tr>
+<tr class="even">
+<td>Smartscape</td>
+<td>Not primary</td>
+</tr>
+<tr class="odd">
+<td>Grail</td>
+<td>Clean join waits on bind</td>
+</tr>
+</tbody>
+</table>
+<h3 id="topology-bind-ci-graph-bind-lut-grail">6.5 Topology bind — CI Graph ∥ Bind LUT → Grail</h3>
+<h4 id="a-ci-graph-smartscape-for-traversal">A) CI Graph (Smartscape) — for traversal</h4>
+<div class="ud-viz">
+  <div class="ud-cap">Compact topology reminder</div>
+  <div class="ud-grid two">
+    <div class="ud-panel"><h5>HOST-A</h5><p>FE · API · PAY</p></div>
+    <div class="ud-panel"><h5>HOST-B</h5><p>INV · BATCH · DB</p></div>
+  </div>
+  <div class="ud-flow" style="margin-top:.65rem;justify-content:center">
+    <span class="ud-chip">FE</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">API</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">INV</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">DB</span>
+    <span class="ud-chip soft">∥ API → PAY</span>
+  </div>
+</div>
+<p>Davis/Tailor <strong>walk</strong> INV→API→FE and INV→DB on these edges. BATCH shares HOST-B but has <strong>no</strong> checkout <code>calls</code> edge — graph structure, not LUT, separates the red herring.</p>
+<h4 id="b-bind-lut-for-identity-not-traversal">B) Bind LUT — for identity (not traversal)</h4>
+<pre class="text"><code>LUT (teaching):
+  &quot;inventory&quot; | &quot;c8e91a&quot; | …     → SERVICE-INV
+  &quot;orders-api&quot;                   → SERVICE-API
+  &quot;payments&quot;                     → SERVICE-PAY
+  &quot;batch-job&quot;                    → SERVICE-BATCH
+  &quot;inventory-db&quot;                 → SERVICE-DB
+  &quot;frontend&quot;                     → SERVICE-FE
+  &quot;k8s-node-a&quot; / &quot;k8s-node-b&quot;  → HOST-A / HOST-B</code></pre>
+<p><strong>HIT path:</strong> try <code>lookup_keys[]</code> in order → first match → stamp <code>entityId</code> on the record → Fan-out may write <strong>Grail</strong> under that id (and Smartscape edge/property upserts).</p>
+<h4 id="unresolved-keys-three-miss-policies-5.3.1">Unresolved keys — three MISS policies (§5.3.1)</h4>
+<p><strong>Important:</strong> Grail’s <em>clean</em> join needs an <code>entityId</code>. <strong>Not all three policies provide one.</strong></p>
+<div class="ud-viz">
+  <div class="ud-cap">LUT MISS policies (entityId outcome)</div>
+  <div class="ud-flow" style="justify-content:center;margin-bottom:.65rem">
+    <span class="ud-chip soft">lookup_keys</span><span class="ud-arrow">→</span>
+    <span class="ud-chip">LUT</span><span class="ud-arrow">→</span>
+    <span class="ud-chip warn">MISS</span>
+  </div>
+  <div class="ud-policies">
+    <div class="ud-panel"><h5>(1) Auto-create</h5><p><strong>NEW</strong> entityId → Grail yes</p></div>
+    <div class="ud-panel warn"><h5>(2) Orphan</h5><p><strong>NO</strong> entityId → Grail no*</p></div>
+    <div class="ud-panel accent"><h5>(3) Soft-match</h5><p><strong>EXISTING</strong> entityId → Grail yes</p></div>
+  </div>
+</div>
+<p>*Orphan may still store bytes in a quarantine / unbound bucket; they are <strong>not</strong> first-class Grail evidence under a production <code>entityId</code> for Detect/Davis.</p>
+<table>
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 39%" />
+<col style="width: 22%" />
+<col style="width: 24%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Policy</th>
+<th>Guarantees <code>entityId</code>?</th>
+<th>What happens</th>
+<th>Grail / Davis</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>(1) Auto-create</strong></td>
+<td><strong>Yes</strong> — brand-new id (e.g. <code>SERVICE-NEWxxxx</code>)</td>
+<td>Create Smartscape node + LUT rows for the raw keys; stamp stream</td>
+<td>Writes under the <strong>new</strong> id. Risk: <strong>split</strong> from real <code>SERVICE-INV</code> if this was only a rename</td>
+</tr>
+<tr class="even">
+<td><strong>(2) Orphan</strong></td>
+<td><strong>No</strong></td>
+<td>Keep/sample telemetry with <code>unbound=true</code>; <strong>do not</strong> invent a production entity</td>
+<td><strong>Not</strong> joinable for normal Detect/Davis until a human/CMDB adds a LUT row. Does <strong>not</strong> “discard bytes” by default — it discards <strong>joinability</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>(3) Soft-match</strong></td>
+<td><strong>Yes</strong> — maps onto an <strong>existing</strong> id</td>
+<td>Alias/heuristic: <code>inv-svc-v2</code> → <code>SERVICE-INV</code></td>
+<td>Writes under existing pin. Risk: <strong>wrong</strong> alias coaches the wrong root</td>
+</tr>
+</tbody>
+</table>
+<h5 id="auto-create-creates-a-new-entity">4.1 Auto-create — creates a new entity?</h5>
+<p><strong>Yes.</strong> First time the platform sees an unknown key under discovery-first policy, it <strong>creates</strong> a Smartscape service/host/PG node, adds LUT entries, stamps that new <code>entityId</code>, then Grail can accept the write. <strong>Does not</strong> auto-create a CMDB CI.</p>
+<h5 id="orphan-simply-discards">4.2 Orphan — simply discards?</h5>
+<p><strong>No (usually).</strong> Bytes can be kept as unbound/unmonitored; what you “discard” is eligibility as a root-cause entity until bind exists. Stricter estates may sample/drop — teaching default = quarantine, not delete.</p>
+<h5 id="soft-match-maps-any-entity-id">4.3 Soft-match — maps any entity-id?</h5>
+<p><strong>No.</strong> It maps the unknown key to <strong>one chosen existing</strong> <code>entityId</code> via <strong>explicit alias or high-confidence rule</strong> — not “any” id, and not blind fuzzy match on the RCA path.</p>
+<p>Teaching default in this walkthrough: treat <strong>(3)</strong> as rename cutover so t6 joins <code>SERVICE-INV</code>; call out <strong>(1)/(2)</strong> as alternatives.</p>
+<h4 id="c-stamp-grail-fan-out-evidence-facet">C) Stamp → Grail (Fan-out evidence facet)</h4>
+<table>
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 42%" />
+<col style="width: 23%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Record</th>
+<th><code>lookup_keys</code> (abbrev.)</th>
+<th>Policy / HIT</th>
+<th><code>entityId</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>span t3, INV errors, pool ERROR</td>
+<td><code>inventory</code>, <code>c8e91a</code></td>
+<td>HIT</td>
+<td><code>SERVICE-INV</code></td>
+</tr>
+<tr class="even">
+<td>span t6 <code>inv-svc-v2</code></td>
+<td><code>inv-svc-v2</code></td>
+<td>soft-match → INV</td>
+<td><code>SERVICE-INV</code></td>
+</tr>
+<tr class="odd">
+<td>lock_wait + DB WARN</td>
+<td><code>inventory-db</code></td>
+<td>HIT</td>
+<td><code>SERVICE-DB</code></td>
+</tr>
+<tr class="even">
+<td>batch CPU</td>
+<td><code>batch-job</code></td>
+<td>HIT</td>
+<td><code>SERVICE-BATCH</code></td>
+</tr>
+<tr class="odd">
+<td>span t4</td>
+<td><code>payments</code></td>
+<td>HIT</td>
+<td><code>SERVICE-PAY</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col style="width: 46%" />
+<col style="width: 53%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Store</th>
+<th>Update</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Smartscape</strong></td>
+<td>Full neighborhood + call graph</td>
+</tr>
+<tr class="even">
+<td><strong>LUT</strong></td>
+<td>Known keys (+ alias if soft-match; + new rows if auto-create)</td>
+</tr>
+<tr class="odd">
+<td><strong>Grail</strong></td>
+<td>Joinable multimodal evidence <strong>only for stamped records</strong></td>
+</tr>
+<tr class="even">
+<td>CMDB</td>
+<td>Untouched by auto-create / soft-match unless separate sync</td>
+</tr>
+<tr class="odd">
+<td>Detectors</td>
+<td><em>Next</em> — INV error-rate Event; DB lock_wait Event; BATCH cpu Event (<strong>no</strong> failed_call required)</td>
+</tr>
+<tr class="even">
+<td>Davis</td>
+<td><em>Later</em> — walk <strong>graph</strong> from seed entity; pull <strong>Grail</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="why-complexity-matters">6.6 Why complexity matters</h3>
+<p>After bind (still before Davis):</p>
+<pre class="text"><code>SERVICE-INV   failed spans (failed_call) + error% + pool logs
+SERVICE-DB    lock waits + WARN     ← continuous Detect, not HTTP fail bit
+SERVICE-BATCH high CPU only         ← same HOST-B, not on call path (graph)
+SERVICE-PAY   healthy side branch
+inv-svc-v2    resolved only if soft-match/orphan/auto-create policy says so</code></pre>
+<ul>
+<li><strong>Graph</strong> keeps BATCH/PAY from being confused with INV’s call-chain role.<br />
+</li>
+<li><strong>LUT</strong> makes span/metric/log for INV share one <code>entityId</code>.<br />
+</li>
+<li><strong>Failure label</strong> applies to INV 500 spans; BATCH CPU and DB locks rely on Detect without <code>failed_call</code>.</li>
+</ul>
+<h3 id="timing-honesty">6.7 Timing honesty</h3>
+<p>Production is continuous and async:</p>
+<div class="ud-viz">
+  <div class="ud-cap">Timing honesty — async lanes</div>
+  <div class="ud-lanes">
+    <div class="ud-lane"><div class="ud-who">OneAgent</div><div class="ud-bar dt">async → Smartscape updates (continuous · auto-create)</div></div>
+    <div class="ud-lane"><div class="ud-who">OneAgent</div><div class="ud-bar dt">async → Grail writes (continuous · after/with entity ids)</div></div>
+    <div class="ud-lane"><div class="ud-who">Detectors</div><div class="ud-bar">async → Events (continuous · series ± failed_call)</div></div>
+    <div class="ud-lane"><div class="ud-who">Davis</div><div class="ud-bar warn">react → Problem open/update (event-driven · walk + Grail pull)</div></div>
+    <div class="ud-lane"><div class="ud-who">UI</div><div class="ud-bar">query → Grail DQL (on-demand)</div></div>
+    <div class="ud-lane"><div class="ud-who">CMDB</div><div class="ud-bar">optional mediated sync — not implied by Smartscape auto-create</div></div>
+  </div>
+</div>
+<p>Teaching order Collect → Normalize (3 jobs) → Topology bind (graph ∥ LUT) remains the right <strong>logical</strong> sequence.</p>
+<hr />
+<h2 id="known-unknowns">7. Known unknowns</h2>
+<table>
+<colgroup>
+<col style="width: 46%" />
+<col style="width: 53%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Topic</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Exact Davis scoring internals</td>
+<td>Not published; black-box + lab inference</td>
+</tr>
+<tr class="even">
+<td>Grail retention / sampling SKUs</td>
+<td>Not specified in this repo</td>
+</tr>
+<tr class="odd">
+<td>Full detector catalog</td>
+<td>Environment-dependent</td>
+</tr>
+<tr class="even">
+<td>Automated Step-2 path-diff fused into Problem</td>
+<td><strong>Not verified</strong> — see <a href="./two-step-rca-white-space.md"><code>two-step-rca-white-space.md</code></a></td>
+</tr>
+<tr class="odd">
+<td>Public top-1 RCA accuracy scoreboard</td>
+<td>Self-reported / absent — see <a href="./VENDOR_BENCHMARKS.md"><code>VENDOR_BENCHMARKS.md</code></a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="takeaway">8. Takeaway</h2>
+<ol type="1">
+<li>Dynatrace’s advantage is mostly the <strong>always-on fabric</strong> (Smartscape ∥ Grail + shared <code>entityId</code>), not a fat RCA engine.</li>
+<li><strong>Normalize + bind</strong> stamp that id. Davis walks the <strong>map</strong> and pulls the <strong>lake</strong> (DQL) — it does not rebuild Smartscape.</li>
+<li><strong>Tailor</strong> scopes; <strong>Davis</strong> ranks and packages a Problem. Event ≠ Problem.</li>
+<li>PAY/BATCH in Walkthrough B exist so you do not treat “same host” as “same case.”</li>
+</ol>
+<p><strong>Next:</strong> Breakdown (mechanisms) · Dual-track · Timeline. Markdown companion: <a href="/docs/DYNATRACE_PRODUCTION_PIPELINE.md">DYNATRACE_PRODUCTION_PIPELINE.md</a> (full depth, including the simple-lab walkthrough omitted here). Lab ref: <a href="../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md">DYNATRACE_RCA_REFERENCE.md</a>. Compare after vendor hubs: <a href="/comparable-pipeline-dt-dd.html">DT vs DD vs ED</a>.</p>
+
+</main></div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dt-davis-categories.js" defer></script>
+<script src="/toc-spy.js" defer></script>
+<script>
+(function () {
+  function frameOutbound() {
+    if (!window.URCA_DT_CATS) return;
+    document.querySelectorAll('a[href*="eleven-subsystem-mechanisms"],a[href*="dt-e2e-smartscape"],a[href*="dt-lab-timeline"]').forEach(function (a) {
+      try {
+        var u = new URL(a.getAttribute("href"), location.origin);
+        a.href = URCA_DT_CATS.withCat(u.pathname, URCA_DT_CATS.current());
+      } catch (e) {}
+    });
+  }
+  function ready(fn) {
+    if (window.URCA_DT_CATS) fn();
+    else setTimeout(function () { ready(fn); }, 20);
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    ready(frameOutbound);
+  });
+})();
+</script>
+</body></html>

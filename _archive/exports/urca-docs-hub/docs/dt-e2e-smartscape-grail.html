@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dynatrace E2E — signal journey on Smartscape ∥ Grail</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="doc-revision" content="e2e-per-cat-v2">
+<script src="/dt-davis-categories.js"></script>
+<style>
+html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1000px 520px at 10% -10%, #142038 0%, transparent 55%),
+      radial-gradient(800px 420px at 95% 0%, #241428 0%, transparent 50%),
+      var(--bg);
+    color:var(--text); font-family:'Space Grotesk',sans-serif;
+    min-height:100vh; padding:20px 14px 56px;
+  }
+  .lede{color:var(--muted);font-size:16.5px;line-height:1.6;max-width:820px;margin:0 0 14px;}
+  .lede b{color:var(--text);font-weight:600;}
+  .lede code{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--map);}
+  .links{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .links a{
+    font-family:'IBM Plex Mono',monospace;font-size:13px;padding:7px 11px;border-radius:6px;
+    border:1px solid var(--line);background:var(--panel);color:var(--muted);text-decoration:none;
+  }
+  .links a:hover{color:var(--text);border-color:#3d4a60;}
+
+  /* —— journey board —— */
+  .journey{
+    border:1px solid var(--line);border-radius:14px;background:var(--panel);
+    padding:14px 14px 12px;margin-bottom:12px;
+  }
+  .journey-top{
+    display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px;
+  }
+  .clock{
+    font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;color:var(--ok);
+    border:1px solid rgba(95,224,176,.35);background:rgba(95,224,176,.06);
+    border-radius:6px;padding:7px 11px;
+  }
+  .phase-pill{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.05em;text-transform:uppercase;font-weight:500;
+    padding:6px 10px;border-radius:6px;border:1px solid var(--line);color:var(--muted);
+  }
+  .phase-pill.fabric{color:var(--map);border-color:rgba(123,168,247,.4);background:rgba(123,168,247,.08);}
+  .phase-pill.case{color:var(--seed);border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.08);}
+  .phase-pill.diag{color:var(--lake);border-color:rgba(201,164,240,.4);background:rgba(201,164,240,.08);}
+  .controls{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px;}
+  .controls button{
+    font-family:'IBM Plex Mono',monospace;font-size:13px;padding:7px 12px;border-radius:6px;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--text);cursor:pointer;
+  }
+  .controls button:hover{border-color:#4a5a74;}
+  .controls button.playing{color:var(--ok);border-color:rgba(95,224,176,.5);}
+  .controls button:disabled{opacity:.4;cursor:default;}
+
+  canvas#cv{
+    width:100%;height:360px;display:block;border-radius:10px;
+    background:#0D0F14;border:1px solid var(--line);
+  }
+  .scrub{
+    display:flex;align-items:center;gap:10px;margin-top:10px;
+  }
+  .scrub input[type=range]{flex:1;accent-color:var(--ok);}
+  .scrub .hint{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--muted);white-space:nowrap;}
+
+  /* —— detail dock —— */
+  .dock{
+    display:grid;grid-template-columns:1.2fr 1fr;gap:12px;
+  }
+  @media (max-width:860px){.dock{grid-template-columns:1fr;}}
+  .card{
+    border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:16px 18px;
+  }
+  .card h2{margin:0 0 6px;font-size:20px;font-weight:600;color:var(--text);}
+  .card .meta{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);margin-bottom:10px;}
+  .card .blurb{margin:0 0 14px;font-size:16px;line-height:1.6;color:var(--muted);}
+  .rails{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;
+  }
+  @media (max-width:560px){.rails{grid-template-columns:1fr;}}
+  .rail-box{border:1px solid var(--line);border-radius:8px;padding:12px 13px;background:var(--panel-2);}
+  .rail-box.map{box-shadow:inset 3px 0 0 var(--map);}
+  .rail-box.lake{box-shadow:inset 3px 0 0 var(--lake);}
+  .rail-box .lbl{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;font-weight:600;
+  }
+  .rail-box.map .lbl{color:var(--map);}
+  .rail-box.lake .lbl{color:var(--lake);}
+  .rail-box p{margin:0;font-size:14.5px;line-height:1.5;color:var(--muted);}
+  .rail-box.active{border-color:rgba(95,224,176,.4);background:rgba(95,224,176,.05);}
+  .rail-box.idle{opacity:.75;}
+  .rail-box.idle p{color:var(--faint);}
+  .teach{
+    border-left:3px solid var(--lean);padding:10px 14px;margin:0;
+    font-size:15px;line-height:1.55;color:var(--muted);background:rgba(240,179,90,.06);
+  }
+  .teach b{color:var(--lean);}
+  .teach code{font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--ok);}
+
+  .legend h3{
+    margin:0 0 12px;font-size:13px;font-family:'IBM Plex Mono',monospace;
+    letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;
+  }
+  .legend ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;}
+  .legend li{
+    display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:start;
+    font-size:14.5px;line-height:1.5;color:var(--muted);
+  }
+  .legend .dot{width:10px;height:10px;border-radius:50%;margin-top:5px;}
+  .legend .dot.sig{background:var(--ok);}
+  .legend .dot.map{background:var(--map);}
+  .legend .dot.lake{background:var(--lake);}
+  .legend .dot.split{background:linear-gradient(90deg,var(--map),var(--lake));}
+  .legend .dot.event{background:var(--seed);}
+  .legend a{color:var(--map);text-decoration:none;font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .legend a:hover{text-decoration:underline;}
+  .stations{
+    display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;
+  }
+  .stations button{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 9px;border-radius:5px;
+    border:1px solid var(--line);background:#0D0F14;color:var(--muted);cursor:pointer;
+  }
+  .stations button.on{color:var(--ok);border-color:rgba(95,224,176,.45);background:rgba(95,224,176,.08);}
+  .stations button:hover{color:var(--text);}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="vendor-dt article">
+<div class="wrap article">
+  <div class="eyebrow">Dynatrace · end-to-end · dual track</div>
+  <h1>Follow one signal across Smartscape ∥ Grail</h1>
+  <p class="lede">
+    A checkout failure travels Collect → Package. At <b>Fan-out</b> it splits onto two rails:
+    <b>Smartscape</b> (map) and <b>Grail</b> (lake), joined by the same <code>entityId</code>.
+    Watch which rail each later stage uses. Lab: <code>FE→API→INV</code> · <span id="e2eLabIds">category-specific Problem</span> · Observed UTC.
+  </p>
+  <div class="links">
+    <a href="/eleven-subsystem-mechanisms.html">Breakdown</a>
+    <a href="/dynatrace-production-pipeline.html">Thesis</a>
+    <a href="/docs.html">Docs index</a>
+  </div>
+
+  <div class="journey">
+    <div class="journey-top">
+      <div class="clock" id="clock">t ≈ 05:50 UTC</div>
+      <div class="phase-pill fabric" id="phasePill">Phase 1 · fabric</div>
+      <div class="controls">
+        <button type="button" id="btnPrev">←</button>
+        <button type="button" id="btnPlay">▶ Play journey</button>
+        <button type="button" id="btnNext">→</button>
+      </div>
+    </div>
+    <canvas id="cv" width="1080" height="340" aria-label="Signal journey dual-track visualization"></canvas>
+    <div class="scrub">
+      <input type="range" id="scrub" min="0" max="10" step="1" value="0" aria-label="Stage scrubber">
+      <span class="hint" id="scrubHint">01 Collect</span>
+    </div>
+  </div>
+
+  <div class="dock">
+    <div class="card">
+      <h2 id="dTitle">01 · Collect</h2>
+      <div class="meta" id="dMeta">subsystem 1 of 11</div>
+      <p class="blurb" id="dBlurb"></p>
+      <div class="rails">
+        <div class="rail-box map" id="boxMap"><div class="lbl">Smartscape rail</div><p id="dMap"></p></div>
+        <div class="rail-box lake" id="boxLake"><div class="lbl">Grail rail</div><p id="dLake"></p></div>
+      </div>
+      <p class="teach" id="dTeach"></p>
+      <div class="stations" id="stations"></div>
+    </div>
+    <div class="card legend">
+      <h3>How to read this</h3>
+      <ul>
+        <li><span class="dot sig"></span><span>Green particle = the signal / envelope moving through stations.</span></li>
+        <li><span class="dot split"></span><span><b style="color:var(--text)">Fan-out</b> is the only true ∥ split — one pin writes map <em>and</em> lake.</span></li>
+        <li><span class="dot map"></span><span>Blue rail lit = this stage walks or upserts <b style="color:var(--text)">Smartscape</b>.</span></li>
+        <li><span class="dot lake"></span><span>Violet rail lit = this stage scores or pulls <b style="color:var(--text)">Grail</b>.</span></li>
+        <li><span class="dot event"></span><span>Red = Events / Problem path (Detect → … → Package). Event ≠ Problem.</span></li>
+      </ul>
+      <p style="margin:14px 0 0;font-size:14.5px;color:var(--muted);line-height:1.5;">
+        Map and lake stay aligned because Topology stamps the <b style="color:var(--text)">same entityId</b> — not because Grail rebuilds Smartscape.
+      </p>
+      <p style="margin:12px 0 0;"><a href="/eleven-subsystem-mechanisms.html">Open Breakdown beats →</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+function labSc(){
+  if(window.URCA_DT_CATS && typeof URCA_DT_CATS.labScenario==='function') return URCA_DT_CATS.labScenario();
+  return {problem:'P-26084',faultWindow:'05:54–06:04',problemAt:'06:04',detectSignal:'error_rate',detectThr:0.3,rcLabel:'rootCauseEntity = inventory',clearMetric:'error_rate',id:'error'};
+}
+function patchStagesForCat(){
+  const sc=labSc();
+  const pre = (sc.clocks && sc.clocks[0]) ? String(sc.clocks[0]).split('→')[0] : 't0';
+  STAGES.forEach(s=>{
+    if(s.key==='collect' || s.key==='normalize' || s.key==='topology' || s.key==='fanout'){
+      s.clock = 't ≈ '+pre+' UTC · pre-fault / fabric';
+    }
+  });
+  const maintain=STAGES.find(s=>s.key==='maintain');
+  const detect=STAGES.find(s=>s.key==='detect');
+  const curate=STAGES.find(s=>s.key==='curate');
+  const tailor=STAGES.find(s=>s.key==='tailor');
+  const localize=STAGES.find(s=>s.key==='localize');
+  const identify=STAGES.find(s=>s.key==='identify');
+  const verify=STAGES.find(s=>s.key==='verify');
+  if(maintain){
+    maintain.clock=sc.faultWindow+' UTC · fault window';
+    maintain.blurb=sc.id==='slowdown'
+      ? 'Housekeeping while the inventory slowdown runs. Map shape stays Topology’s graph; Grail fills with slow HTTP 200s / response_time — not 5xx.'
+      : (sc.id==='error'
+        ? 'Housekeeping while the inventory fault runs. Map shape stays Topology’s graph; Grail fills with INV 5xx / error_rate.'
+        : 'Housekeeping while the category fault runs. Map shape stays Topology’s graph; Grail fills with category evidence.');
+    maintain.lake=sc.id==='slowdown'
+      ? 'WRITE — slow 200 / RT rows accumulate under SERVICE-INV (and cascade callers).'
+      : 'WRITE — evidence rows accumulate under SERVICE-INV (and cascade callers).';
+    maintain.teach='<b>Observed:</b> Window '+sc.faultWindow+'. Stores stay usable for Detect/Davis — Maintain ≠ new topology.';
+  }
+  if(detect){
+    detect.clock='Events · '+sc.detectSignal;
+    detect.blurb='Detectors score each entity’s Grail '+sc.detectSignal+' alone (threshold '+sc.detectThr+'). Cascade = separate Events. Smartscape is not walked here. Event ≠ Problem.';
+    detect.teach='<b>Teaching:</b> Detect is lake-only. Signal = <code>'+sc.detectSignal+'</code> for this category.';
+    if(sc.id==='slowdown'){
+      detect.lake='READ — score response_time → SERVICE_SLOWDOWN Event storm (plus optional BATCH noise).';
+    }
+  }
+  if(curate){
+    curate.clock='≈'+sc.problemAt+' UTC · seed';
+    curate.teach=sc.rcEntity===null
+      ? '<b>Teaching:</b> First case stage that needs the map. Seed tip prefers leaf INV · t0≈'+sc.problemAt+' · packaged RC may stay null (same-bucket).'
+      : '<b>Teaching:</b> First case stage that needs the map. Seed tip prefers deepest failure (INV) · t0≈'+sc.problemAt+'.';
+  }
+  if(tailor){
+    tailor.clock='corridor ['+sc.faultWindow+'] UTC';
+  }
+  if(localize){
+    localize.clock='≈'+sc.problemAt+' UTC · walk';
+  }
+  if(identify){
+    identify.clock='≈'+sc.problemAt+' UTC · evidence';
+    identify.blurb=sc.rcEntity===null
+      ? 'Scoped Grail pull for entities ∩ Tailor timeRange. Same-bucket SLOWDOWN → weak leaf ranking → packaged RC null.'
+      : 'Scoped Grail pull for entities ∩ Tailor timeRange; rank rootCauseRelevant. INV leads for this lab.';
+  }
+  if(verify){
+    verify.clock='≈'+sc.problemAt+' UTC · '+sc.problem;
+    verify.blurb='Thin packager: Problem card with '+sc.rcLabel+', evidence, impact. Fabric underneath stays always-on.';
+    verify.teach='<b>Outcome:</b> <code>'+sc.problem+'</code> · '+sc.rcLabel+'. Both rails feed the card.';
+  }
+  const norm=STAGES.find(s=>s.key==='normalize');
+  if(norm && sc.id==='slowdown'){
+    norm.blurb='One envelope, then a fork: status+duration → slow_call (for RT Detect later) and raw_ids → lookup_keys (for Topology LUT). Still no pin. Not a 5xx / failed_call path.';
+    norm.lake='No write. slow_call / duration is a future Detect input.';
+  }
+  const fan=STAGES.find(s=>s.key==='fanout');
+  if(fan && sc.id==='slowdown'){
+    fan.lake='WRITE — slow 200 span + response_time under entityId=SERVICE-INV.';
+  }
+  const el=document.getElementById('e2eLabIds');
+  if(el) el.innerHTML='<code>'+sc.problem+'</code>';
+}
+const STAGES = [
+  {
+    key:'collect', n:'01', name:'Collect', phase:'fabric', phaseLabel:'Phase 1 · fabric',
+    clock:'t ≈ 05:50 UTC · pre-fault',
+    blurb:'Raw telemetry arrives vendor-shaped (Agents · OTel · SNMP · APIs). No entityId yet — the signal has not touched either rail.',
+    map:'Rail empty. No graph for this record.',
+    lake:'Rail empty. Still a vendor bag, not lake rows.',
+    teach:'<b>Teaching:</b> Collect only receives. Dual-store coordination has not started.',
+    mapOn:false, lakeOn:false, twin:'empty'
+  },
+  {
+    key:'normalize', n:'02', name:'Normalize', phase:'fabric', phaseLabel:'Phase 1 · fabric',
+    clock:'t ≈ 05:50 UTC · envelope',
+    blurb:'One envelope, then a fork: status → failed_call (for Detect later) and raw_ids → lookup_keys (for Topology LUT). Still no pin.',
+    map:'No write. Produces lookup_keys[] for the Bind LUT.',
+    lake:'No write. failed_call flag is a future Detect input.',
+    teach:'<b>Teaching:</b> Normalize prepares both rails. It does not choose map vs lake.',
+    mapOn:false, lakeOn:false, twin:'keys'
+  },
+  {
+    key:'topology', n:'03', name:'Topology', phase:'fabric', phaseLabel:'Phase 1 · fabric',
+    clock:'t ≈ 05:50 UTC · pin stamped',
+    blurb:'Bind LUT stamps entityId=SERVICE-INV. CI Graph holds FE→API→INV. This string becomes the join key for both rails.',
+    map:'WRITE — confirm/upsert Smartscape node + edges.',
+    lake:'Still waiting for the stamped id before evidence can land.',
+    teach:'<b>Align:</b> The pin <code>SERVICE-INV</code> is born here — node id on the map, future partition key on the lake.',
+    mapOn:true, lakeOn:false, twin:'bind'
+  },
+  {
+    key:'fanout', n:'04', name:'Fan-out', phase:'fabric', phaseLabel:'Phase 1 · fabric · ∥ split',
+    clock:'t ≈ 05:50 UTC · parallel write',
+    blurb:'The signal splits. Same stamped stream writes Smartscape relationship upserts and Grail evidence under the same entityId — not twin dumps, not lake→map sync.',
+    map:'WRITE — upsert calls / props for SERVICE-INV.',
+    lake:'WRITE — span, error%, log under entityId=SERVICE-INV.',
+    teach:'<b>∥ moment:</b> One pin → two rails. Remember this split — later stages usually use only one rail.',
+    mapOn:true, lakeOn:true, twin:'fanout'
+  },
+  {
+    key:'maintain', n:'05', name:'Maintain', phase:'fabric', phaseLabel:'Phase 1 · fabric',
+    clock:'05:54 → 06:04 UTC · fault window',
+    blurb:'Housekeeping while the inventory fault runs. Map shape stays Topology’s graph; Grail fills with INV 5xx for ~10 minutes.',
+    map:'WRITE — refresh lastSeen. INV hot on checkout path; shape unchanged.',
+    lake:'WRITE — evidence rows accumulate under SERVICE-INV (and cascade callers).',
+    teach:'<b>Observed:</b> Fault on ≈05:54 UTC. Stores stay usable for Detect/Davis — Maintain ≠ new topology.',
+    mapOn:true, lakeOn:true, twin:'fault'
+  },
+  {
+    key:'detect', n:'06', name:'Detect', phase:'case', phaseLabel:'Phase 2 · case opens',
+    clock:'≈05:58–06:00 UTC · Events',
+    blurb:'Detectors score each entity’s Grail series alone (teaching threshold 0.30). INV, then API, then FE each raise an Event. Smartscape is not walked here. Event ≠ Problem.',
+    map:'Idle — neighborhood merge comes next in Curate.',
+    lake:'READ — score series → Event storm (plus optional BATCH noise).',
+    teach:'<b>Teaching:</b> Detect is lake-only. Cascade = many Events, not one fused alert.',
+    mapOn:false, lakeOn:true, twin:'detect'
+  },
+  {
+    key:'curate', n:'07', name:'Curate', phase:'case', phaseLabel:'Phase 2 · case opens',
+    clock:'≈06:04 UTC · seed',
+    blurb:'Merge Events by time + Smartscape neighborhood. Keep FE/API/INV; drop BATCH (no checkout calls edge). Output one seed — not rootCauseEntity.',
+    map:'READ — neighborhood on the calls path to group / drop noise.',
+    lake:'Idle for scoring — consumes Events Detect already raised from Grail.',
+    teach:'<b>Teaching:</b> First case stage that needs the map. Seed tip prefers deepest failure (INV).',
+    mapOn:true, lakeOn:false, twin:'curate'
+  },
+  {
+    key:'tailor', n:'08', name:'Tailor', phase:'case', phaseLabel:'Phase 2 · case opens',
+    clock:'corridor [05:54, 06:04] UTC',
+    blurb:'Expand Smartscape from the seed; cut a time corridor. Emit working set {entities[], timeRange} for Davis — not whole-lake diagnosis.',
+    map:'READ — space expand FE←API←INV→DB (dim PAY/BATCH).',
+    lake:'Defines the time window Identify may pull — does not pull yet.',
+    teach:'<b>Align:</b> Tailor couples map space with lake time. That contract is Phase 3’s input.',
+    mapOn:true, lakeOn:false, twin:'tailor'
+  },
+  {
+    key:'localize', n:'09', name:'Localize', phase:'diag', phaseLabel:'Phase 3 · Davis',
+    clock:'≈06:04 UTC · walk',
+    blurb:'Davis walks Smartscape from SERVICE-INV. LUT is not the traversal. BATCH skipped; PAY is a healthy sibling.',
+    map:'READ — ordered neighborhood expansion from the seed.',
+    lake:'Idle — evidence pull is Identify.',
+    teach:'<b>Teaching:</b> Localize = map walk on the same Smartscape Topology built.',
+    mapOn:true, lakeOn:false, twin:'localize'
+  },
+  {
+    key:'identify', n:'10', name:'Identify', phase:'diag', phaseLabel:'Phase 3 · Davis',
+    clock:'≈06:04 UTC · evidence',
+    blurb:'Scoped Grail pull for entities ∩ Tailor timeRange; rank rootCauseRelevant. INV leads for this lab.',
+    map:'Scope already set by Localize/Tailor — no new walk.',
+    lake:'READ — DQL-scoped metrics/traces/logs; rank candidates.',
+    teach:'<b>Align:</b> Shared entityId makes the join trivial. Lake is filtered by Tailor’s contract.',
+    mapOn:false, lakeOn:true, twin:'identify'
+  },
+  {
+    key:'verify', n:'11', name:'Package', phase:'diag', phaseLabel:'Phase 3 · Davis',
+    clock:'≈06:04 UTC · P-26084',
+    blurb:'Thin packager: Problem card with rootCauseEntity, evidence, impact. Fabric underneath stays always-on.',
+    map:'READ — cite checkout path / impact from Smartscape.',
+    lake:'READ — attach ranked evidence from Identify.',
+    teach:'<b>Outcome:</b> <code>P-26084</code> · rootCauseEntity = inventory (<code>SERVICE-INV</code>). Both rails feed the card.',
+    mapOn:true, lakeOn:true, twin:'package'
+  }
+];
+
+const COL = {
+  bg:'#0D0F14', text:'#F7F9FC', muted:'#D0D7E2', faint:'#9AA6B8', line:'#2A3140',
+  map:'#9BC0FF', lake:'#D4B8F8', seed:'#FF8A8A', ok:'#6EEBB8', lean:'#F6C56E'
+};
+
+let idx = 0;
+let playing = false;
+let playTimer = null;
+let anim = 0;
+
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const scrub = document.getElementById('scrub');
+const stationsEl = document.getElementById('stations');
+
+function resize(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = cv.clientWidth || 1080;
+  const h = 360;
+  cv.width = Math.floor(w * dpr);
+  cv.height = Math.floor(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw();
+}
+
+function label(x,y,t,c,sz=13,align='left'){
+  ctx.fillStyle=c; ctx.font=`600 ${sz}px "IBM Plex Mono",monospace`;
+  ctx.textAlign=align; ctx.textBaseline='middle'; ctx.fillText(t,x,y);
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+function node(x,y,r,c,a=1){
+  ctx.save(); ctx.globalAlpha=a; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=c; ctx.fill(); ctx.restore();
+}
+
+function stationXs(W){
+  const left = 88, right = W - 236;
+  const n = STAGES.length;
+  return STAGES.map((_,i) => left + (i/(n-1))*(right-left));
+}
+
+function draw(){
+  const W = cv.clientWidth || 1080;
+  const H = 360;
+  const s = STAGES[idx];
+  const xs = stationXs(W);
+  const yPath = 56;
+  const yMap = 160;
+  const yLake = 268;
+  const xPin = xs[2]; // topology
+  const xSplit = xs[3]; // fanout
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = COL.bg;
+  ctx.fillRect(0,0,W,H);
+
+  // phase bands behind stations
+  const bandY = 18;
+  roundRect(xs[0]-20, bandY, xs[4]-xs[0]+40, 22, 6);
+  ctx.fillStyle='rgba(123,168,247,.08)'; ctx.fill();
+  roundRect(xs[5]-16, bandY, xs[7]-xs[5]+32, 22, 6);
+  ctx.fillStyle='rgba(255,107,107,.08)'; ctx.fill();
+  roundRect(xs[8]-16, bandY, xs[10]-xs[8]+32, 22, 6);
+  ctx.fillStyle='rgba(201,164,240,.08)'; ctx.fill();
+  label((xs[0]+xs[4])/2, bandY+11, 'FABRIC', COL.map, 11, 'center');
+  label((xs[5]+xs[7])/2, bandY+11, 'CASE', COL.seed, 11, 'center');
+  label((xs[8]+xs[10])/2, bandY+11, 'DAVIS', COL.lake, 11, 'center');
+
+  // main path (pre-split)
+  ctx.strokeStyle = COL.line; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(xs[0], yPath); ctx.lineTo(xSplit, yPath); ctx.stroke();
+
+  // split forks to rails
+  const mapLit = s.mapOn;
+  const lakeLit = s.lakeOn;
+  ctx.lineWidth = 2.5;
+  // map rail
+  ctx.strokeStyle = mapLit ? COL.map : 'rgba(155,192,255,.4)';
+  ctx.beginPath();
+  ctx.moveTo(xSplit, yPath);
+  ctx.bezierCurveTo(xSplit+20, yPath, xSplit+10, yMap, xs[4], yMap);
+  ctx.lineTo(xs[10], yMap);
+  ctx.stroke();
+  // lake rail
+  ctx.strokeStyle = lakeLit ? COL.lake : 'rgba(212,184,248,.4)';
+  ctx.beginPath();
+  ctx.moveTo(xSplit, yPath);
+  ctx.bezierCurveTo(xSplit+20, yPath, xSplit+10, yLake, xs[4], yLake);
+  ctx.lineTo(xs[10], yLake);
+  ctx.stroke();
+
+  // rail labels
+  label(18, yMap, 'SMARTSCAPE', mapLit?COL.map:COL.muted, 12, 'left');
+  label(18, yMap+16, 'map', COL.faint, 11, 'left');
+  label(18, yLake, 'GRAIL', lakeLit?COL.lake:COL.muted, 12, 'left');
+  label(18, yLake+16, 'lake', COL.faint, 11, 'left');
+
+  // pin badge at topology
+  if (idx >= 2) {
+    roundRect(xPin-40, yPath-30, 80, 18, 4);
+    ctx.fillStyle = 'rgba(95,224,176,.12)'; ctx.fill();
+    ctx.strokeStyle = COL.ok; ctx.lineWidth = 1; ctx.stroke();
+    label(xPin, yPath-21, 'entityId', COL.ok, 11, 'center');
+  }
+
+  // ∥ badge at fanout
+  roundRect(xSplit-18, yPath+10, 36, 18, 4);
+  ctx.fillStyle = idx===3 ? 'rgba(240,179,90,.2)' : 'rgba(240,179,90,.08)';
+  ctx.fill();
+  ctx.strokeStyle = COL.lean; ctx.lineWidth = 1; ctx.stroke();
+  label(xSplit, yPath+19, '∥', COL.lean, 13, 'center');
+
+  // stations
+  xs.forEach((x,i) => {
+    const st = STAGES[i];
+    const active = i === idx;
+    const done = i < idx;
+    const y = i <= 3 ? yPath : (st.mapOn && !st.lakeOn ? yMap : (!st.mapOn && st.lakeOn ? yLake : (yMap+yLake)/2));
+    // connector tick from path for post-split stages sitting on a rail
+    if (i > 3) {
+      const railY = st.mapOn && st.lakeOn ? (yMap+yLake)/2 : (st.mapOn ? yMap : (st.lakeOn ? yLake : yPath));
+      // station sits on its active rail(s)
+    }
+    const sy = i <= 3 ? yPath : (st.mapOn && st.lakeOn ? (yMap + yLake) / 2 : st.mapOn ? yMap : st.lakeOn ? yLake : yPath);
+
+    // vertical guide for dual-active stages
+    if (i > 3 && st.mapOn && st.lakeOn) {
+      ctx.strokeStyle = active ? 'rgba(95,224,176,.45)' : 'rgba(95,224,176,.15)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(x, yMap); ctx.lineTo(x, yLake); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    const r = active ? 8 : 5;
+    const col = active ? COL.ok : (done ? COL.muted : COL.muted);
+    if (active) {
+      ctx.beginPath(); ctx.arc(x, sy, 14, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(95,224,176,.15)'; ctx.fill();
+    }
+    node(x, sy, r, col, 1);
+    ctx.beginPath(); ctx.arc(x, sy, r+1, 0, Math.PI*2);
+    ctx.strokeStyle = active ? COL.ok : COL.line; ctx.lineWidth = 1; ctx.stroke();
+
+    // names: above path for fabric; beside rail for later stages
+    if (i <= 3) {
+      label(x, 80, st.n, active?COL.ok:COL.muted, 11, 'center');
+      label(x, 96, st.name, active?COL.text:COL.muted, active?13:12, 'center');
+    } else {
+      const nameY = sy < (yMap+yLake)/2 ? sy - 20 : sy + 20;
+      label(x, nameY, st.n+' '+st.name, active?COL.text:COL.muted, active?13:12, 'center');
+    }
+  });
+
+  // mini twin insets (right side after maintain)
+  drawMiniMap(W - 220, 122, 200, 96, s.twin, mapLit);
+  drawMiniLake(W - 220, 230, 200, 96, s.twin, lakeLit);
+
+  // traveling particle
+  const p = particlePos(xs, yPath, yMap, yLake, idx, anim);
+  node(p.x, p.y, 6, COL.ok, 1);
+  ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(95,224,176,.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+  if (idx >= 3 && (mapLit || lakeLit)) {
+    // ghost twins on lit rails for post-split
+    if (mapLit && idx >= 3) node(xs[Math.min(idx,10)], yMap, 4, COL.map, 0.7);
+    if (lakeLit && idx >= 3) node(xs[Math.min(idx,10)], yLake, 4, COL.lake, 0.7);
+  }
+
+  // outcome badge
+  if (idx === 10) {
+    roundRect(xs[10]-48, yPath-8, 96, 22, 6);
+    ctx.fillStyle = 'rgba(95,224,176,.12)'; ctx.fill();
+    ctx.strokeStyle = COL.ok; ctx.stroke();
+    label(xs[10], yPath+3, labSc().problem, COL.ok, 13, 'center');
+  }
+}
+
+function particlePos(xs, yPath, yMap, yLake, i, t){
+  const s = STAGES[i];
+  if (i <= 3) return {x:xs[i], y:yPath};
+  if (s.mapOn && s.lakeOn) return {x:xs[i], y:(yMap+yLake)/2 + Math.sin(t)*2};
+  if (s.mapOn) return {x:xs[i], y:yMap};
+  if (s.lakeOn) return {x:xs[i], y:yLake};
+  return {x:xs[i], y:yPath};
+}
+
+function drawMiniMap(x,y,w,h,mode,lit){
+  roundRect(x,y,w,h,8);
+  ctx.fillStyle = lit ? 'rgba(123,168,247,.08)' : '#0a0c10';
+  ctx.fill();
+  ctx.strokeStyle = lit ? COL.map : COL.line; ctx.lineWidth = 1; ctx.stroke();
+  label(x+8, y+14, 'map snapshot', lit?COL.map:COL.muted, 11, 'left');
+  if (mode==='empty' || mode==='keys') {
+    label(x+w/2, y+h/2, mode==='keys'?'awaiting pin':'no graph', COL.muted, 12, 'center');
+    return;
+  }
+  const nodes = [
+    {id:'FE',px:0.18},{id:'API',px:0.42},{id:'INV',px:0.66},{id:'DB',px:0.88}
+  ];
+  const yy = y + h*0.58;
+  const pts = nodes.map(n => ({...n, x:x+18+n.px*(w-36)}));
+  for (let i=0;i<pts.length-1;i++){
+    ctx.strokeStyle = (mode!=='bind' && i<2 && (mode==='fault'||mode==='detect'||mode==='curate'||mode==='tailor'||mode==='localize'||mode==='identify'||mode==='package')) ? COL.seed : COL.map;
+    ctx.globalAlpha = 0.7; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(pts[i].x+6,yy); ctx.lineTo(pts[i+1].x-6,yy); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  pts.forEach(p => {
+    const hot = p.id==='INV' && !['bind','fanout'].includes(mode);
+    node(p.x, yy, 4, hot?COL.seed:COL.map, mode==='curate'&&p.id==='BATCH'?0.3:1);
+    label(p.x, yy+16, p.id, hot?COL.seed:COL.muted, 11, 'center');
+  });
+  if (mode==='curate' || mode==='tailor') label(x+w/2, y+h-12, 'BATCH dimmed', COL.lean, 11, 'center');
+}
+
+function drawMiniLake(x,y,w,h,mode,lit){
+  roundRect(x,y,w,h,8);
+  ctx.fillStyle = lit ? 'rgba(201,164,240,.08)' : '#0a0c10';
+  ctx.fill();
+  ctx.strokeStyle = lit ? COL.lake : COL.line; ctx.lineWidth = 1; ctx.stroke();
+  label(x+8, y+14, 'lake snapshot', lit?COL.lake:COL.muted, 11, 'left');
+  if (mode==='empty' || mode==='keys' || mode==='bind') {
+    label(x+w/2, y+h/2, 'no rows yet', COL.muted, 12, 'center');
+    return;
+  }
+  const sc = labSc();
+  let rows;
+  if (sc.id==='slowdown') {
+    rows = [
+      {t:'14:55', s:'200', c:COL.ok},
+      {t:'15:05', s:'~9s', c:COL.seed},
+      {t:'15:06', s:'API↑', c:COL.seed}
+    ];
+  } else {
+    rows = [
+      {t:'05:50', s:'200', c:COL.ok},
+      {t:'05:54', s:'500', c:COL.seed},
+      {t:'05:59', s:'0.92', c:COL.seed}
+    ];
+  }
+  const show = mode==='fanout' ? rows.slice(0,1) : rows;
+  show.forEach((r,i) => {
+    const yy = y + 32 + i*18;
+    if ((mode==='detect'||mode==='identify'||mode==='package') && r.c===COL.seed) {
+      ctx.fillStyle='rgba(255,107,107,.1)'; ctx.fillRect(x+8,yy-8,w-16,16);
+    }
+    label(x+12, yy, 'INV '+r.t, COL.muted, 11, 'left');
+    label(x+w-12, yy, r.s, r.c, 11, 'right');
+  });
+}
+
+function select(i, fromPlay){
+  idx = Math.max(0, Math.min(STAGES.length-1, i));
+  const s = STAGES[idx];
+  scrub.value = idx;
+  document.getElementById('scrubHint').textContent = `${s.n} ${s.name}`;
+  document.getElementById('clock').textContent = s.clock;
+  const pill = document.getElementById('phasePill');
+  pill.textContent = s.phaseLabel;
+  pill.className = 'phase-pill ' + s.phase;
+  document.getElementById('dTitle').textContent = `${s.n} · ${s.name}`;
+  document.getElementById('dMeta').textContent = `subsystem ${idx+1} of 11 · ${s.phaseLabel}`;
+  document.getElementById('dBlurb').textContent = s.blurb;
+  document.getElementById('dMap').textContent = s.map;
+  document.getElementById('dLake').textContent = s.lake;
+  document.getElementById('dTeach').innerHTML = s.teach;
+  const boxMap = document.getElementById('boxMap');
+  const boxLake = document.getElementById('boxLake');
+  boxMap.classList.toggle('active', s.mapOn);
+  boxLake.classList.toggle('active', s.lakeOn);
+  boxMap.classList.toggle('idle', !s.mapOn);
+  boxLake.classList.toggle('idle', !s.lakeOn);
+  document.getElementById('btnPrev').disabled = idx===0;
+  document.getElementById('btnNext').disabled = idx===STAGES.length-1;
+  document.querySelectorAll('.stations button').forEach((b,j) => b.classList.toggle('on', j===idx));
+  draw();
+}
+
+function buildStations(){
+  stationsEl.innerHTML = '';
+  STAGES.forEach((s,i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = s.n;
+    b.title = s.name;
+    b.addEventListener('click', () => { stopPlay(); select(i); });
+    stationsEl.appendChild(b);
+  });
+}
+
+function stopPlay(){
+  playing = false;
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+  document.getElementById('btnPlay').textContent = '▶ Play journey';
+  document.getElementById('btnPlay').classList.remove('playing');
+}
+function startPlay(){
+  if (playing) { stopPlay(); return; }
+  playing = true;
+  document.getElementById('btnPlay').textContent = '■ Stop';
+  document.getElementById('btnPlay').classList.add('playing');
+  if (idx >= STAGES.length-1) select(0);
+  playTimer = setInterval(() => {
+    if (idx >= STAGES.length-1) { stopPlay(); return; }
+    select(idx+1, true);
+  }, 1600);
+}
+
+document.getElementById('btnPrev').addEventListener('click', () => { stopPlay(); select(idx-1); });
+document.getElementById('btnNext').addEventListener('click', () => { stopPlay(); select(idx+1); });
+document.getElementById('btnPlay').addEventListener('click', startPlay);
+scrub.addEventListener('input', () => { stopPlay(); select(Number(scrub.value)); });
+
+cv.addEventListener('click', (e) => {
+  const rect = cv.getBoundingClientRect();
+  const x = (e.clientX - rect.left);
+  const xs = stationXs(rect.width);
+  let best = 0, bestD = Infinity;
+  xs.forEach((sx,i) => {
+    const d = Math.abs(sx - x);
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  if (bestD < 36) { stopPlay(); select(best); }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stopPlay(); select(idx-1); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); stopPlay(); select(idx+1); }
+  if (e.key === ' ') { e.preventDefault(); startPlay(); }
+});
+
+function frame(t){
+  anim = t/400;
+  draw();
+  requestAnimationFrame(frame);
+}
+
+window.addEventListener('resize', resize);
+patchStagesForCat();
+buildStations();
+resize();
+select(0);
+requestAnimationFrame(frame);
+
+const q = new URLSearchParams(location.search).get('stage');
+const hash = (location.hash||'').replace(/^#/,'');
+const key = q || hash;
+if (key) {
+  const i = STAGES.findIndex(s => s.key === key);
+  if (i >= 0) select(i);
+}
+</script>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

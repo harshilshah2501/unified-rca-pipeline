@@ -1,0 +1,899 @@
+# Graph + sketch contract — discussion brief (locked leanings)
+
+**Purpose:** One sit-down document that freezes (1) which Motadata names may become topology nodes, (2) the Pillar B configuration-item catalog and fifteen edge types, and (3) the Pillar A sketch row shape.  
+**Status:** Discussion draft with **owner leanings locked** (not Signed until the room votes).  
+**Date:** 2026-08-20 (FAQ extracted to GRAPH_QNA 2026-08-27; brief §10 keeps stable Q# stubs)
+**FAQ (§10):** Index stubs only — full Q&A: [`GRAPH_QNA.md`](./GRAPH_QNA.md) (E1–E5 always-on fabric, coherent sections).
+**Also:** condensed PDF [`Sketches_Merging_RawData_QnA.pdf`](../../docs/Sketches_Merging_RawData_QnA.pdf) (owner exercise) — folded into [`GRAPH_QNA.md`](./GRAPH_QNA.md) G33–G37 (was Q31–Q35).
+
+**Companion:** Full sample JSON for every qualified node type and all fifteen edges — [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md).  
+**Pillar A deep dive (inputs → process → artifacts):** [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../../docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md).
+
+### Owner leanings (this session)
+
+| Topic | Choice |
+|-------|--------|
+| **Graph** | Full operational-graph catalog: richer configuration-item types + **fifteen edge types** + full provenance. Accept longer freeze time. |
+| **Vortex** | Logical schema first — JSON field tables now; protobuf later as encoding only (no Vortex `.proto`/API yet). **Hybrid store:** strict spine for join/walk keys; flexible attributes per entity or edge type (§6.1). |
+| **Sketch row** | One row = T-Digest + explicit buckets + seasonal baseline under `(metric, entity, window, season_key)`. |
+
+**Non-negotiables still locked:** configuration-item vertices only (Alert / Incident / ticket are **not** nodes); same `tenant`+`ci_id` for graph and sketches; D5 stays Review.
+
+---
+
+## 1) What this brief asks the room to lock
+
+These are the decisions the sit-down is for. They are written in ordinary language so a cold reader can vote without decoding private labels.
+
+| # | Decision to lock | What “yes” means |
+|---|------------------|------------------|
+| 1 | **Primary identity** | Every topology node and every sketch row is keyed by **`tenant` + `ci_id`**. After Identity bind, sketch field `entity_id` is the **same string** as `ci_id` — not a second root key. |
+| 2 | **Configuration-item type catalog** | Use the **richer type set** in §3 (Service, Host, Runtime, Datastore, …) — not a Service/Host-only MVP — and keep types as a **versioned closed enum**. |
+| 3 | **Node metadata** | Adopt the minimum identity fields and the optional fields listed in §3.4 (tier, scope, aliases, validity, …). |
+| 4 | **Edge type catalog** | Lock **all fifteen** relations in §4.2 as the storage enum (Motadata names map *into* this enum as aliases). |
+| 5 | **Edge metadata and audit** | Adopt the identity fields in §4.3 and the `discovered_via` provenance block plus `valid_from` / `valid_to` / refresh in §4.4. |
+| 6 | **Exchange format** | Share **JSON examples** now; generate `.proto` / DDL only **after** Signed and when Vortex needs encoding. |
+| 7 | **Sketch row shape** | One **`sketch.v1`** row holds T-Digest + buckets + seasonal baseline together (§5). |
+
+**Trade-off to say out loud:** A rich configuration-item graph is right for disk/network/contention walks, but finishing LLD-E3 and the first Vortex tables takes longer than a four-edge MVP. Mitigation: the **schema** carries all fifteen relation names on day one; **writers** may emit only a subset until the sources exist (§4.5).
+
+---
+
+## 2) What counts as a configuration item
+
+Motadata’s leadership PDF lists **nineteen** names as “core entities.” That list mixes things that keep existing in the estate with things that only happened at a moment in time. Before we freeze graph nodes, every name must pass the same test: is it a configuration item, does it have a stable identity, and would you open a long-lived ticket against it?
+
+### 2.1 Working definition
+
+A **configuration item** is a noun that keeps existing in the estate and can be given an identity **durable enough to still mean the same thing if you look it up again later**.
+
+Ask three questions for every name:
+
+1. **Where does this name map?** — Is it a real thing in the estate, or a moment in time (something fired, something changed)?
+2. **Does it have a stable unique identity?** — Not only “unique while I am looking at it,” but unique in a way that still points at the *same* thing later.
+3. **Does it stick around long enough that you would open a ticket against it?** — Long-lived ticket roots need durable configuration items.
+
+**Rule of thumb**
+
+- If it is a noun that keeps existing → candidate configuration item (then check identity).
+- If it is something that happened at a point in time → fact or event — **never** a configuration item, and **never** a node on the topology map. Attach it as evidence to a configuration item instead.
+
+### 2.2 Sharpening: uniqueness alone is not enough
+
+Uniqueness at a single moment is **necessary but not sufficient**. That is why a process identifier fails the durable-identity test even though it looks unique when you glance at it: process identifiers get reused. A container or pod passes *more* than a process because its unique identifier is not recycled the same way — but only for as long as that instance is alive. So those are “graph nodes for a while,” not roots for long-term tickets.
+
+That is also why Database, Deployment, and Network sit in “pause until you pick the identity”: they *could* receive a stable identity; the Motadata PDF never says what that identity is, so do not guess.
+
+### 2.3 Four categories
+
+| Category | Meaning | Ticket root? |
+|----------|---------|--------------|
+| **Clearly qualifies** | Persists; has (or can have) a durable identity | Yes |
+| **Qualifies temporarily** | Real while alive; useful on the graph for that window | No — parent / scope is the durable thing |
+| **Not decided yet** | Could be a configuration item, but the stable identity is unspecified | Pause — do not invent an identity |
+| **Does not qualify** | Event or fact about a moment in time | Never — evidence only |
+
+### 2.4 Nineteen Motadata names — pie and counts
+
+Counts of the nineteen Motadata names: clearly qualifies **5** (26%) · temporarily **4** (21%) · not decided **3** (16%) · does not qualify **7** (37%).
+
+```mermaid
+pie showData
+    title Nineteen Motadata “core entity” names by qualification
+    "Clearly qualifies (durable)" : 5
+    "Qualifies temporarily" : 4
+    "Not decided yet — pause" : 3
+    "Does not qualify (facts / events)" : 7
+```
+
+| Category | Count | Share of 19 |
+|----------|------:|------------:|
+| Clearly qualifies (durable) | 5 | 26% |
+| Qualifies temporarily | 4 | 21% |
+| Not decided yet — pause | 3 | 16% |
+| Does not qualify (facts / events) | 7 | 37% |
+
+Source: Motadata Observability 3 Pillars PDF · core entities list. Queue is counted under “clearly qualifies” only as a **named** broker destination. Database is counted under “not decided” until you name the instance or cluster.
+
+**What you may open a long-lived ticket against.** Ticket against a durable configuration item: Service, Host, Customer, BusinessService, a named Database instance or cluster, or a named Queue destination. Do not ticket a Pod unique identifier, a container identifier, a process identifier, an Alert, a Change, or a Trace. Those may appear on the walk for a window or as evidence; they are not the configuration item you anchor the ticket to.
+
+### 2.5 Clearly qualifies
+
+These persist and have durable identities. They are the usual roots for a long-lived ticket.
+
+| Name | Stable identity? | Sticks around for a ticket? | Notes |
+|------|------------------|-----------------------------|-------|
+| Service | Yes — stable service / workload identity | Yes | Clear configuration item |
+| Host | Yes — machine / hypervisor identity | Yes | Clear configuration item |
+| Customer | Yes — tenant / account identity | Yes | Clear configuration item |
+| BusinessService | Yes — named offering the customer cares about | Yes | Clear configuration item |
+| Queue | Yes — only as a named broker destination (topic / queue name) | Yes, if named | Not “the network of queues” as a vague blob |
+
+Database belongs here as well **once** you name the specific instance or cluster. Until then it stays in “not decided yet” below.
+
+### 2.6 Qualifies temporarily
+
+These exist for a while and can have an identity while they are alive. They are useful on the graph for that window. They are not permanent — a pod dies and a new one replaces it. Do not anchor a long-term ticket to them; point the ticket at the durable parent.
+
+| Name | Stable identity? | Sticks around for a ticket? | Notes |
+|------|------------------|-----------------------------|-------|
+| Pod | Yes while alive — Kubernetes unique identifier for this replica; not recycled like a process identifier | No — dies when replaced | Graph node for that window; parent is the durable workload |
+| Container | Yes while alive — container identifier, or pod unique identifier plus container name | No — not across restarts | Passes more of the identity test than Process; still not a ticket root |
+| Process | No for durability — a process identifier is unique at a glance, then reused | No | Fails the “look it up later and mean the same thing” test harder than Pod or Container |
+| Endpoint | Only if you bind a stable URL, port, or route identity | Only if that identity is durable | Not “whatever internet address appeared on this span” |
+
+### 2.7 Not decided yet — pause, do not guess
+
+These could be configuration items, but the Motadata PDF never says what the stable identity actually is. Until the identity scheme is chosen, pause.
+
+| Name | Stable identity? | Sticks around for a ticket? | What you must decide |
+|------|------------------|-----------------------------|----------------------|
+| Database | Not yet — instance? cluster? schema? cloud resource name? | Only after you name the instance or cluster | Pick the scoped identity; then it moves to “clearly qualifies” |
+| Deployment | Not yet — Kubernetes Deployment unique identifier ≠ release version ≠ runbook identity | Only after you say which object the node is | Those are three different things; name one |
+| Network | Not yet — “Network” as a word is too coarse to be one identity | Only after you pick a concrete object | Switch, network interface, subnet, virtual network, or load balancer — pick one |
+
+### 2.8 Does not qualify at all
+
+These are events or facts about a moment in time. They should not be nodes on the topology map. They are evidence attached to a configuration item, not configuration items themselves.
+
+| Name | Stable identity as a configuration item? | Sticks around for a ticket? | What it actually is |
+|------|------------------------------------------|-----------------------------|---------------------|
+| Change | No — fact with a time (change identity, git commit, deploy identity) | No — never the topology node | Something that happened; link it to a configuration item |
+| Alert | No | No | A detect fire — a signal, not a configuration item |
+| Incident | No | No | A case identity for the investigation, not estate topology |
+| ITSMTicket | No | No — the ticket points at a configuration item; it is not one | Join later on the same configuration-item identity |
+| Metric | No | No | Evidence type or sketch key — not a configuration item |
+| LogPattern | No | No | Pattern catalog / corroboration — not a configuration item |
+| Trace | No — a trace identity can be unique and still not be a configuration item | No | Evidence of a call path — not something you ticket as the estate object |
+
+5 + 4 + 3 + 7 = 19. Topology freeze for Pillar B remains **configuration-item vertices only**.
+
+---
+
+## 3) Entities (nodes on the topology map)
+
+### 3.1 What is an entity on this graph
+
+An **entity** on the topology map is a **configuration item** with stable `tenant`+`ci_id` that may be localized or ticketed.  
+It is **not** Alert, Incident, Signal, Verdict, or Change-as-configuration-item.
+
+### 3.2 Primary ID
+
+| Field | Rule |
+|-------|------|
+| `tenant` | Namespace |
+| `ci_id` | Stable within tenant |
+| `entity_id` | Alias of `ci_id` after Identity bind — **not** a second root key |
+
+### 3.3 Configuration-item types (closed enum we version)
+
+Align with operational-graph / ObserveOps corpus thinking. Types are a **closed enum we version**; we do not invent free-text types per writer.
+
+| Family | Example `ci_type` values | Why needed |
+|--------|--------------------------|------------|
+| Business / service | `BusinessService`, `Service` (technical), `Customer` | Symptom seed, ERROR/SLOWDOWN, account scope |
+| Runtime / middleware | `Runtime`, `Middleware` (e.g. JVM, nginx), named `Queue` | Leaf depth on app stacks / messaging |
+| Data | `Database` (named instance/cluster), `Datastore` | DB / storage leaves |
+| Compute / OS | `Host`, `GuestOS`, `VirtualMachine`, `HypervisorHost` | Contention / hosting walks |
+| Container (optional) | `Pod`, `Container` | Ephemeral; require `scope_parent` + validity |
+| Storage / network | `NetworkPort`, filesystem/LUN-class items as needed; `Endpoint` only with durable URL/route | Disk latency/usage, fabric, stable routes |
+| Observation | `Monitor` / collector item (if we model `monitored_by`) | MONITORING_UNAVAILABLE |
+
+**Corpus types already seen in bakeoff topology:**  
+`NetworkPort`, `HypervisorHost`, `Datastore`, `VirtualMachine`, `GuestOS`, `Service`.
+
+**Still not graph entities:** Alert, Incident, ITSMTicket, Metric, Trace, LogPattern, Change-as-configuration-item.
+
+### 3.4 Node metadata
+
+A `graph_node.v1` object is one **topology vertex**: a durable configuration item after Identity has bound it. It is not a log line, alert, or ticket.
+
+How it is built, in order:
+
+1. Collect admits telemetry (host name, agent id, Kubernetes UID, and so on).
+2. Identity stamps a stable `ci_id` inside `tenant`. `identity_status` becomes `resolved`, or stays `unattributed` / `synthesized` off the snapshot.
+3. Topology writes this JSON as a vertex on `GraphSnapshot`. Only vertices with **`identity_status = resolved`** go on that snapshot.
+4. Display and walk fields (`ci_name`, `tier`, `instance_scope`, aliases) come from inventory, not from the symptom.
+
+Machine-required fields are listed in [`pillar-ab-implementation/contracts/schemas/graph_node_v1.schema.json`](../pillar-ab-implementation/contracts/schemas/graph_node_v1.schema.json). This brief adds a few **conditional** fields so Localize can walk.
+
+**Always required (schema + identity)**
+
+| Field | Example | Meaning |
+|-------|---------|---------|
+| `schema_version` | `graph_node.v1` | Which node contract this is. Constant. |
+| `tenant` | `default` | Isolation namespace. Same tenant on sketches and tickets. |
+| `ci_id` | `linux-server-app-01` | Stable id **within that tenant**. Primary key with `tenant`. After bind, sketch `entity_id` is this same string — not a second root. |
+| `ci_type` | `Host` | Closed enum we version (`Host`, `Service`, `Database`, …). Not free text per writer. |
+| `ci_name` | `app-01` | Human display name. Not the join key. |
+| `identity_status` | `resolved` | `resolved` \| `unattributed` \| `synthesized`. Snapshot writer accepts **resolved only**. |
+
+**Recommended on day one (in the Host sample; not in the JSON Schema `required` array)**
+
+| Field | Example | Meaning |
+|-------|---------|---------|
+| `tier` | `os` | Stack layer so Localize can walk down (os / app / data / …). Tenant-shaped names are OK; the *concept* is required for descent. |
+| `instance_scope` | `single` | `single` or `multi-instance`. Disks, mounts, and JVM processes are often multi-instance. |
+| `monitored_via` | `["agent"]` | How we observe it (agent, SNMP, vCenter, …). Explains MONITORING_UNAVAILABLE later. |
+| `aliases` | `["app-01.lab.local"]` | Other names Identity already folded into this `ci_id` (FQDN, IP, monitor id). |
+| `labels` | `{ "env": "rca-lab" }` | Facets (env, version, service). Not identity. |
+| `valid_from` / `valid_to` | `null` / `null` | When this vertex was believed true. `null` here means open-ended / long-lived host. |
+
+**Optional, or required only in some cases**
+
+| Field | When you must set it |
+|-------|----------------------|
+| `ci_class` | Optional coarse class if `ci_type` is not enough. |
+| `scope_parent` | **Required** when `instance_scope` is `multi-instance`, or for `Pod` / `Container`: the durable parent `ci_id` (Deployment, Host, …). |
+| `valid_from` / `valid_to` as real timestamps | **Required** for ephemeral or multi-instance rows where lifetime matters (pod UID dies; a mount comes and goes). |
+| `kpi_catalog_ref` | Optional pointer to the metric catalog. |
+| `entity_id` | Do **not** add as a second key. It is an alias of `ci_id` after bind. |
+
+**What this JSON is not:** Alert, Incident, ticket, Metric, Trace, LogPattern, and Change-as-configuration-item do not get a `graph_node.v1`. Those hitch the walk as facts or evidence; they are not vertices.
+
+**Writer rule:** GraphSnapshot vertices only with `identity_status = resolved`.
+
+**Hybrid, not one rigid row shape for every type:** Host, Pod, and Database share the required spine above. Type-specific extras (Kubernetes UID, mount path, catalog owner, …) stay optional or in `labels` / additional fields. The machine schema allows that on purpose (`additionalProperties: true`). Full hybrid rule for Vortex: §6.1.
+
+### 3.5 Node JSON examples
+
+One illustrative Host sample remains here for the sit-down one-pager. **Full sample JSON for every qualified configuration-item type** lives in [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md).
+
+```json
+{
+  "schema_version": "graph_node.v1",
+  "tenant": "default",
+  "ci_id": "linux-server-app-01",
+  "ci_type": "Host",
+  "ci_name": "app-01",
+  "tier": "os",
+  "instance_scope": "single",
+  "identity_status": "resolved",
+  "monitored_via": ["agent"],
+  "aliases": ["app-01.lab.local"],
+  "labels": { "env": "rca-lab" },
+  "valid_from": null,
+  "valid_to": null
+}
+```
+
+This Host is already bound: `default` + `linux-server-app-01` is the join key. Type `Host` and tier `os` tell Localize this is compute/OS. `instance_scope: single` means you do not need `scope_parent`. `identity_status: resolved` means it may sit on the snapshot. Agent plus alias `app-01.lab.local` are how we recognized it. Null validity means we are not treating this host as a short-lived replica.
+
+If this were a Pod, you would still have the six required fields, plus `scope_parent` pointing at the workload, and real `valid_from` / `valid_to`.
+
+---
+
+## 4) Edges (15 types)
+
+### 4.1 What an edge is (and what it is not)
+
+The topology map is not only a list of configuration items. It also stores **how those items relate**. An **edge** is one such relationship: it names two configuration items (source and destination), a typed relation such as `runs_on` or `depends_on`, and enough audit fields that a later reader can answer “who discovered this, how, and when was it still believed true?”
+
+In practice that means every edge is:
+
+- **Typed** — the relation comes from the closed catalog in §4.2 (not free text).
+- **Directed** — the arrow has a meaning (for example workload → host for `runs_on`).
+- **Auditable** — a `discovered_via` block records evidence strength, source stream, and refresh cadence (§4.4).
+- **Time-bounded** — `valid_from` / `valid_to` say when the fact was believed true (needed for pods and other short-lived items).
+
+**What does *not* belong on this topology edge catalog**
+
+Later pipeline stages also invent relationship-like words. Those jobs are real, but they are **not** Pillar B / Topology (`GraphSnapshot`) edges:
+
+| Word you may hear elsewhere | What it actually is | Why it is not an E3 topology edge |
+|-----------------------------|---------------------|-----------------------------------|
+| `CORRELATED_WITH` (Curate) | “These alerts/signals belong together in a case” | Connects **signals / cases**, not two estate configuration items |
+| `RESOLVED_BY` (Package) | “This verdict / ticket closed that case” | Packaging / case outcome — not estate topology |
+| `AFFECTS` as stored blast radius | “If this breaks, these other things hurt” | Impact is **computed or asserted at investigation time**, not a durable map fact we freeze here |
+
+Motadata product names such as `CALLS`, `RUNS_ON`, or `CONTAINS` map **into** the fifteen-relation enum below as aliases. We do not keep two edge vocabularies in storage.
+
+Field-by-field construction is in §4.3. Provenance meanings are in §4.4. JSON samples are in §4.5.
+
+### 4.2 Full relation catalog (lock as enum)
+
+| `relation` | Plain meaning | Typical walk use |
+|------------|---------------|------------------|
+| `depends_on` | A needs B | ERROR / dependency descent |
+| `runs_on` | A executes on B | Contention / tenancy |
+| `mounts` | A mounts B | Disk path |
+| `connects_to` | L2/L3 adjacency | Network |
+| `backs` | A backs B | Storage backup relationship |
+| `uses` | A uses B (often inferred) | Trace-derived dependency |
+| `hosted_on` | Guest/VM on hypervisor | Virtualization ascent |
+| `member_of` | A in cluster/group | Cluster scope |
+| `part_of` | Child of parent | Composition |
+| `routes_through` | Path via middlebox | Network path |
+| `authenticates_via` | Auth dependency | Identity path |
+| `monitored_by` | Observed by collector | MONITORING_UNAVAILABLE |
+| `backed_up_by` | Backup target | DR context |
+| `clustered_with` | Peer same tier | Peer / HA |
+| `communicates_with` | Calls / talks to | Service map |
+
+### 4.3 Edge metadata
+
+A `graph_edge.v1` object is one **typed, directed relationship** between two configuration items that already exist as vertices. It is not a Curate correlation, a Package outcome, or a blast-radius assertion computed at investigation time.
+
+How it is built, in order:
+
+1. Collect and Identity produce two bound configuration items in the **same** `tenant` (source and destination).
+2. Topology decides the **relation** from inventory, catalog, or telemetry — always a name from the closed enum in §4.2, never free text.
+3. Topology writes this JSON as an arc on `GraphSnapshot`. Both `src_ci_id` and `dst_ci_id` must already be **resolved** vertices on that snapshot (same rule as nodes).
+4. The writer stamps `discovered_via` so a later reader can see who discovered the fact, how strongly, and how often it is refreshed.
+5. `valid_from` / `valid_to` sit on the **edge object** (not inside `discovered_via`) and bound when this relationship was believed true.
+
+Machine-required fields are listed in [`pillar-ab-implementation/contracts/schemas/graph_edge_v1.schema.json`](../pillar-ab-implementation/contracts/schemas/graph_edge_v1.schema.json). This brief adds **recommended** provenance fields so the sit-down sample is auditable on day one.
+
+**Always required (schema + identity)**
+
+| Field | Example | Meaning |
+|-------|---------|---------|
+| `schema_version` | `graph_edge.v1` | Which edge contract this is. Constant. |
+| `tenant` | `default` | Isolation namespace. Must match both endpoint nodes and any sketches you join later. |
+| `edge_id` | `e_jvm_runs_on_host` | Stable id for **this arc** within the tenant (not the same as `ci_id`). Lets refresh replace or close the same fact without inventing a new identity each poll. |
+| `src_ci_id` | `app-runtime-jvm` | Source vertex. Same string as that node’s `ci_id`. The tail of the arrow. |
+| `dst_ci_id` | `linux-server-app-01` | Destination vertex. Same string as that node’s `ci_id`. The head of the arrow. |
+| `relation` | `runs_on` | Closed enum of fifteen names (§4.2). Motadata product words such as `RUNS_ON` map **into** this enum; they are not a second storage vocabulary. |
+| `discovered_via` | `{ "evidence_type": "authoritative", … }` | Provenance object. Schema requires at least `evidence_type` inside it. Meanings of the inner fields are in §4.4. |
+
+**Recommended on day one (in the `runs_on` sample; not all listed in the JSON Schema `required` array)**
+
+| Field | Example | Meaning |
+|-------|---------|---------|
+| `discovered_via.confidence` | `high` | `high` \| `medium` \| `low` \| `n/a` — how sure the writer is, separate from *how* the fact was learned (`evidence_type`). |
+| `discovered_via.telemetry_source` | `agent/process-inventory/cgroup` | Which stream produced the edge (agent inventory, trace index, CMDB sync, …). |
+| `discovered_via.direction_inference` | `workload -> host` | Why the arrow points this way (inventory parent, client span, catalog dependency, …). |
+| `discovered_via.refresh` | `poll 5m` | How often Topology re-derives this fact. |
+| `valid_from` / `valid_to` | RFC3339 / `null` | When this **relationship** was believed true. `null` `valid_to` means still open. Hosting `runs_on` for a long-lived JVM may stay open; a pod’s `part_of` should close when the UID dies. |
+
+**Optional, or required only in some cases**
+
+| Field | When you must set it |
+|-------|----------------------|
+| `discovered_via.signal_fields` | Preferred when evidence is telemetry: the exact fields matched (for example span peer service). |
+| `discovered_via.endpoint_binding` | Preferred when the two ends were not already `ci_id`s: how names, IPs, or UIDs resolved to configuration-item ids. |
+| `valid_from` / `valid_to` as real timestamps | **Required** when either endpoint is ephemeral (Pod, Container) or the relation itself comes and goes (mount, peer for an hour of traces). |
+| `criticality` | Optional `critical` / `high` / `medium` / `low` for walk priority — not identity. |
+
+**What this JSON is not:** `CORRELATED_WITH`, `RESOLVED_BY`, and stored blast-radius `AFFECTS` are not `graph_edge.v1` rows (see the table in §4.1). A sketch row never carries `src_ci_id` / `dst_ci_id` / `relation`.
+
+**Writer rules:** Both endpoints must be `identity_status = resolved` vertices in the same `tenant`. `src_ci_id` must not equal `dst_ci_id`. `relation` must be one of the fifteen enum values. Schema is complete on day one; writers may emit only a subset of relations until the sources exist (§4.6).
+
+**Hybrid on edges too:** every edge shares the required spine (`tenant`, `edge_id`, two `ci_id`s, `relation`, `discovered_via`). Extra provenance fields and type-specific decorations may differ by relation and source. Do not invent a new free-text `relation` name to carry metadata — put extras beside the spine. Full hybrid rule: §6.1.
+
+### 4.4 Provenance block on every edge
+
+Every edge carries a `discovered_via` object so the map is not a mystery. The most important field for sit-down clarity is **`evidence_type`**: how strongly may we trust this relationship?
+
+| `evidence_type` | Plain meaning | Example |
+|-----------------|---------------|---------|
+| **`authoritative`** | A system of record or inventory that *owns* the fact stated this relationship. Prefer this when available. | Agent process inventory / cgroup says JVM `app-runtime-jvm` **runs on** host `linux-server-app-01`. Kubernetes API says Deployment X owns ReplicaSet Y. |
+| **`declared`** | A human or config file *asserted* the relationship (CMDB, service catalog, Helm values, Terraform). True until proven otherwise, but not observed live. | Service catalog entry: `checkout-api` **depends_on** `payments-db`. |
+| **`corroborating`** | Telemetry *suggests* the relationship (trace call graph, repeated log fields, eBPF peer map) but nothing owns it as inventory. Useful for discovery; weaker alone. | APM spans repeatedly show `checkout-api` calling `inventory-api` → candidate `communicates_with` / `uses` until inventory confirms. |
+
+Other fields **inside** `discovered_via` (schema requires only `evidence_type`; the rest are recommended or optional — see §4.3):
+
+| Field | Purpose |
+|-------|---------|
+| `confidence` | `high` \| `medium` \| `low` \| `n/a` — how sure the writer is |
+| `telemetry_source` | Which stream produced the edge (agent inventory, trace index, CMDB sync, …) |
+| `signal_fields` | Exact fields matched (optional but preferred) |
+| `endpoint_binding` | How the two ends resolved to configuration-item ids |
+| `direction_inference` | Why the arrow points this way |
+| `refresh` | Re-derivation cadence (e.g. `poll 5m`) |
+
+**Not inside `discovered_via`:** `valid_from` / `valid_to` and `criticality` are **sibling** fields on the edge object. The JSON Schema places them next to `relation`, not nested under provenance. Do not copy validity timestamps only into the inner block and omit them on the edge.
+
+### 4.5 Edge JSON examples
+
+One illustrative `runs_on` sample remains here (`evidence_type: authoritative`). **Full sample JSON for all fifteen relations** lives in [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md).
+
+```json
+{
+  "schema_version": "graph_edge.v1",
+  "tenant": "default",
+  "edge_id": "e_jvm_runs_on_host",
+  "src_ci_id": "app-runtime-jvm",
+  "dst_ci_id": "linux-server-app-01",
+  "relation": "runs_on",
+  "discovered_via": {
+    "evidence_type": "authoritative",
+    "confidence": "high",
+    "telemetry_source": "agent/process-inventory/cgroup",
+    "direction_inference": "workload -> host",
+    "refresh": "poll 5m"
+  },
+  "valid_from": "2026-08-20T00:00:00Z",
+  "valid_to": null
+}
+```
+
+This `runs_on` edge is already joinable: tenant `default`, JVM `app-runtime-jvm` **runs on** host `linux-server-app-01`. `edge_id` names the arc so a later poll can refresh the same fact. `discovered_via.evidence_type` is `authoritative` because process inventory / cgroup *owns* the hosting fact. Open `valid_to` means we still believe the JVM is on that host.
+
+The next two samples keep the same outer shape (`schema_version`, `tenant`, `edge_id`, two `ci_id`s, `relation`, `discovered_via`, validity). Only **how we learned the fact** changes: catalog assertion (`declared`) versus trace suggestion (`corroborating`, with a closed `valid_to` because the peer was only seen in that hour).
+
+Declared vs corroborating (same relation shape, different `evidence_type`):
+
+```json
+{
+  "schema_version": "graph_edge.v1",
+  "tenant": "default",
+  "edge_id": "e_checkout_depends_on_payments_db",
+  "src_ci_id": "checkout-api",
+  "dst_ci_id": "payments-db",
+  "relation": "depends_on",
+  "discovered_via": {
+    "evidence_type": "declared",
+    "confidence": "medium",
+    "telemetry_source": "service-catalog/sync",
+    "direction_inference": "catalog dependency arrow",
+    "refresh": "daily"
+  },
+  "valid_from": "2026-08-01T00:00:00Z",
+  "valid_to": null
+}
+```
+
+```json
+{
+  "schema_version": "graph_edge.v1",
+  "tenant": "default",
+  "edge_id": "e_checkout_communicates_with_inventory",
+  "src_ci_id": "checkout-api",
+  "dst_ci_id": "inventory-api",
+  "relation": "communicates_with",
+  "discovered_via": {
+    "evidence_type": "corroborating",
+    "confidence": "low",
+    "telemetry_source": "apm/spans",
+    "signal_fields": ["span.peer.service=inventory-api"],
+    "direction_inference": "client span -> server service name",
+    "refresh": "rolling 1h"
+  },
+  "valid_from": "2026-08-20T03:00:00Z",
+  "valid_to": "2026-08-20T04:00:00Z"
+}
+```
+
+### 4.6 Phased emission — schema complete, writers grow
+
+§4.2 locks **fifteen relation names in the schema** so Vortex tables and LLD enums do not keep changing. That does **not** mean every lab writer must emit all fifteen on day one.
+
+**Problem this section solves:** If “Done” for Topology required every relation to appear in the first lab, we would block on missing sources (backup inventory, fabric discovery, HA peer maps, …).
+
+**Approach:** Keep the catalog honest in storage. **Phase which relations writers emit** as sources appear.
+
+| Phase | Emit these relations (even while the schema already lists all fifteen) |
+|-------|------------------------------------------------------------------------|
+| Lab wave 1 | `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of` |
+| Lab wave 2 | `mounts`, `connects_to`, `monitored_by`, `member_of`, `uses` |
+| Later | Remaining storage / network / HA types (`backs`, `backed_up_by`, `clustered_with`, `routes_through`, `authenticates_via`, …) as sources appear |
+
+So: **schema is rich on day one; writers grow.** That unblocks Vortex table creation without pretending we already have every discovery source.
+
+---
+
+## 5) Sketch row (`sketch.v1`)
+
+Sketches are Pillar A / Stores history: compact summaries of **metric samples for one configuration item over one time window**. They are not a second topology graph.
+
+### 5.1 Logical key — what makes one row unique
+
+Imagine raw samples arriving for “checkout-api latency.” We do not store every sample forever. We roll them into **one sketch row per unique combination** of:
+
+`(tenant, entity_id, metric_id, window, season_key, window_start)`
+
+| Part | Meaning | Why it is in the key | v1 suggestion |
+|------|---------|----------------------|---------------|
+| `tenant` | Customer / namespace | Sketches never cross tenants | e.g. `default` |
+| `entity_id` | Same string as graph `ci_id` after Identity bind | Joins history to the map | Must be **resolved** |
+| `metric_id` | Which named stream | Latency and CPU are different rows | e.g. `request.latency_ms`, `cpu.utilization_pct` |
+| `window` | How long this summary covers | Same samples may feed both a 1-minute and a 5-minute row | Start with `1m` + `5m` (also allow `1h` / `1d` in the enum) |
+| `season_key` | Calendar slot used for the **baseline** | Tuesday 09:00 traffic ≠ Sunday 02:00 | e.g. `Thu-09:00` (hour-of-week, tenant timezone) |
+| `window_start` | When this particular slice began | Distinguishes successive 5-minute rows | RFC3339 start of the bucket |
+
+**Concrete example:** Tenant `default`, entity `checkout-api`, metric `request.latency_ms`, window `5m`, season `Thu-09:00`, starting `2026-08-20T03:30:00Z` → exactly one `sketch.v1` row. The next five minutes is a **different** row (`window_start` advances). A parallel `1m` summary for the same minute is also a **different** row (`window` differs).
+
+### 5.2 Body: three summaries in one row — related, not three products
+
+Our freeze stores **one hybrid row** with three bodies. They are **logically independent to query** (you can read percentiles without reading buckets), but they are **not three separate products or three separate stores**.
+
+| Piece | Job | How it relates to the others | JSON field on `sketch.v1` |
+|-------|-----|------------------------------|---------------------------|
+| **T-Digest** | Mergeable distribution → p50 / p95 / p99 without keeping every sample | Describes *this window’s* distribution | `tdigest` |
+| **Explicit buckets** | Fixed bins + counts | Same samples, histogram view (cheap rules / charts) | `buckets` |
+| **Seasonal baseline** | Expected p50 / p95 / p99 for this `season_key` | Usually built from *many past windows* for that calendar slot; used to judge whether this window’s percentiles look normal | `baseline` |
+
+They share the **same samples and the same identity/time key**. Example: checkout p95 = 180 ms may be normal on Tuesday afternoon and abnormal at Sunday 02:00 — same digest number, different `season_key` baseline.
+
+**Why all three:** percentiles merge cleanly across windows; buckets make histogram queries deterministic; seasonal baselines stop business cycles from looking like faults.
+
+### 5.2.1 Why three bodies — and where exemplars fit (summary)
+
+One window of samples (for example 23 latency points in five minutes) is summarized three ways in **one** `sketch.v1` row. They answer different questions; they are **not** interchangeable.
+
+| Piece | One-line job | Built from |
+|-------|--------------|------------|
+| **T-Digest** | How bad was **this window**? (p50 / p95 / p99, mergeable) | **Same** raw samples this window |
+| **Buckets** | Where did mass sit in **fixed bins** this window? (heatmap / rules) | **Same** raw samples this window |
+| **Seasonal baseline** | Is that **normal for this calendar slot**? (expected p50 / p95 / p99) | **Many past** windows with the same `season_key` — not this slice alone |
+
+**Example:** digest p95 = 400 ms **this** Thu-09:00 slice vs baseline expected p95 = 170 ms → Detect treats it as abnormal. Without baseline, busy Thursday mornings look like incidents every week.
+
+**If you drop one or two:**
+
+| Keep | Lose | Cost |
+|------|------|------|
+| Digest only | Buckets + baseline | No stable histogram; no season-aware Detect |
+| Digest + baseline | Buckets | Detect still works; weaker heatmap / bin rules |
+| Digest + buckets | Baseline | Shape of **this** window OK; business-cycle false alarms |
+| All three (frozen) | — | One row, one join key for retrieval |
+
+Digest and buckets share **the same samples**; baseline shares the **same entity + metric + season_key** family across history. You can **read** each body alone; they are not three separate products.
+
+**Exemplars (optional, not a fourth `sketch.v1` body in v1):** Google Cloud / OpenTelemetry pattern — attach a **trace id** to a histogram bucket so an operator clicks a hot bin and opens one request path. **Different job:** metric aggregate → trace drill-down. Does **not** replace digest or baseline. Detect can fire on digest + baseline without exemplars; drill-down is slower. Visual walk-through: [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html).
+
+#### How each piece looks in JSON
+
+**1) T-Digest (`tdigest`)** — centroids approximate the distribution for this window. Lab may use readable JSON centroids; production may store opaque bytes under the same logical field.
+
+```json
+"tdigest": {
+  "compression": 100,
+  "encoding": "centroids_json",
+  "centroids": [
+    { "m": 92.1, "w": 14 },
+    { "m": 145.3, "w": 9 }
+  ]
+}
+```
+
+From those centroids a reader can recover approximate p50 / p95 / p99 for *this* `window_start`. (`m` = centroid mean, `w` = weight / sample mass.)
+
+**2) Explicit buckets (`buckets`)** — versioned bin edges and counts for the **same** samples. `bounds` has one more number than `counts` (edges around each bin).
+
+```json
+"buckets": {
+  "bucket_schema_version": "latency_v1",
+  "bounds": [0, 50, 100, 200, 500, 1000, 2000],
+  "counts": [12, 19, 5, 1, 0, 0]
+}
+```
+
+Reading: 12 samples in `[0, 50)`, 19 in `[50, 100)`, 5 in `[100, 200)`, 1 in `[200, 500)`, none above 500 for this window.
+
+**3) Seasonal baseline (`baseline`)** — expected percentiles for this `season_key` (not invented from the current window alone). Compare current digest percentiles to these expectations.
+
+```json
+"baseline": {
+  "baseline_version": "seasonal_v1",
+  "expected_p50": 88.0,
+  "expected_p95": 170.0,
+  "expected_p99": 320.0
+}
+```
+
+### 5.3 Sketches do **not** carry edges
+
+A `sketch.v1` row is about **one configuration item + one metric + one time window**. It has `entity_id` (same string as graph `ci_id`). It does **not** have `src_ci_id`, `dst_ci_id`, or `relation`.
+
+| Store | Holds | Does not hold |
+|-------|--------|----------------|
+| **Sketch (`sketch.v1`)** | Compact metric history for one entity | Topology edges, “who calls whom” |
+| **Knowledge / topology graph** | Configuration-item nodes + typed edges + provenance | Percentile digests / bucket tables |
+
+Join graph and sketches later by **`tenant` + `ci_id` / `entity_id`** (and time). Do not stuff the map into the sketch row.
+
+### 5.4 Full `sketch.v1` example (key + all three bodies)
+
+**Time-boundary rule:** `window_start` is mandatory (it is part of the uniqueness key). You need **exactly one of** `window` (the duration string, e.g. `"5m"`) or `window_end` (an RFC3339 timestamp) — not both. Since `window` is already in the row key, the example below uses `window` and omits `window_end`. A writer that does not carry a duration string may store `window_end` instead; a reader can always derive the missing one from the other two.
+
+```json
+{
+  "schema_version": "sketch.v1",
+  "tenant": "default",
+  "entity_id": "checkout-api",
+  "entity_type": "Service",
+  "metric_id": "request.latency_ms",
+  "window": "5m",
+  "window_start": "2026-08-20T03:30:00Z",
+  "season_key": "Thu-09:00",
+  "sample_count": 23,
+  "tdigest": {
+    "compression": 100,
+    "encoding": "centroids_json",
+    "centroids": [{"m": 92.1, "w": 14}, {"m": 145.3, "w": 9}]
+  },
+  "buckets": {
+    "bucket_schema_version": "latency_v1",
+    "bounds": [0, 50, 100, 200, 500, 1000, 2000],
+    "counts": [12, 19, 5, 1, 0, 0]
+  },
+  "baseline": {
+    "baseline_version": "seasonal_v1",
+    "expected_p50": 88.0,
+    "expected_p95": 170.0,
+    "expected_p99": 320.0
+  }
+}
+```
+
+**Lab note:** `centroids_json` is fine for review. Production Vortex may store digest as bytes (`encoding: "tdigest_bytes"`) with the same logical fields.
+
+### 5.5 Still to freeze in the room for sketches
+
+1. First **two metric_ids**  
+2. First **bucket_schema_version** tables (latency + CPU)  
+3. Confirm `season_key` = hour-of-week  
+4. Confirm multi-window update (one sample feeds 1m and 5m)
+
+---
+
+## 6) Where the knowledge graph vs sketches are written
+
+Two **orthogonal** axes. Do not collapse them into one picture.
+
+| Axis | What it partitions | Example |
+|------|--------------------|---------|
+| **Rooms (content)** | What kind of fact | Room 2 = map (`graph_node.v1` / `graph_edge.v1`); Room 1 = history (`sketch.v1`). Same `tenant` + `ci_id` / `entity_id` namespace; **different** schemas and rows. |
+| **Temperature (dest profile)** | How hot the same row is | For a Motadata-shaped dest: **Vortex** = hot analytical engine; **S3** = cold object cellar. Same rows age out of Vortex into S3. Lab may use a file dest with no Vortex at all. |
+
+Visual: [`vortex-s3-interaction.html`](../../docs/vortex-s3-interaction.html).  
+**Dedicated Q&A (all fabric clarifications):** [`GRAPH_QNA.md`](./GRAPH_QNA.md).
+
+Think of the rooms as living in the same warehouse when the E4 destination is Vortex/S3 (or another allowed dest: file, existing Motadata store, …).
+
+| What | Pipeline stage | Logical artifact | What lands on disk / in the index |
+|------|----------------|------------------|-----------------------------------|
+| **Knowledge / topology graph** | Topology write, versioned later | `graph_node.v1`, `graph_edge.v1` → `GraphSnapshot` | Configuration-item vertices + the fifteen edge types + provenance / validity |
+| **Sketches / history** | Stores write, seasonal refresh later | `sketch.v1` rows | T-Digest + buckets + baseline per entity/metric/window/season |
+| **Change facts** (later) | Version / change track | `change_fact.v1` | Facts linked to a configuration item by id and time — **not** graph vertices |
+
+**Vortex / S3:** Motadata-shaped dest profile may host **both** rooms (map and history). That does **not** mean edges are fields inside `sketch.v1`. Edges are written on the **graph / `GraphSnapshot` path**. Sketches are written on the **sketch-store path**. Vortex is the query surface; S3 is not opened as a dump by diagnose.
+
+**Who reads the lake:** The **retrieval** step builds a bounded `WorkingSet` by querying Vortex (which may federate cold S3 partitions). Deterministic Localize / Identify consume that `WorkingSet`. Motadata’s optional **Rust ReAct agent** (Pillar C / Layer I) is one more client of retrieval — not a synonym for “every caller,” and not allowed to open S3 or hop-scan Vortex raw. Operator path must work with that agent off.
+
+**Where this lands on disk:** Vortex/S3 is **one** allowed E4 destination among others (lab file dest, existing Motadata store, …). This brief freezes **row shapes** (`graph_node.v1`, `graph_edge.v1`, `sketch.v1`), not “Vortex is the only lake forever.” Which physical product a tenant writes to is an E4 / Stores choice — tracked on the Motadata ↔ shift-left build-order pages as the destination-profile checkpoint, not as part of this graph contract.
+
+**SaaS owns** the canonical topology snapshot; Gateway may assist discovery but does not become a second source of truth.
+
+### 6.1 Hybrid schema — strict spine, flexible attributes (not schema-less)
+
+Different configuration items and edges **will** carry different metadata. A Host does not need a Kubernetes UID; a Pod does. A `runs_on` edge from process inventory does not look identical to a `communicates_with` edge from spans. That is expected.
+
+We do **not** choose either extreme:
+
+| Extreme | Why it fails here |
+|---------|-------------------|
+| **Fully strict** — every node/edge must fill the exact same columns | Rejects real variety (Pod vs Host vs Database) or forces meaningless nulls everywhere. |
+| **Fully schema-less** — no shared typed keys | Joins, walks, and Localize become slow and unsafe. `tenant` + `ci_id` / `entity_id` and closed `relation` must stay real, queryable fields. |
+
+**What we lock instead — the hybrid model industry uses for entity graphs:**
+
+1. **Spine (strict).** A short list of required, typed fields that every writer must set so the map joins and walks. For nodes: §3.4 required list. For edges: §4.3 required list (`relation` stays the fifteen-name closed enum). For sketches: the logical key in §5.1.
+2. **Attributes (flexible).** Recommended and optional fields, `labels`, and other extras may differ by `ci_type` or by how the edge was discovered. The machine JSON Schemas already allow this (`additionalProperties: true` on node and edge).
+3. **Promotion rule.** If Retrieval or Localize must **filter or walk** on a field often, promote it onto the spine (or into a versioned optional column) in a later schema version. If only one family needs it, leave it optional or in the property bag — do **not** invent a new free-text `relation` or `ci_type` to smuggle metadata.
+
+**What this means for Vortex:** treat Vortex (when chosen as the E4 dest) as a **hybrid analytical store under this logical contract** — not “one rigid table for every entity,” and not “a document dump.” Physical encoding (dense common columns + sparse / map / nullable extras, or a separate property store beside walkable edges) can follow after Signed; we have not frozen a Motadata Vortex DDL yet. Feasibility of the *logical* hybrid model is already assumed: the JSON contracts are written that way on purpose.
+
+**One line:** *Identity and relation types are rigid; decorations are not.*
+
+---
+
+## 7) Format for the sit-down
+
+| Now | After Signed | When Vortex exists |
+|-----|--------------|--------------------|
+| This brief + JSON examples | Field tables in LLD for Topology / Stores | Generate `.proto` / DDL from Signed tables |
+
+Logical messages:
+
+```text
+graph_node.v1
+graph_edge.v1
+sketch.v1
+change_fact.v1   # later — fact, not configuration item
+```
+
+---
+
+## 8) Knowledge graph vs event graph (manager FAQ)
+
+**This brief freezes the configuration-item knowledge (topology) graph** — Motadata Pillar B → ObserveOps `GraphSnapshot`. An **event graph** is a different substrate and is **not** part of this freeze.
+
+| Graph | Vertices / edges | Our place |
+|-------|------------------|-----------|
+| **Knowledge / topology** (this brief) | Configuration items + durable relations (`runs_on`, `depends_on`, …) | Topology / Pillar B |
+| **Sketches / history** | Not a graph — compact metric stats | Stores / Pillar A |
+| **Change facts** | “This configuration item changed at T” — fact, not a node | Later (`change_fact.v1`) |
+| **Signals / case edges** | Alert as `Signal`; correlate / dedupe | Detect / Curate — not topology vertices |
+| **Event / execution graph** | Things that happened in time (spans, log/metric events, deploy firings) | Later / Detect–Localize / optional Fed speed tier — **out of this A/B freeze** |
+
+**Rule:** events **join** the knowledge graph by the same `tenant`+`ci_id` (and time windows). They do **not** become vertices on `GraphSnapshot`.
+
+**One-liner for leadership:** *We store the estate map in Topology; events hang off it by identity and time. A dedicated event graph is optional and not in this freeze.*
+
+### Vendor cousins (not 1:1 “event graph” products)
+
+Closest jobs on Dynatrace / Datadog / Edge Delta — same *roles*, not Motadata naming:
+
+| Vendor | Closest to **knowledge / topology** | Closest to **event / execution time structure** |
+|--------|-------------------------------------|--------------------------------------------------|
+| **Dynatrace** | **Smartscape** — typed entity graph (`entityId`) | **Grail** multimodal events; **PurePath / traces** as the call-path story Davis walks with Smartscape |
+| **Datadog** | **Service Map** — mostly APM-derived view, not a peer write track like Smartscape | **APM traces / flamegraphs** (+ Husky behind traces+logs); Metrics ∥ APM ∥ Logs join by tags |
+| **Edge Delta** | **eBPF Service Map** at Node (public framing; our tenant often empty) | Processed telemetry / **eBPF traces** in the platform index; pipelines shape streams before AI Team |
+
+**Teaching caution:** nobody in that trio sells a clean twin labeled “knowledge graph + event graph.” Dynatrace’s cleanest split is **Smartscape ∥ Grail** (topology write vs evidence lake), not a third product called event graph. Do not equate Smartscape = Service Map = ED Service Map.
+
+---
+
+## 9) What you say in one minute
+
+> We are building a **rich configuration-item knowledge graph**: typed catalog and fifteen edge types with provenance — configuration items only, no Alert vertices. That is the estate map. Sketches are **one history row each** with T-Digest, explicit buckets, and a seasonal baseline for the same entity and metric; sketches do **not** store edges. Graph and sketches are **two rooms** (different facts, one identity namespace); Vortex and S3 are **temperature tiers** for those rows when that dest is chosen — orthogonal axes. Storage is **hybrid**: a strict spine for join and walk keys, flexible attributes per type — not fully rigid and not schema-less. Diagnose reads through **retrieval → WorkingSet**; an optional Rust ReAct agent is one client of retrieval, not a raw lake browser. An **event / execution graph** is a different substrate and is out of this freeze. Vortex has no proto yet, so we freeze **JSON logical schemas** today and encode to protobuf when Vortex is ready. Writers can phase which edges they emit; the schema stays complete.
+
+---
+
+## 10) FAQ — index stubs (full answers in GRAPH_QNA)
+
+Short clarifications that used to live here now live in **[`GRAPH_QNA.md`](./GRAPH_QNA.md)** — cold-reader order across the **E1–E5 always-on fabric** (not append-at-end of this brief).
+
+**House rule:** do **not renumber** these `Q#` ids. New clarifications: append a `G#` in [`GRAPH_QNA.md`](./GRAPH_QNA.md) under the matching section, then add a one-line stub here with the next `Q#`.
+
+Open decisions stay in §11.
+
+### Q1. What does “sit-down” mean (§7)?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G1**. Sit-down = decision meeting to Signed — not a pipeline stage.
+
+### Q2. Does “E4 destination” mean Room 1 and Room 2 (§6)?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G14**. E4 destination ≠ rooms; stream branch is after E2 (see also G12).
+
+### Q3. Is `GraphSnapshot` our term or a vendor / library term (§8)?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G2**. GraphSnapshot is our ObserveOps term for E3 Topology’s walkable map.
+
+### Q4. What are Lab wave 1 / wave 2 / Later based on (§4.6)?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G7**. Lab waves = pragmatic emission schedule; schema stays rich.
+
+### Q5. What do `evidence_type` values mean — is it “claimed + verified” vs “claimed only” vs “inferred”? (§4.4)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G8**. evidence_type = how Topology learned the edge (not Verify/RCA).
+
+### Q6. What does “schema is rich on day one; writers grow” mean (§4.6)?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G6**. Schema rich day one; writers grow.
+
+### Q7. Are the two rooms the same thing as Vortex + S3 (§6)?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G15**. Rooms = content; Vortex/S3 = temperature.
+
+### Q8. Who reads Vortex / S3 — and what does “agent” mean here (§6)?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G19**. Retrieval → WorkingSet; diagnose never dumps S3.
+
+### Q9. Why does this brief avoid “Gate B” / Gate A–D vocabulary?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G20**. Gate labels stay on build-order pages; brief says E4 destination.
+
+### Q10. Must a sketch row carry `window`, `window_start`, and `window_end` (§5.4)?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G21**. window_start mandatory; exactly one of window or window_end.
+
+### Q11. Do sketches store edges? Can Alert / Incident / ticket be graph nodes? (§2, §5.3, §8)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G3**. Sketches have no relation fields; Alert/Incident/ticket not CI vertices.
+
+### Q12. Are `CORRELATED_WITH`, `RESOLVED_BY`, or blast-radius `AFFECTS` topology edges? (§4.1)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G4**. Case/packaging words — not GraphSnapshot edges.
+
+### Q13. Do `valid_from` / `valid_to` live inside `discovered_via`? (§4.3–4.4)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G9**. valid_from/valid_to are sibling fields on the edge, not only inside discovered_via.
+
+### Q14. Is Vortex strictly schema-based? What if Host and Pod need different fields? (§6.1)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G18**. Hybrid spine (rigid) + flexible attributes.
+
+### Q15. Why T-Digest + buckets + baseline together? Are exemplars an alternate? (§5.2.1)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G22**. Digest + buckets + baseline answer three different questions; exemplars optional.
+
+### Q16. Digest and buckets use the same raw samples — so what is the difference? (§5.2)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G23**. Same samples, different leftovers — distribution sketch vs histogram.
+
+### Q17. How does Topology decide `relation` from inventory, catalog, or telemetry? (§4.3–4.4)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G10**. Pick closed-enum relation by source mapping; stamp evidence_type.
+
+### Q18. Is T-Digest + baseline enough for Detect? Why keep buckets? Why not Detect only on buckets? (§5.2.1)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G24**. Door C Detect = digest vs baseline; buckets for investigate after fire.
+
+### Q19. Is sketch anomaly detection the same as Phase-2 Detect? What about Door A / B / C?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G25**. P1 write sketches; P2 Detect reads them. Door C ≠ Pillar C.
+
+### Q20. Comparative objectives / inputs / outputs — digest, buckets, baseline, exemplars (§5)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G26**. Digest+baseline fire; buckets where; exemplars which request.
+
+### Q21. What is a heatmap here, and how do we use it?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G27**. Heatmap = picture of bucket counts over time — not required to fire Detect.
+
+### Q22. How is `season_key` computed? Do raw samples feed baseline and exemplars? (§5.1, walkthrough FAQ)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G28**. season_key = hour-of-week; baseline from past windows; exemplars from this window.
+
+### Q23. For ERROR / SLOWDOWN only, which nodes and edges matter? Why do `CORRELATED_WITH` / `RESOLVED_BY` / `AFFECTS` feel odd? (§2–4)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G5**. ERROR/SLOWDOWN needs service+dep map; case words stay off Pillar B.
+
+### Q24. Inventory / catalog / telemetry — is that “already on the map” vs “first time” vs “live infer”? Same as Auto-create / Orphan / Soft-match? (§4.4–4.5)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G11**. Inventory/catalog/telemetry ≠ Auto-create/Orphan/Soft-match.
+
+### Q25. We initially planned no exemplars. Now they are optional — what value do they add *after* Detect? (§5.2.1)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G29**. Exemplars = post-Detect acceleration, not a Detect dependency.
+
+### Q26. Where does Pillar A (sketch write) sit vs Collect / Identity / Topology? Is it post-E2 and pre-E3, or overlapping? (§5–6)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G13**. Post-E2, parallel to E3; E4 Stores is sibling (see also G12).
+
+### Q27. Lab “3 latency + 2 CPU” vs “field mapping in admit” — two sub-jobs or one? (§5, PoC `metric_admit`)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G30**. One admit job — inputs vs field wiring.
+
+### Q28. Why does the lab file mix metrics and `topo_update` lines? Does Pillar A reject topology? (§5.3, lab fixture)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G31**. Mixed fixture tape; Pillar A silent-skips topo lines.
+
+### Q29. Where are false positives filtered — is it E5 Maintain? (§5.2.1, E6, E7)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G32**. Admit filters junk; E6 season Detect; E5 baselines; Curate after fire.
+
+### Q30. Motadata-shaped Pillar A lake — do we need both S3 and Vortex, or is either optional? (§6, deep-dive §7.3–7.4)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G17**. Both S3 and Vortex required Motadata-shaped — remember vs query fast.
+
+### Q31. Why do we need to merge two sketches? (§5.2)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G33**. Raw gone → merge sketches; never average p95s.
+
+### Q32. Why isn’t merging buckets as smooth as merging digests? (§5.2)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G34**. Bucket merge needs same bucket_schema_version + bounds.
+
+### Q33. When do we still need to recompute from raw data? (§5, deep dive)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G35**. Sketches irreversible; some questions still need raw/buffer.
+
+### Q34. What is standard industry practice for keeping raw data?
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G36**. Industry tiered retention (context); Motadata Detect hot = sketch.
+
+### Q35. Do merge / raw rules change under Observability 3.0 shift-left? (§6)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G37**. Shift-left reduces volume; Pillar A reduces raw lifespan — compound.
+
+### Q36. How are `map/` and `history/` stored? Sub-blocks, R/W, sync? (§6, Gate B dest)
+
+**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G16**. Two rooms, two writers; join at WorkingSet; no map↔history sync.
+
+## 11) Open questions still for the room
+
+1. Exact closed enum of `ci_type` for wave 1 (paste final list on the whiteboard).  
+2. Are `tier` + `instance_scope` required on day one or wave 2?  
+3. Timestamp format: RFC3339 strings vs unix millis in Signed contract?  
+4. Who is sole GraphSnapshot writer?  
+5. First two sketch metrics + bucket bounds?  
+6. **Raw buffer vs strict zero-raw:** which Q33 scenarios (late identity, forensics, ML, full hot-bin drill-down) stay in Motadata scope with a short raw buffer, and which are explicitly out?  
+
+---
+
+*Next after meeting: paste Signed enums into Topology / Stores LLDs and refresh merged scope.*

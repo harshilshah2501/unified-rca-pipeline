@@ -1,0 +1,63 @@
+# UC6 lite: fake ingest API (no Kafka). Alternates 200 / 500 so Pattern Anomaly
+# can see ingest failure logs without a 12–16 GB Kafka stack.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fake-ingest
+  namespace: ed-lab
+  labels:
+    app: fake-ingest
+    urca.uc: "6"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fake-ingest
+  template:
+    metadata:
+      labels:
+        app: fake-ingest
+        urca.uc: "6"
+    spec:
+      containers:
+        - name: ingest
+          image: python:3.12-alpine
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          command:
+            - /bin/sh
+            - -c
+            - |
+              cat > /tmp/ingest.py << 'PY'
+              import json, time, itertools
+              levels = itertools.cycle(["ok", "ok", "ok", "fail"])
+              n = 0
+              while True:
+                n += 1
+                kind = next(levels)
+                ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                if kind == "ok":
+                  print(json.dumps({"ts": ts, "service": "ingest-api", "level": "INFO", "msg": "batch accepted", "n": n, "status": 200}), flush=True)
+                else:
+                  print(json.dumps({"ts": ts, "service": "ingest-api", "level": "ERROR", "msg": "kafka produce timeout", "n": n, "status": 500, "err": "broker 9092 unreachable"}), flush=True)
+                time.sleep(3)
+              PY
+              python /tmp/ingest.py
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fake-ingest
+  namespace: ed-lab
+spec:
+  selector:
+    app: fake-ingest
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

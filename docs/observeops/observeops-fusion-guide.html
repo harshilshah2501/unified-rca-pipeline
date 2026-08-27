@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fusion RCA Pipeline Guide</title>
+<style>
+  :root {
+    --ink: #16202B;
+    --ink-2: #47566A;
+    --ink-3: #7C8AA0;
+    --paper: #EDF1F4;
+    --surface: #FFFFFF;
+    --surface-2: #F5F8FA;
+    --line: #DCE3EA;
+    --line-strong: #C3CDD9;
+    --accent: #0E7C86;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E1F1F1;
+    --accent-soft-line: #BEDEDD;
+
+    --sem-grounded: #1C8A57;
+    --sem-grounded-soft: #E4F5EC;
+    --sem-local: #A66B0E;
+    --sem-local-soft: #FBF0DC;
+    --sem-design: #6E56B5;
+    --sem-design-soft: #EEE9FA;
+    --sem-planned: #5E6A7A;
+    --sem-planned-soft: #E9ECEF;
+
+    --code-bg: #EFF3F5;
+    --code-ink: #145257;
+    --shadow: 0 1px 2px rgba(22,32,43,.06), 0 10px 26px -14px rgba(22,32,43,.22);
+
+    --font-sans: "IBM Plex Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #E7EDF2;
+      --ink-2: #A9B7C6;
+      --ink-3: #78889B;
+      --paper: #0D131A;
+      --surface: #131C24;
+      --surface-2: #0F1720;
+      --line: #233039;
+      --line-strong: #32424F;
+      --accent: #45C8C4;
+      --accent-ink: #06201F;
+      --accent-soft: #10282A;
+      --accent-soft-line: #1E4744;
+
+      --sem-grounded: #45B382;
+      --sem-grounded-soft: #10261B;
+      --sem-local: #DDA648;
+      --sem-local-soft: #2B2113;
+      --sem-design: #A491E3;
+      --sem-design-soft: #211C36;
+      --sem-planned: #8C99A9;
+      --sem-planned-soft: #1A222A;
+
+      --code-bg: #0F2022;
+      --code-ink: #7FE3DE;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 34px -16px rgba(0,0,0,.65);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #E7EDF2;
+    --ink-2: #A9B7C6;
+    --ink-3: #78889B;
+    --paper: #0D131A;
+    --surface: #131C24;
+    --surface-2: #0F1720;
+    --line: #233039;
+    --line-strong: #32424F;
+    --accent: #45C8C4;
+    --accent-ink: #06201F;
+    --accent-soft: #10282A;
+    --accent-soft-line: #1E4744;
+
+    --sem-grounded: #45B382;
+    --sem-grounded-soft: #10261B;
+    --sem-local: #DDA648;
+    --sem-local-soft: #2B2113;
+    --sem-design: #A491E3;
+    --sem-design-soft: #211C36;
+    --sem-planned: #8C99A9;
+    --sem-planned-soft: #1A222A;
+
+    --code-bg: #0F2022;
+    --code-ink: #7FE3DE;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 34px -16px rgba(0,0,0,.65);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  h1, h2, h3 { text-wrap: balance; margin: 0; }
+  code {
+    font-family: var(--font-mono);
+    font-size: .85em;
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: .1em .35em;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  a { color: var(--accent); }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .app { max-width: 1280px; margin: 0 auto; padding: 0 20px 64px; }
+
+  /* ---------- Header ---------- */
+  .topbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 28px 0 18px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    display: grid; place-items: center;
+    width: 40px; height: 40px;
+    border-radius: 9px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-soft-line);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 16px;
+    flex: none;
+  }
+  .brand-text h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.01em; }
+  .brand-text .subtitle { margin: 3px 0 0; color: var(--ink-2); font-size: .85rem; }
+
+  .pack-bar {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline;
+    padding: 0 0 16px; margin: -8px 0 8px;
+    font-size: .78rem; color: var(--ink-2);
+  }
+  .pack-bar b { color: var(--ink); font-weight: 650; }
+  .pack-bar a { color: var(--accent); }
+
+  .tabs { display: flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
+  .tab-btn {
+    appearance: none; border: none; background: transparent; cursor: pointer;
+    font-family: var(--font-sans); font-size: .875rem; font-weight: 600;
+    color: var(--ink-2); padding: 8px 16px; border-radius: 7px;
+    transition: background .15s ease, color .15s ease;
+  }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active { background: var(--accent); color: var(--accent-ink); }
+
+  .panel[hidden] { display: none; }
+
+  /* ---------- Tab 1: Use cases ---------- */
+  .uc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 14px;
+  }
+  .uc-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 16px 14px;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .uc-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .uc-id { font-family: var(--font-mono); font-size: .75rem; font-weight: 700; color: var(--accent); letter-spacing: .02em; }
+  .dc-badge {
+    font-family: var(--font-mono); font-size: .68rem; font-weight: 700; letter-spacing: .03em;
+    padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+    background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-soft-line);
+  }
+  .dc-badge.sub { background: var(--sem-local-soft); color: var(--sem-local); border-color: transparent; }
+  .uc-card h3 { font-size: 1rem; font-weight: 700; }
+  .uc-card p { margin: 0; color: var(--ink-2); font-size: .875rem; flex: 1; }
+  .uc-jump {
+    align-self: flex-start; appearance: none; cursor: pointer;
+    background: none; border: none; padding: 0;
+    font-family: var(--font-sans); font-size: .8rem; font-weight: 600; color: var(--accent);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .uc-jump:hover { text-decoration: underline; }
+
+  .uc-note {
+    margin: 4px 0 20px;
+    padding: 11px 14px;
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--sem-local);
+    border-radius: 8px; color: var(--ink-2); font-size: .85rem;
+  }
+
+  /* ---------- Tab 2: Pipeline ---------- */
+  .uc-selector {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    margin-bottom: 8px;
+  }
+  .uc-selector-label { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+  .uc-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .uc-pill {
+    appearance: none; cursor: pointer;
+    font-family: var(--font-sans); font-size: .8rem; font-weight: 600;
+    padding: 6px 12px; border-radius: 999px;
+    background: var(--surface); color: var(--ink-2); border: 1px solid var(--line);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .uc-pill:hover { border-color: var(--accent-soft-line); color: var(--ink); }
+  .uc-pill.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+  .uc-active-desc { margin: 10px 0 6px; color: var(--ink-2); font-size: .875rem; }
+  .uc-active-desc strong { color: var(--ink); }
+
+  details.legend { margin: 4px 0 26px; }
+  details.legend summary {
+    cursor: pointer; font-size: .8rem; font-weight: 600; color: var(--ink-2);
+    list-style: none; display: inline-flex; align-items: center; gap: 6px;
+  }
+  details.legend summary::-webkit-details-marker { display: none; }
+  details.legend summary:before { content: "\25B8"; font-size: .7rem; color: var(--ink-3); transition: transform .15s ease; }
+  details.legend[open] summary:before { transform: rotate(90deg); }
+  .legend-body {
+    margin-top: 10px; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px;
+    display: flex; flex-wrap: wrap; gap: 18px; font-size: .82rem; color: var(--ink-2);
+  }
+  .legend-row { display: flex; align-items: center; gap: 8px; }
+  .legend-body .invariant { max-width: 320px; }
+  .legend-body .invariant b { color: var(--ink); }
+
+  .legend-body.decisions-body { display: block; }
+  .decisions-list { margin: 0; padding-left: 1.35em; display: flex; flex-direction: column; gap: 7px; }
+  .decisions-list li::marker { color: var(--ink-3); font-family: var(--font-mono); font-size: .85em; }
+  .decisions-list b { color: var(--ink); }
+  .decisions-list code { font-size: .8em; }
+
+  .maturity-pill {
+    display: inline-block; font-family: var(--font-mono); font-size: .68rem; font-weight: 700;
+    padding: 3px 8px; border-radius: 999px; letter-spacing: .01em; white-space: nowrap;
+  }
+  .maturity-pill.grounded { background: var(--sem-grounded-soft); color: var(--sem-grounded); }
+  .maturity-pill.local    { background: var(--sem-local-soft);    color: var(--sem-local); }
+  .maturity-pill.design   { background: var(--sem-design-soft);   color: var(--sem-design); }
+  .maturity-pill.planned  { background: var(--sem-planned-soft);  color: var(--sem-planned); }
+
+  .phase { margin-bottom: 30px; }
+  .phase-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+  .phase-tag {
+    flex: none; font-family: var(--font-mono); font-weight: 700; font-size: .8rem;
+    color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-soft-line);
+    border-radius: 7px; padding: 5px 9px; margin-top: 1px;
+  }
+  .phase-head h2 { font-size: 1.05rem; font-weight: 700; }
+  .phase-head p { margin: 2px 0 0; color: var(--ink-2); font-size: .82rem; max-width: 62ch; }
+
+  .stage-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .stage-row { display: flex; align-items: stretch; gap: 0; min-width: min-content; }
+  .connector {
+    flex: none; display: flex; align-items: center; justify-content: center;
+    width: 26px; color: var(--ink-3); font-size: 1rem;
+  }
+
+  .stage-card {
+    flex: none; width: 300px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 15px 13px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .stage-card-head { display: flex; align-items: baseline; gap: 8px; }
+  .stage-id { font-family: var(--font-mono); font-weight: 700; font-size: .82rem; color: var(--accent); }
+  .stage-name { font-size: .98rem; font-weight: 700; }
+  .stage-purpose { margin: 0; color: var(--ink-2); font-size: .78rem; line-height: 1.5; }
+
+  .stage-io { margin: 2px 0 0; display: flex; flex-direction: column; gap: 7px; }
+  .io-row { display: grid; grid-template-columns: 20px 1fr; gap: 8px; align-items: start; }
+  .io-row dt {
+    font-family: var(--font-mono); font-size: .66rem; font-weight: 700; color: var(--ink-3);
+    padding-top: 2px;
+  }
+  .io-row dd { margin: 0; font-size: .8rem; color: var(--ink); line-height: 1.5; }
+  .io-row.io-graph { padding-top: 6px; border-top: 1px dashed var(--line); }
+  .io-row.io-graph dd { color: var(--ink-2); }
+  .io-row.io-graph dt { color: var(--accent); }
+
+  .stage-const {
+    font-size: .68rem; color: var(--ink-3); font-style: italic; margin-top: -3px;
+  }
+
+  .stage-foot { margin-top: auto; padding-top: 4px; }
+
+  footer.credits {
+    margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
+    color: var(--ink-3); font-size: .78rem; display: flex; flex-wrap: wrap; gap: 6px 16px;
+  }
+
+  /* ---------- Tab 3: Graph Explained ---------- */
+  .graph-intro { max-width: 74ch; color: var(--ink-2); font-size: .95rem; margin: 0 0 26px; }
+  .graph-section { margin-bottom: 30px; }
+  .graph-section h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+  .graph-section > p { max-width: 70ch; color: var(--ink-2); font-size: .9rem; margin: 0; }
+  .graph-note { margin-top: 12px; font-size: .82rem; color: var(--ink-3); max-width: 70ch; }
+
+  .term-chip {
+    display: inline-block; font-family: var(--font-mono); font-size: .72rem; font-weight: 600;
+    background: var(--code-bg); color: var(--code-ink); padding: 3px 8px; border-radius: 6px;
+  }
+  .term-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+
+  .evidence-ladder { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .tier {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 13px 16px; box-shadow: var(--shadow); max-width: 70ch;
+  }
+  .tier-1 { border-left: 4px solid var(--sem-grounded); }
+  .tier-2 { border-left: 4px solid var(--sem-local); }
+  .tier-3 { border-left: 4px solid var(--sem-design); }
+  .tier-head { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+  .tier-num {
+    font-family: var(--font-mono); font-weight: 700; font-size: .78rem;
+    width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--surface-2); border: 1px solid var(--line-strong); color: var(--ink-2); flex: none;
+  }
+  .tier-head h3 { font-size: .92rem; font-weight: 700; flex: 1; }
+  .tier p { margin: 0; color: var(--ink-2); font-size: .85rem; }
+
+  .graph-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 14px; }
+  .graph-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 9px;
+  }
+  .graph-card.accent { border-color: var(--accent-soft-line); background: linear-gradient(180deg, var(--accent-soft), var(--surface) 60%); }
+  .graph-card-head { display: flex; align-items: center; gap: 10px; }
+  .gcard-num {
+    font-family: var(--font-mono); font-weight: 700; font-size: .78rem; color: var(--accent);
+    width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center;
+    background: var(--accent-soft); border: 1px solid var(--accent-soft-line); flex: none;
+  }
+  .graph-card h3 { font-size: .95rem; font-weight: 700; }
+  .graph-card p { margin: 0; font-size: .84rem; color: var(--ink-2); }
+  .graph-card .graph-example { color: var(--ink); background: var(--surface-2); border-radius: 8px; padding: 9px 11px; font-size: .81rem; }
+
+  .direction-demo { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; max-width: 60ch; }
+  .direction-row { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; box-shadow: var(--shadow); font-size: .85rem; color: var(--ink-2); }
+  .direction-row strong { color: var(--ink); }
+  .direction-arrow { flex: none; font-size: 1.3rem; color: var(--accent); width: 28px; text-align: center; }
+
+  .worked-chain { display: flex; align-items: center; gap: 4px; overflow-x: auto; padding: 18px 2px; margin-top: 6px; }
+  .worked-node {
+    flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 16px; font-size: .85rem; font-weight: 700; color: var(--ink); box-shadow: var(--shadow); min-width: 110px; text-align: center;
+  }
+  .worked-node span { font-weight: 500; font-size: .72rem; color: var(--ink-2); }
+  .worked-node.symptom { border-color: var(--sem-local); }
+  .worked-node.cause { border-color: var(--sem-grounded); background: var(--sem-grounded-soft); }
+  .worked-node.cause span { color: var(--sem-grounded); font-weight: 700; }
+  .worked-edge { flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 1.1rem; color: var(--ink-3); padding: 0 2px; }
+  .we-label { font-family: var(--font-mono); font-size: .68rem; color: var(--ink-2); }
+  .we-tier { font-family: var(--font-mono); font-size: .62rem; font-weight: 700; padding: 1px 6px; border-radius: 999px; }
+  .we-tier.a { background: var(--sem-grounded-soft); color: var(--sem-grounded); }
+
+  /* ---------- Graph Explained sub-tabs ---------- */
+  .subtabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 4px 0 24px; }
+  .subtab-btn {
+    appearance: none; border: none; background: transparent; cursor: pointer;
+    font-family: var(--font-sans); font-size: .85rem; font-weight: 600;
+    color: var(--ink-2); padding: 10px 4px; margin-right: 22px;
+    border-bottom: 2px solid transparent; transition: color .15s ease, border-color .15s ease;
+  }
+  .subtab-btn:hover { color: var(--ink); }
+  .subtab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .subpanel[hidden] { display: none; }
+
+  .code-block {
+    background: var(--code-bg); color: var(--code-ink); font-family: var(--font-mono);
+    font-size: .78rem; padding: 10px 12px; border-radius: 8px; line-height: 1.6;
+    margin: 10px 0 0; white-space: pre-wrap;
+  }
+
+  .dual-example { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; }
+  .dual-example > div {
+    background: var(--surface-2); border-radius: 8px; padding: 8px 10px;
+    font-size: .78rem; color: var(--ink-2); line-height: 1.5;
+  }
+  .dual-example b {
+    display: block; margin-bottom: 3px; color: var(--accent);
+    font-family: var(--font-mono); font-size: .64rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+  @media (max-width: 640px) { .dual-example { grid-template-columns: 1fr; } }
+
+  .ref-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-top: 14px; }
+  .ref-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 15px 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 7px;
+  }
+  .ref-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .ref-card h3 { font-size: .9rem; font-weight: 700; margin: 0; }
+  .ref-card p { margin: 0; font-size: .83rem; color: var(--ink-2); }
+  .ref-card .na { color: var(--ink-3); font-style: italic; }
+
+  .mapping-table { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .mapping-row {
+    display: grid; grid-template-columns: 130px 1fr; gap: 12px; align-items: start;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    padding: 9px 12px; font-size: .82rem;
+  }
+  .mapping-row dt { font-family: var(--font-mono); font-weight: 700; color: var(--ink); font-size: .78rem; }
+  .mapping-row dd { margin: 0; color: var(--ink-2); }
+
+  .uc-edge-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .uc-edge-row {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 15px; box-shadow: var(--shadow);
+  }
+  .uc-edge-row-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .uc-edge-row-head .uc-id { font-family: var(--font-mono); font-size: .75rem; font-weight: 700; color: var(--accent); }
+  .uc-edge-row-head h3 { font-size: .88rem; font-weight: 700; }
+  .uc-edge-row .term-row { margin-top: 6px; }
+  .uc-edge-row .dual-example { margin-top: 8px; }
+
+  .unscoped-note {
+    margin-top: 16px; padding: 11px 14px; background: var(--surface); border: 1px solid var(--line);
+    border-left: 3px solid var(--sem-planned); border-radius: 8px; color: var(--ink-2); font-size: .84rem;
+  }
+
+  .gap-list { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+  .gap-item {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; box-shadow: var(--shadow);
+  }
+  .gap-item-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .gap-item h3 { font-size: .92rem; font-weight: 700; margin: 0; }
+  .gap-item p { margin: 4px 0 0; font-size: .84rem; color: var(--ink-2); max-width: 76ch; }
+  .gap-item p.impact { color: var(--ink); }
+  .gap-badge {
+    font-family: var(--font-mono); font-size: .64rem; font-weight: 700; letter-spacing: .02em;
+    padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  }
+  .gap-badge.data { background: var(--sem-planned-soft); color: var(--sem-planned); }
+  .gap-badge.mech { background: var(--sem-design-soft); color: var(--sem-design); }
+  .gap-badge.cov  { background: var(--sem-local-soft); color: var(--sem-local); }
+
+  /* ---------- Tab 4: POC Roadmap ---------- */
+  .poc-intro { max-width: 76ch; color: var(--ink-2); font-size: .95rem; margin: 0 0 22px; }
+
+  .seq-tracks { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 30px; }
+  .seq-track {
+    display: grid; grid-template-columns: 150px 1fr; gap: 14px; align-items: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 15px; box-shadow: var(--shadow);
+  }
+  .seq-track-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); }
+  .seq-track-label span { display: block; font-size: .68rem; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--ink-3); margin-top: 2px; }
+  .seq-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .seq-chip {
+    font-family: var(--font-mono); font-size: .72rem; font-weight: 700;
+    padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent);
+    border: 1px solid var(--accent-soft-line); white-space: nowrap;
+  }
+  .seq-arrow { color: var(--ink-3); font-size: .9rem; }
+
+  .poc-list { display: flex; flex-direction: column; gap: 16px; }
+  .poc-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .poc-card.extra { border-style: dashed; }
+  .poc-card-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .poc-id { font-family: var(--font-mono); font-weight: 700; font-size: .82rem; color: var(--accent); }
+  .poc-card h3 { font-size: 1.02rem; font-weight: 700; flex: 1; min-width: 200px; }
+  .poc-badge {
+    font-family: var(--font-mono); font-size: .64rem; font-weight: 700; letter-spacing: .02em;
+    padding: 3px 9px; border-radius: 999px; white-space: nowrap; border: 1px solid transparent;
+  }
+  .poc-badge.phase { background: var(--surface-2); color: var(--ink-2); border-color: var(--line-strong); }
+  .poc-badge.p0 { background: var(--sem-grounded-soft); color: var(--sem-grounded); }
+  .poc-badge.p1 { background: var(--sem-local-soft); color: var(--sem-local); }
+  .poc-badge.p2 { background: var(--sem-planned-soft); color: var(--sem-planned); }
+
+  .poc-body { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 22px; margin-top: 12px; }
+  .poc-field { min-width: 0; }
+  .poc-field.span2 { grid-column: 1 / -1; }
+  .poc-field h4 {
+    margin: 0 0 5px; font-size: .68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--ink-3);
+  }
+  .poc-field p { margin: 0; font-size: .85rem; color: var(--ink-2); line-height: 1.55; }
+  .poc-field ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 5px; }
+  .poc-field li { font-size: .85rem; color: var(--ink-2); line-height: 1.5; }
+  .poc-field .deliverable { color: var(--ink); }
+  .poc-depends { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .poc-depends .term-chip { background: var(--surface-2); }
+  .poc-depends .none { color: var(--ink-3); font-size: .8rem; font-style: italic; }
+
+  @media (max-width: 900px) { .poc-body { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) {
+    .topbar { flex-direction: column; align-items: flex-start; }
+    .stage-card { width: 260px; }
+    .seq-track { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">&#9672;</span>
+      <div class="brand-text">
+        <h1>Fusion RCA Pipeline Guide</h1>
+        <p class="subtitle">Click a use case. See what each of the eleven pipeline steps takes in and puts out.</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Guide sections">
+      <button type="button" role="tab" id="tab-btn-usecases" class="tab-btn active" aria-selected="true" aria-controls="panel-usecases">Use Cases</button>
+      <button type="button" role="tab" id="tab-btn-pipeline" class="tab-btn" aria-selected="false" aria-controls="panel-pipeline">Pipeline &amp; Graph</button>
+      <button type="button" role="tab" id="tab-btn-graph" class="tab-btn" aria-selected="false" aria-controls="panel-graph">Graph Explained</button>
+      <button type="button" role="tab" id="tab-btn-poc" class="tab-btn" aria-selected="false" aria-controls="panel-poc">POC Roadmap</button>
+    </nav>
+  </header>
+  <p class="pack-bar">
+    <b>Our HLD</b>
+    <a href="/observeops-pipeline-hld.html">Summary</a>
+    <span>this page = clickable tour</span>
+    <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Written spec</a>
+    <a href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md">Map chapter</a>
+    <a href="/observeops-ci-graph.html">Example map</a>
+  </p>
+
+  <main>
+    <section id="panel-usecases" class="panel active" role="tabpanel" aria-labelledby="tab-btn-usecases">
+      <p class="uc-note">Use cases 1&ndash;5 map 1:1 onto the five E6 Detect classes. Use cases 6&ndash;8 are finer-grained fault signatures that all classify as <strong>RESOURCE_CONTENTION</strong> at E6 &mdash; they only distinguish from #3 and each other starting at E9 Localize. Datadog&rsquo;s own default host monitor pack groups CPU, disk and network the same way.
+      Normative rows: operational-graph chapter <a href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md#23-the-8-use-cases-are-not-all-peers--say-so-plainly">&sect;2.3</a> and <a href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md#5-stage-by-stage-design--e6e11-p2-case-opens-p3-diagnose-and-close">&sect;5</a>. Catalog: <a href="/docs/OBSERVEOPS_USE_CASES.md">OBSERVEOPS_USE_CASES.md</a>. These are <strong>not</strong> Edge Delta&rsquo;s 10 AI Team jobs.</p>
+      <div class="uc-grid" id="ucGrid"></div>
+    </section>
+
+    <section id="panel-pipeline" class="panel" role="tabpanel" aria-labelledby="tab-btn-pipeline" hidden>
+      <div class="uc-selector">
+        <span class="uc-selector-label">Trace a use case</span>
+        <div class="uc-pills" id="ucPills"></div>
+      </div>
+      <p class="uc-active-desc" id="ucActiveDesc"></p>
+      <p class="uc-note">P1 (E1–E5) is the same job for every use case — <a href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md#4-stage-by-stage-design--e1e5-p1-always-on-fabric">map chapter &sect;4</a>. P2/P3 (E6–E11) change by use case — <a href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md#5-stage-by-stage-design--e6e11-p2-case-opens-p3-diagnose-and-close">&sect;5</a>. What each step is <em>for</em> still follows the Pipeline HLD.</p>
+
+      <details class="legend">
+        <summary>Evidence-maturity legend &amp; vocabulary invariants</summary>
+        <div class="legend-body">
+          <div class="legend-row"><span class="maturity-pill grounded">Grounded</span> vendor/lab-confirmed</div>
+          <div class="legend-row"><span class="maturity-pill local">Local&#8209;only</span> observed in our lab only</div>
+          <div class="legend-row"><span class="maturity-pill design">Design&#8209;level</span> specified, not lab-tested</div>
+          <div class="legend-row"><span class="maturity-pill planned">Planned</span> backlog</div>
+          <div class="invariant"><b>&ldquo;Ingest&rdquo;</b> is a phase (P1, five stages), not one stage &mdash; they sit at different readiness independently.</div>
+          <div class="invariant"><b>&ldquo;Normalize&rdquo;</b> is E2 Identity, early in P1 &mdash; not the same as E10 Identify, late in P3.</div>
+          <div class="invariant"><b>&ldquo;Verify&rdquo;</b> has no dedicated stage &mdash; it's the confidence judgment made inside E10 and locked at E11.</div>
+        </div>
+      </details>
+
+      <details class="legend">
+        <summary>9 decisions resolved 2026-08-17 (referenced inline on cards below as &ldquo;decision #N&rdquo;)</summary>
+        <div class="legend-body decisions-body">
+          <ol class="decisions-list">
+            <li><b>Metric names</b> &mdash; placeholder, not canonical. Reconcile against a real KPI catalog before LLD.</li>
+            <li><b>Units &amp; thresholds</b> &mdash; deferred with #1; still blocks LLD-E6.</li>
+            <li><b>Edge evidence_type capping confidence</b> &mdash; deferred, no commitment yet. Revisit once E9/E10 have production runs.</li>
+            <li><b>Declared-edge staleness</b> &mdash; 7 days soft-stale, 30 days hard-downgrade, resets on CMDB re-sync.</li>
+            <li><b>WorkingSet caps</b> &mdash; per-Detect-class hop-depth &amp; candidate cap set (see E8 cards); <code>capped</code> flag prevents silent truncation.</li>
+            <li><b>Cross-class escalation</b> &mdash; annotate, don't reclassify. E9's leaf rule stays authoritative for the case.</li>
+            <li><b>Fault-signature schema</b> &mdash; per-CI nested <code>rca.fault_signatures[]</code> is canonical; flat array becomes a derived view.</li>
+            <li><b>Writer / top-talker attribution</b> (UC-7, UC-8) &mdash; deferred to a later use-case round; v1 ships at coarser granularity.</li>
+            <li><b>Operator feedback loop</b> &mdash; designed now (not just noted): per-edge trust score off VerdictCard confirm/reject, min. 3 samples, authoritative edges route to signature review instead of downgrade.</li>
+          </ol>
+        </div>
+      </details>
+
+      <div class="phase" data-phase="P1">
+        <div class="phase-head">
+          <span class="phase-tag">P1</span>
+          <div>
+            <h2>Always&#8209;on fabric</h2>
+            <p>Continuous, runs before any fault is known. Signal&#8209;differentiated, not fault&#8209;differentiated &mdash; one contract per stage, identical across all 8 use cases.</p>
+          </div>
+        </div>
+        <div class="stage-scroll"><div class="stage-row" id="rowP1"></div></div>
+      </div>
+
+      <div class="phase" data-phase="P2">
+        <div class="phase-head">
+          <span class="phase-tag">P2</span>
+          <div>
+            <h2>Case opens</h2>
+            <p>Episodic, triggered by a Signal. From here every stage is fault&#8209;differentiated &mdash; pick a use case above to trace it.</p>
+          </div>
+        </div>
+        <div class="stage-scroll"><div class="stage-row" id="rowP2"></div></div>
+      </div>
+
+      <div class="phase" data-phase="P3">
+        <div class="phase-head">
+          <span class="phase-tag">P3</span>
+          <div>
+            <h2>Diagnose &amp; close</h2>
+            <p>Working set locked. Localize picks a leaf, Identify corroborates it (no&#8209;false&#8209;blame gate), Package renders the verdict.</p>
+          </div>
+        </div>
+        <div class="stage-scroll"><div class="stage-row" id="rowP3"></div></div>
+      </div>
+
+      <footer class="credits">
+        <span>Source: operational-graph chapter of the Pipeline HLD</span>
+        <span>&middot;</span>
+        <span>What each step is for follows the Pipeline HLD</span>
+      </footer>
+    </section>
+
+    <section id="panel-graph" class="panel" role="tabpanel" aria-labelledby="tab-btn-graph" hidden>
+      <p class="graph-intro">Every verdict this pipeline produces is only as good as the map it reasoned over. That map is the <strong>operational graph</strong> &mdash; a living picture of every server, service, database, switch and disk in an estate, and how they depend on each other. This tab is the plain-language walk of the <a href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md#3-the-operational-graph--the-moat">map chapter &sect;3</a>. The <code>technical term</code> on each card is what you&rsquo;ll see on the Pipeline &amp; Graph tab and in that chapter.</p>
+
+      <nav class="subtabs" role="tablist" aria-label="Graph guide sections">
+        <button type="button" role="tab" id="subtab-btn-overview" class="subtab-btn active" aria-selected="true" aria-controls="subpanel-overview">Overview</button>
+        <button type="button" role="tab" id="subtab-btn-reference" class="subtab-btn" aria-selected="false" aria-controls="subpanel-reference">Schema Reference</button>
+        <button type="button" role="tab" id="subtab-btn-gaps" class="subtab-btn" aria-selected="false" aria-controls="subpanel-gaps">Gaps &amp; Recommendations</button>
+      </nav>
+
+      <div id="subpanel-overview" class="subpanel">
+      <div class="graph-section">
+        <h2>The short version</h2>
+        <p>Most monitoring tools can show you a topology map. The difference here: every line on our map comes with a receipt &mdash; where we got it, how sure we are, and when we last checked. A map without receipts is just a guess with good graphics.</p>
+      </div>
+
+      <div class="graph-section">
+        <h2>How sure are we about a connection?</h2>
+        <p>Every relationship on the map (&ldquo;this app runs on this server,&rdquo; &ldquo;this server talks to that database&rdquo;) is tagged with one of three confidence tiers &mdash; not a single trust score, but three genuinely different kinds of evidence:</p>
+        <ol class="evidence-ladder">
+          <li class="tier tier-1">
+            <div class="tier-head"><span class="tier-num">1</span><h3>We asked the source directly</h3><span class="term-chip">authoritative</span></div>
+            <p>The strongest kind. Example: we asked the hypervisor which virtual machines are running on it, right now. As solid as evidence gets.</p>
+          </li>
+          <li class="tier tier-2">
+            <div class="tier-head"><span class="tier-num">2</span><h3>Someone told us, and we never checked</h3><span class="term-chip">declared</span></div>
+            <p>Example: a CMDB record says this server belongs to that cluster. Could be true. Could be two reorganizations out of date &mdash; nothing is watching it to find out.</p>
+          </li>
+          <li class="tier tier-3">
+            <div class="tier-head"><span class="tier-num">3</span><h3>We inferred it from watching behavior</h3><span class="term-chip">corroborating</span></div>
+            <p>Example: this app keeps talking to that database over the network, so we infer a dependency. Genuinely useful &mdash; but it's a pattern, not a fact.</p>
+          </li>
+        </ol>
+        <p class="graph-note">A verdict is only as strong as the weakest tier it had to walk through to reach its answer. Whether that formally caps the confidence score shown to an operator is still an open decision (see the HLD's decision log, #3).</p>
+      </div>
+
+      <div class="graph-section">
+        <h2>What's actually in the map</h2>
+        <div class="graph-cards">
+          <article class="graph-card">
+            <div class="graph-card-head"><span class="gcard-num">1</span><h3>What's on the map</h3></div>
+            <p>Every server, database, switch, filesystem or service we monitor is a node on the map &mdash; we call it a <strong>CI</strong> (Configuration Item).</p>
+            <p class="graph-example">A single Linux server is one node. But &ldquo;disk usage&rdquo; isn't one thing on it &mdash; there might be five mount points, each needing its own reading. Nodes are also honest about what they <em>don't</em> emit: a network switch will never produce request traces, and the map says so explicitly rather than leaving it blank and ambiguous.</p>
+            <div class="term-row"><span class="term-chip">ci_id</span><span class="term-chip">ci_type</span><span class="term-chip">tier</span><span class="term-chip">instance_scope</span></div>
+          </article>
+
+          <article class="graph-card accent">
+            <div class="graph-card-head"><span class="gcard-num">2</span><h3>How nodes connect &mdash; the moat</h3></div>
+            <p>A line between two nodes, plus <em>why we believe it's there</em> &mdash; which of the three confidence tiers above, from which signal, resolved which way.</p>
+            <p class="graph-example"><code>app-runtime-jvm</code> <strong>runs on</strong> <code>linux-server</code> &mdash; authoritative, read straight from the process/cgroup inventory.</p>
+            <div class="term-row"><span class="term-chip">discovered_via</span><span class="term-chip">evidence_type</span><span class="term-chip">confidence</span><span class="term-chip">refresh</span></div>
+          </article>
+
+          <article class="graph-card">
+            <div class="graph-card-head"><span class="gcard-num">3</span><h3>Matching data to the right node</h3></div>
+            <p>When a data point arrives, how do we know which node it belongs to? Ordered rules try to match it &mdash; if nothing matches confidently, it goes to an <strong>unresolved</strong> pile instead of being guessed at.</p>
+            <p class="graph-example">A CPU reading tagged <code>host.name: web-03</code> resolves in one step. A disk-latency reading also needs to know <em>which disk</em> &mdash; a two-step match, host first, then instance.</p>
+            <div class="term-row"><span class="term-chip">match_rules</span><span class="term-chip">identity.status</span></div>
+          </article>
+
+          <article class="graph-card">
+            <div class="graph-card-head"><span class="gcard-num">4</span><h3>The lookup table that makes it fast</h3></div>
+            <p>A flat table mapping &ldquo;this metric name&rdquo; straight to &ldquo;this kind of node, resolved this way&rdquo; &mdash; so matching a data point is one lookup, not a search through every node on the map.</p>
+            <p class="graph-example">228 entries in the reference graph. <code>system.cpu.utilization</code> resolves in one hop; <code>system.disk.io.latency</code> needs its parent host resolved first.</p>
+            <div class="term-row"><span class="term-chip">telemetry_key_index</span></div>
+          </article>
+
+          <article class="graph-card">
+            <div class="graph-card-head"><span class="gcard-num">5</span><h3>Finding edges without a human typing them in</h3></div>
+            <p>How do we know two things are related in the first place? We check several sources &mdash; routing tables, network discovery protocols, trace data &mdash; ranked by trust, and take the best one available.</p>
+            <p class="graph-example">To learn a web server runs on a given host: top-ranked method is the OS's own process/cgroup inventory; a lower-ranked fallback is checking which port is listening.</p>
+            <div class="term-row"><span class="term-chip">root_relationship_derivation</span></div>
+          </article>
+
+          <article class="graph-card">
+            <div class="graph-card-head"><span class="gcard-num">6</span><h3>The playbook per node</h3></div>
+            <p>For each node: a pre-built playbook &mdash; if you see this symptom, look upstream at these candidates, and expect these other things to also be affected. This is what turns &ldquo;we found a leaf&rdquo; into an actual diagnosis.</p>
+            <p class="graph-example">125 pre-named signatures in the reference graph, from <code>CPU ready / co-stop</code> to <code>error-budget exhaustion</code> &mdash; spanning infrastructure up through the business service.</p>
+            <div class="term-row"><span class="term-chip">fault_signatures</span><span class="term-chip">correlate_upstream</span><span class="term-chip">blast_radius_downstream</span></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="graph-section">
+        <h2>Two arrows you'll see everywhere</h2>
+        <div class="direction-demo">
+          <div class="direction-row"><span class="direction-arrow">&#9650;</span><div><strong>Upstream &mdash; look here for the cause.</strong> Walk toward the entities this one depends on.</div></div>
+          <div class="direction-row"><span class="direction-arrow">&#9660;</span><div><strong>Downstream &mdash; look here for who's affected.</strong> Walk toward the entities that depend on this one.</div></div>
+        </div>
+      </div>
+
+      <div class="graph-section">
+        <h2>A worked example</h2>
+        <p>From the HLD's own walkthrough (Resource Contention, UC-3): an application is slow. Its own server looks completely healthy. The graph is the only way to find the real cause.</p>
+        <div class="worked-chain">
+          <div class="worked-node symptom">JVM<span>slow</span></div>
+          <div class="worked-edge"><span class="we-label">runs_on</span><span class="we-tier a">authoritative</span>&rarr;</div>
+          <div class="worked-node">Linux server<span>looks normal</span></div>
+          <div class="worked-edge"><span class="we-label">runs_on</span><span class="we-tier a">authoritative</span>&rarr;</div>
+          <div class="worked-node">VM<span>cpu.ready high</span></div>
+          <div class="worked-edge"><span class="we-label">hosted_on</span><span class="we-tier a">authoritative</span>&rarr;</div>
+          <div class="worked-node cause">ESXi host<span>contended &mdash; root cause</span></div>
+        </div>
+        <p class="graph-note">The guest's own CPU metrics looked fine &mdash; it can't see that it's being starved for physical cores. Only by walking <em>upstream</em> through two authoritative edges does the graph reach the real cause: a noisy neighbor saturating the physical host underneath.</p>
+      </div>
+      </div>
+
+      <div id="subpanel-reference" class="subpanel" hidden>
+        <p class="uc-note">Everything on this tab is read directly out of <code>schema_version 1.0</code> in <code>linux-server-ci-telemetry 2.json</code>, cross-checked against the <em>ObserveOps HLD</em> prose. Where the JSON ships a field empty (signal-class descriptions, metric units, <code>primary_health_signal</code>, telemetry-key examples) the definition below is synthesized from the HLD narrative and domain convention, not copied from the file &mdash; see the <strong>Gaps &amp; Recommendations</strong> tab, item 1, for the full list of what's blank.</p>
+
+        <div class="graph-section">
+          <h2>A. Signal classes &mdash; the 13 kinds of telemetry a CI can emit</h2>
+          <p>Every node in <code>ci_telemetry[]</code> carries all 13 classes, each marked <code>applicable: true|false</code> &mdash; and when <code>false</code>, a stated reason. This is a deliberate superset of MELT (Metrics/Events/Logs/Traces): it also covers config/topology, change, code-level profiles, security posture, real-user sessions and physical sensors, because a real RCA pipeline needs all of those to localize and corroborate a fault, not just the four classic pillars.</p>
+          <div class="ref-grid">
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>1. Availability</h3><span class="term-chip">availability</span></div>
+              <p>Is this CI up, down, unreachable or degraded &mdash; the binary/tri-state gate. Down flips every dependent to &ldquo;presumed unreachable.&rdquo;</p>
+              <div class="dual-example">
+                <div><b>Linux</b><code>linux-server.up</code>, polled 30s from <code>/proc</code> &amp; <code>/sys</code> &mdash; 1=up, 0=down.</div>
+                <div><b>K8s</b>Pod <code>status.phase</code> / <code>Ready</code> condition, rolled up as <code>kube_pod_status_phase</code>.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>2. Performance</h3><span class="term-chip">performance</span></div>
+              <p>The four golden signals &mdash; latency, traffic, errors, saturation &mdash; as continuous time-series metrics.</p>
+              <div class="dual-example">
+                <div><b>Linux</b><code>system.cpu.utilization</code>, <code>system.disk.io.latency</code> via node_exporter/agent.</div>
+                <div><b>K8s</b><code>container_cpu_usage_seconds_total</code>, <code>container_memory_working_set_bytes</code> via cAdvisor.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>3. Logs</h3><span class="term-chip">logs</span></div>
+              <p>Unstructured/semi-structured text, mined with regex <code>key_patterns</code> each tagged to a named failure mode.</p>
+              <div class="dual-example">
+                <div><b>Linux</b>journald line <code>Out of memory: Killed process</code> &rarr; <code>event_type: oom_kill</code>.</div>
+                <div><b>K8s</b>container stdout via Fluent Bit; terminated-state reason <code>OOMKilled</code> on the container status.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>4. Traces</h3><span class="term-chip">traces</span></div>
+              <p>Distributed spans showing one request's hop-by-hop path across services, with parent/child timing.</p>
+              <div class="dual-example">
+                <div><b>Linux</b><span class="na">not applicable to the OS/host CI itself</span> &mdash; applies to the JVM/app running on it.</div>
+                <div><b>K8s</b>OTel span via Envoy sidecar: <code>service.name: checkout</code> &rarr; <code>peer.service: payments</code>.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>5. Flows/Packets</h3><span class="term-chip">flows_packets</span></div>
+              <p>Network flow records &mdash; who talked to whom, how much, and whether packets dropped or retransmitted.</p>
+              <div class="dual-example">
+                <div><b>Linux</b><code>conntrack</code> 5-tuple entries on the host.</div>
+                <div><b>K8s</b>Cilium Hubble / CNI flow between two pod IPs, identity-resolved on both ends.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>6. Events</h3><span class="term-chip">events</span></div>
+              <p>Discrete, timestamped state-change notifications &mdash; distinct from continuous metrics or free-text logs.</p>
+              <div class="dual-example">
+                <div><b>Linux</b><code>systemd</code> &ldquo;unit entered failed state&rdquo; journal event, keyed by <code>systemd.unit</code>.</div>
+                <div><b>K8s</b>Kubernetes <code>Event</code> object: <code>Warning BackOff</code> restarting failed container.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>7. Synthetic</h3><span class="term-chip">synthetic</span></div>
+              <p>Active, scripted probes that check a CI from outside on a schedule, instead of waiting for real traffic to reveal a fault.</p>
+              <div class="dual-example">
+                <div><b>Linux</b><span class="na">not applicable to the host itself</span> &mdash; applies to <code>nginx-web-server</code> as an HTTP check.</div>
+                <div><b>K8s</b>synthetic GET against an Ingress endpoint, or a <code>livenessProbe</code>/<code>readinessProbe</code> result.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>8. Config/Topology</h3><span class="term-chip">config_topology</span></div>
+              <p>Discovery and inventory data used to find relationships &mdash; the raw material E3 turns into typed edges.</p>
+              <div class="dual-example">
+                <div><b>Linux</b>LLDP neighbor table: <code>lldpRemSysName</code>, <code>lldpRemPortId</code>.</div>
+                <div><b>K8s</b>kube-state-metrics ownership refs: <code>kube_pod_owner{owner_kind="ReplicaSet"}</code>.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>9. Change/Deployment</h3><span class="term-chip">change_deployment</span></div>
+              <p>What changed on this CI and when &mdash; packages, config, kernel, orchestrated runs &mdash; so RCA can ask &ldquo;what changed right before this broke.&rdquo; See <a href="#ref-correlation">the <code>correlation</code> field</a> below.</p>
+              <div class="dual-example">
+                <div><b>Linux</b><code>dnf/yum history</code> package transaction, config-mgmt (Ansible) run.</div>
+                <div><b>K8s</b>Deployment rollout / new image digest applied; ArgoCD sync event.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>10. Profiles</h3><span class="term-chip">profiles</span></div>
+              <p>Continuous/eBPF code-level profiling &mdash; which function is actually burning the resource, one level below a metric.</p>
+              <div class="dual-example">
+                <div><b>Linux</b><code>parca-agent</code>/<code>perf record</code> on-CPU stack sample.</div>
+                <div><b>K8s</b>same eBPF profiler as a DaemonSet, profiles keyed by <code>pod</code>/<code>container</code> instead of bare host.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>11. Security/Posture</h3><span class="term-chip">security_posture</span></div>
+              <p>Vulnerability, patch, hardening and detection state &mdash; risk context that can itself be the root cause.</p>
+              <div class="dual-example">
+                <div><b>Linux</b>CVE scanner result against installed host packages.</div>
+                <div><b>K8s</b>image vuln scan (Trivy) against the pod's image; Pod Security admission posture.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>12. RUM</h3><span class="term-chip">rum</span></div>
+              <p>Real User Monitoring &mdash; actual end-user browser/mobile session telemetry. Only applicable to user-facing CIs.</p>
+              <div class="dual-example">
+                <div><b>Linux</b><span class="na">not applicable</span> &mdash; a bare OS host is never user-facing.</div>
+                <div><b>K8s</b><span class="na">not applicable to a backend pod</span> &mdash; applies to a frontend Service/Ingress browsers hit directly.</div>
+              </div>
+            </article>
+            <article class="ref-card">
+              <div class="ref-card-head"><h3>13. Hardware/Sensors</h3><span class="term-chip">hardware_sensors</span></div>
+              <p>Physical sensor telemetry &mdash; temperature, fan, PSU, voltage. Belongs to physical hardware, never to a virtual/OS CI.</p>
+              <div class="dual-example">
+                <div><b>Linux</b><span class="na">not applicable</span> &mdash; <code>linux-server</code> is a VM/OS layer; sensors belong to <code>esxi-host</code>.</div>
+                <div><b>K8s</b><span class="na">not applicable to any K8s object</span> &mdash; belongs to the bare-metal node, read via IPMI/Redfish.</div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="graph-section">
+          <h2>B. Identity model &mdash; one CI, or nothing</h2>
+          <p>Schema principle, verbatim: <em>&ldquo;Resolve every telemetry payload to exactly one CI via ordered <code>match_rules</code>; instance keys require their host (<code>scope_parent</code>) to resolve first.&rdquo;</em></p>
+          <p><strong>Why exactly one CI per payload, never zero, never many:</strong> <code>ci_id</code> is the join key every later stage relies on without re-deriving it. E4 Stores federates metrics/logs/traces into separate planes joined only by <code>ci_id</code>. E3's edges resolve both endpoints through <code>ci_id</code>. E9's upstream/downstream graph walk and E11's blast-radius rendering both key off it. If a payload could silently bind to zero or several CIs, every one of those downstream joins becomes ambiguous &mdash; a metric could attach to the wrong host, an edge could point nowhere, a verdict could blame the wrong entity. That's why the <code>ambiguity_policy</code> is absolute: <em>&ldquo;if &gt;1 CI matches or none does, emit to unresolved bucket keyed by raw attributes; never silently mis-attach.&rdquo;</em> A wrong guess is worse than an admitted gap.</p>
+          <p>Scope levels &mdash; the granularity a match rule resolves to:</p>
+          <div class="term-row">
+            <span class="term-chip">host</span><span class="term-chip">interface</span><span class="term-chip">filesystem</span>
+            <span class="term-chip">disk</span><span class="term-chip">cpu</span><span class="term-chip">process</span>
+            <span class="term-chip">service</span><span class="term-chip">instance</span><span class="term-chip">endpoint</span>
+          </div>
+          <p class="graph-note">Most keys (188 of 228 in the reference index) resolve at <code>host</code> scope in one lookup. The rest resolve at a finer scope and need their host resolved first (<code>scope_parent</code>): a disk-latency reading is scope <code>filesystem</code>/<code>disk</code>, but it can't bind until <code>host.name</code> binds. Skip that ordering and an instance metric silently flattens onto the host as if it were host-scoped &mdash; the exact failure mode use cases 6 and 7 (disk latency, disk usage) cannot tolerate.</p>
+          <p>Mapped onto a Kubernetes tenant, the same nine levels still apply &mdash; just populated by different telemetry:</p>
+          <dl class="mapping-table">
+            <div class="mapping-row"><dt>host &rarr; node</dt><dd>Linux: <code>host.name</code> on <code>linux-server</code>. K8s: <code>k8s.node.name</code> on the Node object &mdash; the top-level scope_parent for everything scheduled onto it.</dd></div>
+            <div class="mapping-row"><dt>instance</dt><dd>Linux: a JVM instance, a cert serial, a mountpoint &mdash; one of several per host. K8s: one Pod/replica of a Deployment, keyed by <code>k8s.pod.name</code> + <code>k8s.namespace.name</code>, parent-resolved via <code>k8s.node.name</code> first.</dd></div>
+            <div class="mapping-row"><dt>filesystem / disk</dt><dd>Linux: a mount point (<code>fs.mountpoint</code>) or block device. K8s: a PersistentVolumeClaim mounted into a pod, backed by a PersistentVolume.</dd></div>
+            <div class="mapping-row"><dt>process / cpu</dt><dd>Linux: a PID, a CPU core. K8s: a container's process inside its PID namespace; its cgroup CPU share.</dd></div>
+            <div class="mapping-row"><dt>service / endpoint</dt><dd>Linux: a logical service spanning hosts, or an IP:port. K8s: a <code>Service</code> object (ClusterIP/DNS name) or an Ingress endpoint.</dd></div>
+          </dl>
+        </div>
+
+        <div class="graph-section">
+          <h2>C. Relationship telemetry &mdash; the rulebook that builds edges</h2>
+          <p><code>relationship_telemetry[]</code> is not the graph itself &mdash; it's the generic, CI-taxonomy-agnostic <em>rulebook</em> E3 Topology runs against the identified telemetry stream to actually produce typed edges. For each of the 15 edge types it names the exact telemetry source, the signal fields matched, how direction is inferred, and what evidence tier the resulting edge gets. This is what turns a raw stream of metrics/logs/flows into <code>app-runtime-jvm -[runs_on]-&gt; linux-server</code> with a receipt attached, rather than a hand-drawn diagram.</p>
+          <div class="ref-grid">
+            <article class="ref-card"><div class="ref-card-head"><h3>runs_on</h3><span class="term-chip">software &rarr; host</span></div><p>A workload executes on a host.</p><div class="dual-example"><div><b>Linux</b><code>nginx-web-server -[runs_on]-&gt; linux-server</code>, via <code>ps</code>/cgroup.</div><div><b>K8s</b><code>pod -[runs_on]-&gt; node</code>, via kubelet's <code>.spec.nodeName</code>.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>hosted_on</h3><span class="term-chip">vm &rarr; hypervisor</span></div><p>A virtual guest runs on a physical hypervisor.</p><div class="dual-example"><div><b>Linux</b><code>linux-vm -[hosted_on]-&gt; esxi-host</code>, via vCenter API.</div><div><b>K8s</b><code>node -[hosted_on]-&gt; ec2-instance</code>, if nodes are cloud VMs.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>member_of</h3><span class="term-chip">member &rarr; group</span></div><p>Declared grouping/cluster membership.</p><div class="dual-example"><div><b>Linux</b><code>esxi-host -[member_of]-&gt; vsphere-cluster</code> (declared, n/a confidence).</div><div><b>K8s</b><code>node -[member_of]-&gt; k8s-cluster</code>, or <code>pod -[member_of]-&gt; replicaset</code>.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>part_of</h3><span class="term-chip">child &rarr; parent</span></div><p>Structural containment, not co-location.</p><div class="dual-example"><div><b>Linux</b><code>local-filesystem -[part_of]-&gt; linux-server</code>, via mount table.</div><div><b>K8s</b><code>container -[part_of]-&gt; pod</code>, <code>pod -[part_of]-&gt; namespace</code>.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>depends_on</h3><span class="term-chip">caller &rarr; callee</span></div><p>A functional/service-level dependency, inferred from traces or socket peers.</p><div class="dual-example"><div><b>Linux</b><code>linux-server -[depends_on]-&gt; dns-service</code>, via resolver config + query log.</div><div><b>K8s</b><code>checkout-svc -[depends_on]-&gt; payments-svc</code>, via span <code>peer.service</code>.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>uses</h3><span class="term-chip">consumer &rarr; provider</span></div><p>Similar to <code>depends_on</code>, config- or trace-inferred consumption.</p><div class="dual-example"><div><b>Linux</b><code>linux-server -[uses]-&gt; package-repo</code>, via package-manager config.</div><div><b>K8s</b><code>pod -[uses]-&gt; configmap/secret</code>, mounted into the container spec.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>mounts</h3><span class="term-chip">host &rarr; storage</span></div><p>A host attaches a remote or block storage volume.</p><div class="dual-example"><div><b>Linux</b><code>linux-server -[mounts]-&gt; nfs-share</code>, via <code>/proc/mounts</code>.</div><div><b>K8s</b><code>pod -[mounts]-&gt; persistentvolumeclaim</code>.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>connects_to</h3><span class="term-chip">local port &rarr; remote chassis</span></div><p>Direct L2 physical/adjacent link.</p><div class="dual-example"><div><b>Linux</b><code>linux-server -[connects_to]-&gt; access-switch</code>, via LLDP/CDP.</div><div><b>K8s</b><code>node -[connects_to]-&gt; top-of-rack-switch</code> &mdash; same LLDP, node is the host.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>routes_through</h3><span class="term-chip">host &rarr; L3 device</span></div><p>An L3 path device the host's traffic transits.</p><div class="dual-example"><div><b>Linux</b><code>linux-server -[routes_through]-&gt; firewall</code>, via routing table.</div><div><b>K8s</b><code>pod -[routes_through]-&gt; egress-gateway/NAT-gateway</code>.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>communicates_with</h3><span class="term-chip">initiator &harr; target</span></div><p>An observed network flow between two endpoints.</p><div class="dual-example"><div><b>Linux</b><code>linux-server &harr; backup-server</code>, via flow/conntrack.</div><div><b>K8s</b><code>pod-a &harr; pod-b</code>, via CNI flow / mesh sidecar.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>authenticates_via</h3><span class="term-chip">client &rarr; idp</span></div><p>An identity/auth dependency.</p><div class="dual-example"><div><b>Linux</b><code>linux-server -[authenticates_via]-&gt; ldap-ad</code>, via sssd/krb5 config.</div><div><b>K8s</b><code>apiserver -[authenticates_via]-&gt; oidc-provider</code>.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>monitored_by</h3><span class="term-chip">ci &rarr; collector</span></div><p>Which collector observes this CI &mdash; the edge use case 5 exists for.</p><div class="dual-example"><div><b>Linux</b><code>linux-server -[monitored_by]-&gt; monitoring-collector</code>.</div><div><b>K8s</b><code>pod -[monitored_by]-&gt; otel-collector-daemonset</code>.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>backed_up_by / backs</h3><span class="term-chip">client &harr; backup-system</span></div><p>Inverse-direction pair describing a backup relationship.</p><div class="dual-example"><div><b>Linux</b><code>linux-server -[backed_up_by]-&gt; backup-server</code>.</div><div><b>K8s</b><code>pvc -[backed_up_by]-&gt; velero-backup-target</code>.</div></div></article>
+            <article class="ref-card"><div class="ref-card-head"><h3>clustered_with</h3><span class="term-chip">peer &harr; peer</span></div><p>Symmetric HA/cluster peer relationship.</p><div class="dual-example"><div><b>Linux</b><code>linux-server &harr; linux-server-peer</code>, via corosync/VRRP.</div><div><b>K8s</b><code>pod &harr; pod</code> in a StatefulSet, via headless-service peer discovery.</div></div></article>
+          </div>
+        </div>
+
+        <div class="graph-section">
+          <h2>D. Which edge types the current 8 use cases actually walk</h2>
+          <p>The schema defines 15 edge types, but the initial ObserveOps use-case catalog only exercises 11 of them (per the HLD's E7&ndash;E10 tables). This is what &ldquo;scoped&rdquo; means in your pipeline today: an edge type not listed below is fully supported by the schema but has no use case walking it yet.</p>
+          <div class="uc-edge-list">
+            <div class="uc-edge-row"><div class="uc-edge-row-head"><span class="uc-id">UC-1/2</span><h3>Error rate &amp; Slowdown &mdash; call-chain walk</h3></div>
+              <div class="term-row"><span class="term-chip">depends_on</span><span class="term-chip">uses</span><span class="term-chip">communicates_with</span><span class="term-chip">runs_on</span></div>
+              <p>Descend the call chain to the deepest still-symptomatic leaf; slowdown adds one upstream <code>runs_on</code> hop to check the hosting tier.</p>
+            </div>
+            <div class="uc-edge-row"><div class="uc-edge-row-head"><span class="uc-id">UC-3</span><h3>Resource contention &mdash; noisy-neighbor path</h3></div>
+              <div class="term-row"><span class="term-chip">runs_on</span><span class="term-chip">hosted_on</span><span class="term-chip">member_of</span></div>
+              <p>Ascend from the symptomatic workload through its host to the hypervisor/cluster; descend back down to find every co-tenant.</p>
+            </div>
+            <div class="uc-edge-row"><div class="uc-edge-row-head"><span class="uc-id">UC-4</span><h3>Availability &mdash; caller closure</h3></div>
+              <div class="term-row"><span class="term-chip">depends_on</span><span class="term-chip">uses</span><span class="term-chip">communicates_with</span></div>
+              <p>Whichever edge type connects a caller to the down entity, walked inbound and ordered by <code>first_down_ts</code>; <code>redundancy</code> metadata explains survivors.</p>
+            </div>
+            <div class="uc-edge-row"><div class="uc-edge-row-head"><span class="uc-id">UC-5</span><h3>Monitoring unavailable &mdash; the edge that exists for this case</h3></div>
+              <div class="term-row"><span class="term-chip">monitored_by</span><span class="term-chip">connects_to</span><span class="term-chip">routes_through</span></div>
+              <p><code>monitored_by</code> fan-out from the collector is the merge key; <code>connects_to</code>/<code>routes_through</code> separate &ldquo;collector broken&rdquo; from &ldquo;network partition.&rdquo;</p>
+            </div>
+            <div class="uc-edge-row"><div class="uc-edge-row-head"><span class="uc-id">UC-6</span><h3>Disk latency &mdash; storage chain</h3></div>
+              <div class="term-row"><span class="term-chip">mounts</span><span class="term-chip">depends_on</span><span class="term-chip">connects_to</span></div>
+              <p>host &rarr; datastore &rarr; array &rarr; fabric switch, comparing latency tier by tier to find where it originates.</p>
+            </div>
+            <div class="uc-edge-row"><div class="uc-edge-row-head"><span class="uc-id">UC-7</span><h3>Disk usage &mdash; filesystem instance</h3></div>
+              <div class="term-row"><span class="term-chip">part_of</span><span class="term-chip">depends_on</span></div>
+              <p><code>part_of</code> names the host for context; <code>depends_on</code> reaches the backing datastore. Leaf is the mountpoint, not the host.</p>
+            </div>
+            <div class="uc-edge-row"><div class="uc-edge-row-head"><span class="uc-id">UC-8</span><h3>Network throughput &mdash; the link</h3></div>
+              <div class="term-row"><span class="term-chip">connects_to</span></div>
+              <p>Host NIC &rarr; switch port chain; peer talkers resolved through <code>flows_packets</code> telemetry (a signal class, not an edge type) via the telemetry key index.</p>
+            </div>
+          </div>
+          <div class="unscoped-note"><strong>Not yet scoped by any of the 8 use cases:</strong> <code>authenticates_via</code>, <code>backed_up_by</code>, <code>backs</code>, <code>clustered_with</code>. The schema already supports auth-outage, backup-failure and HA-failover RCA &mdash; the use-case catalog just hasn't caught up. Worth planning for if those failure modes matter to your operators.</div>
+        </div>
+
+        <div class="graph-section">
+          <h2>E. Root CI &amp; root-relationship derivation</h2>
+          <p><strong>Root CI</strong> is simply the CI the worked example is anchored on &mdash; here, <code>linux-server</code>. <code>root_relationship_derivation</code> is written from that CI's own vantage point: for every other CI in the estate, direct (hop 1) or indirect (hop 2&ndash;3), it lists a <em>ranked</em> set of derivation methods &mdash; exact command/source, field, confidence, evidence type, rank &mdash; that tells E3 exactly how to discover that relationship by looking <em>at or from the root CI itself</em>, with no CMDB required. Indirect entries additionally carry a <code>derivation_path</code>: the literal hop-by-hop chain, so a multi-hop relationship doesn't need to be recomputed once found.</p>
+          <p>This differs from <code>relationship_telemetry</code> above: that's the generic rulebook for every edge type in the abstract; <code>root_relationship_derivation</code> is that rulebook <em>applied</em>, empirically, to one specific root CI, with real ranked commands (<code>ss -tanp</code>, <code>ip route</code>, <code>lldpctl</code>, <code>iscsiadm -m session</code>) rather than field names.</p>
+          <div class="dual-example">
+            <div><b>Linux</b>Hop 1 downstream: <code>app-runtime-jvm</code> via <code>runs_on</code>, rank 1 = process/cgroup inventory (<code>ps</code>, <code>systemd-cgls</code>). Hop 2 indirect: <code>app-hosting-svc</code>, path <code>linux-server &rarr; app-runtime-jvm &rarr; app-hosting-svc</code>.</div>
+            <div><b>K8s</b>Hop 1 upstream from a Pod: <code>k8s-node</code> via <code>runs_on</code>, rank 1 = kubelet's <code>.spec.nodeName</code>. Hop 2 indirect: <code>k8s-cluster</code>, path <code>pod &rarr; node &rarr; cluster</code> via <code>member_of</code> &mdash; the direct K8s analogue of <code>linux-vm &rarr; esxi-host &rarr; vsphere-cluster</code>.</div>
+          </div>
+        </div>
+
+        <div class="graph-section">
+          <h2>F. <code>ci_telemetry</code> &mdash; yes, it's the full composite object per CI</h2>
+          <p>Each entry in <code>ci_telemetry[]</code> is everything the pipeline needs to know about one CI, in one place:</p>
+          <div class="code-block">ci_id, ci_name, ci_type, ci_class, tier, instance_scope, monitored_via, kpi_catalog_ref
+identity:  { match_rules[] }
+telemetry: { availability, performance, logs, traces, flows_packets, events,
+             synthetic, config_topology, change_deployment, profiles,
+             security_posture, rum, hardware_sensors }
+rca:       { is_root_cause_candidate, blast_radius_impact, primary_health_signal, fault_signatures[] }</div>
+          <p>Three sub-objects, three jobs: <strong>identity</strong> answers &ldquo;how do I bind an arriving payload to this CI.&rdquo; <strong>telemetry</strong> answers &ldquo;what does this CI emit, on which of the 13 signal classes, and how do I read it&rdquo; &mdash; this is where the golden signals, log patterns and change sources from section A actually live, per CI. <strong>rca</strong> answers &ldquo;when something's wrong here, what do I do about it&rdquo; &mdash; the fault-signature playbook. One node = identify it, read it, diagnose it.</p>
+          <div class="dual-example">
+            <div><b>Linux</b><code>ci_telemetry[0]</code> = <code>linux-server</code>: identity keyed on <code>host.name</code>; <code>telemetry.performance.key_metrics</code> = <code>system.cpu.utilization</code>&hellip;; <code>rca.fault_signatures</code> = OOM-kill, CPU saturation, etc.</div>
+            <div><b>K8s</b>A hypothetical <code>k8s-pod</code> entry: identity keyed on <code>k8s.pod.name</code>+<code>k8s.namespace.name</code> (composite, <code>scope_parent</code> = <code>k8s.node.name</code>); <code>telemetry.events.key_events</code> = <code>BackOff</code>/<code>OOMKilled</code>; <code>rca.fault_signatures</code> = CrashLoopBackOff, ImagePullBackOff. Same shape, different vocabulary &mdash; this is what &ldquo;schema is the deliverable, not the CI list&rdquo; means concretely.</div>
+          </div>
+        </div>
+
+        <div class="graph-section" id="ref-correlation">
+          <h2>G. The <code>correlation</code> line, explained</h2>
+          <p>Full path: <code>ci_telemetry[].telemetry.change_deployment.correlation</code>. Full value in the file: <em>&ldquo;time-correlate change events against incident onset ('what changed in the 60m before')&rdquo;</em>.</p>
+          <p>It's not data &mdash; it's an <strong>instruction</strong> attached to the <code>change_deployment</code> signal class, telling E7/E10 how to <em>use</em> the change events it just collected (package installs, config drift, kernel updates, orchestrated runs): don't just log them, actively align their timestamps against the moment the fault started (<code>first_down_ts</code> / symptom onset), inside a trailing window &mdash; the file's own suggested default is 60 minutes. This is the classic &ldquo;what changed right before this broke&rdquo; RCA heuristic, formalized per-CI in the schema rather than left as a human habit. When a fault signature's timing lines up with a recent change on the same CI, that's strong corroborating evidence &mdash; it feeds the same evidence bundle as <code>confirm_with_signals</code>.</p>
+          <div class="dual-example">
+            <div><b>Linux</b>CPU/memory anomaly at 14:32; <code>change_deployment</code> shows a <code>dnf update</code> kernel transaction at 14:05 &mdash; 27 min before onset, inside the 60m window &rarr; flagged as a likely-cause candidate before logs are even read.</div>
+            <div><b>K8s</b>Pod enters CrashLoopBackOff at 09:10; the change-deployment equivalent &mdash; a Deployment rollout / new image tag applied at 09:02 &mdash; is 8 minutes before onset &rarr; the rollout is flagged as the likely root cause, mirroring the Linux package-update case exactly.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="subpanel-gaps" class="subpanel" hidden>
+        <p class="uc-note">Grounded strictly in what's actually in <code>linux-server-ci-telemetry 2.json</code> and the <em>ObserveOps HLD</em> &mdash; nothing speculative added beyond what those two documents themselves flag as open, empty, or deferred.</p>
+
+        <div class="graph-section">
+          <h2>Schema data gaps &mdash; fields shipped empty in the reference file</h2>
+          <div class="gap-list">
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge data">Data gap</span><h3>Signal-class descriptions &amp; default sources are blank</h3></div>
+              <p>All 13 entries in <code>signal_classes[]</code> ship <code>description: ""</code> and <code>default_sources: []</code>. The schema declares the taxonomy but doesn't define it in machine-readable form &mdash; every definition on the Schema Reference tab had to be derived from HLD prose, not read off the JSON.</p>
+              <p class="impact">Impact: any UI/tooltip that wants to explain a signal class to an operator has nothing to render today; the class names alone aren't self-explanatory (what's the difference between <code>events</code> and <code>logs</code>? not stated anywhere machine-readable).</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge data">Data gap</span><h3>No metric units or thresholds</h3></div>
+              <p>Every entry in <code>performance.key_metrics[]</code> ships <code>unit: ""</code>, <code>use_tag: ""</code>, and empty <code>correlate_with: []</code>. This is the file's own stated <code>known_gaps</code> item, and the HLD's decision log #1/#2 confirm it's an open blocker for LLD-E6 &mdash; there's no KPI catalog file to reconcile against yet.</p>
+              <p class="impact">Impact: you cannot ship real E6 Detect thresholds from this file alone. Every metric name is shape-correct but unverified &mdash; treat as placeholder until reconciled against a real KPI catalog.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge data">Data gap</span><h3><code>primary_health_signal</code> is blank</h3></div>
+              <p>The node model reserves a single field for &ldquo;the one metric that answers is this CI healthy,&rdquo; and E6 is specified to read it directly &mdash; but it's empty on <code>linux-server</code> (and, from the sampled pattern, likely every CI).</p>
+              <p class="impact">Impact: a stage that's supposed to have a fast single-metric health check has to fall back to scanning <code>key_metrics[]</code> instead.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge data">Data gap</span><h3>Telemetry-key-index examples &amp; fault relevance unfilled</h3></div>
+              <p>All 228 entries in <code>telemetry_key_index[]</code> ship <code>example: ""</code> and <code>fault_relevance: ""</code>. The lookup mechanism (key &rarr; CI) is complete; the descriptive metadata around it is not.</p>
+              <p class="impact">Impact: low urgency for E2 binding (which only needs the lookup), but blocks building operator-facing documentation or a self-describing API off this index.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge data">Data gap</span><h3>Some &ldquo;not applicable&rdquo; classes are unverified seeds</h3></div>
+              <p><code>traces</code>, <code>synthetic</code>, <code>rum</code>, and <code>hardware_sensors</code> on <code>linux-server</code> carry the reason <em>&ldquo;seed: not typical for this tier &mdash; verify.&rdquo;</em> The word &ldquo;seed&rdquo; flags these as auto-generated placeholders, not a confirmed engineering decision.</p>
+              <p class="impact">Impact: don't treat every <code>applicable: false</code> as final &mdash; the ones marked &ldquo;seed&rdquo; specifically need a human pass before you trust the absence.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge data">Data gap</span><h3>Vendor SNMP OIDs abbreviated to MIB names only</h3></div>
+              <p>Also the file's own stated <code>known_gaps</code> item &mdash; e.g. <code>BRIDGE-MIB dot1dTpFdbTable</code> is named but not resolved to a numeric OID.</p>
+              <p class="impact">Impact: not actionable for a real SNMP collector without an OID lookup pass at build time.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="graph-section">
+          <h2>Pipeline mechanism gaps &mdash; specified but not built (Design-level)</h2>
+          <div class="gap-list">
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge mech">Not built</span><h3>Edge <code>evidence_type</code> doesn't yet modulate confidence</h3></div>
+              <p>The whole &ldquo;moat&rdquo; pitch is that provenance quality should shape trust &mdash; but HLD decision #3 explicitly defers wiring <code>evidence_type</code> into E9's ranking or E11's confidence cap. It's architecturally implied, not implemented.</p>
+              <p class="impact">Impact: if you ship confidence scores today, they aren't actually weighted by how the edge was discovered yet &mdash; the gap between the schema's promise and current wiring is real.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge mech">Not built</span><h3>The live E3 graph builder doesn't exist</h3></div>
+              <p>The HLD's own honesty note: the schema is Grounded <em>as an artifact</em> (it exists, fully populated) but was <strong>authored</strong>, not emitted by a running E3. &ldquo;E3 discovers these edges live from the telemetry stream at the stated refresh cadence&rdquo; is Design-level.</p>
+              <p class="impact">Impact: don't assume the graph self-discovers or self-refreshes today &mdash; that continuous derivation loop is specified, not shipped.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge mech">Not built</span><h3>Declared-edge staleness decay has no job behind it</h3></div>
+              <p>The 7-day soft-stale / 30-day hard-downgrade rule (decision #4) is a proposed default. E5 Maintain, which would enforce it, is flagged Design-level overall &mdash; &ldquo;no dedicated lab exercises it.&rdquo;</p>
+              <p class="impact">Impact: a <code>declared</code> edge like <code>esxi-host -[member_of]-&gt; vsphere-cluster</code> will sit in the graph, silently unrevalidated, until this job is actually built.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge mech">Not built</span><h3>Operator feedback loop into E3 is fully specified, zero implementation</h3></div>
+              <p><code>GraphFeedbackEvent</code> (confirm/reject &rarr; rolling per-edge trust score) is designed in HLD &sect;3.5, decision #9 &mdash; but needs an ADR before LLD-E3 even picks it up.</p>
+              <p class="impact">Impact: the graph cannot self-correct from analyst verdicts yet; every VerdictCard confirm/reject is currently discarded rather than fed back.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge mech">Not built</span><h3>UC-7/UC-8 attribution deferred (decision #8)</h3></div>
+              <p>&ldquo;Which process is filling the disk&rdquo; (UC-7 writer attribution) and &ldquo;which peer is saturating the link&rdquo; (UC-8 top-talker attribution) are explicitly out of v1 scope. v1 ships at &ldquo;disk is full&rdquo; / &ldquo;link is saturated&rdquo; granularity only.</p>
+              <p class="impact">Impact: if operators expect the verdict to name the offending process or peer, not just the symptomatic resource, that's an acknowledged v2 gap.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge mech">Not built</span><h3>Cross-class escalation annotation mechanism is proposed, not implemented</h3></div>
+              <p>UC-7 (disk usage &rarr; availability-shaped) and UC-8 (throughput &rarr; slowdown/availability-shaped) escalation is decided as &ldquo;annotate, don't reclassify&rdquo; (decision #6) &mdash; but the annotation mechanism itself has no implementation yet.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="graph-section">
+          <h2>Coverage &amp; portability gaps</h2>
+          <div class="gap-list">
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge cov">Coverage</span><h3>4 of 15 edge types are unexercised by any current use case</h3></div>
+              <p><code>authenticates_via</code>, <code>backed_up_by</code>, <code>backs</code>, <code>clustered_with</code> are fully modeled in the schema but no row in the HLD's E6&ndash;E11 tables walks them (see the Schema Reference tab, section D). Fine today; worth planning for if auth-outage, backup-failure, or HA-failover RCA are on your roadmap.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge cov">Coverage</span><h3><code>monitored_by</code> is a single point of failure for UC-5's entire mechanism</h3></div>
+              <p>Use case 5 (monitoring/telemetry pipeline unavailable) works <em>only</em> because every CI is guaranteed a <code>monitored_by</code> edge to its collector. If your real collector inventory doesn't populate that edge for every CI consistently, UC-5 silently stops working &mdash; worth an explicit coverage check, not just a schema review.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge cov">Coverage</span><h3>No second worked example to prove portability</h3></div>
+              <p>The HLD is explicit: &ldquo;schema is the deliverable, not the CI list&rdquo; (&sect;3.2) &mdash; the reference graph is one VMware+Linux estate. There's no Kubernetes/cloud-native <code>ci_telemetry</code>/relations-graph pair in this repo yet to actually prove the same schema projects cleanly onto a different stack.</p>
+              <p class="impact">Recommendation: given your platform is multi-tenant across AWS/K8s/bare-metal, building even a partial K8s-native worked example (Pod/Node/Deployment/Service tier, using the mappings on the Schema Reference tab as a starting point) is probably the single highest-leverage next artifact &mdash; it de-risks the portability claim before it becomes load-bearing for a real tenant onboarding.</p>
+            </div>
+            <div class="gap-item">
+              <div class="gap-item-head"><span class="gap-badge cov">Coverage</span><h3>WorkingSet caps untested past 33 CIs</h3></div>
+              <p>The per-Detect-class hop-depth/candidate caps (decision #5) are proposed defaults; on the reference 33-CI graph none of them actually bind. They're unvalidated at real tenant scale (hundreds to thousands of CIs).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-poc" class="panel" role="tabpanel" aria-labelledby="tab-btn-poc" hidden>
+      <p class="poc-intro">This tab is <strong>lab sequencing</strong>, not the written spec. The Pipeline HLD specifies <em>what</em> each step should do; most of E2&ndash;E11 beyond the reference artifact is flagged <code>Design-level</code> or &ldquo;no dedicated lab.&rdquo; Each POC targets steps, states what it must prove, and lists dependencies &mdash; cross-referenced against <strong>Graph Explained &rarr; Gaps &amp; Recommendations</strong>. Decision log: map chapter <a href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md#7-decision-log--resolved-2026-08-17">&sect;7</a>.</p>
+
+      <div class="seq-tracks">
+        <div class="seq-track">
+          <div class="seq-track-label">Foundation<span>unlocks everything below</span></div>
+          <div class="seq-chain">
+            <span class="seq-chip">POC-6</span><span class="seq-arrow">&rarr;</span><span class="seq-chip">POC-1</span>
+          </div>
+        </div>
+        <div class="seq-track">
+          <div class="seq-track-label">Core pipeline<span>the P1&rarr;P3 skeleton</span></div>
+          <div class="seq-chain">
+            <span class="seq-chip">POC-2</span><span class="seq-arrow">+</span><span class="seq-chip">POC-3</span><span class="seq-arrow">&rarr;</span><span class="seq-chip">POC-4</span><span class="seq-arrow">&rarr;</span><span class="seq-chip">POC-5</span>
+          </div>
+        </div>
+        <div class="seq-track">
+          <div class="seq-track-label">Parallel &amp; hardening<span>no strict order among these</span></div>
+          <div class="seq-chain">
+            <span class="seq-chip">POC-7</span><span class="seq-chip">POC-8</span><span class="seq-chip">POC-9</span><span class="seq-chip">POC-10</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="graph-section">
+        <h2>Your five priorities, scoped for engineering</h2>
+        <div class="poc-list">
+
+          <article class="poc-card">
+            <div class="poc-card-head"><span class="poc-id">POC-1</span><h3>Normalization at scale (E2 Identity)</h3><span class="poc-badge phase">E2</span><span class="poc-badge p0">P0 &middot; foundational</span></div>
+            <div class="poc-body">
+              <div class="poc-field"><h4>Goal</h4><p>Prove E2's identity resolution (<code>match_rules</code> + <code>telemetry_key_index</code> lookup) holds at real multi-tenant ingest volume, not just the 33-CI / 228-key reference scale.</p></div>
+              <div class="poc-field"><h4>Why this, now</h4><p>The HLD's own honesty note says the schema is Grounded as an artifact but the live pipeline is Design-level. E2 has closed LLDs per the HLD's references, but &ldquo;at scale&rdquo; and &ldquo;multi-tenant&rdquo; are exactly what a 33-CI reference set can't prove.</p></div>
+              <div class="poc-field span2"><h4>Approach</h4><ul>
+                <li>Streaming identity-resolution service (Kafka/Kinesis consumer + in-memory hash join against <code>telemetry_key_index</code>, sharded per tenant), implementing the two-step host-scope / instance-scope (<code>scope_parent</code>) resolution exactly as specified.</li>
+                <li>Back <code>host &rarr; ci_id</code> lookups with a low-latency KV cache (Redis / DynamoDB DAX) refreshed from E3's <code>GraphSnapshot</code>; load-test p99 binding latency at a concrete throughput target (e.g. 200K+ datapoints/sec per tenant shard).</li>
+                <li>Stress-test the unresolved bucket under realistic identity churn &mdash; autoscaling hosts, ephemeral containers, hostname rotation. The failure mode to catch is an unbounded backlog, not just a wrong match.</li>
+                <li>Validate per-tenant isolation of the match-rules table and identity cache against your Basic/Standard/Premium tier model &mdash; a pooled tenant's cardinality spike must not degrade another tenant's binding latency.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Deliverable / exit criteria</h4><ul>
+                <li><strong>Reference regression:</strong> 100% correct attribution on the 33-CI / 228-key reference dataset &mdash; zero mis-attaches, zero silent flattening of instance-scoped keys onto their host.</li>
+                <li><strong>Throughput:</strong> p99 binding latency &le;5ms at 200K events/sec/tenant-shard (10&times; reference volume); &le;8ms at 2M events/sec (100&times;).</li>
+                <li><strong>Resilience:</strong> under a churn simulation (hosts/pods created &amp; destroyed at 50/min), unresolved-bucket backlog stays under 0.1% of stream volume, sustained.</li>
+                <li><strong>Isolation:</strong> a synthetic 10&times;-cardinality &ldquo;noisy tenant&rdquo; does not push any other tenant's p99 binding latency up by more than 20%.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Example &mdash; what &ldquo;done&rdquo; looks like</h4><div class="dual-example">
+                <div><b>Linux</b>Replay 200K/sec of <code>system.cpu.utilization</code> tagged <code>host.name=web-03.prod.local</code>; every point resolves to <code>ci_id=linux-server</code> inside the 5ms budget, none mis-attached to a different host.</div>
+                <div><b>K8s</b>Replay a burst of <code>container_cpu_usage_seconds_total{pod="checkout-7f9c",namespace="prod",node="ip-10-0-1-22"}</code>; the composite match resolves the Node first (<code>scope_parent</code>), then the Pod &mdash; 100% resolve to the correct Pod CI, none silently flatten onto the Node.</div>
+              </div></div>
+              <div class="poc-field"><h4>Depends on</h4><div class="poc-depends"><span class="none">None &mdash; can start immediately</span></div></div>
+            </div>
+          </article>
+
+          <article class="poc-card">
+            <div class="poc-card-head"><span class="poc-id">POC-2</span><h3>Build the live operational graph (E3 Topology)</h3><span class="poc-badge phase">E3</span><span class="poc-badge p0">P0 &middot; foundational</span></div>
+            <div class="poc-body">
+              <div class="poc-field"><h4>Goal</h4><p>Turn the hand-authored reference graph into something a running service produces and keeps current &mdash; the HLD's own admission is that the schema &ldquo;was authored, not emitted by a running E3.&rdquo;</p></div>
+              <div class="poc-field"><h4>Why this, now</h4><p>Every downstream stage from E4 through E11 reads this graph. It's the single most load-bearing &ldquo;not built&rdquo; item in the whole HLD &mdash; nothing else on this roadmap matters if the graph stays hand-authored.</p></div>
+              <div class="poc-field span2"><h4>Approach</h4><ul>
+                <li>Implement the ranked methods from <code>relationship_telemetry</code> as pluggable discovery adapters. Prove the pattern end-to-end on two first &mdash; process/cgroup inventory for <code>runs_on</code>, LLDP/CDP for <code>connects_to</code> &mdash; then generalize to the remaining 13 edge types.</li>
+                <li>Stand up a graph store supporting bounded N-hop walks under E8's per-class hop caps (2&ndash;7 hops) at low latency &mdash; a property graph DB (Neo4j/DGraph) or a custom adjacency-list store on your existing data layer; benchmark against the largest candidate cap (1000, for MONITORING_UNAVAILABLE).</li>
+                <li>Build E5's declared-edge staleness decay (7-day soft-stale / 30-day hard-downgrade, decision #4) as a scheduled job from day one &mdash; cheap now, expensive to retrofit once real edges exist.</li>
+                <li>Validate by reproducing the reference <code>linux-server-ci-relations-graph</code> automatically from the same underlying telemetry, edge-for-edge.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Deliverable / exit criteria</h4><ul>
+                <li><strong>Reference regression:</strong> replaying the 33-CI reference telemetry stream through the live E3 service reproduces &ge;95% of the 40 reference edges (same from/to/type), each with the same <code>evidence_type</code>/confidence as the hand-authored file &mdash; no human edits.</li>
+                <li><strong>Portability:</strong> the same derivation engine, fed a K8s-shaped stream (POC-7), produces structurally analogous edges using only new discovery adapters &mdash; zero changes to the core engine.</li>
+                <li><strong>Freshness:</strong> a <code>declared</code> edge with no corroborating signal for 7 days auto-flags soft-stale; at 30 days it's excluded from any confidence-bearing localization path &mdash; both verified by a scheduled-job test.</li>
+                <li><strong>Latency:</strong> p95 query time for a bounded 4-hop walk over a 1,000-node graph stays under 150ms.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Example &mdash; what &ldquo;done&rdquo; looks like</h4><div class="dual-example">
+                <div><b>Linux</b><code>nginx-web-server -[runs_on]-&gt; linux-server</code> is derived live from <code>ps</code>/cgroup polling + <code>ss -tanp</code>, matching the reference edge's <code>authoritative</code> evidence_type &mdash; not hand-declared.</div>
+                <div><b>K8s</b><code>checkout-pod -[runs_on]-&gt; node/ip-10-0-1-22</code> derived live from the kubelet's <code>.status.hostIP</code>, and <code>checkout-pod -[part_of]-&gt; checkout-deployment</code> derived from the Pod's <code>ownerReferences</code> &mdash; both discovered, not declared.</div>
+              </div></div>
+              <div class="poc-field"><h4>Depends on</h4><div class="poc-depends"><span class="term-chip">POC-1</span></div></div>
+            </div>
+          </article>
+
+          <article class="poc-card">
+            <div class="poc-card-head"><span class="poc-id">POC-3</span><h3>Baseline, pattern &amp; anomaly-score substrate (E1&ndash;E5)</h3><span class="poc-badge phase">E1&ndash;E5</span><span class="poc-badge p0">P0 &middot; foundational</span></div>
+            <div class="poc-body">
+              <div class="poc-field"><h4>Goal</h4><p>Build the continuous statistical layer under E6 &mdash; per-CI, per-metric baselines, pattern classification, and a running anomaly score &mdash; so E6 Detect only has to threshold-check a pre-computed score, never compute statistics inline.</p></div>
+              <div class="poc-field"><h4>Why this, now</h4><p>Decision log #1/#2 say metric names are placeholder and units/thresholds are unreconciled, explicitly blocking LLD-E6. This POC (paired with POC-6) is what actually unblocks it.</p></div>
+              <div class="poc-field span2"><h4>Approach</h4><ul>
+                <li>Classify each telemetry key's pattern at onboarding (stationary / diurnal / weekly-seasonal / trending) via autocorrelation or STL-decomposition, and pick the baseline method per type: EWMA for noisy stationary metrics (CPU, memory), rolling percentile bands (p50/p95/p99) for latency-style metrics, seasonal-STL residual for cyclic ones (request rate).</li>
+                <li>Compute a continuous robust deviation score (MAD-based or z-score off the chosen baseline) per metric, rather than a hard threshold &mdash; E6 then just compares this score against a Detect-class-specific bar.</li>
+                <li>Persist baseline state (not raw metrics) in a compact rollup store separate from hot-tier retention &mdash; EFS hot tier's 2&ndash;3 day window is shorter than the 14&ndash;30 days most seasonal baselines need. This is a real architecture decision, not a footnote.</li>
+                <li>Wire this as an E5 Maintain responsibility (&ldquo;a running property of the fabric, not a batch pass&rdquo;), matching the HLD's own framing rather than bolting on a separate offline job.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Deliverable / exit criteria</h4><ul>
+                <li><strong>Coverage:</strong> every reference telemetry key (228) plus the K8s equivalents from POC-7 has a live <code>(pattern_type, baseline, anomaly_score)</code> triple updating at &le;1 min staleness.</li>
+                <li><strong>Detection:</strong> on 10 injected synthetic faults (5 Linux, 5 K8s), each matched to a known <code>fault_signature</code>, the anomaly score crosses the Detect-class bar within 2 minutes of onset for &ge;90% of them &mdash; the same top-1 90% bar the HLD sets for E9.</li>
+                <li><strong>False positives:</strong> over 7 days of unmodified baseline traffic, fewer than 1 false trigger per CI per week.</li>
+                <li><strong>Durability:</strong> baseline state for a 30-day seasonal window survives a hot-tier eviction (EFS's 2&ndash;3 day retention) without losing continuity.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Example &mdash; what &ldquo;done&rdquo; looks like</h4><div class="dual-example">
+                <div><b>Linux</b><code>system.cpu.utilization</code> on <code>linux-server</code> is classified stationary/noisy &rarr; EWMA baseline; injecting a synthetic CPU-saturation fault trips the anomaly score within the 2-minute budget.</div>
+                <div><b>K8s</b><code>http.server.request.duration</code> p95 on a Service is classified diurnal &rarr; STL-seasonal baseline; a latency injection during a normally-quiet overnight window is still caught, and the same absolute latency during the normal daytime peak does <em>not</em> false-positive.</div>
+              </div></div>
+              <div class="poc-field"><h4>Depends on</h4><div class="poc-depends"><span class="term-chip">POC-1</span><span class="term-chip">POC-6</span></div></div>
+            </div>
+          </article>
+
+          <article class="poc-card">
+            <div class="poc-card-head"><span class="poc-id">POC-4</span><h3>E6&ndash;E8 statistics &amp; graph algorithms to assemble the window</h3><span class="poc-badge phase">E6&ndash;E8</span><span class="poc-badge p0">P0</span></div>
+            <div class="poc-body">
+              <div class="poc-field"><h4>Goal</h4><p>Decide and prove the concrete math behind Detect &rarr; Curate &rarr; Scope &mdash; turning per-CI anomaly scores into one bounded, correlated <code>WorkingSet</code> ready for E9.</p></div>
+              <div class="poc-field"><h4>Why this, now</h4><p>This is the seam the HLD leaves most implicit &mdash; it names each stage's IN/OUT but not the algorithm. Get it wrong and E9 either drowns in noise (under-merged) or loses the real cause (over-merged).</p></div>
+              <div class="poc-field span2"><h4>Approach</h4><ul>
+                <li><strong>E6 Detect:</strong> threshold the POC-3 anomaly score against a Detect-class bar. Use CUSUM (cumulative sum control chart) to tell a sustained shift from a noise spike; for rate-based signals (error rate, request rate) use a Poisson/binomial rate test instead of a z-score &mdash; count data violates the Gaussian assumption a z-score needs.</li>
+                <li><strong>E7 Curate:</strong> model active signals as nodes in a &ldquo;signals graph&rdquo; &mdash; edges = E3 adjacency AND temporal overlap within a correlation window &mdash; and run connected-components (union-find) to merge. Rank the seed within a component by hop-distance/upstream-ness. Deterministic and auditable, no ML needed.</li>
+                <li><strong>E8 Scope:</strong> bounded BFS from the seed, capped by the decision-#5 hop-depth/candidate table. Calibrate the correlation window itself empirically &mdash; mine historical or fault-injected incidents for a per-edge-type propagation-delay distribution and set the window to its 95th percentile, instead of a flat constant like the schema's own 60-minute default.</li>
+                <li>Keep E6&ndash;E8 classical statistics + deterministic graph algorithms, not ML &mdash; reserve ML for genuinely ambiguous multi-hop ranking in E9&ndash;E11 (POC-5). This maximizes explainability for a product whose core promise is an auditable verdict.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Deliverable / exit criteria</h4><ul>
+                <li><strong>Merge accuracy:</strong> on a labeled set of &ge;20 synthetic multi-signal scenarios (mixing Linux and K8s), E7's merge-or-not decision hits &ge;95% precision/recall against the labeled ground truth.</li>
+                <li><strong>No over-merge:</strong> graph-adjacent signals within the correlation window merge into one CaseSeed; signals that are <em>not</em> graph-adjacent must not merge even if temporally coincident &mdash; an explicit negative test case.</li>
+                <li><strong>Bounded scope:</strong> <code>WorkingSet</code> size stays within the decision-#5 caps for every Detect class, on both the Linux and K8s topologies.</li>
+                <li><strong>Calibrated window:</strong> propagation-delay distribution measured from &ge;20 fault-injection replays per edge type; the 95th percentile is what's used as the correlation window, not the schema's flat 60-minute default.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Example &mdash; what &ldquo;done&rdquo; looks like</h4><div class="dual-example">
+                <div><b>Linux</b><code>system.cpu.utilization</code> (host), a GC pause (<code>app-runtime-jvm</code>) and latency on <code>nginx-web-server</code> fire within the correlation window, all connected via <code>runs_on</code> &mdash; E7 merges all three into <strong>one</strong> CaseSeed rooted at <code>linux-server</code>, not three separate cases.</div>
+                <div><b>K8s</b>CPU pressure on a Pod and Ready-flapping on a sibling Pod on the <em>same</em> Node merge into one CaseSeed via <code>runs_on</code>; a latency signal on an unrelated Service on a <em>different</em> Node does not merge, even in the same minute.</div>
+              </div></div>
+              <div class="poc-field"><h4>Depends on</h4><div class="poc-depends"><span class="term-chip">POC-2</span><span class="term-chip">POC-3</span></div></div>
+            </div>
+          </article>
+
+          <article class="poc-card">
+            <div class="poc-card-head"><span class="poc-id">POC-5</span><h3>ML / agentic AI for E9&ndash;E11, constrained for determinism</h3><span class="poc-badge phase">E9&ndash;E11</span><span class="poc-badge p1">P1</span></div>
+            <div class="poc-body">
+              <div class="poc-field"><h4>Goal</h4><p>Decide precisely where ML or an agentic Claude-based reasoner earns its place in Localize/Identify/Package &mdash; and where it must not, so the no-false-blame gate and confidence semantics stay deterministic.</p></div>
+              <div class="poc-field"><h4>Why this, now</h4><p>The HLD's own leaf rules (deepest error leaf, longest self-time leaf, contended entity even with a negative symptom, first-down entity, coverage-gap entity) are already deterministic per-class rules. The open question is only what to do with genuine ambiguity, and how to narrate a verdict without letting a model freelance on it.</p></div>
+              <div class="poc-field span2"><h4>Approach</h4><ul>
+                <li><strong>E9 Localize:</strong> keep the deterministic leaf rule primary. Where the graph offers tied or corroborating-only candidates, add a lightweight learned ranker (e.g. gradient-boosted, trained on historical <code>GraphFeedbackEvent</code> confirm/reject outcomes from decision #9) as a tie-breaker and confidence modifier &mdash; never an override.</li>
+                <li><strong>E10 Identify:</strong> the strongest fit for an agentic reasoner &mdash; given a structured <code>EvidenceBundle</code>, have it produce the corroboration narrative and evidentiary-tier judgment, but constrain it to choosing among the CI's own pre-computed <code>fault_signatures[]</code> rather than freely hypothesizing a cause. Grounded generation, not open diagnosis.</li>
+                <li><strong>E11 Package:</strong> LLM-generated <code>VerdictCard</code> prose is fine; the confidence number must be a hard post-generation clamp &mdash; &ldquo;cannot exceed the weakest <code>evidence_type</code> traversed&rdquo; (the HLD's own universal E11 rule) enforced in code, never left to model discretion.</li>
+                <li>The operator feedback loop (decision #9) is the real candidate for a standing agent: a scheduled job that reviews the trailing window of confirm/reject events, updates per-edge trust scores, and raises signature-quality-queue tickets for human review &mdash; a natural fit for your platform's own agentic-AI-for-autonomous-IT-ops goal.</li>
+                <li>Run a bake-off before committing: the same 5&ndash;10 fault scenarios through pure-rule E9&ndash;E11 vs. ML/agent-assisted, measuring agreement rate and operator-rated narrative usefulness.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Deliverable / exit criteria</h4><ul>
+                <li><strong>Accuracy floor:</strong> on a held-out bake-off set (mixed Linux/K8s), both the rule-only and ML/agent-assisted paths hit the HLD's own top-1 &ge;90% bar; agent-assisted must not score lower than rule-only on any scenario.</li>
+                <li><strong>Clamp holds:</strong> in 100% of bake-off runs, the agent-assisted path's stated confidence never exceeds what the rule-only path's weakest traversed <code>evidence_type</code> would allow &mdash; a scripted regression check, not a spot check.</li>
+                <li><strong>Grounded narrative:</strong> in an audit of &ge;30 generated E10 corroboration narratives, 100% reference only <code>fault_signatures</code>/log <code>key_patterns</code> actually present in that verdict's <code>EvidenceBundle</code> &mdash; zero fabricated causes.</li>
+                <li><strong>Feedback loop:</strong> after exactly 3 reject events on a <code>corroborating</code> edge (decision #9's minimum sample size), its confidence downgrades one notch automatically &mdash; verified in a scripted test.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Example &mdash; what &ldquo;done&rdquo; looks like</h4><div class="dual-example">
+                <div><b>Linux</b>The HLD's own UC-3 case &mdash; JVM slow, <code>linux-server</code> looks healthy, <code>esxi-host</code> underneath is contended. Rule-based E9 still picks <code>esxi-host</code> as leaf even with the ranker enabled; the ranker only activates as a tie-breaker when two co-tenant hosts show comparably borderline saturation.</div>
+                <div><b>K8s</b>A Pod in CrashLoopBackOff on a Node where a sibling Pod was OOMKilled. E10 corroborates via the container's <code>OOMKilled</code> status reason plus a change-deployment correlation hit; if the path crossed a <code>declared</code> Node&rarr;cluster edge, the VerdictCard confidence is clamped and cannot read &ldquo;high,&rdquo; regardless of how clean the metric evidence looks.</div>
+              </div></div>
+              <div class="poc-field"><h4>Depends on</h4><div class="poc-depends"><span class="term-chip">POC-2</span><span class="term-chip">POC-4</span></div></div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <div class="graph-section">
+        <h2>Additional POCs I'd add before this ships</h2>
+        <p>Grounded in the same two source documents &mdash; these close gaps the roadmap above would otherwise hit mid-flight.</p>
+        <div class="poc-list">
+
+          <article class="poc-card">
+            <div class="poc-card-head"><span class="poc-id">POC-6</span><h3>KPI catalog reconciliation</h3><span class="poc-badge phase">E4/E6 &middot; cross-cutting</span><span class="poc-badge p0">P0 &middot; blocking</span></div>
+            <div class="poc-body">
+              <div class="poc-field"><h4>Goal</h4><p>Replace every placeholder metric name/unit/threshold in the reference schema with a reconciled, versioned KPI catalog.</p></div>
+              <div class="poc-field"><h4>Why this, now</h4><p>Named directly as the blocker in the file's own <code>known_gaps</code> and HLD decision log #1/#2: &ldquo;no kpi-catalog file present to reconcile units&rdquo;, &ldquo;LLD-E6 stays blocked on it.&rdquo;</p></div>
+              <div class="poc-field span2"><h4>Approach</h4><ul>
+                <li>Stand up a per-signal-class KPI catalog (unit, valid range, direction-of-badness, default threshold) for every <code>telemetry_key</code>, starting with what POC-3/POC-4 actually need first.</li>
+                <li>Version it so tenant-specific overrides (a K8s tenant's &ldquo;high CPU&rdquo; bar differs from bare metal's) layer on top without forking the base catalog.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Deliverable / exit criteria</h4><ul>
+                <li><strong>Coverage:</strong> 100% of the ~10&ndash;15 metrics actually consumed by the 8 use cases' E6 rows have unit, valid range, direction-of-badness, and default threshold filled and signed off by a metric owner &mdash; not just present, reviewed.</li>
+                <li><strong>Tenant override:</strong> two tenants with the same metric and different thresholds both resolve correctly through the catalog without forking the base entry &mdash; verified by a two-tenant test.</li>
+                <li><strong>Counter-vs-gauge handling:</strong> every counter metric (e.g. cumulative CPU-seconds) has its rate-conversion documented in the catalog, not left implicit.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Example &mdash; what &ldquo;done&rdquo; looks like</h4><div class="dual-example">
+                <div><b>Linux</b><code>system.cpu.utilization</code> &rarr; unit <code>percent</code>, range 0&ndash;100, higher-is-worse, default threshold 85% sustained 5 min.</div>
+                <div><b>K8s</b><code>container_cpu_usage_seconds_total</code> is a <em>counter</em>, not a gauge &mdash; the catalog entry documents the <code>rate()</code> conversion to cores, and the threshold is expressed relative to the pod's own CPU limit, not an absolute number.</div>
+              </div></div>
+              <div class="poc-field"><h4>Depends on</h4><div class="poc-depends"><span class="none">None &mdash; run in parallel with POC-1</span></div></div>
+            </div>
+          </article>
+
+          <article class="poc-card">
+            <div class="poc-card-head"><span class="poc-id">POC-7</span><h3>Second worked example &mdash; Kubernetes-native</h3><span class="poc-badge phase">E3 &middot; portability</span><span class="poc-badge p1">P1</span></div>
+            <div class="poc-body">
+              <div class="poc-field"><h4>Goal</h4><p>Prove the schema actually projects onto a Kubernetes/cloud-native estate, not just VMware+Linux.</p></div>
+              <div class="poc-field"><h4>Why this, now</h4><p>The HLD is explicit: &ldquo;schema is the deliverable, not the CI list&rdquo; &mdash; but there's no second worked example in the repo to back that, and your platform is multi-tenant across AWS/K8s/bare metal.</p></div>
+              <div class="poc-field span2"><h4>Approach</h4><ul>
+                <li>Use the Linux&harr;K8s scope-level and edge-type mappings on the Schema Reference sub-tab as the starting spec.</li>
+                <li>Build a minimal Pod/Node/Deployment/Service-tier <code>ci_telemetry</code> + relations-graph pair, run it through POC-1/POC-2's actual services &mdash; not hand-authored &mdash; and diff the resulting graph shape against the Linux reference for structural parity.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Deliverable / exit criteria</h4><ul>
+                <li><strong>Breadth:</strong> a second <code>ci_telemetry</code> + relations-graph pair spanning &ge;15 CIs across Pod/Node/Deployment/Service/PVC tiers.</li>
+                <li><strong>Provenance:</strong> produced by POC-1/POC-2's live services, not hand-authored &mdash; same bar as the Linux reference.</li>
+                <li><strong>Structural parity:</strong> a reviewed diff against the Linux reference confirms the same node-model shape (ci_id/tier/instance_scope/identity/telemetry/rca all populated) and the same edge-type vocabulary &mdash; no K8s-only extensions to the schema itself.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Example &mdash; what &ldquo;done&rdquo; looks like</h4><div class="dual-example">
+                <div><b>Linux</b>Reference root CI is <code>linux-server</code>: 33 CIs, 40 edges, anchored on the OS/host tier.</div>
+                <div><b>K8s</b>Proposed root CI is a <code>checkout</code> Pod (or its Node), covering Pod &rarr; Node (<code>runs_on</code>) &rarr; Deployment (<code>part_of</code>) &rarr; Service (<code>depends_on</code>) &rarr; PVC (<code>mounts</code>) &mdash; the direct structural analogue of the Linux chain, produced the same way.</div>
+              </div></div>
+              <div class="poc-field"><h4>Depends on</h4><div class="poc-depends"><span class="term-chip">POC-1</span><span class="term-chip">POC-2</span></div></div>
+            </div>
+          </article>
+
+          <article class="poc-card">
+            <div class="poc-card-head"><span class="poc-id">POC-8</span><h3>Scale/load test the full P1 fabric</h3><span class="poc-badge phase">E1&ndash;E5</span><span class="poc-badge p1">P1</span></div>
+            <div class="poc-body">
+              <div class="poc-field"><h4>Goal</h4><p>Validate the decision-#5 <code>WorkingSet</code> hop-depth/candidate caps actually hold at real tenant scale &mdash; they don't bind on the 33-CI reference graph, so they're unvalidated by construction.</p></div>
+              <div class="poc-field"><h4>Why this, now</h4><p>A cap that silently doesn't bind isn't validated, it's untested. Multi-tenant scale (hundreds to thousands of CIs per tenant) is exactly where these caps either save you or quietly truncate a real diagnosis.</p></div>
+              <div class="poc-field span2"><h4>Approach</h4><ul>
+                <li>Synthetically expand the reference topology (or generate a representative large-tenant topology) to 500&ndash;5,000 CIs.</li>
+                <li>Re-run E7&ndash;E9 for each of the 8 use cases and check where <code>WorkingSet.capped</code> actually triggers, and whether the truncated set still contains the correct leaf.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Deliverable / exit criteria</h4><ul>
+                <li><strong>Two topologies tested:</strong> a Linux/VMware-shaped estate and a K8s-shaped estate, both expanded to 500&ndash;5,000 CIs from the reference seed.</li>
+                <li><strong>Per-class evidence:</strong> for every Detect class, document where <code>WorkingSet.capped</code> actually triggers and confirm the correct leaf is still inside the truncated set &mdash; a cap that truncates out the real leaf is a fail, not a pass.</li>
+                <li><strong>Recommendation delivered:</strong> per Detect class, keep the decision-#5 default or propose a specific adjusted number, backed by the load-test evidence.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Example &mdash; what &ldquo;done&rdquo; looks like</h4><div class="dual-example">
+                <div><b>Linux</b>A synthetic 3,000-CI VMware estate (hosts, VMs, datastores, switches) &mdash; confirm the RESOURCE_CONTENTION cap (3&ndash;4 hops / 300 CIs) still reaches the contended hypervisor from any co-tenant VM.</div>
+                <div><b>K8s</b>A synthetic 2,000-pod / 200-node cluster &mdash; confirm the AVAILABILITY cap (5 hops / 500 CIs) still reaches every inbound caller of a down Service without truncating the cascade.</div>
+              </div></div>
+              <div class="poc-field"><h4>Depends on</h4><div class="poc-depends"><span class="term-chip">POC-1</span><span class="term-chip">POC-2</span><span class="term-chip">POC-3</span></div></div>
+            </div>
+          </article>
+
+          <article class="poc-card">
+            <div class="poc-card-head"><span class="poc-id">POC-9</span><h3>Confidence-calibration harness</h3><span class="poc-badge phase">E9&ndash;E11</span><span class="poc-badge p1">P1</span></div>
+            <div class="poc-body">
+              <div class="poc-field"><h4>Goal</h4><p>Build the instrumentation to empirically resolve decision #3 (should <code>evidence_type</code> modulate E9 ranking / cap E11 confidence) once real localization runs exist, instead of guessing at it later.</p></div>
+              <div class="poc-field"><h4>Why this, now</h4><p>The HLD explicitly defers this &ldquo;until real localization runs exist to see how often it would matter.&rdquo; That data collection has to start the moment POC-5 produces its first real verdicts, or the decision gets delayed by however long it takes to notice the harness is missing.</p></div>
+              <div class="poc-field span2"><h4>Approach</h4><ul>
+                <li>Log, per verdict, the full traversed edge path with each edge's <code>evidence_type</code> and confidence at time of use, alongside the eventual operator confirm/reject.</li>
+                <li>Build the analysis that answers decision #3 empirically: does confidence-capping by weakest <code>evidence_type</code> actually correlate with a lower false-positive rate.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Deliverable / exit criteria</h4><ul>
+                <li><strong>Instrumentation live:</strong> 100% of verdicts (Linux and K8s alike) log their full traversed edge path with per-edge <code>evidence_type</code>/confidence at time of use, plus the eventual operator confirm/reject.</li>
+                <li><strong>Statistical readiness:</strong> the harness auto-flags when the dataset reaches the sample size needed to answer decision #3 (e.g. &ge;200 verdicts, at least 30 touching a non-authoritative edge) &mdash; a defined trigger, not a vague &ldquo;check back later.&rdquo;</li>
+                <li><strong>Analysis delivered:</strong> the correlation write-up (does a path through a <code>declared</code>/<code>corroborating</code> edge predict a higher reject rate) runs the moment that threshold is hit.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Example &mdash; what &ldquo;done&rdquo; looks like</h4><div class="dual-example">
+                <div><b>Linux</b>A verdict whose path included the <code>declared</code> <code>esxi-host -[member_of]-&gt; vsphere-cluster</code> edge is logged with <code>confidence: n/a</code> on that hop, alongside whether the operator confirmed or rejected it.</div>
+                <div><b>K8s</b>A verdict whose path included a <code>declared</code> Node&rarr;cluster membership edge is logged the same way &mdash; the harness treats both identically, since it's <code>evidence_type</code>, not platform, that should drive the eventual calibration.</div>
+              </div></div>
+              <div class="poc-field"><h4>Depends on</h4><div class="poc-depends"><span class="term-chip">POC-5</span></div></div>
+            </div>
+          </article>
+
+          <article class="poc-card">
+            <div class="poc-card-head"><span class="poc-id">POC-10</span><h3>Tenant-isolation review of the identity + graph services</h3><span class="poc-badge phase">E2/E3 &middot; security</span><span class="poc-badge p1">P1</span></div>
+            <div class="poc-body">
+              <div class="poc-field"><h4>Goal</h4><p>Confirm the new E2 identity service and E3 graph store don't leak cross-tenant signal &mdash; <code>match_rules</code>, <code>telemetry_key_index</code>, and graph edges now all live in shared infrastructure for pooled/bridge tenants.</p></div>
+              <div class="poc-field"><h4>Why this, now</h4><p>POC-1 and POC-2 introduce new shared multi-tenant state that didn't exist as a live service before. This needs a security pass before it carries production tenant data &mdash; security as a day-zero requirement, not a retrofit.</p></div>
+              <div class="poc-field span2"><h4>Approach</h4><ul>
+                <li>Verify per-tenant partitioning of the identity cache and graph store (Basic pooled / Standard bridge / Premium silo) actually enforces isolation under load, not just in the data model.</li>
+                <li>Check for cross-tenant cardinality/noisy-neighbor bleed-through in the shared normalization and graph-derivation services from POC-1/POC-2.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Deliverable / exit criteria</h4><ul>
+                <li><strong>Collision test passes:</strong> two tenants with an identically-named host/pod resolve to two distinct <code>ci_id</code>s under their respective tenant scope, with zero cross-tenant graph edges created between them.</li>
+                <li><strong>Load isolation:</strong> a synthetic noisy tenant's identity/graph write volume does not measurably degrade another tenant's read/write latency on shared (pooled/bridge-tier) infrastructure.</li>
+                <li><strong>Sign-off:</strong> review folded into and passed as part of the platform's existing Well-Architected security review cadence, with findings tracked to closure, not just noted.</li>
+              </ul></div>
+              <div class="poc-field span2"><h4>Example &mdash; what &ldquo;done&rdquo; looks like</h4><div class="dual-example">
+                <div><b>Linux</b>Tenant A and Tenant B both have a host named <code>web-01</code>. Under tenant-scoped identity resolution, <code>web-01</code>+TenantA resolves to a different <code>ci_id</code> than <code>web-01</code>+TenantB, and neither tenant's graph shows an edge into the other's CI.</div>
+                <div><b>K8s</b>Tenant A and Tenant B both run a <code>checkout</code> namespace with a pod named <code>checkout-0</code> &mdash; the same collision, more common in K8s multi-tenancy than on bare Linux &mdash; resolves identically cleanly under the tenant-scoped identity cache.</div>
+              </div></div>
+              <div class="poc-field"><h4>Depends on</h4><div class="poc-depends"><span class="term-chip">POC-1</span><span class="term-chip">POC-2</span></div></div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var USE_CASES = [
+    { id: "uc1", num: "UC-1", short: "Error rate", name: "Error rate increase on a service",
+      desc: "A service's error/failure rate (5xx, exceptions, failed requests) rises above its normal baseline.",
+      dc: "ERROR", sub: false },
+    { id: "uc2", num: "UC-2", short: "Slowdown", name: "Response time / latency slowdown",
+      desc: "A service's response time (p95/p99 latency) degrades beyond its normal baseline.",
+      dc: "SLOWDOWN", sub: false },
+    { id: "uc3", num: "UC-3", short: "Resource contention", name: "Resource contention (CPU / memory / disk)",
+      desc: "Host or process-level compute resources become saturated, degrading dependent workloads &mdash; includes noisy-neighbor patterns.",
+      dc: "RESOURCE_CONTENTION", sub: false },
+    { id: "uc4", num: "UC-4", short: "Availability", name: "Availability &mdash; service or host down",
+      desc: "A service, process, or host becomes unreachable or unresponsive, typically cascading to dependent callers.",
+      dc: "AVAILABILITY", sub: false },
+    { id: "uc5", num: "UC-5", short: "Monitoring unavailable", name: "Monitoring / telemetry pipeline unavailable",
+      desc: "The observability pipeline stops receiving telemetry from an entity while the entity may still be running &mdash; an &ldquo;are we blind?&rdquo; signal.",
+      dc: "MONITORING_UNAVAILABLE", sub: false },
+    { id: "uc6", num: "UC-6", short: "Disk latency", name: "Disk latency high on host",
+      desc: "Disk I/O latency on a host rises above its normal baseline, indicating a storage bottleneck.",
+      dc: "RESOURCE_CONTENTION", sub: true },
+    { id: "uc7", num: "UC-7", short: "Disk usage", name: "Disk storage / usage increase",
+      desc: "Disk space usage on a host climbs toward capacity exhaustion. Can escalate to Availability if a filesystem hits 100%.",
+      dc: "RESOURCE_CONTENTION", sub: true },
+    { id: "uc8", num: "UC-8", short: "Network traffic", name: "Network traffic sent/received high on host",
+      desc: "Inbound or outbound network throughput on a host exceeds its normal baseline. Can escalate to Slowdown or Availability.",
+      dc: "RESOURCE_CONTENTION", sub: true }
+  ];
+
+  function io(inn, out, graph, mat) { return { in: inn, out: out, graph: graph, mat: mat[0], cls: mat[1] }; }
+
+  var STAGES = {
+    E1: { name: "Collect", phase: "P1",
+      purpose: "Wire-format admission only. Telemetry this pass; no CI binding, no CMDB/change/ticket sources.",
+      constIO: io(
+        "External telemetry envelopes from agents / OTLP / log streams. Source-asserted <code>ci_id</code>/<code>ci_type</code> carried but not validated.",
+        "<code>TelemetryEnvelope</code> &mdash; on-wire <code>ingest.v1</code> JSONL. Unknown signal_class or schema mismatch: reject or dead-letter, never guess.",
+        "None, by design. Binding is E2's job &mdash; coupling admission to graph freshness would make ingest fail when discovery lags.",
+        ["Grounded", "grounded"]) },
+    E2: { name: "Identity (Normalize)", phase: "P1",
+      purpose: "Stamp tenant + ci_id in-stream, same pass as Transform/Filter/Sample/Enrich/Mask/Pre-process/Pre-aggregate. Unresolved records queue, never drop. Overlay, not schema rewrite.",
+      constIO: io(
+        "<code>TelemetryEnvelope</code>.",
+        "<code>IdentifiedRecord</code> &mdash; same line plus an <code>identity.*</code> overlay: tenant, ci_id, ci_type, identity.status &isin; {resolved, unattributed, synthesized}.",
+        "Reads the <code>telemetry_key_index</code> and per-CI <code>match_rules</code> to resolve ci_id. The unresolved bucket feeds back into E3 as a graph-improvement signal.",
+        ["Grounded", "grounded"]) },
+    E3: { name: "Topology", phase: "P1",
+      purpose: "Build &amp; maintain the walkable dependency graph, kept current off the same stream &mdash; discovery-first, CMDB optional. This is where the operational graph is built.",
+      constIO: io(
+        "<code>IdentifiedRecord</code> stream; discovery relations (LLDP/CDP, ARP, routing tables, mount/iscsi tables, socket/conntrack, hypervisor inventory, distributed traces); optional CMDB enrichment.",
+        "<code>GraphSnapshot</code> &mdash; nodes + typed edges, each edge carrying a full <code>discovered_via</code> provenance block.",
+        "<strong>Builds &amp; updates. Sole writer.</strong> Runs ranked derivation methods per relationship; stamps evidence_type / confidence / refresh per edge. Also the target of E11's operator feedback loop &mdash; confirm/reject rolls into a per-edge trust score, min. 3 samples before any downgrade, authoritative edges route to signature review instead (decision #9, Design-level).",
+        ["Grounded (artifact) &middot; Design-level (live builder + feedback loop)", "design"]) },
+    E4: { name: "Stores", phase: "P1",
+      purpose: "Metrics, traces, logs as separate query planes under one shared identity (ci_id) &mdash; deliberately not a single wide-event fabric.",
+      constIO: io(
+        "<code>IdentifiedRecord</code>.",
+        "Modality-specific query surfaces, time-sliced, retrievable by ci_id and tags.",
+        "Reads. ci_id is the shared join key across all three planes; per-CI signal-class applicability tells the store layer which planes a CI is expected to be absent from.",
+        ["Grounded", "grounded"]) },
+    E5: { name: "Maintain", phase: "P1",
+      purpose: "Retention, indexing, discovery freshness &mdash; a running property of the fabric, not a batch pass.",
+      constIO: io(
+        "Store/index metadata, discovery updates, change feeds, per-edge refresh cadences.",
+        "Freshness baseline; maintain state; edge staleness flags.",
+        "Updates. Enforces per-edge refresh cadence, decays/expires stale edges. Does not create edges. <code>declared</code> edges: soft-stale at 7 days, hard-downgrade at 30 days, resets on any CMDB re-sync that still includes the edge (decision #4).",
+        ["Design-level", "design"]) },
+
+    E6: { name: "Detect", phase: "P2",
+      purpose: "Raise a fault Signal per Detect class. No root-cause claim yet. A negative Detect is a valid, honestly-reported outcome.",
+      byUC: {
+        uc1: io("<code>http.server.errors.5xx</code>, <code>service.request.error_rate</code>, span status:error rate over window",
+                "<code>Signal{class: ERROR, ci_id, window, magnitude}</code>",
+                "Reads signal-class applicability (traces/logs applicable on this CI); reads primary_health_signal",
+                ["Grounded (DT+DD)", "grounded"]),
+        uc2: io("<code>http.server.request.duration</code> p95, <code>service.latency.p95</code>, <code>db.transaction.duration</code>, <code>http.client.request.duration</code>",
+                "<code>Signal{class: SLOWDOWN, ci_id, window, p95 delta}</code>",
+                "Same; plus edge criticality to prioritise critical-path services",
+                ["Grounded (DT+DD)", "grounded"]),
+        uc3: io("<code>system.cpu.utilization</code>, <code>system.memory.usage</code>, <code>system.load.1m</code>, <code>node.cpu.pressure</code>, <code>vm.cpu.ready</code>, <code>vm.cpu.costop</code>, <code>vm.mem.ballooned</code>",
+                "<code>Signal{class: RESOURCE_CONTENTION, ci_id}</code> or explicit negative-Detect note",
+                "Reads monitored_via to decide whether a negative Detect is meaningful or merely uninstrumented",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc4: io("<code>&lt;ci&gt;.up</code> (e.g. linux-server.up, postgresql-db.up), <code>node.condition.ready</code>, <code>ifOperStatus</code>, <code>corosync.ring.status</code>",
+                "<code>Signal{class: AVAILABILITY, ci_id, first_down_ts}</code>",
+                "Reads inbound edges to identify affected callers before localization",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc5: io("<code>collector.ingest.lag</code>, <code>agent.heartbeat.state</code>, <code>collector.poll.failure.rate</code>; absence-of-signal against expected cadence",
+                "<code>Signal{class: MONITORING_UNAVAILABLE, ci_id, gap_window}</code>",
+                "Critical read: signal-class applicability distinguishes &ldquo;declared not-applicable&rdquo; from &ldquo;expected but absent.&rdquo; Without it this class is undecidable",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc6: io("<code>system.disk.io.latency</code> (instance-scoped), <code>vm.disk.latency</code>, <code>datastore.totalReadLatency</code>/<code>totalWriteLatency</code>, <code>array.volume.latency</code>, <code>nfs.client.ops.latency</code>",
+                "<code>Signal{class: RESOURCE_CONTENTION}</code> &mdash; same bucket as #3",
+                "Reads instance_scope: multi-instance so the signal binds to the device, not the host",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc7: io("<code>system.filesystem.usage</code>, <code>system.filesystem.inodes.usage</code> (both instance-scoped, mountpoint-keyed)",
+                "<code>Signal{class: RESOURCE_CONTENTION}</code> &mdash; same bucket",
+                "Same instance-scope read; mountpoint is the instance key",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc8: io("<code>system.network.io</code>, <code>system.network.errors</code>, <code>interface.utilization</code>, <code>ifInErrors</code>/<code>ifOutErrors</code>, <code>flow.bytes</code>, <code>tcp.retransmits</code>",
+                "<code>Signal{class: RESOURCE_CONTENTION}</code> &mdash; same bucket",
+                "Reads connects_to / routes_through / communicates_with edges to know which link this interface belongs to",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"])
+      } },
+
+    E7: { name: "Curate", phase: "P2",
+      purpose: "Collapse correlated signals into one case seed with merge rationale. Skip it and signal fog reaches the operator.",
+      byUC: {
+        uc1: io("N ERROR signals across a call chain (customer-web-portal, web-hosting-svc, nginx-web-server, app-runtime-jvm)",
+                "One <code>CaseSeed</code>, seeded at the most-upstream-symptomatic CI, merge rationale naming the edges traversed",
+                "Walks depends_on / communicates_with edges to prove the signals are adjacent, not coincidental",
+                ["Grounded (DD fog lab)", "grounded"]),
+        uc2: io("N SLOWDOWN signals along a latency path",
+                "One <code>CaseSeed</code> + path",
+                "Same walk; edge criticality breaks ties between concurrent candidate seeds",
+                ["Grounded", "grounded"]),
+        uc3: io("RESOURCE_CONTENTION on a host plus derived symptoms on its tenants (app-runtime-jvm, postgresql-db, nginx-web-server)",
+                "One <code>CaseSeed</code> &mdash; host contention with dependent-workload symptoms attached",
+                "runs_on edges (authoritative) prove the tenancy relationship that justifies the merge",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc4: io("A down signal plus a cascade of caller failures",
+                "One <code>CaseSeed</code> anchored on the down entity, callers attached as consequences",
+                "Inbound-edge fan-in identifies the cascade; redundancy (e.g. active-passive) explains why some callers did not fail",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc5: io("Gap signals on several CIs sharing one collector",
+                "One <code>CaseSeed</code> on the collector, not on each blind CI",
+                "monitored_by edges are the merge key &mdash; the edge type that exists specifically for this case",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc6: io("Latency signals at several storage tiers (local-filesystem &rarr; vmfs-datastore &rarr; san-storage-array &rarr; fc-fabric-switch)",
+                "One <code>CaseSeed</code> spanning the storage path",
+                "depends_on / mounts chain (all authoritative) is the merge evidence",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc7: io("Usage signals on one or more mountpoints, possibly plus a datastore-full signal",
+                "One <code>CaseSeed</code>; if &ldquo;Remounting filesystem read-only&rdquo; also appears, seed carries an escalation-to-AVAILABILITY <strong>annotation</strong> &mdash; not a reclassification (decision #6)",
+                "part_of (filesystem&rarr;host) and depends_on (filesystem&rarr;datastore) bound the merge",
+                ["Design-level (annotation mechanism proposed)", "design"]),
+        uc8: io("Throughput/error signals on host NIC and the attached switch port",
+                "One <code>CaseSeed</code> across the link",
+                "connects_to edges (authoritative, LLDP/CDP+ARP) pair host interface to switch port",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"])
+      } },
+
+    E8: { name: "Scope", phase: "P2",
+      purpose: "Lock the working set: time window, candidate CI set, env and version. Bounds the cost of diagnosis. Uses the graph to bound the candidate set.",
+      byUC: {
+        uc1: io("<code>CaseSeed</code> + graph",
+                "<code>WorkingSet{window, candidates, env, version}</code> &mdash; candidates = call-chain closure downstream of the seed",
+                "&#9660; downstream walk over depends_on/uses/communicates_with from the seed service. Cap: 6 hops / 150 CIs (decision #5)",
+                ["Grounded", "grounded"]),
+        uc2: io("<code>CaseSeed</code> + graph",
+                "<code>WorkingSet</code> scoped to the latency path plus its hosting tier",
+                "&#9660; walk, then one &#9650; hop to include runs_on hosts (slowdown often originates a tier below). Cap: 7 hops / 150 CIs (decision #5)",
+                ["Grounded", "grounded"]),
+        uc3: io("<code>CaseSeed</code> on host or hypervisor",
+                "<code>WorkingSet</code> = contended CI + all workloads running on it + its virtualization parents",
+                "&#9660; over runs_on (tenants), &#9650; over hosted_on/member_of (hypervisor, cluster) &mdash; the noisy-neighbor path. Cap: 3&ndash;4 hops / 300 CIs (decision #5)",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc4: io("<code>CaseSeed</code> on the down entity",
+                "<code>WorkingSet</code> = down entity + full inbound caller closure",
+                "&#9650; inbound closure; redundancy marks callers expected to survive. Cap: 5 hops / 500 CIs (decision #5)",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc5: io("<code>CaseSeed</code> on collector",
+                "<code>WorkingSet</code> = collector + every CI with a monitored_by edge to it + the network path to them",
+                "monitored_by fan-out, plus connects_to/routes_through to separate &ldquo;collector broken&rdquo; from &ldquo;network partition.&rdquo; Cap: 2 hops / 1000 CIs (decision #5)",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc6: io("<code>CaseSeed</code> on storage path",
+                "<code>WorkingSet</code> = full storage dependency chain, host through array through fabric",
+                "&#9660; over mounts/depends_on to the array; then connects_to the fabric switch. Cap: 3&ndash;4 hops / 300 CIs (decision #5)",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc7: io("<code>CaseSeed</code> on filesystem instance(s)",
+                "<code>WorkingSet</code> = mountpoint + host + backing datastore (v1 scope). Writer-process attribution deferred to a later round (decision #8)",
+                "part_of up to host, depends_on down to datastore. Cap: 3&ndash;4 hops / 300 CIs (decision #5). The runs_on sideways walk to find the writing process is specified but out of scope for v1",
+                ["Deferred to later round (decision #8)", "planned"]),
+        uc8: io("<code>CaseSeed</code> on interface/link",
+                "<code>WorkingSet</code> = host + NIC + switch port + upstream router/firewall + top flow peers",
+                "connects_to chain plus flows_packets peers resolved through the telemetry key index. Cap: 3&ndash;4 hops / 300 CIs (decision #5)",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"])
+      } },
+
+    E9: { name: "Localize", phase: "P3",
+      purpose: "Pick the leaf CI by Detect-class rule. Earliest anomaly is NOT automatically the cause. Bar: top-1 &ge; 90%. Walks the graph to find the leaf.",
+      byUC: {
+        uc1: io("<code>WorkingSet</code> + error evidence",
+                "<code>LeafClaim</code> = deepest error leaf",
+                "&#9660; descend depends_on/uses while error persists; stop at the last CI still showing errors (portal &rarr; app-hosting &rarr; JVM &rarr; postgresql-db)",
+                ["Grounded", "grounded"]),
+        uc2: io("<code>WorkingSet</code> + span self-time",
+                "<code>LeafClaim</code> = longest self-time leaf",
+                "Same &#9660; descent, ranked by self-time not total time &mdash; excludes callers merely waiting",
+                ["Grounded", "grounded"]),
+        uc3: io("<code>WorkingSet</code> + saturation metrics",
+                "<code>LeafClaim</code> = contended entity, even if its own symptom is negative",
+                "&#9650; ascend runs_on&rarr;hosted_on from the symptomatic workload to the saturated host; vm.cpu.ready/costop elevated on the guest with the host busy indicts the hypervisor, not the guest",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc4: io("<code>WorkingSet</code> + up/down states + timestamps",
+                "<code>LeafClaim</code> = first-down entity in the caller chain",
+                "&#9650; walk inbound edges ordered by first_down_ts; earliest-down entity with no down upstream is the leaf",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc5: io("<code>WorkingSet</code> + gap windows",
+                "<code>LeafClaim</code> = entity with the coverage gap",
+                "If all CIs behind one monitored_by edge went blind together, leaf = the collector; if one went blind alone, leaf = that CI",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc6: io("<code>WorkingSet</code> + per-tier latency",
+                "<code>LeafClaim</code> = deepest storage tier where latency originates",
+                "&#9660; descend mounts&rarr;depends_on&rarr;connects_to; compare latency at each tier &mdash; present at the array but not the fabric indicts the array",
+                ["Design-level (tier-comparison rule proposed)", "design"]),
+        uc7: io("<code>WorkingSet</code> + filesystem usage per mountpoint",
+                "<code>LeafClaim</code> = the filesystem instance, not the host",
+                "Instance-scoped resolution via scope_parent_via: host.name; part_of names the host for context but the leaf is the mountpoint",
+                ["Design-level", "design"]),
+        uc8: io("<code>WorkingSet</code> + interface counters and flows",
+                "<code>LeafClaim</code> = the saturated link endpoint (v1 scope). Top-talker attribution deferred to a later round (decision #8)",
+                "Compare interface.utilization at each connects_to hop. flow.bytes-by-peer talker ID is specified but out of scope for v1; retransmits/drops still distinguish saturation from loss",
+                ["Deferred to later round (decision #8)", "planned"])
+      } },
+
+    E10: { name: "Identify", phase: "P3",
+      purpose: "Corroborate the leaf across modalities and decide how strongly cause is claimed. This is where Verify actually happens. No-false-blame is a pass/fail gate.",
+      byUC: {
+        uc1: io("<code>LeafClaim</code> + stores",
+                "<code>EvidenceBundle</code>: error spans, stack traces, log patterns, error-rate delta",
+                "Matches leaf + symptom to a fault signature (e.g. connection pool exhaustion on postgresql-db); log key_patterns join on indicates_failure_mode",
+                ["Grounded", "grounded"]),
+        uc2: io("<code>LeafClaim</code> + stores",
+                "<code>EvidenceBundle</code>: span self-time distribution, jvm.gc.pause, db.transaction.duration, CPU corroboration",
+                "Signature GC pause / heap exhaustion (OOM) or long-running / locking queries; confirm_with_signals supplies the metric list",
+                ["Grounded", "grounded"]),
+        uc3: io("<code>LeafClaim</code> + stores",
+                "<code>EvidenceBundle</code>: system.cpu.utilization, system.memory.usage, OOM log line, vm.cpu.ready, esxi.cpu.utilization",
+                "Signature CPU saturation / run-queue backlog, memory exhaustion / OOM-kill, or physical CPU/memory saturation (noisy neighbor) at the ESXi tier",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc4: io("<code>LeafClaim</code> + stores",
+                "<code>EvidenceBundle</code>: process/container check, systemd failure log, kernel segfault, caller APM failure spans",
+                "Signature host down / kernel panic, NotReady node, or vpxd service down; blast_radius_downstream cross-checks observed vs predicted casualties",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc5: io("<code>LeafClaim</code> + stores",
+                "<code>EvidenceBundle</code>: absence-of-signal pattern + cross-modal comparison &mdash; one plane silent while another answers",
+                "Signature agent heartbeat lost, poll timeout, ingest backlog; signal-class applicability proves the missing plane was expected",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc6: io("<code>LeafClaim</code> + stores",
+                "<code>EvidenceBundle</code>: latency at the indicted tier, I/O error logs, high iowait, cache hit ratio, port CRC errors",
+                "Signature datastore latency spike, disk/RAID degradation, cache battery failure, or ISL congestion",
+                ["Design-level (tier attribution unvalidated)", "design"]),
+        uc7: io("<code>LeafClaim</code> + stores",
+                "<code>EvidenceBundle</code>: filesystem usage trend, inode usage, &ldquo;No space left on device,&rdquo; read-only remount log",
+                "Signature filesystem full, inode exhaustion, remount read-only, or WAL/disk full. Escalation: read-only remount is <strong>annotated</strong> as AVAILABILITY-shaped supplementary evidence &mdash; not reclassified (decision #6)",
+                ["Design-level (annotation proposed)", "design"]),
+        uc8: io("<code>LeafClaim</code> + stores",
+                "<code>EvidenceBundle</code>: interface utilization, in/out errors, retransmits, RTT, flow drops, link-down log",
+                "Signature uplink saturation, NIC errors/link down, port flap, or ISL congestion. Escalation: retransmits+latency or link-down are <strong>annotated</strong> as SLOWDOWN/AVAILABILITY-shaped evidence &mdash; not reclassified (decision #6)",
+                ["Design-level (annotation proposed)", "design"])
+      } },
+
+    E11: { name: "Package", phase: "P3",
+      purpose: "Render the verdict handoff and lock the confidence judgment. Thin cards allowed only with incompleteness explicitly flagged.",
+      byUC: {
+        uc1: io("<code>EvidenceBundle</code>",
+                "<code>VerdictCard</code>: leaf CI, failure mode, error spans/stack, impacted callers, confidence + tier",
+                "blast_radius_downstream renders impact; weakest traversed evidence_type bounds stated confidence",
+                ["Grounded", "grounded"]),
+        uc2: io("<code>EvidenceBundle</code>",
+                "<code>VerdictCard</code>: leaf CI, self-time attribution, latency path, confidence",
+                "Path rendered with per-edge evidence_type so the operator sees which hops were inferred",
+                ["Grounded", "grounded"]),
+        uc3: io("<code>EvidenceBundle</code>",
+                "<code>VerdictCard</code>: contended CI, saturating resource, affected tenant workloads",
+                "runs_on fan-out gives the tenant list; noisy-neighbor cases name the co-tenant explicitly",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc4: io("<code>EvidenceBundle</code>",
+                "<code>VerdictCard</code>: first-down entity, down-since, cascade list, surviving-redundancy note",
+                "blast_radius_downstream + redundancy explains both what failed and what did not",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc5: io("<code>EvidenceBundle</code>",
+                "<code>VerdictCard</code>: blind entities, gap window, explicit &ldquo;we are blind, not down&rdquo; statement",
+                "monitored_by fan-out enumerates exactly which CIs lost coverage &mdash; the scope of the blindness",
+                ["Grounded (DT) &middot; Local-only (DD)", "local"]),
+        uc6: io("<code>EvidenceBundle</code>",
+                "<code>VerdictCard</code>: indicted storage tier, latency comparison across tiers, affected mounts and workloads",
+                "Storage chain rendered tier by tier with each hop's evidence_type",
+                ["Design-level", "design"]),
+        uc7: io("<code>EvidenceBundle</code>",
+                "<code>VerdictCard</code>: mountpoint, usage/inode trend, time-to-exhaustion, escalation warning if read-only remount observed",
+                "part_of + runs_on name the host and the workloads that will fail on write",
+                ["Design-level", "design"]),
+        uc8: io("<code>EvidenceBundle</code>",
+                "<code>VerdictCard</code>: saturated link, direction, error/retransmit context (top talkers deferred to a later round, decision #8)",
+                "connects_to chain renders the physical path; flow peers resolved to CI names, not bare IPs",
+                ["Design-level", "design"])
+      } }
+  };
+
+  var PHASE_STAGES = { P1: ["E1","E2","E3","E4","E5"], P2: ["E6","E7","E8"], P3: ["E9","E10","E11"] };
+  var ucById = {}; USE_CASES.forEach(function (u) { ucById[u.id] = u; });
+  var currentUC = "uc1";
+
+  /* ---------- Tab switching ---------- */
+  var TAB_DEFS = [
+    { key: "usecases", btn: document.getElementById("tab-btn-usecases"), panel: document.getElementById("panel-usecases") },
+    { key: "pipeline", btn: document.getElementById("tab-btn-pipeline"), panel: document.getElementById("panel-pipeline") },
+    { key: "graph", btn: document.getElementById("tab-btn-graph"), panel: document.getElementById("panel-graph") },
+    { key: "poc", btn: document.getElementById("tab-btn-poc"), panel: document.getElementById("panel-poc") }
+  ];
+  var panelUsecases = TAB_DEFS[0].panel;
+  var panelPipeline = TAB_DEFS[1].panel;
+
+  function switchTab(which) {
+    TAB_DEFS.forEach(function (t) {
+      var active = t.key === which;
+      t.btn.classList.toggle("active", active);
+      t.btn.setAttribute("aria-selected", String(active));
+      t.panel.hidden = !active;
+    });
+  }
+  TAB_DEFS.forEach(function (t) { t.btn.addEventListener("click", function () { switchTab(t.key); }); });
+
+  /* ---------- Graph Explained sub-tab switching ---------- */
+  var SUBTAB_DEFS = [
+    { key: "overview", btn: document.getElementById("subtab-btn-overview"), panel: document.getElementById("subpanel-overview") },
+    { key: "reference", btn: document.getElementById("subtab-btn-reference"), panel: document.getElementById("subpanel-reference") },
+    { key: "gaps", btn: document.getElementById("subtab-btn-gaps"), panel: document.getElementById("subpanel-gaps") }
+  ];
+  function switchSubtab(which) {
+    SUBTAB_DEFS.forEach(function (t) {
+      var active = t.key === which;
+      t.btn.classList.toggle("active", active);
+      t.btn.setAttribute("aria-selected", String(active));
+      t.panel.hidden = !active;
+    });
+  }
+  SUBTAB_DEFS.forEach(function (t) { t.btn.addEventListener("click", function () { switchSubtab(t.key); }); });
+
+  /* ---------- Tab 1: use case cards ---------- */
+  var ucGrid = document.getElementById("ucGrid");
+  USE_CASES.forEach(function (u) {
+    var card = document.createElement("article");
+    card.className = "uc-card";
+    card.innerHTML =
+      '<div class="uc-card-top">' +
+        '<span class="uc-id">' + u.num + '</span>' +
+        '<span class="dc-badge' + (u.sub ? ' sub' : '') + '">' + u.dc + (u.sub ? ' &middot; sub' : '') + '</span>' +
+      '</div>' +
+      '<h3>' + u.name + '</h3>' +
+      '<p>' + u.desc + '</p>' +
+      '<button type="button" class="uc-jump" data-uc="' + u.id + '">Trace through the pipeline &rarr;</button>';
+    ucGrid.appendChild(card);
+  });
+  ucGrid.addEventListener("click", function (e) {
+    var btn = e.target.closest(".uc-jump");
+    if (!btn) return;
+    currentUC = btn.getAttribute("data-uc");
+    switchTab("pipeline");
+    renderPills();
+    renderStages();
+    panelPipeline.scrollIntoView({ block: "start" });
+  });
+
+  /* ---------- Tab 2: pills ---------- */
+  var ucPills = document.getElementById("ucPills");
+  function renderPills() {
+    ucPills.innerHTML = "";
+    USE_CASES.forEach(function (u) {
+      var pill = document.createElement("button");
+      pill.type = "button";
+      pill.className = "uc-pill" + (u.id === currentUC ? " active" : "");
+      pill.textContent = u.num + " " + u.short;
+      pill.setAttribute("data-uc", u.id);
+      pill.setAttribute("aria-pressed", String(u.id === currentUC));
+      ucPills.appendChild(pill);
+    });
+  }
+  ucPills.addEventListener("click", function (e) {
+    var pill = e.target.closest(".uc-pill");
+    if (!pill) return;
+    currentUC = pill.getAttribute("data-uc");
+    renderPills();
+    renderStages();
+  });
+
+  /* ---------- Tab 2: stage rows ---------- */
+  function buildStageCard(key) {
+    var s = STAGES[key];
+    var card = document.createElement("article");
+    card.className = "stage-card";
+    card.setAttribute("data-stage", key);
+    card.innerHTML =
+      '<div class="stage-card-head"><span class="stage-id">' + key + '</span><span class="stage-name">' + s.name + '</span></div>' +
+      '<p class="stage-purpose">' + s.purpose + '</p>' +
+      (s.constIO ? '<p class="stage-const">Same for every use case</p>' : '') +
+      '<dl class="stage-io">' +
+        '<div class="io-row io-in"><dt>IN</dt><dd class="io-in-val"></dd></div>' +
+        '<div class="io-row io-out"><dt>OUT</dt><dd class="io-out-val"></dd></div>' +
+        '<div class="io-row io-graph"><dt>&#9711;</dt><dd class="io-graph-val"></dd></div>' +
+      '</dl>' +
+      '<div class="stage-foot"><span class="maturity-pill"></span></div>';
+    return card;
+  }
+
+  function fillCard(card, data) {
+    card.querySelector(".io-in-val").innerHTML = data.in;
+    card.querySelector(".io-out-val").innerHTML = data.out;
+    card.querySelector(".io-graph-val").innerHTML = data.graph;
+    var pill = card.querySelector(".maturity-pill");
+    pill.textContent = data.mat;
+    pill.className = "maturity-pill " + data.cls;
+  }
+
+  var rows = { P1: document.getElementById("rowP1"), P2: document.getElementById("rowP2"), P3: document.getElementById("rowP3") };
+  Object.keys(PHASE_STAGES).forEach(function (phase) {
+    var keys = PHASE_STAGES[phase];
+    keys.forEach(function (key, idx) {
+      var card = buildStageCard(key);
+      rows[phase].appendChild(card);
+      if (idx < keys.length - 1) {
+        var conn = document.createElement("span");
+        conn.className = "connector";
+        conn.setAttribute("aria-hidden", "true");
+        conn.textContent = "\u2192";
+        rows[phase].appendChild(conn);
+      }
+    });
+  });
+
+  function renderStages() {
+    Object.keys(STAGES).forEach(function (key) {
+      var s = STAGES[key];
+      var card = document.querySelector('.stage-card[data-stage="' + key + '"]');
+      var data = s.constIO ? s.constIO : s.byUC[currentUC];
+      fillCard(card, data);
+    });
+    var u = ucById[currentUC];
+    document.getElementById("ucActiveDesc").innerHTML =
+      "Showing <strong>" + u.num + " &mdash; " + u.name + "</strong>: " + u.desc;
+  }
+
+  renderPills();
+  renderStages();
+})();
+</script>
+
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

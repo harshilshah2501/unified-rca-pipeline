@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>map/ and history/ — storage blocks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', Consolas, monospace;
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --border: rgba(15, 23, 42, 0.08);
+    --text: #0f172a;
+    --text-dim: #475569;
+    --text-faint: #94a3b8;
+    --primary: #1e3a5f;
+    --pillar-a: #059669;
+    --pillar-a-dim: rgba(5, 150, 105, 0.10);
+    --pillar-b: #be123c;
+    --pillar-b-dim: rgba(190, 18, 60, 0.10);
+    --join: #0369a1;
+    --join-dim: rgba(3, 105, 161, 0.08);
+    --warn: #d97706;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1220; --surface: #111a2e; --border: rgba(255,255,255,0.08);
+      --text: #e2e8f0; --text-dim: #94a3b8; --text-faint: #64748b;
+      --primary: #5e9ed6; --pillar-a: #34d399; --pillar-a-dim: rgba(52,211,153,0.14);
+      --pillar-b: #fb7185; --pillar-b-dim: rgba(251,113,133,0.14);
+      --join: #38bdf8; --join-dim: rgba(56,189,248,0.14); --warn: #fbbf24;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body); background: var(--bg); color: var(--text);
+    padding: 48px 32px; line-height: 1.55;
+    background-image:
+      linear-gradient(rgba(30,58,95,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,58,95,0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px; }
+  h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 10px; }
+  h1 .a { color: var(--pillar-a); } h1 .b { color: var(--pillar-b); }
+  .lead { color: var(--text-dim); font-size: 15px; max-width: 720px; margin-bottom: 28px; }
+  .lead code, .card code, td code, li code {
+    font-family: var(--font-mono); font-size: 12px;
+    background: var(--join-dim); color: var(--join); padding: 1px 5px; border-radius: 3px;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } body { padding: 24px 16px; } }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 22px; border-left: 3px solid var(--join);
+  }
+  .card.a { border-left-color: var(--pillar-a); }
+  .card.b { border-left-color: var(--pillar-b); }
+  .card.join { border-left-color: var(--join); }
+  .card h2 { font-size: 16px; margin-bottom: 8px; }
+  .tag {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px; margin-right: 8px;
+  }
+  .tag.a { color: var(--pillar-a); background: var(--pillar-a-dim); }
+  .tag.b { color: var(--pillar-b); background: var(--pillar-b-dim); }
+  .tag.j { color: var(--join); background: var(--join-dim); }
+  .card p, .card li { font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+  .card ul { padding-left: 1.1rem; margin: 8px 0; }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; margin-bottom: 24px;
+  }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); letter-spacing: 0.04em; }
+  h3 { font-size: 15px; margin: 28px 0 12px; }
+  pre.flow {
+    font-family: var(--font-mono); font-size: 11.5px; line-height: 1.45;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; overflow-x: auto; color: var(--text-dim); margin-bottom: 24px;
+  }
+  .callout {
+    border-left: 3px solid var(--warn); background: var(--surface);
+    border: 1px solid var(--border); border-left-width: 3px; border-left-color: var(--warn);
+    border-radius: 0 10px 10px 0; padding: 14px 18px; font-size: 13px; color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+  .callout strong { color: var(--text); }
+  .links { font-size: 13px; color: var(--text-dim); }
+  .links a { color: var(--join); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">ObserveOps · Motadata Pillar A + B stores</div>
+  <h1><span class="b">map/</span> and <span class="a">history/</span> — storage blocks</h1>
+  <p class="lead">
+    Remap of how the E1→E2 fan-out is <strong>stored</strong>: two rooms, no continuous sync,
+    join by <code>tenant</code> + <code>ci_id</code> ≡ <code>entity_id</code> at read time.
+    Dynatrace analogy: <code>map/</code> ≈ Smartscape, <code>history/</code> ≈ Grail-like history
+    (our sketches, not forever-raw). No separate LUT artifact in these rooms — bind is E2.
+  </p>
+
+  <div class="callout">
+    <strong>No map↔history sync job.</strong> Writers are independent. Diagnose joins them into a
+    bounded <code>WorkingSet</code>. Physical product may be lab files, Motadata store, or Vortex+S3 —
+    same logical rooms.
+  </div>
+
+  <pre class="flow">E1 Collect → E2 Identity (stamp tenant + ci_id, status=resolved)
+                    │
+       ┌────────────┴────────────┐
+       ▼                         ▼
+ E3 Topology (Pillar B)    E4 Stores sketches (Pillar A)
+ write GraphSnapshot         write sketch.v1 rows
+       │                         │
+       ▼                         ▼
+     map/                     history/
+  nodes · edges            digests · buckets · baselines
+       │                         │
+       └────────────┬────────────┘
+                    ▼
+         Read path (no room merge):
+         E6 Detect → history (digest vs baseline)
+         E8 Scope  → WorkingSet(map neighbors + history sketches)
+         E9/E10    → walk map + get_metric_baseline / query_graph
+         E5        → refresh baselines (A) · validity/decay (B) — still two writers
+  </pre>
+
+  <div class="grid2">
+    <div class="card b">
+      <h2><span class="tag b">MAP/</span> Pillar B · topology</h2>
+      <p><strong>Job:</strong> durable estate picture — who exists, how they relate.</p>
+      <p><strong>Sub-blocks:</strong></p>
+      <ul>
+        <li><code>graph_node.v1</code> — CI vertices (<code>tenant</code>+<code>ci_id</code>)</li>
+        <li><code>graph_edge.v1</code> — typed arcs + <code>discovered_via</code> + validity</li>
+        <li><code>GraphSnapshot</code> — versioned package of nodes+edges for a tenant</li>
+        <li>Optional later: change facts may live under history (see Gate B note)</li>
+      </ul>
+      <p><strong>Analogy:</strong> Smartscape-like map. Not sketches.</p>
+    </div>
+    <div class="card a">
+      <h2><span class="tag a">HISTORY/</span> Pillar A · sketches</h2>
+      <p><strong>Job:</strong> compact metric history per entity × window.</p>
+      <p><strong>Sub-blocks:</strong></p>
+      <ul>
+        <li><code>sketch.v1</code> — T-Digest + buckets + seasonal baseline</li>
+        <li>Logical key: <code>(tenant, entity_id, metric_id, window, season_key, window_start)</code></li>
+        <li>Lab object: <code>sketches.jsonl</code>; Motadata-shaped: S3 cold + Vortex hot</li>
+        <li>Optional later: exemplars on bins; <code>change_fact.v1</code> sibling file</li>
+      </ul>
+      <p><strong>Analogy:</strong> Grail-like history path — but Detect reads sketches, not raw lakes.</p>
+    </div>
+  </div>
+
+  <h3>Write operations</h3>
+  <table>
+    <thead>
+      <tr><th>Who</th><th>Op</th><th>Room</th><th>What</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>E3 Topology</td>
+        <td><code>Dest.put("map", …)</code></td>
+        <td>map/</td>
+        <td>Upsert nodes/edges; emit/replace <code>GraphSnapshot</code></td>
+      </tr>
+      <tr>
+        <td>E4 Sketch writer</td>
+        <td><code>Dest.put("history", "sketches.jsonl", …)</code></td>
+        <td>history/</td>
+        <td>Append/upsert <code>sketch.v1</code> per window key</td>
+      </tr>
+      <tr>
+        <td>E5 Maintain</td>
+        <td>refresh (A) / validity (B)</td>
+        <td>both (separate)</td>
+        <td>Seasonal baselines into sketches; edge/node <code>valid_to</code> / decay on map — <strong>not</strong> copying rooms</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Read operations</h3>
+  <table>
+    <thead>
+      <tr><th>Who</th><th>Reads</th><th>Typical API / need</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>E6 Detect (door C)</td>
+        <td>history/</td>
+        <td>Current digest p95 vs baseline expected p95 for <code>season_key</code></td>
+      </tr>
+      <tr>
+        <td>Dashboards</td>
+        <td>history/ (hot)</td>
+        <td>Latest p95 / trend for entity+metric</td>
+      </tr>
+      <tr>
+        <td>E8 Scope</td>
+        <td>map/ + history/</td>
+        <td>Build <code>WorkingSet</code>: seed CI → neighbors from map + sketch snippets for those ids</td>
+      </tr>
+      <tr>
+        <td>E9 Localize</td>
+        <td>map/ (+ WorkingSet)</td>
+        <td>Walk typed edges; leaf rule</td>
+      </tr>
+      <tr>
+        <td>E10 Identify</td>
+        <td>both</td>
+        <td><code>query_graph()</code> · <code>get_metric_baseline()</code> · optional hot-bin</td>
+      </tr>
+      <tr>
+        <td>Pillar C agent (opt-in)</td>
+        <td>WorkingSet only</td>
+        <td>Same tools; must not dump S3 / whole Vortex</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Subsystems interaction (who talks to whom)</h3>
+  <table>
+    <thead>
+      <tr><th>Subsystem</th><th>map/</th><th>history/</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>E1 Collect</td>
+        <td>—</td><td>—</td>
+        <td>Admits raw; no store write</td>
+      </tr>
+      <tr>
+        <td>E2 Identity</td>
+        <td>—</td><td>—</td>
+        <td>Bind only (LUT-like job here, not a third room)</td>
+      </tr>
+      <tr>
+        <td>E3 / Pillar B</td>
+        <td>W</td><td>—</td>
+        <td>Owns map writes</td>
+      </tr>
+      <tr>
+        <td>E4 / Pillar A</td>
+        <td>—</td><td>W</td>
+        <td>Owns history writes</td>
+      </tr>
+      <tr>
+        <td>E5 Maintain</td>
+        <td>W (validity)</td><td>W (baselines)</td>
+        <td>Two refresh paths, not sync</td>
+      </tr>
+      <tr>
+        <td>E6 Detect</td>
+        <td>R (optional context)</td><td>R (primary)</td>
+        <td>Door C fires from sketches</td>
+      </tr>
+      <tr>
+        <td>E7 Curate</td>
+        <td>—</td><td>—</td>
+        <td>Case/signals — not topology edges</td>
+      </tr>
+      <tr>
+        <td>E8–E11</td>
+        <td>R</td><td>R</td>
+        <td>Via WorkingSet / tools</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card join" style="margin-bottom:24px">
+    <h2><span class="tag j">JOIN</span> Identity namespace (not a sync)</h2>
+    <p>Conceptual join key = <code>tenant</code> + shared id (<code>ci_id</code> on map ≡ <code>entity_id</code> on history).</p>
+    <p>No continuous replication between rooms. Integration may <em>check</em> “every sketched entity exists as a graph node” — consistency gate, not a merge.</p>
+    <p>Motadata-shaped temperatures on <strong>both</strong> rooms when Vortex/S3 is the dest: cold durable objects + hot analytical index. Diagnose uses retrieval → WorkingSet.</p>
+  </div>
+
+  <p class="links">
+    Related:
+    <a href="./e1-e5-pipeline-architecture.html">E1–E5 fan-out diagram</a> ·
+    <a href="./PILLAR_A_PERCENTILES_DEEP_DIVE.md">Pillar A deep dive</a> ·
+    <a href="./vortex-s3-interaction.html">Vortex + S3</a> ·
+    <a href="../pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md">Gate B dest profile</a> ·
+    contract brief FAQ Q26, Q30, Q36
+  </p>
+
+</div>
+</body>
+</html>

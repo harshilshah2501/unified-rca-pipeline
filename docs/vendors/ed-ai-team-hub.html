@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Edge Delta · AI Team hub</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link rel="stylesheet" href="/urca-diagrams.css" />
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="article vendor-ed">
+<div class="wrap article">
+  <div class="eyebrow">Edge Delta · L0 vendor launchpad</div>
+  <h1>AI Team + Telemetry Pipelines</h1>
+  <p class="lead">
+    Native Edge Delta reading, then the shared abstract pipeline and ObserveOps HLD.
+    Same template and chronology as the Dynatrace and Datadog hubs — vendor terms unchanged.
+    Return to <a href="/docs.html">docs index</a> for the full L0–L3 ladder.
+  </p>
+  <div class="spine" aria-label="Hub chronology">
+    <span>01 Thesis</span><span class="arr">→</span>
+    <span>02 Breakdown</span><span class="arr">→</span>
+    <span>03 Dual-layer</span><span class="arr">→</span>
+    <span>04 Timeline</span>
+    <span class="arr">·</span>
+    <span style="border-color:rgba(232,184,109,.45);color:#e8b86d">Portal walkthrough</span>
+  </div>
+
+  <div id="urca-hub-launchpad" data-vendor="ed"></div>
+  <script src="/urca-hub-launchpad.js" defer></script>
+
+  <div class="note">
+    Use-case switcher (<code>?uc=</code>) frames Hub, Breakdown, Dual-layer, Portal, and Timeline.
+    Thesis is shared fabric — no use case on that page.
+    This hub has <strong style="color:var(--text)">no Detect-category switcher</strong>.
+    Edge Delta does not publish ERROR / SLOWDOWN. They publish
+    <a href="/ed-supported-scenarios.html">43 Packs shape → 8 monitor types notice → 10 use cases investigate</a>.
+    The 10 use cases are the switcher — jobs, not Davis classes.
+  </div>
+
+  <h2 id="chronology">L0 chronology — read in this order (every use case)</h2>
+  <table>
+    <thead>
+      <tr><th>Step</th><th>Slot</th><th>Input focus</th><th>Processing focus</th><th>Output focus</th><th>Unfolds toward</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>01 · Thesis</strong></td>
+        <td>Shared fabric map</td>
+        <td>Sources / pipelines — not a Detect class</td>
+        <td>Mental model · dual-layer once · bind LUT · tenant snapshot</td>
+        <td>Pipelines ∥ AI Team + Overview</td>
+        <td>02 Breakdown (not a second Thesis)</td>
+      </tr>
+      <tr>
+        <td><strong>02 · Breakdown</strong></td>
+        <td>3 phases · 11 stages IPO</td>
+        <td>Per-stage artifacts (X at each E-block)</td>
+        <td>Input → process → output on E1–E11, grouped P1 / P2 / P3</td>
+        <td>Stage outputs + UC reach matrix</td>
+        <td>Same clock as the HLD — not a second numbering system</td>
+      </tr>
+      <tr>
+        <td><strong>03 · Dual-layer</strong></td>
+        <td>Pipelines ∥ AI Team journey</td>
+        <td>Hygiene stream + monitor / connector events</td>
+        <td>Edge process then standing Team</td>
+        <td>Thread / Issue / Overview readiness</td>
+        <td>E1 / E6 / E11 anchors</td>
+      </tr>
+      <tr>
+        <td><strong>04 · Timeline</strong></td>
+        <td>Observed tenant + Node lab</td>
+        <td>Empty fabric (14 Aug) then Node lab (17 Aug)</td>
+        <td>UC9 GitHub · UC8 OnCall · UC4 traces · UC1 parked</td>
+        <td>Issues 0 · thread ≠ Issue · Pattern Anomaly 0</td>
+        <td>Lab proof — honesty labels, not HLD D5 flip</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="phase-lens">Phase outputs (compare lens — for cross-reading only)</h2>
+  <table>
+    <thead>
+      <tr><th>Phase</th><th>Input artifact</th><th>Processing job</th><th>Output artifact</th><th>ED-native anchor</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>P1 · Fabric (E1–E5)</strong></td>
+        <td>Edge telemetry streams</td>
+        <td>Collect, parse/enrich/mask, persist processed output, keep pipelines fresh</td>
+        <td>Estate (processed telemetry + explorers + liveness)</td>
+        <td>Node / Gateway / Cloud Pipelines → Platform index</td>
+      </tr>
+      <tr>
+        <td><strong>P2 · Triage (E6–E8)</strong></td>
+        <td>Monitor alerts / connector events</td>
+        <td>Route to Team, match or open an Issue, lock window</td>
+        <td>Working set (Issue <em>or</em> thread + time + services)</td>
+        <td>Monitors + OnCall + workflows — thread ≠ Issue</td>
+      </tr>
+      <tr>
+        <td><strong>P3 · Diagnose (E9–E11)</strong></td>
+        <td>Working set + MCP / explorer evidence</td>
+        <td>SRE investigation, corroborate, package actions</td>
+        <td>Verdict card (Issue + actions + Overview)</td>
+        <td>SRE teammate · Issue card · AI Overview</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="tabs">L0 slots — what each tab is for</h2>
+  <table>
+    <thead>
+      <tr><th>Slot</th><th>Job</th><th>Use for</th><th>Not for</th><th>Next layer</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>01 · Thesis</strong></td>
+        <td>Shared fabric map</td>
+        <td>Mental model · dual-layer · Clock A once</td>
+        <td>Breakdown animation · Dual-layer journey · Observed replay (those are 02–04)</td>
+        <td><a href="/comparable-pipeline-dt-dd.html#fcd-overview">L1 F→T→D</a></td>
+      </tr>
+      <tr>
+        <td><strong>02 · Breakdown</strong></td>
+        <td>11-stage IPO</td>
+        <td>E1–E11 with this use case as the Detect tip + reach matrix</td>
+        <td>Clock narrative · scalar bakeoff</td>
+        <td><a href="/observeops-pipeline-hld.html#contracts">E-block contracts</a></td>
+      </tr>
+      <tr>
+        <td><strong>03 · Dual-layer</strong></td>
+        <td>Pipelines ∥ AI Team</td>
+        <td>Hygiene vs standing investigation for <code>?uc=</code></td>
+        <td>Smartscape∥Grail or Metrics∥APM∥Logs twins</td>
+        <td>E1 / E6 / E11 geometry</td>
+      </tr>
+      <tr>
+        <td><strong>04 · Timeline</strong></td>
+        <td>Observed execution</td>
+        <td>14 Aug empty fabric + 17 Aug Node lab clocks</td>
+        <td>General architecture teaching</td>
+        <td>Honesty gate for HLD/LLD — D5 stays Review</td>
+      </tr>
+      <tr>
+        <td><strong>Portal</strong></td>
+        <td>Manual app walkthrough</td>
+        <td>Click path on <code>app.edgedelta.com</code> for this use case</td>
+        <td>A second Thesis or a Detect-category essay</td>
+        <td>Your own login — not a screenshot substitute for 01–04</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    Thesis is shared fabric (no <code>?uc=</code> on that page). Breakdown / Dual-layer / Portal / Timeline are one copy each, framed by <code>?uc=</code>.
+    Portal is the practical click path — not Layer I MTL/Bits. Issue ≠ Problem ≠ Bits ≠ Incident.
+  </div>
+
+  <div class="summary" id="hub-summary">
+    <p class="hint">Active use case (from bar above)</p>
+    <h2 class="cat-name" id="hub-cat-name"></h2>
+    <div class="meta" id="hub-meta"></div>
+    <p class="blurb" id="hub-blurb"></p>
+  </div>
+
+  <h2>L0 · For this use case</h2>
+  <div class="grid" id="hub-cards"></div>
+
+  <h2 id="one-story">One story — three catalogs, then what you deploy, then the 11 stages</h2>
+  <p>
+    Read these as <strong>stacked jobs</strong>, not as Node / Gateway / Team.
+    <strong>43 packs are not the Node SKU. 8 monitor types are not the Gateway. 10 use cases are the AI Team playbooks</strong> (that last mapping is the only one that holds).
+  </p>
+  <div class="ud-viz" style="padding:1.2rem 1.1rem 1.3rem;">
+    <div class="ud-cap">High-level actor map · end-to-end data flow</div>
+    <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;text-align:center;margin-bottom:.9rem;">
+      <div style="padding:10px 4px;border:1px solid var(--ud-stroke);border-radius:10px;background:var(--ud-bg);">
+        <div style="font-size:1.6rem;">🌐</div>
+        <div style="font-size:.72rem;font-weight:600;color:var(--ud-faint);margin-top:2px;">Clients</div>
+        <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">HTTP, gRPC,<br>user traffic</div>
+      </div>
+      <div style="padding:10px 4px;border:1px solid var(--ud-stroke);border-radius:10px;background:var(--ud-bg);">
+        <div style="font-size:1.6rem;">📦</div>
+        <div style="font-size:.72rem;font-weight:600;color:var(--ud-faint);margin-top:2px;">Sources</div>
+        <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">Pods, VMs,<br>containers, APIs</div>
+      </div>
+      <div style="padding:10px 4px;border:1px solid rgba(126,200,184,.4);border-radius:10px;background:rgba(61,154,139,.06);">
+        <div style="font-size:1.6rem;">🔧</div>
+        <div style="font-size:.72rem;font-weight:600;color:#7ec8b8;margin-top:2px;">Node agent</div>
+        <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">Parse, enrich,<br>mask, pattern</div>
+      </div>
+      <div style="padding:10px 4px;border:1px dashed rgba(126,200,184,.4);border-radius:10px;background:rgba(61,154,139,.03);">
+        <div style="font-size:1.6rem;">🔀</div>
+        <div style="font-size:.72rem;font-weight:600;color:#7ec8b8;margin-top:2px;">Gateway</div>
+        <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">Aggregate, OTLP,<br>dedup (optional)</div>
+      </div>
+      <div style="padding:10px 4px;border:1px solid var(--ud-stroke);border-radius:10px;background:var(--ud-bg);">
+        <div style="font-size:1.6rem;">🔒</div>
+        <div style="font-size:.72rem;font-weight:600;color:var(--ud-faint);margin-top:2px;">TLS egress</div>
+        <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">Shaped stream<br>leaves cluster</div>
+      </div>
+      <div style="padding:10px 4px;border:1px solid var(--ud-stroke);border-radius:10px;background:var(--ud-bg);">
+        <div style="font-size:1.6rem;">☁️</div>
+        <div style="font-size:.72rem;font-weight:600;color:var(--ud-faint);margin-top:2px;">SaaS platform</div>
+        <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">Index, monitors,<br>explorers, MCP</div>
+      </div>
+      <div style="padding:10px 4px;border:1px solid rgba(126,200,184,.4);border-radius:10px;background:rgba(61,154,139,.06);">
+        <div style="font-size:1.6rem;">🤖</div>
+        <div style="font-size:.72rem;font-weight:600;color:#7ec8b8;margin-top:2px;">AI Team</div>
+        <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">OnCall, SRE,<br>threads, Issues</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;font-family:var(--ud-mono,monospace);font-size:.68rem;color:var(--ud-muted);margin-bottom:.75rem;">
+      <span style="padding:3px 6px;border-radius:4px;background:rgba(126,200,184,.1);color:#9ee0d2;">logs, metrics, events</span>
+      <span style="padding:0 4px;">→</span>
+      <span style="padding:3px 6px;border-radius:4px;background:rgba(126,200,184,.1);color:#9ee0d2;">parsed + tagged rows</span>
+      <span style="padding:0 4px;">→</span>
+      <span style="padding:3px 6px;border-radius:4px;background:rgba(126,200,184,.1);color:#9ee0d2;">aggregated stream</span>
+      <span style="padding:0 4px;">→</span>
+      <span style="padding:3px 6px;border-radius:4px;background:rgba(232,184,109,.1);color:#e8b86d;">shaped MELT over TLS</span>
+      <span style="padding:0 4px;">→</span>
+      <span style="padding:3px 6px;border-radius:4px;background:rgba(232,184,109,.1);color:#e8b86d;">indexed scopes</span>
+      <span style="padding:0 4px;">→</span>
+      <span style="padding:3px 6px;border-radius:4px;background:rgba(201,164,240,.1);color:#c9a4f0;">alerts / verdicts</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">
+      <div class="ud-panel ed" style="font-size:.82rem;">
+        <h5>⚡ Side input: Cloud ingest</h5>
+        <p>GitHub / webhook connectors bypass the cluster agent and enter SaaS directly (UC9 path).</p>
+      </div>
+      <div class="ud-panel" style="font-size:.82rem;">
+        <h5>🔔 Detect doors</h5>
+        <p>Monitors (platform) or Pipeline Triggers (edge) fire alerts that route into the AI Team.</p>
+      </div>
+      <div class="ud-panel" style="font-size:.82rem;">
+        <h5>📤 Outputs</h5>
+        <p>Threads (<code>#alerts</code>, <code>#code-issues</code>) appear first. Issue cards are separate — can stay 0.</p>
+      </div>
+    </div>
+  </div>
+  <div class="ud-viz">
+    <div class="ud-cap">Catalogs · what they publish (do not add 43+8+10)</div>
+    <div class="ud-flow" style="justify-content:center;flex-wrap:wrap;">
+      <span class="ud-chip ed">43 Packs · shape the stream</span>
+      <span class="ud-arrow">→</span>
+      <span class="ud-chip">8 monitor types · notice</span>
+      <span class="ud-arrow">→</span>
+      <span class="ud-chip ed">10 use cases · investigate</span>
+    </div>
+    <div class="ud-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-top:.85rem;">
+      <div class="ud-panel ed">
+        <h5>43 Packs</h5>
+        <ul>
+          <li>How to parse / mask / route <em>this source</em>.</li>
+          <li>Hygiene inside a pipeline (Node <em>or</em> Gateway).</li>
+          <li>Does not page anyone.</li>
+        </ul>
+      </div>
+      <div class="ud-panel">
+        <h5>8 monitor types</h5>
+        <ul>
+          <li>How we decide something looks wrong.</li>
+          <li>Detect mechanics — not ERROR/SLOWDOWN.</li>
+          <li>Can fire at the edge <em>or</em> on the platform.</li>
+        </ul>
+      </div>
+      <div class="ud-panel ed">
+        <h5>10 use cases</h5>
+        <ul>
+          <li>Who looks, with which connectors.</li>
+          <li>The switcher on this hub.</li>
+          <li>They <em>consume</em> monitors and <em>sit on</em> packed pipelines.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="ud-viz">
+    <div class="ud-cap">Deploy · what you actually install</div>
+    <div class="ud-flow" style="justify-content:center;flex-wrap:wrap;">
+      <span class="ud-chip ed">Node</span>
+      <span class="ud-arrow">→</span>
+      <span class="ud-chip ed">Gateway</span>
+      <span class="ud-arrow">→</span>
+      <span class="ud-chip">Platform index + org Monitors</span>
+      <span class="ud-arrow">→</span>
+      <span class="ud-chip ed">AI Team</span>
+    </div>
+    <ul class="ud-note" style="margin-top:.75rem">
+      <li><strong>Node</strong> — per-machine agent (DaemonSet).</li>
+      <li><strong>Gateway</strong> — cluster hub (Deployment). Optional globally; practically required for UC4 OTLP.</li>
+      <li><strong>Platform</strong> — after egress (index + org monitors).</li>
+      <li><strong>AI Team</strong> — sits on that platform. Not a cluster pod.</li>
+      <li><strong>Coordinator</strong> — extra, not a fourth catalog. Cluster control plane, mostly E5.</li>
+      <li>This lab ran <strong>Node-only</strong> for UC1 / UC8 / UC9 / UC10. Gateway is a job, not a required third SKU.</li>
+    </ul>
+    <p class="ud-note" style="margin-top:.55rem">
+      Term key: <strong>Node</strong> = per-node DaemonSet collector; <strong>Gateway</strong> = cluster Deployment aggregator;
+      <strong>Platform index</strong> = SaaS store where logs/metrics/traces/patterns/events are queryable;
+      <strong>org Monitors</strong> = backend thresholds/anomalies; <strong>AI Team</strong> = always-on investigation workflows.
+    </p>
+  </div>
+  <div class="ud-viz">
+    <div class="ud-cap">Clock · same 3 phases / 11 stages as ObserveOps</div>
+    <div class="ud-strip">
+      <div class="ud-seg base"><span class="ud-lab">P1</span><span class="ud-val">E1 Collect → E2 Identity → E3 Topology → E4 Stores → E5 Maintain</span></div>
+      <div class="ud-seg fault"><span class="ud-lab">P2</span><span class="ud-val">E6 Detect → E7 Curate → E8 Scope</span></div>
+      <div class="ud-seg"><span class="ud-lab">P3</span><span class="ud-val">E9 Localize → E10 Identify → E11 Package</span></div>
+    </div>
+    <ul class="ud-note" style="margin-top:.75rem">
+      <li>Filling P1 is not finishing a use case.</li>
+      <li>UC8 is the only Node E6 ALERT.</li>
+      <li>UC9 skipped E6 (scheduled workflow).</li>
+      <li>UC1 stopped at E6 No Data, then E4 402.</li>
+      <li>E11 Issues 0. <a href="/edgedelta-subsystem-mechanisms.html">02 Breakdown</a> for IPO + reach matrix.</li>
+    </ul>
+  </div>
+
+  <h2>All use cases</h2>
+  <table>
+    <thead>
+      <tr><th>Use case</th><th>Detect door</th><th>Portal / Timeline</th><th>Status</th></tr>
+    </thead>
+    <tbody id="hub-table"></tbody>
+  </table>
+
+  <h2>Related on this hub</h2>
+  <div class="grid two">
+    <a class="card" href="/edgedelta-subsystem-mechanisms.html">
+      <div class="k ed">02 Breakdown</div>
+      <h3>ED E1–E11 IPO</h3>
+      <p>Phase/stage IPO + UC reach matrix and tenant evidence notes.</p>
+    </a>
+    <a class="card" href="/edgedelta-production-pipeline.html">
+      <div class="k ed">01 Thesis</div>
+      <h3>ED production pipeline</h3>
+      <p>Dual-layer mental model. Lab is Node-only — no Gateway pipeline.</p>
+    </a>
+    <a class="card" href="/ed-supported-scenarios.html">
+      <div class="k ed">Catalogs</div>
+      <h3>ED AI Team use cases</h3>
+      <p>10 Team jobs. UC8 completed (team recipe, no Issue card). Not ObserveOps Detect UC-8.</p>
+    </a>
+  </div>
+
+  <div class="note warn">
+    <strong style="color:var(--text)">Do not twin:</strong>
+    ED Issue ≠ DT Problem ≠ DD Bits ≠ DD Incident.
+    Pattern Anomaly ≠ Watchdog ≠ Davis Event.
+    Thread ≠ Issue. Test Notification ≠ skyline ALERT.
+    Read ED independently first. Geometry / AI / E1–E11 compare lives on
+    <a href="/comparable-pipeline-dt-dd.html">DT vs DD vs ED §0</a> — lab clocks stay two-vendor.
+    D5 stays Review.
+  </div>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/ed-use-cases.js" defer></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  function ready(fn) {
+    if (window.URCA_ED_UCS) fn();
+    else setTimeout(function () { ready(fn); }, 20);
+  }
+  ready(function () {
+    var API = window.URCA_ED_UCS;
+    API.mountSwitcher({ banner: false });
+
+    var catName = document.getElementById("hub-cat-name");
+    var meta = document.getElementById("hub-meta");
+    var blurb = document.getElementById("hub-blurb");
+    var cards = document.getElementById("hub-cards");
+    var table = document.getElementById("hub-table");
+
+    function render(uc) {
+      API.persist(uc);
+      catName.textContent = uc.title;
+      meta.innerHTML = "";
+      var p1 = document.createElement("span");
+      p1.className = "pill " + API.statusPill(uc.status);
+      p1.textContent = API.statusLabel(uc.status);
+      meta.appendChild(p1);
+      var p2 = document.createElement("span");
+      p2.className = "pill";
+      p2.textContent = uc.door;
+      meta.appendChild(p2);
+      if (uc.evidence) {
+        var p3 = document.createElement("span");
+        p3.className = "pill";
+        p3.textContent = uc.evidence;
+        meta.appendChild(p3);
+      }
+      blurb.textContent = uc.blurb + " " + uc.honesty;
+
+      var slots = [
+        {
+          href: API.teach.pipeline,
+          k: "01 · Thesis",
+          h: "Thesis",
+          p: "Shared fabric map: dual-layer mental model · native stages once · unfold to E1–E11. Use cases live on Hub, Portal, and Timeline.",
+          not: "Not 02 Breakdown, 03 Dual-layer, or 04 Timeline."
+        },
+        {
+          href: API.withUc(API.teach.mechanisms, uc),
+          k: "02 · Breakdown",
+          h: "Breakdown",
+          p: "Stage IPO canvas: collect → index → detect → route → investigate → package. Detect tip = this use case’s door.",
+          not: "Not compare-lens distillation → L1 page."
+        },
+        {
+          href: API.withUc(API.teach.e2e, uc),
+          k: "03 · Dual-layer",
+          h: "Dual-layer",
+          p: "One signal across Telemetry Pipelines ∥ AI Team — hygiene then a standing investigation.",
+          not: "Not a Smartscape∥Grail or Metrics∥APM∥Logs twin."
+        },
+        {
+          href: API.withUc(API.teach.lab, uc),
+          k: "04 · Timeline",
+          h: "Timeline",
+          p: "14 Aug empty fabric then 17 Aug Node lab for " + uc.name + " — clocks, honesty, what did not fire.",
+          not: "Lab proof input. D5 stays Review."
+        },
+        {
+          href: API.withUc(API.teach.portal, uc),
+          k: "Portal",
+          h: "App walkthrough",
+          p: "Click path on app.edgedelta.com for " + uc.name + " — Overview, Monitors, Events, explorers, Threads.",
+          not: "Your login. Not a substitute for Thesis / Breakdown."
+        }
+      ];
+      cards.innerHTML = "";
+      slots.forEach(function (s) {
+        var a = document.createElement("a");
+        a.className = "card";
+        a.href = s.href;
+        a.innerHTML =
+          '<div class="k ed">' +
+          s.k +
+          "</div><h3>" +
+          s.h +
+          "</h3><p>" +
+          s.p +
+          "</p>" +
+          (s.not ? '<p class="not">' + s.not + "</p>" : "");
+        cards.appendChild(a);
+      });
+
+      try {
+        history.replaceState(null, "", API.withUc(API.teach.hub, uc));
+      } catch (e) {}
+    }
+
+    table.innerHTML = "";
+    API.list.forEach(function (c) {
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td><a href=\"" +
+        API.withUc(API.teach.hub, c) +
+        "\"><strong>" +
+        c.name +
+        "</strong></a><br/><span style=\"color:#8a96a4;font-size:.85em\">" +
+        c.title.split("·")[1].trim() +
+        "</span></td>" +
+        "<td><code>" +
+        c.detect +
+        "</code></td>" +
+        "<td><a href=\"" +
+        API.withUc(c.portal, c) +
+        "\">Walk app</a> · <a href=\"" +
+        API.withUc(c.lab, c) +
+        "\">Timeline</a></td>" +
+        "<td>" +
+        API.statusLabel(c.status) +
+        "</td>";
+      table.appendChild(tr);
+    });
+
+    render(API.current());
+  });
+});
+</script>
+</body>
+</html>

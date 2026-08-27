@@ -3,7 +3,7 @@
 **Status:** Observed — **P-260831**  
 **Docs Timeline:** http://127.0.0.1:8765/dt-cat-availability-lab.html  
 **Hub:** http://127.0.0.1:8765/dt-davis-category-hub.html?cat=availability  
-**Lab root:** `dynatrace-rca-lab/`  
+**Lab root:** `labs/dynatrace-rca-lab/`  
 **Snapshot:** `docs/vendor-source/dynatrace/p260831-availability-snapshot.json`
 
 ## Goal

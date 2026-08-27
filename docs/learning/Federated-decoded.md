@@ -4,7 +4,7 @@ Federated RCA Study v2 (Repo-Aligned)
 
 Purpose: Correct my learning notes by separating what is implemented in this repo versus what is conceptual from papers or future architecture.
 
-**Doc map:** [`docs/NAVIGATION.md`](docs/NAVIGATION.md)
+**Doc map:** [`docs/NAVIGATION.md`](../NAVIGATION.md)
 
 Tag legend:
 - [Implemented] Present and used in current repo flows.

@@ -1,0 +1,13 @@
+{
+  "category": "MONITORING_UNAVAILABLE",
+  "rerun": "code-only 2026-08-12",
+  "window": {"from": "2026-08-12T09:33:00Z", "to": "2026-08-12T09:48:54Z"},
+  "fault": "inventory/app.py SCENARIO_MODE=MONITORING_DARK sets OTEL_SDK_DISABLED=true and DT_DISABLE=true at boot (Python only; no PG MONITORING_OFF, no systemctl stop oneagent)",
+  "httpDuringFault": "200 throughout (load ok=8/8)",
+  "organicProblemsInWindow": [],
+  "organicEventsOfInterest": [],
+  "insight": "Code-only in-process telemetry env flags alone did not open MONITORING_UNAVAILABLE, CUSTOM_ALERT, or OSI_UNEXPECTEDLY_UNAVAILABLE. Prior Observed P-260826 required events.ingest CUSTOM_ALERT (and historically PG MONITORING_OFF + host OneAgent stop).",
+  "priorTeachingProblem": "P-260826",
+  "healedAt": "2026-08-12T09:48:54Z",
+  "healProbe": "HTTP 200 · SCENARIO_MODE=HEALTHY"
+}

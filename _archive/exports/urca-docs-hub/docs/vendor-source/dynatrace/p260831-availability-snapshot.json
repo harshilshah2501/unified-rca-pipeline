@@ -1,0 +1,83 @@
+{
+  "displayId": "P-260831",
+  "problemId": "-2179233571606897779_1786086653903V2",
+  "title": "AVAILABILITY lab: inventory process/container down (hard outage)",
+  "status": "OPEN",
+  "severityLevel": "AVAILABILITY",
+  "impactLevel": "INFRASTRUCTURE",
+  "startTime": "2026-08-07T07:10:53Z",
+  "endTime": null,
+  "rootCauseEntity": null,
+  "affectedEntities": [
+    "inventory"
+  ],
+  "impactedEntities": [
+    "inventory"
+  ],
+  "evidenceEvents": [
+    {
+      "entity": "inventory",
+      "entityId": "PROCESS_GROUP-6E59A21625366AA5",
+      "entityType": "PROCESS_GROUP",
+      "eventType": "AVAILABILITY_EVENT",
+      "rootCauseRelevant": false,
+      "startTime": "2026-08-07T07:10:53Z",
+      "endTime": null,
+      "displayName": "AVAILABILITY lab: inventory process/container down (hard outage)",
+      "correlationId": "bc37af7a3cc79c3b"
+    }
+  ],
+  "siblingProblems": [
+    {
+      "displayId": "P-260832",
+      "problemId": "3208254796893841947_1786086654048V2",
+      "severityLevel": "AVAILABILITY",
+      "impactLevel": "SERVICES",
+      "entityId": "SERVICE-E25379CAD5DC3234",
+      "title": "AVAILABILITY lab: inventory service unavailable to callers"
+    },
+    {
+      "displayId": "P-260833",
+      "problemId": "2927713873211289039_1786086654048V2",
+      "severityLevel": "AVAILABILITY",
+      "impactLevel": "SERVICES",
+      "entityId": "SERVICE-A1EEE9F51C7E3912",
+      "title": "AVAILABILITY lab: inventory service unavailable to callers"
+    }
+  ],
+  "cascadeProblems": [
+    {
+      "displayId": "P-260829",
+      "severityLevel": "PERFORMANCE",
+      "title": "Response time degradation",
+      "startTime": "2026-08-07T07:02:00Z",
+      "affected": ["frontend", "product"],
+      "rootCauseEntity": "Requests to unmonitored hosts",
+      "evidence": [
+        "TRANSACTIONAL Client error rate increase (Requests to unmonitored hosts)",
+        "SERVICE_SLOWDOWN frontend",
+        "SERVICE_SLOWDOWN product"
+      ],
+      "note": "Organic Davis packaging of caller failures while inventory container was stopped — PERFORMANCE/SLOWDOWN shape, not AVAILABILITY severity on inventory"
+    }
+  ],
+  "impactAnalysis": null,
+  "labNotes": {
+    "category": "AVAILABILITY",
+    "defect": "Hard outage: docker compose stop inventory (Exited 137); FE/product stayed up; checkout probes HTTP 000 / 500 Internal Server Error",
+    "not": "No KeyError 5xx teaching chalk. No ledger-scan SLOWDOWN. No OTEL/OneAgent visibility-dark (MONITORING_UNAVAILABLE).",
+    "httpDuringFault": "frontend checkout failed (connection / 500) while inventory container stopped",
+    "organicDetect": "Davis did not auto-open severity AVAILABILITY / PGI_UNAVAILABLE on inventory for graceful docker compose stop within ~10m. Organic cascade opened PERFORMANCE Response time degradation on frontend+product (P-260829 @ 07:02 UTC) with RC 'Requests to unmonitored hosts'.",
+    "problemSurface": "events.ingest AVAILABILITY_EVENT on PROCESS_GROUP inventory → Problem P-260831 (severity AVAILABILITY). Sibling AVAILABILITY_EVENT on SERVICE inventory → P-260832 / P-260833.",
+    "compareHostClass": "Historical P-260810 = Host or monitoring unavailable / OSI_UNEXPECTEDLY_UNAVAILABLE / AVAILABILITY on HOST",
+    "breakAt": "2026-08-07T07:00:29Z",
+    "loadWindow": "2026-08-07T07:00:37Z → 2026-08-07T07:11:23Z",
+    "problemAt": "2026-08-07T07:10:53Z",
+    "healedAt": "2026-08-07T07:11:49Z",
+    "healSteps": [
+      "./scripts/heal_inventory_availability.sh",
+      "docker compose start inventory / up -d --no-deps inventory"
+    ],
+    "healProbe": "HTTP 200 checkout JSON stock+product"
+  }
+}

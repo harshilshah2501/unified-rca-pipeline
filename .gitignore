@@ -64,3 +64,7 @@ benchmarking/results/comparison/oo_slice_a_alerts.json
 # OO raw Analysis dumps (canonical write-ups live in reports/OO/fair/)
 benchmarking/results/comparison/reports/OO/_fair_extracts/**
 !benchmarking/results/comparison/reports/OO/_fair_extracts/README.md
+
+# Pillar A/B PoC runtime outputs
+pillar-ab-implementation/**/poc/out/
+pillar-ab-implementation/**/poc/.venv/

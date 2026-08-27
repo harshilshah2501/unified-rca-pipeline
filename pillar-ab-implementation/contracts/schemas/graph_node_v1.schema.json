@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observeops.local/schemas/graph_node_v1.schema.json",
+  "title": "graph_node.v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tenant",
+    "ci_id",
+    "ci_type",
+    "ci_name",
+    "identity_status"
+  ],
+  "properties": {
+    "schema_version": { "const": "graph_node.v1" },
+    "tenant": { "type": "string", "minLength": 1 },
+    "ci_id": { "type": "string", "minLength": 1 },
+    "ci_type": { "type": "string", "minLength": 1 },
+    "ci_name": { "type": "string" },
+    "ci_class": { "type": "string" },
+    "tier": { "type": "string" },
+    "instance_scope": { "enum": ["single", "multi-instance"] },
+    "scope_parent": { "type": ["string", "null"] },
+    "identity_status": { "enum": ["resolved", "unattributed", "synthesized"] },
+    "monitored_via": { "type": "array", "items": { "type": "string" } },
+    "aliases": { "type": "array", "items": { "type": "string" } },
+    "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+    "valid_from": { "type": ["string", "null"] },
+    "valid_to": { "type": ["string", "null"] }
+  },
+  "additionalProperties": true
+}

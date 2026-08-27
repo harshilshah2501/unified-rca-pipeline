@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Our HLD — article archive</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link rel="stylesheet" href="/urca-docs.css" />
+<script src="/theme-init.js"></script>
+<style>
+.archive-toc{display:flex;flex-wrap:wrap;gap:.45rem .65rem;margin:1rem 0 1.25rem;}
+.archive-toc a{font-size:.88rem;padding:.28rem .55rem;border-radius:999px;border:1px solid var(--stroke);background:var(--bg-elev);color:var(--muted);}
+.archive-toc a:hover{color:var(--text);border-color:rgba(91,141,239,.45);text-decoration:none;}
+.archive-search{width:100%;max-width:28rem;margin:.5rem 0 1rem;padding:.55rem .75rem;border-radius:8px;border:1px solid var(--stroke);background:var(--bg-elev);color:var(--text);font:inherit;}
+.archive-search::placeholder{color:var(--faint);}
+.archive-section{margin-top:1.75rem;padding-top:1rem;border-top:1px solid var(--stroke);}
+.archive-section:first-of-type{border-top:none;padding-top:0;margin-top:.5rem;}
+.archive-section h2{font-size:1.05rem;margin:0 0 .35rem;}
+.archive-section .sect-lead{margin:0 0 .75rem;font-size:.92rem;color:var(--muted);}
+.archive-row{display:block;padding:.65rem .85rem;border:1px solid var(--stroke);border-radius:8px;background:var(--bg-elev);margin:.45rem 0;color:inherit;text-decoration:none;}
+.archive-row:hover{border-color:rgba(91,141,239,.4);text-decoration:none;}
+.archive-row.hidden{display:none;}
+.archive-row .row-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem .65rem;}
+.archive-row .tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);}
+.archive-row .tag.main{color:var(--ok);}
+.archive-row h3{margin:0;font-size:.98rem;color:var(--text);}
+.archive-row p{margin:.35rem 0 0;font-size:.88rem;color:var(--muted);}
+.archive-row .also{font-size:.8rem;color:var(--faint);margin-top:.25rem;}
+</style>
+</head>
+<body class="urca-doc article">
+<div class="wrap article">
+  <div class="eyebrow">Our HLD · archive index</div>
+  <h1>HLD article archive</h1>
+  <p class="lead">
+    Secondary and deep-dive articles for the ObserveOps pipeline.
+    The <strong style="color:var(--text)">main menu</strong> on
+    <a href="/observeops-pipeline-hld.html">Our HLD</a> keeps the cold-start path:
+    Fusion → written spec → <a href="/motadata-3pillars-implementation-scope.html">3 pillars kickoff scope</a> → shift-left.
+    Everything here remains linked and searchable — it is not deleted.
+  </p>
+
+  <nav class="archive-toc" aria-label="Sections">
+    <a href="#motadata">Motadata 3 pillars</a>
+    <a href="#examples">Examples</a>
+    <a href="#chapters">Chapters &amp; catalogs</a>
+    <a href="#llds">Block LLDs</a>
+    <a href="#print">Print / canonical MD</a>
+  </nav>
+
+  <p class="sect-lead" style="margin-bottom:.35rem;"><label for="archive-filter">Search archive</label></p>
+  <input id="archive-filter" class="archive-search" type="search" placeholder="Filter by title or topic…" autocomplete="off" />
+
+  <section id="motadata" class="archive-section">
+    <h2>Motadata 3 pillars</h2>
+    <p class="sect-lead">Leadership PDF mapped onto E1–E11. Kickoff scope is on the main menu; these are study and mapping depth.</p>
+
+    <a class="archive-row" href="/motadata-3pillars-implementation-scope.html" data-keywords="kickoff scope block-2 e3 e4 e5 ingest.v1 artifacts">
+      <div class="row-top"><span class="tag main">Main menu</span><h3>3 pillars implementation scope</h3></div>
+      <p>Answers before start · E1/E2 ingest.v1 contract · deliverables · eng vs management docs.</p>
+      <div class="also">Also linked from Our HLD main grid.</div>
+    </a>
+    <a class="archive-row" href="/motadata-3pillars-architecture.html" data-keywords="explained t-digest vortex s3 retrieval react pillars">
+      <div class="row-top"><span class="tag">Explained</span><h3>Motadata 3 pillars — what / why / how</h3></div>
+      <p>T-Digest, graph builder, Vortex/S3, bounded retrieval, ReAct — diagrams mapped onto E1–E11.</p>
+    </a>
+    <a class="archive-row" href="/motadata-3pillars-vs-shift-left.html" data-keywords="job map pdf saas column p1 p3">
+      <div class="row-top"><span class="tag">Job map</span><h3>3 pillars vs shift-left · E1–E11</h3></div>
+      <p>PDF is the SaaS column: percentiles + graph write P1; ReAct optional P3. D5 stays Review.</p>
+    </a>
+    <a class="archive-row" href="/motadata-3pillars-study-qna.html" data-keywords="study qna conflicts resolutions hybrid merge sketches">
+      <div class="row-top"><span class="tag">Study Q&amp;A</span><h3>Letters, sketches, 3+4 merge</h3></div>
+      <p>Pillars ≠ doors ≠ Gates. Four designs. Conflict register §10. Hybrid = temporal CI graph, not Alert vertices.</p>
+    </a>
+  </section>
+
+  <section id="examples" class="archive-section">
+    <h2>Examples &amp; illustrations</h2>
+    <p class="sect-lead">Authored samples — not live pipeline output.</p>
+
+    <a class="archive-row" href="/observeops-ci-graph.html" data-keywords="linux server map ci graph topology example">
+      <div class="row-top"><span class="tag">Example</span><h3>Linux-server map</h3></div>
+      <p>33 CIs, 40 connections. Each edge can show provenance. Illustration, not live E3 output.</p>
+    </a>
+    <a class="archive-row" href="/observeops-pipeline-diagram.html" data-keywords="diagram pipeline e1 e11 visual">
+      <div class="row-top"><span class="tag">Diagram</span><h3>Standalone pipeline diagram</h3></div>
+      <p>Picture of E1–E11 phases — companion to the written spec.</p>
+    </a>
+    <a class="archive-row" href="/docs/linux-server-ci-telemetry.json" data-keywords="telemetry json keys signatures">
+      <div class="row-top"><span class="tag">Data</span><h3>CI telemetry JSON</h3></div>
+      <p>228 keys · 125 fault signatures · authored for the example map.</p>
+    </a>
+  </section>
+
+  <section id="chapters" class="archive-section">
+    <h2>Chapters &amp; catalogs</h2>
+    <p class="sect-lead">Extra detail on the map and Detect taxonomy — same pipeline, not second HLDs.</p>
+
+    <a class="archive-row" href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md" data-keywords="operational graph draft chapter map provenance">
+      <div class="row-top"><span class="tag">Chapter · Draft</span><h3>Operational graph</h3></div>
+      <p>How connections are recorded and how Detect–Package use the map, use case by use case.</p>
+    </a>
+    <a class="archive-row" href="/docs/OBSERVEOPS_USE_CASES.md" data-keywords="detect use cases uc1 uc8 catalog">
+      <div class="row-top"><span class="tag">Catalog</span><h3>8 Detect use cases</h3></div>
+      <p>UC1–5 = Detect classes. UC6–8 = host saturation flavors that split at Localize / Identify.</p>
+    </a>
+    <a class="archive-row" href="/observeops-shift-left-architecture.html" data-keywords="shift left node gateway saas locus">
+      <div class="row-top"><span class="tag">Main menu</span><h3>Shift-processing-left</h3></div>
+      <p>Same eleven steps. Work on Node or optional Gateway before SaaS. Not a second pipeline.</p>
+      <div class="also">Also on Our HLD main grid.</div>
+    </a>
+  </section>
+
+  <section id="llds" class="archive-section">
+    <h2>Block LLDs</h2>
+    <p class="sect-lead">Per-stage low-level specs. E1–E2 Done; E3–E4 Draft until stores land.</p>
+
+    <a class="archive-row" href="/docs/LLD-E1-Collect.md" data-keywords="lld e1 collect ingest done">
+      <div class="row-top"><span class="tag">Done</span><h3>LLD-E1 Collect</h3></div>
+      <p>ingest.v1 admission · metric_sample, event, trace_span, topo_update.</p>
+    </a>
+    <a class="archive-row" href="/docs/LLD-E2-Identity.md" data-keywords="lld e2 identity normalize resolved">
+      <div class="row-top"><span class="tag">Done</span><h3>LLD-E2 Identity (Normalize)</h3></div>
+      <p>IdentifiedRecord overlay · identity.status resolved / unattributed / synthesized.</p>
+    </a>
+    <a class="archive-row" href="/docs/LLD-E3-Topology.md" data-keywords="lld e3 topology graph draft">
+      <div class="row-top"><span class="tag">Draft</span><h3>LLD-E3 Topology</h3></div>
+      <p>Operational-graph chapter is the target map shape — not yet merged into this LLD.</p>
+    </a>
+    <a class="archive-row" href="/docs/LLD-E4-Stores.md" data-keywords="lld e4 stores dest gate b">
+      <div class="row-top"><span class="tag">Draft</span><h3>LLD-E4 Stores</h3></div>
+      <p>Tenant dest fan-out · Gate B open (Vortex/S3 may be one profile, not the only lake).</p>
+    </a>
+  </section>
+
+  <section id="print" class="archive-section">
+    <h2>Print exports &amp; canonical markdown</h2>
+    <p class="sect-lead">PDF/A4 companions and source markdown for Motadata study pack.</p>
+
+    <a class="archive-row" href="/docs/OBSERVEOPS_PIPELINE_HLD.md" data-keywords="pipeline hld written spec canonical">
+      <div class="row-top"><span class="tag">Canonical</span><h3>OBSERVEOPS_PIPELINE_HLD.md</h3></div>
+      <p>Written spec — on main menu as Pipeline HLD.</p>
+    </a>
+    <a class="archive-row" href="/docs/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md" data-keywords="configuration item ci qualification motadata pie durable ephemeral graph sketch contract">
+      <div class="row-top"><span class="tag">Contract</span><h3>Graph + sketch contract brief</h3></div>
+      <p>CI qualification (pie + four categories), fifteen edges, sketch.v1. Canonical under pillar-ab contracts (docs/ is a symlink).</p>
+    </a>
+    <a class="archive-row" href="/docs/GRAPH_QNA.md" data-keywords="fabric qna e1 e5 fan-out map history vortex sketch faq">
+      <div class="row-top"><span class="tag">Q&amp;A</span><h3>GRAPH_QNA — E1–E5 fabric</h3></div>
+      <p>All former brief §10 answers in coherent sections. Brief keeps stable Q# stubs.</p>
+    </a>
+    <a class="archive-row" href="/docs/REPO_HYGIENE.md" data-keywords="repo hygiene canonical paths handoff zip">
+      <div class="row-top"><span class="tag">Hygiene</span><h3>REPO_HYGIENE — what to edit where</h3></div>
+      <p>Canonical paths, do-not-edit trees, handoff zip policy.</p>
+    </a>
+    <a class="archive-row" href="/e1-e5-pipeline-architecture.html" data-keywords="e1 e2 fan-out pillar a b map history">
+      <div class="row-top"><span class="tag">Fabric</span><h3>E1–E5 pipeline architecture</h3></div>
+      <p>Identity fan-out into Pillar B map/ ∥ Pillar A history/.</p>
+    </a>
+    <a class="archive-row" href="/map-history-storage-blocks.html" data-keywords="map history storage rooms workingset">
+      <div class="row-top"><span class="tag">Fabric</span><h3>map/ · history/ storage blocks</h3></div>
+      <p>Sub-blocks, R/W, no sync — join at WorkingSet.</p>
+    </a>
+    <a class="archive-row" href="/map-history-storage-animation.html" data-keywords="map history animation remap">
+      <div class="row-top"><span class="tag">Fabric</span><h3>map/ · history/ animation</h3></div>
+      <p>Stepped remap: write fan-out → rooms → WorkingSet.</p>
+    </a>
+    <a class="archive-row" href="/vortex-s3-interaction.html" data-keywords="vortex s3 temperature rooms block interaction">
+      <div class="row-top"><span class="tag">Fabric</span><h3>Vortex + S3 interaction</h3></div>
+      <p>Rooms vs temperature; retrieval → WorkingSet.</p>
+    </a>
+    <a class="archive-row" href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md" data-keywords="pillar a percentiles tdigest buckets baseline">
+      <div class="row-top"><span class="tag">Pillar A</span><h3>Percentiles deep dive</h3></div>
+      <p>Inputs → process → sketch.v1 / S3 / Vortex.</p>
+    </a>
+    <a class="archive-row" href="/pillar-ab-implementation/README.md" data-keywords="pillar a b implementation slice graph sketch contract">
+      <div class="row-top"><span class="tag">Slice</span><h3>Pillar A + B implementation</h3></div>
+      <p>Contracts SoT, pillar-a / pillar-b packages, integration. Combined poc archived.</p>
+    </a>
+    <a class="archive-row" href="/docs/MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md" data-keywords="implementation scope markdown">
+      <div class="row-top"><span class="tag">Canonical</span><h3>MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md</h3></div>
+      <p>Source for kickoff scope HTML (under pillar-ab-implementation/scope/).</p>
+    </a>
+    <a class="archive-row" href="/docs/MOTADATA_3PILLARS_STUDY_QNA.md" data-keywords="study qna markdown conflicts">
+      <div class="row-top"><span class="tag">Canonical</span><h3>MOTADATA_3PILLARS_STUDY_QNA.md</h3></div>
+      <p>Source for study Q&amp;A HTML · conflict register.</p>
+    </a>
+    <a class="archive-row" href="/docs/MOTADATA_3PILLARS_VS_SHIFT_LEFT.md" data-keywords="job map markdown">
+      <div class="row-top"><span class="tag">Canonical</span><h3>MOTADATA_3PILLARS_VS_SHIFT_LEFT.md</h3></div>
+      <p>Source for job-map HTML.</p>
+    </a>
+    <a class="archive-row" href="/print/motadata-3pillars-architecture-explained-A4.html" data-keywords="print pdf a4 explained">
+      <div class="row-top"><span class="tag">Print</span><h3>3 pillars explained (A4)</h3></div>
+      <p>Print-friendly layout for architecture explained page.</p>
+    </a>
+    <a class="archive-row" href="/print/motadata-3pillars-vs-shift-left-A4.html" data-keywords="print pdf a4 job map">
+      <div class="row-top"><span class="tag">Print</span><h3>3 pillars vs shift-left (A4)</h3></div>
+      <p>Print-friendly job map.</p>
+    </a>
+  </section>
+
+  <p class="note" style="margin-top:2rem;">
+    <a href="/observeops-pipeline-hld.html">← Back to Our HLD main menu</a>
+    · <a href="/docs.html">Full docs hub</a>
+    · <a href="/urca-glossary.html">Glossary</a>
+  </p>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script>
+(function () {
+  var input = document.getElementById("archive-filter");
+  if (!input) return;
+  var rows = Array.prototype.slice.call(document.querySelectorAll(".archive-row"));
+  input.addEventListener("input", function () {
+    var q = (input.value || "").trim().toLowerCase();
+    rows.forEach(function (row) {
+      if (!q) {
+        row.classList.remove("hidden");
+        return;
+      }
+      var hay = (row.textContent + " " + (row.getAttribute("data-keywords") || "")).toLowerCase();
+      row.classList.toggle("hidden", hay.indexOf(q) === -1);
+    });
+  });
+})();
+</script>
+</body>
+</html>

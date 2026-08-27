@@ -3,7 +3,7 @@
 **Status:** Observed — **P-260826**  
 **Docs Timeline:** http://127.0.0.1:8765/dt-cat-monitoring-unavailable-lab.html  
 **Hub:** http://127.0.0.1:8765/dt-davis-category-hub.html?cat=monitoring_unavailable  
-**Lab root:** `dynatrace-rca-lab/`  
+**Lab root:** `labs/dynatrace-rca-lab/`  
 **Snapshot:** `docs/vendor-source/dynatrace/p260826-monitoring-unavailable-snapshot.json`
 
 ## Goal

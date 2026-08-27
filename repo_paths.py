@@ -25,6 +25,11 @@ MURPHY = FEDERATED_PIPELINE / "murphy"
 PANORAMA = FEDERATED_PIPELINE / "panorama"
 NEZHA = FEDERATED_PIPELINE / "Nezha"
 
+LABS = REPO_ROOT / "labs"
+DATADOG_RCA_LAB = LABS / "datadog-rca-lab"
+DYNATRACE_RCA_LAB = LABS / "dynatrace-rca-lab"
+EDGEDELTA_LAB = LABS / "edgedelta"
+
 
 def ensure_import_paths() -> None:
     """Insert repo + pipeline packages on sys.path (idempotent)."""
