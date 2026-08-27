@@ -31,11 +31,12 @@
 
 | Gap | Notes |
 |-----|--------|
-| Baseline mixes 1m and 5m in one accumulator | Prefer baseline key that includes `window` or separate accumulators |
-| First flush self-seeds baseline | Need multi-window / multi-day history for real Detect contrast (debugger Move 3 pattern) |
+| First flush still self-seeds when no prior history | Need multi-window / multi-day history for real Detect contrast (debugger Move 3); E5 `refresh_seasonal_baselines` rebuilds from Dest |
 | No `trace_id` / exemplars | Optional; pass through admit when events carry ids |
-| `refresh_baselines` is a stub | E5 Maintain story |
 | No real Vortex/S3 | Keep contract; dest profile is files for now |
+
+~~Baseline mixes 1m and 5m~~ — **fixed:** baseline key includes `window`.
+~~`refresh_baselines` is a stub~~ — **landed:** `sketch/maintain.py` + `SketchWriter.refresh_baselines(dest)`.
 
 ## False-positive filtering (not “all at E5”)
 
@@ -48,16 +49,17 @@
 ## How this package relates to Pillar B
 
 - You do **not** need graph code to unit-test sketches.  
-- Integration (same `tenant`+`ci_id`, WorkingSet) lives in the monorepo `integration/` folder when both pillars merge.  
+- A and B are **parallel writers**, never merged as one product.  
+- Optional **read-time join** (same `tenant`+`ci_id`, WorkingSet) lives in the monorepo `integration/` folder — a join harness, not a package merge.  
 - Mixed lab tapes that included `topo_update` were split: this zip’s fixtures are **metric-only**.
 
 ## Suggested first tasks
 
 1. `make test-all` — green baseline.  
-2. Read deep dive §5–7 + [`docs/GRAPH_QNA.md`](./docs/GRAPH_QNA.md) sections on fan-out / Detect / merge (G12–G13, G24–G25, G33–G37).  
-3. Fix baseline key so 1m/5m do not share one seasonal accumulator.  
-4. Add a unit test: prior window expected_p95 vs spike current_p95 (Detect contrast).  
-5. Optional: admit `trace_id` → exemplar on hot bin (still not required for Detect).
+2. Read deep dive §5–7 + [`docs/GRAPH_QNA.md`](./docs/GRAPH_QNA.md) (fan-out G12–G13, Detect G24–G25, sketch-merge/raw G33–G37).  
+3. `make flush` — lab FileDest write under `poc/out/`.  
+4. Optional: admit `trace_id` → exemplar on hot bin (still not required for Detect).  
+5. Optional: multi-day fixture history so Detect contrast does not rely on same-run seeding.
 
 ## Contact / monorepo paths (if you have full repo access)
 

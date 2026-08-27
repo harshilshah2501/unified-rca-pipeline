@@ -38,13 +38,17 @@ Drop:
 
 ## On-disk rooms (Gate B file dest)
 
+Topology publish always writes the three **map** keys. Sketch and change-fact paths are history-room artifacts (change facts only when that writer runs).
+
 ```text
 poc/out/<tenant>/
-  map/graph_snapshot.json
-  map/edges.jsonl
-  map/nodes.jsonl
-  history/sketches.jsonl
-  history/change_facts.jsonl
+  map/graph_snapshot.json    # graph_snapshot.v1 (pretty JSON)
+  map/nodes.jsonl            # graph_node.v1 per line
+  map/edges.jsonl            # graph_edge.v1 per line
+  history/sketches.jsonl     # sketch.v1 (Pillar A)
+  history/change_facts.jsonl # change_fact.v1 (optional; not part of publish_snapshot)
 ```
+
+Normative map encoding: [`MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md).
 
 Logical rooms stay separate: map vs history. Same `tenant` + `ci_id` / `entity_id` namespace.

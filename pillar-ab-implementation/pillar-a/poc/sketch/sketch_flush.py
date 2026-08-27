@@ -48,11 +48,14 @@ class SketchWriter:
     def __init__(self, season: SeasonPolicy | None = None) -> None:
         self.season = season or HourOfWeekSeason()
         self.states: dict[tuple, SketchState] = {}
-        self.baselines: dict[tuple[str, str, str], SeasonalBaseline] = {}
+        # Key includes window so 1m and 5m do not share one seasonal accumulator.
+        self.baselines: dict[tuple[str, str, str, str], SeasonalBaseline] = {}
         self.rejects: list[tuple[dict, str]] = []
 
-    def _baseline_key(self, tenant: str, entity_id: str, metric_id: str) -> tuple[str, str, str]:
-        return (tenant, entity_id, metric_id)
+    def _baseline_key(
+        self, tenant: str, entity_id: str, metric_id: str, window: str
+    ) -> tuple[str, str, str, str]:
+        return (tenant, entity_id, metric_id, window)
 
     def ingest(self, source: IngestSource) -> None:
         for rec in source.records():
@@ -83,7 +86,7 @@ class SketchWriter:
     def build_row(self, state: SketchState) -> dict[str, Any]:
         assert state.key and state.hist
         key = state.key
-        bkey = self._baseline_key(key.tenant, key.entity_id, key.metric_id)
+        bkey = self._baseline_key(key.tenant, key.entity_id, key.metric_id, key.window)
         baseline_acc = self.baselines.setdefault(bkey, SeasonalBaseline())
         p50 = state.digest.quantile(0.50)
         p95 = state.digest.quantile(0.95)
@@ -130,12 +133,22 @@ class SketchWriter:
         dest.put("history", "sketches.jsonl", payload)
         return rows
 
-    def refresh_baselines(self) -> None:
-        """E5 stub: ensure seasonal accumulators have an observation per live window."""
+    def refresh_baselines(self, dest: Dest | None = None) -> None:
+        """E5 Maintain stub (A side).
+
+        If ``dest`` is provided, rebuild seasonal accumulators from durable
+        ``history/sketches.jsonl`` (preferred). Otherwise seed empty season
+        slots from in-memory live window digests.
+        """
+        if dest is not None:
+            from sketch.maintain import refresh_seasonal_baselines
+
+            refresh_seasonal_baselines(self, dest)
+            return
         for st in self.states.values():
             assert st.key
             key = st.key
-            bkey = self._baseline_key(key.tenant, key.entity_id, key.metric_id)
+            bkey = self._baseline_key(key.tenant, key.entity_id, key.metric_id, key.window)
             acc = self.baselines.setdefault(bkey, SeasonalBaseline())
             if not acc.history.get(key.season_key):
                 acc.observe(

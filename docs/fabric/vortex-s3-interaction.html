@@ -24,105 +24,147 @@
 </head>
 <body class="urca-doc article">
 <div class="wrap article">
-  <div class="eyebrow">ObserveOps · E4 Stores · block interaction</div>
+  <div class="eyebrow">ObserveOps · E1–E5 fabric · Motadata-shaped dest</div>
   <h1>Vortex + S3 — block interaction diagram</h1>
   <p class="lead">
-    Two <strong style="color:var(--text)">orthogonal</strong> axes: (1) <strong style="color:var(--text)">rooms</strong> = what kind of fact (map vs sketches);
-    (2) <strong style="color:var(--text)">Vortex / S3</strong> = how hot those same rows are when this dest profile is chosen.
-    Rooms share <code>tenant</code> + <code>ci_id</code> / <code>entity_id</code> but not the same rows.
-    Vortex is the hot analytical engine; S3 is the cold cellar for aged copies of those rows.
-    Diagnose never opens the lake as a dump: <strong style="color:var(--text)">retrieval → bounded <code>WorkingSet</code></strong>;
-    deterministic Localize / Identify consume that set; Motadata’s optional
-    <strong style="color:var(--text)">Rust ReAct agent</strong> (Pillar C) is one more client of retrieval — not “the agent = every caller.”
-    Related: <a href="/motadata-3pillars-architecture.html#vortex">explained hub §3</a>
-    · <a href="/motadata-3pillars-architecture.html#retrieval">retrieval</a>
-    · <a href="/docs/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md">graph contract brief §6</a>
-    · <a href="/observeops-pipeline-hld.html">Pipeline HLD</a>.
+    Shows <strong style="color:var(--text)">two fan-outs</strong> and <strong style="color:var(--text)">two axes</strong> that must not be collapsed:
+    (1) <strong style="color:var(--text)">stream fan-out after Identity</strong> → Pillar B <code>map/</code> ∥ Pillar A <code>history/</code>;
+    (2) <strong style="color:var(--text)">destination fan-out</strong> → which lake product receives those rooms (Vortex+S3 is one option; lab uses <code>files.v1</code>).
+    Prefer room names <code>map/</code> and <code>history/</code> — not “Room 1 / Room 2.”
+    Vortex’s <strong style="color:var(--text)">query layer</strong> is the only diagnose query surface for this dest; it builds a bounded <code>WorkingSet</code> for Retrieval.
+    Related: <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a>
+    · <a href="/e1-e5-pipeline-architecture.html">E1–E5 architecture</a>
+    · <a href="/docs/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md">contract brief</a>
+    · <a href="/docs/MAP_WRITE_READ_RECORD.md">map write/read JSON</a>.
+    Hub URL: <a href="/vortex-s3-interaction.html"><code>http://127.0.0.1:8765/vortex-s3-interaction.html</code></a>
+    (flat path — not <code>/fabric/…</code>).
   </p>
 
-  <h2>Two axes — do not collapse them</h2>
+  <h2>Two fan-outs (do not confuse)</h2>
   <div class="wwh two">
     <div>
-      <h3>Rooms (content)</h3>
-      <p>Room 2 = knowledge graph (<code>graph_node.v1</code> / <code>graph_edge.v1</code>). Room 1 = historical observability (<code>sketch.v1</code>). Different facts about the same configuration items. Join by identity, not by temperature.</p>
+      <h3>1 · Stream fan-out (after E2)</h3>
+      <p>Identity has already stamped <code>tenant</code> + <code>ci_id</code> and <code>identity.status</code> (look-up / bind done). The identified stream splits to <strong style="color:var(--text)">E3 Topology</strong> (Pillar B → <code>map/</code>) and <strong style="color:var(--text)">E4 sketch writer</strong> (Pillar A → <code>history/</code>) in parallel.</p>
     </div>
     <div>
-      <h3>Vortex + S3 (temperature)</h3>
-      <p>When E4 chooses this Motadata-shaped dest: Vortex holds recent / queryable copies; S3 holds aged / durable copies of <em>the same kinds of rows</em> (both rooms can spill). Lab file dest may skip Vortex entirely.</p>
+      <h3>2 · Destination fan-out (lake product)</h3>
+      <p>Writers call <code>Dest.put(room, …)</code>. The dest profile chooses the physical product: Vortex+S3, lab files, Motadata store, or another lake. This is <strong style="color:var(--text)">not</strong> the same fork as map vs history.</p>
     </div>
   </div>
 
-  <!-- ─── MAIN DIAGRAM ─── -->
+  <h2>Two axes inside the Motadata-shaped dest</h2>
+  <div class="wwh two">
+    <div>
+      <h3>Rooms (content)</h3>
+      <p><code>map/</code> = knowledge graph (<code>graph_node.v1</code> / <code>graph_edge.v1</code> / <code>GraphSnapshot</code>). <code>history/</code> = sketches (<code>sketch.v1</code>). Same configuration items; different facts. Join by identity — not by temperature.</p>
+    </div>
+    <div>
+      <h3>Vortex + S3 (temperature)</h3>
+      <p>When this dest is chosen: Vortex = hot / queryable copies; S3 = aged / durable copies of the <em>same kinds of rows</em>. Both rooms can live hot and spill cold. Lab may use only files.</p>
+    </div>
+  </div>
+
   <h2>Full interaction diagram</h2>
-  <div class="dia" role="img" aria-label="Vortex plus S3 block interaction diagram: E4 fan-out, two content rooms inside Vortex, query layer to Retrieval, S3 cold cellar">
-    <svg viewBox="0 0 800 640" xmlns="http://www.w3.org/2000/svg">
-      <rect width="800" height="640" fill="#10161d"/>
-
-      <rect x="40" y="16" width="720" height="60" rx="10" fill="#1a2233" stroke="#3d6b9a"/>
-      <text x="400" y="38" text-anchor="middle" fill="#7ba8f5" font-size="12" font-weight="600" font-family="ui-monospace,monospace">E4 STORES · DESTINATION FAN-OUT</text>
-      <text x="400" y="56" text-anchor="middle" fill="#8a96a4" font-size="11">Pipeline writers choose a dest. Vortex/S3 is one option. Lab file dest, existing Motadata store, or another lake also valid.</text>
-
-      <line x1="250" y1="76" x2="250" y2="105" stroke="#7ba8f5" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
-      <text x="195" y="98" fill="#9bb8f5" font-size="9" font-family="ui-monospace,monospace">graph_node.v1</text>
-      <text x="195" y="108" fill="#9bb8f5" font-size="9" font-family="ui-monospace,monospace">graph_edge.v1</text>
-      <line x1="550" y1="76" x2="550" y2="105" stroke="#3d9a8b" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
-      <text x="510" y="98" fill="#7aecc4" font-size="9" font-family="ui-monospace,monospace">sketch.v1</text>
-
-      <rect x="40" y="115" width="720" height="300" rx="10" fill="#121821" stroke="#2a3441" stroke-width="1.5"/>
-      <text x="60" y="140" fill="#e8eef4" font-size="14" font-weight="600">VORTEX · analytical engine (columnar / Arrow)</text>
-      <text x="60" y="158" fill="#8a96a4" font-size="11">Hot queryable store for both rooms. Only query surface for diagnose. Keeps recent windows.</text>
-
-      <rect x="60" y="172" width="320" height="110" rx="8" fill="#171d25" stroke="#3d9a8b"/>
-      <text x="220" y="196" text-anchor="middle" fill="#7aecc4" font-size="11" font-weight="600" font-family="ui-monospace,monospace">ROOM 2 · KNOWLEDGE GRAPH</text>
-      <text x="220" y="216" text-anchor="middle" fill="#e8eef4" font-size="12">graph_node.v1 rows</text>
-      <text x="220" y="234" text-anchor="middle" fill="#e8eef4" font-size="12">graph_edge.v1 rows</text>
-      <text x="220" y="252" text-anchor="middle" fill="#8a96a4" font-size="10">GraphSnapshot versions · typed · provenance</text>
-      <text x="220" y="268" text-anchor="middle" fill="#8a96a4" font-size="10">Pillar B · our E3</text>
-
-      <rect x="420" y="172" width="320" height="110" rx="8" fill="#171d25" stroke="#7ba8f5"/>
-      <text x="580" y="196" text-anchor="middle" fill="#9bb8f5" font-size="11" font-weight="600" font-family="ui-monospace,monospace">ROOM 1 · HISTORICAL OBSERVABILITY</text>
-      <text x="580" y="216" text-anchor="middle" fill="#e8eef4" font-size="12">sketch.v1 rows (T-Digest + buckets + baseline)</text>
-      <text x="580" y="234" text-anchor="middle" fill="#e8eef4" font-size="12">optional raw telemetry</text>
-      <text x="580" y="252" text-anchor="middle" fill="#8a96a4" font-size="10">per entity / metric / window · mergeable</text>
-      <text x="580" y="268" text-anchor="middle" fill="#8a96a4" font-size="10">Pillar A · our E4</text>
-
-      <line x1="380" y1="225" x2="420" y2="225" stroke="#e8d19d" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <text x="400" y="300" text-anchor="middle" fill="#e8d19d" font-size="10" font-family="ui-monospace,monospace">identity join: tenant + ci_id ═══ entity_id  ·  rooms ≠ temperature</text>
-
-      <rect x="60" y="318" width="680" height="80" rx="8" fill="#171d25" stroke="#8a96a4"/>
-      <text x="400" y="342" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">Vortex query layer</text>
-      <text x="400" y="360" text-anchor="middle" fill="#8a96a4" font-size="11">Walk graph · pull sketches for matched entities · filter time / season_key / metric</text>
-      <text x="400" y="376" text-anchor="middle" fill="#8a96a4" font-size="11">Return bounded WorkingSet to Retrieval (not a raw lake dump)</text>
-
-      <line x1="740" y1="358" x2="770" y2="358" stroke="#7ba8f5" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
-      <text x="776" y="340" fill="#9bb8f5" font-size="9" font-family="ui-monospace,monospace">→ Retrieval</text>
-      <text x="776" y="354" fill="#9bb8f5" font-size="8" font-family="ui-monospace,monospace">WorkingSet</text>
-      <text x="776" y="368" fill="#8a96a4" font-size="8" font-family="ui-monospace,monospace">Localize</text>
-      <text x="776" y="382" fill="#8a96a4" font-size="8" font-family="ui-monospace,monospace">opt. ReAct</text>
-
-      <line x1="300" y1="415" x2="300" y2="465" stroke="#f0b35a" stroke-width="1.5" marker-end="url(#arrowWarn)"/>
-      <text x="310" y="445" fill="#f0b35a" font-size="10" font-family="ui-monospace,monospace">age-out spill</text>
-
-      <line x1="500" y1="465" x2="500" y2="415" stroke="#7ba8f5" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
-      <text x="510" y="445" fill="#9bb8f5" font-size="10" font-family="ui-monospace,monospace">federated scan</text>
-
-      <rect x="40" y="470" width="720" height="150" rx="10" fill="#0e1319" stroke="#2a3441" stroke-width="1.5" stroke-dasharray="6,3"/>
-      <text x="60" y="496" fill="#e8eef4" font-size="14" font-weight="600">S3 · object store (cold / large)</text>
-      <text x="60" y="514" fill="#8a96a4" font-size="11">Immutable. Durable. Not a query engine — only Vortex federates it for diagnose.</text>
-      <text x="80" y="540" fill="#e8eef4" font-size="11">• Old sketch windows (aged out of Vortex hot tier)</text>
-      <text x="80" y="556" fill="#e8eef4" font-size="11">• Raw telemetry blobs (logs, spans, dumps)</text>
-      <text x="80" y="572" fill="#e8eef4" font-size="11">• Archived GraphSnapshot versions</text>
-      <text x="80" y="588" fill="#e8eef4" font-size="11">• Parquet / compressed columnar files</text>
-      <text x="455" y="540" fill="#f06060" font-size="11" font-weight="600">Diagnose path never opens S3</text>
-      <text x="455" y="558" fill="#8a96a4" font-size="11">Retrieval → WorkingSet first</text>
-      <text x="455" y="576" fill="#8a96a4" font-size="11">Localize / Identify read WorkingSet</text>
-      <text x="455" y="594" fill="#8a96a4" font-size="11">Optional Rust ReAct = client of Retrieval</text>
-
+  <div class="dia" role="img" aria-label="Two fan-outs into map and history rooms inside Vortex, query layer to WorkingSet, S3 cold spill">
+    <svg viewBox="0 0 860 760" xmlns="http://www.w3.org/2000/svg">
+      <rect width="860" height="760" fill="#10161d"/>
       <defs>
         <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#7ba8f5"/></marker>
         <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3d9a8b"/></marker>
         <marker id="arrowWarn" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f0b35a"/></marker>
+        <marker id="arrowGold" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#e8d19d"/></marker>
       </defs>
+
+      <!-- E1 / E2 -->
+      <rect x="60" y="16" width="200" height="52" rx="8" fill="#1a2233" stroke="#5e7a9a"/>
+      <text x="160" y="38" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">E1 Collect</text>
+      <text x="160" y="54" text-anchor="middle" fill="#8a96a4" font-size="10">admit shaped signals</text>
+
+      <line x1="260" y1="42" x2="300" y2="42" stroke="#7ba8f5" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <rect x="300" y="12" width="500" height="60" rx="8" fill="#1a2233" stroke="#7ba8f5"/>
+      <text x="550" y="34" text-anchor="middle" fill="#9bb8f5" font-size="12" font-weight="600">E2 Identity — look-up / bind (LUT-like stamp)</text>
+      <text x="550" y="52" text-anchor="middle" fill="#8a96a4" font-size="10">tenant + ci_id · identity.status · writers assume resolved (or quarantine)</text>
+
+      <!-- Stream fan-out banner -->
+      <rect x="60" y="90" width="740" height="36" rx="8" fill="#171d25" stroke="#e8d19d" stroke-dasharray="5,3"/>
+      <text x="430" y="113" text-anchor="middle" fill="#e8d19d" font-size="12" font-weight="600" font-family="ui-monospace,monospace">① STREAM FAN-OUT  ·  after E2  ·  parallel writers (not a product merge)</text>
+
+      <line x1="550" y1="72" x2="550" y2="90" stroke="#e8d19d" stroke-width="1.5"/>
+      <line x1="250" y1="126" x2="250" y2="148" stroke="#3d9a8b" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+      <line x1="610" y1="126" x2="610" y2="148" stroke="#7ba8f5" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <!-- Writers -->
+      <rect x="100" y="148" width="300" height="64" rx="8" fill="#171d25" stroke="#3d9a8b"/>
+      <text x="250" y="172" text-anchor="middle" fill="#7aecc4" font-size="12" font-weight="600">E3 Topology · Pillar B</text>
+      <text x="250" y="190" text-anchor="middle" fill="#e8eef4" font-size="11">graph_node / graph_edge → GraphSnapshot</text>
+      <text x="250" y="204" text-anchor="middle" fill="#8a96a4" font-size="10">Dest.put(&quot;map&quot;, …)</text>
+
+      <rect x="460" y="148" width="300" height="64" rx="8" fill="#171d25" stroke="#7ba8f5"/>
+      <text x="610" y="172" text-anchor="middle" fill="#9bb8f5" font-size="12" font-weight="600">E4 Sketch writer · Pillar A</text>
+      <text x="610" y="190" text-anchor="middle" fill="#e8eef4" font-size="11">sketch.v1 (T-Digest + buckets + baseline)</text>
+      <text x="610" y="204" text-anchor="middle" fill="#8a96a4" font-size="10">Dest.put(&quot;history&quot;, …)</text>
+
+      <!-- Destination fan-out -->
+      <rect x="60" y="230" width="740" height="36" rx="8" fill="#171d25" stroke="#7ba8f5" stroke-dasharray="5,3"/>
+      <text x="430" y="253" text-anchor="middle" fill="#9bb8f5" font-size="12" font-weight="600" font-family="ui-monospace,monospace">② DESTINATION FAN-OUT  ·  which lake product  ·  Vortex+S3 shown (lab = files.v1)</text>
+
+      <line x1="250" y1="212" x2="250" y2="230" stroke="#7ba8f5" stroke-width="1.2"/>
+      <line x1="610" y1="212" x2="610" y2="230" stroke="#7ba8f5" stroke-width="1.2"/>
+      <line x1="430" y1="266" x2="430" y2="286" stroke="#7ba8f5" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <!-- Vortex shell -->
+      <rect x="60" y="286" width="740" height="268" rx="10" fill="#121821" stroke="#2a3441" stroke-width="1.5"/>
+      <text x="80" y="310" fill="#e8eef4" font-size="14" font-weight="600">VORTEX · hot analytical engine</text>
+      <text x="80" y="328" fill="#8a96a4" font-size="11">Holds recent copies of both rooms. Not the pipeline. Not the only E4 dest forever.</text>
+
+      <!-- map / history rooms -->
+      <rect x="80" y="344" width="300" height="100" rx="8" fill="#171d25" stroke="#3d9a8b"/>
+      <text x="230" y="368" text-anchor="middle" fill="#7aecc4" font-size="12" font-weight="600" font-family="ui-monospace,monospace">map/  ·  knowledge graph</text>
+      <text x="230" y="388" text-anchor="middle" fill="#e8eef4" font-size="11">graph_node.v1 · graph_edge.v1</text>
+      <text x="230" y="406" text-anchor="middle" fill="#e8eef4" font-size="11">GraphSnapshot (packaged)</text>
+      <text x="230" y="426" text-anchor="middle" fill="#8a96a4" font-size="10">Pillar B · walkable CI estate</text>
+
+      <rect x="480" y="344" width="300" height="100" rx="8" fill="#171d25" stroke="#7ba8f5"/>
+      <text x="630" y="368" text-anchor="middle" fill="#9bb8f5" font-size="12" font-weight="600" font-family="ui-monospace,monospace">history/  ·  sketches</text>
+      <text x="630" y="388" text-anchor="middle" fill="#e8eef4" font-size="11">sketch.v1 rows</text>
+      <text x="630" y="406" text-anchor="middle" fill="#e8eef4" font-size="11">T-Digest + buckets + baseline</text>
+      <text x="630" y="426" text-anchor="middle" fill="#8a96a4" font-size="10">Pillar A · Detect door C reads these</text>
+
+      <line x1="380" y1="394" x2="480" y2="394" stroke="#e8d19d" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="430" y="458" text-anchor="middle" fill="#e8d19d" font-size="10" font-family="ui-monospace,monospace">identity join: tenant + ci_id  ≡  entity_id   ·   rooms ≠ temperature</text>
+
+      <!-- Query layer -->
+      <rect x="80" y="470" width="700" height="68" rx="8" fill="#1a2233" stroke="#8a96a4"/>
+      <text x="430" y="494" text-anchor="middle" fill="#e8eef4" font-size="13" font-weight="600">Vortex query layer</text>
+      <text x="430" y="512" text-anchor="middle" fill="#8a96a4" font-size="11">Single query surface for this dest: walk map/ · pull history/ sketches · time / season_key / metric filters</text>
+      <text x="430" y="528" text-anchor="middle" fill="#8a96a4" font-size="11">Builds bounded WorkingSet for Retrieval — not a raw lake dump, not hop-scan by diagnose</text>
+
+      <!-- Arrow to retrieval -->
+      <line x1="800" y1="504" x2="830" y2="504" stroke="#7ba8f5" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <text x="838" y="488" fill="#9bb8f5" font-size="9" font-family="ui-monospace,monospace">Retrieval</text>
+      <text x="838" y="502" fill="#9bb8f5" font-size="9" font-family="ui-monospace,monospace">WorkingSet</text>
+      <text x="838" y="516" fill="#8a96a4" font-size="8">Localize</text>
+      <text x="838" y="528" fill="#8a96a4" font-size="8">opt. ReAct</text>
+
+      <!-- Spill -->
+      <line x1="280" y1="554" x2="280" y2="590" stroke="#f0b35a" stroke-width="1.5" marker-end="url(#arrowWarn)"/>
+      <text x="290" y="578" fill="#f0b35a" font-size="10" font-family="ui-monospace,monospace">age-out spill</text>
+      <line x1="580" y1="590" x2="580" y2="554" stroke="#7ba8f5" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+      <text x="590" y="578" fill="#9bb8f5" font-size="10" font-family="ui-monospace,monospace">federated scan</text>
+
+      <!-- S3 -->
+      <rect x="60" y="590" width="740" height="150" rx="10" fill="#0e1319" stroke="#2a3441" stroke-width="1.5" stroke-dasharray="6,3"/>
+      <text x="80" y="616" fill="#e8eef4" font-size="14" font-weight="600">S3 · cold object store</text>
+      <text x="80" y="634" fill="#8a96a4" font-size="11">Durable / immutable copies. Not a query engine — only Vortex federates cold partitions for diagnose.</text>
+      <text x="90" y="660" fill="#e8eef4" font-size="11">• Aged sketch windows (same history/ rows, colder)</text>
+      <text x="90" y="676" fill="#e8eef4" font-size="11">• Archived GraphSnapshot versions (same map/ rows)</text>
+      <text x="90" y="692" fill="#e8eef4" font-size="11">• Optional product choice: longer raw / rehydration blobs (not required for Detect)</text>
+      <text x="90" y="708" fill="#e8eef4" font-size="11">• Parquet / compressed columnar files</text>
+      <text x="480" y="660" fill="#f06060" font-size="11" font-weight="600">Diagnose never opens S3 directly</text>
+      <text x="480" y="678" fill="#8a96a4" font-size="11">Retrieval → WorkingSet first</text>
+      <text x="480" y="696" fill="#8a96a4" font-size="11">Localize / Identify read WorkingSet</text>
+      <text x="480" y="714" fill="#8a96a4" font-size="11">Optional Rust ReAct = client of Retrieval</text>
     </svg>
   </div>
 
@@ -138,14 +180,14 @@
 
   <div class="int-card">
     <h3>1 · Hot write → Vortex; cold spill → S3</h3>
-    <p>Fresh rows from the pipeline land in <strong style="color:var(--text)">Vortex</strong> first (both rooms). As windows age past a retention threshold, Vortex <strong style="color:var(--text)">spills</strong> those rows to S3 as compressed columnar files. Hot working set stays small; S3 holds history cheaply.</p>
-    <span class="flow">Pipeline writer ──► Vortex (hot, queryable) ──age-out──► S3 (cold, durable)</span>
+    <p>Fresh rows from both writers land in <strong style="color:var(--text)">Vortex</strong> first (<code>map/</code> and <code>history/</code>). As windows age past a retention threshold, Vortex <strong style="color:var(--text)">spills</strong> those rows to S3. Hot working set stays small; S3 holds history cheaply.</p>
+    <span class="flow">Pillar A∥B writers ──► Dest ──► Vortex (hot) ──age-out──► S3 (cold)</span>
   </div>
 
   <div class="int-card">
-    <h3>2 · Federated read-back: Vortex pulls from S3 on demand</h3>
-    <p>When <strong style="color:var(--text)">Retrieval</strong> asks for data older than the hot window, Vortex scans the relevant S3 partitions and merges them into the response. Diagnose never talks to S3 directly — Vortex is the single query surface for this dest profile.</p>
-    <span class="flow">Retrieval ──query──► Vortex ──scan──► S3 ──merge──► Vortex ──WorkingSet──► Localize / opt. ReAct</span>
+    <h3>2 · Federated read-back: Vortex query layer pulls from S3 on demand</h3>
+    <p>When <strong style="color:var(--text)">Retrieval</strong> asks for data older than the hot window, the Vortex <strong style="color:var(--text)">query layer</strong> scans relevant S3 partitions and merges them into the response. Diagnose never talks to S3 directly.</p>
+    <span class="flow">Retrieval ──query──► Vortex query layer ──scan──► S3 ──merge──► WorkingSet</span>
   </div>
 
   <div class="int-card">
@@ -157,22 +199,22 @@
   <div class="wwh">
     <div>
       <h3>Vortex is not</h3>
-      <p>Not the pipeline (Collect / Identity / Topology write <em>into</em> it). Not the only E4 dest forever. Not the ReAct agent — Retrieval queries Vortex; the optional agent only sees a <code>WorkingSet</code>.</p>
+      <p>Not the pipeline (Collect / Identity / writers write <em>into</em> it). Not the only E4 dest forever. Not the ReAct agent — Retrieval uses the query layer; the optional agent only sees a <code>WorkingSet</code>.</p>
     </div>
     <div>
       <h3>S3 is not</h3>
-      <p>Not a query engine. Not opened by Retrieval, Localize, or the Rust ReAct agent. Not mandatory in lab (file dest is fine). Not a second source of truth — colder copies of the same rows.</p>
+      <p>Not a query engine. Not opened by Retrieval, Localize, or the Rust ReAct agent. Not mandatory in lab (file dest is fine). Not a second schema — colder copies of the same rooms.</p>
     </div>
     <div>
-      <h3>E4 fan-out is not</h3>
-      <p>Not Vortex itself. E4 Stores is the write job; fan-out is which product receives the rows. Vortex/S3 is one answer among file dest, Motadata store, or another lake.</p>
+      <h3>Neither fan-out is Vortex</h3>
+      <p><strong style="color:var(--text)">Stream</strong> fan-out = after Identity (map vs history writers). <strong style="color:var(--text)">Destination</strong> fan-out = which product receives rows. Vortex/S3 answers only the second question.</p>
     </div>
   </div>
 
   <p class="note">
     <strong style="color:var(--text)">Key rule:</strong>
-    Rooms = content type. Vortex / S3 = temperature for those rows on this dest.
-    Diagnose path = Retrieval → <code>WorkingSet</code> (optional ReAct is a client of that, not of S3).
+    Identity bind first → stream fan-out into <code>map/</code> ∥ <code>history/</code> → dest profile (Vortex+S3 or files) → Vortex query layer → <code>WorkingSet</code>.
+    Rooms = content. Vortex / S3 = temperature.
   </p>
 </div>
 <script src="/doc-nav.js" defer></script>

@@ -175,15 +175,15 @@ Per HLD §16: E3 maps to **FR-C (topology/time)**, and (jointly with E5) **FR-I/
 
 ## 10. Pillar A/B PoC acceptance (graph_*.v1 bridge)
 
-The Motadata Pillar B PoC under [`pillar-ab-implementation/poc/graph/`](../pillar-ab-implementation/poc/graph/) emits logical `graph_node.v1` / `graph_edge.v1` and a versioned `GraphSnapshot` via the Gate B file dest. It does **not** replace the bakeoff `topology.json` loader in §2–§3; it is the bridge toward the operational-graph target schema.
+The Motadata Pillar B PoC under [`pillar-ab-implementation/pillar-b/poc/graph/`](../pillar-ab-implementation/pillar-b/poc/graph/) emits logical `graph_node.v1` / `graph_edge.v1` and a versioned `graph_snapshot.v1` via the Gate B **`files.v1`** dest (`map/graph_snapshot.json`, `nodes.jsonl`, `edges.jsonl`). Encoding and keys: [`MAP_WRITE_READ_RECORD.md`](../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md). It does **not** replace the bakeoff `topology.json` loader in §2–§3; it is the bridge toward the operational-graph target schema. Vortex/S3 are later encodings of the same logical records.
 
 **Acceptance (PoC):**
 
 ```bash
-cd pillar-ab-implementation/poc && make install && make test-graph
+cd pillar-ab-implementation/pillar-b/poc && make install && make test-graph
 ```
 
-Pass criteria: schema-valid nodes/edges; CI-only vertices (Alert/Change rejected); wave-1 relations emitted; `neighbors("checkout-api")` reaches host/db from `fixtures/lab_checkout/`. Schemas: [`pillar-ab-implementation/contracts/schemas/`](../pillar-ab-implementation/contracts/schemas/). Plan: [`IMPLEMENTATION_PLAN.md`](../pillar-ab-implementation/IMPLEMENTATION_PLAN.md).
+Pass criteria: schema-valid nodes/edges/snapshot; CI-only vertices (Alert/Change rejected); wave-1 relations emitted; `neighbors("checkout-api")` reaches host/db from `fixtures/lab_checkout/`. Schemas: [`pillar-ab-implementation/contracts/schemas/`](../pillar-ab-implementation/contracts/schemas/). Plan: [`IMPLEMENTATION_PLAN.md`](../pillar-ab-implementation/IMPLEMENTATION_PLAN.md).
 
 ---
 

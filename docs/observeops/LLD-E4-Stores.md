@@ -159,15 +159,17 @@ Per HLD §16: E4 maps to **FR-C (topology/time)** jointly with E3, and (jointly 
 
 ## 8. Pillar A/B PoC acceptance (`sketch.v1` bridge)
 
-The Motadata Pillar A PoC under [`pillar-ab-implementation/poc/sketch/`](../pillar-ab-implementation/poc/sketch/) writes hybrid `sketch.v1` rows (T-Digest + buckets + seasonal baseline) through the Gate B file dest. It does **not** replace Lean bundle load or Federated store stand-ins in §2; it is the bridge toward the Motadata percentile store.
+The Motadata Pillar A PoC under [`pillar-ab-implementation/pillar-a/poc/sketch/`](../pillar-ab-implementation/pillar-a/poc/sketch/) writes hybrid `sketch.v1` rows (T-Digest + buckets + seasonal baseline) through the Gate B **`files.v1`** dest (`history/sketches.jsonl`). It does **not** replace Lean bundle load or Federated store stand-ins in §2; it is the bridge toward the Motadata percentile store. A and B remain **parallel writers**; optional WorkingSet read-join lives under [`integration/`](../pillar-ab-implementation/integration/), not a combined writer package.
 
 **Acceptance (PoC):**
 
 ```bash
-cd pillar-ab-implementation/poc && make install && make test-sketch
+cd pillar-ab-implementation/pillar-a/poc && make install && make test-sketch
+# optional later, after both unit suites are green:
+# cd pillar-ab-implementation/integration && … (read-join harness)
 ```
 
-Pass criteria: schema-valid rows without topology edges; wave-1 metrics only; `get_window_percentiles` / `get_metric_baseline` over fixture stream; identity join with graph covered by `make test-join`. Schemas: [`pillar-ab-implementation/contracts/schemas/sketch_v1.schema.json`](../pillar-ab-implementation/contracts/schemas/sketch_v1.schema.json). Plan: [`IMPLEMENTATION_PLAN.md`](../pillar-ab-implementation/IMPLEMENTATION_PLAN.md).
+Pass criteria: schema-valid rows without topology edges; wave-1 metrics only; `get_window_percentiles` / `get_metric_baseline` over fixture stream. Identity join with graph is covered by the optional `integration/` harness — not by a combined `poc/` tree. Schemas: [`pillar-ab-implementation/contracts/schemas/sketch_v1.schema.json`](../pillar-ab-implementation/contracts/schemas/sketch_v1.schema.json). Plan: [`IMPLEMENTATION_PLAN.md`](../pillar-ab-implementation/IMPLEMENTATION_PLAN.md).
 
 ---
 

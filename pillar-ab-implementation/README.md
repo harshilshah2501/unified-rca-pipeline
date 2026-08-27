@@ -12,7 +12,7 @@
 |---------|------|-------------------|
 | **Pillar A** | [`pillar-a/`](./pillar-a/) | **Yes** — [`pillar-a-handoff-2026-08-27.zip`](./pillar-a-handoff-2026-08-27.zip) |
 | **Pillar B** | [`pillar-b/`](./pillar-b/) | Owner local |
-| **Integration** | [`integration/`](./integration/) | After both unit suites are green |
+| **Integration** | [`integration/`](./integration/) | Optional **read-join harness** after both unit suites are green (not an A∪B merge) |
 
 ```bash
 # Pillar A
@@ -24,8 +24,16 @@ cd pillar-b/poc && make install && make test-all
 
 ## Contracts (canonical)
 
-Shared brief, schemas, samples, and fabric Q&A: [`contracts/`](./contracts/) (`GRAPH_QNA.md` lives here; `docs/GRAPH_QNA.md` is a symlink).  
+Shared brief, schemas, samples, fabric Q&A, and **map write/read JSON record**: [`contracts/`](./contracts/) (`GRAPH_QNA.md` lives here; `docs/GRAPH_QNA.md` is a symlink).  
+Map dest keys/encoding: [`contracts/MAP_WRITE_READ_RECORD.md`](./contracts/MAP_WRITE_READ_RECORD.md).  
 Package `docs/` folders are **symlinks** — do not replace with copies.
+
+## Team discussion
+
+| Note | Topic |
+|------|--------|
+| [`discussion/04-raw-data-identity-lut-open-questions.md`](./discussion/04-raw-data-identity-lut-open-questions.md) | Raw data + Identity look-up table (LUT) open questions — vote card |
+| [`Raw_Data_Handling.pdf`](./Raw_Data_Handling.pdf) | Source synthesis for discussion 04 |
 
 ## Related docs (repo `docs/`)
 

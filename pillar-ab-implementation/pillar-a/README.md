@@ -2,9 +2,11 @@
 
 **Owner:** Pillar A (statistics + `sketch.v1`)  
 **Status:** Self-contained hand-off from Unified-RCA `pillar-ab-implementation/`  
-**Does not include:** Pillar B graph code, join/integration harness, Pillar C agent
+**Does not include:** Pillar B graph code, read-join harness, Pillar C agent
 
 This directory is what you unzip and work in. It has contracts, teaching docs, reference canvases, and a unit-tested PoC.
+
+A and B are **parallel writers** after Identity — never merged as one product. Optional WorkingSet join lives in the monorepo `integration/` folder only.
 
 ---
 
@@ -15,9 +17,28 @@ cd pillar-a/poc
 python3 -m venv .venv
 make install
 make test-all
+make flush          # optional: FileDest history/sketches.jsonl from lab fixture
 ```
 
 Expected: shared + sketch unit tests pass (no graph/join).
+
+---
+
+## Inputs / outputs (I/O)
+
+| | Pillar A |
+|--|----------|
+| **Stage** | E4 Stores (parallel to E3 Topology) |
+| **Room** | `history/` |
+| **Input** | `ingest.v1` with `signal_class=metric_sample`, `identity.status=resolved` |
+| **Rejects** | `identity_unresolved`, `identity_synthesized`, `unknown_metric_id` |
+| **Silent skip** | Non-metric lines (`topo_update`, …) |
+| **Output** | `sketch.v1` → `Dest.put("history", "sketches.jsonl", …)` |
+| **Logical key** | `(tenant, entity_id, metric_id, window, season_key, window_start)` |
+| **Must not carry** | `src_ci_id` / `dst_ci_id` / `relation` |
+| **Read helpers** | `get_window_percentiles` / `get_metric_baseline` |
+
+Wave-1 metrics: `request.latency_ms`, `cpu.utilization_pct`. Windows: `1m` + `5m`. `season_key` = hour-of-week.
 
 ---
 
@@ -35,12 +56,13 @@ pillar-a/
 │   └── GATE_B_DEST_PROFILE.md   ← history/ room for sketches
 ├── docs/
 │   ├── PILLAR_A_PERCENTILES_DEEP_DIVE.md   ← start here (inputs → process → artifacts)
-│   ├── GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md  ← full brief; sketch FAQ Q15–Q30
+│   ├── GRAPH_QNA.md                        ← fabric Q&A (E1–E5)
+│   ├── GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md
 │   ├── end-to-end-algorithm-walkthrough.md
 │   └── sketch-exemplars-visual.html
 ├── reference/canvases/
-│   ├── pillar-a-poc-walkthrough.canvas.tsx    ← Cursor Canvas: placement / admit / FP
-│   └── pillar-a-debugger-moves.canvas.tsx     ← Cursor Canvas: accumulate / reject / Detect
+│   ├── pillar-a-poc-walkthrough.canvas.tsx
+│   └── pillar-a-debugger-moves.canvas.tsx
 └── poc/
     ├── ab_shared/     ← stubs: identity gate, season, dest, ingest, schema
     ├── sketch/        ← Pillar A writer + read API
@@ -83,14 +105,15 @@ Fixtures are **metric-only** (topo lines removed so you do not need Pillar B).
 
 1. `HANDOFF.md` — scope and open work  
 2. `docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md` — cold-reader deep dive  
-3. Contract brief FAQ Q15–Q35 (sketches, Detect, FP, S3/Vortex, **merge / raw / shift-left**) in `docs/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`  
-   · condensed source: `docs/Sketches_Merging_RawData_QnA.pdf`  
-4. Canvases under `reference/canvases/` (open in Cursor Canvas if available)
+3. **`docs/GRAPH_QNA.md`** — fabric Q&A (placement G12–G13, Detect G24–G25, sketch-merge/raw G33–G37)  
+4. Contract brief for sit-down lock list: `docs/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md` (§10 = stubs → GRAPH_QNA)  
+5. Condensed merge/raw exercise: `docs/Sketches_Merging_RawData_QnA.pdf`  
+6. Canvases under `reference/canvases/`
 
 ---
 
 ## Out of scope for this zip
 
 - Graph nodes/edges (`graph_node.v1`, `graph_edge.v1`) — Pillar B  
-- Join / WorkingSet / door_c harness — `integration/` in the parent monorepo  
+- Read-join / WorkingSet / door_c harness — `integration/` in the parent monorepo (not an A∪B merge)  
 - Production Vortex wiring, E6 Detect product path, Pillar C ReAct

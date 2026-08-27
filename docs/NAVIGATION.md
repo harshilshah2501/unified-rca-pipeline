@@ -59,14 +59,15 @@ Read these before diving into folders.
 | [`motadata-3pillars-implementation-scope.html`](./motadata-3pillars-implementation-scope.html) | **3 pillars kickoff scope**. Canonical [`pillar-ab-implementation/scope/MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md`](../pillar-ab-implementation/scope/MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md) · [`:8765`](http://127.0.0.1:8765/motadata-3pillars-implementation-scope.html) |
 | [`MOTADATA_3PILLARS_MERGED_SCOPE.md`](./MOTADATA_3PILLARS_MERGED_SCOPE.md) | **Merged implementation scope** (canonical merge of split OKR notes) |
 | [`pillar-ab-implementation/`](../pillar-ab-implementation/README.md) | **Pillar A+B slice** — [`pillar-a/`](../pillar-ab-implementation/pillar-a/) · [`pillar-b/`](../pillar-ab-implementation/pillar-b/) · [`integration/`](../pillar-ab-implementation/integration/) |
+| [`MAP_WRITE_READ_RECORD.md`](../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | **Pillar B map write/read** — JSON `graph_snapshot.v1` + `nodes.jsonl` / `edges.jsonl`; Vortex/S3 later encodings |
 | [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) | **Graph + sketch contract brief** — CI catalog, fifteen edges, `sketch.v1`. Samples [`GRAPH_NODE_EDGE_SAMPLES.md`](../pillar-ab-implementation/contracts/GRAPH_NODE_EDGE_SAMPLES.md) |
-| [`GRAPH_QNA.md`](./GRAPH_QNA.md) | **Fabric Q&A (E1–E5)** — coherent sections; brief §10 is stubs only |
+| [`GRAPH_QNA.md`](./GRAPH_QNA.md) | **Fabric Q&A (E1–E5)** — rooms, sketches, Detect, raw retention |
 | [`fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](./fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | **Pillar A deep dive** — inputs → process → `sketch.v1` / S3 / Vortex |
 | [`fabric/end-to-end-algorithm-walkthrough.md`](./fabric/end-to-end-algorithm-walkthrough.md) | **Algorithm walkthrough** — admit → window → Detect door C |
 | [`fabric/e1-e5-pipeline-architecture.html`](./fabric/e1-e5-pipeline-architecture.html) | **E1→E2 fan-out** → Pillar B `map/` ∥ Pillar A `history/` |
 | [`fabric/map-history-storage-blocks.html`](./fabric/map-history-storage-blocks.html) | **`map/` vs `history/`** — R/W, no sync |
 | [`fabric/map-history-storage-animation.html`](./fabric/map-history-storage-animation.html) | **Animated remap** — write → rooms → WorkingSet join |
-| [`fabric/vortex-s3-interaction.html`](./fabric/vortex-s3-interaction.html) | **Vortex + S3 block interaction** |
+| [`fabric/vortex-s3-interaction.html`](./fabric/vortex-s3-interaction.html) | **Vortex + S3 block interaction** · [`:8765`](http://127.0.0.1:8765/vortex-s3-interaction.html) |
 | [`fabric/sketch-exemplars-visual.html`](./fabric/sketch-exemplars-visual.html) | **Exemplars** — optional post-Detect acceleration |
 | [`fabric/Sketches_Merging_RawData_QnA.pdf`](./fabric/Sketches_Merging_RawData_QnA.pdf) | Owner exercise (merge/raw) — answers in GRAPH_QNA G33–G37 |
 | [`observeops/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./observeops/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) | Operational graph chapter (Draft) — how the map is recorded |

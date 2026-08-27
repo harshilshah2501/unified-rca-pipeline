@@ -8,15 +8,17 @@ ObserveOps Stores (E4) and Topology (E3) write through a destination profile. Vo
 
 ## PoC profile: `files.v1`
 
-| Room | Logical artifacts | Path under `poc/out/<tenant>/` |
-|------|-------------------|--------------------------------|
-| Map | `graph_node.v1`, `graph_edge.v1`, `GraphSnapshot` | `map/` |
+| Room | Logical artifacts | Dest keys under `poc/out/<tenant>/` |
+|------|-------------------|-------------------------------------|
+| Map | `graph_node.v1`, `graph_edge.v1`, `graph_snapshot.v1` | `map/graph_snapshot.json`, `map/nodes.jsonl`, `map/edges.jsonl` |
 | History | `sketch.v1` | `history/sketches.jsonl` |
-| Change facts (later) | `change_fact.v1` | `history/change_facts.jsonl` |
+| Change facts (optional) | `change_fact.v1` | `history/change_facts.jsonl` — only when a change-fact writer runs; **not** part of Topology `publish_snapshot` |
 
 Interface: `Dest.put(room, key, bytes)` / `Dest.get(room, key)`.
 
 `room` is `map` or `history`. Writers never write edges into sketch rows.
+
+**Normative map write/read detail:** [`MAP_WRITE_READ_RECORD.md`](./MAP_WRITE_READ_RECORD.md) (JSON encoding, keys, Vortex/S3 later).
 
 ## Later profiles (not implemented in this PoC)
 
@@ -30,6 +32,7 @@ Logical keys do not change when the profile changes:
 - Sketch: `(tenant, entity_id, metric_id, window, season_key, window_start)`
 - Node: `(tenant, ci_id)`
 - Edge: `(tenant, edge_id)`
+- Snapshot: `(tenant, version)` packaged; PoC read convenience key = `graph_snapshot.json`
 - Change fact: `(tenant, change_id)` linked by `ci_id` + `occurred_at`
 
 ## Independence

@@ -219,11 +219,11 @@
     <div class="wwh">
       <div><h3>What</h3><p>A living map: typed things (Service, Host, Pod, Database, Change, Alert, …) plus typed links, plus change facts. Time-bounded: edges expire (<code>valid_from</code> / <code>valid_to</code>).</p></div>
       <div><h3>Why</h3><p>A detector without a map produces an alert. A detector with a map can say which neighbor sits under the symptom, whether a deploy landed, and how sure we are that the link is real.</p></div>
-      <div><h3>How</h3><p>Builders upsert entities and edges from telemetry and discovery. Changes are first-class nodes, not log lines you grep later. Traversal: Incident → service → deps → recent changes → abnormal metrics → traces/log patterns → candidate leaves.</p></div>
+      <div><h3>How</h3><p>Builders upsert <strong>configuration-item</strong> entities and edges from telemetry and discovery. Motadata PDF may draw Changes as first-class map nodes — <strong>our lock:</strong> Change is a <code>change_fact.v1</code> in history (not a CI vertex); Alert is an E6 Signal (not a <code>GraphSnapshot</code> node). Traversal: symptom → service → deps → recent change facts → abnormal metrics → traces/log patterns → candidate leaves.</p></div>
     </div>
     <p class="ex"><b>Example.</b> Pain shows on <code>checkout-api</code>. Walk CALLS → <code>checkout-db</code>. A CHANGED_BY deploy landed 12 minutes ago on the db. API p95 is high; db p95 is worse. The leaf candidate is the database, not the API.</p>
     <table class="maptable">
-      <tr><th>Role in Motadata</th><td>Pillar B writer into Vortex/S3. The agent must not scan this store hop-by-hop; it uses the retrieval layer. Alert is a <em>node type</em>, not the detector.</td></tr>
+      <tr><th>Role in Motadata</th><td>Pillar B writer into Vortex/S3 (PoC today: <code>files.v1</code> JSON under <code>map/</code>). The agent must not scan this store hop-by-hop; it uses the retrieval layer. Alert is a <em>Detect Signal</em>, not a topology vertex on our locked <code>GraphSnapshot</code>.</td></tr>
       <tr><th>Our pipeline</th><td>
         <span class="chip write">writes E3 Topology</span> <code>GraphSnapshot</code> (SaaS owns it; Gateway only assists)<br>
         <span class="chip write">writes E5 Maintain</span> versions, change feed, outcome writeback<br>
@@ -239,13 +239,13 @@
   <section class="term" id="vortex">
     <p class="term-id">3 · the lake · Pillars A and B land here</p>
     <h2>Vortex + S3 — historical observability + knowledge graph</h2>
-    <p>Two rooms in one warehouse. Room 1 holds compact history (sketches, and whatever raw you still keep). Room 2 holds the typed map. Vortex/S3 is durability. It is not the agent, and it is not Detect.</p>
+    <p>Two rooms in one warehouse. Room 1 holds compact history (sketches; optional bounded Identity quarantine is not a full raw lake). Room 2 holds the typed CI map. Vortex/S3 is durability when that dest is chosen (PoC uses <code>files.v1</code> JSON). It is not the agent, and it is not Detect.</p>
     <div class="viz" role="img" aria-label="Vortex plus S3 as two rooms: history and graph">
       <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg">
         <rect width="720" height="200" fill="#10161d"/>
         <rect x="16" y="16" width="688" height="168" rx="10" fill="#121821" stroke="#2a3441"/>
         <text x="36" y="40" fill="#e8eef4" font-size="14" font-weight="600">Vortex + S3 · durable analytical store</text>
-        <text x="36" y="58" fill="#8a96a4" font-size="11">Keep raw telemetry, sketches, graph facts, and agent decisions separately addressable</text>
+        <text x="36" y="58" fill="#8a96a4" font-size="11">Keep sketches, graph facts, and agent decisions separately addressable (raw = product choice)</text>
         <rect x="36" y="76" width="310" height="88" rx="8" fill="#171d25" stroke="#7ba8f5"/>
         <text x="191" y="104" text-anchor="middle" fill="#9bb8f5" font-size="11" font-family="ui-monospace,monospace">HISTORICAL OBSERVABILITY</text>
         <text x="191" y="126" text-anchor="middle" fill="#e8eef4" font-size="13">percentile sketches · windows</text>

@@ -12,7 +12,7 @@
 
 | Page | Role |
 |------|------|
-| [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](../GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) | Locked sketch row shape (`sketch.v1`); brief FAQ (stubs for fan-out/rooms) |
+| [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](../GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) | Locked sketch row shape (`sketch.v1`) |
 | [`GRAPH_QNA.md`](../GRAPH_QNA.md) | Full graph/sketch fabric Q&A (E1–E5) — fan-outs, rooms, sketches, Detect, merge/raw |
 | [`MOTADATA_3PILLARS_MERGED_SCOPE.md`](../MOTADATA_3PILLARS_MERGED_SCOPE.md) | Part C kickoff What/Why/How (shorter) |
 | [`end-to-end-algorithm-walkthrough.md`](./end-to-end-algorithm-walkthrough.md) | Step-by-step algorithm with season helpers |
@@ -188,8 +188,9 @@ Three latency samples for the same service in one five-minute window (abbreviate
                                   no        yes
                                    │         │
                                    ▼         ▼
-                                skip /     admit into
-                                quarantine sketch writer
+                         skip (non-resolved);     admit into
+                         Identity may quarantine  sketch writer
+                         raw samples — not A
                                            │
                                            ▼
                                   metric_id in allowed
@@ -567,7 +568,7 @@ Same digest number; different `season_key`.
 | If you need… | Open |
 |--------------|------|
 | Locked edge/node contract | [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](../GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) |
-| Fabric Q&A (former brief FAQ) | [`GRAPH_QNA.md`](../GRAPH_QNA.md) |
+| Fabric Q&A | [`GRAPH_QNA.md`](../GRAPH_QNA.md) |
 | Shorter What/Why/How kickoff Part C | [`MOTADATA_3PILLARS_MERGED_SCOPE.md`](../MOTADATA_3PILLARS_MERGED_SCOPE.md) |
 | Algorithm walk with season helper | [`end-to-end-algorithm-walkthrough.md`](./end-to-end-algorithm-walkthrough.md) |
 | Picture of digest / buckets / baseline / exemplars | [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html) |
@@ -576,4 +577,4 @@ Same digest number; different `season_key`.
 
 ---
 
-*This page is the elaborative Pillar A deep dive. Prefer updating this file for teaching detail; keep the contract brief as the freeze / FAQ source of truth for field locks.*
+*This page is the elaborative Pillar A deep dive. Prefer updating this file for teaching detail; keep the contract brief as the freeze source of truth for field locks.*

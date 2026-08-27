@@ -2,7 +2,7 @@
 
 **Purpose:** Cold-reader answers for the graph/sketch contract across the **always-on fabric** (Collect → Identity → Topology ∥ Stores → Maintain), without dumping clarifications at the end of the sit-down brief.
 
-**Status:** All former brief §10 answers (Q1–Q36), re-ordered for reading flow (2026-08-27). Brief §10 keeps **stable `Q#` stubs** that point here.
+**Status:** Living Q&A for the graph/sketch contract (E1–E5 always-on fabric).
 
 **Parent brief (lock list + schemas):** [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md)
 
@@ -11,52 +11,9 @@
 1. **Sketches do not emit edges.** `sketch.v1` has no `src_ci_id` / `dst_ci_id` / `relation`.
 2. **Two orthogonal fan-outs.** Stream branch after **E2**; destination choice at **E4 Stores** — do not collapse them.
 3. **Rooms ≠ temperature.** `map/` / `history/` are content; Vortex / S3 are hot/cold when that dest is chosen.
+4. **Identity bind is upstream.** Pillar A/B writers assume look-up / LUT-like stamping already happened at **E2** (or quarantine); they do not own the bind table.
 
 **Companions:** [`e1-e5-pipeline-architecture.html`](../../docs/fabric/e1-e5-pipeline-architecture.html) · [`vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html) · [`map-history-storage-blocks.html`](../../docs/fabric/map-history-storage-blocks.html) · [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../../docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) · [`Sketches_Merging_RawData_QnA.pdf`](../../docs/fabric/Sketches_Merging_RawData_QnA.pdf)
-
----
-
-## Reading map (brief `Q#` → this page)
-
-| Brief §10 | Here | Theme |
-|-----------|------|--------|
-| Q1 | G1 | What does “sit-down” mean |
-| Q2 | G14 | Does “E4 destination” mean Room 1 and Room 2 |
-| Q3 | G2 | Is `GraphSnapshot` our term or a vendor / library term |
-| Q4 | G7 | What are Lab wave 1 / wave 2 / Later based on |
-| Q5 | G8 | What do `evidence_type` values mean — is it “claimed + verified” vs… |
-| Q6 | G6 | What does “schema is rich on day one; writers grow” mean |
-| Q7 | G15 | Are the two rooms the same thing as Vortex + S3 |
-| Q8 | G19 | Who reads Vortex / S3 — and what does “agent” mean here |
-| Q9 | G20 | Why does this brief avoid “Gate B” / Gate A–D vocabulary? |
-| Q10 | G21 | Must a sketch row carry `window`, `window_start`, and `window_end` |
-| Q11 | G3 | Do sketches store edges? Can Alert / Incident / ticket be graph nodes? |
-| Q12 | G4 | Are `CORRELATED_WITH`, `RESOLVED_BY`, or blast-radius `AFFECTS` top… |
-| Q13 | G9 | Do `valid_from` / `valid_to` live inside `discovered_via`? |
-| Q14 | G18 | Is Vortex strictly schema-based? What if Host and Pod need differen… |
-| Q15 | G22 | Why T-Digest + buckets + baseline together? Are exemplars an altern… |
-| Q16 | G23 | Digest and buckets use the same raw samples — so what is the differ… |
-| Q17 | G10 | How does Topology decide `relation` from inventory, catalog, or tel… |
-| Q18 | G24 | Is T-Digest + baseline enough for Detect? Why keep buckets? Why not… |
-| Q19 | G25 | Is sketch anomaly detection the same as Phase-2 Detect? What about … |
-| Q20 | G26 | Comparative objectives / inputs / outputs — digest, buckets, baseli… |
-| Q21 | G27 | What is a heatmap here, and how do we use it? |
-| Q22 | G28 | How is `season_key` computed? Do raw samples feed baseline and exem… |
-| Q23 | G5 | For ERROR / SLOWDOWN only, which nodes and edges matter? Why do `CO… |
-| Q24 | G11 | Inventory / catalog / telemetry — is that “already on the map” vs “… |
-| Q25 | G29 | We initially planned no exemplars. Now they are optional — what val… |
-| Q26 | G13 | Where does Pillar A |
-| Q27 | G30 | Lab “3 latency + 2 CPU” vs “field mapping in admit” — two sub-jobs … |
-| Q28 | G31 | Why does the lab file mix metrics and `topo_update` lines? Does Pil… |
-| Q29 | G32 | Where are false positives filtered — is it E5 Maintain? |
-| Q30 | G17 | Motadata-shaped Pillar A lake — do we need both S3 and Vortex, or i… |
-| Q31 | G33 | Why do we need to merge two sketches? |
-| Q32 | G34 | Why isn’t merging buckets as smooth as merging digests? |
-| Q33 | G35 | When do we still need to recompute from raw data? |
-| Q34 | G36 | What is standard industry practice for keeping raw data? |
-| Q35 | G37 | Do merge / raw rules change under Observability 3.0 shift-left? |
-| Q36 | G16 | How are `map/` and `history/` stored? Sub-blocks, R/W, sync? |
-| — | G12 | Two orthogonal fan-outs (synthesis 2026-08-27) |
 
 ---
 
@@ -68,8 +25,6 @@
 
 This whole document is the one-pager for that meeting: freeze which Motadata names may become topology nodes, lock the configuration-item catalog and fifteen edge types, and lock the sketch row shape. Status stays “owner leanings locked” until **the room votes**. §7 (“Format for the sit-down”) only answers: what do we bring into that meeting (JSON field tables now; `.proto` / DDL after Signed when Vortex needs encoding).
 
-*Brief origin: Q1.*
-
 ---
 
 ## 2. GraphSnapshot and what is (not) on the map
@@ -80,16 +35,12 @@ This whole document is the one-pager for that meeting: freeze which Motadata nam
 
 **E3 Topology**’s main output object is `GraphSnapshot`: the versioned, walkable map of configuration-item nodes and edges that Detect, Curate, and Localize read. Motadata’s “knowledge graph” maps onto that **job**; the name `GraphSnapshot` is our contract label. So when §8 says events do not become vertices on `GraphSnapshot`, it means they do not become vertices on **our** topology snapshot — they join by `tenant` + `ci_id` (and time) as evidence instead.
 
-*Brief origin: Q3.*
-
 ### G3. Do sketches store edges? Can Alert / Incident / ticket be graph nodes? (§2, §5.3, §8)
 
 **A. No and no.**
 
 - A **`sketch.v1`** row is one configuration item + one metric + one time window. It has `entity_id` (same string as graph `ci_id` after bind). It does **not** have `src_ci_id`, `dst_ci_id`, or `relation`. Join map and history later by identity and time.
 - **Alert, Incident, ITSMTicket, Metric, Trace, LogPattern, Change-as-configuration-item** are **not** `graph_node.v1` vertices. They are facts / evidence / case objects that hitch the walk; long-lived tickets point *at* durable configuration items (Service, Host, named Database, …), they are not the map themselves.
-
-*Brief origin: Q11.*
 
 ### G4. Are `CORRELATED_WITH`, `RESOLVED_BY`, or blast-radius `AFFECTS` topology edges? (§4.1)
 
@@ -102,8 +53,6 @@ This whole document is the one-pager for that meeting: freeze which Motadata nam
 | `AFFECTS` as stored blast radius | Impact computed or asserted at investigation time — not a durable map fact we freeze on the CI graph |
 
 Motadata product words such as `CALLS` / `RUNS_ON` map **into** the fifteen-relation enum as aliases. We do not keep two edge vocabularies in storage.
-
-*Brief origin: Q12.*
 
 ### G5. For ERROR / SLOWDOWN only, which nodes and edges matter? Why do `CORRELATED_WITH` / `RESOLVED_BY` / `AFFECTS` feel odd? (§2–4)
 
@@ -122,8 +71,6 @@ Motadata product words such as `CALLS` / `RUNS_ON` map **into** the fifteen-rela
 
 **One line:** ERROR/SLOWDOWN needs a **service + dependency / call map**; the other eleven relations exist for **other walks**, not because Curate/Package belong on Pillar B.
 
-*Brief origin: Q23.*
-
 ---
 
 ## 3. Edge catalog — schema, waves, provenance, mapping
@@ -137,8 +84,6 @@ Motadata product words such as `CALLS` / `RUNS_ON` map **into** the fifteen-rela
 
 Without the split you either ship a tiny schema and migrate forever, or wait until every discovery source exists before shipping anything. Freeze the vocabulary now; fill the data gradually. Same idea as Q4’s wave table.
 
-*Brief origin: Q6.*
-
 ### G7. What are Lab wave 1 / wave 2 / Later based on (§4.6)?
 
 **A.** A **pragmatic lab emission schedule**, not Motadata product phases and not a standards taxonomy. Schema already lists all fifteen relations; writers only emit what discovery sources can prove.
@@ -150,8 +95,6 @@ Without the split you either ship a tiny schema and migrate forever, or wait unt
 | **Later** | `backs`, `backed_up_by`, `clustered_with`, `routes_through`, `authenticates_via`, … | Backup, HA peer, fabric path, auth path — sources often missing until later integrations. |
 
 Wave names are **our sequencing** so Topology “Done” is not blocked on every source existing on day one. Schema stays rich; writers grow.
-
-*Brief origin: Q4.*
 
 ### G8. What do `evidence_type` values mean — is it “claimed + verified” vs “claimed only” vs “inferred”? (§4.4)
 
@@ -167,13 +110,9 @@ Wave names are **our sequencing** so Topology “Done” is not blocked on every
 
 **Examples:** cgroup says JVM runs on host → `authoritative` `runs_on`. Catalog says API depends on DB → `declared` `depends_on`. Spans show A calling B → `corroborating` `communicates_with` until inventory confirms.
 
-*Brief origin: Q5.*
-
 ### G9. Do `valid_from` / `valid_to` live inside `discovered_via`? (§4.3–4.4)
 
 **A. No.** On `graph_edge.v1`, **`valid_from` / `valid_to` (and `criticality`) are sibling fields on the edge object**, next to `relation`. Schema requires `discovered_via.evidence_type` inside the provenance block; confidence, telemetry source, direction, refresh live *inside* `discovered_via`. Do not put validity only in the inner block and omit it on the edge.
-
-*Brief origin: Q13.*
 
 ### G10. How does Topology decide `relation` from inventory, catalog, or telemetry? (§4.3–4.4)
 
@@ -192,8 +131,6 @@ Wave names are **our sequencing** so Topology “Done” is not blocked on every
 3. Spans: `checkout-api` repeatedly calls `inventory-api` → **`communicates_with`**, corroborating (often short `valid_to` until inventory confirms).
 
 Prefer authoritative when inventory already has the fact. Catalog fills declared deps. Telemetry discovers candidates. The §4.5 JSON samples are exactly these three stories.
-
-*Brief origin: Q17.*
 
 ### G11. Inventory / catalog / telemetry — is that “already on the map” vs “first time” vs “live infer”? Same as Auto-create / Orphan / Soft-match? (§4.4–4.5)
 
@@ -249,8 +186,6 @@ That is a **node-identity bind** fallback when the lookup table misses. It is **
 
 **One line:** inventory / catalog / telemetry = **who owns or suggests the relationship**; Auto-create / Orphan / Soft-match = **what to do when a name does not yet bind to a CI**.
 
-*Brief origin: Q24.*
-
 ---
 
 ## 4. Always-on fabric E1–E5 — two fan-outs and writer placement
@@ -277,8 +212,6 @@ Destination fan-out (E4 product choice):
 
 **One line:** fan-out after Identity; E3 = map writer; E4 = sketch writer; dest choice is a second, orthogonal fork.
 
-*Brief origin: synthesis (not a prior `Q#`); related Q2, Q26.*
-
 ### G13. Where does Pillar A (sketch write) sit vs Collect / Identity / Topology? Is it post-E2 and pre-E3, or overlapping? (§5–6)
 
 **A.** Pillar A’s **write path** is **fully after Identity (E2)** and **parallel to Topology (E3)** — not a gate between them, and not inside either stage.
@@ -293,37 +226,47 @@ Destination fan-out (E4 product choice):
 
 Teaching: [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../../docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) · visual: [`e1-e5-pipeline-architecture.html`](../../docs/fabric/e1-e5-pipeline-architecture.html).
 
-*Brief origin: Q26.*
+### G14. Does “E4 destination” mean `map/` and `history/` (§6)?
 
-### G14. Does “E4 destination” mean Room 1 and Room 2 (§6)?
-
-**A. No.** That collapses the axes in §1.
+**A. No.** That collapses the axes.
 
 | Term | Means |
 |------|--------|
 | **E4 destination** | **Which physical product** receives the written rows — Vortex/S3, a lab file dest, an existing Motadata store, or another lake. That is **destination fan-out**. |
-| **`map/` / `history/`** | **What kind of row** — knowledge-graph map (`graph_node.v1` / `graph_edge.v1`) vs historical sketches (`sketch.v1`). |
+| **`map/` / `history/`** | **What kind of row** — knowledge-graph map vs historical sketches. |
 
-Both rooms can land in the **same** destination (for example both in Vortex/S3). Destination fan-out is “write to product X or Y,” not “map vs history.”
-
-*Brief origin: Q2.*
+Both rooms can land in the **same** destination (for example both in Vortex/S3). Destination fan-out is “write to product X or Y,” not “map vs history.” Prefer room names **`map/`** and **`history/`** — not “Room 1 / Room 2.”
 
 ### G15. Are the two rooms the same thing as Vortex + S3 (§6)?
 
-**A. No — orthogonal axes.** Do not read “both hold the same data at different temperatures” as “Room 1 vs Room 2.”
+**A. No — orthogonal axes.** Do not read “both hold the same data at different temperatures” as “map vs history.”
 
 | Axis | Partitions | Share | Do not share |
 |------|------------|-------|--------------|
-| **Rooms (content)** | Map vs sketches | Same identity namespace (`tenant` + `ci_id` / `entity_id`) | Different row shapes and facts |
+| **Rooms (content)** | `map/` vs `history/` | Same identity namespace (`tenant` + `ci_id` / `entity_id`) | Different row shapes and facts |
 | **Vortex + S3 (temperature)** | Hot engine vs cold cellar *when this E4 dest is chosen* | Same kinds of rows as they age (spill / federated scan) | Latency and durability tier |
 
 Both rooms can live **inside** Vortex while hot and **age into** S3. Vortex is not `map/`; S3 is not `history/`.
 
-Naming bridge: older text said “Room 1 = historical observability” and “Room 2 = knowledge graph.” That is the same split as **`history/`** (Pillar A sketches) and **`map/`** (Pillar B graph). Prefer `map/` / `history/` going forward.
+Visual: [`vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html) (shows **both** fan-outs + `map/` / `history/` naming).
 
-Visual: [`vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html).
+### G38. What do we assume about Identity / look-up (LUT-like) stamping before Pillar A and Pillar B?
 
-*Brief origin: Q7.*
+**A.** For Motadata Pillar A/B (and this PoC), we treat **E2 Identity as already done** on the stream the writers see. Explicit understanding:
+
+| Assumption | Meaning |
+|------------|---------|
+| **Bind is E2’s job** | A look-up / bind table (Dynatrace-shaped docs call this a **LUT**) turns raw labels (monitor id, `service.name`, host name, …) into a stable **`ci_id`**. That table is **not** a third store room beside `map/` / `history/`, and **not** owned by Pillar A or Pillar B. |
+| **Writers see stamped records** | Production / PoC happy-path input is `ingest.v1` with `identity.status = resolved` and `tenant` + `ci_id` already set. Sketch `entity_id` **is that same string** — copy, do not re-bind. |
+| **Unresolved does not enter production map/history** | `ResolvedOnlyGate` (PoC) rejects unresolved / synthesized. Those records may sit on an **unattributed queue** and/or a **bounded Identity quarantine** for later replay (discussion 04) — still **E2 / admission**, not sketch or graph packages. |
+| **Corroborating telemetry alone ≠ resolved** | Inventory (**authoritative**) or catalog (**declared**) may promote a bind to `resolved`. Span/log accumulation alone typically stays weaker (`synthesized`) and is not a ticketable Localize leaf (D-E2-1). |
+| **PoC fixtures** | Lab streams are **pre-resolved** on purpose so A/B unit tests do not need a live LUT service. That is a test stub of “E2 already ran,” not a claim that Motadata skips Identity in production. |
+
+**What we are *not* assuming:** that Auto-create-from-telemetry is the default Motadata ticketable CI; that each pillar keeps its own private bind table; that “optional raw in history/” is how Identity lag is fixed.
+
+**One line:** LUT-like stamping = E2; A∥B only admit resolved and write rooms.
+
+See also: [`LLD-E2-Identity.md`](../../docs/observeops/LLD-E2-Identity.md) · [`../discussion/04-raw-data-identity-lut-open-questions.md`](../discussion/04-raw-data-identity-lut-open-questions.md) · G11 (miss policies ≠ evidence_type).
 
 ---
 
@@ -363,7 +306,16 @@ Visuals: [`map-history-storage-blocks.html`](../../docs/fabric/map-history-stora
 
 **One line:** two rooms, two writers; join at WorkingSet — never sync folders into each other.
 
-*Brief origin: Q36.*
+### G39. Why prefer `map/` / `history/` over “Room 1 / Room 2”?
+
+**A.** “Room 1 / Room 2” was teaching shorthand on early Motadata-shaped diagrams. It forced readers to remember which number was graph vs sketches, and it collided with “two temperatures” language.
+
+| Prefer | Means | Writer |
+|--------|--------|--------|
+| **`map/`** | Knowledge-graph content (`graph_node.v1`, `graph_edge.v1`, `GraphSnapshot`) | Pillar B / E3 |
+| **`history/`** | Sketch / historical observability (`sketch.v1`; optional change facts) | Pillar A / E4 |
+
+If an older slide still says Room 1 / Room 2: **Room 2 ≈ `map/`**, **Room 1 ≈ `history/`**. New docs and the Vortex interaction diagram use folder names only.
 
 ---
 
@@ -384,8 +336,6 @@ Same logical rooms; two temperatures. Labs may use **local JSONL** as a cold sta
 
 Deep dive: [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../../docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) §7.3–7.4.
 
-*Brief origin: Q30.*
-
 ### G18. Is Vortex strictly schema-based? What if Host and Pod need different fields? (§6.1)
 
 **A.** We lock a **hybrid** model — not fully strict, not schema-less.
@@ -398,8 +348,6 @@ Vortex (when chosen as the E4 dest) is the analytical store **under this logical
 
 **One line:** identity and relation types are rigid; decorations are not.
 
-*Brief origin: Q14.*
-
 ### G19. Who reads Vortex / S3 — and what does “agent” mean here (§6)?
 
 **A.** Diagnose never opens the lake as a dump.
@@ -410,15 +358,26 @@ Vortex (when chosen as the E4 dest) is the analytical store **under this logical
 
 “Agent” in Motadata materials means that ReAct diagnose loop. It is **not** Collect, Topology, E4 writers, or “any HTTP caller.” Operator E9–E11 must work with ReAct **off**. Product rule: diagnose path does not open S3 directly and does not hop-scan Vortex raw.
 
-*Brief origin: Q8.*
-
 ### G20. Why does this brief avoid “Gate B” / Gate A–D vocabulary?
 
 **A.** Those labels are **shift-left build-order checkpoints** (Node vs Gateway; which dest product; which Detect classes are platform-only; Layer I on/off). They belong on the Motadata ↔ shift-left job-map pages.
 
-The sit-down brief freezes **row shapes** and identity rules. For storage it only needs plain language: **E4 destination** (Vortex/S3 is one allowed product, not the only lake forever). Dropping “Gate B” into the brief without defining it imports a second vocabulary a cold reader never saw. Substance kept; Gate label left on the build-order pages. PoC file dest profile: [`GATE_B_DEST_PROFILE.md`](../pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md).
+The sit-down brief freezes **row shapes** and identity rules. For storage it only needs plain language: **E4 destination** (Vortex/S3 is one allowed product, not the only lake forever). Dropping “Gate B” into the brief without defining it imports a second vocabulary a cold reader never saw. Substance kept; Gate label left on the build-order pages. PoC file dest profile: [`GATE_B_DEST_PROFILE.md`](./GATE_B_DEST_PROFILE.md). Map JSON keys/encoding: [`MAP_WRITE_READ_RECORD.md`](./MAP_WRITE_READ_RECORD.md).
 
-*Brief origin: Q9.*
+### G40. What is the “Vortex query layer” vs the rooms?
+
+**A.** Inside the Motadata-shaped dest, **rooms hold rows**; the **query layer is how diagnose asks for a bounded slice**.
+
+| Piece | Job |
+|-------|-----|
+| **`map/` / `history/` inside Vortex** | Stored facts (graph + sketches), hot copies |
+| **Vortex query layer** | Walk / filter / join those rooms (and federate cold S3 if needed) into one **`WorkingSet`** |
+| **Retrieval** | Calls that query layer with hop/time/metric budgets — does not open S3 itself |
+| **Localize / optional ReAct** | Consume the `WorkingSet` only |
+
+So “query layer” is **not** a third room and **not** a second Identity bind. It is the read API above the same rooms writers filled after the two fan-outs.
+
+Visual: [`vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html).
 
 ---
 
@@ -434,8 +393,6 @@ The sit-down brief freezes **row shapes** and identity rules. For storage it onl
 
 Carrying all three independently invites `window_start + window ≠ window_end` with no clear winner.
 
-*Brief origin: Q10.*
-
 ### G22. Why T-Digest + buckets + baseline together? Are exemplars an alternate? (§5.2.1)
 
 **A.** Three **different questions** about one metric window; all three belong in `sketch.v1` for season-aware Detect without keeping every raw sample.
@@ -447,8 +404,6 @@ Carrying all three independently invites `window_start + window ≠ window_end` 
 Digest + buckets = same samples. Baseline = past windows, not this slice alone. Dropping baseline → false alarms on busy hours; dropping buckets → weak heatmap/rules; dropping digest → no mergeable p95.
 
 **Exemplars** (GCP / OpenTelemetry) = optional **trace id on a histogram bin** for click-through to one request. **Not** a substitute for digest or baseline. Not required in v1 `sketch.v1` unless the room adds it later. See [`sketch-exemplars-visual.html`](../../docs/fabric/sketch-exemplars-visual.html).
-
-*Brief origin: Q15.*
 
 ### G23. Digest and buckets use the same raw samples — so what is the difference? (§5.2)
 
@@ -467,8 +422,6 @@ Digest + buckets = same samples. Baseline = past windows, not this slice alone. 
 
 **Why both:** “How bad as a percentile?” and “How is mass split across fixed bins?” are different products of the same data. Detect / merge history lean on **digest** (+ baseline for season). Heatmap / “count in bin X” / attaching an **exemplar** to a bin lean on **buckets**. One is a **smooth distribution sketch**; the other is a **histogram**.
 
-*Brief origin: Q16.*
-
 ### G24. Is T-Digest + baseline enough for Detect? Why keep buckets? Why not Detect only on buckets? (§5.2.1)
 
 **A.** For **our** Motadata-shaped Detect (percentile vs season): **yes — digest + baseline is enough to fire.** Buckets are not in that ratio.
@@ -481,8 +434,6 @@ Digest + buckets = same samples. Baseline = past windows, not this slice alone. 
 **Vice versa:** Detect on **bin counts vs seasonal bin baselines** is a *different* design (shape Detect). It can also avoid raw scans **if** bucket counts are already stored in `sketch.v1`. We did **not** choose it as the primary door-C path because Pillar A Detect is **quantile-language** (p95/p99), and digests are built for that.
 
 **Correction on “mergeable” as the moat vs buckets:** both digests and fixed-bound buckets merge without raw replay (buckets: add counts). The sharper contrast is **quantile-native Detect** and better tail percentiles than coarse bins — not “only digests merge.” The latency killer is **Detect without any precomputed sketch** (scanning raw history), not “buckets force raw.”
-
-*Brief origin: Q18.*
 
 ### G25. Is sketch anomaly detection the same as Phase-2 Detect? What about Door A / B / C?
 
@@ -505,8 +456,6 @@ Digest + buckets = same samples. Baseline = past windows, not this slice alone. 
 
 This walkthrough-style Detect (digest vs baseline) **is** door C when mapped onto the pipeline. Doors A/B still ours to build; Motadata PDF mainly drew platform Detect.
 
-*Brief origin: Q19.*
-
 ### G26. Comparative objectives / inputs / outputs — digest, buckets, baseline, exemplars (§5)
 
 | | **T-Digest** | **Buckets** | **Seasonal baseline** | **Exemplars** |
@@ -519,13 +468,9 @@ This walkthrough-style Detect (digest vs baseline) **is** door C when mapped ont
 
 **One line:** digest + baseline → fire; buckets → where the mass is; exemplars → which request.
 
-*Brief origin: Q20.*
-
 ### G27. What is a heatmap here, and how do we use it?
 
 **A.** A **heatmap** is a chart where **color = how much** on a grid (often time × latency bin). Buckets supply the counts; the heatmap is the **picture** of those counts over time so you see where mass sat after Detect fires. Useful for investigation and for UI dots that may carry exemplars. **Not** required to compute the p95-vs-season Detect ratio itself.
-
-*Brief origin: Q21.*
 
 ### G28. How is `season_key` computed? Do raw samples feed baseline and exemplars? (§5.1, walkthrough FAQ)
 
@@ -534,8 +479,6 @@ This walkthrough-style Detect (digest vs baseline) **is** door C when mapped ont
 - **`season_key`:** hour-of-week from a timezone-aware timestamp, e.g. `"Thu-09:00"` (`strftime('%a')` + floored hour). PoC: `HourOfWeekSeason`.
 - **Baseline:** built from **past** windows with that key — **not** this incident window’s raw list. Current timestamp only chooses which baseline to attach.
 - **Exemplars:** from **this** window’s identity-bearing events `(latency, trace_id)` — not from digest centroids, and not “Detect on a 1% metric sample.”
-
-*Brief origin: Q22.*
 
 ### G29. We initially planned no exemplars. Now they are optional — what value do they add *after* Detect? (§5.2.1)
 
@@ -572,8 +515,6 @@ This walkthrough-style Detect (digest vs baseline) **is** door C when mapped ont
 
 **One line:** keep exemplars optional in `sketch.v1`; treat them as **post-Detect acceleration**, not a Detect dependency.
 
-*Brief origin: Q25.*
-
 ---
 
 ## 8. Pillar A lab admit and false-positive filtering
@@ -591,8 +532,6 @@ Pillar A consumes **whole identified metric lines** (already stamped at E2). It 
 
 **One line:** first table = example inputs; second table = field wiring — same admit job.
 
-*Brief origin: Q27.*
-
 ### G31. Why does the lab file mix metrics and `topo_update` lines? Does Pillar A reject topology? (§5.3, lab fixture)
 
 **A.** The shared lab stream is a **mixed tape** for the whole A+B demo: metric samples **and** topology updates in one JSONL file.
@@ -603,8 +542,6 @@ Pillar A consumes **whole identified metric lines** (already stamped at E2). It 
 | `signal_class: topo_update` | **Silent skip** — not a reject | Graph builder consumes |
 
 Topology rows (`runs_on`, `depends_on`, …) are **not** sketch inputs and **never** become `sketch.v1` fields. “One file feeds both products” is **fixture packaging**, not a claim that sketches store edges.
-
-*Brief origin: Q28.*
 
 ### G32. Where are false positives filtered — is it E5 Maintain? (§5.2.1, E6, E7)
 
@@ -621,8 +558,6 @@ Topology rows (`runs_on`, `depends_on`, …) are **not** sketch inputs and **nev
 **E5’s job:** refresh seasonal baselines (and graph validity/decay on the B side). It **prepares** the expected range Detect compares against; it does **not** sit after Detect deleting bad `Signal`s.
 
 **One line:** admit filters input junk; E6 applies season-aware Detect; E5 keeps baselines honest; Curate cleans the case storm after fire.
-
-*Brief origin: Q29.*
 
 ---
 
@@ -646,8 +581,6 @@ When merge is the mechanism:
 
 Source exercise: [`Sketches_Merging_RawData_QnA.pdf`](../../docs/fabric/Sketches_Merging_RawData_QnA.pdf) Q1.
 
-*Brief origin: Q31.*
-
 ### G34. Why isn’t merging buckets as smooth as merging digests? (§5.2)
 
 **A.** A T-Digest **centroid describes itself**. A bucket **count only means something if you already know the bin edges**.
@@ -669,8 +602,6 @@ Source exercise: [`Sketches_Merging_RawData_QnA.pdf`](../../docs/fabric/Sketches
 
 Source: PDF Q2.
 
-*Brief origin: Q32.*
-
 ### G35. When do we still need to recompute from raw data? (§5, deep dive)
 
 **A.** Sketches are **irreversible compression**. Anything the sketch did not keep is gone once raw is discarded.
@@ -684,13 +615,11 @@ Source: PDF Q2.
 | ML training / new algorithm backtesting | Features nobody pre-aggregated |
 | Drill-down beyond one exemplar | Exemplar = one request per bin; all requests in a hot bin need events |
 
-**Product tension with Q35:** Observability 3.0 Detect/RCA can treat **hot = sketch**. Q33 cases only work if Motadata either keeps a **short raw buffer**, or **explicitly accepts those scenarios fail**. Sit-down should name which Q33 rows stay in scope (§11).
+**Product tension:** Observability 3.0 Detect/RCA can treat **hot = sketch**. The cases above only work if Motadata either keeps a **short raw buffer**, or **explicitly accepts those scenarios fail**. The sit-down should name which rows stay in scope (brief open questions).
 
 **One line:** sketches are enough for season-aware Detect; they are not a time machine for every possible later question.
 
 Source: PDF Q3.
-
-*Brief origin: Q33.*
 
 ### G36. What is standard industry practice for keeping raw data?
 
@@ -705,11 +634,9 @@ Source: PDF Q3.
 
 Traces are usually shortest-lived at full fidelity (volume → sample at ingest).
 
-Motadata Observability 3.0 (Q35) can be **more aggressive** than this table for the **operational Detect path** — hot query tier = sketch — while still optionally buffering raw for selected Q33 cases.
+Motadata Observability 3.0 (G37) can be **more aggressive** than this table for the **operational Detect path** — hot query tier = sketch — while still optionally buffering raw for selected cases in G35.
 
 Source: PDF Q4.
-
-*Brief origin: Q34.*
 
 ### G37. Do merge / raw rules change under Observability 3.0 shift-left? (§6)
 
@@ -724,21 +651,17 @@ Source: PDF Q4.
 
 1. **Node / Gateway (shift-left)** — reduce volume before egress.  
 2. **SaaS admission (E1/E2)** — only resolved-identity, cataloged numeric samples past the gate.  
-3. **Pillar A sketch writer (E4)** — compress into T-Digest / buckets / baseline; discard raw for the Detect path. Hot analytical tier = **sketch on Vortex**, not a raw sample lake.
+3. **Pillar A sketch writer (E4)** — compress into T-Digest / buckets / baseline; discard raw **metric samples** for the Detect path. Hot analytical tier = **sketch on Vortex**, not a raw sample lake. **Late identity (Case 2)** is a separate, bounded quarantine at **Identity (E2)** → replay → merge into sketches — not “Pillar A keeps a raw lake,” and not Edge Delta full rehydration by default (see discussion [`04-raw-data-identity-lut-open-questions.md`](../discussion/04-raw-data-identity-lut-open-questions.md)).
 
 **Not a contradiction:** a short Fluent Bit–style **disk buffer** at the edge is **delivery resilience** (survive blips; minutes–hours; not meant for Detect queries). That is not the same as industry “hot raw retention” for RCA.
 
-**One line:** shift-left = send less; Pillar A = keep raw less long; Detect reads sketches.
+**One line:** shift-left = send less; Pillar A = keep raw less long; Detect reads sketches; unresolved bind uses a narrow Identity quarantine, not a second sketch schema.
 
 Source: PDF Q5. Aligns with deep dive §7.3–7.4 (cold S3 sketches + hot Vortex).
-
-*Brief origin: Q35.*
 
 ---
 
 ## Maintenance
 
 - **New clarifications** — append a new `G#` at the **end of the matching section** (or add a section if the theme is new). Keep section flow coherent; do not dump unsorted bullets at the file bottom.
-- **Contract brief §10** — keep original `Q#` numbers forever as stubs pointing here.
-- **Open decisions** stay in the brief §11, not this Q&A.
-
+- **Open decisions** stay in the discussion brief (§10), not this Q&A.

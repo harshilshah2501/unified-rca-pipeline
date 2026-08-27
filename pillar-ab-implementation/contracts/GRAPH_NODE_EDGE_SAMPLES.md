@@ -777,13 +777,13 @@ Some destination ids above (`switch-rack-a-01`, `cluster-app-a`, `idp-lab-oidc`,
 
 ## 6) Mini snapshot (how pieces join)
 
-Illustrative only — not a full estate:
+Illustrative only — not a full estate. Field name is **`version`** (string), matching PoC `graph_snapshot.v1` / [`MAP_WRITE_READ_RECORD.md`](./MAP_WRITE_READ_RECORD.md). Do not use `snapshot_id`.
 
 ```json
 {
   "schema_version": "graph_snapshot.v1",
   "tenant": "default",
-  "snapshot_id": "lab-2026-08-20T12:00:00Z",
+  "version": "1",
   "nodes": [
     { "ci_id": "bs-checkout", "ci_type": "BusinessService" },
     { "ci_id": "checkout-api", "ci_type": "Service" },
@@ -799,7 +799,7 @@ Illustrative only — not a full estate:
 }
 ```
 
-Full node and edge bodies are the samples in sections 1–5; the mini snapshot only shows the join keys.
+Full node and edge bodies are the samples in sections 1–5; the mini snapshot only shows the join keys. PoC publish also writes `nodes.jsonl` / `edges.jsonl` beside `graph_snapshot.json`.
 
 ---
 

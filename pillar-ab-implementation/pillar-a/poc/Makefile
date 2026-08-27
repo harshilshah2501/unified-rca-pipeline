@@ -1,4 +1,4 @@
-.PHONY: venv install test-unit test-shared test-sketch test-all
+.PHONY: venv install test-unit test-shared test-sketch test-all flush
 
 PY ?= .venv/bin/python
 
@@ -16,3 +16,6 @@ test-sketch:
 
 test-unit test-all:
 	$(PY) -m pytest
+
+flush:
+	$(PY) -m sketch.cli_flush --refresh-baselines

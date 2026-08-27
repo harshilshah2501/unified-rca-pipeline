@@ -2,9 +2,9 @@
 
 **Purpose:** One sit-down document that freezes (1) which Motadata names may become topology nodes, (2) the Pillar B configuration-item catalog and fifteen edge types, and (3) the Pillar A sketch row shape.  
 **Status:** Discussion draft with **owner leanings locked** (not Signed until the room votes).  
-**Date:** 2026-08-20 (FAQ extracted to GRAPH_QNA 2026-08-27; brief §10 keeps stable Q# stubs)
-**FAQ (§10):** Index stubs only — full Q&A: [`GRAPH_QNA.md`](./GRAPH_QNA.md) (E1–E5 always-on fabric, coherent sections).
-**Also:** condensed PDF [`Sketches_Merging_RawData_QnA.pdf`](../../docs/Sketches_Merging_RawData_QnA.pdf) (owner exercise) — folded into [`GRAPH_QNA.md`](./GRAPH_QNA.md) G33–G37 (was Q31–Q35).
+**Date:** 2026-08-20  
+**Q&A companion:** [`GRAPH_QNA.md`](./GRAPH_QNA.md) (E1–E5 always-on fabric).  
+**Also:** condensed PDF [`Sketches_Merging_RawData_QnA.pdf`](../../docs/Sketches_Merging_RawData_QnA.pdf) — see GRAPH_QNA on merge / raw retention.
 
 **Companion:** Full sample JSON for every qualified node type and all fifteen edges — [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md).  
 **Pillar A deep dive (inputs → process → artifacts):** [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../../docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md).
@@ -733,166 +733,14 @@ Closest jobs on Dynatrace / Datadog / Edge Delta — same *roles*, not Motadata 
 
 ---
 
-## 10) FAQ — index stubs (full answers in GRAPH_QNA)
-
-Short clarifications that used to live here now live in **[`GRAPH_QNA.md`](./GRAPH_QNA.md)** — cold-reader order across the **E1–E5 always-on fabric** (not append-at-end of this brief).
-
-**House rule:** do **not renumber** these `Q#` ids. New clarifications: append a `G#` in [`GRAPH_QNA.md`](./GRAPH_QNA.md) under the matching section, then add a one-line stub here with the next `Q#`.
-
-Open decisions stay in §11.
-
-### Q1. What does “sit-down” mean (§7)?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G1**. Sit-down = decision meeting to Signed — not a pipeline stage.
-
-### Q2. Does “E4 destination” mean Room 1 and Room 2 (§6)?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G14**. E4 destination ≠ rooms; stream branch is after E2 (see also G12).
-
-### Q3. Is `GraphSnapshot` our term or a vendor / library term (§8)?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G2**. GraphSnapshot is our ObserveOps term for E3 Topology’s walkable map.
-
-### Q4. What are Lab wave 1 / wave 2 / Later based on (§4.6)?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G7**. Lab waves = pragmatic emission schedule; schema stays rich.
-
-### Q5. What do `evidence_type` values mean — is it “claimed + verified” vs “claimed only” vs “inferred”? (§4.4)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G8**. evidence_type = how Topology learned the edge (not Verify/RCA).
-
-### Q6. What does “schema is rich on day one; writers grow” mean (§4.6)?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G6**. Schema rich day one; writers grow.
-
-### Q7. Are the two rooms the same thing as Vortex + S3 (§6)?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G15**. Rooms = content; Vortex/S3 = temperature.
-
-### Q8. Who reads Vortex / S3 — and what does “agent” mean here (§6)?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G19**. Retrieval → WorkingSet; diagnose never dumps S3.
-
-### Q9. Why does this brief avoid “Gate B” / Gate A–D vocabulary?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G20**. Gate labels stay on build-order pages; brief says E4 destination.
-
-### Q10. Must a sketch row carry `window`, `window_start`, and `window_end` (§5.4)?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G21**. window_start mandatory; exactly one of window or window_end.
-
-### Q11. Do sketches store edges? Can Alert / Incident / ticket be graph nodes? (§2, §5.3, §8)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G3**. Sketches have no relation fields; Alert/Incident/ticket not CI vertices.
-
-### Q12. Are `CORRELATED_WITH`, `RESOLVED_BY`, or blast-radius `AFFECTS` topology edges? (§4.1)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G4**. Case/packaging words — not GraphSnapshot edges.
-
-### Q13. Do `valid_from` / `valid_to` live inside `discovered_via`? (§4.3–4.4)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G9**. valid_from/valid_to are sibling fields on the edge, not only inside discovered_via.
-
-### Q14. Is Vortex strictly schema-based? What if Host and Pod need different fields? (§6.1)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G18**. Hybrid spine (rigid) + flexible attributes.
-
-### Q15. Why T-Digest + buckets + baseline together? Are exemplars an alternate? (§5.2.1)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G22**. Digest + buckets + baseline answer three different questions; exemplars optional.
-
-### Q16. Digest and buckets use the same raw samples — so what is the difference? (§5.2)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G23**. Same samples, different leftovers — distribution sketch vs histogram.
-
-### Q17. How does Topology decide `relation` from inventory, catalog, or telemetry? (§4.3–4.4)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G10**. Pick closed-enum relation by source mapping; stamp evidence_type.
-
-### Q18. Is T-Digest + baseline enough for Detect? Why keep buckets? Why not Detect only on buckets? (§5.2.1)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G24**. Door C Detect = digest vs baseline; buckets for investigate after fire.
-
-### Q19. Is sketch anomaly detection the same as Phase-2 Detect? What about Door A / B / C?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G25**. P1 write sketches; P2 Detect reads them. Door C ≠ Pillar C.
-
-### Q20. Comparative objectives / inputs / outputs — digest, buckets, baseline, exemplars (§5)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G26**. Digest+baseline fire; buckets where; exemplars which request.
-
-### Q21. What is a heatmap here, and how do we use it?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G27**. Heatmap = picture of bucket counts over time — not required to fire Detect.
-
-### Q22. How is `season_key` computed? Do raw samples feed baseline and exemplars? (§5.1, walkthrough FAQ)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G28**. season_key = hour-of-week; baseline from past windows; exemplars from this window.
-
-### Q23. For ERROR / SLOWDOWN only, which nodes and edges matter? Why do `CORRELATED_WITH` / `RESOLVED_BY` / `AFFECTS` feel odd? (§2–4)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G5**. ERROR/SLOWDOWN needs service+dep map; case words stay off Pillar B.
-
-### Q24. Inventory / catalog / telemetry — is that “already on the map” vs “first time” vs “live infer”? Same as Auto-create / Orphan / Soft-match? (§4.4–4.5)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G11**. Inventory/catalog/telemetry ≠ Auto-create/Orphan/Soft-match.
-
-### Q25. We initially planned no exemplars. Now they are optional — what value do they add *after* Detect? (§5.2.1)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G29**. Exemplars = post-Detect acceleration, not a Detect dependency.
-
-### Q26. Where does Pillar A (sketch write) sit vs Collect / Identity / Topology? Is it post-E2 and pre-E3, or overlapping? (§5–6)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G13**. Post-E2, parallel to E3; E4 Stores is sibling (see also G12).
-
-### Q27. Lab “3 latency + 2 CPU” vs “field mapping in admit” — two sub-jobs or one? (§5, PoC `metric_admit`)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G30**. One admit job — inputs vs field wiring.
-
-### Q28. Why does the lab file mix metrics and `topo_update` lines? Does Pillar A reject topology? (§5.3, lab fixture)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G31**. Mixed fixture tape; Pillar A silent-skips topo lines.
-
-### Q29. Where are false positives filtered — is it E5 Maintain? (§5.2.1, E6, E7)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G32**. Admit filters junk; E6 season Detect; E5 baselines; Curate after fire.
-
-### Q30. Motadata-shaped Pillar A lake — do we need both S3 and Vortex, or is either optional? (§6, deep-dive §7.3–7.4)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G17**. Both S3 and Vortex required Motadata-shaped — remember vs query fast.
-
-### Q31. Why do we need to merge two sketches? (§5.2)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G33**. Raw gone → merge sketches; never average p95s.
-
-### Q32. Why isn’t merging buckets as smooth as merging digests? (§5.2)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G34**. Bucket merge needs same bucket_schema_version + bounds.
-
-### Q33. When do we still need to recompute from raw data? (§5, deep dive)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G35**. Sketches irreversible; some questions still need raw/buffer.
-
-### Q34. What is standard industry practice for keeping raw data?
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G36**. Industry tiered retention (context); Motadata Detect hot = sketch.
-
-### Q35. Do merge / raw rules change under Observability 3.0 shift-left? (§6)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G37**. Shift-left reduces volume; Pillar A reduces raw lifespan — compound.
-
-### Q36. How are `map/` and `history/` stored? Sub-blocks, R/W, sync? (§6, Gate B dest)
-
-**Moved** → [`GRAPH_QNA.md`](./GRAPH_QNA.md) **G16**. Two rooms, two writers; join at WorkingSet; no map↔history sync.
-
-## 11) Open questions still for the room
+## 10) Open questions still for the room
 
 1. Exact closed enum of `ci_type` for wave 1 (paste final list on the whiteboard).  
 2. Are `tier` + `instance_scope` required on day one or wave 2?  
 3. Timestamp format: RFC3339 strings vs unix millis in Signed contract?  
 4. Who is sole GraphSnapshot writer?  
 5. First two sketch metrics + bucket bounds?  
-6. **Raw buffer vs strict zero-raw:** which Q33 scenarios (late identity, forensics, ML, full hot-bin drill-down) stay in Motadata scope with a short raw buffer, and which are explicitly out?  
+6. **Raw buffer vs strict zero-raw:** which scenarios (late identity, forensics, ML, full hot-bin drill-down) stay in Motadata scope with a short raw buffer, and which are explicitly out?  
 
 ---
 

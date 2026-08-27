@@ -15,16 +15,20 @@ def build_snapshot(state: GraphState, *, version: str = "1") -> dict[str, Any]:
         validate("graph_node_v1.schema.json", n)
     for e in edges:
         validate("graph_edge_v1.schema.json", e)
-    return {
+    snapshot = {
         "schema_version": "graph_snapshot.v1",
         "tenant": state.tenant,
         "version": version,
         "nodes": nodes,
         "edges": edges,
     }
+    validate("graph_snapshot_v1.schema.json", snapshot)
+    return snapshot
 
 
 def publish_snapshot(dest: Dest, snapshot: dict[str, Any]) -> None:
+    """Write map room keys per MAP_WRITE_READ_RECORD / files.v1."""
+    validate("graph_snapshot_v1.schema.json", snapshot)
     dest.put("map", "graph_snapshot.json", json.dumps(snapshot, indent=2).encode("utf-8"))
     dest.put(
         "map",
@@ -42,4 +46,6 @@ def load_snapshot(dest: Dest) -> dict[str, Any] | None:
     raw = dest.get("map", "graph_snapshot.json")
     if raw is None:
         return None
-    return json.loads(raw.decode("utf-8"))
+    snapshot = json.loads(raw.decode("utf-8"))
+    validate("graph_snapshot_v1.schema.json", snapshot)
+    return snapshot

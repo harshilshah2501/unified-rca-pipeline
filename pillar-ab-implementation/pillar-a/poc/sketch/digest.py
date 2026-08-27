@@ -57,3 +57,14 @@ class TDigestAdapter:
             "encoding": "centroids_json",
             "centroids": self.to_centroids(),
         }
+
+    @classmethod
+    def from_json_body(cls, body: dict) -> "TDigestAdapter":
+        compression = float(body.get("compression", 100.0))
+        adapter = cls(compression=compression)
+        for c in body.get("centroids") or []:
+            m = float(c["m"])
+            w = int(float(c.get("w", 1)))
+            for _ in range(max(w, 1)):
+                adapter.update(m)
+        return adapter

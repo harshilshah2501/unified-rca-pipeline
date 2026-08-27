@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observeops.local/schemas/graph_snapshot_v1.schema.json",
+  "title": "graph_snapshot.v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tenant",
+    "version",
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "schema_version": { "const": "graph_snapshot.v1" },
+    "tenant": { "type": "string", "minLength": 1 },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Snapshot generation / package version string (PoC default \"1\"). Not snapshot_id."
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "Full graph_node.v1 objects (validated separately in the writer)."
+    },
+    "edges": {
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "Full graph_edge.v1 objects (validated separately in the writer)."
+    }
+  },
+  "additionalProperties": true
+}

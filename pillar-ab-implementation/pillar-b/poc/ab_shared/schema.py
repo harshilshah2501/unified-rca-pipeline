@@ -6,7 +6,7 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
-# pillar-a/poc/ab_shared → pillar-a/contracts/schemas
+# pillar-b/poc/ab_shared → pillar-b/contracts/schemas
 CONTRACTS = Path(__file__).resolve().parents[2] / "contracts" / "schemas"
 
 
