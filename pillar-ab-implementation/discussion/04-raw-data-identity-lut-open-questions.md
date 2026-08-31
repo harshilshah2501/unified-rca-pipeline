@@ -23,6 +23,9 @@ This note turns the PDF’s open list into **vote-ready questions**: each one ha
 | **Raw sample** | One admitted measurement or event before sketch compression (exact value + timestamp + labels). |
 | **Sketch** | Lossy summary in the `history/` room (`sketch.v1`). Good for percentiles and Detect; cannot recreate every original point. |
 | **Identity (E2)** | Pipeline stage that stamps each record with `tenant` + `ci_id` (same string as sketch `entity_id`) and `identity.status`. |
+| **Configuration item (CI)** | A **graph vertex** with stable `tenant` + `ci_id` + `ci_type` — something E9 may localize to and E11 may ticket when `identity.status = resolved` (D-E2-1). Uses field name **`ci_id`** on `ingest.v1` and graph rows. |
+| **Entity / `entity_id`** | Industry and Motadata sketch vocabulary for “the thing this signal refers to.” On **`sketch.v1`** the field is **`entity_id`**; after E2 bind its value is the **same string** as `ci_id`. Not a second identity namespace. |
+| **Entity resolution** | The E2 job (LUT / bind / `identity.status`) — same as “identity” in FR-B. Process name from vendor docs; output is still `ci_id`. |
 | **Look-up table (LUT)** | The bind table Identity uses: raw labels (monitor id, `service.name`, host name, …) → stable `ci_id`. Teaching shorthand from Dynatrace-shaped docs; in ObserveOps this is **E2’s bind table**, not a third store room beside `map/` and `history/`. |
 | **LUT miss** | Incoming labels do not hit any row yet — Identity cannot stamp `resolved`. |
 | **Quarantine buffer** | A **bounded** hold of unresolved raw samples (hours–days). When Identity later resolves, we **replay** those samples into the sketch writer and merge into the original window. Not a full compliance archive. |
@@ -35,6 +38,9 @@ This note turns the PDF’s open list into **vote-ready questions**: each one ha
 **Do not confuse:**
 
 - **Rooms** (`map/` vs `history/`) ≠ **temperature** (Vortex hot vs S3 cold).
+- **`ci_id` vs `entity_id`** — same join key **after E2 bind**; different field names per schema (`ingest.v1` / graph vs `sketch.v1`). Do not mint two ids.
+- **CI vs entity (concept)** — **CI** = our strict graph/ticket noun (vertices only; alerts/incidents are **not** CIs). **Entity** = vendor/Motadata prose or sketch field name. Motadata PDF “entity” included event vertices; we do **not** copy that.
+- **CI vs ServiceNow CMDB record** — aligned **keys** for future join; E2 does not replace ServiceNow’s CI class model (see §3.6 · LLD-E2 §8).
 - **LUT / Auto-create / Orphan / Soft-match** = what to do when a **name does not bind** to a CI.
 - **`evidence_type`** = who owns or suggests an **edge** on the map. Not a 1:1 map onto Auto-create / Orphan / Soft-match.
 
@@ -57,14 +63,18 @@ From the PDF. Sketches alone cannot answer these:
 
 ### 3.2 Which cases touch the **live** RCA pipeline
 
-| # | Ongoing impact? | Nature of the fix |
-|---|-----------------|-------------------|
-| **1** | **Most severe** — live Detect is wrong continuously | One-time: patch code + backfill damaged windows |
-| **2** | **Yes — real coverage gap** while unresolved | Needs a **repeatable structural loop** (quarantine → resolve → replay → merge) |
-| **3** | Partial | Config add to metric catalog; forward path self-heals; baselines grow via E5 (seasonal maintenance). Not an identity loop |
-| 4 | No | Human / legal, backward-looking |
-| 5 | Indirect | Human redeploys a model later |
-| 6 | No | Terminal investigation |
+Cross-walk of the **six cases in §3.1** against ongoing Detect and RCA (E6 onward). “Live pipeline” means the always-on path that admits telemetry, writes sketches / map, and fires Detect — not one-off human or legal workflows.
+
+| # | Case (§3.1) | Touches live RCA pipeline? | Impact while unresolved | Nature of the fix |
+|---|-------------|----------------------------|-------------------------|-------------------|
+| **1** | Bug in aggregation logic | **Yes — continuous** | Detect verdicts wrong on every affected window | One-time: patch code + backfill damaged windows from raw |
+| **2** | Late identity resolution | **Yes — coverage gap** | Resolved CIs missing samples for quarantined windows | Repeatable loop: quarantine → resolve → replay → merge |
+| **3** | Brand-new metric | **Partial** | No historical sketch until catalog + E5 catch up | Config add to metric catalog; forward path self-heals; baselines grow via E5 (seasonal maintenance). Not an identity loop |
+| **4** | Forensic / compliance / legal | **No** | Does not block live Detect; backward-looking only | Human / legal process |
+| **5** | ML training / algorithm backtest | **Indirect** | Does not block live Detect today | Human redeploys a model later |
+| **6** | Drill-down beyond one exemplar | **No** (post-Detect investigate) | Does not block Detect fire; limits investigation depth | Terminal investigation; optional raw buffer for full hot-bin drill-down |
+
+**Summary:** Cases **1** and **2** are the live-pipeline blockers. Case **3** self-heals forward once config catches up. Cases **4–6** need raw for other reasons but do not keep Detect wrong while the pipeline runs.
 
 **Case 3 is not Case 2.** Case 2 fails the gate `identity.status == resolved` (owned by E2). Case 3 fails `metric_id` in the allowed catalog (owned by schema / config). E2 does not need to change when a metric is added.
 
@@ -110,6 +120,52 @@ When raw labels miss the LUT:
 That is **node-identity bind** fallback. It is **not** `evidence_type` on an edge.
 
 ObserveOps today (LLD-E2 Signed default): prefer **synthesize flagged placeholders** + **unattributed queue** rather than poison dead-letter; do **not** use synthesized as localize/ticket targets. Pillar A/B still reject non-`resolved` for sketch / map production writes.
+
+### 3.6 Industry entity models vs ObserveOps E2 / E3
+
+Teams often ask whether “extracting CIs from data” means **defining CIs the way ServiceNow does**. In practice those are **two different jobs**:
+
+| Question | Who usually answers it | ObserveOps stage |
+|----------|------------------------|------------------|
+| **What is a configuration item in our org?** (class, owner, lifecycle, required fields) | CMDB / ITSM — ServiceNow, BMC, etc. | **Not E2 this pass** — we freeze join keys so ServiceOps can attach later |
+| **Which real thing does this telemetry row refer to?** (`host.name`, monitor id, span service → stable id) | Collect + **Identity** | **E2 Identity** — LUT / bind table → `tenant` + `ci_id` + `identity.status` |
+| **Who connects to whom on the map?** | Discovery + catalog + telemetry | **E3 Topology** — nodes + edges with `evidence_type` |
+
+**Industry pattern (all major observability stacks):** bind + discover + reconcile — not one pass that “invents CMDB schema from logs.”
+
+```text
+Raw labels (host.name, k8s pod, monitor id, service.name)
+        │
+        ├─ Inventory / agent scan     → authoritative  (process/cgroup, K8s API, vCenter)
+        ├─ CMDB / catalog sync        → declared       (ServiceNow import, Terraform, service catalog)
+        └─ Live telemetry             → corroborating  (spans, logs, peers — “A calls B”)
+        │
+        ▼
+   Stable entity id  +  (optional) relationships on the map
+```
+
+| Platform | Center of gravity | How entities appear |
+|----------|-------------------|---------------------|
+| **ServiceNow CMDB** | Managed CI record (`sys_id`, class, owner) | Discovery jobs, imports, manual entry; IRE reconciles duplicates |
+| **Dynatrace** | `entityId` on Smartscape topology | OneAgent inventory + observed traffic; CMDB optional enrich |
+| **Datadog** | Host / service / APM entity tags | Agent + APM peers → Service Map; catalog YAML optional |
+| **ObserveOps (this repo)** | `tenant` + `ci_id` (≡ sketch `entity_id`) | E2 bind (LUT or topology lookup); E3 writes graph; ServiceOps join later |
+
+**Similar goal, different default:** ServiceNow **defines** what counts as a CI (class model, relationship types). Observability **maps** observed signals onto stable ids so Detect, sketches, and RCA can correlate — then optionally **reconciles** to CMDB for declared/authoritative facts. Ephemeral workloads (short-lived pods) are often **strong** in observability discovery and **weak** in CMDB unless sync is tight.
+
+**Common industry mechanisms** (names you will hear in vendor docs):
+
+| Mechanism | Job | ObserveOps analogue |
+|-----------|-----|---------------------|
+| **Lookup / bind table (LUT)** | Label → stable id | E2 bind table; Motadata `ci_bind.json`; corpus topology lookup |
+| **Discovery** | Agent/scan creates entities from inventory | Authoritative graph edges (`runs_on` from agent/cgroup) — E3 writers |
+| **Auto-create / Orphan / Soft-match** | Policy on LUT miss | §3.5 above; D-E2-1 synthesize + unattributed queue |
+| **Reconciliation** | Match discovered row to CMDB record | Future ServiceOps / declared sync — not Collect ServiceNow tickets in E1 today |
+| **Topology from telemetry** | Edges from traces/peers | `communicates_with` as **corroborating** until inventory/catalog confirms |
+
+**Why this matters for raw / quarantine (Case 2):** entity extraction is rarely instant. Catalog-known names often resolve on **declared** sync; genuinely new hosts/services wait for **authoritative** inventory. That race is why §3.3 and Q1–Q3 exist — not because E2 “should define CIs like ServiceNow.”
+
+Normative E2 detail: [`LLD-E2-Identity.md`](../../docs/observeops/LLD-E2-Identity.md) §8. Graph evidence types: [`GRAPH_QNA.md`](../../docs/GRAPH_QNA.md) G10–G11.
 
 ---
 
@@ -388,9 +444,9 @@ Prior discussion trail: `01`–`03` in this folder.
 
 ## 7. Suggested reading order for attendees (15 minutes)
 
-1. This document §§1–3, §4.5 (exemplars counter-Q), and the vote card (§5).  
+1. This document §§1–3 (including §3.6 industry entity models), §4.5 (exemplars counter-Q), and the vote card (§5).  
 2. PDF §§5–8 ([`Raw_Data_Handling.pdf`](../Raw_Data_Handling.pdf)) for the race diagram and Edge Delta check.  
-3. [`LLD-E2-Identity.md`](../../docs/observeops/LLD-E2-Identity.md) §4 (D-E2-1).  
+3. [`LLD-E2-Identity.md`](../../docs/observeops/LLD-E2-Identity.md) §4 (D-E2-1) and §8 (industry context).  
 4. [`GRAPH_QNA.md`](../../docs/GRAPH_QNA.md) G22 / G28 / G29 (exemplars) and G35–G37 (raw / shift-left).
 
 ---
