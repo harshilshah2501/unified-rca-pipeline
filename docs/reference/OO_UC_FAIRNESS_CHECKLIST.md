@@ -2,7 +2,7 @@
 
 **Purpose:** Make Lean × Federated × OO citations **credible** on ObserveOps UC-1..UC-5.  
 **Slice A playbook:** [`SLICE_A_OO_UC_FAIRNESS.md`](./SLICE_A_OO_UC_FAIRNESS.md)  
-**Fair results (2026-07-27):** [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) · [`../benchmarking/results/comparison/reports/OO/fair/`](../benchmarking/results/comparison/reports/OO/fair/)
+**Fair results (2026-07-27):** [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) · [`../benchmarking/results/comparison/reports/OO/fair/`](../../benchmarking/results/comparison/reports/OO/fair/)
 
 OO is **not** automatic RCA: alerts are compulsory; shift-to-now may be required for Analysis windows. That is allowed — but alerts must **not coach the answer**.
 

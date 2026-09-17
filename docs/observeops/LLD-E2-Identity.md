@@ -45,7 +45,7 @@ def _ci_type(topology: dict, ci_id: str) -> str:
     return "Unknown"
 ```
 
-Reference: [`ingestion-poc/replay/observeops_to_ingest_v1.py`](../ingestion-poc/replay/observeops_to_ingest_v1.py) (`_ci_type`, called from `metric_rows`/`event_rows`/the `topo_updates.jsonl` writer). That lookup currently runs inside the E1 replay converter; the LLD still attributes it to E2 ([`LLD-E1-Collect.md`](./LLD-E1-Collect.md) §1.1).
+Reference: [`ingestion-poc/replay/observeops_to_ingest_v1.py`](../../ingestion-poc/replay/observeops_to_ingest_v1.py) (`_ci_type`, called from `metric_rows`/`event_rows`/the `topo_updates.jsonl` writer). That lookup currently runs inside the E1 replay converter; the LLD still attributes it to E2 ([`LLD-E1-Collect.md`](./LLD-E1-Collect.md) §1.1).
 
 Real `ci_type` values seen in the corpus (from `datasets/observeops/UC-1/topology.json`): `NetworkPort`, `HypervisorHost`, `Datastore`, `VirtualMachine`, `GuestOS`, `Service`. Edge relations seen: `runs_on`, `hosted_by`, `uplink_to`, `stored_on`. Fallback when a `ci_id` isn't found in the topology: `"Unknown"` → overlay `identity.status = "unattributed"` (or `"synthesized"` if a placeholder id was invented).
 
@@ -72,7 +72,7 @@ python3 ingestion-poc/adapters/build_motadata_ci_bind.py
 # writes: datasets/ingest_samples/motadata-ingest/ci_bind.json
 ```
 
-Resolution order per monitor, from [`build_motadata_ci_bind.py`](../ingestion-poc/adapters/build_motadata_ci_bind.py):
+Resolution order per monitor, from [`build_motadata_ci_bind.py`](../../ingestion-poc/adapters/build_motadata_ci_bind.py):
 
 1. Prefer field `object.name`, else `system.name`, `host.name`, `hostname`, `device.name`, `target.name` (`_pick_name`).
 2. Last resort: any `*.name` string field that looks like a hostname (no spaces, < 128 chars).
@@ -88,7 +88,7 @@ def resolve_monitor_ci(monitor_id, bind) -> tuple[str, str]:
     return f"monitor-{monitor_id}", "Monitor"
 ```
 
-Reference: [`ingestion-poc/adapters/motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_ingest_v1.py) (`resolve_monitor_ci`, called from `convert_metric_numeric`/`convert_metric_string`). This currently runs inside the E1 Motadata converter; LLD attributes it to E2.
+Reference: [`ingestion-poc/adapters/motadata_to_ingest_v1.py`](../../ingestion-poc/adapters/motadata_to_ingest_v1.py) (`resolve_monitor_ci`, called from `convert_metric_numeric`/`convert_metric_string`). This currently runs inside the E1 Motadata converter; LLD attributes it to E2.
 
 **Note the two different fallback layers are not the same value:** if `build_motadata_ci_bind.py` never saw a monitor id at all (Stage A never wrote an entry), Stage B's own fallback fires with `ci_type = "Monitor"` and `ci_id = "monitor-{id}"` — distinct from Stage A's own `"Host"`-typed fallback for monitors it did see but couldn't name. Every emitted record carries `labels.bound: bool` (`ci_id != f"monitor-{obj_id}"`) so a downstream consumer can tell resolved from synthesized without re-deriving it.
 
@@ -150,7 +150,7 @@ HLD object `IdentifiedRecord` = `ingest.v1` + `identity` object.
 
 ## 4. D-E2-1 — bind-miss policy (Signed)
 
-[`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) §5.2 described a Vector CI bind transform with "CI bind failure → dead-letter sink (do not invent roots in RCA)". No Vector transform in [`ingestion-poc/vector/`](../ingestion-poc/vector/) implements that, and both converters **synthesize** placeholders. v1.1 signs the reconciliation:
+[`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) §5.2 described a Vector CI bind transform with "CI bind failure → dead-letter sink (do not invent roots in RCA)". No Vector transform in [`ingestion-poc/vector/`](../../ingestion-poc/vector/) implements that, and both converters **synthesize** placeholders. v1.1 signs the reconciliation:
 
 **Signed default (HLD D-E2-1):**
 
@@ -223,7 +223,65 @@ This repo reports `ci_bind_miss_monitors` / `ci_bind_miss_sample` per Motadata r
 
 ---
 
-## 8. Closed decisions
+## 8. Industry context — entity extraction vs CMDB “CI definition”
+
+Cold readers often ask whether E2 “defines configuration items the way ServiceNow does.” **No — and that is intentional.** ServiceNow and peer CMDBs answer **organizational** questions (CI class, owner, lifecycle, allowed relationship types). E2 answers an **operational** question: **which stable `tenant`+`ci_id` should this telemetry line carry so E3/E4/E6+ can join it?**
+
+### 8.1 Two questions — do not merge them
+
+| Question | Typical owner | ObserveOps |
+|----------|---------------|------------|
+| What is a CI in our estate? (schema, policy) | CMDB / ITSM (ServiceNow, …) | Keys frozen for future ServiceOps join; **no ticket/CMDB Collect in E1 this pass** (§1) |
+| Which thing does this sample refer to? | Identity / entity resolution | **E2** — LUT or topology lookup → `identity.status` |
+| Who is connected to whom? | Discovery + catalog + telemetry | **E3** — graph nodes/edges; `evidence_type` = authoritative / declared / corroborating |
+
+E2 **does not** decide whether the CI “exists on the map” for localize — that ambiguity is E3/E9 (§1). E2 **does** guarantee the same key CMDB/ServiceOps can use later when integration lands.
+
+### 8.2 How the industry usually populates entities
+
+There is no single “extract CI from log line” algorithm. Stacks combine **layers**:
+
+```text
+TelemetryEnvelope labels
+        │
+        ├─ Inventory / agent scan     authoritative   (process/cgroup, K8s, hypervisor APIs)
+        ├─ CMDB / catalog sync        declared        (ServiceNow, Terraform, service catalog)
+        └─ Spans / logs / peers       corroborating   (suggested call edges until confirmed)
+        │
+        ▼
+   Stable entity id  +  relationships (separate concern)
+```
+
+| Vendor / product | Primary join key | Typical population |
+|------------------|------------------|--------------------|
+| **ServiceNow CMDB** | `sys_id` + CI class | Discovery, import, manual; IRE reconciliation |
+| **Dynatrace** | Smartscape `entityId` | OneAgent + observed traffic; CMDB enrich optional |
+| **Datadog** | Host / service / APM tags | Agent + APM Service Map; optional catalog |
+| **ObserveOps** | `tenant` + `ci_id` | §2 paths (topology lookup vs Motadata bind table); E3 for edges |
+
+**Ephemeral workloads:** observability discovery often sees short-lived pods/services **live**; CMDB may lag unless sync is tight. That asymmetry drives quarantine / miss-policy discussion — see [`../discussion/04-raw-data-identity-lut-open-questions.md`](../../pillar-ab-implementation/discussion/04-raw-data-identity-lut-open-questions.md) §3.3, §3.6, Q1–Q3.
+
+### 8.3 Mechanism glossary (maps to this LLD)
+
+| Industry term | Meaning | This repo |
+|---------------|---------|-----------|
+| **Bind / LUT** | Raw label → stable id | E2 bind table; `_pick_name` + plugin fallback (§2.2) |
+| **Discovery** | Create/update entities from inventory | Authoritative edges on E3; not the same as “Auto-create as resolved” |
+| **Auto-create / Orphan / Soft-match** | LUT miss policy | §4 D-E2-1: synthesize + unattributed; Pillar A/B **resolved only** |
+| **Reconciliation** | Match discovered entity to CMDB row | Future ServiceOps; not E2 Collect |
+| **Service map / Smartscape edge** | Telemetry-suggested relationship | Graph `corroborating` until inventory/catalog upgrades |
+
+**Do not confuse** LUT miss policy (node bind) with graph `evidence_type` (edge ownership). Same vocabulary family, different axis — [`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G10–G11.
+
+### 8.4 Practical takeaway for implementers
+
+- **Entity extraction from data ≈ E2** (bind messy labels → `ci_id`).
+- **CMDB CI definition ≈ organizational schema** — align keys and classes when integrating; do not expect the sketch writer or bind script to replace ServiceNow’s class model.
+- **Relationships ≈ E3**, fed by the three evidence classes above; traces alone rarely justify `resolved` production joins without authoritative or declared backing (discussion doc §3.3).
+
+---
+
+## 9. Closed decisions
 
 | ID | Decision | Status |
 |---|---|---|

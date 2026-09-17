@@ -103,7 +103,7 @@ Symptom seed (usually orders-api)
 
 **Honest ObserveOps note:** On classic infra UC-1..UC-5 both engines often land the **same correct root**. The teaching value is *how* they get there — and where each can still go wrong without ObserveOps rules (especially UC-3b).
 
-Deeper architecture: [`../lean-pipeline/docs/ARCHITECTURE.md`](../lean-pipeline/docs/ARCHITECTURE.md) · [`../federated-pipeline/docs/ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md).
+Deeper architecture: [`../lean-pipeline/docs/ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md) · [`../federated-pipeline/docs/ARCHITECTURE.md`](../../federated-pipeline/docs/ARCHITECTURE.md).
 
 ---
 
@@ -524,8 +524,8 @@ Beyond UC-1..UC-5, a frozen snapshot of **29** platform incidents is evaluated w
 lean- vs federated-**principle** analyzers (alert topology substrate — not the
 VMware typed CI freeze):
 
-- Corpus: [`../datasets/openobserve_incidents/`](../datasets/openobserve_incidents/)
-- Report: [`../benchmarking/results/openobserve/COMPARISON.md`](../benchmarking/results/openobserve/COMPARISON.md)
+- Corpus: [`../datasets/openobserve_incidents/`](../../datasets/openobserve_incidents/)
+- Report: [`../benchmarking/results/openobserve/COMPARISON.md`](../../benchmarking/results/openobserve/COMPARISON.md)
 - Runner: `python3 benchmarking/benchmark/compare_openobserve.py`
 
 Use that report for directional insight on decoys, multi-alert correlation, and

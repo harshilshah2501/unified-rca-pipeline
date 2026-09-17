@@ -7,7 +7,7 @@ This note rolls vendor survey fault types into **four buckets** and places **our
 
 **Scoring discipline:** vendor “Covered” = product surface. Ours = **PoC-proven** (ObserveOps bakeoff) vs **design/plan**. Do not mark aspirational Federated/Nezha rows as Covered in decks.
 
-**Corpus tagging (2026-07-22):** packs carry `fault_bucket` / `fault_type` on `ground_truth.json` via [`fault_taxonomy.py`](../benchmarking/benchmark/fault_taxonomy.py). Dashboard Samples strip filters by bucket.
+**Corpus tagging (2026-07-22):** packs carry `fault_bucket` / `fault_type` on `ground_truth.json` via [`fault_taxonomy.py`](../../benchmarking/benchmark/fault_taxonomy.py). Dashboard Samples strip filters by bucket.
 
 ---
 

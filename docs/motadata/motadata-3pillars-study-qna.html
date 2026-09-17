@@ -779,7 +779,8 @@ li{margin:.35rem 0;}
       Keep two rooms that share the same id (tenant + ci_id): E3 is who exists and how CIs connect; E4 is time-series evidence, including Motadata’s compact percentile sketches as one extra kind of history, not a second map.
       Vortex + S3 may be one tenant destination we can write to (Gate B: which storage product is this tenant’s dest). It is not required to be the only dest.
       <br><br>
-      <em>Still ToDo:</em> implement a sketch writer that lands in E4; show at least one dest that is not Vortex; finish LLD-E4 (Stores is still Draft).
+      <em>Still ToDo (production depth):</em> finish LLD-E4 (Stores is still Draft); prove Gate B dests beyond <code>files.v1</code> (Vortex and/or S3) on a Motadata-shaped path.
+      <br /><strong>Lab / PoC (done for Block-2 sketch path):</strong> Pillar A sketch writer under <code>pillar-ab-implementation/pillar-a/poc/</code> lands sketches in <code>history/</code> via Gate B <code>files.v1</code> (a non-Vortex dest). That does not close production Vortex+S3 temperature jobs.
     </div>
   </div>
 

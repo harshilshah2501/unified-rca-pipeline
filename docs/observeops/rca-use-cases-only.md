@@ -69,7 +69,7 @@ Lean (and federated adapters) **must** be able to cite events in the evidence tr
 
 ## Eval contract (what bakeoff must score)
 
-Aligned with [`datasets/observeops/COMPARISON_BENCHMARK.md`](../datasets/observeops/COMPARISON_BENCHMARK.md).
+Aligned with [`datasets/observeops/COMPARISON_BENCHMARK.md`](../../datasets/observeops/COMPARISON_BENCHMARK.md).
 
 ### Ground-truth fields (every UC / UC-3b)
 

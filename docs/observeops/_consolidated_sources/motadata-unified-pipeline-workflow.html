@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Motadata unified pipeline · end-to-end workflow</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta name="description" content="End-to-end Motadata ObserveOps pipeline: always-on fabric E1–E5, case path E6–E11, Pillar A∥B rooms, and the WorkingSet join." />
+<link rel="stylesheet" href="/urca-docs.css" />
+<script src="/theme-init.js"></script>
+<style>
+  /* Theme-aware teaching panels (use hub tokens — no light-only white posters). */
+  .wf-wrap { max-width: 68rem; }
+  .poster {
+    background: var(--bg-elev);
+    color: var(--text);
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 1.1rem 1rem 1.25rem;
+    margin: 0 0 1.5rem;
+    overflow-x: auto;
+  }
+  .poster h2 {
+    margin: 0 0 .35rem;
+    font-size: 1.15rem;
+    color: var(--text);
+    font-weight: 650;
+  }
+  .poster .sub {
+    margin: 0 0 1rem;
+    font-size: .88rem;
+    color: var(--muted);
+  }
+  .poster .sect-label {
+    margin: 1.35rem 0 .55rem;
+    font-size: .72rem;
+    font-weight: 650;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .poster .sect-label.teal { color: var(--accent); }
+  .poster .sect-label.navy { color: var(--text); }
+
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .85rem;
+  }
+  @media (max-width: 860px) { .pair { grid-template-columns: 1fr; } }
+
+  .panel {
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    background: var(--bg-soft);
+    overflow: hidden;
+    min-height: 100%;
+  }
+  .panel.fabric { border-color: rgba(123, 168, 245, 0.45); }
+  .panel.case { border-color: rgba(240, 179, 90, 0.45); }
+  .panel-bar {
+    padding: .55rem .85rem;
+    font-weight: 650;
+    font-size: .9rem;
+    color: var(--text);
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--stroke);
+  }
+  .panel.fabric .panel-bar {
+    border-left: 3px solid #7ba8f5;
+  }
+  .panel.case .panel-bar {
+    border-left: 3px solid #f0b35a;
+  }
+  .panel-sub {
+    padding: .4rem .85rem .55rem;
+    font-size: .8rem;
+    color: var(--muted);
+    border-bottom: 1px solid var(--stroke);
+    background: var(--bg-elev);
+  }
+  .panel-body { padding: .75rem .85rem .9rem; }
+  .node-row {
+    display: flex; flex-wrap: wrap; gap: .4rem; align-items: center;
+    margin: 0 0 .55rem;
+  }
+  .node {
+    background: var(--bg-elev);
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    padding: .4rem .55rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .node small {
+    display: block;
+    font-weight: 500;
+    color: var(--faint);
+    font-size: .68rem;
+    margin-top: .1rem;
+  }
+  .node.center {
+    border-color: rgba(123, 168, 245, 0.55);
+    background: rgba(123, 168, 245, 0.08);
+  }
+  .node.warm {
+    border-color: rgba(240, 179, 90, 0.55);
+    background: rgba(240, 179, 90, 0.08);
+  }
+  .node.ok {
+    border-color: rgba(122, 236, 196, 0.45);
+    background: rgba(122, 236, 196, 0.08);
+  }
+  a.node {
+    color: var(--text);
+    text-decoration: none;
+  }
+  a.node:hover { border-color: var(--accent); color: var(--text); }
+  .edge {
+    font-size: .68rem;
+    color: var(--faint);
+    font-family: var(--mono);
+  }
+  .arrow {
+    color: var(--faint);
+    font-size: .85rem;
+    font-weight: 600;
+  }
+  .cap {
+    margin: .65rem 0 0;
+    font-size: .78rem;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .flow {
+    display: flex; flex-wrap: wrap; gap: .45rem; align-items: stretch;
+    margin: .35rem 0 .75rem;
+  }
+  .flow-step {
+    background: var(--bg-elev);
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    padding: .5rem .6rem;
+    min-width: 6.2rem;
+    max-width: 8.5rem;
+    flex: 1 1 6.2rem;
+  }
+  .flow-step .k {
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: .2rem;
+  }
+  .flow-step .t {
+    font-size: .8rem;
+    font-weight: 650;
+    color: var(--text);
+  }
+  .flow-step .d {
+    font-size: .68rem;
+    color: var(--faint);
+    margin-top: .15rem;
+  }
+  .flow-note {
+    margin: .25rem 0 .5rem;
+    padding: .55rem .75rem;
+    background: rgba(61, 154, 139, 0.1);
+    border: 1px solid rgba(61, 154, 139, 0.35);
+    border-radius: 8px;
+    font-size: .8rem;
+    color: var(--muted);
+  }
+  .branch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .65rem;
+    margin-top: .35rem;
+  }
+  @media (max-width: 700px) { .branch { grid-template-columns: 1fr; } }
+  .branch-card {
+    background: var(--bg-elev);
+    border-radius: 10px;
+    border: 1px solid var(--stroke);
+    padding: .65rem .75rem;
+  }
+  .branch-card.follow { border-color: rgba(122, 236, 196, 0.4); }
+  .branch-card.deviate { border-color: rgba(240, 179, 90, 0.45); }
+  .branch-card h4 {
+    margin: 0 0 .35rem;
+    font-size: .82rem;
+    color: var(--text);
+  }
+  .branch-card p { margin: 0; font-size: .75rem; color: var(--muted); }
+
+  .trio {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .75rem;
+  }
+  @media (max-width: 900px) { .trio { grid-template-columns: 1fr; } }
+  .mech {
+    border-radius: 12px;
+    border: 1px solid var(--stroke);
+    background: var(--bg-soft);
+    overflow: hidden;
+  }
+  .mech-h {
+    padding: .55rem .75rem;
+    font-size: .82rem;
+    font-weight: 650;
+    color: var(--text);
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--stroke);
+  }
+  .mech.a .mech-h { border-left: 3px solid #f0b35a; }
+  .mech.b .mech-h { border-left: 3px solid #7ba8f5; }
+  .mech.c .mech-h { border-left: 3px solid #7aecc4; }
+  .mech-b {
+    padding: .75rem;
+    font-size: .78rem;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .mech-b .stack {
+    display: flex; flex-direction: column; gap: .35rem; align-items: stretch;
+    margin: .45rem 0;
+  }
+  .mech-b .stack .node { text-align: center; }
+  .mech-b .varr { text-align: center; color: var(--faint); font-size: .75rem; }
+
+  .rail {
+    display: flex; flex-wrap: wrap; gap: .35rem; align-items: center;
+    margin: .5rem 0 0;
+  }
+  .rail .chip {
+    background: var(--bg-elev);
+    border: 1px solid var(--stroke);
+    border-radius: 6px;
+    padding: .28rem .45rem;
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .rail .chip.p1 { border-color: rgba(123, 168, 245, 0.55); color: #9bc0ff; }
+  .rail .chip.p2 { border-color: rgba(240, 179, 90, 0.55); color: #f0b35a; }
+  .rail .chip.p3 { border-color: rgba(122, 236, 196, 0.45); color: #7aecc4; }
+  .rail .sep { color: var(--faint); font-size: .7rem; }
+
+  .toc {
+    display: flex; flex-wrap: wrap; gap: .4rem;
+    margin: 0 0 1.1rem;
+  }
+  .toc a {
+    text-decoration: none;
+    border: 1px solid var(--stroke);
+    background: var(--bg-soft);
+    color: var(--muted);
+    font-size: .8rem;
+    padding: .35rem .65rem;
+    border-radius: 999px;
+  }
+  .toc a:hover { color: var(--text); border-color: rgba(61,154,139,.55); }
+
+  .detail {
+    margin: 0 0 1.25rem;
+    border: 1px solid var(--stroke);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .detail summary {
+    cursor: pointer;
+    list-style: none;
+    padding: .7rem .9rem;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--stroke);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .detail summary::-webkit-details-marker { display: none; }
+  .detail[open] summary { border-bottom-color: var(--stroke); }
+  .detail .body {
+    padding: .85rem .95rem 1rem;
+    color: var(--muted);
+    font-size: .9rem;
+  }
+  .detail table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  .detail th, .detail td {
+    text-align: left; vertical-align: top;
+    padding: .45rem .55rem; border-bottom: 1px solid var(--stroke);
+  }
+  .detail th {
+    color: var(--faint);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .detail tr:last-child td { border-bottom: none; }
+  .detail .sect-label {
+    margin: 1rem 0 .45rem;
+    font-size: .72rem;
+    font-weight: 650;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .detail .sect-label:first-child { margin-top: .25rem; }
+  .io-json {
+    margin: .55rem 0 1rem;
+    padding: .75rem .85rem;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    overflow: auto;
+    font-family: var(--mono);
+    font-size: .78rem;
+    line-height: 1.45;
+    white-space: pre;
+  }
+  .callout {
+    border: 1px solid var(--stroke);
+    border-left: 3px solid var(--accent);
+    background: var(--bg-elev);
+    border-radius: 8px;
+    padding: .75rem .9rem;
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: .92rem;
+  }
+  .foot {
+    margin: 1.5rem 0 0;
+    font-size: .82rem;
+    color: var(--faint);
+  }
+</style>
+</head>
+<body class="urca-doc article">
+<div class="wrap article wf-wrap">
+  <div class="eyebrow">Motadata · ObserveOps · one pipeline</div>
+  <h1>Unified pipeline — end-to-end workflow</h1>
+  <p class="lead">
+    One Motadata ObserveOps pipeline with eleven stages: always-on fabric (Collect through Maintain),
+    then per-case triage and diagnose (Detect through Package). After Identity, topology and stores
+    write in parallel into <code>map/</code> and <code>history/</code>; Scope read-joins both into a
+    WorkingSet. This page teaches that story with a clean poster layout — the content is our HLD, not a vendor analogy remodel.
+  </p>
+
+  <div class="callout">
+    Sources of truth:
+    <a href="/observeops-pipeline-hld.html">Our HLD</a> ·
+    <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a> ·
+    <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a> ·
+    <a href="/data-shape-journey.html">Data shape journey</a> ·
+    <a href="/graphwriter-io-walkthrough.html">GraphWriter</a> ·
+    <a href="/checkout-diagnose-walkthrough.html">Checkout diagnose walk</a> ·
+    <a href="/observeops-fusion-guide.html">Fusion</a>.
+  </div>
+
+  <nav class="toc" aria-label="Page sections">
+    <a href="#poster">Poster overview</a>
+    <a href="#stages">E1–E11 detail</a>
+    <a href="#objects">Objects that flow</a>
+    <a href="#triage-io">Signal · CaseSeed · WorkingSet</a>
+    <a href="#example">Checkout lab walk</a>
+    <a href="#investigate">Investigate (map + history)</a>
+  </nav>
+
+  <!-- ========== POSTER (visual style) ========== -->
+  <div class="poster" id="poster" role="region" aria-label="Motadata unified pipeline poster">
+
+    <h2>Inside the Motadata unified pipeline</h2>
+    <p class="sub">Always-on fabric keeps the estate warm. Case path opens when Detect fires. Same identity namespace; two rooms; one WorkingSet join.</p>
+
+    <!-- Band 1: fabric vs case -->
+    <p class="sect-label">1 · Two halves of the same pipeline</p>
+    <div class="pair">
+      <div class="panel fabric">
+        <div class="panel-bar">Always-on fabric · E1–E5</div>
+        <div class="panel-sub">Runs continuously — keeps <code>map/</code> and <code>history/</code> ready</div>
+        <div class="panel-body">
+          <div class="node-row">
+            <div class="node"><span>E1 Collect</span><small>admit ingest.v1</small></div>
+            <span class="arrow">→</span>
+            <div class="node"><span>E2 Identity</span><small>tenant + ci_id</small></div>
+          </div>
+          <div class="node-row" style="justify-content:center;margin:.65rem 0 .35rem;">
+            <div class="node center"><span>E3 Topology</span><small>Pillar B → map/</small></div>
+            <span class="edge">∥ parallel</span>
+            <div class="node center"><span>E4 Stores</span><small>Pillar A → history/</small></div>
+          </div>
+          <div class="node-row" style="justify-content:center;">
+            <div class="node"><span>E5 Maintain</span><small>freshness · validity · baselines</small></div>
+          </div>
+          <p class="cap">
+            Fabric output: versioned <strong>GraphSnapshot</strong> under <code>map/</code> and
+            <strong>sketch.v1</strong> rows under <code>history/</code>. Writers do not sync; they share join keys only.
+          </p>
+        </div>
+      </div>
+
+      <div class="panel case">
+        <div class="panel-bar">Case path · E6–E11</div>
+        <div class="panel-sub">Per Detect class — opens a case, scopes, diagnoses, packages</div>
+        <div class="panel-body">
+          <div class="node-row">
+            <div class="node warm"><span>E6 Detect</span><small>Signal</small></div>
+            <span class="arrow">→</span>
+            <div class="node warm"><span>E7 Curate</span><small>CaseSeed</small></div>
+            <span class="arrow">→</span>
+            <div class="node warm"><span>E8 Scope</span><small>WorkingSet</small></div>
+          </div>
+          <div class="node-row">
+            <div class="node warm"><span>E9 Localize</span><small>LeafClaim</small></div>
+            <span class="arrow">→</span>
+            <div class="node warm"><span>E10 Identify</span><small>EvidenceBundle</small></div>
+            <span class="arrow">→</span>
+            <div class="node ok"><span>E11 Package</span><small>VerdictCard</small></div>
+          </div>
+          <p class="cap">
+            Case path <strong>reads</strong> fabric; it does not re-collect the estate or rewrite topology for every alert.
+            Verify is judgment inside Identify — not a twelfth stage.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Band 2: case walk -->
+    <p class="sect-label teal">2 · How a case walks the pipeline</p>
+    <div class="flow" aria-label="Case object flow">
+      <div class="flow-step"><div class="k">E6</div><div class="t">Signal</div><div class="d">Fault class only — no root claim</div></div>
+      <div class="flow-step"><div class="k">E7</div><div class="t">CaseSeed</div><div class="d">Merged correlated signals</div></div>
+      <div class="flow-step"><div class="k">E8</div><div class="t">WorkingSet</div><div class="d">Window + suspects + budget</div></div>
+      <div class="flow-step"><div class="k">E9</div><div class="t">LeafClaim</div><div class="d">Deepest / longest leaf</div></div>
+      <div class="flow-step"><div class="k">E10</div><div class="t">EvidenceBundle</div><div class="d">Corroborated evidence</div></div>
+      <div class="flow-step"><div class="k">E11</div><div class="t">VerdictCard</div><div class="d">Operator / ServiceOps close</div></div>
+    </div>
+    <div class="flow-note">
+      At <strong>E8 Scope</strong>, the WorkingSet is a <em>read-join</em>: neighbors from <code>map/</code>
+      plus sketches from <code>history/</code> for those CIs — same <code>tenant</code> + <code>ci_id</code> namespace.
+    </div>
+    <div class="branch">
+      <div class="branch-card follow">
+        <h4>Follow the map (usual)</h4>
+        <p>Localize walks authoritative edges (<code>depends_on</code>, <code>runs_on</code>, …) toward the leaf the Detect class expects. Identify attaches sketch percentiles and edge provenance.</p>
+      </div>
+      <div class="branch-card deviate">
+        <h4>Evidence can override</h4>
+        <p>If sketches or corroborating edges contradict the first walk, Identify lowers confidence or revises the leaf — fabric stays; the case objects change.</p>
+      </div>
+    </div>
+
+    <!-- Band 3: three Motadata mechanics -->
+    <p class="sect-label">3 · Three mechanics that make the fabric work</p>
+    <div class="trio">
+      <div class="mech a">
+        <div class="mech-h">Identity stamps join keys once</div>
+        <div class="mech-b">
+          <div class="stack">
+            <div class="node">ingest.v1 line</div>
+            <div class="varr">↓ E2</div>
+            <div class="node">tenant + ci_id + ci_type</div>
+            <div class="varr">↓ fan-out</div>
+            <div class="node">GraphWriter · SketchWriter</div>
+          </div>
+          Same identity overlay on the line — not a second schema. Bind-miss placeholders are flagged and are not localize or ticket targets.
+        </div>
+      </div>
+      <div class="mech b">
+        <div class="mech-h">Writers admit with WRITE / NOOP / DROP</div>
+        <div class="mech-b">
+          <div class="stack">
+            <div class="node">resolved identity?</div>
+            <div class="varr">↓</div>
+            <div class="node">correct signal_class?</div>
+            <div class="varr">↓</div>
+            <div class="node ok">WRITE · or NOOP · or DROP</div>
+          </div>
+          GraphWriter takes <code>topo_update</code>; SketchWriter takes <code>metric_sample</code>. Wrong class → silent NOOP. Reject → DROP with reason — rooms stay clean.
+        </div>
+      </div>
+      <div class="mech c">
+        <div class="mech-h">Maintain keeps priors fresh</div>
+        <div class="mech-b">
+          <div class="stack">
+            <div class="node">stale edges / weak baselines</div>
+            <div class="varr">↓ E5</div>
+            <div class="node ok">validity · retention · detect-ready</div>
+            <div class="varr">↓</div>
+            <div class="node">latest GraphSnapshot + sketches</div>
+          </div>
+          Diagnose always prefers the latest fabric version. Case path does not mutate <code>map/</code> or <code>history/</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- Compact stage rail -->
+    <p class="sect-label teal">Stage rail · E1–E11</p>
+    <div class="rail" aria-label="Full stage rail">
+      <span class="chip p1">E1 Collect</span><span class="sep">→</span>
+      <span class="chip p1">E2 Identity</span><span class="sep">→</span>
+      <span class="chip p1">E3 Topology</span><span class="sep">∥</span>
+      <span class="chip p1">E4 Stores</span><span class="sep">→</span>
+      <span class="chip p1">E5 Maintain</span><span class="sep">→</span>
+      <span class="chip p2">E6 Detect</span><span class="sep">→</span>
+      <span class="chip p2">E7 Curate</span><span class="sep">→</span>
+      <span class="chip p2">E8 Scope</span><span class="sep">→</span>
+      <span class="chip p3">E9 Localize</span><span class="sep">→</span>
+      <span class="chip p3">E10 Identify</span><span class="sep">→</span>
+      <span class="chip p3">E11 Package</span>
+    </div>
+  </div>
+
+  <!-- ========== DETAIL ========== -->
+  <h2 id="stages">E1–E11 detail</h2>
+  <details class="detail" open>
+    <summary>P1 · Always-on fabric (E1–E5)</summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Stage</th><th>Job</th><th>Primary out</th></tr></thead>
+        <tbody>
+          <tr><td>E1 Collect</td><td>Admit wire telemetry; reject unknown shape</td><td><code>ingest.v1</code></td></tr>
+          <tr><td>E2 Identity</td><td>Stamp join keys on the same line</td><td>Identified record (<code>tenant</code>, <code>ci_id</code>)</td></tr>
+          <tr><td>E3 Topology</td><td>Maintain walkable estate map (Pillar B)</td><td><code>GraphSnapshot</code> in <code>map/</code></td></tr>
+          <tr><td>E4 Stores</td><td>Persist queryable evidence history (Pillar A)</td><td><code>sketch.v1</code> in <code>history/</code></td></tr>
+          <tr><td>E5 Maintain</td><td>Freshness, validity, retention, detect-ready baselines</td><td>Updated fabric version</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+  <details class="detail" open>
+    <summary>P2 · Case opens (E6–E8)</summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Stage</th><th>Job</th><th>Primary out</th></tr></thead>
+        <tbody>
+          <tr><td>E6 Detect</td><td>Emit fault signals for a Detect class</td><td><code>Signal</code></td></tr>
+          <tr><td>E7 Curate</td><td>Merge correlated signals into one seed</td><td><code>CaseSeed</code></td></tr>
+          <tr><td>E8 Scope</td><td>Lock window + candidates; read-join rooms</td><td><code>WorkingSet</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+  <details class="detail" open>
+    <summary>P3 · Diagnose and close (E9–E11)</summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Stage</th><th>Job</th><th>Primary out</th></tr></thead>
+        <tbody>
+          <tr><td>E9 Localize</td><td>Choose one leaf claim on the scoped neighborhood</td><td><code>LeafClaim</code></td></tr>
+          <tr><td>E10 Identify</td><td>Build corroborated evidence (Verify lives here)</td><td><code>EvidenceBundle</code></td></tr>
+          <tr><td>E11 Package</td><td>Render operator-facing close artifact</td><td><code>VerdictCard</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <h2 id="objects">Objects that flow</h2>
+  <details class="detail" open>
+    <summary>Key records (plain list)</summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Object</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>ingest.v1</code></td><td>On-wire envelope from Collect; Identity adds overlay on the same line.</td></tr>
+          <tr><td>Identity</td><td>Resolved <code>tenant</code> + <code>ci_id</code> (+ type, status, aliases).</td></tr>
+          <tr><td><code>GraphSnapshot</code></td><td>Versioned walkable CI graph from Topology.</td></tr>
+          <tr><td><code>sketch.v1</code></td><td>History row (windows, baselines, percentiles) from Stores.</td></tr>
+          <tr><td><code>Signal</code></td><td>Detect output — fault class + CI tip + t0; not a root-cause claim.</td></tr>
+          <tr><td><code>CaseSeed</code></td><td>Curate output — one merged tip <code>(ci_id, t0)</code> + merge rationale.</td></tr>
+          <tr><td><code>WorkingSet</code></td><td>Scope output — window, suspects, neighborhood, sketch snippets, evidence budget.</td></tr>
+          <tr><td><code>VerdictCard</code></td><td>Package output — ticket-ready close for operators / ServiceOps.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details class="detail" open id="triage-io">
+    <summary>E6→E8 triage I/O — teaching JSON (logical shapes)</summary>
+    <div class="body">
+      <p style="margin:0 0 .75rem;color:var(--muted);font-size:.88rem;">
+        Not a frozen LLD proto. Field names illustrate HLD intent
+        (<code>Signal</code> → <code>CaseSeed</code> → <code>WorkingSet</code>) for the payment / checkout ERROR story.
+        Join keys stay <code>tenant</code> + <code>ci_id</code>.
+      </p>
+
+      <p class="sect-label">E6 Detect</p>
+      <table>
+        <thead><tr><th>Lane</th><th>Content</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Input</strong></td><td><code>GraphSnapshot</code> (which CIs / detectors apply) + store/sketch queries keyed by <code>ci_id</code></td></tr>
+          <tr><td><strong>Processing</strong></td><td>Evaluate Detect-class rule per CI (threshold / anomaly score). CI tip = the <code>ci_id</code> whose series breached. <code>t0</code> = observation / event time of that decision.</td></tr>
+          <tr><td><strong>Output</strong></td><td><code>Signal</code> — fault class + CI tip + t0 (no root claim)</td></tr>
+        </tbody>
+      </table>
+<pre class="io-json">{
+  "object": "Signal",
+  "tenant": "acme",
+  "signal_id": "sig-7f2a",
+  "fault_class": "ERROR",
+  "ci_id": "payment-service",
+  "ci_type": "Service",
+  "t0": "2025-01-15T03:42:00Z",
+  "metric": {
+    "name": "error_rate",
+    "value": 0.23,
+    "threshold": 0.05
+  },
+  "detector": "metric_threshold",
+  "graph_snapshot_id": "map-2025-01-15T03:00Z"
+}</pre>
+
+      <p class="sect-label">E7 Curate</p>
+      <table>
+        <thead><tr><th>Lane</th><th>Content</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Input</strong></td><td>One or more <code>Signal</code>s + <code>GraphSnapshot</code> (to prove adjacency for merge)</td></tr>
+          <tr><td><strong>Processing</strong></td><td>Collapse correlated Signals into <strong>one</strong> CaseSeed (D3). Tip is usually the most-upstream symptomatic CI, not yet the leaf root.</td></tr>
+          <tr><td><strong>Output</strong></td><td><code>CaseSeed</code> — tip <code>(ci_id, t0)</code> + merged signal ids + merge rationale. <em>Not</em> full neighborhood.</td></tr>
+        </tbody>
+      </table>
+<pre class="io-json">{
+  "object": "CaseSeed",
+  "tenant": "acme",
+  "case_seed_id": "seed-91c0",
+  "fault_class": "ERROR",
+  "ci_id": "payment-service",
+  "t0": "2025-01-15T03:42:00Z",
+  "merged_signal_ids": [
+    "sig-7f2a",
+    "sig-7f2b"
+  ],
+  "merge_rationale": {
+    "policy": "correlate_adjacent_ERROR",
+    "edges_used": [
+      {
+        "from": "checkout-service",
+        "to": "payment-service",
+        "type": "depends_on"
+      }
+    ],
+    "note": "checkout-service ERROR collapsed onto payment-service tip (upstream symptomatic)"
+  },
+  "graph_snapshot_id": "map-2025-01-15T03:00Z"
+}</pre>
+
+      <p class="sect-label">E8 Scope (Tailor)</p>
+      <table>
+        <thead><tr><th>Lane</th><th>Content</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Input</strong></td><td><code>CaseSeed</code> + present <code>map/</code> + <code>history/</code> sketches for candidate <code>ci_id</code>s</td></tr>
+          <tr><td><strong>Processing</strong></td><td>Lock time window around t0; k-hop neighborhood on map; pull sketch snippets for those CIs; apply hop / entity / evidence budgets.</td></tr>
+          <tr><td><strong>Output</strong></td><td><code>WorkingSet</code> — bounded diagnose domain (window + suspects + neighborhood + sketch refs + budgets)</td></tr>
+        </tbody>
+      </table>
+<pre class="io-json">{
+  "object": "WorkingSet",
+  "tenant": "acme",
+  "working_set_id": "ws-33ab",
+  "case_seed_id": "seed-91c0",
+  "seed": {
+    "ci_id": "payment-service",
+    "t0": "2025-01-15T03:42:00Z",
+    "fault_class": "ERROR"
+  },
+  "window": {
+    "from": "2025-01-15T03:27:00Z",
+    "to": "2025-01-15T03:47:00Z",
+    "note": "t0 +/- 15m teaching window"
+  },
+  "budget": {
+    "max_hop": 2,
+    "max_entities": 40,
+    "max_sketch_rows": 200,
+    "evidence_kinds": [
+      "metric_sketch",
+      "log_pointer",
+      "change_event"
+    ]
+  },
+  "neighborhood": [
+    {
+      "ci_id": "payment-service",
+      "role": "seed",
+      "distance": 0,
+      "edges_out": [
+        {
+          "to": "auth-service",
+          "type": "depends_on"
+        },
+        {
+          "to": "payment-gateway-db",
+          "type": "depends_on"
+        }
+      ]
+    },
+    {
+      "ci_id": "auth-service",
+      "role": "upstream",
+      "distance": 1
+    },
+    {
+      "ci_id": "payment-gateway-db",
+      "role": "upstream",
+      "distance": 1
+    },
+    {
+      "ci_id": "checkout-service",
+      "role": "downstream",
+      "distance": 1
+    },
+    {
+      "ci_id": "subscription-service",
+      "role": "downstream",
+      "distance": 1
+    }
+  ],
+  "history_snippets": [
+    {
+      "ci_id": "auth-service",
+      "metric": "latency_p50_ms",
+      "sketch_ref": "history/acme/auth-service/latency_p50_ms/2025-01-15T03",
+      "recent": 500,
+      "baseline": 50
+    },
+    {
+      "ci_id": "payment-service",
+      "metric": "error_rate",
+      "sketch_ref": "history/acme/payment-service/error_rate/2025-01-15T03",
+      "recent": 0.23,
+      "baseline": 0.01
+    }
+  ],
+  "env": "production",
+  "version_context": {
+    "auth-service": "v2.14.3"
+  },
+  "graph_snapshot_id": "map-2025-01-15T03:00Z"
+}</pre>
+      <p style="margin:.75rem 0 0;font-size:.82rem;color:var(--faint);">
+        Interactive step walk:
+        <a href="/checkout-diagnose-walkthrough.html">checkout-diagnose-walkthrough.html</a>.
+        After WorkingSet, P3 consumes it: Localize → Identify → Package.
+      </p>
+    </div>
+  </details>
+
+  <h2 id="example">Checkout lab walk</h2>
+  <div class="poster" style="margin-top:.5rem;">
+    <h2 style="font-size:1rem;">lab_checkout · ERROR path (teaching spine)</h2>
+    <p class="sub">Fixture estate under <code>pillar-ab-implementation/integration/fixtures/lab_checkout/</code>.</p>
+    <div class="node-row" style="margin-bottom:.75rem;">
+      <div class="node center"><span>Service</span><small>checkout-api</small></div>
+      <span class="edge">depends_on</span>
+      <div class="node"><span>Database</span><small>payments-db</small></div>
+      <span class="edge">runs_on</span>
+      <div class="node"><span>Host</span><small>linux-server-app-01</small></div>
+      <span class="edge">part_of</span>
+      <div class="node"><span>BusinessService</span><small>bs-checkout</small></div>
+    </div>
+    <div class="flow">
+      <div class="flow-step"><div class="k">Fabric</div><div class="t">Warm</div><div class="d">5 CIs · edges · sketches</div></div>
+      <div class="flow-step"><div class="k">E6</div><div class="t">Signal</div><div class="d">Error rate on checkout-api</div></div>
+      <div class="flow-step"><div class="k">E7–E8</div><div class="t">Seed → WorkingSet</div><div class="d">Neighbors + window + sketches</div></div>
+      <div class="flow-step"><div class="k">E9–E10</div><div class="t">Leaf + evidence</div><div class="d">Walk depends_on / runs_on</div></div>
+      <div class="flow-step"><div class="k">E11</div><div class="t">VerdictCard</div><div class="d">Suspect · neighborhood · confidence</div></div>
+    </div>
+  </div>
+
+  <h2 id="investigate">Investigate — how map/ and history/ are used</h2>
+  <p>
+    When a Detect Signal opens a case, diagnose does <strong>not</strong> time-travel the topology graph.
+    Present neighbors come from <code>map/</code>; metric baselines and window stats come from sketch rows under
+    <code>history/</code>. Step through identify → upstream → sketch join → blast radius → localize → package:
+  </p>
+  <div class="poster" style="margin-top:.65rem;">
+    <h2 style="font-size:1rem;">Interactive diagnose walkthrough</h2>
+    <p class="sub">
+      Motadata rooms on this hub page’s companion:
+      <a href="/checkout-diagnose-walkthrough.html"><strong>Checkout diagnose walkthrough</strong></a>
+      (<code>:8765/checkout-diagnose-walkthrough.html</code>).
+      Use Next step to see <em>how</em> each stage performs the join — not only the outcome.
+    </p>
+    <div class="flow" aria-label="Investigate store split">
+      <div class="flow-step"><div class="k">map/</div><div class="t">Present</div><div class="d">CI · outbound deps · reverse blast</div></div>
+      <div class="flow-step"><div class="k">history/</div><div class="t">Sketches</div><div class="d">Windows · baselines · percentiles</div></div>
+      <div class="flow-step"><div class="k">E8</div><div class="t">WorkingSet</div><div class="d">Read-join both rooms</div></div>
+      <div class="flow-step"><div class="k">E9–E11</div><div class="t">Leaf → Verdict</div><div class="d">Evidence + human close</div></div>
+    </div>
+    <p class="cap" style="margin-top:.85rem;">
+      Edge Delta research comparator (vendor Knowledge Graph vs MCP history) lives in repo
+      <code>E6-E11-mapping.md</code> — Motadata does not copy that product API; we keep two Motadata rooms.
+    </p>
+    <p style="margin:.85rem 0 0;">
+      <a class="node ok" href="/checkout-diagnose-walkthrough.html">
+        Open step-by-step investigate walk →
+      </a>
+    </p>
+  </div>
+
+  <p class="foot">
+    Hub URL: <a href="/motadata-unified-pipeline-workflow.html"><code>:8765/motadata-unified-pipeline-workflow.html</code></a>
+    · Investigate walk: <a href="/checkout-diagnose-walkthrough.html"><code>:8765/checkout-diagnose-walkthrough.html</code></a>
+    · For clickable stage I/O see <a href="/observeops-fusion-guide.html">Fusion</a>
+    · For stage contracts see <a href="/observeops-pipeline-hld.html">Our HLD</a>.
+  </p>
+</div>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

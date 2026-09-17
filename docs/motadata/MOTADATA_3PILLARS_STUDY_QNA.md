@@ -388,7 +388,9 @@ So E1 then E2 stay **our** work — the PDF is **silent**, not opposed.
 
 **Vortex + S3** in the PDF may be *one* tenant destination we can write to (we call that decision **Gate B**: which storage product is this tenant’s dest). It is not required to be the only dest, and the graph must not be *rebuilt* by querying the lake at RCA time.
 
-**Still ToDo:** implement a sketch writer that lands in E4; show at least one dest that is not Vortex; finish LLD-E4 (Stores is still Draft).
+**Still ToDo (production depth):** finish LLD-E4 (Stores is still Draft); prove Gate B dests beyond `files.v1` (Vortex and/or S3) on a Motadata-shaped path.
+
+**Lab / PoC (done for Block-2 sketch path):** Pillar A sketch writer exists under [`pillar-ab-implementation/pillar-a/poc/`](../../pillar-ab-implementation/pillar-a/) and lands sketches in the `history/` room via Gate B **`files.v1`** (a non-Vortex dest). That satisfies “show at least one dest that is not Vortex” for the lab; it does **not** close production Vortex+S3 temperature jobs.
 
 ---
 

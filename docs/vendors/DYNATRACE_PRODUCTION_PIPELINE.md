@@ -16,7 +16,7 @@
 | **Teaching** | Simplified name/model for the storyboard (not vendor vocabulary or a measured SKU) |
 
 **Browser:** [`dynatrace-production-pipeline.html`](./dynatrace-production-pipeline.html)  
-**Lab depth:** [`../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md)  
+**Lab depth:** [`../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md)  
 **Datadog unveil (separate):** [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) · [`datadog-subsystem-mechanisms.html`](./datadog-subsystem-mechanisms.html) · [`datadog-tenant-evidence-2026-08-03.md`](./datadog-tenant-evidence-2026-08-03.md)  
 **Same-scenario lab compare:** [`COMPARABLE_PIPELINE_DT_DD.md`](../COMPARABLE_PIPELINE_DT_DD.md)  
 **Out of scope here:** Lean vs Federated, L0/F1, CARE / Murphy / Nezha.
@@ -1311,7 +1311,7 @@ Still Dynatrace-only; detail deferred to the lab reference for algorithm interna
 
 | Doc | Use |
 |-----|-----|
-| [`../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) | Stages 0–5, Events vs Problems, lab P-26076 |
+| [`../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) | Stages 0–5, Events vs Problems, lab P-26076 |
 | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) | Separate Datadog unveil — MCP-grounded, correlational Detect/Localize |
 | [`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](../RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) §4.2 · §6 | Grail vs Smartscape vs Vector (broader design context) |
 | [`two-step-rca-white-space.md`](../two-step-rca-white-space.md) | Step-1 vs Step-2 automation boundary |

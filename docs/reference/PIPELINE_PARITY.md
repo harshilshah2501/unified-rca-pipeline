@@ -1,7 +1,7 @@
 # Pipeline parity — Lean vs Federated (fair compare)
 
 **Status:** PoC contract (shared detect + divergent RCA)  
-**Related:** [`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) · [`ingestion-poc/detect/`](../ingestion-poc/detect/)
+**Related:** [`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) · [`ingestion-poc/detect/`](../../ingestion-poc/detect/)
 
 **In plain words:** both engines get the **same alerts** from one threshold detector. We only compare who finds the **root** — Federated does **not** use Panorama as its own detector on this scoreboard.
 
@@ -25,7 +25,7 @@ On the **fair scoreboard**, Federated does **not** get credit for Panorama detec
 | Step | Shared? | Output |
 |------|---------|--------|
 | Collect / topology | Yes | Same UC metrics + `topology.json` |
-| Detect | Yes | `anomalies` + `symptom_seed` from [`threshold_detect`](../ingestion-poc/detect/threshold_detect.py) |
+| Detect | Yes | `anomalies` + `symptom_seed` from [`threshold_detect`](../../ingestion-poc/detect/threshold_detect.py) |
 | Find root | No | Lean walk / rules vs Federated Murphy (+ Nezha) |
 
 Head-to-head Lean vs Federated is decided by the RCA step. Detect is timed and shown, but **identical on both sides**, so it cancels in the delta.

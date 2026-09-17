@@ -2,6 +2,8 @@
 
 **Status:** File dest for the A/B PoC. Vortex and S3 are encodings of the same logical rooms, not a second schema.
 
+**Shared rule (rooms vs temperature vs encoding):** Logical rooms (`map/` · `history/`) are content. **Vortex + S3** is the Motadata-shaped **production temperature** pair (hot query + cold retain) when that dest is chosen. **`files.v1`** is the PoC **encoding** of the same keys — not a second product design and not “Vortex forever” vs “files forever.” See also [`docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../../docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) §7.3–7.4 and [`docs/fabric/vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html).
+
 ## What Gate B is
 
 ObserveOps Stores (E4) and Topology (E3) write through a destination profile. Vortex is **one** allowed profile among others (local files, existing Motadata dest, later S3 + Vortex). It is not mandatory as the only lake.

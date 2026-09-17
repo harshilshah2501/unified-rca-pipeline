@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data shape journey — raw to E11</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --border: rgba(15, 23, 42, 0.08);
+    --text: #0f172a;
+    --text-dim: #475569;
+    --text-faint: #94a3b8;
+    --primary: #1e3a5f;
+    --primary-dim: rgba(30, 58, 95, 0.08);
+    --accent-a: #0369a1;
+    --accent-a-dim: rgba(3, 105, 161, 0.10);
+    --p1: #059669;
+    --p1-dim: rgba(5, 150, 105, 0.12);
+    --p2: #d97706;
+    --p2-dim: rgba(217, 119, 6, 0.12);
+    --p3: #be123c;
+    --p3-dim: rgba(190, 18, 60, 0.12);
+    --add: #059669;
+    --add-dim: rgba(5, 150, 105, 0.12);
+    --drop: #dc2626;
+    --drop-dim: rgba(220, 38, 38, 0.10);
+    --rename: #7c3aed;
+    --rename-dim: rgba(124, 58, 237, 0.10);
+    --edge: #0369a1;
+    --edge-dim: rgba(3, 105, 161, 0.08);
+    --zone-edge-bg: rgba(3, 105, 161, 0.07);
+    --zone-edge-stroke: rgba(3, 105, 161, 0.30);
+    --zone-platform-bg: rgba(30, 58, 95, 0.05);
+    --zone-platform-stroke: rgba(30, 58, 95, 0.20);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1220;
+      --surface: #111a2e;
+      --border: rgba(255,255,255,0.08);
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-faint: #64748b;
+      --primary: #5e9ed6;
+      --primary-dim: rgba(94,158,214,0.12);
+      --accent-a: #38bdf8;
+      --accent-a-dim: rgba(56,189,248,0.14);
+      --p1: #34d399; --p1-dim: rgba(52,211,153,0.14);
+      --p2: #fbbf24; --p2-dim: rgba(251,191,36,0.14);
+      --p3: #fb7185; --p3-dim: rgba(251,113,133,0.14);
+      --add: #34d399; --add-dim: rgba(52,211,153,0.14);
+      --drop: #f87171; --drop-dim: rgba(248,113,113,0.14);
+      --rename: #a78bfa; --rename-dim: rgba(167,139,250,0.14);
+      --edge: #38bdf8; --edge-dim: rgba(56,189,248,0.10);
+      --zone-edge-bg: rgba(56, 189, 248, 0.08);
+      --zone-edge-stroke: rgba(56, 189, 248, 0.32);
+      --zone-platform-bg: rgba(94, 158, 214, 0.06);
+      --zone-platform-stroke: rgba(94, 158, 214, 0.22);
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    background-image: linear-gradient(rgba(30,58,95,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,58,95,0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--text);
+    font-family: var(--font-body);
+    padding: 40px 24px 64px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+  h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 10px; }
+  h1 span { color: var(--accent-a); }
+  .lead { color: var(--text-dim); font-size: 15px; line-height: 1.6; max-width: 720px; margin-bottom: 28px; }
+  .links { font-size: 13px; color: var(--text-dim); margin-bottom: 24px; line-height: 1.7; }
+  .links a { color: var(--accent-a); text-decoration: none; }
+  .links a:hover { text-decoration: underline; }
+
+  /* zone map + stage rail */
+  .zone-map {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 10px 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  .zone-map svg { display: block; min-width: 720px; width: 100%; height: auto; }
+
+  .rail-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 12px 12px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+  }
+  .zone-rail {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-width: 920px;
+  }
+  .zone-block {
+    border-radius: 10px;
+    padding: 10px 10px 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .zone-block.zone-edge-devices {
+    flex: 0 0 168px;
+    background: var(--zone-edge-bg);
+    border: 1px solid var(--zone-edge-stroke);
+  }
+  .zone-block.zone-platform {
+    flex: 1;
+    background: var(--zone-platform-bg);
+    border: 1px solid var(--zone-platform-stroke);
+  }
+  .zone-title { margin-bottom: 8px; }
+  .zone-name {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .zone-edge-devices .zone-name { color: var(--edge); }
+  .zone-platform .zone-name { color: var(--primary); }
+  .zone-sub {
+    display: block;
+    font-size: 9px;
+    color: var(--text-faint);
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+  .platform-phases {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .platform-phases .pp {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .platform-phases .pp.p1 { background: var(--p1-dim); color: var(--p1); }
+  .platform-phases .pp.p2 { background: var(--p2-dim); color: var(--p2); }
+  .platform-phases .pp.p3 { background: var(--p3-dim); color: var(--p3); }
+  .zone-divider {
+    flex: 0 0 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2px;
+  }
+  .zone-divider-line {
+    width: 2px;
+    flex: 1;
+    min-height: 40px;
+    background: linear-gradient(var(--zone-edge-stroke), var(--zone-platform-stroke));
+    border-radius: 1px;
+  }
+  .zone-divider-label {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    margin: 6px 0;
+    white-space: nowrap;
+  }
+  .zone-stages {
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .zone-stages.platform-stages { flex-wrap: nowrap; }
+
+  .stage-btn {
+    flex: 1;
+    min-width: 48px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 10px 4px 8px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.12s;
+  }
+  .stage-btn.zone-edge { border-color: var(--zone-edge-stroke); }
+  .stage-btn.zone-platform { border-color: var(--zone-platform-stroke); }
+  .stage-btn:hover { background: var(--primary-dim); color: var(--text); }
+  .stage-btn.active {
+    border-color: var(--accent-a);
+    background: var(--accent-a-dim);
+    color: var(--text);
+    font-weight: 600;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(3, 105, 161, 0.12);
+  }
+  .stage-btn .sid { display: block; font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+  .stage-btn .sname { display: block; font-size: 9px; line-height: 1.2; opacity: 0.85; }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .ctrl-btn {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .ctrl-btn:hover { background: var(--primary-dim); }
+  .ctrl-btn.primary { background: var(--accent-a); color: #fff; border-color: transparent; }
+  .ctrl-btn.primary:hover { filter: brightness(1.08); }
+  .track-toggle { display: flex; gap: 6px; margin-left: auto; }
+  .track-toggle button {
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+  .track-toggle button.active {
+    border-color: var(--accent-a);
+    background: var(--accent-a-dim);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* main panel */
+  .panel {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  .panel .meta-row {
+    display: contents;
+  }
+  @media (max-width: 900px) {
+    .panel { grid-template-columns: 1fr; }
+    .panel .meta-row { display: flex; flex-direction: column; gap: 18px; }
+  }
+
+  .meta-card, .json-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+  }
+  .meta-card h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .meta-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .meta-card .phase-tag, .meta-card .zone-tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .phase-tag.p1 { background: var(--p1-dim); color: var(--p1); }
+  .phase-tag.p2 { background: var(--p2-dim); color: var(--p2); }
+  .phase-tag.p3 { background: var(--p3-dim); color: var(--p3); }
+  .phase-tag.edge { background: var(--edge-dim); color: var(--edge); }
+  .zone-tag.zone-edge-devices { background: var(--zone-edge-bg); color: var(--edge); border: 1px solid var(--zone-edge-stroke); }
+  .zone-tag.zone-platform { background: var(--zone-platform-bg); color: var(--primary); border: 1px solid var(--zone-platform-stroke); }
+
+  .object-flow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 12px 0 16px;
+    font-size: 13px;
+  }
+  .obj {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--primary-dim);
+    color: var(--primary);
+  }
+  .obj.out { background: var(--accent-a-dim); color: var(--accent-a); }
+  .arrow { color: var(--text-faint); font-size: 16px; }
+
+  .purpose { font-size: 14px; line-height: 1.55; color: var(--text-dim); margin-bottom: 16px; }
+
+  .changes h3, .json-card h3 {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+  .chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 5px;
+  }
+  .chip.add { background: var(--add-dim); color: var(--add); }
+  .chip.drop { background: var(--drop-dim); color: var(--drop); }
+  .chip.rename { background: var(--rename-dim); color: var(--rename); }
+  .chip.keep { background: var(--primary-dim); color: var(--primary); }
+
+  .note {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    border-left: 3px solid var(--accent-a);
+    padding: 10px 12px;
+    background: var(--accent-a-dim);
+    border-radius: 0 8px 8px 0;
+    margin-top: 12px;
+  }
+
+  pre.json {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.5;
+    background: #0c1016;
+    color: #cbd5e1;
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    max-height: 420px;
+    overflow-y: auto;
+    white-space: pre;
+  }
+  @media (prefers-color-scheme: light) {
+    pre.json { background: #0f172a; }
+  }
+  .jk { color: #7dd3fc; }
+  .js { color: #86efac; }
+  .jn { color: #fcd34d; }
+  .jc { color: #64748b; font-style: italic; }
+  .jh { color: #f472b6; }
+
+  /* evolution strip */
+  .evo-strip {
+    margin-top: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .evo-strip h2 {
+    font-size: 13px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 14px;
+  }
+  .evo-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .evo-node {
+    flex-shrink: 0;
+    text-align: center;
+    min-width: 72px;
+    cursor: pointer;
+    opacity: 0.45;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+  .evo-node.done, .evo-node.current { opacity: 1; }
+  .evo-node.current { transform: scale(1.06); }
+  .evo-node .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--text-faint);
+    margin: 0 auto 6px;
+  }
+  .evo-node.done .dot { background: var(--p1); }
+  .evo-node.current .dot { background: var(--accent-a); box-shadow: 0 0 0 3px var(--accent-a-dim); }
+  .evo-node .elabel {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+  .evo-node .oname {
+    font-size: 9px;
+    color: var(--text-faint);
+    margin-top: 2px;
+    max-width: 80px;
+    line-height: 1.2;
+  }
+  .evo-conn {
+    flex-shrink: 0;
+    width: 18px;
+    height: 2px;
+    background: var(--border);
+    margin-bottom: 22px;
+  }
+  .evo-conn.done { background: var(--p1); }
+  .evo-zone-gap {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 28px;
+    margin-bottom: 18px;
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    line-height: 1.1;
+  }
+  .evo-zone-gap::before {
+    content: '';
+    width: 2px;
+    height: 14px;
+    background: var(--zone-edge-stroke);
+    margin-bottom: 3px;
+  }
+
+  table.vocab {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 24px;
+  }
+  table.vocab th, table.vocab td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.vocab th {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  table.vocab code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--primary-dim);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .panel.animate-in { animation: fadeIn 0.35s ease-out both; }
+  @media (prefers-reduced-motion: reduce) {
+    .panel.animate-in { animation: none; }
+  }
+
+  .grain-line {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: 0 0 12px;
+    padding: 8px 10px;
+    background: var(--primary-dim);
+    border-radius: 6px;
+  }
+  .grain-line strong { color: var(--text); }
+
+  .sample-thread {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+  }
+  .sample-thread h2 {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 0 0 8px;
+  }
+  .sample-thread p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text-dim);
+  }
+  .sample-thread p strong { color: var(--text); }
+  .sample-thread .val {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent-a);
+    background: var(--accent-a-dim);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  .callout-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--p1);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text-dim);
+  }
+  .callout-box strong { color: var(--text); }
+  .callout-box code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--primary-dim);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  .field-fate {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 12px 0 0;
+  }
+  .field-fate th, .field-fate td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .field-fate th {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .field-fate code { font-size: 11px; }
+  .fate-keep { color: var(--p1); }
+  .fate-add { color: var(--add); }
+  .fate-drop { color: var(--drop); }
+  .fate-rename { color: var(--rename); }
+
+  .json-compare {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .json-compare { grid-template-columns: 1fr; }
+    .json-compare .compare-arrow { text-align: center; transform: rotate(90deg); margin: 0 auto; }
+  }
+  .json-compare h4 {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 0 0 6px;
+  }
+  .compare-arrow {
+    font-size: 20px;
+    color: var(--text-faint);
+    padding-top: 2rem;
+  }
+  .json-card.wide { grid-column: 1 / -1; }
+  .panel.has-compare { grid-template-columns: 1fr; display: flex; flex-direction: column; gap: 18px; }
+  .panel.has-compare .meta-row { display: block; }
+  .panel.has-compare .json-card.wide {
+    margin-top: 0;
+  }
+  @media (max-width: 900px) { .panel.has-compare .meta-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">ObserveOps · E1–E11 · data contracts</p>
+  <h1>Data <span>shape journey</span></h1>
+  <p class="lead">How telemetry changes <strong>name</strong>, <strong>form</strong>, and <strong>structure</strong> across two deployment zones: <strong>Edge devices</strong> (customer infra) and <strong>Platform</strong> (SaaS E1–E11). We follow <strong>one latency measurement</strong> (<span class="val" style="font-family:var(--font-mono);font-size:12px;color:var(--accent-a)">842 ms</span> on <code style="font-size:12px">checkout-api</code>) from raw agent output through <code>metric_sample</code> lines to a flushed <code>sketch.v1</code> row.</p>
+  <p class="links">Hub: <a href="/observeops-pipeline-hld.html">Our HLD</a> ·
+    <a href="/observeops-pipeline-hld.html#fabric">Fabric section</a> ·
+    <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD §8–9</a> ·
+    <a href="e1-e5-pipeline-architecture.html">E1–E5 architecture</a> ·
+    <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a> ·
+    <a href="/hld-archive.html#fabric">Archive index</a> ·
+    <a href="inventory-catalog-on-the-map.html">Inventory &amp; catalog</a> ·
+    <a href="sketch-exemplars-visual.html">Exemplars guide</a></p>
+
+  <div class="callout-box">
+    <strong>Three grains readers confuse:</strong>
+    <code>raw vendor payload</code> (agent-specific blob) →
+    <code>metric_sample</code> (one identified measurement line on <code>ingest.v1</code> — has <code>value</code> + <code>ts</code> + labels) →
+    <code>sketch.v1</code> (one windowed aggregate row — many samples compressed; individual <code>value</code> fields are gone after flush).
+    Forever-raw metric lakes in <code>history/</code> are <em>not</em> the Motadata Pillar A contract.
+  </div>
+
+  <div class="sample-thread" id="sample-thread" aria-live="polite">
+    <h2>Worked thread · 842 ms on checkout-api</h2>
+    <p id="sample-thread-text">Select a stage or press Play journey.</p>
+  </div>
+
+  <div class="zone-map" aria-hidden="true">
+    <svg viewBox="0 0 960 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Edge devices zone and Platform zone">
+      <rect x="8" y="12" width="200" height="96" rx="10" fill="var(--zone-edge-bg)" stroke="var(--zone-edge-stroke)" stroke-width="1.5"/>
+      <text x="108" y="34" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600" fill="var(--edge)" letter-spacing="0.08em">EDGE DEVICES</text>
+      <text x="108" y="50" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="10" fill="var(--text-faint)">customer infra</text>
+      <text x="108" y="72" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--text-dim)">Raw → shaped stream</text>
+      <text x="108" y="88" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--text-faint)">OTLP / vendor point</text>
+      <line x1="218" y1="60" x2="248" y2="60" stroke="var(--edge)" stroke-width="2" marker-end="url(#arr-edge)"/>
+      <text x="233" y="52" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="var(--text-faint)">E1</text>
+      <rect x="252" y="12" width="700" height="96" rx="10" fill="var(--zone-platform-bg)" stroke="var(--zone-platform-stroke)" stroke-width="1.5"/>
+      <text x="602" y="34" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600" fill="var(--primary)" letter-spacing="0.08em">PLATFORM</text>
+      <text x="602" y="50" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="10" fill="var(--text-faint)">SaaS control plane · ObserveOps E1–E11</text>
+      <rect x="268" y="62" width="200" height="22" rx="4" fill="var(--p1-dim)" stroke="none"/>
+      <text x="368" y="77" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--p1)">P1 fabric E1–E5</text>
+      <rect x="478" y="62" width="130" height="22" rx="4" fill="var(--p2-dim)" stroke="none"/>
+      <text x="543" y="77" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--p2)">P2 E6–E8</text>
+      <rect x="618" y="62" width="130" height="22" rx="4" fill="var(--p3-dim)" stroke="none"/>
+      <text x="683" y="77" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--p3)">P3 E9–E11</text>
+      <text x="830" y="77" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--text-faint)">ingest.v1 → … → VerdictCard</text>
+      <defs>
+        <marker id="arr-edge" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0 0 L10 5 L0 10z" fill="var(--edge)"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="rail-wrap">
+    <div class="zone-rail" id="zone-rail"></div>
+  </div>
+
+  <div class="controls">
+    <button type="button" class="ctrl-btn" id="btn-prev">← Previous</button>
+    <button type="button" class="ctrl-btn primary" id="btn-play">▶ Play journey</button>
+    <button type="button" class="ctrl-btn" id="btn-next">Next →</button>
+    <div class="track-toggle" id="track-toggle" hidden>
+      <span style="font-size:12px;color:var(--text-dim);margin-right:4px">E2 fan-out path:</span>
+      <button type="button" data-track="metrics" class="active">Metrics → history/</button>
+      <button type="button" data-track="topology">Topology → map/</button>
+    </div>
+  </div>
+
+  <div class="panel animate-in" id="panel"></div>
+
+  <div class="evo-strip">
+    <h2>Sample &amp; object names (metrics path)</h2>
+    <div class="evo-row" id="evo-row"></div>
+  </div>
+
+  <table class="vocab">
+    <caption style="caption-side:top;text-align:left;font-size:13px;font-weight:600;margin-bottom:8px;padding-left:2px">Vocabulary shifts readers confuse</caption>
+    <thead>
+      <tr><th>Stage / context</th><th>Name on the wire</th><th>Meaning</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Agent raw</td><td>OTLP / vendor gauge point</td><td>Nested resource + metric + dataPoint — labels scattered, no <code>ci_id</code>.</td></tr>
+      <tr><td>Shaped stream</td><td>Flattened metric record</td><td>Still not <code>ingest.v1</code>; may already roll up volume at edge.</td></tr>
+      <tr><td>E1 · Collect</td><td><code>ingest.v1</code> · <code>metric_sample</code></td><td><strong>E1 Collect</strong> admits one measurement line — <code>value</code> + <code>ts</code> + labels. Not T-Digest output.</td></tr>
+      <tr><td>E2 · Identity (Normalize)</td><td><code>ci_id</code> + <code>identity.*</code></td><td>Configuration-item id from bind table (LUT). Graph and stream language.</td></tr>
+      <tr><td>E4 · Pillar A</td><td><code>entity_id</code></td><td>Same string as <code>ci_id</code> — copied at E4 sketch writer, not re-bound.</td></tr>
+      <tr><td>E1 wire</td><td><code>ingest.v1</code></td><td>On-wire schema version for every line E1 Collect admits.</td></tr>
+      <tr><td>E2 overlay</td><td><code>IdentifiedRecord</code></td><td>Logical name: same <code>ingest.v1</code> line + <code>identity.*</code> — not a second wire format.</td></tr>
+      <tr><td>E1 class</td><td><code>signal_class: metric_sample</code></td><td>One measurement line — not T-Digest output, not forever-raw in <code>history/</code>.</td></tr>
+      <tr><td>E3 map</td><td><code>GraphSnapshot</code></td><td>Packaged <code>graph_node.v1</code> + <code>graph_edge.v1</code> in <code>map/</code>.</td></tr>
+      <tr><td>E4 history</td><td><code>sketch.v1</code></td><td>Windowed T-Digest + buckets + seasonal baseline — no edge fields.</td></tr>
+      <tr><td>E8 read-join</td><td><code>WorkingSet</code></td><td>First time <code>map/</code> neighbors and <code>history/</code> sketches meet for one case.</td></tr>
+      <tr><td>E2 alias</td><td>Normalize</td><td>HLD fabric phase name for <strong>E2 Identity</strong> — not the same as E10 Identify (root-cause evidence).</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+(function () {
+  var ORDER = ['raw','pre','E1','E2','E3','E4','E5','E6','E7','E8','E9','E10','E11'];
+  var current = 'E1';
+  var track = 'metrics';
+  var playTimer = null;
+
+  var STAGES = {
+    raw: {
+      id: 'raw', label: 'Raw', short: 'Vendor point',
+      zone: 'edge', phase: 'edge', phaseName: 'Source (agent / scraper)',
+      unitGrain: 'One nested OTLP gauge dataPoint — value 842, no ObserveOps schema',
+      sampleFate: 'The <span class="val">842 ms</span> reading lives inside a nested OTLP batch on the host. Labels are scattered across <code>resource</code>, <code>metric</code>, and <code>dataPoint</code> — no <code>ci_id</code>, no <code>metric_sample</code> name yet.',
+      objectIn: 'Instrumented process / host',
+      objectOut: 'Vendor metric point (nested blob)',
+      purpose: 'The agent or scraper emits vendor-native telemetry. This is the true raw form before any edge shaping or E1 Collect on Platform.',
+      adds: ['timeUnixNano / vendor ts', 'asDouble value', 'resource + point attributes'],
+      drops: [],
+      renames: [],
+      note: 'Readers often skip this step. The journey starts here — not at ingest.v1. Different agents nest labels differently (OTLP, Prometheus remote-write, Datadog payload, …).',
+      json: '{\n  "_comment": "One measurement as OTLP sees it — not ObserveOps",\n  "resourceMetrics": [{\n    "resource": { "attributes": [\n      {"key": "service.name", "value": "checkout-api"},\n      {"key": "host.name", "value": "linux-server-app-01"}\n    ]},\n    "scopeMetrics": [{\n      "metrics": [{\n        "name": "request.latency_ms",\n        "gauge": { "dataPoints": [{\n          "timeUnixNano": "1723902721004000000",\n          "asDouble": 842,\n          "attributes": [{"key": "trace_id", "value": "abc123"}]\n        }]}\n      }]\n    }]\n  }]\n}',
+      fieldFate: [
+        { field: 'value', before: '842 in dataPoint.asDouble', after: 'same number, still nested', fate: 'keep', fateLabel: 'keep (buried)' },
+        { field: 'service.name', before: 'resource attribute', after: 'not a top-level field', fate: 'keep', fateLabel: 'keep (nested)' },
+        { field: 'trace_id', before: 'dataPoint attribute', after: 'not yet a labels map', fate: 'keep', fateLabel: 'keep (nested)' },
+        { field: 'ci_id / metric_sample', before: 'absent', after: 'absent', fate: 'drop', fateLabel: 'not yet named' }
+      ]
+    },
+    pre: {
+      id: 'pre', label: 'Edge', short: 'Shaped stream',
+      zone: 'edge', phase: 'edge', phaseName: 'Shift-left (optional)',
+      unitGrain: 'One flattened metric record — still vendor/edge shape, not ingest.v1',
+      sampleFate: 'Edge pipeline flattens the nested OTLP point into one line. <span class="val">842 ms</span> is now a top-level <code>value</code>, but the record is still <em>not</em> <code>metric_sample</code> — no <code>schema_version: ingest.v1</code> yet.',
+      objectIn: 'Vendor raw (MELT-shaped)',
+      objectOut: 'Aggregated / shaped stream record',
+      purpose: 'Edge or gateway may parse, tag, dedupe, and roll up volume before central SaaS. Modalities still exist — this is not yet ObserveOps wire format.',
+      adds: ['parsed tags', 'optional rollups', 'shipment to Platform'],
+      drops: ['full raw volume (partial)', 'OTLP nesting wrappers'],
+      renames: ['vendor fields → flattened pre-ingest shape'],
+      note: 'Runs on customer hosts / pods before E1 Collect on Platform. Data is still vendor- or edge-shaped — not yet ingest.v1. Optional gateway rollups may sit on the path (see E1–E5 architecture). Wire encryption (TLS) is transport only; it does not change the object name or schema.',
+      jsonBefore: '{\n  "_comment": "Nested OTLP — see Raw stage",\n  "resourceMetrics": [{ "...": "service.name, host.name, dataPoint.asDouble: 842" }]\n}',
+      json: '{\n  "_comment": "Illustrative flattened edge record — not ingest.v1",\n  "resource.service.name": "checkout-api",\n  "host.name": "linux-server-app-01",\n  "metric": "request.latency_ms",\n  "value": 842,\n  "trace_id": "abc123",\n  "timestamp": "2026-08-17T14:32:01.004Z"\n}',
+      fieldFate: [
+        { field: 'value', before: 'nested asDouble', after: '842 top-level', fate: 'keep', fateLabel: 'keep (surfaced)' },
+        { field: 'service.name', before: 'resource attribute', after: 'resource.service.name key', fate: 'rename', fateLabel: 'flattened' },
+        { field: 'trace_id', before: 'dataPoint attribute', after: 'top-level trace_id', fate: 'rename', fateLabel: 'flattened' },
+        { field: 'schema_version', before: 'absent', after: 'absent', fate: 'drop', fateLabel: 'not yet ingest.v1' }
+      ]
+    },
+    E1: {
+      id: 'E1', label: 'E1', short: 'Collect',
+      zone: 'platform', phase: 'p1', phaseName: 'P1 — Collect',
+      unitGrain: 'One metric_sample line on ingest.v1 — value + ts + labels (no identity overlay yet)',
+      sampleFate: '<strong>E1 Collect</strong> admits the shaped stream as <strong>metric_sample</strong>: one measurement per line with <span class="val">value: 842</span>. Still no <code>identity.*</code> block — <strong>E2 Identity (Normalize)</strong> adds join keys.',
+      objectIn: 'Shaped stream from Edge',
+      objectOut: 'ingest.v1 · signal_class metric_sample',
+      purpose: 'Admit well-formed lines. No CI bind, no topology validation — wire format only.',
+      adds: ['schema_version: ingest.v1', 'signal_class: metric_sample', 'ts', 'tenant', 'metric_id', 'value', 'labels'],
+      drops: ['vendor envelope wrapper', 'edge-specific key names'],
+      renames: ['source labels → normalized labels map'],
+      note: 'Platform boundary: first data-shape contract is ingest.v1. E1 Collect admits the shaped stream — wire format only, no identity.status yet. Unknown signal_class rejects or dead-letters.',
+      jsonBefore: '{\n  "_comment": "Incoming shaped stream (edge)",\n  "resource.service.name": "checkout-api",\n  "host.name": "linux-server-app-01",\n  "metric": "request.latency_ms",\n  "value": 842,\n  "trace_id": "abc123",\n  "timestamp": "2026-08-17T14:32:01.004Z"\n}',
+      json: '{\n  "schema_version": "ingest.v1",\n  "ts": "2026-08-17T14:32:01Z",\n  "tenant": "acme",\n  "signal_class": "metric_sample",\n  "metric_id": "request.latency_ms",\n  "value": 842,\n  "labels": {\n    "service.name": "checkout-api",\n    "host.name": "linux-server-app-01",\n    "trace_id": "abc123",\n    "env": "prod"\n  }\n}',
+      fieldFate: [
+        { field: 'value', before: '842 (edge record)', after: '842 on ingest.v1 line', fate: 'keep', fateLabel: 'keep' },
+        { field: 'signal_class', before: 'absent', after: 'metric_sample', fate: 'add', fateLabel: 'named grain' },
+        { field: 'schema_version', before: 'absent', after: 'ingest.v1', fate: 'add', fateLabel: 'wire contract' },
+        { field: 'ci_id', before: 'absent', after: 'absent until E2', fate: 'drop', fateLabel: 'not yet bound' }
+      ]
+    },
+    E2: {
+      id: 'E2', label: 'E2', short: 'Identity',
+      zone: 'platform', phase: 'p1', phaseName: 'P1 — Identity (Normalize)',
+      unitGrain: 'Same metric_sample line + identity overlay — still one sample, value still 842',
+      sampleFate: '<strong>E2 Identity (Normalize)</strong> binds labels through the LUT and stamps <code>identity.*</code> plus resolved <code>ci_id</code>. Our thread sample is now joinable to <code>map/</code> and <code>history/</code> on <code>checkout-api</code>.',
+      objectIn: 'ingest.v1 metric_sample',
+      objectOut: 'IdentifiedRecord (overlay on ingest.v1)',
+      purpose: 'Stamp join keys so every line correlates with map/, history/, and future tickets on the same ci_id.',
+      adds: ['ci_id', 'ci_type', 'identity.status', 'identity.bind_source', 'identity.aliases'],
+      drops: [],
+      renames: ['source labels → resolved ci_id from bind table (LUT)'],
+      note: 'Same physical line — not a second schema. Unresolved → quarantine; production writers require identity.status = resolved. See <a href="/docs/GRAPH_QNA.md#G43">GRAPH_QNA G43</a> for ci_id vs entity_id.',
+      jsonBefore: '{\n  "schema_version": "ingest.v1",\n  "signal_class": "metric_sample",\n  "metric_id": "request.latency_ms",\n  "value": 842,\n  "ts": "2026-08-17T14:32:01Z",\n  "labels": { "trace_id": "abc123", "env": "prod" }\n}',
+      json: '{\n  "schema_version": "ingest.v1",\n  "ts": "2026-08-17T14:32:01Z",\n  "tenant": "acme",\n  "ci_id": "checkout-api",\n  "ci_type": "Service",\n  "signal_class": "metric_sample",\n  "metric_id": "request.latency_ms",\n  "value": 842,\n  "labels": { "trace_id": "abc123", "env": "prod" },\n  "identity": {\n    "status": "resolved",\n    "bind_source": "catalog",\n    "aliases": ["checkout-api-prod"]\n  }\n}',
+      fieldFate: [
+        { field: 'value', before: '842', after: '842 (unchanged)', fate: 'keep', fateLabel: 'keep' },
+        { field: 'ci_id', before: 'absent', after: 'checkout-api', fate: 'add', fateLabel: 'join key' },
+        { field: 'identity.status', before: 'absent', after: 'resolved', fate: 'add', fateLabel: 'overlay' },
+        { field: 'labels.trace_id', before: 'abc123', after: 'abc123', fate: 'keep', fateLabel: 'keep on sample' }
+      ]
+    },
+    E3: {
+      id: 'E3', label: 'E3', short: 'Topology',
+      zone: 'platform', phase: 'p1', phaseName: 'P1 — Topology (Pillar B)',
+      unitGrain: 'Parallel path — metric_sample lines do not become edges; topo_update lines do',
+      sampleFate: 'Our <span class="val">842 ms</span> metric_sample continues toward E4. Topology consumes separate <code>topo_update</code> lines — shown here as the before/after for graph maintenance.',
+      objectIn: 'IdentifiedRecord (topo_update lines)',
+      objectOut: 'GraphSnapshot in map/',
+      purpose: 'Maintain walkable dependency graph — nodes and typed edges for Localize walks.',
+      adds: ['graph_node.v1 (ci_id, ci_type, …)', 'graph_edge.v1 (src_ci_id, dst_ci_id, relation, discovered_via)'],
+      drops: ['per-event metric values', 'trace_id on metric lines'],
+      renames: [],
+      track: 'topology',
+      note: 'Parallel to E4 after E2 — not sequential. Sketches never emit edges; topology never stores histograms.',
+      jsonBefore: '{\n  "schema_version": "ingest.v1",\n  "signal_class": "topo_update",\n  "ci_id": "checkout-api",\n  "ci_type": "Service",\n  "labels": {\n    "edge.dst_ci_id": "payments-db",\n    "edge.relation": "depends_on"\n  }\n}',
+      json: '{\n  "schema_version": "graph_snapshot.v1",\n  "tenant": "acme",\n  "nodes": [{\n    "schema_version": "graph_node.v1",\n    "ci_id": "checkout-api",\n    "ci_type": "Service",\n    "identity_status": "resolved"\n  }],\n  "edges": [{\n    "schema_version": "graph_edge.v1",\n    "src_ci_id": "checkout-api",\n    "dst_ci_id": "payments-db",\n    "relation": "depends_on",\n    "discovered_via": { "evidence_type": "declared" }\n  }]\n}',
+      fieldFate: [
+        { field: 'value (842 ms sample)', before: 'on metric_sample path', after: 'not stored in map/', fate: 'drop', fateLabel: 'metrics → E4' },
+        { field: 'edge.dst_ci_id', before: 'label on topo_update', after: 'dst_ci_id on graph_edge.v1', fate: 'rename', fateLabel: 'graph edge' },
+        { field: 'ci_id', before: 'checkout-api', after: 'node + edge endpoints', fate: 'keep', fateLabel: 'keep' }
+      ]
+    },
+    E4: {
+      id: 'E4', label: 'E4', short: 'Stores',
+      zone: 'platform', phase: 'p1', phaseName: 'P1 — Stores (Pillar A metrics path)',
+      unitGrain: 'Many metric_sample lines in window → one sketch.v1 row (842 ms is inside digest, not a field)',
+      sampleFate: 'After flush, individual <code>value</code> fields are <strong>gone</strong>. Our <span class="val">842 ms</span> point contributes to centroids/buckets — optional <code>exemplars[]</code> may retain trace_id for E10 lookup only.',
+      objectIn: 'IdentifiedRecord (metric_sample stream)',
+      objectOut: 'sketch.v1 row in history/',
+      purpose: 'Compress resolved metric lines into windowed quantile history for E6 Detect door C.',
+      adds: ['entity_id (= ci_id)', 'window, window_start, season_key', 'tdigest, buckets, baseline', 'optional exemplars[]'],
+      drops: ['per-sample value fields', 'per-sample ts (except window_start)', 'raw sample stream after flush'],
+      renames: ['ci_id → entity_id at E4 sketch writer', 'metric_id retained'],
+      track: 'metrics',
+      note: 'Only metric_sample becomes sketch.v1. Events/logs/traces route elsewhere; topo_update skipped by Pillar A. See <a href="sketch-exemplars-visual.html#ci-entity-resolved">exemplars guide</a>.',
+      jsonBefore: '{\n  "_comment": "In-window buffer — many metric_sample lines, same ci_id + metric_id",\n  "ci_id": "checkout-api",\n  "metric_id": "request.latency_ms",\n  "window": "5m",\n  "samples": [\n    { "ts": "2026-08-17T14:30:01Z", "value": 180, "labels": { "trace_id": "x1" } },\n    { "ts": "2026-08-17T14:32:01Z", "value": 842, "labels": { "trace_id": "abc123" } },\n    { "ts": "2026-08-17T14:34:58Z", "value": 910, "labels": { "trace_id": "x2" } }\n  ],\n  "sample_count": 240\n}',
+      json: '{\n  "schema_version": "sketch.v1",\n  "tenant": "acme",\n  "entity_id": "checkout-api",\n  "metric_id": "request.latency_ms",\n  "window": "5m",\n  "window_start": "2026-08-17T14:30:00Z",\n  "season_key": "Mon-14:30",\n  "sample_count": 240,\n  "tdigest": { "encoding": "centroids_json", "centroids": [{"m": 842, "w": 1}] },\n  "buckets": { "bounds": [0,500,1000], "counts": [12, 228] },\n  "baseline": { "expected_p95": 320, "expected_p50": 180, "expected_p99": 510 },\n  "exemplars": [{ "value": 842, "ts": "2026-08-17T14:32:01Z", "trace_id": "abc123" }]\n}',
+      fieldFate: [
+        { field: 'value (842)', before: 'on each metric_sample line', after: 'inside tdigest centroids only', fate: 'drop', fateLabel: 'aggregated away' },
+        { field: 'ts per sample', before: '14:32:01Z on line', after: 'window_start + optional exemplar ts', fate: 'rename', fateLabel: 'windowed' },
+        { field: 'ci_id', before: 'checkout-api', after: 'entity_id (same string)', fate: 'rename', fateLabel: 'E4 copy at writer gate' },
+        { field: 'trace_id', before: 'labels on sample', after: 'optional exemplars[] slot', fate: 'keep', fateLabel: 'optional keep' }
+      ]
+    },
+    E5: {
+      id: 'E5', label: 'E5', short: 'Maintain',
+      zone: 'platform', phase: 'p1', phaseName: 'P1 — Maintain',
+      unitGrain: 'Same sketch.v1 row shape — baseline numbers refresh in place',
+      sampleFate: 'No per-sample form remains. E5 updates <code>baseline.expected_p*</code> on the sketch row that absorbed the 842 ms window — not individual measurements.',
+      objectIn: 'map/ + history/ metadata',
+      objectOut: 'Fresh baselines + graph validity',
+      purpose: 'Keep estate detect-ready: seasonal baseline refresh (A), edge/node validity (B), retention — separate writers, no room sync.',
+      adds: ['updated baseline.expected_p*', 'valid_to on stale edges'],
+      drops: [],
+      renames: [],
+      note: 'Does not merge map/ ↔ history/. Join happens later at E8 WorkingSet read time.',
+      json: '{\n  "_comment": "E5 writes back into existing row shapes",\n  "sketch.v1.baseline": {\n    "baseline_version": "2026-W34",\n    "expected_p95": 318,\n    "expected_p50": 175,\n    "expected_p99": 505\n  },\n  "graph_edge.v1": {\n    "valid_to": "2026-08-17T12:00:00Z",\n    "_note": "decayed edge — still in map/ with validity window"\n  }\n}'
+    },
+    E6: {
+      id: 'E6', label: 'E6', short: 'Detect',
+      zone: 'platform', phase: 'p2', phaseName: 'P2 — Detect',
+      unitGrain: 'Signal references sketch row — observed p95 842 vs expected 320',
+      sampleFate: 'Detect compares digest quantiles to seasonal baseline. The original <span class="val">842 ms</span> sample is not on the Signal — only aggregated p95 vs expected.',
+      objectIn: 'GraphSnapshot + history/ queries',
+      objectOut: 'Signal',
+      purpose: 'Emit fault signals — something is wrong, no root-cause claim. Door C: digest p95 vs seasonal baseline on sketch rows alone.',
+      adds: ['detect_class', 'affected ci_id', 'metric_id', 'observed vs expected', 'signal ts'],
+      drops: ['full sketch row (referenced by key)'],
+      renames: [],
+      note: 'Sketches carry no edges — Detect does not need graph edges for door C. Graph context optional for other doors.',
+      json: '{\n  "signal_class": "anomaly",\n  "detect_class": "SLOWDOWN",\n  "tenant": "acme",\n  "ci_id": "checkout-api",\n  "metric_id": "request.latency_ms",\n  "ts": "2026-08-17T14:35:00Z",\n  "observed_p95": 842,\n  "expected_p95": 320,\n  "severity": "warning"\n}'
+    },
+    E7: {
+      id: 'E7', label: 'E7', short: 'Curate',
+      zone: 'platform', phase: 'p2', phaseName: 'P2 — Curate',
+      unitGrain: 'CaseSeed — merged signals, no raw samples',
+      sampleFate: 'Correlated Signals collapse into one CaseSeed. Still no per-sample values — only service + metric references.',
+      objectIn: 'Signal storm + GraphSnapshot',
+      objectOut: 'CaseSeed',
+      purpose: 'Collapse correlated signals into one honest case seed with merge rationale.',
+      adds: ['seed_ci_id', 'first_down_ts', 'merged_signals[]', 'merge_rationale'],
+      drops: ['duplicate correlated alerts'],
+      renames: ['many Signals → one seed'],
+      note: 'Prevents alert storms from leaking directly to operators.',
+      json: '{\n  "case_id": "seed-7f2a",\n  "detect_class": "SLOWDOWN",\n  "seed_ci_id": "checkout-api",\n  "first_down_ts": "2026-08-17T14:32:00Z",\n  "merged_signals": ["checkout-api:latency", "checkout-api:error_rate"],\n  "merge_rationale": "shared onset + same service hop"\n}'
+    },
+    E8: {
+      id: 'E8', label: 'E8', short: 'Scope',
+      zone: 'platform', phase: 'p2', phaseName: 'P2 — Scope',
+      unitGrain: 'WorkingSet — sketch refs + map neighbors joined by ci_id ≡ entity_id',
+      sampleFate: 'First read-join: <code>map/</code> neighbors and <code>history/</code> sketch refs for checkout-api. Still no raw 842 ms field — only sketch keys.',
+      objectIn: 'CaseSeed + map/ + history/',
+      objectOut: 'WorkingSet',
+      purpose: 'Lock bounded investigation domain: time window + candidate CIs. First read-join of map/ neighbors and history/ sketches.',
+      adds: ['window {start,end}', 'candidates[]', 'env/version tags', 'capped flag'],
+      drops: ['full graph (only neighborhood)'],
+      renames: ['ci_id in map ≡ entity_id in history'],
+      note: 'No continuous sync job between rooms — WorkingSet joins by tenant + ci_id at query time.',
+      json: '{\n  "window": {\n    "start": "2026-08-17T14:25:00Z",\n    "end": "2026-08-17T14:40:00Z"\n  },\n  "candidates": ["checkout-api", "payments-db", "linux-server-app-01"],\n  "env": "prod",\n  "capped": false,\n  "sketch_refs": ["checkout-api:request.latency_ms:5m", "..."]\n}'
+    },
+    E9: {
+      id: 'E9', label: 'E9', short: 'Localize',
+      zone: 'platform', phase: 'p3', phaseName: 'P3 — Localize',
+      unitGrain: 'LeafClaim — graph walk result, not a telemetry sample',
+      sampleFate: 'Walk picks leaf CI from graph topology. Metric samples are not carried forward — only the leaf choice.',
+      objectIn: 'WorkingSet + GraphSnapshot',
+      objectOut: 'LeafClaim',
+      purpose: 'Choose leaf configuration item using Detect-class walk rules on typed edges — not a root-cause narrative yet.',
+      adds: ['leaf ci_id', 'walk_path[]', 'leaf_rule_id'],
+      drops: ['sibling candidates (ranked out)'],
+      renames: [],
+      note: 'Uses depends_on, runs_on, … — not CORRELATED_WITH / RESOLVED_BY (those are case-graph words, not topology edges).',
+      json: '{\n  "leaf_ci_id": "payments-db",\n  "detect_class": "SLOWDOWN",\n  "walk_path": [\n    "checkout-api --depends_on--> payments-db"\n  ],\n  "leaf_rule_id": "deepest_dependency_onset"\n}'
+    },
+    E10: {
+      id: 'E10', label: 'E10', short: 'Identify',
+      zone: 'platform', phase: 'p3', phaseName: 'P3 — Identify',
+      unitGrain: 'EvidenceBundle — multimodal corroboration',
+      sampleFate: 'Optional exemplar <code>trace_id: abc123</code> from sketch row enables trace store lookup — the 842 ms value may appear only as narrative evidence, not as a live sample line.',
+      objectIn: 'LeafClaim + WorkingSet + stores',
+      objectOut: 'EvidenceBundle',
+      purpose: 'Assemble multimodal corroboration: spans, logs, signatures, change alignment — plus confidence tier (Verify judgment starts here).',
+      adds: ['fault_signatures[]', 'log_patterns[]', 'span_refs[]', 'change_correlation', 'confidence_tier'],
+      drops: [],
+      renames: ['exemplar trace_id → trace store lookup (not history/ raw)'],
+      note: 'Identify (E10) ≠ Identity (E2 Normalize). Exemplars on sketch rows accelerate trace lookup after Detect.',
+      json: '{\n  "leaf_ci_id": "payments-db",\n  "evidence": {\n    "metrics": ["p95 842 vs expected 320"],\n    "logs": ["connection pool exhausted"],\n    "traces": ["trace_id abc123 → slow query span"],\n    "changes": []\n  },\n  "confidence_tier": 2,\n  "weakest_evidence_type": "corroborating"\n}'
+    },
+    E11: {
+      id: 'E11', label: 'E11', short: 'Package',
+      zone: 'platform', phase: 'p3', phaseName: 'P3 — Package',
+      unitGrain: 'VerdictCard — operator narrative',
+      sampleFate: 'Raw samples and sketch blobs are summarized. Operator sees “p95 842 vs expected 320” in prose — not ingest.v1 lines.',
+      objectIn: 'EvidenceBundle',
+      objectOut: 'VerdictCard (+ optional incident)',
+      purpose: 'Render operator-facing verdict. Verify closes when confidence is locked on the card.',
+      adds: ['verdict summary', 'blast_radius[]', 'recommended_actions', 'confidence (capped)'],
+      drops: ['raw evidence blobs (summarized)'],
+      renames: ['EvidenceBundle → operator narrative'],
+      note: 'Confidence cannot exceed weakest evidence_type traversed — enforced in code, not model discretion.',
+      json: '{\n  "verdict": "Root cause: payments-db connection pool exhausted",\n  "leaf_ci_id": "payments-db",\n  "detect_class": "SLOWDOWN",\n  "confidence": "medium",\n  "blast_radius": ["checkout-api"],\n  "actions": ["scale pool", "review query timeout"],\n  "case_closed": true\n}'
+    }
+  };
+
+  var EVO_METRICS = [
+    { id: 'raw', name: 'Vendor raw' },
+    { id: 'pre', name: 'Shaped stream' },
+    { id: 'E1', name: 'metric_sample' },
+    { id: 'E2', name: 'IdentifiedRecord' },
+    { id: 'E4', name: 'sketch.v1' },
+    { id: 'E6', name: 'Signal' },
+    { id: 'E7', name: 'CaseSeed' },
+    { id: 'E8', name: 'WorkingSet' },
+    { id: 'E9', name: 'LeafClaim' },
+    { id: 'E10', name: 'EvidenceBundle' },
+    { id: 'E11', name: 'VerdictCard' }
+  ];
+
+  function renderFieldFate(rows) {
+    if (!rows || !rows.length) return '';
+    var html = '<div class="changes"><h3>Field fate (842 ms thread)</h3>';
+    html += '<table class="field-fate"><thead><tr><th>Field</th><th>Before</th><th>After</th><th>Fate</th></tr></thead><tbody>';
+    rows.forEach(function (r) {
+      html += '<tr><td><code>' + esc(r.field) + '</code></td>';
+      html += '<td>' + esc(r.before) + '</td><td>' + esc(r.after) + '</td>';
+      html += '<td class="fate-' + r.fate + '">' + esc(r.fateLabel) + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  function updateSampleThread(s) {
+    var el = document.getElementById('sample-thread-text');
+    if (!el || !s.sampleFate) return;
+    el.innerHTML = s.sampleFate;
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function highlightJson(raw) {
+    return esc(raw)
+      .replace(/"([^"]+)":/g, '<span class="jk">"$1"</span>:')
+      .replace(/: "([^"]*)"/g, ': <span class="js">"$1"</span>')
+      .replace(/: (\d+\.?\d*)/g, ': <span class="jn">$1</span>')
+      .replace(/: (true|false|null)/g, ': <span class="jh">$1</span>')
+      .replace(/(\/\/[^\n]*|"_comment":[^\n]*)/g, '<span class="jc">$1</span>');
+  }
+
+  function chips(arr, cls) {
+    if (!arr || !arr.length) return '<span class="chip keep">—</span>';
+    return arr.map(function (c) { return '<span class="chip ' + cls + '">' + esc(c) + '</span>'; }).join('');
+  }
+
+  function renderPanel(id) {
+    var s = STAGES[id];
+    if (!s) return;
+    updateSampleThread(s);
+    var showTrack = (id === 'E3' || id === 'E4');
+    document.getElementById('track-toggle').hidden = !showTrack;
+    if (showTrack && track === 'topology' && id === 'E4') {
+      renderPanel('E3');
+      return;
+    }
+
+    var hasCompare = !!s.jsonBefore;
+    var html = '';
+
+    html += '<div class="meta-row">';
+    html += '<div class="meta-card">';
+    html += '<div class="meta-tags">';
+    html += '<span class="zone-tag zone-' + (s.zone === 'edge' ? 'edge-devices' : 'platform') + '">';
+    html += esc(s.zone === 'edge' ? 'Edge devices' : 'Platform') + '</span>';
+    html += '<span class="phase-tag ' + s.phase + '">' + esc(s.phaseName) + '</span>';
+    html += '</div>';
+    html += '<h2>' + esc(s.label) + ' · ' + esc(s.short) + '</h2>';
+    if (s.unitGrain) {
+      html += '<p class="grain-line"><strong>Grain:</strong> ' + esc(s.unitGrain) + '</p>';
+    }
+    html += '<div class="object-flow">';
+    html += '<span class="obj">' + esc(s.objectIn) + '</span>';
+    html += '<span class="arrow">→</span>';
+    html += '<span class="obj out">' + esc(s.objectOut) + '</span>';
+    html += '</div>';
+    html += '<p class="purpose">' + esc(s.purpose) + '</p>';
+    html += '<div class="changes"><h3>Structure changes</h3>';
+    html += '<div style="margin-bottom:6px;font-size:12px;color:var(--text-dim)">Added</div><div class="chip-list">' + chips(s.adds, 'add') + '</div>';
+    html += '<div style="margin-bottom:6px;font-size:12px;color:var(--text-dim)">Dropped / aggregated away</div><div class="chip-list">' + chips(s.drops, 'drop') + '</div>';
+    html += '<div style="margin-bottom:6px;font-size:12px;color:var(--text-dim)">Renamed / reframed</div><div class="chip-list">' + chips(s.renames, 'rename') + '</div>';
+    html += '</div>';
+    if (s.fieldFate) html += renderFieldFate(s.fieldFate);
+    if (s.note) {
+      var noteHtml = s.note.indexOf('<a ') >= 0 ? s.note : esc(s.note);
+      html += '<div class="note">' + noteHtml + '</div>';
+    }
+    html += '</div>';
+
+    if (!hasCompare) {
+      html += '<div class="json-card">';
+      html += '<h3>Example shape at this stage</h3>';
+      html += '<pre class="json">' + highlightJson(s.json) + '</pre>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    if (hasCompare) {
+      html += '<div class="json-card wide">';
+      html += '<h3>Form change · before → after</h3>';
+      html += '<div class="json-compare">';
+      html += '<div><h4>Before (incoming)</h4><pre class="json">' + highlightJson(s.jsonBefore) + '</pre></div>';
+      html += '<div class="compare-arrow" aria-hidden="true">→</div>';
+      html += '<div><h4>After (outgoing)</h4><pre class="json">' + highlightJson(s.json) + '</pre></div>';
+      html += '</div></div>';
+    }
+
+    var panel = document.getElementById('panel');
+    panel.classList.remove('animate-in');
+    panel.className = 'panel animate-in' + (hasCompare ? ' has-compare' : '');
+    void panel.offsetWidth;
+    panel.innerHTML = html;
+    panel.classList.add('animate-in');
+
+    document.querySelectorAll('.stage-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.stage === id);
+    });
+    renderEvo(id);
+  }
+
+  function renderEvo(activeId) {
+    var row = document.getElementById('evo-row');
+    var idx = -1;
+    EVO_METRICS.forEach(function (n, i) { if (n.id === activeId) idx = i; });
+    var html = '';
+    EVO_METRICS.forEach(function (n, i) {
+      if (i === 2) {
+        html += '<div class="evo-zone-gap" title="Edge devices → Platform">zone</div>';
+      } else if (i > 0) {
+        html += '<div class="evo-conn' + (i <= idx ? ' done' : '') + '"></div>';
+      }
+      var cls = 'evo-node';
+      if (n.id === activeId) cls += ' current';
+      else if (idx >= 0 && i < idx) cls += ' done';
+      html += '<div class="' + cls + '" data-goto="' + n.id + '">';
+      html += '<div class="dot"></div>';
+      html += '<div class="elabel">' + esc(n.id === 'raw' ? 'Raw' : n.id === 'pre' ? 'Edge' : n.id) + '</div>';
+      html += '<div class="oname">' + esc(n.name) + '</div></div>';
+    });
+    row.innerHTML = html;
+    row.querySelectorAll('.evo-node').forEach(function (el) {
+      el.addEventListener('click', function () {
+        selectStage(el.dataset.goto);
+      });
+    });
+  }
+
+  function buildRail() {
+    var wrap = document.getElementById('zone-rail');
+
+    var edgeBlock = document.createElement('div');
+    edgeBlock.className = 'zone-block zone-edge-devices';
+    edgeBlock.innerHTML =
+      '<div class="zone-title">' +
+      '<span class="zone-name">Edge devices</span>' +
+      '<span class="zone-sub">sources · raw · shaped stream</span>' +
+      '</div><div class="zone-stages" id="zone-stages-edge"></div>';
+
+    var divider = document.createElement('div');
+    divider.className = 'zone-divider';
+    divider.innerHTML = '<span class="zone-divider-line"></span><span class="zone-divider-label">E1 Collect</span>';
+
+    var platBlock = document.createElement('div');
+    platBlock.className = 'zone-block zone-platform';
+    platBlock.innerHTML =
+      '<div class="zone-title">' +
+      '<span class="zone-name">Platform</span>' +
+      '<span class="zone-sub">SaaS control plane · E1–E11</span>' +
+      '</div>' +
+      '<div class="platform-phases">' +
+      '<span class="pp p1">P1 · E1–E5</span>' +
+      '<span class="pp p2">P2 · E6–E8</span>' +
+      '<span class="pp p3">P3 · E9–E11</span>' +
+      '</div>' +
+      '<div class="zone-stages platform-stages" id="zone-stages-platform"></div>';
+
+    wrap.appendChild(edgeBlock);
+    wrap.appendChild(divider);
+    wrap.appendChild(platBlock);
+
+    ORDER.forEach(function (id) {
+      var s = STAGES[id];
+      var isEdge = s.zone === 'edge';
+      var container = document.getElementById(isEdge ? 'zone-stages-edge' : 'zone-stages-platform');
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'stage-btn zone-' + (isEdge ? 'edge' : 'platform');
+      btn.dataset.stage = id;
+      btn.innerHTML = '<span class="sid">' + esc(s.label) + '</span><span class="sname">' + esc(s.short) + '</span>';
+      btn.addEventListener('click', function () { selectStage(id); });
+      container.appendChild(btn);
+    });
+  }
+
+  function selectStage(id) {
+    current = id;
+    if (playTimer) { clearInterval(playTimer); playTimer = null; document.getElementById('btn-play').textContent = '▶ Play journey'; }
+    renderPanel(id);
+  }
+
+  function step(delta) {
+    var i = ORDER.indexOf(current);
+    i = Math.max(0, Math.min(ORDER.length - 1, i + delta));
+    selectStage(ORDER[i]);
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', function () { step(-1); });
+  document.getElementById('btn-next').addEventListener('click', function () { step(1); });
+  document.getElementById('btn-play').addEventListener('click', function () {
+    var btn = this;
+    if (playTimer) {
+      clearInterval(playTimer);
+      playTimer = null;
+      btn.textContent = '▶ Play journey';
+      return;
+    }
+    selectStage('raw');
+    var i = 0;
+    btn.textContent = '⏸ Pause';
+    playTimer = setInterval(function () {
+      i++;
+      if (i >= ORDER.length) {
+        clearInterval(playTimer);
+        playTimer = null;
+        btn.textContent = '▶ Play journey';
+        return;
+      }
+      selectStage(ORDER[i]);
+    }, 2200);
+  });
+
+  document.getElementById('track-toggle').addEventListener('click', function (e) {
+    var t = e.target.closest('button[data-track]');
+    if (!t) return;
+    track = t.dataset.track;
+    document.querySelectorAll('#track-toggle button').forEach(function (b) {
+      b.classList.toggle('active', b === t);
+    });
+    if (track === 'topology') selectStage('E3');
+    else selectStage('E4');
+  });
+
+  buildRail();
+  selectStage('raw');
+})();
+</script>
+</body>
+</html>

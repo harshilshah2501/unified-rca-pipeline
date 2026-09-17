@@ -90,4 +90,4 @@ docker compose up -d --build
 ./scripts/fault.sh inventory ok
 ```
 
-Lab guide: [`../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md)
+Lab guide: [`../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md)

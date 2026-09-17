@@ -7,6 +7,8 @@
 
 Real articles live in topic folders. Flat names at `docs/<file>` are **compatibility symlinks** so `:8765` URLs and old bookmarks keep working.
 
+**Edit topic folders only** (`fabric/`, `observeops/`, `motadata/`, `reference/`, `vendors/`). Do **not** create a second article that exists only as a flat `docs/<name>.html` with no topic-folder home — that grows the symlink farm and breaks GitHub nested browsing. After adding a topic-folder page, add a flat symlink if `:8765/<name>` must keep working.
+
 | Folder | What belongs there |
 |--------|-------------------|
 | [`docs/`](./) (root only) | Hub spine: [`NAVIGATION.md`](./NAVIGATION.md), [`REPO_HYGIENE.md`](./REPO_HYGIENE.md), [`README.md`](./README.md), ingest contracts, roadmap, demo/code guides, `index.html` + hub JS |
@@ -23,7 +25,8 @@ Real articles live in topic folders. Flat names at `docs/<file>` are **compatibi
 | Graph + sketch sit-down brief | [`pillar-ab-implementation/contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](../pillar-ab-implementation/contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) (`docs/` is a symlink) |
 | Fabric Q&A (E1–E5) | [`pillar-ab-implementation/contracts/GRAPH_QNA.md`](../pillar-ab-implementation/contracts/GRAPH_QNA.md) (`docs/GRAPH_QNA.md` is a symlink) |
 | Node/edge samples | [`pillar-ab-implementation/contracts/GRAPH_NODE_EDGE_SAMPLES.md`](../pillar-ab-implementation/contracts/GRAPH_NODE_EDGE_SAMPLES.md) |
-| JSON schemas | [`pillar-ab-implementation/contracts/`](../pillar-ab-implementation/contracts/) (mirrored into packages for tests) |
+| JSON schemas | [`pillar-ab-implementation/contracts/schemas/`](../pillar-ab-implementation/contracts/schemas/) — **edit here only**. Package trees (`pillar-a|b/integration/contracts/schemas/`) are **symlinks** to this SoT; `make check-schemas` / `scripts/check_schema_mirrors.py` enforces it. |
+| Gate B / reject / map write prose | [`pillar-ab-implementation/contracts/`](../pillar-ab-implementation/contracts/) — package `*/contracts/*.md` are **symlinks** to SoT (same rule as schemas) |
 | Motadata kickoff scope | [`pillar-ab-implementation/scope/`](../pillar-ab-implementation/scope/) |
 | Pillar A deep dive + fabric HTML | [`docs/fabric/`](./fabric/) |
 | ObserveOps HLD / LLDs | [`docs/observeops/`](./observeops/) |
@@ -45,17 +48,20 @@ Owner-package `docs/` folders are **symlinks** into the paths above — do not r
 1. Build from `pillar-a/` (or `pillar-b/`) **after** docs are symlink-clean.  
 2. Exclude `.venv/`, `__pycache__/`, `*.pyc`, local `poc/out/`.  
 3. Name with date: `pillar-a-handoff-YYYY-MM-DD.zip`.  
-4. Zip should resolve teaching docs via package `docs/` symlinks (or include the linked files when archiving — `zip -y` keeps symlinks; prefer including content with `zip -r` following links for teammate machines without the monorepo).
+4. Zip should resolve teaching docs **and JSON schemas** via package symlinks (or include the linked files when archiving — `zip -y` keeps symlinks; prefer including content with `zip -r` following links / `rsync -L` for teammate machines without the monorepo). Materialized schema files in a handoff must stay **byte-identical** to SoT (`scripts/check_schema_mirrors.py` accepts that case with a warning).
 
 **Preferred teammate zip:** follow symlinks so the archive is self-contained (`zip -r --symlinks` off / use `rsync -L` into a staging dir, then zip).
 
 ## Local bulk (not day-to-day Motadata edit)
 
-| Path | Notes |
-|------|--------|
-| `datasets/ingest_samples/` | Large dumps (~GBs); gitignored patterns already |
-| `federated-pipeline/Nezha/` | Vendor tree; bakeoff comparator only |
-| `*/.venv/` | Local; never commit or ship in handoff |
+| Path | Typical size | Notes |
+|------|--------------|--------|
+| `datasets/ingest_samples/jsonl_resolved/` | **~4.3G** | Motadata ClickHouse dumps; `*.jsonl` gitignored. Needed only for Motadata adapters — see [`ingestion-poc/README.md`](../ingestion-poc/README.md) |
+| `federated-pipeline/Nezha/rca_data/` | **~2.8G** | Nezha comparator telemetry; gitignored. Not Motadata Pillar A∥B |
+| `datasets/nezha/` | symlinks | Points at Nezha trees; recreate links if missing ([`datasets/nezha/README.md`](../datasets/nezha/README.md)) |
+| `*/.venv/` | hundreds of MB | Local; never commit or ship in handoff |
+
+Missing Motadata dumps does **not** block ObserveOps UC bakeoff, Pillar unit tests, or the docs hub.
 
 ## Hub publish rule
 

@@ -10,7 +10,7 @@
 **Browser HTML:** [`rca-data-lake-brainstorm.html`](./rca-data-lake-brainstorm.html) · PoC console [http://127.0.0.1:8765/rca-data-lake-brainstorm.html](http://127.0.0.1:8765/rca-data-lake-brainstorm.html)  
 **Clock A/B stage cards:** [`clock-ab-stage-reference.html`](./clock-ab-stage-reference.html)
 
-**Related (deeper):** [`two-step-rca-white-space.md`](./two-step-rca-white-space.md) · [`RCA_Vendor_Comparison_NOTES.md`](./RCA_Vendor_Comparison_NOTES.md) · [`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) · [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`federated-pipeline/docs/ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md) · [`labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) · PDF [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf)
+**Related (deeper):** [`two-step-rca-white-space.md`](./two-step-rca-white-space.md) · [`RCA_Vendor_Comparison_NOTES.md`](./RCA_Vendor_Comparison_NOTES.md) · [`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) · [`federated-pipeline/docs/STORAGE_TIERS.md`](../../federated-pipeline/docs/STORAGE_TIERS.md) · [`federated-pipeline/docs/ARCHITECTURE.md`](../../federated-pipeline/docs/ARCHITECTURE.md) · [`labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) · PDF [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf)
 
 ---
 
@@ -515,7 +515,7 @@ Think of a **plane**, not a line. Horizontal = **where** (tiers). Vertical = **w
 
 **Lean on the same clocks (no Fed dual tier):** Clock A still exists (kits + `topology.json`); Clock B is the typed CI walk — one “structural” column, no Event Graph column required for classic UC Localize.
 
-**Docs:** [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) · [`ARCHITECTURE.md`](../federated-pipeline/docs/ARCHITECTURE.md).  
+**Docs:** [`federated-pipeline/docs/STORAGE_TIERS.md`](../../federated-pipeline/docs/STORAGE_TIERS.md) · [`ARCHITECTURE.md`](../../federated-pipeline/docs/ARCHITECTURE.md).  
 **Honesty:** Vortex/DashMap/NATS-Rust at 1B EPS is **design vision**; PoC today uses in-memory structural + optional Dragonfly/Redis speed tier.
 
 #### Two axes (do not collapse)

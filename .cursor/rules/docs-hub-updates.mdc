@@ -1,0 +1,33 @@
+---
+description: Where and how to update the docs hub and Pillar A/B slice
+globs: docs/**/*,pillar-ab-implementation/**/*,README.md
+alwaysApply: false
+---
+
+# Docs hub and Pillar A/B update guardrails
+
+## Canonical places to edit
+
+| Kind of content | Edit here |
+|-----------------|-----------|
+| Hub pages, pipeline write-ups, vendor teaching pages, navigation | `docs/` |
+| Motadata Pillar A and Pillar B contracts, discussion notes, labs for that work | `pillar-ab-implementation/` |
+| Management PDFs and OKR workbooks | `KR Plan/` (do not duplicate under `docs/`) |
+
+The HTTP docs hub is served from `benchmarking/dashboard/` on port 8765. That folder should only **link** to the canonical files above. Never maintain a separate evolving copy of the same markdown or HTML there.
+
+## Writing while documenting
+
+Follow the project rule on plain, complete writing:
+
+- Prefer full, definite sentences over short slogans.
+- Do not invent option letters or private path names for decisions.
+- Define any necessary short name in ordinary language the first time it appears on the page.
+- Restate locks and boundaries so a reader without chat history can act.
+
+## After you change structure or titles
+
+1. Update `docs/NAVIGATION.md` when a page moves or a new primary surface appears.
+2. Keep Motadata kickoff and the Pillar A/B slice reachable from the hub (implementation slice at repo-root `pillar-ab-implementation/`).
+3. Leave teaching annexes discoverable from the HLD archive page rather than crowding the main menu.
+4. Smoke-check important hub URLs on port 8765 when you change links or mounts.

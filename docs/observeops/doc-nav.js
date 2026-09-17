@@ -111,7 +111,7 @@
     }
     if (
       item.href === "/observeops-pipeline-hld.html" &&
-      /observeops-pipeline-hld|OBSERVEOPS_PIPELINE_HLD|OBSERVEOPS_HLD_OPERATIONAL_GRAPH|OBSERVEOPS_USE_CASES|observeops-fusion-guide|observeops-ci-graph|observeops-pipeline-diagram|observeops-shift-left|hld-archive|motadata-3pillars|lld-e\d/i.test(path)
+      /observeops-pipeline-hld|OBSERVEOPS_PIPELINE_HLD|OBSERVEOPS_HLD_OPERATIONAL_GRAPH|OBSERVEOPS_USE_CASES|observeops-fusion-guide|observeops-ci-graph|observeops-pipeline-diagram|observeops-shift-left|hld-archive|motadata-3pillars|lld-e\d|motadata-unified-pipeline-workflow|graphwriter-io-walkthrough|checkout-diagnose-walkthrough/i.test(path)
     ) {
       return true;
     }
@@ -133,7 +133,7 @@
     }
     if (
       item.href === "/ed-ai-team-hub.html" &&
-      /ed-ai-team-hub|edgedelta-production-pipeline|EDGEDELTA_PRODUCTION_PIPELINE|edgedelta-subsystem-mechanisms|ed-e2e-pipelines-team|ed-portal-walkthrough|ed-lab-timeline|edgedelta-tenant-evidence|edgedelta-lab-run|edgedelta-uc9|ed-lab-setup|EDGEDELTA_LAB_SETUP|ed-supported-scenarios/.test(
+      /ed-ai-team-hub|edgedelta-production-pipeline|EDGEDELTA_PRODUCTION_PIPELINE|edgedelta-subsystem-mechanisms|ed-e2e-pipelines-team|ed-portal-walkthrough|ed-lab-timeline|edgedelta-tenant-evidence|edgedelta-lab-run|edgedelta-uc9|ed-lab-setup|EDGEDELTA_LAB_SETUP|ed-supported-scenarios|edgedelta-to-motadata-mapping/.test(
         path
       )
     ) {

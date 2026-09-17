@@ -63,7 +63,7 @@ Host `harshil@45.195.82.10` (`pro6000-server`): Ubuntu 24.04, 16 CPU, 125 Gi RAM
 | MCP `k8s.node.name` | Still **only** `k3d-ed-lab-server-0` after RTX had been tailing |
 | Agent log | `402 Payment Required` on `metric_upload_link`, `event_upload_link`, `s3_archive_upload_link`: *You are over your quota limit* |
 
-Helm default also stood up **compactor + rollup**. Scaling those to 0 without disabling `rollUpProps` made the Node agent hammer `edgedelta-rollup-svc:9200` (connection refused). Cached-chart upgrade with [`labs/edgedelta/helm-values-wsl.yaml`](../labs/edgedelta/helm-values-wsl.yaml) left **Node-only**. Quota 402 remained.
+Helm default also stood up **compactor + rollup**. Scaling those to 0 without disabling `rollUpProps` made the Node agent hammer `edgedelta-rollup-svc:9200` (connection refused). Cached-chart upgrade with [`labs/edgedelta/helm-values-wsl.yaml`](../../labs/edgedelta/helm-values-wsl.yaml) left **Node-only**. Quota 402 remained.
 
 ### 4. Pro upgrade — evening — **RTX ingest OK**
 

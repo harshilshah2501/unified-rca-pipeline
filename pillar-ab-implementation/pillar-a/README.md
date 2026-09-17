@@ -49,11 +49,12 @@ pillar-a/
 ├── README.md                 ← you are here
 ├── HANDOFF.md                ← scope, locked leanings, open work
 ├── contracts/
-│   ├── schemas/
+│   ├── schemas/                 ← symlinks → ../../../contracts/schemas/ (SoT)
 │   │   ├── ingest_v1.schema.json
 │   │   └── sketch_v1.schema.json
-│   ├── IDENTIFIED_STREAM_REJECT.md
-│   └── GATE_B_DEST_PROFILE.md   ← history/ room for sketches
+│   ├── MAP_WRITE_READ_RECORD.md ← symlink → ../../contracts/ (SoT)
+│   ├── IDENTIFIED_STREAM_REJECT.md ← symlink → SoT
+│   └── GATE_B_DEST_PROFILE.md   ← symlink → SoT (history/ room for sketches)
 ├── docs/
 │   ├── PILLAR_A_PERCENTILES_DEEP_DIVE.md   ← start here (inputs → process → artifacts)
 │   ├── GRAPH_QNA.md                        ← fabric Q&A (E1–E5)
@@ -66,7 +67,7 @@ pillar-a/
 └── poc/
     ├── ab_shared/     ← stubs: identity gate, season, dest, ingest, schema
     ├── sketch/        ← Pillar A writer + read API
-    ├── fixtures/lab_checkout/   ← metric-only streams (no topo_update)
+    ├── fixtures/lab_checkout/   ← metric-only streams (no topo_update); see ../E2_INPUT_FIXTURES.md
     ├── Makefile
     └── requirements.txt
 ```

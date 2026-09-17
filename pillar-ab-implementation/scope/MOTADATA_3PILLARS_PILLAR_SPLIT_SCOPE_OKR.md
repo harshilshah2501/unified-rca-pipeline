@@ -2,7 +2,7 @@
 
 > **Superseded for sharing:** use the merged guide  
 > [`../deliverables/Motadata_3Pillars_Merged_Implementation_Guide.pdf`](../deliverables/Motadata_3Pillars_Merged_Implementation_Guide.pdf)  
-> (canonical markdown: [`MOTADATA_3PILLARS_MERGED_SCOPE.md`](./MOTADATA_3PILLARS_MERGED_SCOPE.md)).  
+> (canonical markdown: [`MOTADATA_3PILLARS_MERGED_SCOPE.md`](../../docs/MOTADATA_3PILLARS_MERGED_SCOPE.md)).  
 > Slice home: [`pillar-ab-implementation/`](../README.md).  
 > This file remains as the shorter Gaps-only draft that was merged in.
 

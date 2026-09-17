@@ -120,6 +120,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--src", type=Path, default=DEFAULT_SRC)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args(argv)
+
+    from local_dumps import require_jsonl_resolved
+
+    require_jsonl_resolved(args.src)
+
     doc = build_ci_bind(args.src.resolve())
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(doc, indent=2) + "\n")

@@ -62,7 +62,7 @@ Pillar A does **not** invent topology edges. It does **not** open tickets. It do
 | **Hot-bin** | The bucket where abnormal mass sits (often the high-count or high-latency bin after Detect fires). |
 | **Vortex** | Hot analytical query surface over sketch (and graph) data — interactive lookups without scanning raw history. |
 | **S3** | Cold durable object store — long retention for sketch blobs so history does not evaporate. |
-| **E4 destination (Motadata-shaped)** | For production Motadata Pillar A, **both** jobs are required: S3 (cold) **and** Vortex (hot). Labs may temporarily write JSON files; that is a stand-in, not a second product design. |
+| **E4 destination (Motadata-shaped)** | For production Motadata Pillar A, **both temperature jobs** are required: S3 (cold) **and** Vortex (hot). Labs may write JSON via Gate B **`files.v1`**; that is a PoC **encoding** of the same logical keys, not a second product design. |
 | **Door C** | Platform Detect that reads Pillar A sketches (digest vs baseline). Not Pillar C (the agent). |
 
 ---
@@ -121,7 +121,7 @@ So Pillar A keeps:
               • optional agent tools (get_metric_baseline)
 ```
 
-**Rooms vs temperature:** “sketch history” is one **content room**. Inside the Motadata-shaped lake it still needs **two temperatures**: S3 (cold retention) and Vortex (hot lookup). Diagnose should use retrieval into a bounded working set — not open S3 as a dump. Visual: [`vortex-s3-interaction.html`](./vortex-s3-interaction.html).
+**Rooms vs temperature:** “sketch history” is one **content room**. Inside the Motadata-shaped lake it still needs **two temperatures**: S3 (cold retention) and Vortex (hot lookup). **Shared rule:** rooms = content; Vortex+S3 = production temperature when that dest is chosen; `files.v1` = PoC encoding of the same keys ([`GATE_B_DEST_PROFILE.md`](../../pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md)). Diagnose should use retrieval into a bounded working set — not open S3 as a dump. Visual: [`vortex-s3-interaction.html`](./vortex-s3-interaction.html).
 
 ---
 
@@ -572,6 +572,7 @@ Same digest number; different `season_key`.
 | Shorter What/Why/How kickoff Part C | [`MOTADATA_3PILLARS_MERGED_SCOPE.md`](../MOTADATA_3PILLARS_MERGED_SCOPE.md) |
 | Algorithm walk with season helper | [`end-to-end-algorithm-walkthrough.md`](./end-to-end-algorithm-walkthrough.md) |
 | Picture of digest / buckets / baseline / exemplars | [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html) |
+| RED (Rate · Errors · Duration) + OTel exemplars | [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html#red-metrics) |
 | PoC code | [`pillar-ab-implementation/pillar-a/poc/`](../../pillar-ab-implementation/pillar-a/poc/) |
 | Stores LLD draft | [`LLD-E4-Stores.md`](../observeops/LLD-E4-Stores.md) |
 

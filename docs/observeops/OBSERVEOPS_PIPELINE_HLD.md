@@ -48,7 +48,7 @@ From continuous telemetry on a service chain, the pipeline must reliably surface
 
 ## 3. Architecture principles
 
-Derived from [`lean-pipeline/docs/ARCHITECTURE.md`](../lean-pipeline/docs/ARCHITECTURE.md):
+Derived from [`lean-pipeline/docs/ARCHITECTURE.md`](../../lean-pipeline/docs/ARCHITECTURE.md):
 
 - Reproducibility is mandatory for evaluation paths.
 - Verifiability is mandatory (tier/evidence trail must be inspectable).

@@ -1,6 +1,8 @@
 # Ingest Data Format — What to Provide (Frozen Corpus PoC)
 
 **Audience:** Data owners preparing logs, metrics, traces for ingestion PoC  
+**Tier:** Tier 2 implementer I/O (**I/O-1**) — see [`observeops/OUR_HLD_TIER1.md`](./observeops/OUR_HLD_TIER1.md). Pillar lab fixtures: [`../pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md) (**I/O-2**).
+**Machine schema (JSON Schema):** [`../pillar-ab-implementation/contracts/schemas/ingest_v1.schema.json`](../pillar-ab-implementation/contracts/schemas/ingest_v1.schema.json) — validators use this file; keep prose below aligned with it.
 **Build order:** **Federated pipeline first (F1)**, then **Lean bundle writer (L0)** from the **same** normalized stream  
 **Related:** [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) §3.4 · [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · HLD v1.1 [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §11.1 · [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) (Normalize)
 
@@ -37,42 +39,49 @@ All sources should land as **`ingest.v1` JSONL** — one JSON object per line, t
 
 ### Required fields
 
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `schema_version` | string | Yes | Always `"ingest.v1"` |
-| `ts` | ISO-8601 UTC | Yes | Event time |
-| `tenant` | string | Yes | e.g. `"default"` |
-| `ci_id` | string | Yes | Stable CI / service id after E2. At E1 this may be source-asserted or a placeholder; E2 resolves it. Primary join key with `tenant` for topology, stores, and a future ServiceOps ticket |
-| `ci_type` | string | Yes | e.g. `Service`, `HypervisorHost`. Additive taxonomy — see [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) §3 |
-| `signal_class` | enum | Yes | Admitted now: §2. Reserved unused: §2.1 |
-| `name` | string | Yes | Metric name, log type, span operation, etc. |
-| `value` | number | Usually | Numeric value; use `1.0` for boolean events |
-| `threshold` | number \| null | If known | For detect / anomaly marking |
-| `severity` | number | Optional | Normalized severity or ratio |
-| `labels` | object | Optional | Trace ids, route, host, raw metadata |
-| `raw_ref` | string | Optional | Pointer to original record |
+**Two layers (do not conflate):**
+
+1. **JSON Schema minimal** (`ingest_v1.schema.json` `required[]`): `schema_version`, `ts`, `tenant`, `ci_id`, `signal_class` — what validators enforce today.
+2. **Product / PoC prose (this table):** also expect `ci_type` and `name` on every healthy line so Identity and Detect have a type and a metric/event name. Missing `ci_type` / `name` may still parse against the schema but will fail downstream quality gates and lab fixtures.
+
+| Field | Type | Schema `required` | Product expect | Notes |
+|-------|------|-------------------|----------------|-------|
+| `schema_version` | string | Yes | Yes | Always `"ingest.v1"` |
+| `ts` | ISO-8601 UTC | Yes | Yes | Event time |
+| `tenant` | string | Yes | Yes | e.g. `"default"` |
+| `ci_id` | string | Yes | Yes | Stable CI / service id after E2. At E1 this may be source-asserted or a placeholder; E2 resolves it. Primary join key with `tenant` for topology, stores, and a future ServiceOps ticket |
+| `ci_type` | string | No (property defined) | Yes | e.g. `Service`, `HypervisorHost`. Additive taxonomy — see [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) §3 |
+| `signal_class` | enum | Yes | Yes | Admitted now: §2. Reserved unused: §2.1 |
+| `name` | string | No (property defined) | Yes | Metric name, log type, span operation, etc. |
+| `value` | number | No | Usually | Numeric value; use `1.0` for boolean events |
+| `threshold` | number \| null | No | If known | For detect / anomaly marking |
+| `severity` | number | No | Optional | Normalized severity or ratio |
+| `labels` | object | No | Optional | Trace ids, route, host, raw metadata |
+| `raw_ref` | string | No | Optional | Pointer to original record |
 
 ---
 
 ## 2. `signal_class` values
 
-| Class | Federated use | Lean use |
-|-------|---------------|----------|
-| `metric_sample` | Structural tier (Murphy/Panorama context) | Anomaly detect input |
-| `anomaly` | Pre-marked crossing (optional) | `A-ANOM` |
-| `event` | Speed tier + evidence | `A-EVT` (UC-2/4 class) |
-| `trace_span` | **Required for Nezha** — Dragonfly `tg:` / `pc:` | Optional |
-| `topo_update` | Structural graph refresh | `A-TOPO` refresh |
+Full JSON examples and Pillar A/B routing: [`pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md#signal_class-cheat-sheet) (**I/O-2**).
+
+| Class | Federated use | Lean use | Primary consumer (ObserveOps) |
+|-------|---------------|----------|-------------------------------|
+| `metric_sample` | Structural tier (Murphy/Panorama context) | Anomaly detect input | **E4 Stores** · **E6 Detect** |
+| `anomaly` | Structural + speed tier | `A-ANOM` | **E6 Detect** · **E7 Curate** |
+| `event` | Structural + speed tier | `A-EVT` | **E4 Stores** · **E10 Identify** |
+| `trace_span` | **Required for Nezha** — speed tier (`tg:` / `pc:`) | Optional | **E9 Localize** · **E10 Identify** |
+| `topo_update` | Structural graph refresh | `A-TOPO` refresh | **E3 Topology** only |
 
 ### 2.1 Reserved `signal_class` values (do not emit this pass)
 
 Named so later ServiceOps / CMDB sources do not collide with today's enum. Collectors for these are **out of E1 this pass**. Unknown classes (not in §2 and not in this table) must be rejected or dead-lettered — do not guess. See [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) §2.2.
 
-| Class | Future producer |
-|-------|-----------------|
-| `change_event` | Change / deploy feed |
-| `cmdb_sync` | CMDB / discovery snapshot or delta |
-| `ticket` | ServiceOps incident / ITSM record |
+| Class | Future producer | Intended consumer |
+|-------|-----------------|-------------------|
+| `change_event` | Change / deploy feed | **E5 Maintain** · ServiceOps |
+| `cmdb_sync` | CMDB / discovery snapshot or delta | **E2 Identity** / catalog enrichment |
+| `ticket` | ServiceOps incident / ITSM record | **E11 Package** join on `ci_id` |
 
 ### 2.2 Identity overlay (E2 Normalize — not a second on-wire format)
 

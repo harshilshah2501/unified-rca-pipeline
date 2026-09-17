@@ -13,7 +13,7 @@
 3. **Rooms ≠ temperature.** `map/` / `history/` are content; Vortex / S3 are hot/cold when that dest is chosen.
 4. **Identity bind is upstream.** Pillar A/B writers assume look-up / LUT-like stamping already happened at **E2** (or quarantine); they do not own the bind table.
 
-**Companions:** [`e1-e5-pipeline-architecture.html`](../../docs/fabric/e1-e5-pipeline-architecture.html) · [`vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html) · [`map-history-storage-blocks.html`](../../docs/fabric/map-history-storage-blocks.html) · [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../../docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) · [`Sketches_Merging_RawData_QnA.pdf`](../../docs/fabric/Sketches_Merging_RawData_QnA.pdf)
+**Companions:** [`data-shape-journey.html`](../../docs/fabric/data-shape-journey.html) (E1–E11 data evolution) · [`inventory-catalog-on-the-map.html`](../../docs/fabric/inventory-catalog-on-the-map.html) (inventory vs catalog → map) · [`sketch-exemplars-visual.html`](../../docs/fabric/sketch-exemplars-visual.html) (RED + exemplars · OTel vs ObserveOps) · [`e1-e5-pipeline-architecture.html`](../../docs/fabric/e1-e5-pipeline-architecture.html) · [`vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html) · [`map-history-storage-blocks.html`](../../docs/fabric/map-history-storage-blocks.html) · [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../../docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) · [`Sketches_Merging_RawData_QnA.pdf`](../../docs/fabric/Sketches_Merging_RawData_QnA.pdf)
 
 ---
 
@@ -456,6 +456,119 @@ Digest + buckets = same samples. Baseline = past windows, not this slice alone. 
 
 This walkthrough-style Detect (digest vs baseline) **is** door C when mapped onto the pipeline. Doors A/B still ours to build; Motadata PDF mainly drew platform Detect.
 
+See also **G41** — how E6 fires on `history/` alone when sketches carry no edges.
+
+### G41. How does E6 Detect work on `history/` sketches alone — with no edges in the sketch row?
+
+**A.** **E6 does not need edges.** Detect and Localize answer different questions on purpose.
+
+| Stage | Question | Reads | Needs `map/` edges? |
+|-------|----------|-------|---------------------|
+| **E6 Detect** (door C) | Is **this configuration item’s metric** abnormal **for this time-of-week**? | `history/` only | **No** |
+| **E8 Scope** | What bounded evidence belongs in this case? | `map/` + `history/` | Yes — neighbors from graph |
+| **E9 Localize** | From the symptom CI, **where** should we walk next? | `map/` (+ WorkingSet) | **Yes** — typed edge walk |
+
+**What one `sketch.v1` row is.** After E4, each closed window produces one **self-contained stat card**:
+
+```text
+(tenant, entity_id, metric_id, window, window_start, season_key)
+  → tdigest     (current p50 / p95 / p99 for this window)
+  → baseline    (expected p50 / p95 / p99 for this season_key)
+  → buckets     (optional — investigation after fire)
+```
+
+The row carries **who** and **what** (`entity_id` ≡ graph `ci_id` after E2 bind; `metric_id`; `entity_type`; `season_key`). It does **not** carry **who talks to whom**. The schema forbids edge fields on sketches (`src_ci_id`, `dst_ci_id`, `relation` are not sketch keys). See **G3**.
+
+**What door C actually computes.** A scalar comparison on that row — no hop, no neighbor lookup:
+
+```python
+ratio = current_p95 / baseline.expected_p95
+fired = ratio > threshold   # e.g. 1.5×
+```
+
+Walkthrough example ([`end-to-end-algorithm-walkthrough.md`](../pillar-a/docs/end-to-end-algorithm-walkthrough.md)): `454.8 / 172.6 = 2.64×` → **ABNORMAL** for `Thu-09:00` on that entity. PoC stub: [`integration/join/harness.py`](../integration/join/harness.py) → `door_c_flags()` loads percentiles + baseline for one `(entity_id, metric_id)` and compares p95 to expected p95 — no graph import.
+
+**What Detect can emit without edges.** A **`Signal`** roughly meaning:
+
+> On **checkout-api**, **request.latency_ms** in this **5m** window is **2.6×** the seasonal p95 — class **SLOWDOWN**.
+
+That is enough to **fire an anomaly**. It is **not** enough to **localize root cause** — and that is intentional. Detect is **per-CI, per-metric thresholding** (platform monitor on pre-aggregated sketches), not Smartscape traversal.
+
+**Where edges enter the pipeline.**
+
+```text
+E4 Sketch writer  → history/   one row per entity × metric × window
+E3 Topology       → map/       nodes + edges (relationships)
+
+E6 Detect         → history/ only → Signal(s)
+E7 Curate         → correlate / dedupe Signals → CaseSeed
+E8 Scope          → first read-join: seed CI + map/ neighbors + history/ snippets → WorkingSet
+E9 Localize       → walk map/ edges (depends_on, runs_on, …)
+E10 Identify      → corroborate with more sketches on walked CIs
+```
+
+Visual read-path table: [`map-history-storage-blocks.html`](../../docs/fabric/map-history-storage-blocks.html).
+
+**Lab-shaped example.** After flush, `history/sketches.jsonl` may contain:
+
+- `checkout-api` · `request.latency_ms` · p95 well above seasonal expected → **fires**
+- `payments-db` · `cpu.utilization_pct` · normal → **silent**
+- `linux-server-app-01` · `cpu.utilization_pct` · may fire independently later
+
+Each fires from **its own sketch row**. E7 Curate may group correlated Signals into one case. E8 Scope picks a seed CI, pulls **neighbors from `map/`**, and attaches **their** sketch snippets. E9 walks `depends_on` / `runs_on` to decide leaf vs upstream. None of that graph logic belongs inside E6.
+
+**Why the split is deliberate.**
+
+1. **Detect must stay cheap** — scan hot sketch rows, compare two numbers, emit Signal; no graph walk on every window for every CI×metric.
+2. **Rooms stay independent** — sketches merge and age as time-series facts; topology is a slow-changing structure fact. Edges in sketches would duplicate `map/` and break the parallel-writer model (**G16**).
+3. **Detect can fire on incomplete topology** — “checkout-api is slow” still fires even if `map/` is stale; Localize quality degrades, but firing does not block.
+
+**One line:** **E6 Detect = “is this thermometer reading abnormal for this hour of the week?”** **E9 Localize = “given a hot thermometer, which rooms are connected on the floor plan?”** The thermometer (`sketch.v1`) has location id + reading; the floor plan (`GraphSnapshot`) has relationships. Detect uses the thermometer alone; RCA joins both at **E8+**.
+
+See also **G42** — MELTS vs aggregated stream vs `sketch.v1` (three different layers).
+
+### G42. MELTS vs aggregated stream vs `sketch.v1` — are sketches the same as “aggregated stream instead of MELTS”?
+
+**A.** **No.** Those three names sit on **different axes**. MELTS is not replaced by aggregated stream; sketches are not the same as either — they are a **deeper, platform-side compression** of the **Metrics (M)** path into `history/`.
+
+| Layer | What it answers | Where in the pipeline | Example in our docs |
+|-------|-----------------|----------------------|---------------------|
+| **MELTS** | What **modality** is this? (Metrics, Events, Logs, Traces, Spans) | Taxonomy at collect — not a pipeline stage | [`MELTS_MODALITY_IMPORTANCE.md`](../../docs/reference/MELTS_MODALITY_IMPORTANCE.md) |
+| **Aggregated / shaped stream** | How much **raw volume** still ships after edge shaping? | Shift-left — Node / Gateway **before** central SaaS | Edge Delta: `parsed + tagged rows → aggregated stream → shaped MELT over TLS`; ObserveOps: **shaped stream** ([`observeops-shift-left-architecture.html`](../../docs/observeops/observeops-shift-left-architecture.html)) |
+| **`sketch.v1` (`history/`)** | What **compact metric history** does E6 door C read? | **E4 Stores** — Pillar A after E2 Identity | T-Digest + buckets + seasonal baseline per `(entity_id, metric_id, window, season_key)` |
+
+**MELTS stays inside an aggregated stream.** Edge shaping reduces volume; it does not abolish modalities. A shaped stream can still carry metrics, logs, spans, and events — just parsed, tagged, and often rolled up.
+
+**Pipeline order (metrics path).**
+
+```text
+Sources (MELTS-shaped telemetry)
+    ↓  shift-left (optional)
+Shaped / aggregated stream     ← rollups, dedup, mask — still telemetry records
+    ↓  E1 Collect
+ingest.v1  (signal_class: metric_sample | event | trace_span | topo_update | …)
+    ↓  E2 Identity
+    ├─► E3 Topology  → map/
+    └─► E4 Sketch writer  → history/sketch.v1   ← second aggregation; metrics only
+            ↓
+        E6 Detect (door C): p95 vs seasonal baseline on sketch rows
+```
+
+**At E3/E4, writers use `signal_class`, not MELTS letters** (**G31**). Pillar A admits `metric_sample` and builds sketches; Pillar B admits `topo_update`; other classes are skipped or routed to other store surfaces. PoC fixtures may still be **one sample per `metric_sample` line** — E4 **aggregates those samples into windowed sketch rows**; that is not the same object as the edge aggregated stream.
+
+**Only the Metrics path becomes `sketch.v1`.** Events, logs, and traces do not land in sketch rows (non-metric lines are silent-skipped by Pillar A; schema forbids edge fields). Other modalities need other evidence surfaces (Lean bundle files, future execution graph, etc.) — out of the A/B freeze for topology + sketches (**GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md** §8).
+
+**Two compounding levers (not competing strategies)** — **G37**:
+
+| Lever | Where | Question it answers |
+|-------|-------|---------------------|
+| **Shift-left / aggregated stream** | Edge, before SaaS | “Should this much raw travel at all?” |
+| **Pillar A sketch (E4)** | SaaS, after admit | “Once metric samples are here, do we keep raw or compress into `history/`?” |
+
+Industry “warm tier aggregated rollups” (**G36**) is closer in *spirit* to sketches than edge aggregated stream is — but our **`sketch.v1`** is **quantile-native** (T-Digest + seasonal baseline for door C), not a generic multi-modality rollup table.
+
+**One line:** **MELTS** = what you collect · **aggregated stream** = how much you ship early · **`sketch.v1`** = what Pillar A stores so E6 never rescans raw metric samples. See **G41** for why E6 reads sketches without graph edges.
+
 ### G26. Comparative objectives / inputs / outputs — digest, buckets, baseline, exemplars (§5)
 
 | | **T-Digest** | **Buckets** | **Seasonal baseline** | **Exemplars** |
@@ -538,10 +651,11 @@ Pillar A consumes **whole identified metric lines** (already stamped at E2). It 
 
 | Line kind | Pillar A | Pillar B |
 |-----------|----------|----------|
-| `signal_class: metric_sample` | Admit → sketch writer | Ignored |
-| `signal_class: topo_update` | **Silent skip** — not a reject | Graph builder consumes |
+| `signal_class: metric_sample` | Admit → sketch writer (`sketch.v1`) | **Silent skip (NOOP)** |
+| `signal_class: topo_update` | **Silent skip (NOOP)** — not a reject | Admit → graph builder (**WRITE** if catalog checks pass) |
+| `event` / `trace_span` / `anomaly` | Silent skip (not `sketch.v1`) | **Silent skip (NOOP)** — case path / other stores |
 
-Topology rows (`runs_on`, `depends_on`, …) are **not** sketch inputs and **never** become `sketch.v1` fields. “One file feeds both products” is **fixture packaging**, not a claim that sketches store edges.
+Topology rows (`runs_on`, `depends_on`, …) are **not** sketch inputs and **never** become `sketch.v1` fields. “One file feeds both products” is **fixture packaging**, not a claim that sketches store edges. Full consumer map: [`E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md).
 
 ### G32. Where are false positives filtered — is it E5 Maintain? (§5.2.1, E6, E7)
 

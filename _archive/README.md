@@ -4,7 +4,7 @@ Parked snapshots and one-offs. **Do not edit these for live `:8765` docs.**
 
 | Path | What it was |
 |------|-------------|
-| `exports/` | Frozen Aug 2026 portable docs-hub copy (+ zip). Regenerate on demand later; do not treat as canonical. |
+| `exports/` | Frozen Aug 2026 portable docs-hub copy (+ zip). **Do not edit** — live hub is `../docs/`. Regenerate on demand later; do not treat as canonical. |
 | `pillar-ab-combined-poc-2026-08/` | Pre-split combined A+B PoC (archived 2026-08-27). Live: `pillar-a/` / `pillar-b/` / `integration/`. |
 | `_adhoc/` | One-off e-com gold compare and similar scratch |
 | `notes/` | Off-record notes |

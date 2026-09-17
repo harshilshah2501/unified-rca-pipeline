@@ -29,8 +29,8 @@ There is no long-running E1 service yet. Two converters emit `ingest.v1`, but th
 
 | Path | What E1 owns in the LLD | What actually runs in one script today |
 |---|---|---|
-| ObserveOps replay | Admit corpus metrics/events/topo_update as `ingest.v1` | [`observeops_to_ingest_v1.py`](../ingestion-poc/replay/observeops_to_ingest_v1.py) also looks up `ci_type` from `topology.json` — that lookup is **E2**, documented here so it is not mistaken for Collect |
-| Motadata export | Admit ClickHouse JSONL as `ingest.v1` with source-native ids | [`motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_ingest_v1.py) applies [`build_motadata_ci_bind.py`](../ingestion-poc/adapters/build_motadata_ci_bind.py) **in the same process** — that bind is **E2** |
+| ObserveOps replay | Admit corpus metrics/events/topo_update as `ingest.v1` | [`observeops_to_ingest_v1.py`](../../ingestion-poc/replay/observeops_to_ingest_v1.py) also looks up `ci_type` from `topology.json` — that lookup is **E2**, documented here so it is not mistaken for Collect |
+| Motadata export | Admit ClickHouse JSONL as `ingest.v1` with source-native ids | [`motadata_to_ingest_v1.py`](../../ingestion-poc/adapters/motadata_to_ingest_v1.py) applies [`build_motadata_ci_bind.py`](../../ingestion-poc/adapters/build_motadata_ci_bind.py) **in the same process** — that bind is **E2** |
 
 **Follow-up (not required to call this LLD Done):** split Motadata admit vs bind into separately invocable steps so the code matches the stage boundary. Until then, treat the Motadata script as E1 admit + E2 bind in one process, and score identity work against [`LLD-E2-Identity.md`](./LLD-E2-Identity.md).
 
@@ -118,7 +118,7 @@ python3 ingestion-poc/replay/observeops_to_ingest_v1.py --all
 
 Reads `datasets/observeops/UC-{1..5}/{metrics/*.json, events.json, topology.json}`, writes `datasets/ingest_samples/observeops-replay/UC-N/{stream.jsonl, manifest.json, topo_updates.jsonl}` plus copies of `topology.json`, `ground_truth.json`, `symptom_seed.json`, `anomalies.json` for downstream stages.
 
-Reference: [`ingestion-poc/replay/observeops_to_ingest_v1.py`](../ingestion-poc/replay/observeops_to_ingest_v1.py).
+Reference: [`ingestion-poc/replay/observeops_to_ingest_v1.py`](../../ingestion-poc/replay/observeops_to_ingest_v1.py).
 
 ### 3.2 Motadata export path (product-shaped, real-export path)
 
@@ -128,7 +128,7 @@ python3 ingestion-poc/adapters/motadata_to_ingest_v1.py --smoke
 
 Reads `datasets/ingest_samples/jsonl_resolved/*.jsonl` (local, gitignored ClickHouse export), applies CI bind (E2 — see [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) §2.2) and the threshold catalog, writes `motadata-ingest/stream.jsonl`.
 
-Reference: [`ingestion-poc/adapters/motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_ingest_v1.py).
+Reference: [`ingestion-poc/adapters/motadata_to_ingest_v1.py`](../../ingestion-poc/adapters/motadata_to_ingest_v1.py).
 
 ### 3.3 Live / Vector path (lab-validated, not the fairness baseline)
 
@@ -136,11 +136,11 @@ Vector source → transform → sink configs already exist as skeletons:
 
 | Config | Role |
 |---|---|
-| [`vector.l0-smoke.toml`](../ingestion-poc/vector/vector.l0-smoke.toml) | Lean-only sink smoke |
-| [`vector.f1-smoke.toml`](../ingestion-poc/vector/vector.f1-smoke.toml) | Dual-sink (Lean + structural + speed) smoke |
-| [`vector.dual-sink.toml`](../ingestion-poc/vector/vector.dual-sink.toml) | Dual-sink production-shaped |
-| [`vector.live-syslog.toml`](../ingestion-poc/vector/vector.live-syslog.toml) | Live syslog source |
-| [`vector.live-prometheus.toml`](../ingestion-poc/vector/vector.live-prometheus.toml) | Live Prometheus scrape |
+| [`vector.l0-smoke.toml`](../../ingestion-poc/vector/vector.l0-smoke.toml) | Lean-only sink smoke |
+| [`vector.f1-smoke.toml`](../../ingestion-poc/vector/vector.f1-smoke.toml) | Dual-sink (Lean + structural + speed) smoke |
+| [`vector.dual-sink.toml`](../../ingestion-poc/vector/vector.dual-sink.toml) | Dual-sink production-shaped |
+| [`vector.live-syslog.toml`](../../ingestion-poc/vector/vector.live-syslog.toml) | Live syslog source |
+| [`vector.live-prometheus.toml`](../../ingestion-poc/vector/vector.live-prometheus.toml) | Live Prometheus scrape |
 
 Dev/smoke stand-in for the Vector box (same three-sink output shape) is the Python fan-out runner:
 
@@ -148,7 +148,7 @@ Dev/smoke stand-in for the Vector box (same three-sink output shape) is the Pyth
 python3 ingestion-poc/pipeline/f1_run.py
 ```
 
-Reference: [`ingestion-poc/pipeline/f1_run.py`](../ingestion-poc/pipeline/f1_run.py) — **per [`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) §D0–D2, this is Done as a smoke path; D3–D5 (topology crawler stub, Federated speed-tier builder from Vector's own Redis/Kafka sink, product hardening including DLQ) remain Planned.**
+Reference: [`ingestion-poc/pipeline/f1_run.py`](../../ingestion-poc/pipeline/f1_run.py) — **per [`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) §D0–D2, this is Done as a smoke path; D3–D5 (topology crawler stub, Federated speed-tier builder from Vector's own Redis/Kafka sink, product hardening including DLQ) remain Planned.**
 
 ---
 
@@ -183,7 +183,7 @@ The HLD (§15) sets "sustained ingest throughput ≥ platform peak (soak-validat
 | F1, Vector (Docker) | 66,541 EPS | same run |
 | Dragonfly soak (store-path headline gate, not this stage directly but the sink E1 feeds) | **67,084.8 EPS sustained**, p99 write 0.379 ms, 120 s duration | `cost-pro6000-20260721Tsoak` |
 
-**Evidence maturity: Grounded** — these are measured (not extrapolated) numbers from [`benchmarking/results/costing/cost-pro6000-20260721Tfinal/cost_report.md`](../benchmarking/results/costing/cost-pro6000-20260721Tfinal/cost_report.md), except GB/day figures in that report which are explicitly extrapolated (flagged there, not here). Per that report's own notes: **the headline ≥50K EPS gate is the Dragonfly soak (store path), not raw Vector/Python fan-out** — do not cite the 153K Python fan-out number as if it were the product throughput SLA; it's an upper-bound smoke number on a 16-CPU host, not a soak-validated target.
+**Evidence maturity: Grounded** — these are measured (not extrapolated) numbers from [`benchmarking/results/costing/cost-pro6000-20260721Tfinal/cost_report.md`](../../benchmarking/results/costing/cost-pro6000-20260721Tfinal/cost_report.md), except GB/day figures in that report which are explicitly extrapolated (flagged there, not here). Per that report's own notes: **the headline ≥50K EPS gate is the Dragonfly soak (store path), not raw Vector/Python fan-out** — do not cite the 153K Python fan-out number as if it were the product throughput SLA; it's an upper-bound smoke number on a 16-CPU host, not a soak-validated target.
 
 ---
 

@@ -1,6 +1,7 @@
 # Map write / read record (`files.v1` PoC)
 
 **Status:** Normative for the Pillar A/B PoC destination profile.  
+**Tier:** Tier 2 implementer I/O (**I/O-3**) — see [`docs/observeops/OUR_HLD_TIER1.md`](../../docs/observeops/OUR_HLD_TIER1.md). Pillar writer **input**: [`../E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md) (**I/O-2**).
 **Room:** `map/` (Pillar B / ObserveOps E3 Topology).  
 **Encoding:** UTF-8 **JSON** (pretty document or JSON Lines).  
 **Not in this PoC:** Motadata Vortex DDL, protobuf codecs, or live S3 APIs.

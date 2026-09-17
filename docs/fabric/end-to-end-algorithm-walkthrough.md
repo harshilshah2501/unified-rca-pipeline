@@ -383,6 +383,28 @@ Exemplar points to a real request
 Trace inspection investigates the cause
 ```
 
+### What this Detect rule does not cover (AVAILABILITY)
+
+Stage 5 is **SLOWDOWN door C only**: current p95 much **higher** than the seasonal
+expected p95. It does **not** detect outage-shaped failures:
+
+| Situation | What the sketch usually shows | Does `ratio > 1.5` fire? |
+|-----------|--------------------------------|--------------------------|
+| Service **down / unreachable** (no completing requests) | No row, or `sample_count = 0` | **No** — read path has nothing to compare |
+| **Traffic vanished** vs this hour-of-week | `sample_count` far below seasonal norm | **No** — not part of this rule |
+| Failed requests recorded as **0 ms** latency (bad telemetry) | p95 ≈ 0 | **No** — looks *better* than baseline |
+
+Those cases belong to **AVAILABILITY**-style Detect (separate doors in the
+ObserveOps pipeline): up/down or health checks, error rates, **sample-count drop
+vs season**, and caller cascade on the topology graph — not a high-latency
+percentile ratio on `request.latency_ms` alone.
+
+Production would add sibling rules (for example compare `sample_count` to seasonal
+expected volume, or sketch a dedicated availability/error metric). Ingest should
+not map timeouts or hard failures to zero latency. See the Detect-class matrix in
+[`OBSERVEOPS_PIPELINE_HLD.md`](../observeops/OBSERVEOPS_PIPELINE_HLD.md) (SLOWDOWN
+vs AVAILABILITY).
+
 ## Why The Algorithms Work Together
 
 No single structure provides every capability:
@@ -467,3 +489,7 @@ In this demo, every one of the 5,000 events can update counts; each bin keeps **
 ### Q4. Reminder: what is enough for Detect vs investigate?
 
 **A.** Digest + baseline → Detect (p95 vs expected). Buckets + exemplars → after Detect, which range and which trace to open. That split is general for this percentile-vs-season design, not only this synthetic run.
+
+### Q5. What about zero latency or an unreachable node — does this Detect catch that?
+
+**A.** No. Stage 5 only fires when p95 is **much higher** than seasonal expected (SLOWDOWN). A down or unreachable service usually produces **missing samples**, not a high p95; falsely recording failures as **0 ms** would look healthy. See [What this Detect rule does not cover (AVAILABILITY)](#what-this-detect-rule-does-not-cover-availability) above and AVAILABILITY in [`OBSERVEOPS_PIPELINE_HLD.md`](../observeops/OBSERVEOPS_PIPELINE_HLD.md).

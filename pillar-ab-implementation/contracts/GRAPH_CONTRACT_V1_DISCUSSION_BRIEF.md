@@ -6,7 +6,7 @@
 **Q&A companion:** [`GRAPH_QNA.md`](./GRAPH_QNA.md) (E1–E5 always-on fabric).  
 **Also:** condensed PDF [`Sketches_Merging_RawData_QnA.pdf`](../../docs/Sketches_Merging_RawData_QnA.pdf) — see GRAPH_QNA on merge / raw retention.
 
-**Companion:** Full sample JSON for every qualified node type and all fifteen edges — [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md).  
+**Companion:** Full sample JSON for every qualified node type and all fifteen edges — [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md).
 **Pillar A deep dive (inputs → process → artifacts):** [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../../docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md).
 
 ### Owner leanings (this session)
@@ -79,10 +79,10 @@ Counts of the nineteen Motadata names: clearly qualifies **5** (26%) · temporar
 
 ```mermaid
 pie showData
-    title Nineteen Motadata “core entity” names by qualification
+    title Nineteen Motadata core-entity names by qualification
     "Clearly qualifies (durable)" : 5
     "Qualifies temporarily" : 4
-    "Not decided yet — pause" : 3
+    "Not decided yet - pause" : 3
     "Does not qualify (facts / events)" : 7
 ```
 
@@ -195,7 +195,7 @@ How it is built, in order:
 3. Topology writes this JSON as a vertex on `GraphSnapshot`. Only vertices with **`identity_status = resolved`** go on that snapshot.
 4. Display and walk fields (`ci_name`, `tier`, `instance_scope`, aliases) come from inventory, not from the symptom.
 
-Machine-required fields are listed in [`pillar-ab-implementation/contracts/schemas/graph_node_v1.schema.json`](../pillar-ab-implementation/contracts/schemas/graph_node_v1.schema.json). This brief adds a few **conditional** fields so Localize can walk.
+Machine-required fields are listed in [`pillar-ab-implementation/contracts/schemas/graph_node_v1.schema.json`](./schemas/graph_node_v1.schema.json). This brief adds a few **conditional** fields so Localize can walk.
 
 **Always required (schema + identity)**
 
@@ -322,7 +322,7 @@ How it is built, in order:
 4. The writer stamps `discovered_via` so a later reader can see who discovered the fact, how strongly, and how often it is refreshed.
 5. `valid_from` / `valid_to` sit on the **edge object** (not inside `discovered_via`) and bound when this relationship was believed true.
 
-Machine-required fields are listed in [`pillar-ab-implementation/contracts/schemas/graph_edge_v1.schema.json`](../pillar-ab-implementation/contracts/schemas/graph_edge_v1.schema.json). This brief adds **recommended** provenance fields so the sit-down sample is auditable on day one.
+Machine-required fields are listed in [`pillar-ab-implementation/contracts/schemas/graph_edge_v1.schema.json`](./schemas/graph_edge_v1.schema.json). This brief adds **recommended** provenance fields so the sit-down sample is auditable on day one.
 
 **Always required (schema + identity)**
 
@@ -531,7 +531,7 @@ One window of samples (for example 23 latency points in five minutes) is summari
 
 Digest and buckets share **the same samples**; baseline shares the **same entity + metric + season_key** family across history. You can **read** each body alone; they are not three separate products.
 
-**Exemplars (optional, not a fourth `sketch.v1` body in v1):** Google Cloud / OpenTelemetry pattern — attach a **trace id** to a histogram bucket so an operator clicks a hot bin and opens one request path. **Different job:** metric aggregate → trace drill-down. Does **not** replace digest or baseline. Detect can fire on digest + baseline without exemplars; drill-down is slower. Visual walk-through: [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html).
+**Exemplars (optional, not a fourth `sketch.v1` body in v1):** Google Cloud / OpenTelemetry pattern — attach a **trace id** to a histogram bucket so an operator clicks a hot bin and opens one request path. **Different job:** metric aggregate → trace drill-down. Does **not** replace digest or baseline. Detect can fire on digest + baseline without exemplars; drill-down is slower. Visual walk-through: [`sketch-exemplars-visual.html`](../../docs/fabric/sketch-exemplars-visual.html).
 
 #### How each piece looks in JSON
 
@@ -739,7 +739,7 @@ Closest jobs on Dynatrace / Datadog / Edge Delta — same *roles*, not Motadata 
 2. Are `tier` + `instance_scope` required on day one or wave 2?  
 3. Timestamp format: RFC3339 strings vs unix millis in Signed contract?  
 4. Who is sole GraphSnapshot writer?  
-5. First two sketch metrics + bucket bounds?  
+5. First two sketch metrics + bucket bounds?
 6. **Raw buffer vs strict zero-raw:** which scenarios (late identity, forensics, ML, full hot-bin drill-down) stay in Motadata scope with a short raw buffer, and which are explicitly out?  
 
 ---

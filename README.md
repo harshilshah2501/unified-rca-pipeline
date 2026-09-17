@@ -15,7 +15,7 @@ Root-cause analysis research workspace with two pipelines (federated + lean), sh
 | [`pillar-ab-implementation/`](pillar-ab-implementation/) | Motadata Pillar A+B — `contracts/` SoT, `pillar-a/` / `pillar-b/` packages, `integration/` |
 | [`KR Plan/`](KR%20Plan/) | Management PDFs and OKR workbooks (canonical binaries) |
 | [`labs/`](labs/) | Vendor fault labs: EdgeDelta, Datadog, Dynatrace |
-| [`ingestion-poc/`](ingestion-poc/) | Vector skeleton, shared detect, ObserveOps replay, Motadata → `ingest.v1` adapter |
+| [`ingestion-poc/`](ingestion-poc/README.md) | Vector skeleton, shared detect, ObserveOps replay, Motadata → `ingest.v1` adapter (**local dumps:** see README) |
 | [`lean-pipeline/`](lean-pipeline/) | Lean engine/API (evaluation track; ADR-001) |
 | [`federated-pipeline/`](federated-pipeline/) | Panorama → Murphy → Nezha + federated-specific docs (**large** Nezha tree — not day-to-day Motadata edit) |
 | [`benchmarking/`](benchmarking/) | Same-corpus bakeoff runners and results |

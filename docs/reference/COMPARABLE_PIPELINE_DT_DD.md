@@ -86,7 +86,7 @@ Claims in this doc are tagged so you can tell **what we saw** from **what we are
 
 Unless a sentence is marked otherwise, treat DT/DD stage tables as **Observed (lab)**. Treat Edge Delta columns as **Observed (UI)** + **Public framing**. There is no `edgedelta-rca-lab`.
 
-Labs: [`dynatrace-rca-lab`](../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) · [`datadog-rca-lab`](../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md)  
+Labs: [`dynatrace-rca-lab`](../../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) · [`datadog-rca-lab`](../../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md)  
 Browser: [`comparable-pipeline-dt-dd.html`](./comparable-pipeline-dt-dd.html) · [`:8765`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) · [docs hub](http://127.0.0.1:8765/docs.html)
 
 ---

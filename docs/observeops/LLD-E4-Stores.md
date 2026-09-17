@@ -43,18 +43,18 @@ def load_bundle(uc_id: str, corpus_dir: Path) -> dict:
     }
 ```
 
-Reference: [`lean-pipeline/core_engine/observeops/ingest/bundle.py`](../lean-pipeline/core_engine/observeops/ingest/bundle.py). The only "query surfaces" are two small helper functions over the fully-loaded dict:
+Reference: [`lean-pipeline/core_engine/observeops/ingest/bundle.py`](../../lean-pipeline/core_engine/observeops/ingest/bundle.py). The only "query surfaces" are two small helper functions over the fully-loaded dict:
 
 - `anomaly_by_ci_signal(bundle) -> dict[(ci, signal), anomaly]` — the closest thing to an indexed lookup E4 has on the Lean side.
 - `crossed_anomalies(bundle) -> list[anomaly]` — filters to `crossed == True` only.
 
-**Write path** (how a bundle gets materialized in the first place): [`ingestion-poc/builders/lean_bundle_writer.py`](../ingestion-poc/builders/lean_bundle_writer.py) — "N5," takes an `ingest.v1` stream plus topology/ground-truth/events and writes an ObserveOps-shaped UC directory that `load_bundle()` can read. This is a **one-shot batch write**, not a continuously-updated store — there is no append/upsert semantic, no retention window, no compaction.
+**Write path** (how a bundle gets materialized in the first place): [`ingestion-poc/builders/lean_bundle_writer.py`](../../ingestion-poc/builders/lean_bundle_writer.py) — "N5," takes an `ingest.v1` stream plus topology/ground-truth/events and writes an ObserveOps-shaped UC directory that `load_bundle()` can read. This is a **one-shot batch write**, not a continuously-updated store — there is no append/upsert semantic, no retention window, no compaction.
 
 **What this means concretely:** E4's HLD postcondition — "time-sliced evidence retrievable by CI and tags" — is true for Lean only in the weakest sense: the whole bundle *is* the time slice (bounded to one UC's frozen window), and "retrieval" is an in-memory dict comprehension over data that's already fully loaded. There is no mechanism to query "give me CI X's evidence for the last 15 minutes" without loading the entire bundle first.
 
 ### 2.2 Federated — two-tier design, partially implemented as PoC stand-ins
 
-[`STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md) describes the production vision (Vortex/Arrow CSR + DashMap structural tier; DragonflyDB speed tier). **PoC today implements approximations of both, explicitly labeled as stand-ins in that same doc** — this LLD does not treat the PoC code as if it were the production design.
+[`STORAGE_TIERS.md`](../../federated-pipeline/docs/STORAGE_TIERS.md) describes the production vision (Vortex/Arrow CSR + DashMap structural tier; DragonflyDB speed tier). **PoC today implements approximations of both, explicitly labeled as stand-ins in that same doc** — this LLD does not treat the PoC code as if it were the production design.
 
 **Structural tier (PoC):**
 
@@ -68,7 +68,7 @@ class StructuralStore:
     entities: set[str]
 ```
 
-Reference: [`federated-pipeline/poc/stores/structural.py`](../federated-pipeline/poc/stores/structural.py) — in-memory, no persistence across process restarts.
+Reference: [`federated-pipeline/poc/stores/structural.py`](../../federated-pipeline/poc/stores/structural.py) — in-memory, no persistence across process restarts.
 
 **`MetricStore` — the one real queryable interface in this repo:**
 
@@ -84,7 +84,7 @@ class DictMetricStore(MetricStore):
     """Dict-backed concrete implementation."""
 ```
 
-Reference: [`federated-pipeline/murphy/store.py`](../federated-pipeline/murphy/store.py). This is the only store in the repo with an actual **time-windowed query contract** (`lookback_days`, `end_time`) — it computes `compute_historical_stats` (mean/std) that `RelationshipGraph.prune_candidates` (E3, §3.2) consumes directly for anomaly filtering. A second concrete implementation, `CsvMetricStore` ([`federated-pipeline/murphy/adapters/csv_store.py`](../federated-pipeline/murphy/adapters/csv_store.py)), backs the same interface from DeathStarBench CSV/Parquet traces — same query contract, different backing data, which is exactly the kind of interface-stable swap E4's contract is supposed to allow.
+Reference: [`federated-pipeline/murphy/store.py`](../../federated-pipeline/murphy/store.py). This is the only store in the repo with an actual **time-windowed query contract** (`lookback_days`, `end_time`) — it computes `compute_historical_stats` (mean/std) that `RelationshipGraph.prune_candidates` (E3, §3.2) consumes directly for anomaly filtering. A second concrete implementation, `CsvMetricStore` ([`federated-pipeline/murphy/adapters/csv_store.py`](../../federated-pipeline/murphy/adapters/csv_store.py)), backs the same interface from DeathStarBench CSV/Parquet traces — same query contract, different backing data, which is exactly the kind of interface-stable swap E4's contract is supposed to allow.
 
 **Speed tier (PoC → real Dragonfly):**
 
@@ -93,7 +93,7 @@ Reference: [`federated-pipeline/murphy/store.py`](../federated-pipeline/murphy/s
 | `tg:{tenant}:{trace_id}:{minute}` | ZSET | Temporal event ordering per trace |
 | `pc:{phase}:{tenant}:{hash(pattern)%256}` | HSET | Pattern counts; `phase` = `fault-free` \| `fault-suffering` |
 
-Write path: [`ingestion-poc/builders/federated_store_writer.py`](../ingestion-poc/builders/federated_store_writer.py) ("N4") — writes a **file-backed** metric slice + topology edges + Dragonfly-key stub by default (no Redis required for smoke), records timing in `store_meta.json`. Real Dragonfly load is opt-in via [`ingestion-poc/lab/metric_slice_read.py`](../ingestion-poc/lab/metric_slice_read.py) `--load-dragonfly`.
+Write path: [`ingestion-poc/builders/federated_store_writer.py`](../../ingestion-poc/builders/federated_store_writer.py) ("N4") — writes a **file-backed** metric slice + topology edges + Dragonfly-key stub by default (no Redis required for smoke), records timing in `store_meta.json`. Real Dragonfly load is opt-in via [`ingestion-poc/lab/metric_slice_read.py`](../../ingestion-poc/lab/metric_slice_read.py) `--load-dragonfly`.
 
 ## 3. NFR baseline and measured evidence
 
@@ -140,9 +140,9 @@ Pass criteria: loads without error for every UC (including the three that have n
 python3 ingestion-poc/builders/n45_chain.py --suite UC-1 --skip-diagnose
 ```
 
-This is the real chain — `f1_run.run_f1()` (N1–N3 fan-out) → `federated_store_writer.write_federated_stores()` (N4) → `lean_bundle_writer.write_lean_bundle()` (N5), per [`ingestion-poc/builders/n45_chain.py`](../ingestion-poc/builders/n45_chain.py). (Calling `write_federated_stores` directly, or via bare `f1_run.py`, does **not** exercise N4 — `f1_run.py` alone only does the N1–N3 sink fan-out; the store-writer call has to come from the chain script or its own CLI.)
+This is the real chain — `f1_run.run_f1()` (N1–N3 fan-out) → `federated_store_writer.write_federated_stores()` (N4) → `lean_bundle_writer.write_lean_bundle()` (N5), per [`ingestion-poc/builders/n45_chain.py`](../../ingestion-poc/builders/n45_chain.py). (Calling `write_federated_stores` directly, or via bare `f1_run.py`, does **not** exercise N4 — `f1_run.py` alone only does the N1–N3 sink fan-out; the store-writer call has to come from the chain script or its own CLI.)
 
-Pass criteria: `ingestion-poc/out/f1-smoke/UC-1/federated_stores/` is written with `store_meta.json` recording a timing, plus the metric-slice + topology-edge output files, per [`ingestion-poc/builders/federated_store_writer.py`](../ingestion-poc/builders/federated_store_writer.py)'s `write_federated_stores()` contract.
+Pass criteria: `ingestion-poc/out/f1-smoke/UC-1/federated_stores/` is written with `store_meta.json` recording a timing, plus the metric-slice + topology-edge output files, per [`ingestion-poc/builders/federated_store_writer.py`](../../ingestion-poc/builders/federated_store_writer.py)'s `write_federated_stores()` contract.
 
 **Evidence maturity: Grounded** — both paths are repo-executable against real corpus/lab data, not hypothetical.
 
@@ -159,7 +159,7 @@ Per HLD §16: E4 maps to **FR-C (topology/time)** jointly with E3, and (jointly 
 
 ## 8. Pillar A/B PoC acceptance (`sketch.v1` bridge)
 
-The Motadata Pillar A PoC under [`pillar-ab-implementation/pillar-a/poc/sketch/`](../pillar-ab-implementation/pillar-a/poc/sketch/) writes hybrid `sketch.v1` rows (T-Digest + buckets + seasonal baseline) through the Gate B **`files.v1`** dest (`history/sketches.jsonl`). It does **not** replace Lean bundle load or Federated store stand-ins in §2; it is the bridge toward the Motadata percentile store. A and B remain **parallel writers**; optional WorkingSet read-join lives under [`integration/`](../pillar-ab-implementation/integration/), not a combined writer package.
+The Motadata Pillar A PoC under [`pillar-ab-implementation/pillar-a/poc/sketch/`](../../pillar-ab-implementation/pillar-a/poc/sketch/) writes hybrid `sketch.v1` rows (T-Digest + buckets + seasonal baseline) through the Gate B **`files.v1`** dest (`history/sketches.jsonl`). It does **not** replace Lean bundle load or Federated store stand-ins in §2; it is the bridge toward the Motadata percentile store. A and B remain **parallel writers**; optional WorkingSet read-join lives under [`integration/`](../../pillar-ab-implementation/integration/), not a combined writer package.
 
 **Acceptance (PoC):**
 
@@ -169,7 +169,7 @@ cd pillar-ab-implementation/pillar-a/poc && make install && make test-sketch
 # cd pillar-ab-implementation/integration && … (read-join harness)
 ```
 
-Pass criteria: schema-valid rows without topology edges; wave-1 metrics only; `get_window_percentiles` / `get_metric_baseline` over fixture stream. Identity join with graph is covered by the optional `integration/` harness — not by a combined `poc/` tree. Schemas: [`pillar-ab-implementation/contracts/schemas/sketch_v1.schema.json`](../pillar-ab-implementation/contracts/schemas/sketch_v1.schema.json). Plan: [`IMPLEMENTATION_PLAN.md`](../pillar-ab-implementation/IMPLEMENTATION_PLAN.md).
+Pass criteria: schema-valid rows without topology edges; wave-1 metrics only; `get_window_percentiles` / `get_metric_baseline` over fixture stream. Identity join with graph is covered by the optional `integration/` harness — not by a combined `poc/` tree. Schemas: [`pillar-ab-implementation/contracts/schemas/sketch_v1.schema.json`](../../pillar-ab-implementation/contracts/schemas/sketch_v1.schema.json). Plan: [`IMPLEMENTATION_PLAN.md`](../../pillar-ab-implementation/IMPLEMENTATION_PLAN.md).
 
 ---
 

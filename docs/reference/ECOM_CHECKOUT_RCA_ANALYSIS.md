@@ -6,10 +6,10 @@
 |--|--|
 | **Pack** | `ecom-numa-001` |
 | **Gold incident report** | OpenObserve-style analysis for `3GAWT8nVjUE2rA95CZmtyiQcVri` (same story; fuller multimodal write-up) |
-| **Scenario design** | [`../datasets/scenario.md`](../datasets/scenario.md) |
-| **Ground truth** | [`../datasets/ecom_checkout/incidents/ecom-numa-001/ground_truth.json`](../datasets/ecom_checkout/incidents/ecom-numa-001/ground_truth.json) |
+| **Scenario design** | [`../datasets/scenario.md`](../../datasets/scenario.md) |
+| **Ground truth** | [`../datasets/ecom_checkout/incidents/ecom-numa-001/ground_truth.json`](../../datasets/ecom_checkout/incidents/ecom-numa-001/ground_truth.json) |
 | **Engine cite** | run `ecom-20260722T110736Z` · repro `ecom-repro-v1` |
-| **Scoreboard (parked)** | [`../_archive/_adhoc/ecom-gold-report-compare/COMPARISON.md`](../_archive/_adhoc/ecom-gold-report-compare/COMPARISON.md) — Lean vs Fed compare is **secondary** |
+| **Scoreboard (parked)** | [`../_archive/_adhoc/ecom-gold-report-compare/COMPARISON.md`](../../_archive/_adhoc/ecom-gold-report-compare/COMPARISON.md) — Lean vs Fed compare is **secondary** |
 
 ---
 
@@ -56,9 +56,9 @@ An acceptable RCA for this incident must cover, in substance:
 **Schema:** [`schemas/comprehensive_incident_report.v1.json`](../schemas/comprehensive_incident_report.v1.json)  
 **Builder:** `benchmarking/benchmark/comprehensive_rca_report.py`  
 **Sample outputs (15/15 completeness, ad-hoc quarantine):**  
-[`../_archive/_adhoc/ecom-gold-report-compare/reports/lean/incident_report.md`](../_archive/_adhoc/ecom-gold-report-compare/reports/lean/incident_report.md) ·  
-[`../_archive/_adhoc/ecom-gold-report-compare/reports/federated/incident_report.md`](../_archive/_adhoc/ecom-gold-report-compare/reports/federated/incident_report.md) ·  
-[`../_archive/_adhoc/ecom-gold-report-compare/reports/gold/incident_report.md`](../_archive/_adhoc/ecom-gold-report-compare/reports/gold/incident_report.md)
+[`../_archive/_adhoc/ecom-gold-report-compare/reports/lean/incident_report.md`](../../_archive/_adhoc/ecom-gold-report-compare/reports/lean/incident_report.md) ·  
+[`../_archive/_adhoc/ecom-gold-report-compare/reports/federated/incident_report.md`](../../_archive/_adhoc/ecom-gold-report-compare/reports/federated/incident_report.md) ·  
+[`../_archive/_adhoc/ecom-gold-report-compare/reports/gold/incident_report.md`](../../_archive/_adhoc/ecom-gold-report-compare/reports/gold/incident_report.md)
 
 Reports include **RCA Summary**, **Remediation** guidance (`signature_template`, LLM-replaceable), and service error rates (`checkout_error_rate_pct`, `payment_service_error_rate_pct`, gateway path error).
 
@@ -115,7 +115,7 @@ REAL path (GT):             checkout → payment → dns-aaaa-np17 → nic-rx-qu
 
 ### 1.4 Ground truth (authored — we score against this)
 
-GT status: **`scenario_authored`** in [`ground_truth.json`](../datasets/ecom_checkout/incidents/ecom-numa-001/ground_truth.json). Authoritative for this bakeoff (same role as ObserveOps UC GT).
+GT status: **`scenario_authored`** in [`ground_truth.json`](../../datasets/ecom_checkout/incidents/ecom-numa-001/ground_truth.json). Authoritative for this bakeoff (same role as ObserveOps UC GT).
 
 | Field | Value |
 |-------|--------|
@@ -132,9 +132,9 @@ GT status: **`scenario_authored`** in [`ground_truth.json`](../datasets/ecom_che
 
 **Resolution:** roll NP-17 back to node image `2026.05.30`; fix IRQ affinity so the RX interrupt runs on the same NUMA node as its memory.
 
-**Symptom seed:** `checkout-service` / `checkout_success_rate` ([`symptom_seed.json`](../datasets/ecom_checkout/incidents/ecom-numa-001/symptom_seed.json)).
+**Symptom seed:** `checkout-service` / `checkout_success_rate` ([`symptom_seed.json`](../../datasets/ecom_checkout/incidents/ecom-numa-001/symptom_seed.json)).
 
-Full signal tables, traces, logs, and SQL checks: [`../datasets/scenario.md`](../datasets/scenario.md).
+Full signal tables, traces, logs, and SQL checks: [`../datasets/scenario.md`](../../datasets/scenario.md).
 
 ---
 
@@ -179,7 +179,7 @@ run_ecom_bakeoff.py
 
 Earliest crossed drivers: IRQ + RX at **T₀**; DNS / pool / provider / checkout symptoms ~2 minutes later.
 
-Reproduce: [`scenario.md`](../datasets/scenario.md) §7.3 · `python3 benchmarking/benchmark/run_ecom_bakeoff.py`
+Reproduce: [`scenario.md`](../../datasets/scenario.md) §7.3 · `python3 benchmarking/benchmark/run_ecom_bakeoff.py`
 
 ---
 
@@ -270,7 +270,7 @@ Federated **copies signature from `ground_truth.json`** on this bakeoff path. Le
 | **Verifiability** | SRE can reconstruct *why* from the verdict alone (no source dive). | Lean: High (tier + CARE + causal_log + evidence). Federated: Medium (posterior + override). |
 | **Reproducibility** | Same pack × N=20 → bit-identical `verdict.json` (SHA-256). | Lean **100%** (1 hash / 20). Federated **0%** (2 hashes) — Murphy posterior sometimes `1.0` (17 runs) vs ~`0.89` (3 runs); fusion also varies (`payment-service` vs `nic-rx-queue-7` before override). **Root CI stayed GT every run.** |
 
-Prefix: `ecom-repro-v1` · reports: [`reproducibility_lean_ecom_ecom-repro-v1.json`](../benchmarking/results/reproducibility_lean_ecom_ecom-repro-v1.json) · [`reproducibility_federated_ecom_ecom-repro-v1.json`](../benchmarking/results/reproducibility_federated_ecom_ecom-repro-v1.json)
+Prefix: `ecom-repro-v1` · reports: [`reproducibility_lean_ecom_ecom-repro-v1.json`](../../benchmarking/results/reproducibility_lean_ecom_ecom-repro-v1.json) · [`reproducibility_federated_ecom_ecom-repro-v1.json`](../../benchmarking/results/reproducibility_federated_ecom_ecom-repro-v1.json)
 
 ```bash
 .venv/bin/python benchmarking/benchmark/run_reproducibility.py \
@@ -279,7 +279,7 @@ Prefix: `ecom-repro-v1` · reports: [`reproducibility_lean_ecom_ecom-repro-v1.js
 # same for --engine federated
 ```
 
-Refs: [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) · [`GLOSSARY.md`](./GLOSSARY.md) · UC scoreboard [`../benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md).
+Refs: [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) · [`GLOSSARY.md`](./GLOSSARY.md) · UC scoreboard [`../benchmarking/results/comparison/COMPARISON.md`](../../benchmarking/results/comparison/COMPARISON.md).
 
 **ADR-001 alignment:** root is infra misconfiguration (node image / IRQ), amplified by app dimensions. Lean’s topology + onset + CARE fits; Federated adds cost and still leans on the same temporal heuristic.
 
@@ -300,19 +300,19 @@ Refs: [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) · [`GLOSSA
 
 | Path | Contents |
 |------|----------|
-| [`../datasets/scenario.md`](../datasets/scenario.md) | Full scenario design |
-| [`../datasets/ecom_checkout/incidents/ecom-numa-001/ground_truth.json`](../datasets/ecom_checkout/incidents/ecom-numa-001/ground_truth.json) | Authored GT |
-| [`../datasets/ecom_checkout/incidents/ecom-numa-001/`](../datasets/ecom_checkout/incidents/ecom-numa-001/) | Engine pack |
-| [`../_archive/_adhoc/ecom-gold-report-compare/COMPARISON.md`](../_archive/_adhoc/ecom-gold-report-compare/COMPARISON.md) | Compact scoreboard (ad-hoc) |
-| [`../benchmarking/results/lean/ecom/ecom-numa-001/run-ecom-20260722T110736Z/`](../benchmarking/results/lean/ecom/ecom-numa-001/run-ecom-20260722T110736Z/) | Lean verdict + meta |
-| [`../benchmarking/results/federated/ecom/ecom-numa-001/run-ecom-20260722T110736Z/`](../benchmarking/results/federated/ecom/ecom-numa-001/run-ecom-20260722T110736Z/) | Federated verdict + hops |
+| [`../datasets/scenario.md`](../../datasets/scenario.md) | Full scenario design |
+| [`../datasets/ecom_checkout/incidents/ecom-numa-001/ground_truth.json`](../../datasets/ecom_checkout/incidents/ecom-numa-001/ground_truth.json) | Authored GT |
+| [`../datasets/ecom_checkout/incidents/ecom-numa-001/`](../../datasets/ecom_checkout/incidents/ecom-numa-001/) | Engine pack |
+| [`../_archive/_adhoc/ecom-gold-report-compare/COMPARISON.md`](../../_archive/_adhoc/ecom-gold-report-compare/COMPARISON.md) | Compact scoreboard (ad-hoc) |
+| [`../benchmarking/results/lean/ecom/ecom-numa-001/run-ecom-20260722T110736Z/`](../../benchmarking/results/lean/ecom/ecom-numa-001/run-ecom-20260722T110736Z/) | Lean verdict + meta |
+| [`../benchmarking/results/federated/ecom/ecom-numa-001/run-ecom-20260722T110736Z/`](../../benchmarking/results/federated/ecom/ecom-numa-001/run-ecom-20260722T110736Z/) | Federated verdict + hops |
 | `ingestion-poc/adapters/export_scenario_postgres_json.py` | Postgres → JSON |
 | `ingestion-poc/adapters/build_ecom_scenario_pack.py` | JSON → pack |
 | `benchmarking/benchmark/run_ecom_bakeoff.py` | Dual-engine driver |
-| [`../benchmarking/results/reproducibility_lean_ecom_ecom-repro-v1.json`](../benchmarking/results/reproducibility_lean_ecom_ecom-repro-v1.json) | Lean N=20 repro report |
-| [`../benchmarking/results/reproducibility_federated_ecom_ecom-repro-v1.json`](../benchmarking/results/reproducibility_federated_ecom_ecom-repro-v1.json) | Federated N=20 repro report |
+| [`../benchmarking/results/reproducibility_lean_ecom_ecom-repro-v1.json`](../../benchmarking/results/reproducibility_lean_ecom_ecom-repro-v1.json) | Lean N=20 repro report |
+| [`../benchmarking/results/reproducibility_federated_ecom_ecom-repro-v1.json`](../../benchmarking/results/reproducibility_federated_ecom_ecom-repro-v1.json) | Federated N=20 repro report |
 | [`schemas/comprehensive_incident_report.v1.json`](../schemas/comprehensive_incident_report.v1.json) | Shared comprehensive RCA schema |
 | `benchmarking/benchmark/comprehensive_rca_report.py` | Pack+raw+verdict → incident_report.md/json |
-| [`../_archive/_adhoc/ecom-gold-report-compare/reports/lean/incident_report.md`](../_archive/_adhoc/ecom-gold-report-compare/reports/lean/incident_report.md) | Lean comprehensive report (ad-hoc) |
-| [`../_archive/_adhoc/ecom-gold-report-compare/reports/federated/incident_report.md`](../_archive/_adhoc/ecom-gold-report-compare/reports/federated/incident_report.md) | Federated comprehensive report (ad-hoc) |
-| [`../_archive/_adhoc/ecom-gold-report-compare/reports/gold/incident_report.md`](../_archive/_adhoc/ecom-gold-report-compare/reports/gold/incident_report.md) | Gold OO write-up (ad-hoc) |
+| [`../_archive/_adhoc/ecom-gold-report-compare/reports/lean/incident_report.md`](../../_archive/_adhoc/ecom-gold-report-compare/reports/lean/incident_report.md) | Lean comprehensive report (ad-hoc) |
+| [`../_archive/_adhoc/ecom-gold-report-compare/reports/federated/incident_report.md`](../../_archive/_adhoc/ecom-gold-report-compare/reports/federated/incident_report.md) | Federated comprehensive report (ad-hoc) |
+| [`../_archive/_adhoc/ecom-gold-report-compare/reports/gold/incident_report.md`](../../_archive/_adhoc/ecom-gold-report-compare/reports/gold/incident_report.md) | Gold OO write-up (ad-hoc) |

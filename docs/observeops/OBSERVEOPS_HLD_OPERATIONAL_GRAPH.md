@@ -5,7 +5,7 @@
 **Date:** 2026-08-17
 **Chapter of:** [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) (Pipeline HLD — Approved for build). This file is **not** a second HLD.
 **Hub:** [Our HLD](./observeops-pipeline-hld.html) · interactive [`observeops-fusion-guide.html`](./observeops-fusion-guide.html) · [`observeops-ci-graph.html`](./observeops-ci-graph.html) · [`OBSERVEOPS_USE_CASES.md`](./OBSERVEOPS_USE_CASES.md)
-**Source dump:** [`../_archive/Pratik-docs/`](../_archive/Pratik-docs/) (original filenames; archived — this chapter is the stable URL)
+**Source dump:** [`../_archive/Pratik-docs/`](../../_archive/Pratik-docs/) (original filenames; archived — this chapter is the stable URL)
 **Scope (in):** per-use-case stage behaviour for the initial 8-use-case catalog; the operational-graph schema, its construction, and its consumption across E1–E11
 **Scope (out):** LLD schemas, collector implementation, remediation, Layer I productization, storage-engine selection
 

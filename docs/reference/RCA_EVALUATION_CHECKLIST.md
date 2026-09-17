@@ -80,7 +80,7 @@ Expect Roadblocks **1b** and **4** to fail field-wide for nearly every method, i
 |---------|-------|---------------------|
 | Panorama / Murphy / Nezha on four axes | [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) Appendix D | Peer-reviewed methods; axes kept separate |
 | Dynatrace / Netdata vs papers | [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) Appendix E | Vendor self-reported vs peer-reviewed; ranked-list vs top-1 |
-| Lean vs federated bakeoff | [`../benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) | Internally measured Accuracy + Reproducibility |
+| Lean vs federated bakeoff | [`../benchmarking/results/comparison/COMPARISON.md`](../../benchmarking/results/comparison/COMPARISON.md) | Internally measured Accuracy + Reproducibility |
 | Qualities & roadblocks for ObserveOps | [`README.md`](./README.md) | How Mandatories map onto this checklist for one product path |
 
 ### Blank scoring sheet (copy for a new method)

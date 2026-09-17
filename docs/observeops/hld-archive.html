@@ -23,6 +23,10 @@
 .archive-row .row-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem .65rem;}
 .archive-row .tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);}
 .archive-row .tag.main{color:var(--ok);}
+.archive-row .tag.tier1{color:var(--ok);border:1px solid rgba(122,236,196,.35);padding:.1rem .35rem;border-radius:4px;}
+.archive-row .tag.tier2{color:var(--eng);border:1px solid rgba(123,168,245,.35);padding:.1rem .35rem;border-radius:4px;}
+.archive-row .tag.tier3{color:var(--faint);border:1px solid var(--stroke);padding:.1rem .35rem;border-radius:4px;}
+.archive-row .tag.io{color:#e8d19d;border:1px solid rgba(232,209,157,.4);padding:.1rem .35rem;border-radius:4px;}
 .archive-row h3{margin:0;font-size:.98rem;color:var(--text);}
 .archive-row p{margin:.35rem 0 0;font-size:.88rem;color:var(--muted);}
 .archive-row .also{font-size:.8rem;color:var(--faint);margin-top:.25rem;}
@@ -34,13 +38,14 @@
   <h1>HLD article archive</h1>
   <p class="lead">
     Secondary and deep-dive articles for the ObserveOps pipeline.
-    The <strong style="color:var(--text)">main menu</strong> on
-    <a href="/observeops-pipeline-hld.html">Our HLD</a> keeps the cold-start path:
-    Fusion → written spec → <a href="/motadata-3pillars-implementation-scope.html">3 pillars kickoff scope</a> → shift-left.
-    Everything here remains linked and searchable — it is not deleted.
+    <strong style="color:var(--text)">Cold start:</strong>
+    <a href="/docs/observeops/OUR_HLD_TIER1.md">Tier 1 reading list</a> (six pages) — then this archive for Tier 2 depth.
+    The hub frame is <a href="/observeops-pipeline-hld.html">Our HLD</a>.
   </p>
 
   <nav class="archive-toc" aria-label="Sections">
+    <a href="#implementer-io">Tier 2 · I/O</a>
+    <a href="#fabric">Fabric &amp; contracts</a>
     <a href="#motadata">Motadata 3 pillars</a>
     <a href="#examples">Examples</a>
     <a href="#chapters">Chapters &amp; catalogs</a>
@@ -49,16 +54,101 @@
   </nav>
 
   <p class="sect-lead" style="margin-bottom:.35rem;"><label for="archive-filter">Search archive</label></p>
-  <input id="archive-filter" class="archive-search" type="search" placeholder="Filter by title or topic…" autocomplete="off" />
+  <input id="archive-filter" class="archive-search" type="search" placeholder="Filter by title, topic, tier, I/O…" autocomplete="off" />
+
+  <section id="implementer-io" class="archive-section">
+    <h2>Tier 2 · Implementer I/O (wire records)</h2>
+    <p class="sect-lead">
+      Normative byte contracts for Pillar A/B PoC — read in order when connecting ingest → writers → dest files.
+      Product rules stay in <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a> (Tier 1). Full map:
+      <a href="/docs/observeops/OUR_HLD_TIER1.md#tier-2--implementer-io-contracts-not-tier-1">OUR_HLD_TIER1 § I/O chain</a>.
+    </p>
+
+    <a class="archive-row" href="/docs/INGEST_DATA_FORMAT.md" data-keywords="tier2 io-1 ingest.v1 e1 e2 envelope signal_class corpus delivery identity overlay">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-1</span><h3>Ingest data format</h3></div>
+      <p>E1 <code>ingest.v1</code> envelope, <code>signal_class</code> enum, corpus folder layout, E2 identity overlay. Upstream of pillar writers.</p>
+    </a>
+    <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md#signal_class-cheat-sheet" data-keywords="tier2 io-2 signal_class metric_sample topo_update anomaly event trace_span cheat sheet">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-2</span><h3>signal_class cheat sheet</h3></div>
+      <p>All five admitted classes with JSON examples — <strong>consumers per class</strong>, Pillar A/B routing, mixed JSONL.</p>
+      <div class="also">Section inside <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md">Post-E2 ingest fixtures</a>.</div>
+    </a>
+    <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md" data-keywords="tier2 io-2 post-e2 fixtures metric_sample topo_update lab jsonl resolved">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-2</span><h3>Post-E2 ingest fixtures</h3></div>
+      <p>Lab JSONL paths — what Pillar A and B consume today (<code>metric_sample</code> vs <code>topo_update</code>, resolved-only).</p>
+    </a>
+    <a class="archive-row" href="/pillar-ab-implementation/README.md" data-keywords="tier1 band b pillar a b implementation code slice">
+      <div class="row-top"><span class="tag tier1">Tier 1 · entry</span><h3>Pillar A + B implementation</h3></div>
+      <p>Code layout, contracts SoT, unit tests — open before I/O-3 / I/O-4 when validating flush output.</p>
+    </a>
+    <a class="archive-row" href="/docs/MAP_WRITE_READ_RECORD.md" data-keywords="tier2 io-3 map graph_snapshot nodes.jsonl edges.jsonl pillar b output">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-3</span><h3>Map write/read record</h3></div>
+      <p>Pillar B <code>map/</code> output — <code>graph_snapshot.json</code>, jsonl keys, <code>files.v1</code> PoC profile.</p>
+    </a>
+    <a class="archive-row" href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md" data-keywords="tier2 io-4 history sketch.v1 pillar a output tdigest">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-4</span><h3>Pillar A percentiles deep dive</h3></div>
+      <p>Pillar A <code>history/</code> output — <code>sketch.v1</code> row shape, windows, Vortex/S3 temperature.</p>
+    </a>
+  </section>
+
+  <section id="fabric" class="archive-section">
+    <h2>Fabric &amp; data contracts</h2>
+    <p class="sect-lead">P1 always-on fabric (E1–E5): data shape, Pillar A ∥ B stores, graph/sketch lock list. Also on <a href="/observeops-pipeline-hld.html#fabric">Our HLD → Fabric</a>.</p>
+
+    <a class="archive-row" href="/data-shape-journey.html" data-keywords="tier1 data shape journey e1 e11 ingest sketch verdict edge platform evolution">
+      <div class="row-top"><span class="tag tier1">Tier 1</span><h3>Data shape journey</h3></div>
+      <p>E1–E11 — how names and JSON forms evolve. Edge devices vs Platform zones.</p>
+    </a>
+    <a class="archive-row" href="/e1-e5-pipeline-architecture.html" data-keywords="tier2 e1 e2 fan-out pillar a b map history edge gateway platform">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Visual</span><h3>E1–E5 pipeline architecture</h3></div>
+      <p>Identity fan-out → Pillar B map/ ∥ Pillar A history/.</p>
+    </a>
+    <a class="archive-row" href="/inventory-catalog-on-the-map.html" data-keywords="inventory cmdb catalog authoritative declared lut map edge provenance">
+      <div class="row-top"><span class="tag">Visual</span><h3>Inventory &amp; catalog on the map</h3></div>
+      <p>Agent inventory vs CMDB/catalog → graph_edge.v1; E2 LUT vs E3 map/.</p>
+    </a>
+    <a class="archive-row" href="/map-history-storage-blocks.html" data-keywords="map history storage rooms workingset">
+      <div class="row-top"><span class="tag">Visual</span><h3>map/ · history/ storage blocks</h3></div>
+      <p>Sub-blocks, R/W, no sync — join at WorkingSet.</p>
+    </a>
+    <a class="archive-row" href="/map-history-storage-animation.html" data-keywords="map history animation remap">
+      <div class="row-top"><span class="tag">Visual</span><h3>map/ · history/ animation</h3></div>
+      <p>Stepped remap: write fan-out → rooms → WorkingSet.</p>
+    </a>
+    <a class="archive-row" href="/vortex-s3-interaction.html" data-keywords="vortex s3 temperature rooms block interaction">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Visual</span><h3>Vortex + S3 interaction</h3></div>
+      <p>Rooms vs temperature; retrieval → WorkingSet.</p>
+    </a>
+    <a class="archive-row" href="/storage-formats-vortex-parquet-lance.html" data-keywords="vortex parquet lance columnar s3 encoding format learning animated">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Learning</span><h3>Vortex · Parquet · Lance formats</h3></div>
+      <p>Product vs file formats on S3 — animated tabs; companion to Vortex+S3 page.</p>
+    </a>
+    <a class="archive-row" href="/sketch-exemplars-visual.html" data-keywords="tier2 visual exemplars sketch metric_sample trace_id e4 red opentelemetry duration">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Visual</span><h3>Exemplars &amp; RED metrics guide</h3></div>
+      <p>RED · OTel vs ObserveOps · optional post-Detect acceleration · G43–G46.</p>
+    </a>
+    <a class="archive-row" href="/docs/GRAPH_QNA.md" data-keywords="tier1 fabric qna e1 e5 fan-out map history vortex sketch faq">
+      <div class="row-top"><span class="tag tier1">Tier 1</span><h3>GRAPH_QNA — E1–E5 fabric</h3></div>
+      <p>Graph/sketch contract FAQ — rooms, Detect, raw retention. TOC at top.</p>
+    </a>
+    <a class="archive-row" href="/docs/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md" data-keywords="tier2 configuration item ci qualification motadata pie durable ephemeral graph sketch contract">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Contract</span><h3>Graph + sketch contract brief</h3></div>
+      <p>CI catalog, fifteen edges, sketch.v1 — sit-down lock list.</p>
+    </a>
+    <a class="archive-row" href="/docs/fabric/end-to-end-algorithm-walkthrough.md" data-keywords="tier2 algorithm walkthrough detect door c admit window">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Walkthrough</span><h3>End-to-end algorithm walkthrough</h3></div>
+      <p>Admit → window → Detect door C on sketch rows.</p>
+    </a>
+  </section>
 
   <section id="motadata" class="archive-section">
     <h2>Motadata 3 pillars</h2>
     <p class="sect-lead">Leadership PDF mapped onto E1–E11. Kickoff scope is on the main menu; these are study and mapping depth.</p>
 
     <a class="archive-row" href="/motadata-3pillars-implementation-scope.html" data-keywords="kickoff scope block-2 e3 e4 e5 ingest.v1 artifacts">
-      <div class="row-top"><span class="tag main">Main menu</span><h3>3 pillars implementation scope</h3></div>
+      <div class="row-top"><span class="tag main">Hub · Path 4</span><h3>3 pillars implementation scope</h3></div>
       <p>Answers before start · E1/E2 ingest.v1 contract · deliverables · eng vs management docs.</p>
-      <div class="also">Also linked from Our HLD main grid.</div>
+      <div class="also">Also on <a href="/observeops-pipeline-hld.html#path-build">Our HLD → Path 4</a>.</div>
     </a>
     <a class="archive-row" href="/motadata-3pillars-architecture.html" data-keywords="explained t-digest vortex s3 retrieval react pillars">
       <div class="row-top"><span class="tag">Explained</span><h3>Motadata 3 pillars — what / why / how</h3></div>
@@ -68,8 +158,8 @@
       <div class="row-top"><span class="tag">Job map</span><h3>3 pillars vs shift-left · E1–E11</h3></div>
       <p>PDF is the SaaS column: percentiles + graph write P1; ReAct optional P3. D5 stays Review.</p>
     </a>
-    <a class="archive-row" href="/motadata-3pillars-study-qna.html" data-keywords="study qna conflicts resolutions hybrid merge sketches">
-      <div class="row-top"><span class="tag">Study Q&amp;A</span><h3>Letters, sketches, 3+4 merge</h3></div>
+    <a class="archive-row" href="/motadata-3pillars-study-qna.html" data-keywords="tier3 study qna conflicts resolutions hybrid merge sketches">
+      <div class="row-top"><span class="tag tier3">Tier 3</span><span class="tag">Study Q&amp;A</span><h3>Letters, sketches, 3+4 merge</h3></div>
       <p>Pillars ≠ doors ≠ Gates. Four designs. Conflict register §10. Hybrid = temporal CI graph, not Alert vertices.</p>
     </a>
   </section>
@@ -105,9 +195,9 @@
       <p>UC1–5 = Detect classes. UC6–8 = host saturation flavors that split at Localize / Identify.</p>
     </a>
     <a class="archive-row" href="/observeops-shift-left-architecture.html" data-keywords="shift left node gateway saas locus">
-      <div class="row-top"><span class="tag">Main menu</span><h3>Shift-processing-left</h3></div>
+      <div class="row-top"><span class="tag main">Hub · Path 4</span><h3>Shift-processing-left</h3></div>
       <p>Same eleven steps. Work on Node or optional Gateway before SaaS. Not a second pipeline.</p>
-      <div class="also">Also on Our HLD main grid.</div>
+      <div class="also">Also on <a href="/observeops-pipeline-hld.html#path-build">Our HLD → Path 4</a>.</div>
     </a>
   </section>
 
@@ -135,47 +225,15 @@
 
   <section id="print" class="archive-section">
     <h2>Print exports &amp; canonical markdown</h2>
-    <p class="sect-lead">PDF/A4 companions and source markdown for Motadata study pack.</p>
+    <p class="sect-lead">PDF/A4 companions and source markdown. Fabric visuals are under <a href="#fabric">Fabric &amp; contracts</a>.</p>
 
     <a class="archive-row" href="/docs/OBSERVEOPS_PIPELINE_HLD.md" data-keywords="pipeline hld written spec canonical">
-      <div class="row-top"><span class="tag">Canonical</span><h3>OBSERVEOPS_PIPELINE_HLD.md</h3></div>
-      <p>Written spec — on main menu as Pipeline HLD.</p>
-    </a>
-    <a class="archive-row" href="/docs/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md" data-keywords="configuration item ci qualification motadata pie durable ephemeral graph sketch contract">
-      <div class="row-top"><span class="tag">Contract</span><h3>Graph + sketch contract brief</h3></div>
-      <p>CI qualification (pie + four categories), fifteen edges, sketch.v1. Canonical under pillar-ab contracts (docs/ is a symlink).</p>
-    </a>
-    <a class="archive-row" href="/docs/GRAPH_QNA.md" data-keywords="fabric qna e1 e5 fan-out map history vortex sketch faq">
-      <div class="row-top"><span class="tag">Q&amp;A</span><h3>GRAPH_QNA — E1–E5 fabric</h3></div>
-      <p>Graph/sketch fabric Q&A across E1–E5 (rooms, Detect, raw retention).</p>
+      <div class="row-top"><span class="tag main">Canonical</span><h3>OBSERVEOPS_PIPELINE_HLD.md</h3></div>
+      <p>Written spec — on <a href="/observeops-pipeline-hld.html">Our HLD</a> hub.</p>
     </a>
     <a class="archive-row" href="/docs/REPO_HYGIENE.md" data-keywords="repo hygiene canonical paths handoff zip">
       <div class="row-top"><span class="tag">Hygiene</span><h3>REPO_HYGIENE — what to edit where</h3></div>
       <p>Canonical paths, do-not-edit trees, handoff zip policy.</p>
-    </a>
-    <a class="archive-row" href="/e1-e5-pipeline-architecture.html" data-keywords="e1 e2 fan-out pillar a b map history">
-      <div class="row-top"><span class="tag">Fabric</span><h3>E1–E5 pipeline architecture</h3></div>
-      <p>Identity fan-out into Pillar B map/ ∥ Pillar A history/.</p>
-    </a>
-    <a class="archive-row" href="/map-history-storage-blocks.html" data-keywords="map history storage rooms workingset">
-      <div class="row-top"><span class="tag">Fabric</span><h3>map/ · history/ storage blocks</h3></div>
-      <p>Sub-blocks, R/W, no sync — join at WorkingSet.</p>
-    </a>
-    <a class="archive-row" href="/map-history-storage-animation.html" data-keywords="map history animation remap">
-      <div class="row-top"><span class="tag">Fabric</span><h3>map/ · history/ animation</h3></div>
-      <p>Stepped remap: write fan-out → rooms → WorkingSet.</p>
-    </a>
-    <a class="archive-row" href="/vortex-s3-interaction.html" data-keywords="vortex s3 temperature rooms block interaction">
-      <div class="row-top"><span class="tag">Fabric</span><h3>Vortex + S3 interaction</h3></div>
-      <p>Rooms vs temperature; retrieval → WorkingSet.</p>
-    </a>
-    <a class="archive-row" href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md" data-keywords="pillar a percentiles tdigest buckets baseline">
-      <div class="row-top"><span class="tag">Pillar A</span><h3>Percentiles deep dive</h3></div>
-      <p>Inputs → process → sketch.v1 / S3 / Vortex.</p>
-    </a>
-    <a class="archive-row" href="/pillar-ab-implementation/README.md" data-keywords="pillar a b implementation slice graph sketch contract">
-      <div class="row-top"><span class="tag">Slice</span><h3>Pillar A + B implementation</h3></div>
-      <p>Contracts SoT, pillar-a / pillar-b packages, integration. Combined poc archived.</p>
     </a>
     <a class="archive-row" href="/docs/MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md" data-keywords="implementation scope markdown">
       <div class="row-top"><span class="tag">Canonical</span><h3>MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md</h3></div>
@@ -200,7 +258,10 @@
   </section>
 
   <p class="note" style="margin-top:2rem;">
-    <a href="/observeops-pipeline-hld.html">← Back to Our HLD main menu</a>
+    <a href="/docs/observeops/OUR_HLD_TIER1.md">Tier 1 list</a>
+    · <a href="/observeops-pipeline-hld.html">← Our HLD hub</a>
+    · <a href="/observeops-pipeline-hld.html#fabric">Fabric section</a>
+    · <a href="#implementer-io">Implementer I/O</a>
     · <a href="/docs.html">Full docs hub</a>
     · <a href="/urca-glossary.html">Glossary</a>
   </p>

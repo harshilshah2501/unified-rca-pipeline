@@ -10,7 +10,7 @@
 
 **Companion docs:** `OBSERVEOPS_PIPELINE_HLD.md`, `MOTADATA_3PILLARS_STUDY_QNA.md`, `MOTADATA_3PILLARS_VS_SHIFT_LEFT.md`, `GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`, `end-to-end-algorithm-walkthrough.md`, `sketch-exemplars-visual.html`, `vortex-s3-interaction.html`  
 **Pillar A cold-reader deep dive (inputs → process → artifacts):** [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../../docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md)  
-**Slice home:** [`pillar-ab-implementation/`](../pillar-ab-implementation/README.md) · **Contract brief:** [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md)
+**Slice home:** [`pillar-ab-implementation/`](../README.md) · **Contract brief:** [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](../contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md)
 
 ---
 
@@ -280,7 +280,7 @@ samples (start with 1m + 5m) -> T-Digest + explicit buckets (+ optional exemplar
 | **Detect** — “is this window wrong for this season?” | **T-Digest** (current p95) + **seasonal baseline** (expected p95) | Buckets, exemplars |
 | **Investigate after fire** — “which latency range / which request?” | **Buckets** (+ **exemplars** on a hot bin → `trace_id`) | Baseline for the click-through itself |
 
-General rule (not demo-only): *digest + baseline → fire; buckets → where the mass is; exemplars → which request in that mass.* Visual: [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html). Walkthrough: [`end-to-end-algorithm-walkthrough.md`](./end-to-end-algorithm-walkthrough.md).
+General rule (not demo-only): *digest + baseline → fire; buckets → where the mass is; exemplars → which request in that mass.* Visual: [`sketch-exemplars-visual.html`](../../docs/fabric/sketch-exemplars-visual.html). Walkthrough: [`end-to-end-algorithm-walkthrough.md`](../../docs/fabric/end-to-end-algorithm-walkthrough.md).
 
 **Why both T-Digest and buckets if Detect only needs digest?** Same raw latencies, different leftovers: digest = mergeable percentiles; buckets = fixed-bin histogram for heatmaps, bin rules, and a place to hang exemplars. They are not duplicates. See contract brief §5.2 / FAQ Q15–Q16.
 
@@ -444,7 +444,7 @@ Full cold-reader expansion (inputs → process → partition example): [`PILLAR_
 
 See also: [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../../docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md) §7.4.
 
-**E4 destination:** Vortex/S3 may be **one** allowed dest among others (lab file dest, existing Motadata store). This guide freezes **row shapes**, not “Vortex is the only lake forever.” Visual: [`vortex-s3-interaction.html`](./vortex-s3-interaction.html).
+**E4 destination:** Vortex/S3 may be **one** allowed dest among others (lab file dest, existing Motadata store). This guide freezes **row shapes**, not “Vortex is the only lake forever.” Visual: [`vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html).
 
 ---
 
@@ -482,7 +482,7 @@ Optional Motadata **Rust ReAct agent** (Pillar C) is one client of retrieval —
 
 **How (Motadata walk recipe):** Incident -> Service (symptom CI) -> deps (`CALLS` / `RUNS_ON`) -> Change (`CHANGED_BY`) -> candidates + abnormal metrics.
 
-Motadata product edge words map **into** our closed **fifteen-relation** storage enum (aliases, not a second vocabulary). Examples we store: `depends_on`, `runs_on`, `communicates_with`, `part_of`, `hosted_on`, … Full catalog and field tables: [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) §4.
+Motadata product edge words map **into** our closed **fifteen-relation** storage enum (aliases, not a second vocabulary). Examples we store: `depends_on`, `runs_on`, `communicates_with`, `part_of`, `hosted_on`, … Full catalog and field tables: [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](../contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) §4.
 
 **Not topology edges:** `CORRELATED_WITH` (Curate), `RESOLVED_BY` (Package), blast-radius `AFFECTS` as a stored map fact — those are case / investigation words, not E3 `graph_edge.v1`.
 
@@ -579,7 +579,7 @@ Do **not** collapse “two rooms” with “Vortex vs S3.”
 
 **How:** Percentile engine and graph builder write in parallel after identity exists. Diagnose never opens the lake as a dump: **retrieval → bounded `WorkingSet`**. Vortex may federate S3; Localize / Identify / optional ReAct consume the WorkingSet.
 
-**Our resolution:** Keep rooms logically separate (E3 map || E4 evidence). Vortex/S3 may be **one** E4 destination among others (lab files, existing Motadata store). Node/Gateway only buffer — they are not the lake. Visual: [`vortex-s3-interaction.html`](./vortex-s3-interaction.html).
+**Our resolution:** Keep rooms logically separate (E3 map || E4 evidence). Vortex/S3 may be **one** E4 destination among others (lab files, existing Motadata store). Node/Gateway only buffer — they are not the lake. Visual: [`vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html).
 
 **“Agent” here:** Motadata Pillar C Rust ReAct (optional Layer I) is one client of retrieval — not Collect/Topology writers, not “any HTTP caller.” Operator E9–E11 must work with ReAct off.
 
@@ -681,4 +681,4 @@ For **this workstream**, the immediate build is sequence 2 (A || B) after consum
 | Pillar 2 (you) | CI entities, fifteen-relation schema (phased writers), provenance/validity, hybrid spine, change facts (not vertices) | Alert/Incident vertices, Curate-as-edge, ReAct default |
 | Shared | Consume E1/E2 contracts; E5 refresh; door C / CaseSeed / operator VerdictCard; rooms ⊥ temperature tiers | Flip D5; remediation; ITSM Collect |
 
-Formal contracts remain on the Pipeline HLD and [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md). This merged guide is the SaaS-column implementation map for Motadata pillars A/B onto ObserveOps E3-E5.
+Formal contracts remain on the Pipeline HLD and [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](../contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md). This merged guide is the SaaS-column implementation map for Motadata pillars A/B onto ObserveOps E3-E5.

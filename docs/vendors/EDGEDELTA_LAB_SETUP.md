@@ -2,7 +2,7 @@
 
 **Hub:** [`ed-ai-team-hub.html`](./ed-ai-team-hub.html) · **HTML:** [`ed-lab-setup.html`](./ed-lab-setup.html)  
 **Catalogs:** [`EDGEDELTA_SUPPORTED_SCENARIOS.md`](./EDGEDELTA_SUPPORTED_SCENARIOS.md)  
-**Manifests:** [`labs/edgedelta/`](../labs/edgedelta/)  
+**Manifests:** [`labs/edgedelta/`](../../labs/edgedelta/)  
 **Date:** 2026-08-17  
 **Org:** `gmailcom_d4486595` (`6da947fe-77af-421e-8a9c-dda8ead0b393`)
 
@@ -134,7 +134,7 @@ Vendor agent floor is 0.2 CPU / 256 MB — **that is not the VM size**. Helm def
 | Disk | 20 GB | **40 GB** |
 | OS | Ubuntu 22.04 or 24.04 LTS, 64-bit Intel/AMD | same |
 
-Kafka for UC6: **12–16 GB**, or skip Kafka and use [`fake-ingest.yaml`](../labs/edgedelta/fake-ingest.yaml) on the 8 GB box.
+Kafka for UC6: **12–16 GB**, or skip Kafka and use [`fake-ingest.yaml`](../../labs/edgedelta/fake-ingest.yaml) on the 8 GB box.
 
 If the cluster is on AWS instead: `t3.large` (2 vCPU / 8 GiB) or `t3.xlarge` (4 vCPU / 16 GiB). EKS is optional.
 
@@ -189,7 +189,7 @@ We will install Kubernetes (k3s) and a vendor agent ourselves after the VM is up
 
 1. **This document** (locus + BOM + appendix).
 2. **Gate:** Linux VM + kubeconfig. Confirm Free-plan limits in Admin before Helm.
-3. **Install** via AI Team **Kubernetes connector** (UI). Follow [`labs/edgedelta/INSTALL.md`](../labs/edgedelta/INSTALL.md). Add Coordinator + Gateway on Kubernetes. Confirm explorers show logs; Pipeline Liveness stays OK; Pattern Anomaly leaves **No Data**.
+3. **Install** via AI Team **Kubernetes connector** (UI). Follow [`labs/edgedelta/INSTALL.md`](../../labs/edgedelta/INSTALL.md). Add Coordinator + Gateway on Kubernetes. Confirm explorers show logs; Pipeline Liveness stays OK; Pattern Anomaly leaves **No Data**.
 4. **Demo app:** `kubectl apply -f labs/edgedelta/noisy-logger.yaml`.
 5. **This session: execute UC9 only** (GitHub). UC1 / UC8 / UC4 / UC6 wait until you say the cluster is ready.
 6. **Do not connect** AWS / Elastic / CircleCI / PagerDuty this pass.

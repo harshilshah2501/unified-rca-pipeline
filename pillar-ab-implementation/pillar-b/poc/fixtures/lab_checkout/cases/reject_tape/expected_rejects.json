@@ -1,0 +1,27 @@
+{
+  "case": "reject_tape",
+  "inputs": {
+    "seed": "topology.seed.json",
+    "stream": "stream.reject.jsonl"
+  },
+  "reject_reasons": [
+    "identity_synthesized",
+    "identity_unresolved",
+    "never_ci_vertex",
+    "unknown_relation"
+  ],
+  "reject_count": 5,
+  "must_not_appear_as_nodes": [
+    "alert-1",
+    "chg-1",
+    "synth-topo",
+    "unresolved-topo"
+  ],
+  "seed_nodes_still_present": [
+    "app-runtime-jvm",
+    "bs-checkout",
+    "checkout-api",
+    "linux-server-app-01",
+    "payments-db"
+  ]
+}

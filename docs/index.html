@@ -50,55 +50,68 @@
     <a href="/ed-ai-team-hub.html">ED hub</a> (independent, not a third twin) →
     <a href="/comparable-pipeline-dt-dd.html">L1 compare</a> → Motadata FR/AC.
     <strong style="color:var(--text)">Inside Our HLD:</strong>
-    <a href="/observeops-fusion-guide.html">Fusion</a> (try a use case) →
-    <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a> (written spec) →
-    <a href="/motadata-3pillars-implementation-scope.html">3 pillars kickoff scope</a> →
+    <a href="/observeops-pipeline-hld.html">Our HLD hub</a>
+    (Overview · <a href="/observeops-pipeline-hld.html#workflow">Workflow</a> ·
+    <a href="/observeops-pipeline-hld.html#graphwriter">GraphWriter</a> ·
+    <a href="/observeops-pipeline-hld.html#diagnose">Diagnose</a>) →
+    <a href="/observeops-fusion-guide.html">Fusion</a> (try) →
+    <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a> (spec) →
+    <a href="/data-shape-journey.html">Data shape journey</a> (fabric) →
+    <a href="/motadata-3pillars-implementation-scope.html">3 pillars scope</a> →
     <a href="/observeops-shift-left-architecture.html">shift-left</a>.
-    More articles: <a href="/hld-archive.html">HLD archive</a>.
+    Full index: <a href="/hld-archive.html">HLD archive</a>.
     Terms: <a href="/urca-glossary.html">Glossary</a>.
   </div>
 
   <h2>0 · Our HLD (L2)</h2>
   <p class="lead" style="margin-top:0">
-    One pipeline. <a href="/observeops-pipeline-hld.html">Our HLD</a> is the door.
-    Fusion is clickable. The Pipeline HLD is the written spec.
-    Shift-left is where work runs, not a second pipeline.
+    One pipeline. <a href="/observeops-pipeline-hld.html">Our HLD</a> is the door — Overview, Workflow, GraphWriter, and Diagnose on one hub; Fusion and the written Pipeline HLD stay linked for try/spec depth.
   </p>
   <div class="grid two">
     <a class="card" href="/observeops-pipeline-hld.html">
       <div class="k compare">Launchpad</div>
-      <h3>Our HLD</h3>
-      <p>Eleven steps, how to read them, then the written spec. D5 stays Review.</p>
+      <h3>Our HLD hub</h3>
+      <p>Overview · Workflow poster · GraphWriter I/O · Diagnose walk · fabric cards · ADRs. D5 stays Review.</p>
     </a>
     <a class="card" href="/observeops-fusion-guide.html">
-      <div class="k compare">Start here</div>
+      <div class="k compare">Path 1 · Try</div>
       <h3>Fusion</h3>
       <p>Click a use case. See what each step takes in and puts out.</p>
     </a>
     <a class="card" href="/docs/OBSERVEOPS_PIPELINE_HLD.md">
-      <div class="k compare">Written spec</div>
+      <div class="k compare">Path 2 · Spec</div>
       <h3>Pipeline HLD</h3>
       <p>What each step is for. Signed design choices.</p>
     </a>
+    <a class="card" href="/data-shape-journey.html">
+      <div class="k compare">Path 3 · Fabric</div>
+      <h3>Data shape journey</h3>
+      <p>E1–E11 — Edge devices vs Platform; object names and JSON per step.</p>
+    </a>
     <a class="card" href="/motadata-3pillars-implementation-scope.html">
-      <div class="k kickoff">Kickoff scope</div>
+      <div class="k kickoff">Path 4 · Build</div>
       <h3>3 pillars implementation scope</h3>
       <p>Block-2 entry: answers before start · ingest.v1 · E3–E5 artifacts.</p>
     </a>
-    <a class="card" href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md">
-      <div class="k kickoff">Pillar A</div>
-      <h3>Percentiles deep dive</h3>
-      <p>Inputs, processing flowcharts, sketch.v1 artifacts, who reads what.</p>
-    </a>
     <a class="card" href="/observeops-shift-left-architecture.html">
-      <div class="k compare">Where it runs</div>
+      <div class="k compare">Path 4 · Locus</div>
       <h3>Shift-processing-left</h3>
-      <p>Same eleven steps. Node / optional Gateway / our SaaS. Not a second pipeline.</p>
+      <p>Same eleven steps. Node / optional Gateway / our SaaS.</p>
+    </a>
+    <a class="card" href="/observeops-pipeline-hld.html#fabric">
+      <div class="k compare">Fabric index</div>
+      <h3>Fabric &amp; contracts</h3>
+      <p>E1–E5 visuals, GRAPH_QNA, graph/sketch brief — on the hub.</p>
+    </a>
+    <a class="card" href="/graphwriter-io-walkthrough.html">
+      <div class="k kickoff">Pillar B · map/</div>
+      <h3>GraphWriter I/O walkthrough</h3>
+      <p>Who it talks to · admit/skip/reject · seed→flush · seven in-page tabs.</p>
     </a>
     <a class="card" href="/hld-archive.html">
-      <div class="k compare">Archive index</div>
-      <h3>More HLD articles</h3>
-      <p>Motadata study, examples, LLDs, chapters — searchable; off the main menu.</p>
+      <div class="k compare">Path 5 · Archive</div>
+      <h3>HLD article archive</h3>
+      <p>Motadata study, examples, LLDs, print — searchable.</p>
     </a>
   </div>
   <p class="note" style="margin-top:.75rem;">
@@ -299,6 +312,11 @@
       <h3>Supported scenarios</h3>
       <p>Packs shape → monitors notice → use cases investigate. Not Node / Gateway / Team.</p>
     </a>
+    <a class="card" href="/edgedelta-to-motadata-mapping.html">
+      <div class="k ed">Comparator</div>
+      <h3>ED → Motadata map</h3>
+      <p>Clean diagrams from research notes: pipelines, multi-source, MCP vs Knowledge Graph, E1–E11.</p>
+    </a>
     <a class="card" href="/ed-lab-setup.html">
       <div class="k ed">Lab</div>
       <h3>Use-case lab setup</h3>
@@ -308,6 +326,7 @@
 
   <h2>4 · Shared fabric / design</h2>
   <ul class="list">
+    <li><a href="/graphwriter-io-walkthrough.html">GraphWriter I/O walkthrough</a><span>Pillar B Topology · Site tab</span></li>
     <li><a href="/rca-data-lake-brainstorm.html">RCA data lake brainstorm</a><span>Clock A/B · modalities</span></li>
     <li><a href="/clock-ab-stage-reference.html">Clock A/B stage reference</a><span>Stage I/O cards</span></li>
     <li><a href="/fanout-tailor-simulator.html">Fan-out / Tailor simulator</a><span>Interactive cut sketch</span></li>

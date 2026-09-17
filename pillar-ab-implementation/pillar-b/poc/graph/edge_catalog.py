@@ -28,7 +28,14 @@ WAVE1_RELATIONS = frozenset(
 
 
 def classify_relation(relation: str) -> tuple[str, str | None]:
-    """Return (action, reason). action in emit | skip | reject."""
+    """Return (action, reason). action in emit | skip | reject.
+
+    Hub admit language (GraphWriter walkthrough):
+      emit  → WRITE (upsert edge when catalog checks already passed)
+      skip  → phased map-NOOP (in fifteen-name catalog, not wave-1 yet)
+      reject → DROP (unknown_relation)
+    Wrong signal_class is handled earlier as silent NOOP (continue), not here.
+    """
     if relation not in ALL_RELATIONS:
         return "reject", rc.UNKNOWN_RELATION
     if relation not in WAVE1_RELATIONS:

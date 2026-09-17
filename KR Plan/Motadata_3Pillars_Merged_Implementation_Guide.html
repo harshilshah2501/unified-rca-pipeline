@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Motadata 3 pillars - merged implementation guide</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+
+<style>
+@page{margin:18mm 16mm;}
+body{font-family:DejaVu Sans,Arial,Helvetica,sans-serif;font-size:10.5pt;line-height:1.42;color:#111;max-width:920px;margin:18px auto;padding:0 14px;}
+h1{font-size:1.55rem;margin:0 0 .6rem;}
+h2{font-size:1.2rem;margin:1.4rem 0 .45rem;border-top:1px solid #ccc;padding-top:.7rem;page-break-after:avoid;}
+h3{font-size:1.02rem;margin:1rem 0 .35rem;page-break-after:avoid;}
+h4{font-size:.95rem;margin:.8rem 0 .3rem;}
+p,li{orphans:3;widows:3;}
+table{border-collapse:collapse;width:100%;margin:.55rem 0 1rem;font-size:9.4pt;}
+th,td{border:1px solid #cfd6dd;padding:5px 7px;vertical-align:top;text-align:left;}
+th{background:#f2f5f8;}
+code,pre{font-family:DejaVu Sans Mono,Consolas,monospace;font-size:8.8pt;}
+pre{white-space:pre-wrap;background:#f6f8fa;padding:10px;border:1px solid #dde3ea;border-radius:4px;}
+hr{border:none;border-top:1px solid #ccc;margin:1.2rem 0;}
+strong{font-weight:700;}
+ul,ol{margin-top:.25em;margin-bottom:.55em;}
+</style>
+
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Motadata 3 pillars - merged implementation guide</h1>
+</header>
+<h1 id="motadata-3-pillars---merged-implementation-guide">Motadata 3
+pillars - merged implementation guide</h1>
+<p><strong>Date:</strong> 2026-08-20<br />
+<strong>Audience:</strong> engineering + management<br />
+<strong>Status:</strong> Draft for kickoff. Not an HLD rewrite.
+<strong>D5 stays Review.</strong><br />
+<strong>Merged from:</strong> 1. Gaps / What-Why-How deep-dive
+(<code>Motadata_3Pillars_Implementation_Scope_Gaps.pdf</code>) 2.
+Explained architecture
+(<code>Motadata_Observability_3_Pillars_Architecture_Explained.pdf</code>)
+3. Kickoff scope hub page
+(<code>motadata-3pillars-implementation-scope.html</code>)</p>
+<p><strong>Companion docs:</strong>
+<code>OBSERVEOPS_PIPELINE_HLD.md</code>,
+<code>MOTADATA_3PILLARS_STUDY_QNA.md</code>,
+<code>MOTADATA_3PILLARS_VS_SHIFT_LEFT.md</code></p>
+<hr />
+<h2 id="how-to-read-this-document">0) How to read this document</h2>
+<p>This is one merged guide. It is not three stapled PDFs.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Section</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Part A</td>
+<td>Context: what Motadata drew, how it maps onto ObserveOps</td>
+</tr>
+<tr class="even">
+<td>Part B</td>
+<td>Kickoff scope: locked decisions, open questions, in/out, E1/E2
+contracts</td>
+</tr>
+<tr class="odd">
+<td>Part C</td>
+<td>Pillar 1 deep-dive (teammate): statistics + sketch store</td>
+</tr>
+<tr class="even">
+<td>Part D</td>
+<td>Pillar 2 deep-dive (you): entities + edges + changes</td>
+</tr>
+<tr class="odd">
+<td>Part E</td>
+<td>Shared lake, readers, build order</td>
+</tr>
+<tr class="even">
+<td>Part F</td>
+<td>Gap register and candidate resolutions</td>
+</tr>
+</tbody>
+</table>
+<p>Every technical claim is written as <strong>What / Why / How</strong>
+so short Motadata labels do not become riddles.</p>
+<h3 id="two-ownership-tracks-implementation-split">Two ownership tracks
+(implementation split)</h3>
+<ul>
+<li><strong>Pillar 1 owner (teammate):</strong> T-Digest + explicit
+buckets + seasonal baselines + graph-builder <em>write path</em> into
+the store (schema, S3, Vortex indexing, who-reads-it)</li>
+<li><strong>Pillar 2 owner (you):</strong> entities + edges + changes
+graph <em>semantics</em> (CI taxonomy, edge catalog, validity, change
+facts)</li>
+</ul>
+<p>OKRs stay only in
+<code>KR Plan/OKR_Harshil_Shah_Block-1 2026-27 (1).xlsx</code> (not
+duplicated here).</p>
+<hr />
+<h1 id="part-a---motadata-stack-mapped-onto-observeops">Part A -
+Motadata stack mapped onto ObserveOps</h1>
+<h2 id="a1-one-sentence-purpose">A1) One-sentence purpose</h2>
+<p>The Motadata PDF is a <strong>SaaS-side</strong> design: centralize
+telemetry, keep compact statistics and a typed map, then diagnose with
+bounded evidence. It is <strong>not</strong> a second ObserveOps
+pipeline. Same eleven steps (E1-E11). Pillars are <em>what</em> SaaS
+stores (and optionally how P3 reasons). Shift-left is <em>where</em>
+E1-E6 may run.</p>
+<h2 id="a2-quick-orientation-cards">A2) Quick orientation cards</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Box</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>A + B</strong></td>
+<td>P1 stores (always-on write)</td>
+</tr>
+<tr class="even">
+<td><strong>C</strong></td>
+<td>Optional P3 diagnose (Layer I / ReAct)</td>
+</tr>
+<tr class="odd">
+<td><strong>P2</strong></td>
+<td>Reads A+B - not a fourth Motadata pillar</td>
+</tr>
+<tr class="even">
+<td><strong>D5</strong></td>
+<td>Stays Review. Operator path must work with agent off</td>
+</tr>
+</tbody>
+</table>
+<h2 id="a3-stack-picture-write-then-diagnose">A3) Stack picture (write,
+then diagnose)</h2>
+<p>Read top to bottom. Left = Motadata names. Right = our pipeline.</p>
+<ol type="1">
+<li><strong>Telemetry in</strong> (logs, metrics, APM, eBPF, events)
+-&gt; <strong>E1 Collect</strong> (admit raw; telemetry only this pass;
+no CI bind; PDF also lists ITSM here - we do <strong>not</strong>)</li>
+<li>Streaming bus (NATS) - not a pipeline stage; sits between Collect
+and Stores</li>
+<li><strong>A Percentile engine</strong> || <strong>B Graph
+builder</strong> -&gt; <strong>E4+E5 || E3+E5</strong> after identity
+exists. Windowing is not Node E2.</li>
+<li><strong>Vortex + S3</strong> durable lake -&gt; <strong>E4
+Stores</strong> (one dest profile; Gate B: not the only lake)</li>
+<li>Case opens - P2 has no Motadata pillar</li>
+<li><strong>RCA retrieval layer</strong> -&gt; <strong>E8 Scope</strong>
+(<code>WorkingSet</code>; do not scan the lake)</li>
+<li><strong>C Rust RCA agent</strong> -&gt; <strong>E9 -&gt; E10 -&gt;
+E11</strong> (Layer I opt-in)</li>
+<li>Explain / ITSM / Remediate -&gt; <strong>E11 Package</strong>
+(required <code>VerdictCard</code>; ticket is egress; remediation is
+outside E1-E11)</li>
+<li>Outcome writeback -&gt; <strong>E5 Maintain + E3
+version</strong></li>
+</ol>
+<p><strong>Important gap in the Motadata picture:</strong> Identity (E2)
+is assumed on every sketch and node, but never drawn as a step. We still
+bind on the Node.</p>
+<p><strong>Same clock, SaaS column only.</strong> Motadata does not
+specify OTel Node Collect/Identity, mask/Drain, Detect door A, or
+optional Gateway door B.</p>
+<h2 id="a4-which-phase-owns-each-pillar">A4) Which phase owns each
+pillar</h2>
+<p>A pillar is not a phase. A and B are always-on P1 stores. P2/P3 only
+read them. C is Clock B (diagnose/close), optional Layer I.</p>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 38%" />
+<col style="width: 18%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Pillar</th>
+<th>Owns (write path)</th>
+<th>Read by</th>
+<th>Does not own</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>A Percentiles</strong></td>
+<td>P1 E4 sketch store; P1 E5 seasonal refresh</td>
+<td>P2 E6 door C; P3 E10 <code>get_metric_baseline()</code></td>
+<td>E1/E2; E9 leaf rule</td>
+</tr>
+<tr class="even">
+<td><strong>B Knowledge graph</strong></td>
+<td>P1 E3 <code>GraphSnapshot</code>; P1 E5
+versions/changes/writeback</td>
+<td>P2 E8 hop/time; P3 E9 walk; P3 E10 <code>query_graph()</code></td>
+<td>E6 Detect; E11 executor</td>
+</tr>
+<tr class="odd">
+<td><strong>C Rust ReAct</strong></td>
+<td>P3 E9 Localize; P3 E10 Identify; P3 E11 Package
+(explain/ticket)</td>
+<td>Tools read A+B via E8</td>
+<td>P1 fabric; P2 E7 Curate; remediation</td>
+</tr>
+</tbody>
+</table>
+<h2 id="a5-take-vs-do-not-copy">A5) Take vs do not copy</h2>
+<p><strong>Take:</strong> - mergeable percentile sketches as an E4
+modality - typed RCA graph with
+<code>valid_from</code>/<code>valid_to</code> and confidence as E3 -
+bounded retrieval as E8 - hypothesis-plus-evidence language for E10 -
+LLM never owns authorization if Layer I ships</p>
+<p><strong>Do not copy:</strong> - skipping Node E1-E2 - treating
+NATS+Vortex as the whole product - folding Curate into the agent -
+making ReAct the default Package path - calling ITSM or remediation
+Collect - <strong>Do not flip D5</strong> because the PDF is agentic</p>
+<hr />
+<h1 id="part-b---kickoff-scope-from-implementation-scope-html">Part B -
+Kickoff scope (from implementation-scope HTML)</h1>
+<h2 id="b1-workstream-boundary">B1) Workstream boundary</h2>
+<p>This work maps Motadata onto ObserveOps. It does <strong>not</strong>
+rebuild Motadata's product.</p>
+<p><strong>This workstream is E3-E5</strong> (Pillar B graph, Pillar A
+sketches in E4, E5 refresh).</p>
+<ul>
+<li>E1 Collect and E2 Identity are already specified (LLDs Done). We
+<strong>consume</strong> their output; we do not implement them
+here.</li>
+<li>Pillar C (ReAct) is <strong>out of this block</strong>.</li>
+<li>P2 has no Motadata pillar.</li>
+</ul>
+<h2 id="b2-already-decided-do-not-re-open">B2) Already decided (do not
+re-open)</h2>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 47%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Question</th>
+<th>Answer</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>L1</td>
+<td>Second pipeline?</td>
+<td>No. Same E1-E11.</td>
+</tr>
+<tr class="even">
+<td>L2</td>
+<td>Where does the PDF sit?</td>
+<td>SaaS-column requirements. Node work is ours; PDF is silent, not
+opposed.</td>
+</tr>
+<tr class="odd">
+<td>L3</td>
+<td>Alert / Incident / ticket on the map?</td>
+<td>No. CIs only. Alert = E6 <code>Signal</code>.</td>
+</tr>
+<tr class="even">
+<td>L4</td>
+<td>ReAct as default Package?</td>
+<td>No. D5 stays Review. Operator E9-E11 with Layer I off.</td>
+</tr>
+<tr class="odd">
+<td>L5</td>
+<td>Curate inside the agent?</td>
+<td>No. E7 one <code>CaseSeed</code> first (D3).</td>
+</tr>
+<tr class="even">
+<td>L6</td>
+<td>ITSM / change as Collect?</td>
+<td>No this pass. Reserved <code>signal_class</code> only.</td>
+</tr>
+<tr class="odd">
+<td>L7</td>
+<td>Vortex the only lake?</td>
+<td>No. Gate B: one dest among others. Sketches = E4. Graph = E3.</td>
+</tr>
+<tr class="even">
+<td>L8</td>
+<td>Sketches vs map?</td>
+<td>Sketches = Grail-like history (E4). Map = Smartscape-like graph
+(E3).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="b3-must-answer-before-first-ab-sprint">B3) Must answer before
+first A+B sprint</h2>
+<table>
+<colgroup>
+<col style="width: 6%" />
+<col style="width: 21%" />
+<col style="width: 31%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Question</th>
+<th>Why it blocks</th>
+<th>Default if silent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Q1</td>
+<td>Which k8s cluster and which VM emit first streams?</td>
+<td>E1 has nothing to admit</td>
+<td>UC replay + existing Motadata export path</td>
+</tr>
+<tr class="even">
+<td>Q2</td>
+<td>Lab tenant string?</td>
+<td>Join key</td>
+<td><code>default</code></td>
+</tr>
+<tr class="odd">
+<td>Q3</td>
+<td>CI types in v1 graph? Pods with parent + validity?</td>
+<td>E3 schema</td>
+<td>Service + Host required; Pod optional</td>
+</tr>
+<tr class="even">
+<td>Q4</td>
+<td>Gate A: Node-first vs Gateway?</td>
+<td>Where Collect runs</td>
+<td>Node-first; Gateway off</td>
+</tr>
+<tr class="odd">
+<td>Q5</td>
+<td>Gate B: dest for sketches (Vortex or not)?</td>
+<td>E4 writer</td>
+<td>Files or existing dest; Vortex optional</td>
+</tr>
+<tr class="even">
+<td>Q6</td>
+<td>First metric names and windows?</td>
+<td>Pillar A schema</td>
+<td>PDF 1m/5m/1h/1d; start 1m+5m</td>
+</tr>
+<tr class="odd">
+<td>Q7</td>
+<td>Two Detect classes for door C?</td>
+<td>case-open exit</td>
+<td>ERROR + SLOWDOWN</td>
+</tr>
+<tr class="even">
+<td>Q8</td>
+<td>Three classes for VerdictCard, Layer I off?</td>
+<td>close exit</td>
+<td>ERROR, SLOWDOWN, one host-contention flavor</td>
+</tr>
+<tr class="odd">
+<td>Q9</td>
+<td>Graph time field names?</td>
+<td>E3/E5</td>
+<td><code>valid_from</code>/<code>valid_to</code> plus provenance
+types</td>
+</tr>
+<tr class="even">
+<td>Q10</td>
+<td>Seed topology: file, <code>topo_update</code>, or both?</td>
+<td>E3 writer</td>
+<td>Both; SaaS owns snapshot</td>
+</tr>
+<tr class="odd">
+<td>Q11</td>
+<td>Split Motadata admit vs bind scripts?</td>
+<td>E1/E2 boundary</td>
+<td>Split before calling A/B implemented</td>
+</tr>
+<tr class="even">
+<td>Q12</td>
+<td>Publish: hub vs shared drive?</td>
+<td>two truths</td>
+<td>Hub for specs; drive + 1 session for management report</td>
+</tr>
+<tr class="odd">
+<td>Q13</td>
+<td>Murphy / cyclic MRF this block?</td>
+<td>scope</td>
+<td>No. Store a graph that could be cyclic; Gibbs is later P3</td>
+</tr>
+</tbody>
+</table>
+<h2 id="b4-in-scope-out-of-scope">B4) In scope / out of scope</h2>
+<p><strong>In (this stream):</strong> 1. Consume <code>ingest.v1</code>
+JSONL after E2 (<code>identity.status = resolved</code> for writers) 2.
+Pillar A sketches in E4, refreshed by E5, keyed by
+<code>tenant</code>+<code>ci_id</code> 3. Hybrid CI
+<code>GraphSnapshot</code> in E3 (CI vertices only; provenance +
+validity); E5 versions; SaaS owns snapshot 4. E5 Maintain (season
+refresh; graph validity/decay) - not Detect 5. Readers: door C on
+sketches; E7/E8 case open; operator E9-E11; LLD-E3/E4 Done; Gate B/C</p>
+<p><strong>Out (this block):</strong> - Rust ReAct / Layer I on (Pillar
+C, Gate D, D5) - Remediation execution - ITSM as Collect;
+<code>change_event</code> Collect - Alert / Incident / Metric / Trace as
+E3 vertices - Vortex as the mandatory lake - Murphy Gibbs / Nezha as the
+localize engine - Second HLD / Motadata clone PRD / agent design doc</p>
+<h2 id="b5-what-we-expect-from-e1-we-do-not-build-this">B5) What we
+expect from E1 (we do not build this)</h2>
+<p><strong>What:</strong> E1 admits telemetry into UTF-8 JSONL
+(<code>schema_version: "ingest.v1"</code>).<br />
+<strong>Why:</strong> Writers must not invent their own ingest
+dialect.<br />
+<strong>How:</strong> Send metrics / logs-events / optional traces /
+topology cues. Do not send tickets or CMDB this pass.</p>
+<p>Example envelope:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;schema_version&quot;</span><span class="fu">:</span> <span class="st">&quot;ingest.v1&quot;</span><span class="fu">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ts&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-08-19T12:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tenant&quot;</span><span class="fu">:</span> <span class="st">&quot;default&quot;</span><span class="fu">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ci_id&quot;</span><span class="fu">:</span> <span class="st">&quot;checkout-api&quot;</span><span class="fu">,</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ci_type&quot;</span><span class="fu">:</span> <span class="st">&quot;Service&quot;</span><span class="fu">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;signal_class&quot;</span><span class="fu">:</span> <span class="st">&quot;metric_sample&quot;</span><span class="fu">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;request.p95_latency_ms&quot;</span><span class="fu">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="fl">1450.0</span><span class="fu">,</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;labels&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;source&quot;</span><span class="fu">:</span> <span class="st">&quot;lab-node&quot;</span> <span class="fu">}</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Admitted <code>signal_class</code>: <code>metric_sample</code>,
+<code>anomaly</code>, <code>event</code>, <code>trace_span</code>,
+<code>topo_update</code>.<br />
+Reserved (do not emit): <code>change_event</code>,
+<code>cmdb_sync</code>, <code>ticket</code>.</p>
+<p>Preferred lab folder:</p>
+<pre><code>datasets/ingest_samples/&lt;suite&gt;/&lt;incident_id&gt;/
+  stream.jsonl
+  topology.json
+  ground_truth.json   # eval only</code></pre>
+<h2 id="b6-what-we-expect-from-e2-we-do-not-build-this">B6) What we
+expect from E2 (we do not build this)</h2>
+<p><strong>What:</strong> Same <code>ingest.v1</code> line plus identity
+overlay.<br />
+<strong>Why:</strong> One identity namespace for sketches and graph.
+Unresolved ids must not become localize/ticket roots.<br />
+<strong>How:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="er">&quot;identity&quot;:</span> <span class="fu">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;resolved&quot;</span><span class="fu">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;bind_source&quot;</span><span class="fu">:</span> <span class="st">&quot;topology_lookup&quot;</span><span class="fu">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;aliases&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;monitor-88&quot;</span><span class="ot">]</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th><code>identity.status</code></th>
+<th>May be E9 leaf / ticket CI?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>resolved</code></td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td><code>unattributed</code></td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>synthesized</code></td>
+<td>No (D-E2-1)</td>
+</tr>
+</tbody>
+</table>
+<p>Pillars A and B write <strong>resolved rows only</strong>.</p>
+<h2 id="b7-output-artifacts-this-work-generates">B7) Output artifacts
+this work generates</h2>
+<table>
+<colgroup>
+<col style="width: 41%" />
+<col style="width: 33%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Artifact</th>
+<th>Format</th>
+<th>From</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Lab stream</td>
+<td><code>ingest.v1</code> JSONL + identity</td>
+<td>Upstream E1+E2</td>
+</tr>
+<tr class="even">
+<td><code>GraphSnapshot</code></td>
+<td>JSON: CIs, edges, provenance,
+<code>valid_from</code>/<code>valid_to</code></td>
+<td>E3/E5</td>
+</tr>
+<tr class="odd">
+<td>Sketch rows</td>
+<td>Dest table/files: window, season_key, tdigest, buckets,
+baseline</td>
+<td>E4/E5</td>
+</tr>
+<tr class="even">
+<td>Signal / CaseSeed / WorkingSet / VerdictCard</td>
+<td>JSON</td>
+<td>E6-E11</td>
+</tr>
+<tr class="odd">
+<td>LLD-E3 / LLD-E4 Done, Gates A/B/C</td>
+<td>Markdown on hub</td>
+<td>Docs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Publish:</strong> engineering specs on hub
+(<code>http://127.0.0.1:8765/</code>); code/datasets in repo; management
+evidence on shared drive + one knowledge-sharing session. Do not rewrite
+the leadership PDF.</p>
+<h2 id="b8-documents-to-write-during-the-work">B8) Documents to write
+during the work</h2>
+<p>Engineering: - LLD-E3 Topology (CI-only graph, provenance, validity)
+- LLD-E4 Stores (sketch schema + <code>get_metric_baseline</code>, Gate
+B) - Gates A/B/C note - Identified-stream contract: fields E3/E4 will
+reject - CaseSeed + VerdictCard examples; acceptance list</p>
+<p>Management (short): - One-pager: PDF mapped onto E1-E11; D5 not
+flipped - Conflict register (study QnA section 10 - do not fork a
+spreadsheet) - Evidence pack: 3 VerdictCards, Gate notes, out-of-scope
+list - One knowledge-sharing session</p>
+<hr />
+<h1 id="part-c---pillar-1-deep-dive-owner-teammate">Part C - Pillar 1
+deep-dive (Owner: Teammate)</h1>
+<h2
+id="c0-pillar-a-in-motadata-language-context-before-implementation">C0)
+Pillar A in Motadata language (context before implementation)</h2>
+<p><strong>What:</strong> One job, three parts: keep a mergeable
+percentile, keep a cheap histogram, keep a usual range for this hour of
+this weekday. Together they answer "is this weird?" without replaying
+weeks of raw samples.</p>
+<p><strong>Why:</strong> Weeks of samples cannot be scanned on every
+alert. Monday 9am traffic is not an outage. Without mergeable summaries
+and a calendar-aware expected range, Detect lies.</p>
+<p><strong>How (Motadata write path):</strong> samples (1m/5m/1h/1d)
+-&gt; T-Digest (mergeable p50/p95/p99) + explicit buckets (fixed bins) +
+seasonal baseline (hour-of-day x weekday) -&gt; one sketch row per
+metric + entity + window + season_key -&gt; Vortex/S3</p>
+<p><strong>Who reads it (Motadata):</strong> - dashboards (O(1) p95
+lookup) - E6 door C Detect (threshold / anomaly bound) - E10 Identify
+(<code>get_metric_baseline()</code>)</p>
+<p><strong>Example.</strong> Checkout p95 = 180 ms. Tuesday 14:00
+baseline p95 ~ 200 ms -&gt; normal. Sunday 02:00 baseline p95 ~ 40 ms
+-&gt; 180 ms is abnormal. Same number; different
+<code>season_key</code>.</p>
+<p><strong>Our pipeline mapping:</strong> - writes E4 Stores; writes E5
+Maintain (seasonal refresh) - read by E6 door C; read by E10 Identify -
+not E1/E2 (needs identity first; windowing != Node Normalize) - not E9
+leaf rule (percentiles do not name the root CI)</p>
+<p>Why both T-Digest and buckets? Percentiles merge cleanly across
+windows/entities. Buckets make histogram queries and alert rules
+deterministic and cheap. Seasonal baselines stop business cycles from
+looking like faults.</p>
+<hr />
+<h2 id="c1-how-samples-are-chosen">C1) How samples are chosen?</h2>
+<p><strong>What</strong><br />
+Choose metric samples by deterministic keys: - <code>tenant</code> -
+<code>entity_id</code> (or <code>ci_id</code> after E2 identity) -
+<code>metric_id</code> - <code>window</code> (1m, 5m, 1h, 1d) -
+timestamp</p>
+<p>Only resolved identity rows are sketch-writer eligible.</p>
+<p><strong>Why</strong><br />
+Without deterministic sample admission, percentile and baseline outputs
+become non-reproducible across runs and teams.</p>
+<p><strong>How</strong><br />
+1. Admit only <code>ingest.v1</code> metric lines with
+<code>identity.status = resolved</code>. 2. Normalize metric naming
+(<code>request.latency_ms</code>, <code>cpu.utilization_pct</code>,
+etc.). 3. Assign each point to one or more configured windows
+(multi-resolution allowed). 4. Derive <code>season_key</code> from
+timestamp (for example <code>Mon-09:00</code>, <code>Fri-18:00</code>).
+5. Feed sample value into: - T-Digest state for the key - explicit
+bucket histogram for the key - seasonal baseline accumulator for the
+key</p>
+<hr />
+<h2 id="c2-what-does-t-digest-do-what-is-mergeable-p50p95p99">C2) What
+does T-Digest do? What is "mergeable p50/p95/p99"?</h2>
+<p><strong>What</strong><br />
+T-Digest is a compressed representation of a value distribution. It
+supports fast quantile queries (<code>p50</code>, <code>p95</code>,
+<code>p99</code>) without storing all raw samples.</p>
+<p><strong>Why</strong><br />
+Raw history scans become too expensive at scale. T-Digest gives
+near-real-time percentile lookup with bounded storage.</p>
+<p><strong>How</strong><br />
+1. Each key
+<code>(tenant, entity_id, metric_id, window, season_key)</code> has a
+digest state. 2. New values update centroids (compression step). 3.
+Query asks for quantile <code>q</code> and returns estimate from digest.
+4. <strong>Mergeable</strong> means digest A + digest B -&gt; digest AB:
+- merge per host -&gt; per service - merge per minute -&gt; per 5-minute
+rollup - merge shard results -&gt; tenant/global aggregate</p>
+<p>Operational meaning: - <code>p50</code>: median behavior (normal
+center) - <code>p95</code>: high-tail service behavior (SLO-sensitive) -
+<code>p99</code>: rare tail stress/spike behavior</p>
+<hr />
+<h2 id="c3-how-explicit-bucketing-is-done">C3) How explicit bucketing is
+done?</h2>
+<p><strong>What</strong><br />
+Explicit bucketing is a fixed histogram with predefined boundaries.</p>
+<p><strong>Why</strong><br />
+Buckets make thresholding, alert rules, and "which range dominates?"
+questions deterministic and easy to explain.</p>
+<p><strong>How</strong><br />
+1. Define bucket sets per metric family: - latency:
+<code>[0-50), [50-100), [100-200), ...</code> - CPU%:
+<code>[0-20), [20-40), [40-60), ...</code> 2. For each sample, increment
+exactly one bucket count. 3. Keep total count, min/max, and optional sum
+for sanity checks. 4. Version bucket policy
+(<code>bucket_schema_version</code>) to prevent silent drift. 5. Never
+mix bucket versions in one logical sketch key.</p>
+<hr />
+<h2
+id="c4-sketch-row-format-one-row-per-metric-entity-window-season_key---vortexs3">C4)
+Sketch row format: one row per metric + entity + window + season_key
+-&gt; Vortex/S3</h2>
+<p><strong>What</strong><br />
+Each row is a compact statistical state for one logical key.</p>
+<p><strong>Why</strong><br />
+This shape is the contract that allows: - durable archival in S3 -
+analytical read/index in Vortex - reproducible E6/E10 retrieval without
+raw re-scan</p>
+<p><strong>How (recommended schema v1)</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;schema_version&quot;</span><span class="fu">:</span> <span class="st">&quot;sketch.v1&quot;</span><span class="fu">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tenant&quot;</span><span class="fu">:</span> <span class="st">&quot;default&quot;</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;entity_id&quot;</span><span class="fu">:</span> <span class="st">&quot;checkout-api&quot;</span><span class="fu">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;entity_type&quot;</span><span class="fu">:</span> <span class="st">&quot;Service&quot;</span><span class="fu">,</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;metric_id&quot;</span><span class="fu">:</span> <span class="st">&quot;request.latency_ms&quot;</span><span class="fu">,</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;window&quot;</span><span class="fu">:</span> <span class="st">&quot;5m&quot;</span><span class="fu">,</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;window_start&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-08-20T03:30:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;window_end&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-08-20T03:35:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;season_key&quot;</span><span class="fu">:</span> <span class="st">&quot;Thu-09:00&quot;</span><span class="fu">,</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdigest&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;compression&quot;</span><span class="fu">:</span> <span class="dv">100</span><span class="fu">,</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;centroids&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span><span class="dt">&quot;m&quot;</span><span class="fu">:</span> <span class="fl">92.1</span><span class="fu">,</span> <span class="dt">&quot;w&quot;</span><span class="fu">:</span> <span class="dv">14</span><span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span><span class="dt">&quot;m&quot;</span><span class="fu">:</span> <span class="fl">145.3</span><span class="fu">,</span> <span class="dt">&quot;w&quot;</span><span class="fu">:</span> <span class="dv">9</span><span class="fu">}</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;buckets&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bucket_schema_version&quot;</span><span class="fu">:</span> <span class="st">&quot;latency_v1&quot;</span><span class="fu">,</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;counts&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="dv">12</span><span class="ot">,</span> <span class="dv">19</span><span class="ot">,</span> <span class="dv">5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bounds&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">50</span><span class="ot">,</span> <span class="dv">100</span><span class="ot">,</span> <span class="dv">200</span><span class="ot">,</span> <span class="dv">500</span><span class="ot">,</span> <span class="dv">1000</span><span class="ot">,</span> <span class="dv">2000</span><span class="ot">]</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;baseline&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;expected_p50&quot;</span><span class="fu">:</span> <span class="fl">88.0</span><span class="fu">,</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;expected_p95&quot;</span><span class="fu">:</span> <span class="fl">170.0</span><span class="fu">,</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;expected_p99&quot;</span><span class="fu">:</span> <span class="fl">320.0</span><span class="fu">,</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;baseline_version&quot;</span><span class="fu">:</span> <span class="st">&quot;seasonal_v1&quot;</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;sample_count&quot;</span><span class="fu">:</span> <span class="dv">23</span><span class="fu">,</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ingest_trace&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;writer&quot;</span><span class="fu">:</span> <span class="st">&quot;pillar-a-sketch-writer&quot;</span><span class="fu">,</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;written_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-08-20T03:35:05Z&quot;</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="s3-write-model-cold-durable">S3 write model (cold /
+durable)</h3>
+<p><strong>What:</strong> S3 holds cold/large objects and long retention
+for sketch blobs and history.<br />
+<strong>Why:</strong> Builders are useless if results evaporate;
+historical UPDATE of raw sample lakes is expensive.<br />
+<strong>How:</strong> - Partition:
+<code>tenant=.../metric_id=.../window=.../date=YYYY-MM-DD/</code> -
+Write mode: append immutable rows; idempotent object naming using key
+hash + window end - Rollups: optional periodic compaction by
+day/week</p>
+<h3 id="vortex-indexingread-model-hot-analytical">Vortex indexing/read
+model (hot / analytical)</h3>
+<p><strong>What:</strong> Vortex is the analytical query engine on top
+of durable data.<br />
+<strong>Why:</strong> Interactive RCA must answer p95 / baseline / trend
+without scanning raw history.<br />
+<strong>How:</strong> - Primary lookup index:
+<code>(tenant, entity_id, metric_id, window, season_key, window_start)</code>
+- Secondary filters: <code>entity_type</code>, date range - First query
+patterns to optimize: 1. latest p95 for entity+metric 2. compare current
+window vs seasonal baseline 3. retrieve N prior windows for trend</p>
+<p>"O(1)" means cost does not grow with historical <strong>sample
+count</strong>. It is still a bounded key lookup + deserialize a
+sketch.</p>
+<p>Gate B remains open: Vortex/S3 may be <strong>one</strong> dest
+profile, not the only E4 lake.</p>
+<hr />
+<h2 id="c5-how-who-reads-it-is-handled">C5) How "WHO READS IT" is
+handled?</h2>
+<p><strong>What</strong><br />
+A role-based read policy for sketch data.</p>
+<p><strong>Why</strong><br />
+Different consumers need different access levels; unrestricted reads
+risk data leakage and noisy operations.</p>
+<p><strong>How (minimum RBAC plan)</strong></p>
+<table>
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Role</th>
+<th>May do</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>role_observability_reader</code></td>
+<td>Read sketch rows and baselines; no policy changes</td>
+</tr>
+<tr class="even">
+<td><code>role_detect_engine</code></td>
+<td>Read for door-C thresholding (service account only)</td>
+</tr>
+<tr class="odd">
+<td><code>role_rca_engine</code></td>
+<td>Read for E10 evidence correlation</td>
+</tr>
+<tr class="even">
+<td><code>role_admin_data</code></td>
+<td>Manage retention, index configs, schema versions</td>
+</tr>
+</tbody>
+</table>
+<p>Controls: 1. tenant-scoped authorization mandatory 2. audit log for
+each read query (who/what/when) 3. deny-by-default for cross-tenant
+reads 4. schema-version compatibility checks before query execution</p>
+<hr />
+<h1 id="part-d---pillar-2-deep-dive-owner-you">Part D - Pillar 2
+deep-dive (Owner: You)</h1>
+<h2
+id="d0-pillar-b-in-motadata-language-context-before-implementation">D0)
+Pillar B in Motadata language (context before implementation)</h2>
+<p><strong>What:</strong> Continuously maintain a typed picture of the
+estate: what exists, how it connects, and what recently changed. This is
+an RCA map, not a generic enterprise knowledge graph.</p>
+<p><strong>Why:</strong> A detector without a map produces an alert. A
+detector with a map can say which neighbor sits under the symptom,
+whether a deploy landed, and how sure we are that the link is real.</p>
+<p><strong>How (Motadata walk recipe):</strong> Incident -&gt; Service
+(symptom CI) -&gt; deps (<code>CALLS</code> / <code>RUNS_ON</code>)
+-&gt; Change (<code>CHANGED_BY</code>) -&gt; candidates + abnormal
+metrics.</p>
+<p>Typed edges (subset Motadata lists):<br />
+<code>CALLS</code> · <code>DEPENDS_ON</code> · <code>RUNS_ON</code> ·
+<code>CONTAINS</code> · <code>CONNECTS_TO</code> · <code>PRODUCES</code>
+· <code>CONSUMES</code> · <code>AFFECTS</code> · <code>CHANGED_BY</code>
+· <code>DEPLOYED_AS</code> · <code>TRIGGERED</code> ·
+<code>CORRELATED_WITH</code> · <code>RESOLVED_BY</code></p>
+<p>Every node/edge carries <code>valid_from</code> /
+<code>valid_to</code>, confidence, source - so the walk can say why we
+believe a link.</p>
+<p><strong>Example.</strong> Pain shows on <code>checkout-api</code>.
+Walk CALLS -&gt; <code>checkout-db</code>. A CHANGED_BY deploy landed 12
+minutes ago on the db. API p95 is high; db p95 is worse. Leaf candidate
+is the database, not the API.</p>
+<p><strong>Our mapping (hybrid, not Motadata copy):</strong> - writes E3
+Topology <code>GraphSnapshot</code> (SaaS owns it; Gateway only assists)
+- writes E5 Maintain (versions, change feed, outcome writeback) - read
+by E8 Scope, E9 Localize, E10 <code>query_graph()</code> - not E6 Detect
+(storing an Alert != firing Detect) - <strong>CI vertices only.</strong>
+Alert/Incident/ticket are not map nodes. Change is a fact, not a CI.</p>
+<hr />
+<h2 id="d1-entities">D1) Entities</h2>
+<p><strong>What</strong><br />
+CIs with stable identity (<code>tenant + ci_id</code>) and typed class
+(<code>Service</code>, <code>Host</code>, optional <code>Pod</code> with
+validity window).</p>
+<p><strong>Why</strong><br />
+Localize/package must point to durable operational targets, not
+transient noise objects. If Alert is a vertex, Curate/Detect leak into
+E3.</p>
+<p><strong>How</strong> - allow only resolved identity records for
+canonical graph vertices - enforce <code>ci_type</code> catalog +
+versioning - carry aliases as metadata, not alternative primary keys -
+ephemeral runtime (Pod/Container) allowed only with validity window +
+parent CI - no Alert, Incident, ITSMTicket, Metric, Trace, LogPattern
+vertices</p>
+<hr />
+<h2 id="d2-edges">D2) Edges</h2>
+<p><strong>What</strong><br />
+Typed CI-CI relationships (for example <code>depends_on</code>,
+<code>runs_on</code>, <code>communicates_with</code>) with provenance
+and validity.</p>
+<p><strong>Why</strong><br />
+E8/E9 walk quality depends on relationship semantics and freshness. Half
+a real graph is inference; without provenance, confidence is
+decoration.</p>
+<p><strong>How</strong> Each edge stores: - source/target IDs - relation
+type - provenance (<code>authoritative</code> | <code>declared</code> |
+<code>corroborating</code>) - <code>valid_from</code>,
+<code>valid_to</code> (or equivalent freshness fields) - confidence /
+<code>discovered_via</code> as audit metadata</p>
+<p>Structure edges (<code>CONTAINS</code>, <code>RUNS_ON</code>) and
+runtime edges (<code>CALLS</code>, <code>DEPENDS_ON</code>) belong on
+E3.<br />
+Case edges (<code>CORRELATED_WITH</code>, <code>RESOLVED_BY</code>,
+<code>AFFECTS</code>) do <strong>not</strong> - they are E7/E11
+work.</p>
+<hr />
+<h2 id="d3-changes">D3) Changes</h2>
+<p><strong>What</strong><br />
+Time-bound facts linked to CIs (deploy/config/release/change-ticket
+references).</p>
+<p><strong>Why</strong><br />
+Change context improves root-cause explainability ("deps -&gt; recent
+changes -&gt; abnormal metrics") without polluting CI topology.</p>
+<p><strong>How</strong> - store change as fact records, not CI vertices
+- link by CI identity and time overlap (<code>CHANGED_BY</code> as
+hitch, not as a ticket root) - keep change ingestion out of E1 for this
+block; attach via reserved path/future phase - do not invent a second
+identity namespace for changes</p>
+<hr />
+<h1 id="part-e---shared-lake-retrieval-build-order">Part E - Shared
+lake, retrieval, build order</h1>
+<h2 id="e1-vortex-s3-rooms-not-products-to-argue-about">E1) Vortex + S3
+(rooms, not products to argue about)</h2>
+<p><strong>What:</strong> Two rooms in one Motadata warehouse:
+historical observability (sketches/history) and knowledge graph (who is
+connected). Same <code>entity_id</code> / <code>ci_id</code>
+namespace.</p>
+<p><strong>Why:</strong> Builders are useless if results evaporate. RCA
+must not mutate history in place.</p>
+<p><strong>How:</strong> Percentile engine and graph builder write in
+parallel after identity exists. S3 holds cold/large objects; Vortex is
+the analytical engine. Agent never opens this as a dump - it goes
+through retrieval.</p>
+<p><strong>Our resolution:</strong> Keep rooms logically separate (E3
+map || E4 evidence). Vortex/S3 may be one dest profile (Gate B open).
+Node/Gateway only buffer - they are not the lake.</p>
+<h2 id="e2-rca-retrieval-layer-p2-reader-not-a-pillar">E2) RCA retrieval
+layer (P2 reader, not a pillar)</h2>
+<p><strong>What:</strong> A bounded index in front of the lake: give me
+these evidence kinds for this seed under these limits. In our language:
+<code>WorkingSet</code>.</p>
+<p><strong>Why:</strong> Unscoped RCA walks the estate and hallucinates.
+Cost, latency, and wrong neighbors explode.</p>
+<p><strong>How:</strong> Start from curated seed (not raw alert storm).
+Expand k hops. Pull baselines, events, changes inside time window. Stop
+when budget spent. Then Localize.</p>
+<p>Four kinds in: baseline (A), graph (B), events (Detect storm),
+changes.<br />
+Four knobs: time window, entity scope, hop count, evidence budget.</p>
+<p><strong>Example.</strong> Seed = <code>checkout-api</code> at 14:02.
+Budget: 30 minutes, 2 hops, 40 evidence items. You get the API, its db,
+last deploy, p95 vs Tuesday baseline - not the whole cluster.</p>
+<p>E7 Curate still runs first - one <code>CaseSeed</code>. Retrieval
+does not merge the storm (D3).</p>
+<h2 id="e3-pillar-c-note-out-of-this-block-but-needed-for-context">E3)
+Pillar C note (out of this block, but needed for context)</h2>
+<p>Motadata default closer is a Rust ReAct agent with typed tools and a
+policy engine.<br />
+We keep it as optional Layer I (D5 Review). Operator E9-E11 on A+B must
+work with agent off. Do not fold Curate into the agent. Remediation is
+outside E1-E11.</p>
+<h2 id="e4-recommended-implementation-order">E4) Recommended
+implementation order</h2>
+<p>Do <strong>not</strong> ship A -&gt; B -&gt; C as three products. A
+and B are parallel P1 writers after E2 keys exist. C is last and
+opt-in.</p>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 24%" />
+<col style="width: 37%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Seq</th>
+<th>Build</th>
+<th>HLD steps</th>
+<th>Exit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>Edge admit + identity (PDF silent)</td>
+<td>E1 · E2 (Node)</td>
+<td><code>ingest.v1</code> with
+<code>tenant</code>+<code>ci_id</code></td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>Ingest path into SaaS (NATS optional)</td>
+<td>E1 SaaS · E4 write</td>
+<td>Stream lands; Vortex/S3 may be one dest</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>Pillar A || Pillar B</td>
+<td>A: E4+E5 · B: E3+E5</td>
+<td>p95 by entity without raw scan; graph walkable</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>Platform Detect on sketches</td>
+<td>E6 door C</td>
+<td>Doors A/B still ours</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td>Case open without an LLM</td>
+<td>E7 · E8</td>
+<td>One CaseSeed; WorkingSet with budget</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td>Deterministic diagnose + close</td>
+<td>E9 · E10 · E11</td>
+<td>Operator path on A+B only</td>
+</tr>
+<tr class="odd">
+<td>6</td>
+<td>Pillar C as Layer I (opt-in)</td>
+<td>same E9-E11</td>
+<td>Default off</td>
+</tr>
+<tr class="even">
+<td>7</td>
+<td>Remediation (later)</td>
+<td>outside E1-E11</td>
+<td>Reuse policy; not Package</td>
+</tr>
+</tbody>
+</table>
+<p>For <strong>this workstream</strong>, the immediate build is sequence
+2 (A || B) after consuming E1/E2 output.</p>
+<hr />
+<h1 id="part-f---gap-register-and-candidate-resolutions">Part F - Gap
+register and candidate resolutions</h1>
+<h2 id="f1-pillar-1-gaps-teammate">F1) Pillar 1 gaps (Teammate)</h2>
+<ol type="1">
+<li><strong>Metric catalog not frozen</strong><br />
+Resolution: approve initial metric shortlist + naming standard (start
+from Q6 defaults).</li>
+<li><strong>Bucket boundaries undefined per metric family</strong><br />
+Resolution: publish <code>bucket_schema_version</code> per family before
+writers start.</li>
+<li><strong>Season-key policy not fixed</strong><br />
+Resolution: start with hour-of-week key; revise only with version
+bump.</li>
+<li><strong>S3 partition / idempotency policy not frozen</strong><br />
+Resolution: define path template + deterministic object key.</li>
+<li><strong>Vortex index plan not explicit</strong><br />
+Resolution: lock the three priority query patterns and design index
+around them.</li>
+<li><strong>Reader roles not codified</strong><br />
+Resolution: publish RBAC matrix and service-account boundaries.</li>
+<li><strong>Gate B dest choice for first lab</strong><br />
+Resolution: files or existing Motadata dest for Q1; Vortex optional;
+document dest profile note.</li>
+</ol>
+<h2 id="f2-pillar-2-gaps-you">F2) Pillar 2 gaps (You)</h2>
+<ol type="1">
+<li><strong>Entity type taxonomy not frozen for v1</strong><br />
+Resolution: freeze minimal set (Service, Host; optional Pod with parent
++ validity).</li>
+<li><strong>Edge catalog still broad / ambiguous</strong><br />
+Resolution: freeze mandatory CI-CI edge set for v1; defer Motadata case
+edges off E3.</li>
+<li><strong>Edge freshness / validity semantics not
+finalized</strong><br />
+Resolution: adopt <code>valid_from</code>/<code>valid_to</code> plus
+provenance; define TTL/decay.</li>
+<li><strong>Change-fact model not contractually defined</strong><br />
+Resolution: define <code>change.fact.v1</code> + CI/time link rules; no
+Change-as-CI.</li>
+<li><strong>Graph write ownership and publication cadence
+unclear</strong><br />
+Resolution: SaaS owns snapshot; define E3 writer owner + E5 refresh
+cadence/SLA.</li>
+<li><strong>Seed topology path</strong><br />
+Resolution: start with <code>topology.json</code> +
+<code>topo_update</code>; SaaS owns canonical snapshot (Q10).</li>
+</ol>
+<h2 id="f3-shared-kickoff-gaps-both">F3) Shared / kickoff gaps
+(both)</h2>
+<ol type="1">
+<li>Lab sources and tenant string (Q1/Q2)</li>
+<li>Publish surface discipline (hub for specs; shared drive for
+management evidence) (Q12)</li>
+<li>Explicit "no Murphy this block" boundary (Q13)</li>
+</ol>
+<hr />
+<h2 id="closing-summary">Closing summary</h2>
+<table>
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 30%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Track</th>
+<th>Build now</th>
+<th>Do not build now</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Pillar 1 (teammate)</td>
+<td>Sample policy, T-Digest, buckets, seasonal baseline, sketch.v1, S3
+write, Vortex index, RBAC</td>
+<td>Agent-owned Detect, mandatory Vortex-only lake</td>
+</tr>
+<tr class="even">
+<td>Pillar 2 (you)</td>
+<td>CI entities, typed edges + provenance/validity, change facts (not
+vertices)</td>
+<td>Alert/Incident vertices, Curate-as-edge, ReAct default</td>
+</tr>
+<tr class="odd">
+<td>Shared</td>
+<td>Consume E1/E2 contracts; E5 refresh; door C / CaseSeed / operator
+VerdictCard as readers</td>
+<td>Flip D5; remediation; ITSM Collect</td>
+</tr>
+</tbody>
+</table>
+<p>Formal contracts remain on the Pipeline HLD. This merged guide is the
+SaaS-column implementation map for Motadata pillars A/B onto ObserveOps
+E3-E5.</p>
+</body>
+</html>

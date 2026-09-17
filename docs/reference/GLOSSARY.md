@@ -46,13 +46,15 @@ Hub terms (HLD, Dynatrace, Datadog, flamegraph, Detect class, …) live in the b
 
 **Seed (teaching)** — Curate tip `(entityId, t0)` for Tailor. Not `rootCauseEntity`.
 
-**Storage tier** — Speed vs structural persistence (Dragonfly / graph store) in [`federated-pipeline/docs/STORAGE_TIERS.md`](../federated-pipeline/docs/STORAGE_TIERS.md). Unrelated to lean evidentiary tiers.
+**Storage tier** — Federated **storage Tier** 1/2: speed vs structural persistence (Dragonfly / graph store) in [`federated-pipeline/docs/STORAGE_TIERS.md`](../../federated-pipeline/docs/STORAGE_TIERS.md). Unrelated to lean evidentiary tiers and unrelated to **hub Tier** (Our HLD reading depth).
 
 **Storm (teaching)** — Pile of raw Events before Curate merge.
 
 **symptom seed** — CI/signal where pain showed. Start of the search; usually not the root.
 
-**Tier (lean evidentiary)** — Lean verdict depth. **Tier 1** = main path, temporal + rules, no causal claim. **Tier 2** = CARE ranking when Δt is ambiguous. **Tier 3** = CARE + scoped causal check. Default reading of “Tier 3” unless the doc is about storage tiers.
+**Tier (hub)** — Our HLD / Motadata **docs reading depth**: hub Tier 1 = must-read above the fold; hub Tier 2 = depth (LLDs, fabric, I/O chain); hub Tier 3 = archive / evaluation history. Locked list: [`OUR_HLD_TIER1.md`](../observeops/OUR_HLD_TIER1.md). Not evidentiary Tier and not storage Tier.
+
+**Tier (lean evidentiary)** — Lean verdict depth. **Tier 1** = main path, temporal + rules, no causal claim. **Tier 2** = CARE ranking when Δt is ambiguous. **Tier 3** = CARE + scoped causal check. Default reading of bare “Tier 3” in bakeoff docs unless the page says **hub Tier** or **storage Tier**.
 
 **Teaching threshold 0.30** — ERROR Detect chalk line on the storyboard. Not a fitted Dynatrace SKU. SLOWDOWN Observed used 2 s / 3 s, not 0.30.
 

@@ -526,6 +526,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    from local_dumps import require_jsonl_resolved
+
+    require_jsonl_resolved()
+
     OUT_ROOT.mkdir(parents=True, exist_ok=True)
     INCIDENTS.mkdir(parents=True, exist_ok=True)
     if not args.skip_ci_bind:

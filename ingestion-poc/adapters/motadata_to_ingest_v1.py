@@ -375,6 +375,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    from local_dumps import require_jsonl_resolved
+
+    require_jsonl_resolved(args.src)
+
     include = {x.strip() for x in args.include.split(",") if x.strip()}
     src = args.src.resolve()
     out_dir = args.out_dir.resolve()

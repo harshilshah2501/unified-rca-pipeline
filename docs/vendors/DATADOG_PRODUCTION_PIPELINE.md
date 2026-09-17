@@ -20,7 +20,7 @@
 **Browser:** [`datadog-production-pipeline.html`](./datadog-production-pipeline.html) · [`:8765`](http://127.0.0.1:8765/datadog-production-pipeline.html)  
 **Mechanisms:** [`datadog-subsystem-mechanisms.html`](./datadog-subsystem-mechanisms.html)  
 **Evidence:** [`datadog-tenant-evidence-2026-08-03.md`](./datadog-tenant-evidence-2026-08-03.md) · [`datadog-lab-evidence-2026-08-04.md`](./datadog-lab-evidence-2026-08-04.md)  
-**Lab:** [`../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md)  
+**Lab:** [`../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md)  
 **Separate unveil (not a twin):** [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md)  
 **Same-scenario lab compare:** [`COMPARABLE_PIPELINE_DT_DD.md`](../COMPARABLE_PIPELINE_DT_DD.md)  
 **Out of scope here:** Lean vs Federated, L0/F1, CARE / Murphy / Nezha, head-to-head bakeoff.
@@ -425,7 +425,7 @@ Unresolved `service:inv-svc-v2`: first-seen auto service, weak Related, or remap
 | [`datadog-tenant-evidence-2026-08-03.md`](./datadog-tenant-evidence-2026-08-03.md) | MCP snapshot citations (host / Watchdog baseline) |
 | [`datadog-lab-evidence-2026-08-04.md`](./datadog-lab-evidence-2026-08-04.md) | FE→inventory lab run + trace IDs |
 | [`datadog-lab-evidence-mtl-error-2026-08-07.md`](./datadog-lab-evidence-mtl-error-2026-08-07.md) | ERROR Metrics∥Traces∥Logs Observed numbers |
-| [`../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md) | Lab topology + fault scripts |
+| [`../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md) | Lab topology + fault scripts |
 | [`COMPARABLE_PIPELINE_DT_DD.md`](../COMPARABLE_PIPELINE_DT_DD.md) | After independent unveils — derived patterns |
 | [`DYNATRACE_PRODUCTION_PIPELINE.md`](./DYNATRACE_PRODUCTION_PIPELINE.md) | Separate Dynatrace unveil |
 | [`FAULT_BUCKET_COVERAGE.md`](../FAULT_BUCKET_COVERAGE.md) | Fault buckets vs vendors |

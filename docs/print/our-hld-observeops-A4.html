@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Our HLD — ObserveOps pipeline (A4 brief)</title>
+<style>
+  @page { size: A4; margin: 12mm 12mm 14mm 12mm; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9.4pt; line-height: 1.35; color: #111;
+    background: #fff;
+  }
+  h1 { font-size: 16pt; font-weight: 700; margin: 0 0 4pt; }
+  h2 {
+    font-size: 11.5pt; font-weight: 700; margin: 11pt 0 5pt;
+    padding-top: 6pt; border-top: 1.15pt solid #222; page-break-after: avoid;
+  }
+  h3 { font-size: 10pt; font-weight: 700; margin: 8pt 0 3pt; page-break-after: avoid; }
+  p { margin: 0 0 5pt; }
+  ul { margin: 0 0 6pt; padding-left: 14pt; }
+  li { margin: 1.5pt 0; }
+  .kicker { font-size: 7.6pt; letter-spacing: .08em; text-transform: uppercase; color: #444; margin: 0 0 3pt; }
+  .meta { font-size: 8.2pt; color: #333; margin: 0 0 7pt; }
+  .callout {
+    border: 1pt solid #222; padding: 6pt 8pt; margin: 0 0 7pt;
+    background: #f5f5f5; page-break-inside: avoid;
+  }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6pt; margin: 0 0 7pt; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; margin: 0 0 7pt; }
+  .stat { border: 1pt solid #222; padding: 5pt 6pt; page-break-inside: avoid; }
+  .stat b { display: block; font-size: 10.2pt; margin-bottom: 2pt; }
+  .stat span { font-size: 8pt; color: #333; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 7pt; font-size: 8pt; }
+  th, td { border: 0.55pt solid #555; padding: 3pt 4pt; vertical-align: top; text-align: left; }
+  th { background: #eee; font-weight: 700; }
+  tr { page-break-inside: avoid; }
+  code, pre {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 7.2pt;
+  }
+  pre {
+    margin: 0 0 7pt; padding: 5pt 6pt; border: 0.6pt solid #444;
+    background: #f8f8f8; white-space: pre-wrap; word-break: break-word;
+    page-break-inside: avoid;
+  }
+  .keep { page-break-inside: avoid; }
+  .break { page-break-before: always; }
+  .foot { font-size: 7.6pt; color: #444; margin-top: 6pt; }
+  .rail { font-family: Consolas, monospace; font-size: 7.8pt; margin: 0 0 5pt; }
+  .toc { font-size: 8.2pt; margin: 0 0 8pt; }
+  .toc b { display: inline-block; min-width: 1.6rem; }
+</style>
+</head>
+<body>
+
+<p class="kicker">Unified-RCA · Motadata ObserveOps · printable A4 brief · target 4–5 pages · 2026-09-17</p>
+<h1>Our HLD — one pipeline, four hub sections</h1>
+<p class="meta">
+  Condensed from the consolidated hub
+  <code>:8765/observeops-pipeline-hld.html</code>
+  (Overview · Workflow · GraphWriter · Diagnose).
+  Normative depth stays in Pipeline HLD markdown, GRAPH_QNA, Fusion, and Data shape journey — this PDF is the paper brief, not a second copy of those specs.
+</p>
+
+<div class="toc keep">
+  <b>1</b> Stage rail &amp; catalog ·
+  <b>2</b> Fabric vs case ·
+  <b>3</b> Triage I/O ·
+  <b>4</b> GraphWriter ·
+  <b>5</b> Diagnose rooms ·
+  <b>6</b> ADRs &amp; crosswalk ·
+  <b>7</b> Where to click
+</div>
+
+<div class="grid3">
+  <div class="stat"><b>P1 · E1–E5</b><span>Always-on fabric · map/ ∥ history/</span></div>
+  <div class="stat"><b>P2 · E6–E8</b><span>Triage · Signal → CaseSeed → WorkingSet</span></div>
+  <div class="stat"><b>P3 · E9–E11</b><span>Diagnose · LeafClaim → Evidence → Verdict</span></div>
+</div>
+
+<div class="callout">
+  <b>One pipeline.</b> After Identity, Pillar B writes <code>map/</code> and Pillar A writes <code>history/</code> in parallel.
+  Cases do not rewrite the estate: Scope <b>read-joins</b> both rooms into a bounded WorkingSet.
+  Layer E (Engineering) must localize and package without MTL/Bits. Layer I / D5 stays Review. Operator path always on.
+</div>
+
+<h2>1 · Stage rail and catalog</h2>
+<p class="rail">E1 Collect → E2 Identity → E3 Topology ∥ E4 Stores → E5 Maintain</p>
+<p class="rail">E6 Detect → E7 Curate → E8 Scope → E9 Localize → E10 Identify → E11 Package</p>
+
+<table>
+  <thead><tr><th>Stage</th><th>Job</th><th>Primary out</th></tr></thead>
+  <tbody>
+    <tr><td>E1 Collect</td><td>Admit edge telemetry (wire only; no CI bind)</td><td><code>ingest.v1</code> TelemetryEnvelope</td></tr>
+    <tr><td>E2 Identity</td><td>Stamp join keys (<code>tenant</code>+<code>ci_id</code>); Fabric: Normalize</td><td>IdentifiedRecord overlay</td></tr>
+    <tr><td>E3 Topology</td><td>Maintain walkable dependency graph</td><td>GraphSnapshot under <code>map/</code></td></tr>
+    <tr><td>E4 Stores</td><td>Persist queryable evidence history</td><td>sketch / modality surfaces under <code>history/</code></td></tr>
+    <tr><td>E5 Maintain</td><td>Keep estate fresh (retention / index / discovery)</td><td>Detect-ready freshness baseline</td></tr>
+    <tr><td>E6 Detect</td><td>Emit fault Signal only (class + tip + t0)</td><td><code>Signal</code></td></tr>
+    <tr><td>E7 Curate</td><td>Merge correlated Signals into one seed (D3)</td><td><code>CaseSeed</code></td></tr>
+    <tr><td>E8 Scope</td><td>Lock window + neighborhood + sketch budget (Tailor)</td><td><code>WorkingSet</code></td></tr>
+    <tr><td>E9 Localize</td><td>Choose one deepest / longest-supported leaf</td><td><code>LeafClaim</code></td></tr>
+    <tr><td>E10 Identify</td><td>Build corroborated evidence (Verify judgment lives here)</td><td><code>EvidenceBundle</code></td></tr>
+    <tr><td>E11 Package</td><td>Operator / ServiceOps close artifact (D4)</td><td><code>VerdictCard</code></td></tr>
+  </tbody>
+</table>
+
+<p class="meta">
+  Detect-class plug-ins (teaching maturity): ERROR and SLOWDOWN are Grounded on Dynatrace and Datadog (MCP-backed).
+  AVAILABILITY, MONITORING_UNAVAILABLE, and RESOURCE_CONTENTION are Grounded on Dynatrace; Local-only on Datadog until MCP pull exists.
+</p>
+
+<h2 class="break">2 · Workflow — fabric vs case path</h2>
+<div class="grid2 keep">
+  <div class="stat">
+    <b>Always-on fabric (E1–E5)</b>
+    <span>Keeps GraphSnapshot under <code>map/</code> and sketch.v1 rows under <code>history/</code> warm.
+    Writers do not sync folders — they share join keys only (<code>tenant</code> + <code>ci_id</code>).</span>
+  </div>
+  <div class="stat">
+    <b>Case path (E6–E11)</b>
+    <span>Opens when Detect fires. Reads fabric; does not re-collect the estate or rewrite topology per alert.
+    Emits Signal → CaseSeed → WorkingSet → LeafClaim → EvidenceBundle → VerdictCard.</span>
+  </div>
+</div>
+
+<ul>
+  <li><b>CI tip on Signal</b> = the <code>ci_id</code> whose detector fired (identity already on the series from E2), not NLP on the alert title.</li>
+  <li><b>t0</b> = observation / event time of that Detect decision.</li>
+  <li><b>CaseSeed</b> = one merged tip <code>(ci_id, t0)</code> + merge rationale — not the full neighborhood.</li>
+  <li><b>WorkingSet</b> = window around t0 + suspects + k-hop neighborhood + sketch snippets + evidence budgets.</li>
+  <li><b>Follow the map (usual)</b> — Localize walks authoritative edges (<code>depends_on</code>, <code>runs_on</code>, …) toward the leaf the Detect class expects; Identify attaches sketch percentiles and edge provenance.</li>
+  <li><b>Evidence can override</b> — if sketches or corroborating edges contradict the first walk, Identify lowers confidence or revises the leaf; fabric stays, case objects change.</li>
+  <li><b>Verify</b> is judgment inside Identify through Package — not a twelfth E-stage.</li>
+</ul>
+
+<h2>3 · Triage I/O — teaching shapes (logical JSON)</h2>
+<p class="meta">Not a frozen LLD proto. Field names illustrate HLD intent for a payment / checkout ERROR story. Join keys stay <code>tenant</code> + <code>ci_id</code>.</p>
+
+<h3>E6 Detect → Signal</h3>
+<table>
+  <tr><th>In</th><td>GraphSnapshot + store/sketch queries keyed by <code>ci_id</code></td></tr>
+  <tr><th>Process</th><td>Per-CI Detect-class rule; tip = breached CI; t0 = event time</td></tr>
+  <tr><th>Out</th><td>Fault class + CI tip + t0 — no root claim</td></tr>
+</table>
+<pre>{
+  "object": "Signal",
+  "tenant": "acme",
+  "fault_class": "ERROR",
+  "ci_id": "payment-service",
+  "t0": "2025-01-15T03:42:00Z",
+  "metric": { "name": "error_rate", "value": 0.23, "threshold": 0.05 }
+}</pre>
+
+<h3>E7 Curate → CaseSeed</h3>
+<table>
+  <tr><th>In</th><td>Signal(s) + GraphSnapshot (adjacency for merge)</td></tr>
+  <tr><th>Process</th><td>Collapse correlated Signals into one tip (D3). Tip is usually the most-upstream symptomatic CI, not yet the leaf root.</td></tr>
+  <tr><th>Out</th><td>CaseSeed tip + merged ids + merge rationale — not full neighborhood</td></tr>
+</table>
+<pre>{
+  "object": "CaseSeed",
+  "tenant": "acme",
+  "ci_id": "payment-service",
+  "t0": "2025-01-15T03:42:00Z",
+  "fault_class": "ERROR",
+  "merged_signal_ids": ["sig-7f2a", "sig-7f2b"],
+  "merge_rationale": {
+    "note": "checkout ERROR collapsed onto payment-service tip",
+    "edges_used": [{ "from": "checkout-service", "to": "payment-service", "type": "depends_on" }]
+  }
+}</pre>
+
+<h3>E8 Scope (Tailor) → WorkingSet</h3>
+<table>
+  <tr><th>In</th><td>CaseSeed + present <code>map/</code> + <code>history/</code> sketches for candidate CIs</td></tr>
+  <tr><th>Process</th><td>Window around t0; k-hop neighborhood; sketch snippets; budgets</td></tr>
+  <tr><th>Out</th><td>Bounded diagnose domain (window + suspects + neighborhood + sketch refs + budgets)</td></tr>
+</table>
+<pre>{
+  "object": "WorkingSet",
+  "seed": { "ci_id": "payment-service", "t0": "2025-01-15T03:42:00Z" },
+  "window": { "from": "2025-01-15T03:27:00Z", "to": "2025-01-15T03:47:00Z" },
+  "budget": { "max_hop": 2, "max_entities": 40, "max_sketch_rows": 200 },
+  "neighborhood": [
+    { "ci_id": "payment-service", "role": "seed", "distance": 0 },
+    { "ci_id": "auth-service", "role": "upstream", "distance": 1 },
+    { "ci_id": "checkout-service", "role": "downstream", "distance": 1 }
+  ],
+  "history_snippets": [
+    { "ci_id": "auth-service", "metric": "latency_p50_ms", "recent": 500, "baseline": 50 }
+  ]
+}</pre>
+<p class="meta">After WorkingSet, P3 consumes it: Localize → Identify → Package.</p>
+
+<h2 class="break">4 · GraphWriter — Topology writer (condensed)</h2>
+<div class="callout keep">
+  Pillar B orchestrator under <code>pillar-ab-implementation/pillar-b/poc</code>.
+  GraphWriter is an orchestrator, not a network service: lab CLI (or a future Topology worker) feeds it.
+  It is the <b>only</b> node that writes <code>map/</code>. SketchWriter is a sibling on the same post-E2 stream, not an input to GraphWriter.
+  Sketches never carry edges; the join is at WorkingSet read time.
+</div>
+
+<table>
+  <thead><tr><th>Topic</th><th>What happens</th></tr></thead>
+  <tbody>
+    <tr><td>Input</td><td>Post-E2 <code>ingest.v1</code> with <code>signal_class=topo_update</code> (plus optional topology seed)</td></tr>
+    <tr><td>Partners</td><td>E2 Identity upstream; shared ingest stream; Dest under <code>map/</code>; optional E5 maintain stub</td></tr>
+    <tr><td>Admit</td><td>Resolved identity only; catalog CI types; fifteen-name edge catalog (wave-1 may skip some relations)</td></tr>
+    <tr><td>Build</td><td>Seed + stream → GraphState → flush GraphSnapshot / Gate B <code>files.v1</code></td></tr>
+    <tr><td>Lab</td><td><code>lab_checkout</code> fixture · flush walkthrough · SAMPLE_IO.md</td></tr>
+  </tbody>
+</table>
+
+<h3>Three output actions</h3>
+<table>
+  <thead><tr><th>Action</th><th>Meaning</th><th>Examples</th></tr></thead>
+  <tbody>
+    <tr><td><b>WRITE</b></td><td>Admit — mutates GraphState, later flush publishes <code>map/</code></td><td>Valid <code>topo_update</code> with resolved identity and catalog relation</td></tr>
+    <tr><td><b>NOOP</b></td><td>Silent skip — wrong class for GraphWriter; no state change, no reject code</td><td><code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> (Pillar A sketches are metrics-only)</td></tr>
+    <tr><td><b>DROP</b></td><td>Reject — looked like topo work but failed a rule; map unchanged; reason on writer.rejects</td><td>Unresolved identity, unknown CI type, illegal relation, policy fail</td></tr>
+  </tbody>
+</table>
+<p class="meta">
+  Phased (wave-1) skip of a catalog relation is map-NOOP (no write) but is not silent skip: the line was Topology’s job; it usually is not a DROP reason.
+  Normative I/O: <code>E2_INPUT_FIXTURES.md</code> · <code>MAP_WRITE_READ_RECORD.md</code> · <code>IDENTIFIED_STREAM_REJECT.md</code>.
+</p>
+
+<h2>5 · Diagnose — present map vs history</h2>
+<p>
+  Rooms, not one store. Scope read-joins neighbors from <code>map/</code> with sketch windows from <code>history/</code>.
+  Do not ask Topology for “what was p99 yesterday,” and do not ask sketch-history to rebuild the whole dependency graph.
+</p>
+<table>
+  <thead><tr><th>Question</th><th>Room</th><th>Not this</th></tr></thead>
+  <tbody>
+    <tr><td>Who is this CI now?</td><td><code>map/</code> node</td><td>sketch-history</td></tr>
+    <tr><td>What does it depend on now?</td><td><code>map/</code> outbound edges</td><td>time series</td></tr>
+    <tr><td>Who fails if it fails now?</td><td><code>map/</code> reverse walk</td><td>sketches</td></tr>
+    <tr><td>Worse than baseline around t0?</td><td><code>history/</code> sketch rows for that <code>ci_id</code></td><td>topology edges</td></tr>
+    <tr><td>Recent deploy / change?</td><td>Change evidence (separate)</td><td>sketch rows as topology</td></tr>
+  </tbody>
+</table>
+
+<h3>Checkout teaching spine (How, condensed)</h3>
+<p class="rail">Detect → Identify CI → Upstream (map) → History (sketches) → Blast → Localize → Package</p>
+<table>
+  <thead><tr><th>Step</th><th>How (operator / implementer reading)</th></tr></thead>
+  <tbody>
+    <tr><td>1 · Detect</td><td>Read detector fields (service / CI, severity, t0, measured value). Tip = breached CI. Hand off to Curate before Scope. No root claim yet.</td></tr>
+    <tr><td>2 · Identify CI</td><td>Load seed CI from present GraphSnapshot under <code>map/</code> — not from sketch-history. Confirm type and aliases.</td></tr>
+    <tr><td>3 · Upstream</td><td>Bounded outbound walk (<code>depends_on</code>, <code>runs_on</code>, …) into WorkingSet neighborhood. Still no latency numbers here.</td></tr>
+    <tr><td>4 · History</td><td>For seed + blocking neighbors, fetch sketch.v1 rows for the alert window (percentiles / baselines).</td></tr>
+    <tr><td>5 · Blast</td><td>Reverse walk inbound edges for blast radius and stakeholders (Package narrative).</td></tr>
+    <tr><td>6 · Localize</td><td>One LeafClaim: deepest / longest-supported fault on the scoped neighborhood, not the noisiest alert.</td></tr>
+    <tr><td>7 · Package</td><td>EvidenceBundle pointers → VerdictCard (suspect, neighborhood, confidence, recommended action).</td></tr>
+  </tbody>
+</table>
+<p class="meta">
+  Interactive How for each step: hub tab Diagnose on
+  <code>:8765/observeops-pipeline-hld.html#diagnose</code>
+  (also <code>/checkout-diagnose-walkthrough.html</code>).
+</p>
+
+<h2 class="break">6 · Stage-vocabulary crosswalk and signed ADRs</h2>
+<p class="meta">Three vocabularies describe the same pipeline. Reading rules live in Pipeline HLD §5.</p>
+<table>
+  <thead><tr><th>Clock / Motadata lens</th><th>ObserveOps E-stages</th><th>5+3+3 / fabric lens</th></tr></thead>
+  <tbody>
+    <tr><td>Ingest</td><td>E1 Collect → E2 Identity → E3 Topology → E4 Stores → E5 Maintain (all of P1)</td><td>Clock A / Always-on fabric (F)</td></tr>
+    <tr><td>Detect</td><td>E6 Detect</td><td>Triage open</td></tr>
+    <tr><td>Curate / Correlate</td><td>E7 Curate</td><td>Triage merge</td></tr>
+    <tr><td>Scope / Tailor</td><td>E8 Scope</td><td>Triage bound</td></tr>
+    <tr><td>Localize</td><td>E9 Localize</td><td>Diagnose leaf</td></tr>
+    <tr><td>Identify</td><td>E10 Identify</td><td>Diagnose evidence</td></tr>
+    <tr><td>Verify</td><td>Spans E10 confidence through E11 Package — <b>not</b> a dedicated E-stage</td><td>Diagnose close (D)</td></tr>
+    <tr><td>Package / Remediate handoff</td><td>E11 Package (Remediate stays outside E1–E11)</td><td>Operator close</td></tr>
+  </tbody>
+</table>
+
+<table>
+  <thead><tr><th>ADR</th><th>Topic</th><th>Default</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>D1</td><td>Topology model</td><td>Hybrid derived edges + typed IDs when cheap</td><td>Signed</td></tr>
+    <tr><td>D2</td><td>Store geometry</td><td>Separate query planes, shared identity</td><td>Signed</td></tr>
+    <tr><td>D3</td><td>Curate strength</td><td>Required one-seed default</td><td>Signed</td></tr>
+    <tr><td>D4</td><td>Package policy</td><td>Required VerdictCard; narrative optional</td><td>Signed</td></tr>
+    <tr><td>D5</td><td>AI placement</td><td>Optional Detect door / Package narrator</td><td>Review</td></tr>
+    <tr><td>D-E2-1</td><td>Bind-miss policy</td><td>Synthesize flagged placeholder; not a localize/ticket target</td><td>Signed</td></tr>
+    <tr><td>D-E2-2</td><td>Service tags</td><td><code>service</code>/<code>env</code>/<code>version</code> optional labels; join key is <code>tenant</code>+<code>ci_id</code></td><td>Signed</td></tr>
+  </tbody>
+</table>
+<p class="meta">
+  Pipeline HLD signs D1–D4, D-E2-1, and D-E2-2. D5 stays Review.
+  Edge Delta L0 (2026-08-14) is a third teaching lens, not an ADR flip.
+  Identity namespace detail: Pipeline HLD §11.1.
+</p>
+
+<h2>7 · Hub map (where to click)</h2>
+<table>
+  <thead><tr><th>Need</th><th>Open</th></tr></thead>
+  <tbody>
+    <tr><td>This brief’s interactive home</td><td><code>/observeops-pipeline-hld.html</code> (Overview · Workflow · GraphWriter · Diagnose)</td></tr>
+    <tr><td>Try a Detect class live I/O</td><td><code>/observeops-fusion-guide.html</code></td></tr>
+    <tr><td>Written stage contracts / ADRs / NFR</td><td><code>docs/OBSERVEOPS_PIPELINE_HLD.md</code></td></tr>
+    <tr><td>Fabric field journey</td><td><code>/data-shape-journey.html</code></td></tr>
+    <tr><td>Locked fabric Q&amp;A</td><td><code>docs/GRAPH_QNA.md</code></td></tr>
+    <tr><td>GraphWriter I/O walk</td><td>hub GraphWriter tab · <code>/graphwriter-io-walkthrough.html</code></td></tr>
+    <tr><td>Checkout diagnose How</td><td>hub Diagnose tab · <code>/checkout-diagnose-walkthrough.html</code></td></tr>
+    <tr><td>This PDF source</td><td><code>docs/print/our-hld-observeops-A4.html</code></td></tr>
+  </tbody>
+</table>
+
+<p class="foot">
+  Page budget: target <b>4–5 A4 pages</b> at ~9.4 pt (hard cap remains ≤12).
+  Full interactive content remains on the hub; this PDF is the paper brief only.
+</p>
+
+</body>
+</html>

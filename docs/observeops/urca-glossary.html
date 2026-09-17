@@ -106,15 +106,15 @@ body.is-empty .emptyMsg { display: block; }
   <p>These words are reused. Do not treat the columns as twins.</p>
   <table class="conflictTable">
     <thead><tr><th>Term</th><th>Ours</th><th>Dynatrace</th><th>Datadog</th><th>Edge Delta</th></tr></thead>
-    <tbody>
+      <tbody>
       <tr><td>Detect</td><td>E6 — a fault signal, not a root cause</td><td>Detectors raise Events</td><td>Monitors and/or Watchdog (either can be empty)</td><td>Skyline ALERT, Pattern Anomaly, or a Team job — not twins</td></tr>
       <tr><td>Localize</td><td>E9 — name the leaf</td><td>Smartscape walk → <code>rootCauseEntity</code></td><td>Flamegraph leaf (operator or Bits)</td><td>eBPF Service Map assists; this tenant has no <code>rootCauseEntity</code> walk</td></tr>
       <tr><td>Package</td><td>E11 — required verdict card</td><td>Problem (default)</td><td>Bits optional; Incident often missing</td><td>Issue card (this tenant Issues 0). Thread ≠ Issue</td></tr>
       <tr><td>Maintain</td><td>E5 — keep fabric fresh</td><td>Named fabric stage</td><td>No named stage; continuous Write + retention</td><td>Pipeline hygiene / index on Node (no Gateway here)</td></tr>
       <tr><td>Scope / Tailor</td><td>E8 Scope</td><td>Tailor = cut space ∩ time</td><td>Operator or Bits locks env / version / time</td><td>Team working set / OnCall — not E8 by another name</td></tr>
       <tr><td>Map / lake</td><td>E3 Topology · E4 Stores</td><td>Smartscape · Grail</td><td>Service Map · Metrics store ∥ Husky</td><td>eBPF Service Map (runtime calls) · Knowledge Graph (Team entities). Same E3 slot, not the same product</td></tr>
-    </tbody>
-  </table>
+      </tbody>
+    </table>
   <p class="note warn">
     Do not equate: Problem ↔ Incident ↔ Issue · Event ↔ Watchdog story ↔ Pattern Anomaly ·
     Smartscape ↔ Service Map ↔ ED Service Map · Grail ↔ Husky ↔ ED Platform ·

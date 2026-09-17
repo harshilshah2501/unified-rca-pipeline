@@ -216,9 +216,9 @@ pre.flow { white-space:pre-wrap; }
 <h1 id="comparable-pipeline-dynatrace-vs-datadog">Comparable pipeline — DT vs DD vs ED</h1>
 <p><strong>Method (read this first):</strong></p>
 <ol type="1">
-<li><strong>Understand each vendor independently</strong> — Dynatrace on Dynatrace terms (<a href="./dt-davis-category-hub.html">DT hub</a> · <a href="./DYNATRACE_PRODUCTION_PIPELINE.md">DT thesis</a>); Datadog on Datadog terms (<a href="./dd-detect-category-hub.html">DD hub</a> · <a href="./DATADOG_PRODUCTION_PIPELINE.md">DD thesis</a>); Edge Delta on Edge Delta terms (<a href="./ed-ai-team-hub.html">ED hub</a> · <a href="./EDGEDELTA_PRODUCTION_PIPELINE.md">ED thesis</a>).</li>
+<li><strong>Understand each vendor independently</strong> — Dynatrace on Dynatrace terms (<a href="../dt-davis-category-hub.html">DT hub</a> · <a href="../DYNATRACE_PRODUCTION_PIPELINE.md">DT thesis</a>); Datadog on Datadog terms (<a href="../dd-detect-category-hub.html">DD hub</a> · <a href="../DATADOG_PRODUCTION_PIPELINE.md">DD thesis</a>); Edge Delta on Edge Delta terms (<a href="../ed-ai-team-hub.html">ED hub</a> · <a href="../EDGEDELTA_PRODUCTION_PIPELINE.md">ED thesis</a>).</li>
 <li><strong>Then</strong> use this page to <strong>derive common patterns</strong> — without forcing one vendor’s geometry onto another. Same-scenario lab tables (§3–§6) remain <strong>DT vs DD</strong>. Edge Delta enters <strong>geometry / AI / E-block unfold</strong> (§0), not those lab clocks.</li>
-<li><strong>Our HLD</strong> — pack launchpad <a href="./observeops-pipeline-hld.html">observeops-pipeline-hld.html</a>; canonical contracts <a href="./OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a>. Engineering blocks E1–E11; MTL/Bits = Interpret layer, not fabric.</li>
+<li><strong>Our HLD</strong> — pack launchpad <a href="../observeops-pipeline-hld.html">observeops-pipeline-hld.html</a>; canonical contracts <a href="../OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a>. Engineering blocks E1–E11; MTL/Bits = Interpret layer, not fabric.</li>
 </ol>
 <p><strong>Goal (shared destination):</strong> From continuous telemetry on a service chain, surface <em>what broke</em>, <em>where</em>, and <em>what an operator should look at</em> — without re-collecting the estate from scratch on every alert.</p>
 
@@ -232,7 +232,7 @@ pre.flow { white-space:pre-wrap; }
     <div class="ud-panel accent">
       <h5>DT · DD — centralize-then-analyze</h5>
       <p>Ship the stream to HQ. Think there — map, lake, Detect, Package.</p>
-    </div>
+</div>
     <div class="ud-panel ed">
       <h5>ED — shift processing left</h5>
       <p>Think at the source (shape / reduce). Send less, cleaner data. Then a standing Team.</p>
@@ -456,7 +456,7 @@ pre.flow { white-space:pre-wrap; }
 </tbody>
 </table>
 <p>Unless a sentence is marked otherwise, treat DT/DD stage tables as <strong>Observed (lab)</strong>. Treat Edge Delta columns as <strong>Observed (UI)</strong> + <strong>Public framing</strong>. There is no <code>edgedelta-rca-lab</code>.</p>
-<p>Labs: <a href="../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md"><code>dynatrace-rca-lab</code></a> · <a href="../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md"><code>datadog-rca-lab</code></a><br />
+<p>Labs: <a href="../../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md"><code>dynatrace-rca-lab</code></a> · <a href="../../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md"><code>datadog-rca-lab</code></a><br />
 Browser: <a href="./comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt-dd.html</code></a> · <a href="http://127.0.0.1:8765/comparable-pipeline-dt-dd.html"><code>:8765</code></a> · <a href="http://127.0.0.1:8765/docs.html">docs hub</a></p>
 <hr />
 <h2 id="philosophy-independent-building-blocks-first">0. Philosophy — independent building blocks first</h2>
@@ -546,7 +546,7 @@ Browser: <a href="./comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt
 </table>
 <p>Teaching path: Thesis → Breakdown → <strong>Three-rail (Metrics ∥ APM ∥ Logs)</strong> → Timeline → MTL workbook → <strong>Bits</strong>.</p>
 <h3 id="edge-delta-building-blocks-native">0.2b Edge Delta building blocks (native — Observed UI + Public framing)</h3>
-<p>Not lab-hardened. No <code>edgedelta-rca-lab</code>. Independent unveil: <a href="./ed-ai-team-hub.html">ED hub</a> · <a href="./EDGEDELTA_PRODUCTION_PIPELINE.md">ED thesis</a> · <a href="./edgedelta-tenant-evidence-2026-08-14.md">tenant evidence 2026-08-14</a>.</p>
+<p>Not lab-hardened. No <code>edgedelta-rca-lab</code>. Independent unveil: <a href="../ed-ai-team-hub.html">ED hub</a> · <a href="../EDGEDELTA_PRODUCTION_PIPELINE.md">ED thesis</a> · <a href="../edgedelta-tenant-evidence-2026-08-14.md">tenant evidence 2026-08-14</a>.</p>
 <table>
 <thead>
 <tr class="header">
@@ -1295,7 +1295,7 @@ Browser: <a href="./comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt
 </tr>
 </tbody>
 </table>
-<p><strong>Follow-on (2026-08-06, code-level enrich):</strong> <strong>P-260817</strong> — same leaf pattern with real <code>KeyError</code> in inventory; API event timeline + teaching notes in <a href="./dt-lab-timeline-code-level.html"><code>dt-lab-timeline-code-level.html</code></a> (<code>rootCauseEntity=null</code> this pull).</p>
+<p><strong>Follow-on (2026-08-06, code-level enrich):</strong> <strong>P-260817</strong> — same leaf pattern with real <code>KeyError</code> in inventory; API event timeline + teaching notes in <a href="../dt-lab-timeline-code-level.html"><code>dt-lab-timeline-code-level.html</code></a> (<code>rootCauseEntity=null</code> this pull).</p>
 <h3 id="confirmed-datadog-only-strength-this-scenario">Confirmed Datadog-only strength (this scenario)</h3>
 <table>
 <colgroup>
@@ -1323,7 +1323,7 @@ Browser: <a href="./comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt
 </tr>
 <tr class="even">
 <td>Separable AI surfaces</td>
-<td>Door B Watchdog (logs stories on e3) + <strong>Bits</strong> peer tab (<a href="./dd-bits-error-review.html"><code>dd-bits-error-review.html</code></a> · investigation <code>90a88d93…</code>)</td>
+<td>Door B Watchdog (logs stories on e3) + <strong>Bits</strong> peer tab (<a href="../dd-bits-error-review.html"><code>dd-bits-error-review.html</code></a> · investigation <code>90a88d93…</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -1453,7 +1453,7 @@ Browser: <a href="./comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt
 <hr />
 <h2 id="stage-by-stage-evidence">4. Stage-by-stage evidence</h2>
 <blockquote>
-<p><strong>Vintage:</strong> tables in this section are the <strong>early same-scenario cascade</strong> (DD inventory <strong>503</strong>, packaging doors quiet) unless noted. For current DD ERROR Detect/Bits honesty see lab vintages above and <a href="./dd-detect-category-hub.html"><code>dd-detect-category-hub.html</code></a>.</p>
+<p><strong>Vintage:</strong> tables in this section are the <strong>early same-scenario cascade</strong> (DD inventory <strong>503</strong>, packaging doors quiet) unless noted. For current DD ERROR Detect/Bits honesty see lab vintages above and <a href="../dd-detect-category-hub.html"><code>dd-detect-category-hub.html</code></a>.</p>
 </blockquote>
 <h3 id="collect">4.1 Collect</h3>
 <div class="ud-viz"><div class="ud-cap">Shared lab scenario</div>
@@ -1647,7 +1647,7 @@ Browser: <a href="./comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt
 </tr>
 <tr class="even">
 <td>Example (e3 Bits)</td>
-<td><a href="./dd-bits-error-review.html"><code>dd-bits-error-review.html</code></a> · <a href="https://app.datadoghq.com/bits-ai/investigations/90a88d93-2570-40c6-9706-d186290ea2b6?v=tree">investigation <code>90a88d93…</code></a></td>
+<td><a href="../dd-bits-error-review.html"><code>dd-bits-error-review.html</code></a> · <a href="https://app.datadoghq.com/bits-ai/investigations/90a88d93-2570-40c6-9706-d186290ea2b6?v=tree">investigation <code>90a88d93…</code></a></td>
 </tr>
 </tbody>
 </table>
@@ -1683,7 +1683,7 @@ Browser: <a href="./comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt
 </tr>
 </tbody>
 </table>
-<p><strong>Teaching alignment:</strong> Dynatrace mechanisms / Maintain / Curate / Tailor clocks for <strong>ERROR</strong> teaching use this <strong>same UTC window</strong> (not fictional <code>07:xx</code>, not IST). Mid-window sample times are illustrative inside <code>[05:54, 06:04]</code>; anchors <strong>05:54</strong> and <strong>06:04</strong> are <strong>Observed</strong>. For <strong>SLOWDOWN</strong>, use <strong>P-260820</strong> clocks (Events ≈15:05 → Problem ≈15:10) — do not reuse this ERROR window. See <a href="./eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a><code>?cat=</code> · <a href="./DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md</code></a>.</p>
+<p><strong>Teaching alignment:</strong> Dynatrace mechanisms / Maintain / Curate / Tailor clocks for <strong>ERROR</strong> teaching use this <strong>same UTC window</strong> (not fictional <code>07:xx</code>, not IST). Mid-window sample times are illustrative inside <code>[05:54, 06:04]</code>; anchors <strong>05:54</strong> and <strong>06:04</strong> are <strong>Observed</strong>. For <strong>SLOWDOWN</strong>, use <strong>P-260820</strong> clocks (Events ≈15:05 → Problem ≈15:10) — do not reuse this ERROR window. See <a href="../eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a><code>?cat=</code> · <a href="../DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md</code></a>.</p>
 <hr />
 <h2 id="reproduce">6. Reproduce</h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Datadog :18080 · Dynatrace :19080</span></span>
@@ -1727,59 +1727,59 @@ Browser: <a href="./comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt
 </thead>
 <tbody>
 <tr class="odd">
-<td><a href="./dt-davis-category-hub.html"><code>dt-davis-category-hub.html</code></a></td>
+<td><a href="../dt-davis-category-hub.html"><code>dt-davis-category-hub.html</code></a></td>
 <td>DT hub (independent)</td>
 </tr>
 <tr class="even">
-<td><a href="./dd-detect-category-hub.html"><code>dd-detect-category-hub.html</code></a></td>
+<td><a href="../dd-detect-category-hub.html"><code>dd-detect-category-hub.html</code></a></td>
 <td>DD hub (independent)</td>
 </tr>
 <tr class="odd">
-<td><a href="./ed-ai-team-hub.html"><code>ed-ai-team-hub.html</code></a></td>
+<td><a href="../ed-ai-team-hub.html"><code>ed-ai-team-hub.html</code></a></td>
 <td>ED hub (independent)</td>
 </tr>
 <tr class="even">
-<td><a href="./DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md</code></a> · <a href="./dynatrace-production-pipeline.html">HTML</a></td>
+<td><a href="../DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md</code></a> · <a href="../dynatrace-production-pipeline.html">HTML</a></td>
 <td>DT unveil</td>
 </tr>
 <tr class="odd">
-<td><a href="./DATADOG_PRODUCTION_PIPELINE.md"><code>DATADOG_PRODUCTION_PIPELINE.md</code></a> · <a href="./datadog-production-pipeline.html">HTML</a></td>
+<td><a href="../DATADOG_PRODUCTION_PIPELINE.md"><code>DATADOG_PRODUCTION_PIPELINE.md</code></a> · <a href="../datadog-production-pipeline.html">HTML</a></td>
 <td>DD unveil</td>
 </tr>
 <tr class="even">
-<td><a href="./EDGEDELTA_PRODUCTION_PIPELINE.md"><code>EDGEDELTA_PRODUCTION_PIPELINE.md</code></a> · <a href="./edgedelta-production-pipeline.html">HTML</a></td>
+<td><a href="../EDGEDELTA_PRODUCTION_PIPELINE.md"><code>EDGEDELTA_PRODUCTION_PIPELINE.md</code></a> · <a href="../edgedelta-production-pipeline.html">HTML</a></td>
 <td>ED unveil</td>
 </tr>
 <tr class="odd">
-<td><a href="./edgedelta-tenant-evidence-2026-08-14.md"><code>edgedelta-tenant-evidence-2026-08-14.md</code></a></td>
+<td><a href="../edgedelta-tenant-evidence-2026-08-14.md"><code>edgedelta-tenant-evidence-2026-08-14.md</code></a></td>
 <td>ED Observed (UI) snapshot</td>
 </tr>
 <tr class="even">
-<td><a href="./dt-e2e-smartscape-grail.html"><code>dt-e2e-smartscape-grail.html</code></a></td>
+<td><a href="../dt-e2e-smartscape-grail.html"><code>dt-e2e-smartscape-grail.html</code></a></td>
 <td>DT Dual-track Smartscape ∥ Grail</td>
 </tr>
 <tr class="even">
-<td><a href="./dd-e2e-metrics-traces-logs.html"><code>dd-e2e-metrics-traces-logs.html</code></a></td>
+<td><a href="../dd-e2e-metrics-traces-logs.html"><code>dd-e2e-metrics-traces-logs.html</code></a></td>
 <td>DD Three-rail Metrics ∥ APM ∥ Logs</td>
 </tr>
 <tr class="odd">
-<td><a href="./eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a></td>
+<td><a href="../eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a></td>
 <td>DT mechanisms (Davis)</td>
 </tr>
 <tr class="even">
-<td><a href="./datadog-subsystem-mechanisms.html"><code>datadog-subsystem-mechanisms.html</code></a></td>
+<td><a href="../datadog-subsystem-mechanisms.html"><code>datadog-subsystem-mechanisms.html</code></a></td>
 <td>DD mechanisms</td>
 </tr>
 <tr class="odd">
-<td><a href="./dd-bits-error-review.html"><code>dd-bits-error-review.html</code></a></td>
+<td><a href="../dd-bits-error-review.html"><code>dd-bits-error-review.html</code></a></td>
 <td>DD Bits peer tab (Hypothesis Tree · 500 vs 502)</td>
 </tr>
 <tr class="even">
-<td><a href="./datadog-lab-evidence-mtl-error-2026-08-10.html"><code>datadog-lab-evidence-mtl-error-2026-08-10.html</code></a></td>
+<td><a href="../datadog-lab-evidence-mtl-error-2026-08-10.html"><code>datadog-lab-evidence-mtl-error-2026-08-10.html</code></a></td>
 <td>DD e3 MTL appendix</td>
 </tr>
 <tr class="odd">
-<td><a href="./datadog-lab-evidence-2026-08-04.md"><code>datadog-lab-evidence-2026-08-04.md</code></a></td>
+<td><a href="../datadog-lab-evidence-2026-08-04.md"><code>datadog-lab-evidence-2026-08-04.md</code></a></td>
 <td>Earlier DD notes</td>
 </tr>
 <tr class="even">
@@ -1787,7 +1787,7 @@ Browser: <a href="./comparable-pipeline-dt-dd.html"><code>comparable-pipeline-dt
 <td>No public top-1 AI bakeoff</td>
 </tr>
 <tr class="odd">
-<td><a href="./index.html"><code>index.html</code></a> · <a href="http://127.0.0.1:8765/docs.html"><code>:8765/docs.html</code></a></td>
+<td><a href="../index.html"><code>index.html</code></a> · <a href="http://127.0.0.1:8765/docs.html"><code>:8765/docs.html</code></a></td>
 <td>Docs hub</td>
 </tr>
 <tr class="even">

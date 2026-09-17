@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-27  
 **Status:** Discussion input — **not** a locked contract.  
-**Audience:** Motadata / ObserveOps owners who need to decide how long we keep raw samples, how Identity resolves names into configuration items, and what Pillar A (percentiles / sketches) and Pillar B (topology) may admit.  
+**Audience:** Motadata / ObserveOps owners who need to decide how long we keep raw samples, how **E2 Identity (Normalize)** resolves names into configuration items, and what Pillar A (percentiles / sketches) and Pillar B (topology) may accept for production writes.  
 **Source synthesis:** [`../Raw_Data_Handling.pdf`](../Raw_Data_Handling.pdf) (six cases, Edge Delta check, shift-left vs zero-raw).  
 **Also aligned with:** [`../../docs/observeops/LLD-E2-Identity.md`](../../docs/observeops/LLD-E2-Identity.md) · [`../../docs/GRAPH_QNA.md`](../../docs/GRAPH_QNA.md) (§9 merge / raw) · graph contract evidence types · Dynatrace-shaped bind miss policies in vendor docs.
 
@@ -20,24 +20,28 @@ This note turns the PDF’s open list into **vote-ready questions**: each one ha
 
 | Short name | Meaning |
 |------------|---------|
-| **Raw sample** | One admitted measurement or event before sketch compression (exact value + timestamp + labels). |
+| **E1 Collect** | Pipeline **stage** (P1 fabric). Ingests edge payloads and **admits** well-formed lines as `ingest.v1` / `TelemetryEnvelope`. Does **not** resolve which configuration item a row belongs to. |
+| **E2 Identity (Normalize)** | Pipeline **stage** (P1 fabric; HLD fabric phase name **Normalize** = this stage). **Binds** raw labels through the LUT, **stamps** `tenant` + `ci_id` + `identity.status`. Same stage — not E10 Identify (root-cause evidence). |
+| **admit** (verb) | What **E1 Collect** does — wire-format acceptance only. Say “admit at E1 Collect” or “E1 admits,” not “E1 admit” as a stage name. |
+| **bind / stamp** (verb) | What **E2 Identity** does — LUT hit or miss policy, then `identity.status`. Say “bind at E2 Identity” or “E2 stamps,” not “Normalize” alone when you mean the stage. |
+| **Raw sample** | One measurement or event **after E1 Collect** and **before** sketch compression (exact `value` + `ts` + labels). |
 | **Sketch** | Lossy summary in the `history/` room (`sketch.v1`). Good for percentiles and Detect; cannot recreate every original point. |
-| **Identity (E2)** | Pipeline stage that stamps each record with `tenant` + `ci_id` (same string as sketch `entity_id`) and `identity.status`. |
 | **Configuration item (CI)** | A **graph vertex** with stable `tenant` + `ci_id` + `ci_type` — something E9 may localize to and E11 may ticket when `identity.status = resolved` (D-E2-1). Uses field name **`ci_id`** on `ingest.v1` and graph rows. |
 | **Entity / `entity_id`** | Industry and Motadata sketch vocabulary for “the thing this signal refers to.” On **`sketch.v1`** the field is **`entity_id`**; after E2 bind its value is the **same string** as `ci_id`. Not a second identity namespace. |
-| **Entity resolution** | The E2 job (LUT / bind / `identity.status`) — same as “identity” in FR-B. Process name from vendor docs; output is still `ci_id`. |
-| **Look-up table (LUT)** | The bind table Identity uses: raw labels (monitor id, `service.name`, host name, …) → stable `ci_id`. Teaching shorthand from Dynatrace-shaped docs; in ObserveOps this is **E2’s bind table**, not a third store room beside `map/` and `history/`. |
-| **LUT miss** | Incoming labels do not hit any row yet — Identity cannot stamp `resolved`. |
-| **Quarantine buffer** | A **bounded** hold of unresolved raw samples (hours–days). When Identity later resolves, we **replay** those samples into the sketch writer and merge into the original window. Not a full compliance archive. |
+| **Entity resolution** | The **E2 Identity** job (LUT / bind / `identity.status`) — same as “identity” in FR-B. Process name from vendor docs; output is still `ci_id`. |
+| **Look-up table (LUT)** | The bind table **E2 Identity** uses: raw labels (monitor id, `service.name`, host name, …) → stable `ci_id`. Teaching shorthand from Dynatrace-shaped docs; in ObserveOps this is **E2’s bind table**, not a third store room beside `map/` and `history/`. |
+| **LUT miss** | Incoming labels do not hit any row yet — **E2 Identity** cannot stamp `resolved`. |
+| **Quarantine buffer** | A **bounded** hold of unresolved raw samples (hours–days). When **E2 Identity** later resolves, we **replay** those samples into the sketch writer and merge into the original window. Not a full compliance archive. |
 | **Unattributed queue** | Query surface over records with `identity.status` not `resolved` (LLD-E2 / FR-B1). They are **not** silently dropped from visibility — but Pillar A/B writers still must not treat them as production join keys. |
 | **Evidence strength** (graph) | Who owns a topology fact: **authoritative** (inventory / system of record), **declared** (CMDB / catalog), **corroborating** (telemetry suggests). Separate from LUT miss policy. |
 | **Shift-left** | Reduce volume at the edge (mask, filter, enrich) **before** centralizing. |
-| **Zero-raw retention** | After admit, discard raw once the sketch exists. Independent from shift-left. |
+| **Zero-raw retention** | After **E1 Collect** admits a line and **E4 Stores** flushes a sketch, discard per-sample metric raw. Independent from shift-left. |
 | **Rehydration** | Edge Delta’s name for an on-demand job that pulls full-fidelity archived events from cold object storage back into a destination. Broader than our quarantine idea. |
 
 **Do not confuse:**
 
-- **Rooms** (`map/` vs `history/`) ≠ **temperature** (Vortex hot vs S3 cold).
+- **E1 Collect vs “admit”** — **Collect** is the stage name; **admit** is what it does (wire-format acceptance). Do not write “E1 admit” as a label.
+- **E2 Identity vs Normalize vs “Identify”** — **E2 Identity (Normalize)** is the P1 stage that binds and stamps `identity.status`. **Normalize** is the HLD fabric phase name for the same stage. **E10 Identify** is P3 root-cause evidence — a different stage.
 - **`ci_id` vs `entity_id`** — same join key **after E2 bind**; different field names per schema (`ingest.v1` / graph vs `sketch.v1`). Do not mint two ids.
 - **CI vs entity (concept)** — **CI** = our strict graph/ticket noun (vertices only; alerts/incidents are **not** CIs). **Entity** = vendor/Motadata prose or sketch field name. Motadata PDF “entity” included event vertices; we do **not** copy that.
 - **CI vs ServiceNow CMDB record** — aligned **keys** for future join; E2 does not replace ServiceNow’s CI class model (see §3.6 · LLD-E2 §8).
@@ -63,7 +67,7 @@ From the PDF. Sketches alone cannot answer these:
 
 ### 3.2 Which cases touch the **live** RCA pipeline
 
-Cross-walk of the **six cases in §3.1** against ongoing Detect and RCA (E6 onward). “Live pipeline” means the always-on path that admits telemetry, writes sketches / map, and fires Detect — not one-off human or legal workflows.
+Cross-walk of the **six cases in §3.1** against ongoing Detect and RCA (E6 onward). “Live pipeline” means the always-on path that **E1 Collect** ingests, **E2 Identity** stamps, writers persist sketches / map, and Detect fires — not one-off human or legal workflows.
 
 | # | Case (§3.1) | Touches live RCA pipeline? | Impact while unresolved | Nature of the fix |
 |---|-------------|----------------------------|-------------------------|-------------------|
@@ -88,7 +92,7 @@ Three independent sources can strengthen identity / topology facts in any order:
 | CMDB / catalog sync | **declared** | CMDB, service catalog, Helm, Terraform |
 | Telemetry accumulation | **corroborating** | Repeated spans / logs |
 
-**Asymmetry that matters:** only **authoritative** or **declared** evidence should produce `identity.status = resolved` for production join. Corroborating alone typically justifies **synthesized** at best. Graph rule **D-E2-1**: synthesized / unattributed identities are **not** E9 leaf or ServiceOps ticket targets. Pillar A and Pillar B writers admit **`resolved` only** (PoC `ResolvedOnlyGate`).
+**Asymmetry that matters:** only **authoritative** or **declared** evidence should produce `identity.status = resolved` for production join. Corroborating alone typically justifies **synthesized** at best. Graph rule **D-E2-1**: synthesized / unattributed identities are **not** E9 leaf or ServiceOps ticket targets. Pillar A and Pillar B writers accept **`resolved` only** (PoC `ResolvedOnlyGate`).
 
 So two sub-cases hide under “late identity”:
 
@@ -128,7 +132,7 @@ Teams often ask whether “extracting CIs from data” means **defining CIs the 
 | Question | Who usually answers it | ObserveOps stage |
 |----------|------------------------|------------------|
 | **What is a configuration item in our org?** (class, owner, lifecycle, required fields) | CMDB / ITSM — ServiceNow, BMC, etc. | **Not E2 this pass** — we freeze join keys so ServiceOps can attach later |
-| **Which real thing does this telemetry row refer to?** (`host.name`, monitor id, span service → stable id) | Collect + **Identity** | **E2 Identity** — LUT / bind table → `tenant` + `ci_id` + `identity.status` |
+| **Which real thing does this telemetry row refer to?** (`host.name`, monitor id, span service → stable id) | **E1 Collect** + **E2 Identity (Normalize)** | **E2 Identity** — LUT / bind table → `tenant` + `ci_id` + `identity.status` |
 | **Who connects to whom on the map?** | Discovery + catalog + telemetry | **E3 Topology** — nodes + edges with `evidence_type` |
 
 **Industry pattern (all major observability stacks):** bind + discover + reconcile — not one pass that “invents CMDB schema from logs.”
@@ -165,7 +169,7 @@ Raw labels (host.name, k8s pod, monitor id, service.name)
 
 **Why this matters for raw / quarantine (Case 2):** entity extraction is rarely instant. Catalog-known names often resolve on **declared** sync; genuinely new hosts/services wait for **authoritative** inventory. That race is why §3.3 and Q1–Q3 exist — not because E2 “should define CIs like ServiceNow.”
 
-Normative E2 detail: [`LLD-E2-Identity.md`](../../docs/observeops/LLD-E2-Identity.md) §8. Graph evidence types: [`GRAPH_QNA.md`](../../docs/GRAPH_QNA.md) G10–G11.
+Normative E2 detail: [`LLD-E2-Identity.md`](../../docs/observeops/LLD-E2-Identity.md) §8. Graph evidence types: [`GRAPH_QNA.md`](../../docs/GRAPH_QNA.md) G10–G11. **Visual companion:** [`inventory-catalog-on-the-map.html`](../../docs/fabric/inventory-catalog-on-the-map.html) — authoritative `runs_on` vs declared `depends_on`, LUT vs `map/` routing.
 
 ---
 
@@ -214,7 +218,7 @@ For each question: **context → why it matters → options → proposed leaning
 
 ### Q3 — LUT miss policy for production joins (Auto-create vs Orphan vs Soft-match)
 
-**Context.** Dynatrace-shaped pipelines name three miss behaviors. ObserveOps LLD-E2 Signed path synthesizes flagged placeholders and keeps an unattributed queue; Pillar A/B admit **resolved only**.
+**Context.** Dynatrace-shaped pipelines name three miss behaviors. ObserveOps LLD-E2 Signed path synthesizes flagged placeholders and keeps an unattributed queue; Pillar A/B accept **resolved-only** rows.
 
 **Why it matters.** This decides whether a brand-new `service.name` immediately gets a sketch series (Auto-create), waits in quarantine (Orphan-like), or attaches to an existing CI (Soft-match). Wrong choice either **pollutes** the map with junk nodes or **blinds** Detect on real new services.
 
@@ -229,7 +233,7 @@ For each question: **context → why it matters → options → proposed leaning
 
 **Proposed leaning (combined).**
 
-1. **Default miss:** emit **synthesized** or **unattributed** (LLD-E2), **never** poison-drop; **do not** admit to Pillar A/B.  
+1. **Default miss:** emit **synthesized** or **unattributed** (LLD-E2), **never** poison-drop; **do not** pass to Pillar A/B production writers.  
 2. **Hold raw in quarantine** (Q1) keyed by unresolved identity keys.  
 3. Promote to **`resolved`** only when **declared** or **authoritative** evidence updates the LUT.  
 4. **Auto-create** as `resolved` only under an explicit product flag (lab / “discovery mode”), not as Motadata default for ticketable CIs.  
@@ -251,7 +255,7 @@ For each question: **context → why it matters → options → proposed leaning
 2. Each pillar maintains aliases — rejected by current contract.  
 3. Topology (E3) owns nodes; E2 owns bind rows; both share `ci_id` space with clear write APIs.
 
-**Proposed leaning.** **(1)+(3):** one bind LUT owned by Identity (E2); Topology publishes / consumes the same `ci_id` space; inventory and catalog **writers** update LUT rows with evidence strength; telemetry may propose candidates but does not alone flip `resolved` (see Q3). Pillar A/B never import each other’s packages for bind.
+**Proposed leaning.** **(1)+(3):** one bind LUT owned by **E2 Identity**; Topology publishes / consumes the same `ci_id` space; inventory and catalog **writers** update LUT rows with evidence strength; telemetry may propose candidates but does not alone flip `resolved` (see Q3). Pillar A/B never import each other’s packages for bind.
 
 **Ask the room.** Name the Motadata component that is the system of record for “monitor id / label → CI” today (bind builder, CMDB sync, other).
 
@@ -314,17 +318,17 @@ For each question: **context → why it matters → options → proposed leaning
 
 ### Q8 — Where quarantine lives relative to NATS / E2 / writers
 
-**Context.** Motadata PDF places a streaming bus (NATS) before percentile and graph engines. ObserveOps: both pillars read **after** Identity. Quarantine is about **unresolved** samples — so it sits **at or just after E2**, not inside Pillar A or B packages.
+**Context.** Motadata PDF places a streaming bus (NATS) before percentile and graph engines. ObserveOps: both pillars read **after E2 Identity**. Quarantine is about **unresolved** samples — so it sits **at or just after E2 Identity**, not inside Pillar A or B packages.
 
 **Why it matters.** If each pillar invents its own quarantine, replay and merge diverge.
 
 **Options.**
 
-1. Quarantine owned by **Identity / admission** — single buffer; on resolve, republish resolved `ingest.v1` onto the post-E2 stream (NATS or lab equivalent) so A and B both see normal resolved traffic.  
+1. Quarantine owned by **E2 Identity** — single buffer; on resolve, republish resolved `ingest.v1` onto the post-E2 stream (NATS or lab equivalent) so A and B both see normal resolved traffic.  
 2. Quarantine owned by Pillar A only (sketch coverage) — topology still gaps.  
 3. Quarantine inside cold S3 with rehydration workers (Edge Delta–scale).
 
-**Proposed leaning.** **(1).** Identity (or Motadata bind service) owns the buffer; resolution republishes **resolved** records once; Pillar A and Pillar B stay dumb `ResolvedOnlyGate` consumers. Lab PoC may stub this as a TTL dict + replay hook without NATS.
+**Proposed leaning.** **(1).** **E2 Identity** (or Motadata bind service) owns the buffer; resolution republishes **resolved** records once; Pillar A and Pillar B stay dumb `ResolvedOnlyGate` consumers. Lab PoC may stub this as a TTL dict + replay hook without NATS.
 
 **Ask the room.** Agree that Pillar A/B packages stay free of LUT/quarantine ownership (keeps independence for the A/B PoC).
 
@@ -421,7 +425,7 @@ Canonical detail: [`GRAPH_QNA.md`](../../docs/GRAPH_QNA.md) **G22**, **G28**, **
 | Q5 | Case 1 | Formal backfill runbook; version stamps on sketches | |
 | Q6 | Raw scope | Quarantine-first; full rehydration = separate product call | |
 | Q7 | Buckets on replay | Schema immutable per key; mismatch ⇒ digest-only merge | |
-| Q8 | Buffer placement | At Identity; republish resolved once to A∥B | |
+| Q8 | Buffer placement | At E2 Identity; republish resolved once to A∥B | |
 | Q9 | PoC | Writers stay resolved-only; Case 2 stub optional | |
 
 ---
@@ -430,9 +434,9 @@ Canonical detail: [`GRAPH_QNA.md`](../../docs/GRAPH_QNA.md) **G22**, **G28**, **
 
 These are settled elsewhere; this discussion assumes them:
 
-- Pillar A and Pillar B are **parallel writers after Identity** — not merged products.  
+- Pillar A and Pillar B are **parallel writers after E2 Identity** — not merged products.  
 - Same `tenant` + `ci_id` ≡ sketch `entity_id`.  
-- Writers admit **resolved** rows only for production map/history.  
+- Writers accept **resolved-only** rows for production map/history.  
 - D-E2-1: non-resolved is not localize / ServiceOps ticket target.  
 - Sketches do not carry edges; map does not replace sketches.  
 - Shift-left (volume) and sketch retention (lifespan) are **separate** levers.
@@ -445,9 +449,10 @@ Prior discussion trail: `01`–`03` in this folder.
 ## 7. Suggested reading order for attendees (15 minutes)
 
 1. This document §§1–3 (including §3.6 industry entity models), §4.5 (exemplars counter-Q), and the vote card (§5).  
-2. PDF §§5–8 ([`Raw_Data_Handling.pdf`](../Raw_Data_Handling.pdf)) for the race diagram and Edge Delta check.  
-3. [`LLD-E2-Identity.md`](../../docs/observeops/LLD-E2-Identity.md) §4 (D-E2-1) and §8 (industry context).  
-4. [`GRAPH_QNA.md`](../../docs/GRAPH_QNA.md) G22 / G28 / G29 (exemplars) and G35–G37 (raw / shift-left).
+2. [`inventory-catalog-on-the-map.html`](../../docs/fabric/inventory-catalog-on-the-map.html) — authoritative vs declared edges; LUT vs `map/`.  
+3. PDF §§5–8 ([`Raw_Data_Handling.pdf`](../Raw_Data_Handling.pdf)) for the race diagram and Edge Delta check.  
+4. [`LLD-E2-Identity.md`](../../docs/observeops/LLD-E2-Identity.md) §4 (D-E2-1) and §8 (industry context).  
+5. [`GRAPH_QNA.md`](../../docs/GRAPH_QNA.md) G10–G11 (inventory / catalog / telemetry) · G22 / G28 / G29 (exemplars) · G35–G37 (raw / shift-left).
 
 ---
 

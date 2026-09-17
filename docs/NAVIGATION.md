@@ -42,43 +42,59 @@ Always-on fabric (E1–E5) → Pillar A∥B contracts → Detect onward → Refe
 
 ---
 
-## 1) Orient — Motadata fabric + graph/sketch freeze
+## 1) Orient — Tier 1 only, then depth
 
-Read these before diving into folders.
+**Locked Tier 1 list:** [`observeops/OUR_HLD_TIER1.md`](./observeops/OUR_HLD_TIER1.md) — six Tier-1 pages (everyone ×5, implementers ×1 entry) + Tier-2 **I/O chain** for wire records.
 
-| Document | Why first |
-|----------|-----------|
-| [`REPO_HYGIENE.md`](./REPO_HYGIENE.md) | **What to edit where** — stops brief/Q&A drift |
-| [`observeops/observeops-pipeline-hld.html`](./observeops/observeops-pipeline-hld.html) | **Our HLD** (`:8765`) — door to one pipeline (E1–E11). D5 stays Review. |
-| [`observeops/observeops-fusion-guide.html`](./observeops/observeops-fusion-guide.html) | **Fusion** — the same pipeline, clickable. Does not add steps. [`:8765`](http://127.0.0.1:8765/observeops-fusion-guide.html) |
-| [`observeops/OBSERVEOPS_PIPELINE_HLD.md`](./observeops/OBSERVEOPS_PIPELINE_HLD.md) | **Pipeline HLD** — what each step is for, identity keys, ADRs. [`LLD-E1`](./observeops/LLD-E1-Collect.md) (Done) · [`LLD-E2`](./observeops/LLD-E2-Identity.md) (Done) · [`LLD-E3`](./observeops/LLD-E3-Topology.md) · [`LLD-E4`](./observeops/LLD-E4-Stores.md) (E3–E4 Draft) |
-| [`observeops/observeops-shift-left-architecture.html`](./observeops/observeops-shift-left-architecture.html) | **Locus, not a second HLD:** same E1–E11 clock; Node / optional Gateway / our SaaS · [`:8765`](http://127.0.0.1:8765/observeops-shift-left-architecture.html) |
-| [`motadata/motadata-3pillars-architecture.html`](./motadata/motadata-3pillars-architecture.html) | **Motadata 3 pillars explained** — T-Digest, graph builder, Vortex/S3, retrieval, ReAct; mapped onto E1–E11. [`:8765`](http://127.0.0.1:8765/motadata-3pillars-architecture.html) · [explained PDF](./print/motadata-3pillars-architecture-explained-A4.pdf) |
-| [`motadata/motadata-3pillars-vs-shift-left.html`](./motadata/motadata-3pillars-vs-shift-left.html) | **Job map:** A+B = P1 stores; C = optional P3. Canonical [`MOTADATA_3PILLARS_VS_SHIFT_LEFT.md`](./motadata/MOTADATA_3PILLARS_VS_SHIFT_LEFT.md) |
-| [`motadata/motadata-3pillars-study-qna.html`](./motadata/motadata-3pillars-study-qna.html) | **Study Q&A** — leadership PDF vs our pipeline. Canonical [`MOTADATA_3PILLARS_STUDY_QNA.md`](./motadata/MOTADATA_3PILLARS_STUDY_QNA.md) · [`:8765`](http://127.0.0.1:8765/motadata-3pillars-study-qna.html#todo) |
-| [`motadata-3pillars-implementation-scope.html`](./motadata-3pillars-implementation-scope.html) | **3 pillars kickoff scope**. Canonical [`pillar-ab-implementation/scope/MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md`](../pillar-ab-implementation/scope/MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md) · [`:8765`](http://127.0.0.1:8765/motadata-3pillars-implementation-scope.html) |
-| [`MOTADATA_3PILLARS_MERGED_SCOPE.md`](./MOTADATA_3PILLARS_MERGED_SCOPE.md) | **Merged implementation scope** (canonical merge of split OKR notes) |
-| [`pillar-ab-implementation/`](../pillar-ab-implementation/README.md) | **Pillar A+B slice** — [`pillar-a/`](../pillar-ab-implementation/pillar-a/) · [`pillar-b/`](../pillar-ab-implementation/pillar-b/) · [`integration/`](../pillar-ab-implementation/integration/) |
-| [`MAP_WRITE_READ_RECORD.md`](../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | **Pillar B map write/read** — JSON `graph_snapshot.v1` + `nodes.jsonl` / `edges.jsonl`; Vortex/S3 later encodings |
-| [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) | **Graph + sketch contract brief** — CI catalog, fifteen edges, `sketch.v1`. Samples [`GRAPH_NODE_EDGE_SAMPLES.md`](../pillar-ab-implementation/contracts/GRAPH_NODE_EDGE_SAMPLES.md) |
-| [`GRAPH_QNA.md`](./GRAPH_QNA.md) | **Fabric Q&A (E1–E5)** — rooms, sketches, Detect, raw retention |
-| [`fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](./fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | **Pillar A deep dive** — inputs → process → `sketch.v1` / S3 / Vortex |
-| [`fabric/end-to-end-algorithm-walkthrough.md`](./fabric/end-to-end-algorithm-walkthrough.md) | **Algorithm walkthrough** — admit → window → Detect door C |
-| [`fabric/e1-e5-pipeline-architecture.html`](./fabric/e1-e5-pipeline-architecture.html) | **E1→E2 fan-out** → Pillar B `map/` ∥ Pillar A `history/` |
-| [`fabric/map-history-storage-blocks.html`](./fabric/map-history-storage-blocks.html) | **`map/` vs `history/`** — R/W, no sync |
-| [`fabric/map-history-storage-animation.html`](./fabric/map-history-storage-animation.html) | **Animated remap** — write → rooms → WorkingSet join |
-| [`fabric/vortex-s3-interaction.html`](./fabric/vortex-s3-interaction.html) | **Vortex + S3 block interaction** · [`:8765`](http://127.0.0.1:8765/vortex-s3-interaction.html) |
-| [`fabric/sketch-exemplars-visual.html`](./fabric/sketch-exemplars-visual.html) | **Exemplars** — optional post-Detect acceleration |
-| [`fabric/Sketches_Merging_RawData_QnA.pdf`](./fabric/Sketches_Merging_RawData_QnA.pdf) | Owner exercise (merge/raw) — answers in GRAPH_QNA G33–G37 |
-| [`observeops/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./observeops/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) | Operational graph chapter (Draft) — how the map is recorded |
-| [`observeops/hld-archive.html`](./observeops/hld-archive.html) | Secondary HLD articles index |
-| [`observeops/OBSERVEOPS_USE_CASES.md`](./observeops/OBSERVEOPS_USE_CASES.md) | 8 ObserveOps Detect UCs |
-| [`observeops/urca-glossary.html`](./observeops/urca-glossary.html) | Glossary (`:8765`) |
-| [`CANVASES.md`](./CANVASES.md) | Former canvas jobs → `:8765` HTML |
+**Door:** [`observeops/observeops-pipeline-hld.html`](./observeops/observeops-pipeline-hld.html) (`:8765/observeops-pipeline-hld.html`) — one hub with **Overview · Workflow · GraphWriter · Diagnose** tabs. Old URLs (`motadata-unified-pipeline-workflow`, `graphwriter-io-walkthrough`, `checkout-diagnose-walkthrough`) redirect into this page.
 
-**Reference (evaluation history — not the Motadata lock list):** [`reference/POC_BRIEFING.md`](./reference/POC_BRIEFING.md) · [`ROADMAP.md`](./ROADMAP.md) · [`reference/ADR-001-lean-primary-engine.md`](./reference/ADR-001-lean-primary-engine.md) · [`reference/FAULT_BUCKET_COVERAGE.md`](./reference/FAULT_BUCKET_COVERAGE.md) · see [§ Reference](#reference-evaluation-history--vendors) below.
+| Band | Pages |
+|------|--------|
+| **A · Everyone** | Fusion · Pipeline HLD MD · Data shape journey · GRAPH_QNA · Glossary |
+| **B · Implementers** | Pillar A+B README · then Tier 2 I/O chain (ingest format → E2 fixtures → map/sketch output) |
 
-**Do not merge scoreboards:** ObserveOps UC bakeoff ≠ OpenObserve peer track ≠ Motadata L1 ≠ e-com checkout scenario. Treat them as separate surfaces.
+**Tier 2 (after Tier 1):** [`observeops/hld-archive.html`](./observeops/hld-archive.html) · [`fabric/README.md`](./fabric/README.md) · contract brief · LLDs · Motadata scope HTML.
+
+<details>
+<summary>Legacy orient table (full link dump — prefer Tier 1 doc above)</summary>
+
+| Path | Document | Why |
+|------|----------|-----|
+| **1 · Try** | [`observeops/observeops-fusion-guide.html`](./observeops/observeops-fusion-guide.html) | Click a Detect class; walk E1–E11 in/out |
+| **2 · Spec** | [`observeops/OBSERVEOPS_PIPELINE_HLD.md`](./observeops/OBSERVEOPS_PIPELINE_HLD.md) | Canonical written spec · ADRs · NFR |
+| **3 · Fabric** | Hub [#fabric](observeops/observeops-pipeline-hld.html#fabric) · [`fabric/data-shape-journey.html`](./fabric/data-shape-journey.html) | Data shape, `map/`/`history/`, GRAPH_QNA |
+| **4 · Build** | [`motadata/motadata-3pillars-implementation-scope.html`](./motadata-3pillars-implementation-scope.html) · [`observeops/observeops-shift-left-architecture.html`](./observeops/observeops-shift-left-architecture.html) | Kickoff scope · Node/Gateway/SaaS locus |
+| **5 · Archive** | [`observeops/hld-archive.html`](./observeops/hld-archive.html) | Searchable deep dives (Motadata, LLDs, print) |
+
+</details>
+
+**Fabric visuals** (ordered): [`fabric/README.md`](./fabric/README.md) — data shape journey → E1–E5 architecture → map/history → exemplars.
+
+**Pillar A∥B implementation** (contracts + code):
+
+| Document | Why |
+|----------|-----|
+| [`pillar-ab-implementation/`](../pillar-ab-implementation/README.md) | Code slice — pillar-a / pillar-b / integration |
+| [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) | Sit-down lock list — CI catalog, fifteen edges, `sketch.v1` |
+| [`GRAPH_QNA.md`](./GRAPH_QNA.md) | Fabric Q&A with table of contents |
+| [`MAP_WRITE_READ_RECORD.md`](../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | Pillar B map write/read JSON |
+| [`fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](./fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | Pillar A deep dive |
+| [`fabric/end-to-end-algorithm-walkthrough.md`](./fabric/end-to-end-algorithm-walkthrough.md) | Admit → Detect door C |
+
+**Motadata teaching** (also on archive):
+
+| Document | Why |
+|----------|-----|
+| [`motadata/motadata-3pillars-architecture.html`](./motadata/motadata-3pillars-architecture.html) | 3 pillars explained on E1–E11 |
+| [`motadata/motadata-3pillars-vs-shift-left.html`](./motadata/motadata-3pillars-vs-shift-left.html) | Job map — PDF vs our pipeline |
+| [`motadata/motadata-3pillars-study-qna.html`](./motadata/motadata-3pillars-study-qna.html) | Study Q&A · conflict register |
+| [`MOTADATA_3PILLARS_MERGED_SCOPE.md`](./MOTADATA_3PILLARS_MERGED_SCOPE.md) | Merged implementation scope |
+
+**Hygiene & terms:** [`REPO_HYGIENE.md`](./REPO_HYGIENE.md) · [`observeops/urca-glossary.html`](./observeops/urca-glossary.html) · [`observeops/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./observeops/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) (map chapter, Draft) · [`observeops/OBSERVEOPS_USE_CASES.md`](./observeops/OBSERVEOPS_USE_CASES.md)
+
+**Reference (evaluation history — not the Motadata lock list):** [`reference/POC_BRIEFING.md`](./reference/POC_BRIEFING.md) · [`ROADMAP.md`](./ROADMAP.md) · [`reference/ADR-001-lean-primary-engine.md`](./reference/ADR-001-lean-primary-engine.md) · see [§ Reference](#reference-evaluation-history--vendors) below.
+
+**Do not merge scoreboards:** ObserveOps UC bakeoff ≠ OpenObserve peer track ≠ Motadata L1 ≠ e-com checkout scenario.
 
 **Superseded:** [`MOTADATA_3PILLARS_PILLAR_SPLIT_SCOPE_OKR.md`](./MOTADATA_3PILLARS_PILLAR_SPLIT_SCOPE_OKR.md) → use [`MOTADATA_3PILLARS_MERGED_SCOPE.md`](./MOTADATA_3PILLARS_MERGED_SCOPE.md).
 
@@ -113,7 +129,7 @@ Best cold-start surface after you know the five stages.
 | [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md) | Walkthrough: console hashes, 15–20 min demo script, bakeoff / Motadata / lab commands |
 | [`../benchmarking/dashboard/README.md`](../benchmarking/dashboard/README.md) | PoC console — `http://127.0.0.1:8765/` |
 
-Suggested console order: `#guide` → `#incident` (human report) → `#samples` → `#conduct` / `#overview` / `#verdict`. Optional: [`rca-workflow-sim.html`](../benchmarking/dashboard/rca-workflow-sim.html) if they ask *how* Localize differs.
+Suggested console order: `#guide` → `#incident` (human report) → `#samples` → `#conduct` / `#overview` / `#verdict`. Optional: [`rca-workflow-sim.html`](./rca-workflow-sim.html) (`:8765/rca-workflow-sim.html`) if they ask *how* Localize differs.
 
 ```bash
 .venv/bin/python benchmarking/dashboard/server.py
@@ -222,7 +238,7 @@ Conceptual boundary: **ingestion is not RCA**. Shared fabric feeds both engines.
 | Dynatrace lab (stages 0–5, P-26076) | [`../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md`](../labs/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md) |
 | Datadog lab (FE→product→inventory) | [`../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md`](../labs/datadog-rca-lab/DATADOG_RCA_REFERENCE.md) · [ERROR](./dd-lab-timeline-error.html) · [MTL](./dd-error-mtl-dissection.html) · [SLOWDOWN](./dd-lab-timeline-slowdown.html) |
 | [`COMPARABLE_PIPELINE_DT_DD.md`](./COMPARABLE_PIPELINE_DT_DD.md) · [HTML](./comparable-pipeline-dt-dd.html) | DT vs DD after independent unveils · P-26084 lab · §0 Edge Delta geometry |
-| **Hosted docs index (browser hub)** | [`index.html`](./index.html) · [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) — Our HLD pack · DT / DD / ED / compare |
+| **Hosted docs index (browser hub)** | [`index.html`](./index.html) · [`:8765/docs.html`](http://127.0.0.1:8765/docs.html) — [Our HLD hub](http://127.0.0.1:8765/observeops-pipeline-hld.html) · DT / DD / ED / compare |
 | Vector design (shared fabric → Lean / Federated artifacts) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
 | PoC plan (M1–M3, hardware, weekly gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
 | `ingest.v1` contract + converters | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
@@ -332,14 +348,14 @@ Use this **after** you have the map — or when you already know the goal.
 | **OO UC fairness checklist** | [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md) |
 | Lean × Fed × OO UC compare | [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) |
 | Design ingestion (Vector → graphs) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
-| **Understand our HLD** | [Our HLD](http://127.0.0.1:8765/observeops-pipeline-hld.html) → [Fusion](http://127.0.0.1:8765/observeops-fusion-guide.html) → [Pipeline HLD](./OBSERVEOPS_PIPELINE_HLD.md) → [example map](http://127.0.0.1:8765/observeops-ci-graph.html). [Operational-graph chapter](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) only if you need how a connection is recorded. [shift-left](http://127.0.0.1:8765/observeops-shift-left-architecture.html) · [Motadata 3 pillars explained](http://127.0.0.1:8765/motadata-3pillars-architecture.html) · [study Q&A](http://127.0.0.1:8765/motadata-3pillars-study-qna.html) · [8 Detect UCs](./OBSERVEOPS_USE_CASES.md) |
+| **Understand our HLD** | [Our HLD hub (Overview · Workflow · GraphWriter · Diagnose)](http://127.0.0.1:8765/observeops-pipeline-hld.html) → [Fusion](http://127.0.0.1:8765/observeops-fusion-guide.html) → [Pipeline HLD](./observeops/OBSERVEOPS_PIPELINE_HLD.md) → [Data shape journey](http://127.0.0.1:8765/data-shape-journey.html) → [#fabric](http://127.0.0.1:8765/observeops-pipeline-hld.html#fabric). [shift-left](http://127.0.0.1:8765/observeops-shift-left-architecture.html) · [archive](http://127.0.0.1:8765/hld-archive.html) · [GRAPH_QNA](./GRAPH_QNA.md) |
 | **Understand Datadog production fabric** | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) · [HTML `:8765`](http://127.0.0.1:8765/datadog-production-pipeline.html) · [mechanisms](http://127.0.0.1:8765/datadog-subsystem-mechanisms.html) · [evidence](./datadog-tenant-evidence-2026-08-03.md) |
 | **Understand Edge Delta (third independent lens)** | [`ed-ai-team-hub.html`](./ed-ai-team-hub.html) · [Thesis](http://127.0.0.1:8765/edgedelta-production-pipeline.html) · [Breakdown](http://127.0.0.1:8765/edgedelta-subsystem-mechanisms.html) · [Portal](http://127.0.0.1:8765/ed-portal-walkthrough.html) · [`ed-lab-setup.html`](./ed-lab-setup.html) · [evidence](./edgedelta-tenant-evidence-2026-08-14.md) |
 | Ingestion PoC plan (hardware + gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |
 | `ingest.v1` format / converters | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) |
 | Fair Lean vs Federated (shared Detect) | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) |
 | **Incident Analysis** (human report UI) | PoC console [`#incident`](http://127.0.0.1:8765/#incident) — ObserveOps UC + Motadata L1 |
-| **RCA workflow sim** (Detect → Lean / Fed Localize) | [`../benchmarking/dashboard/rca-workflow-sim.html`](../benchmarking/dashboard/rca-workflow-sim.html) → `:8765/rca-workflow-sim.html` |
+| **RCA workflow sim** (Detect → Lean / Fed Localize) | [`rca-workflow-sim.html`](./rca-workflow-sim.html) → `:8765/rca-workflow-sim.html` |
 | Fault buckets vs Dynatrace/Datadog | [`FAULT_BUCKET_COVERAGE.md`](./FAULT_BUCKET_COVERAGE.md) · [`fault_taxonomy.py`](../benchmarking/benchmark/fault_taxonomy.py) |
 | Vendor RCA public eval (DD/DT) | [`VENDOR_BENCHMARKS.md`](./VENDOR_BENCHMARKS.md) |
 | L0 vs F1 cost report (pro6000) | [`cost_report.md`](../benchmarking/results/costing/cost-pro6000-20260721Tfinal/cost_report.md) |
@@ -347,7 +363,7 @@ Use this **after** you have the map — or when you already know the goal.
 | Learn Lean vs Federated | [`learning/RCA-learning-cheatsheet.md`](./learning/RCA-learning-cheatsheet.md) |
 | Run lean diagnose / API | [`../lean-pipeline/README.md`](../lean-pipeline/README.md) |
 | Run bakeoff / scoreboard | [`../benchmarking/README.md`](../benchmarking/README.md) → [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) |
-| Open PoC console | [`dashboard/README.md`](../benchmarking/dashboard/README.md) → `:8765` (`#guide` · `#incident` · `#samples` · `#conduct` · [`rca-workflow-sim`](../benchmarking/dashboard/rca-workflow-sim.html)) |
+| Open PoC console | [`dashboard/README.md`](../benchmarking/dashboard/README.md) → `:8765` (`#guide` · `#incident` · `#samples` · `#conduct` · [`rca-workflow-sim`](./rca-workflow-sim.html)) |
 | Evaluate any RCA method fairly | [`RCA_EVALUATION_CHECKLIST.md`](./RCA_EVALUATION_CHECKLIST.md) |
 | Resolve terminology drift | [`urca-glossary.html`](./urca-glossary.html) · [`GLOSSARY.md`](./GLOSSARY.md) |
 | Vendor landscape survey (PDF) | [`RCA_Vendor_Comparison.pdf`](./RCA_Vendor_Comparison.pdf) · [notes](./RCA_Vendor_Comparison_NOTES.md) |
@@ -360,7 +376,7 @@ Use this **after** you have the map — or when you already know the goal.
 |----------|------|
 | [`docs/`](./) | Canonical hub HTML / MD / CSS / JS |
 | [`../pillar-ab-implementation/`](../pillar-ab-implementation/README.md) | Pillar A+B contracts, discussion, PoCs |
-| [`../KR Plan/`](../KR%20Plan/) | Management PDFs / OKRs (binaries) |
+| [`../KR Plan/`](../KR Plan/) | Management PDFs / OKRs (binaries) |
 | [`../benchmarking/dashboard/`](../benchmarking/dashboard/) | HTTP host on `:8765` — **symlinks only**, never a content fork |
 
 Do **not** edit under `_archive/` or regenerate frozen export trees for day-to-day hub work.

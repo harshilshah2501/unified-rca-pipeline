@@ -312,7 +312,7 @@ Do not treat Corpus A phases as ObserveOps blockers.
 
 Original PRD Appendix C was structural only ("no matched figures yet"). **Superseded** by ObserveOps bakeoffs.
 
-Latest matched report: [`../benchmarking/results/comparison/COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md) · decision: [`DECISION.md`](../benchmarking/results/comparison/DECISION.md) · ADR: [`ADR-001`](./ADR-001-lean-primary-engine.md).
+Latest matched report: [`../benchmarking/results/comparison/COMPARISON.md`](../../benchmarking/results/comparison/COMPARISON.md) · decision: [`DECISION.md`](../../benchmarking/results/comparison/DECISION.md) · ADR: [`ADR-001`](./ADR-001-lean-primary-engine.md).
 
 | Dimension | Federated (Panorama + Murphy + Nezha) | Lean (BFS/best-first + temporal + CARE + ObserveOps rules) |
 |-----------|----------------------------------------|----------------------------------------------------------|

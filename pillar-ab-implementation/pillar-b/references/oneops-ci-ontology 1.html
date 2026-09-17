@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The OneOps CI Ontology · v0.1 · Motadata</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Geist+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Motadata coral, pulled from brand SVG */
+  --coral:        #f17463;
+  --coral-deep:   #c95644;
+  --coral-soft:   #fdf0ed;
+
+  /* Ink scale */
+  --ink:          #1a1a1f;
+  --ink-2:        #3a3a42;
+  --ink-3:        #56575e;
+  --ink-4:        #7a7b82;
+  --ink-5:        #a1a2a9;
+  --ink-6:        #d1d2d7;
+
+  /* Surfaces */
+  --line:         #ececef;
+  --line-soft:    #f4f4f6;
+  --paper:        #ffffff;
+  --paper-2:      #fafbfc;
+  --paper-3:      #f5f6f8;
+
+  /* Card system — one set of values for every card in the document */
+  --card-bg:      #ffffff;
+  --card-border:  1px solid var(--line);
+  --card-radius:  12px;
+  --card-pad-x:   1.9rem;
+  --card-pad-y:   1.8rem;
+
+  /* Layout */
+  --w:            720px;
+  --w-wide:       960px;
+  --gutter:       2rem;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink-2);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 400;
+  line-height: 1.75;
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern', 'ss01';
+  overflow-x: hidden;
+}
+::selection { background: var(--coral-soft); color: var(--coral-deep); }
+
+/* ===== NAV ===== */
+nav.topnav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--line);
+  height: 60px;
+}
+nav .nav-inner {
+  max-width: calc(var(--w-wide) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.nav-logo svg {
+  height: 20px;
+  width: auto;
+  display: block;
+}
+.nav-logo svg path:not([fill]) { fill: var(--ink); }
+.nav-links {
+  display: flex;
+  list-style: none;
+  flex: 1;
+  justify-content: flex-end;
+  gap: 0.2rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  display: block;
+  padding: 0.45rem 0.9rem;
+  color: var(--ink-3);
+  text-decoration: none;
+  font-size: 0.83rem;
+  font-weight: 400;
+  white-space: nowrap;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+.nav-links a:hover {
+  color: var(--ink);
+  background: var(--line-soft);
+}
+.nav-version {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ink-5);
+  letter-spacing: 0.06em;
+  padding-left: 1.2rem;
+  border-left: 1px solid var(--line);
+}
+
+/* ===== CONTAINERS ===== */
+.wrap {
+  max-width: calc(var(--w) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+.wrap-wide {
+  max-width: calc(var(--w-wide) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* ===== TYPOGRAPHY BASE ===== */
+h1, h2, h3, h4 {
+  font-family: 'Fraunces', Georgia, serif;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+p {
+  margin-bottom: 1.4rem;
+  font-size: 1rem;
+  line-height: 1.78;
+  color: var(--ink-2);
+}
+p:last-child { margin-bottom: 0; }
+em { font-style: italic; color: var(--ink); }
+strong { font-weight: 600; color: var(--ink); }
+code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.86em;
+  color: var(--coral-deep);
+  background: var(--coral-soft);
+  padding: 0.08em 0.4em;
+  border-radius: 4px;
+  font-weight: 500;
+}
+/* inline task citation — quiet, mono, never competes with the prose */
+.src {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.74em;
+  color: var(--ink-4);
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+
+/* ===== HERO ===== */
+.hero {
+  padding: 10rem 0 5rem;
+}
+.hero .eyebrow {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--coral);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-bottom: 2rem;
+}
+.hero h1 {
+  font-size: clamp(2.8rem, 5.5vw, 4.2rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 500;
+  margin-bottom: 2rem;
+}
+.hero h1 em {
+  color: var(--coral);
+  font-style: italic;
+  font-weight: 400;
+}
+.hero .subtitle {
+  font-size: 1.2rem;
+  color: var(--ink-3);
+  line-height: 1.55;
+  font-weight: 400;
+  max-width: 620px;
+  margin-bottom: 4rem;
+}
+.hero-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 2.5rem;
+  padding-top: 3rem;
+  border-top: 1px solid var(--line);
+}
+.hero-meta .item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.hero-meta .label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem;
+  color: var(--ink-5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.hero-meta .val {
+  font-size: 0.92rem;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* ===== ACT BREAKS ===== */
+.act-break {
+  background: var(--paper-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 7rem 0;
+  margin: 5rem 0 0;
+  text-align: center;
+}
+.act-break .act-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+.act-break h2 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  max-width: 680px;
+  margin: 0 auto 1.5rem;
+  font-weight: 500;
+}
+.act-break .lede {
+  font-size: 1.1rem;
+  color: var(--ink-3);
+  line-height: 1.65;
+  max-width: 620px;
+  margin: 0 auto;
+  font-weight: 400;
+}
+
+/* ===== SECTION ===== */
+section {
+  padding: 5rem 0;
+}
+.sec-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin-bottom: 1.3rem;
+  font-weight: 500;
+}
+h2.sec-title {
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.022em;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+h2.sec-title em { color: var(--coral); font-style: italic; }
+h3.sub {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  margin-top: 3.5rem;
+  margin-bottom: 1.2rem;
+}
+h4.subsub {
+  font-size: 1.08rem;
+  font-weight: 600;
+  letter-spacing: -0.008em;
+  margin-top: 2.2rem;
+  margin-bottom: 0.8rem;
+  color: var(--ink);
+}
+.intro {
+  font-size: 1.12rem;
+  color: var(--ink-2);
+  line-height: 1.7;
+  margin-bottom: 1.8rem;
+}
+
+/* ============================================================ */
+/* ============== UNIFIED CARD SYSTEM ========================= */
+/* ============================================================ */
+.card {
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  padding: var(--card-pad-y) var(--card-pad-x);
+  margin: 1.5rem 0;
+}
+.card + .card { margin-top: 1rem; }
+.card-stack { margin: 2rem 0; }
+.card-stack .card { margin-bottom: 0.9rem; }
+.card-stack .card:last-child { margin-bottom: 0; }
+
+.card.numbered {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 1.4rem;
+  align-items: start;
+}
+.card .c-num {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: var(--coral);
+  font-style: italic;
+  line-height: 1;
+  padding-top: 0.1rem;
+}
+.card .c-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.18rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 0.45rem;
+}
+.card .c-desc {
+  font-size: 0.97rem;
+  color: var(--ink-3);
+  line-height: 1.7;
+  margin: 0;
+}
+.card .c-desc code { font-size: 0.85em; }
+.card .c-desc + .c-desc { margin-top: 0.7rem; }
+.card .c-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--coral);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+/* feature card — used for the white-space differentiators and platform blocks */
+.feature-card {
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  margin: 2rem 0;
+}
+.feature-card .fc-head {
+  padding: 1.5rem var(--card-pad-x);
+  border-bottom: 1px solid var(--line);
+  background: var(--paper-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1.5rem;
+}
+.feature-card .fc-name {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.55rem;
+  font-weight: 500;
+  letter-spacing: -0.022em;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.feature-card .fc-motto {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-size: 0.97rem;
+  color: var(--ink-4);
+  font-weight: 400;
+  margin-top: 0.35rem;
+}
+.feature-card .fc-stat {
+  text-align: right;
+  flex-shrink: 0;
+}
+.feature-card .fc-big {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  line-height: 1;
+}
+.feature-card .fc-lab {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--ink-4);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 0.45rem;
+  font-weight: 500;
+}
+.feature-card .fc-body {
+  padding: var(--card-pad-y) var(--card-pad-x);
+}
+.feature-card .fc-body p {
+  font-size: 0.98rem;
+  color: var(--ink-2);
+  line-height: 1.72;
+}
+.feature-card .fc-subhead {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--coral);
+  font-weight: 500;
+  margin-top: 2rem;
+  margin-bottom: 0.7rem;
+  display: block;
+}
+.feature-card .fc-subhead:first-child { margin-top: 0; }
+
+/* "the honest cost" inset — grey left border signals a debit, not a boast */
+.cost {
+  margin: 1.3rem 0 0;
+  padding: 1rem 1.2rem;
+  background: var(--paper-3);
+  border-left: 3px solid var(--ink-5);
+  border-radius: 8px;
+}
+.cost .cost-lab {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-4); font-weight: 600; display: block; margin-bottom: 0.35rem;
+}
+.cost p { margin: 0; font-size: 0.93rem; color: var(--ink-2); line-height: 1.65; }
+
+/* "what the customer sees" — the demo payoff line */
+.sees {
+  margin-top: 1rem;
+  padding: 0.9rem 1.1rem;
+  background: var(--coral-soft);
+  border-radius: 8px;
+}
+.sees .sees-lab {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--coral); font-weight: 500; display: block; margin-bottom: 0.3rem;
+}
+.sees p { margin: 0; font-size: 0.94rem; color: var(--ink-2); line-height: 1.6; }
+
+/* ===== ASIDE — small inline callouts ===== */
+.aside {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--coral);
+  border-radius: var(--card-radius);
+  padding: 1.4rem 1.6rem;
+  margin: 2rem 0;
+}
+.aside.tech { border-left-color: var(--ink-4); }
+.aside .aside-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--coral);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+.aside.tech .aside-label { color: var(--ink-3); }
+.aside p { margin: 0; font-size: 0.97rem; color: var(--ink-2); line-height: 1.7; }
+.aside p + p { margin-top: 0.8rem; }
+
+/* ===== PULL QUOTE ===== */
+.pullquote {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  padding: 2.2rem 2rem;
+  margin: 3rem 0;
+  text-align: left;
+}
+.pullquote .pq-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--coral);
+  font-weight: 500;
+  margin-bottom: 0.9rem;
+}
+.pullquote .pq-text {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.25rem, 2.4vw, 1.55rem);
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  font-weight: 400;
+}
+.pullquote .pq-text em { color: var(--coral); font-style: italic; }
+
+/* ===== EDGE LIST ===== */
+.edges {
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  margin: 2rem 0;
+}
+.edges .edges-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--coral);
+  font-weight: 500;
+  padding: 1.1rem 1.5rem;
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--line);
+}
+.edges .edge {
+  display: grid;
+  grid-template-columns: 188px 1fr;
+  gap: 1.5rem;
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid var(--line-soft);
+  align-items: baseline;
+}
+.edges .edge:last-child { border-bottom: none; }
+.edges .edge-name {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.edges .edge-name .dir {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--ink-4);
+  font-weight: 400;
+  margin-top: 0.25rem;
+  letter-spacing: 0.02em;
+}
+.edges .edge.computed { background: var(--coral-soft); }
+.edges .edge.computed .edge-name { color: var(--coral-deep); font-weight: 600; }
+.edges .edge-desc { font-size: 0.94rem; color: var(--ink-2); line-height: 1.65; }
+.edges .edge-desc code { font-size: 0.85em; }
+
+/* ===== TABLES ===== */
+.table-wrap {
+  margin: 2rem 0;
+  overflow-x: auto;
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+}
+table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+table th, table td {
+  text-align: left;
+  padding: 0.9rem 1.15rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  color: var(--ink-2);
+}
+table thead th {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom: 1px solid var(--ink-6);
+  background: var(--paper-2);
+}
+table thead th.col-oneops { color: var(--coral); }
+table tbody td:first-child {
+  font-weight: 500;
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+table tbody td.cell-oneops {
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--coral-soft);
+}
+table tbody tr:last-child td { border-bottom: none; }
+table td code { font-size: 0.84em; }
+.tbl-mono td:first-child { font-family: 'Geist Mono', monospace; font-size: 0.84rem; }
+.tbl-caption {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.06em; color: var(--ink-4);
+  margin: 0.6rem 0 0; text-transform: uppercase;
+}
+
+/* monochrome verdict glyphs */
+.gl { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--ink-2); }
+.gl::before {
+  content: ""; width: 10px; height: 10px; border-radius: 50%;
+  display: inline-block; flex-shrink: 0; border: 1.5px solid var(--ink-4);
+}
+.gl.full::before { background: var(--ink); border-color: var(--ink); }
+.gl.half::before { background: linear-gradient(to right, var(--ink) 50%, transparent 50%); border-color: var(--ink); }
+.gl.none::before { background: transparent; border-color: var(--ink-5); }
+
+/* verdict pills for migration / status */
+.pill {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase;
+  font-weight: 500; padding: 0.16rem 0.5rem; border-radius: 5px; white-space: nowrap;
+}
+.pill.v01 { color: var(--coral-deep); background: var(--coral-soft); }
+.pill.v02 { color: var(--ink-2); background: var(--paper-3); }
+.pill.v03 { color: var(--ink-3); background: var(--line-soft); }
+.pill.rej { color: var(--ink-5); background: var(--paper-3); }
+
+/* ===== TABLE OF CONTENTS / READING MAP ===== */
+.toc {
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  margin: 2.5rem 0 1rem;
+}
+.toc-head {
+  padding: 1.15rem var(--card-pad-x);
+  border-bottom: 1px solid var(--line);
+  background: var(--paper-2);
+  display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;
+}
+.toc-head .toc-title {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--coral); font-weight: 500;
+}
+.toc-head .toc-time { font-family: 'Geist Mono', monospace; font-size: 0.7rem; color: var(--ink-5); letter-spacing: 0.03em; }
+.toc-row {
+  display: grid; grid-template-columns: 2.1rem 1fr auto; gap: 1rem;
+  padding: 0.9rem var(--card-pad-x);
+  border-bottom: 1px solid var(--line-soft);
+  align-items: center; text-decoration: none; transition: background 0.15s;
+}
+.toc-row:last-child { border-bottom: none; }
+.toc-row:hover { background: var(--line-soft); }
+.toc-row .toc-num { font-family: 'Fraunces', serif; font-style: italic; font-size: 1.05rem; color: var(--coral); }
+.toc-row .toc-label { font-size: 0.97rem; color: var(--ink); font-weight: 500; }
+.toc-row .toc-desc { display: block; font-size: 0.82rem; color: var(--ink-4); font-weight: 400; margin-top: 0.05rem; line-height: 1.4; }
+.toc-aud { display: flex; gap: 0.3rem; align-items: center; flex-shrink: 0; }
+
+/* audience badges — coral / ink / coral-outlined, never off-brand */
+.aud {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500;
+  padding: 0.2rem 0.45rem; border-radius: 5px; white-space: nowrap; line-height: 1;
+}
+.aud.cxo { color: var(--coral-deep); background: var(--coral-soft); }
+.aud.eng { color: var(--ink-3); background: var(--paper-3); }
+.aud.all { color: var(--coral-deep); background: #fff; border: 1px solid var(--coral); }
+.aud-key { display: flex; gap: 1.4rem; flex-wrap: wrap; margin: 1.4rem 0 0; font-size: 0.85rem; color: var(--ink-3); }
+.aud-key .k { display: inline-flex; align-items: center; gap: 0.5rem; }
+
+/* ===== HEAT-MAP MATRIX ===== */
+.matrix-wrap { margin: 2rem 0 0.5rem; overflow-x: auto; }
+table.matrix { width: 100%; border-collapse: separate; border-spacing: 4px; font-size: 0.78rem; min-width: 640px; }
+table.matrix th {
+  font-family: 'Geist Mono', monospace; font-size: 0.6rem; letter-spacing: 0.03em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 600; padding: 0.5rem 0.35rem; text-align: center; vertical-align: bottom;
+}
+table.matrix th.corner { text-align: left; color: var(--ink-4); font-size: 0.55rem; }
+table.matrix td {
+  padding: 0.55rem 0.4rem; border-radius: 6px; text-align: center; vertical-align: middle;
+  font-family: 'Geist Mono', monospace; font-size: 0.64rem; line-height: 1.5; color: var(--ink-3); background: var(--paper-3);
+}
+table.matrix td.rowlabel {
+  text-align: left; font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500;
+  color: var(--ink); background: transparent; white-space: nowrap; padding-left: 0;
+}
+table.matrix td.d0 { background: var(--paper-2); color: var(--ink-6); }
+table.matrix td.d1 { background: #fdf0ed; color: var(--coral-deep); }
+table.matrix td.d2 { background: #fbddd5; color: var(--coral-deep); font-weight: 500; }
+table.matrix td.d3 { background: #f4c0b3; color: #8a2f1f; font-weight: 600; }
+.matrix-legend { display: flex; flex-wrap: wrap; gap: 1.3rem; margin: 1rem 0 0; font-family: 'Geist Mono', monospace; font-size: 0.62rem; color: var(--ink-4); letter-spacing: 0.03em; }
+.matrix-legend .lg { display: inline-flex; align-items: center; gap: 0.45rem; }
+.matrix-legend .sw { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1px solid var(--line); }
+
+/* ===== FOOTER ===== */
+footer {
+  border-top: 1px solid var(--line);
+  padding: 5rem 0 4rem;
+  margin-top: 6rem;
+  text-align: center;
+  background: var(--paper-2);
+}
+footer .foot-icon { display: flex; justify-content: center; margin-bottom: 2rem; }
+footer .foot-icon svg { width: 32px; height: 32px; }
+footer .foot-icon svg path:not([fill]) { fill: var(--ink); }
+footer .foot-brand {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500;
+  color: var(--ink-3); margin-bottom: 1.5rem;
+}
+footer .foot-note { font-size: 0.88rem; color: var(--ink-4); max-width: 560px; margin: 0 auto; line-height: 1.65; }
+footer .foot-meta {
+  font-family: 'Geist Mono', monospace; font-size: 0.65rem; color: var(--ink-5);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-top: 1.5rem;
+}
+
+/* ===== FADE-IN ===== */
+.fade-in { opacity: 0; transform: translateY(12px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.fade-in.visible { opacity: 1; transform: none; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 760px) {
+  :root { --gutter: 1.4rem; --card-pad-x: 1.4rem; --card-pad-y: 1.4rem; }
+  body { font-size: 16px; }
+  .hero { padding: 7rem 0 4rem; }
+  .act-break { padding: 5rem 0; }
+  section { padding: 4rem 0; }
+  .card.numbered { grid-template-columns: 1fr; gap: 0.5rem; }
+  .feature-card .fc-head { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+  .feature-card .fc-stat { text-align: left; }
+  .edges .edge { grid-template-columns: 1fr; gap: 0.4rem; }
+  .toc-row { grid-template-columns: 1.6rem 1fr; }
+  .toc-row .toc-aud { grid-column: 2; justify-content: flex-start; margin-top: 0.4rem; }
+  table { font-size: 0.85rem; }
+  table th, table td { padding: 0.65rem 0.8rem; }
+  nav .nav-inner { padding: 0 1rem; gap: 1rem; }
+  .nav-version { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav class="topnav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 82.04" aria-label="Motadata">
+        <g>
+          <path d="M91.04,47.42v33.35h-12.92v-32.31c0-9.11-4.15-14.19-11.88-14.19-8.54,0-14.19,6-14.19,14.88v31.62h-12.92v-32.31c0-9.11-4.27-14.19-12-14.19-8.42,0-14.19,6-14.19,14.88v31.62H0V23.77h11.54l.12,6.69c4.15-5.31,9.69-7.85,16.85-7.85,8.08,0,14.88,3.81,18.46,10.04,4.5-6.69,11.42-10.04,20.31-10.04,14.65,0,23.77,9.35,23.77,24.81Z"/>
+          <path d="M170.33,23.77v-14.88l12.81-1.38v16.27h16.38v10.96h-16.38v26.42c0,5.77,2.65,9,7.96,9,2.31,0,4.96-.69,7.15-1.73l3.58,10.38c-4.38,1.96-8.08,2.77-12.81,2.77-11.77,0-18.69-6.81-18.69-20.42v-26.42"/>
+          <path d="M265.84,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM252.92,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M335.97,0v80.77h-11.54l-.12-7.61c-4.38,5.54-12,8.88-21,8.88-16.15,0-28.04-11.77-28.04-29.77s11.88-29.77,28.04-29.77c8.19,0,15.23,2.77,19.73,7.38V0h12.92ZM323.05,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M406.1,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM393.18,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M416.49,23.77v-14.88l12.81-1.38v16.27h16.38v10.96h-16.38v26.42c0,5.77,2.65,9,7.96,9,2.31,0,4.96-.69,7.15-1.73l3.58,10.38c-4.38,1.96-8.08,2.77-12.81,2.77-11.77,0-18.69-6.81-18.69-20.42v-26.42"/>
+          <path d="M512,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM499.08,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M135.26,47.31v-24.39c12.47,2.09,22.31,11.93,24.39,24.39h-24.39Z" fill="#f17463"/>
+          <path d="M160.06,52.92c-.33,16.14-13.54,29.13-29.76,29.13s-29.77-13.33-29.77-29.77c0-1.69.14-3.36.41-4.96,2.32-13.87,14.26-24.49,28.72-24.8v12.32c-7.59.28-13.95,5.45-16.01,12.47-.46,1.56-.72,3.23-.72,4.96,0,9.63,7.78,17.44,17.37,17.44,1.72,0,3.38-.24,4.96-.72,6.97-2.08,12.12-8.46,12.39-16.08h12.41Z"/>
+        </g>
+      </svg>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#start">Start</a></li>
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#claims">Claims</a></li>
+      <li><a href="#whitespace">White space</a></li>
+      <li><a href="#design">Design</a></li>
+      <li><a href="#principles">Principles</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#product">Product</a></li>
+      <li><a href="#against">Case against</a></li>
+      <li><a href="#appendix">Appendix</a></li>
+    </ul>
+    <div class="nav-version">v0.1</div>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero fade-in visible">
+  <div class="wrap">
+    <div class="eyebrow">OneOps · Service-Centric Knowledge Graph · Pillar 2</div>
+    <h1>The OneOps <em>CI Ontology.</em></h1>
+    <p class="subtitle">The frozen v0.1 model of what an enterprise runs — thirty-seven classes, eleven edges, and a write-time contract — built so that AI, engineers, and executives can finally trust the same map.</p>
+    <div class="hero-meta">
+      <div class="item"><span class="label">Document</span><span class="val">CI Ontology · Source of Truth</span></div>
+      <div class="item"><span class="label">Audience</span><span class="val">CXO · Product · Engineering</span></div>
+      <div class="item"><span class="label">Companion to</span><span class="val">The SKG Relationship Layer</span></div>
+      <div class="item"><span class="label">Version</span><span class="val">v0.1 · Frozen · 2026-06-16</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- §1 — WHAT THIS DOCUMENT IS ======================================== -->
+<!-- =================================================================== -->
+<section id="start">
+  <div class="wrap">
+    <div class="sec-label">§ 01 · Start here</div>
+    <h2 class="sec-title">What this document is, and how to read it.</h2>
+
+    <p class="intro">The OneOps CI Ontology is the model of <em>what an enterprise runs</em> — the catalogue of things the platform can represent (a pod, a database, an availability zone, a business capability) and the rules for how they connect. It is the second of the two pillars of the OneOps Service-Centric Knowledge Graph; the first, the relationship layer, is documented separately. This ontology was designed over a twelve-task program that began at "what, precisely, is a configuration item" and ended at a frozen v0.1 contract that engineering can build against: thirty-seven concrete classes and six abstract parents, eleven stored relationship types, a write-time allowlist that rejects malformed relationships at the API boundary, an architecture specified to fourteen components, and a product specified to fifteen capabilities. This document is the single reference that survives the program — the version the twelve working files were written to produce.</p>
+
+    <p>It is built to be read by three audiences at three depths. An executive can read the strategic sections and leave with the full argument — the problem OneOps attacks, the four claims it can demonstrate in a customer call, and the honest case a competitor would make against it. An engineer can read the design and architecture sections and find the precision needed to build. And the section on the four white-space differentiators sits in the middle deliberately: strategic enough for a CXO, specific enough for an architect. The reading map below signals which sections each audience reads.</p>
+
+    <div class="toc">
+      <div class="toc-head">
+        <span class="toc-title">The reading map</span>
+        <span class="toc-time">Full read ≈ 55 min · Executive path ≈ 20 min</span>
+      </div>
+      <a class="toc-row" href="#problem">
+        <span class="toc-num">2</span>
+        <span><span class="toc-label">The problem and the bet</span><span class="toc-desc">Why the CMDB market is a multi-billion-dollar failure, why now, and what OneOps gives up to be credible.</span></span>
+        <span class="toc-aud"><span class="aud cxo">CXO</span></span>
+      </a>
+      <a class="toc-row" href="#claims">
+        <span class="toc-num">3</span>
+        <span><span class="toc-label">The four demonstrable claims</span><span class="toc-desc">The four demos that prove the architecture in a customer call, and the legibility floor they stand on.</span></span>
+        <span class="toc-aud"><span class="aud cxo">CXO</span></span>
+      </a>
+      <a class="toc-row" href="#whitespace">
+        <span class="toc-num">4</span>
+        <span><span class="toc-label">The white-space differentiators</span><span class="toc-desc">The four things no incumbent does — each with its honest cost. The intellectual heart of the document.</span></span>
+        <span class="toc-aud"><span class="aud all">All</span></span>
+      </a>
+      <a class="toc-row" href="#design">
+        <span class="toc-num">5</span>
+        <span><span class="toc-label">The design — classes, edges, the v0.1 contract</span><span class="toc-desc">Five domains, 37+6 classes, 11 stored + 4 computed edges, the triplet allowlist as a matrix.</span></span>
+        <span class="toc-aud"><span class="aud eng">Eng</span></span>
+      </a>
+      <a class="toc-row" href="#principles">
+        <span class="toc-num">6</span>
+        <span><span class="toc-label">The seven house design principles</span><span class="toc-desc">The locked commitments — what each one binds OneOps to, and what it rules out.</span></span>
+        <span class="toc-aud"><span class="aud eng">Eng</span><span class="aud all">All</span></span>
+      </a>
+      <a class="toc-row" href="#architecture">
+        <span class="toc-num">7</span>
+        <span><span class="toc-label">The architecture</span><span class="toc-desc">Fourteen components, the graph-DB known unknown, the two mechanisms, the seven named risks.</span></span>
+        <span class="toc-aud"><span class="aud eng">Eng</span></span>
+      </a>
+      <a class="toc-row" href="#product">
+        <span class="toc-num">8</span>
+        <span><span class="toc-label">The v1.0 product — capabilities and launch criteria</span><span class="toc-desc">Fifteen capabilities, six launch gates with thresholds, five customer-churn risks.</span></span>
+        <span class="toc-aud"><span class="aud eng">Eng</span></span>
+      </a>
+      <a class="toc-row" href="#against">
+        <span class="toc-num">9</span>
+        <span><span class="toc-label">The honest case against</span><span class="toc-desc">The four counterarguments a competitor would make, where OneOps lands weakest, and the twelve-month proof points.</span></span>
+        <span class="toc-aud"><span class="aud cxo">CXO</span><span class="aud all">All</span></span>
+      </a>
+      <a class="toc-row" href="#appendix">
+        <span class="toc-num">A</span>
+        <span><span class="toc-label">Appendices</span><span class="toc-desc">The full version register, the cross-platform matrix, the migration verdicts, the principle cross-reference, the task index.</span></span>
+        <span class="toc-aud"><span class="aud all">Ref</span></span>
+      </a>
+    </div>
+
+    <div class="aud-key">
+      <span class="k"><span class="aud cxo">CXO</span> Executive path: §2&ndash;4, §9</span>
+      <span class="k"><span class="aud eng">Eng</span> Build path: §5&ndash;8</span>
+      <span class="k"><span class="aud all">All</span> Everyone benefits from §4</span>
+    </div>
+
+    <div class="aside">
+      <div class="aside-label">For the non-technical reader</div>
+      <p>A configuration item, or CI, is a single thing an IT team runs — a server, an application, a database. A CI ontology is the agreed list of <em>kinds</em> of things, plus the rules for how they relate. Most enterprises run one inside a system called a CMDB, and most of those models have grown sprawling and untrustworthy. This document describes a deliberately small, deliberately opinionated replacement — small enough that a human can hold it in their head, and structured enough that an AI can reason over it.</p>
+    </div>
+
+    <p>What follows is a narrative, not a task-by-task digest. The twelve working files are the record of how the decisions were made; this document is the decisions themselves, organized around what a reader needs to know rather than the order in which the work happened. Where a claim rests on a specific piece of working-record reasoning, the relevant task is cited inline <span class="src">(like this · Task 04)</span> so the reader who wants the full argument knows which file to open. The version is v0.1, and it is frozen: the analysis phase is over, and the next thing this program produces should be a running system.</p>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- ACT BREAK → THE PROBLEM ========================================== -->
+<!-- =================================================================== -->
+<div class="act-break">
+  <div class="wrap">
+    <div class="act-label">The strategic case</div>
+    <h2>The most expensive system of record in the enterprise is wrong in most enterprises.</h2>
+    <p class="lede">And the people who depend on it have quietly stopped believing it. This is the failure OneOps is built to fix — not with better discipline, but with a different architecture.</p>
+  </div>
+</div>
+
+<!-- =================================================================== -->
+<!-- §2 — THE PROBLEM AND THE BET ===================================== -->
+<!-- =================================================================== -->
+<section id="problem">
+  <div class="wrap">
+    <div class="sec-label">§ 02 · The problem and the bet</div>
+    <h2 class="sec-title">A four-to-five-billion-dollar market for a product that mostly does not work.</h2>
+
+    <p class="intro">The CMDB is the system of record an enterprise's entire service-management apparatus is supposed to rest on — the authoritative map of what infrastructure exists, what depends on what, and what breaks when something fails. ServiceNow, BMC, and OpenText UCMDB sell that system of record to most of the Fortune 500, in a market worth four to five billion dollars a year. The uncomfortable fact the industry has learned to talk around is that the product mostly does not work.</p>
+
+    <p>The defensible version of the statistic, stated carefully because the program took care to get it right, is Gartner's 2019 finding that only about a quarter of CMDB initiatives achieve meaningful value <span class="src">(Standards_Heritage)</span>. The more famous claim — that eighty percent of CMDBs fail — circulates without an accessible primary source, and OneOps does not rely on it. The conservative number is damning enough. Stated the other way: in roughly three of four enterprises, the service map the CIO believes is driving incident response, change management, and capacity planning is materially wrong, and no one can easily tell which three-quarters they are in.</p>
+
+    <p>This is not a data-entry problem that better discipline would fix. It is two structural failures, and the research traces both precisely. The first is a <strong>velocity mismatch</strong>. Classic CMDBs were built on a weekly or nightly reconciliation cadence, which was adequate when a server lived for three years and is absurd when a Kubernetes pod lives for ninety seconds. A system of record that reconciles weekly against an estate that changes by the second is wrong the moment it is written. The second is the <strong>absence of provenance</strong>. Incumbent CMDBs present every fact as flat truth — with no record of which source asserted it, at what confidence, or how stale it is. So when the map is wrong, no one can distinguish a bad probe from a stale manual entry from a reconciliation error, and the only rational response is to stop trusting the map entirely. Engineering teams across the enterprise market have already made that choice. The CMDB is funded as a system of record and used as a historical curiosity.</p>
+
+    <p>The executive framing is therefore not "CMDBs have data-quality issues." It is sharper and more useful than that: the most expensive system of record in the IT estate is wrong in most enterprises, the people who depend on it have quietly stopped believing it, and the incumbents cannot fix it without rebuilding the architectural foundations that made them incumbents in the first place.</p>
+
+    <h3 class="sub">Why now</h3>
+
+    <p>Three changes — not market moods, but changes in what is architecturally possible or necessary — make this the moment a different design can win <span class="src">(Task 12 · Part One B)</span>.</p>
+
+    <p>The first is that <strong>the velocity mismatch has become irreparable rather than merely uncomfortable</strong>. As long as estates were mostly long-lived virtual machines, the weekly-sync model degraded gracefully: the map was stale but not nonsense. Cloud-native architecture broke that gracefully-degrading property. An estate whose unit of compute is an ephemeral pod managed by a declarative controller cannot be modeled by a system that assumes durable hosts and periodic reconciliation — and the incumbents' own responses are the evidence. BMC declines to synchronize pods at all; UCMDB bolts Kubernetes objects onto a nine-level host tree designed for physical servers. They are not failing to adopt cloud-native modeling out of negligence. Their architectures cannot absorb it, and that is a durable opening.</p>
+
+    <p>The second is that <strong>graph-native storage has matured past the point where it was a research bet</strong>. ServiceNow's table-per-class relational architecture — hundreds of tables, a JOIN cliff at scale — is precisely what makes its CMDB both expensive to operate and structurally resistant to the small, fast schema changes cloud-native modeling demands. A decade ago, replacing it with a graph database meant betting on immature technology. Today, property-graph databases with the traversal performance and operational tooling to serve a production CMDB exist, and the architectural penalty that once justified the relational design is gone. The substrate that sinks ServiceNow at scale is now optional.</p>
+
+    <p>The third is that <strong>AI grounding requires a structured knowledge graph, which turns an aspiration into a competitive necessity</strong>. The market is saturated with "AI-native" claims, most of them indistinguishable from marketing. But the substantive version of the claim is architectural: an AI agent reasoning about an enterprise's services — its blast radius, its dependencies, its ownership — needs a structured, relationship-rich, provenance-bearing graph to reason <em>over</em>, not a relational schema it must flatten and guess at. Enterprises that want AI to help operate their estate are discovering that the prerequisite is a knowledge graph they do not have. That makes a service-centric knowledge graph not a feature but the foundation AI-native ITSM has to stand on — and the incumbents' relational foundations are the wrong shape for it.</p>
+
+    <h3 class="sub">The thesis</h3>
+
+    <p>The architectural thesis is captured in one line from the competitive research: <em>flat and legible like an internal developer platform on top, deep and reconciled like a CMDB underneath</em> <span class="src">(Competitive_Reference_Analysis)</span>. The internal developer platforms — Backstage, Cortex — got legibility right and depth wrong; they are easy to read and shallow on reconciliation and dependency. The CMDBs got depth right and legibility wrong; UCMDB in particular has the reconciliation engine and the compute-truths-at-read-time pattern OneOps deliberately inherits, and it still failed in market because its query language was too hard for ordinary users to read the graph it so carefully built. OneOps's bet is that neither half is optional.</p>
+
+    <p>Underneath the line sit the architectural commitments the design program made concrete: store facts and compute truths, so that blast radius and critical path are derived at read time and never stored as fact; carry evidence on every artifact, so that every CI and edge knows its source, confidence, and freshness; name relationships in the direction English reads, and keep the vocabulary deliberately small — eleven edges and thirty-seven classes against ServiceNow's fifty-three relationship types and four-hundred-plus tables; and enforce correctness at write time, so the triplet allowlist rejects malformed relationships at the API boundary rather than letting the graph rot. These are not features to be marketed. They are the structural answers to the two failures above.</p>
+
+    <p>The strategic thesis is a claim about an underserved market. ServiceNow is too expensive and too complex for the mid-market; its breadth becomes a liability when a fifty-person engineering organization has to operate it. BMC and UCMDB are too foreign to contemporary engineering teams; their heritage and their schema-as-code-on-a-CRM-platform workflows belong to a different era of IT. The observability vendors and the developer platforms are too shallow on the CMDB side; they see traffic and ownership but not reconciled, evidence-bearing dependency. There is a gap in the middle — the mid-market enterprise that has outgrown spreadsheets and developer portals but cannot justify ServiceNow, that has adopted Kubernetes and needs a system of record that can model it, and that wants AI grounding without buying a phantom. The incumbents are too heavy for that gap; the disruptors are too light. OneOps is built for it.</p>
+
+    <div class="pullquote">
+      <div class="pq-label">The thesis in one line</div>
+      <div class="pq-text">ServiceNow built a CMDB to <em>document</em>. BMC built one to <em>prove</em>. UCMDB built one to <em>query</em>. OneOps is building one for the world the others were not built for — where a trustworthy small graph beats an untrustworthy large one, and where AI has to reason over the map in real time.</div>
+    </div>
+
+    <h3 class="sub">What OneOps gives up</h3>
+
+    <p>The CMDBs that win take strong positions, and a strong position excludes customers. Stating the exclusions is what makes the rest of this argument credible to a reader who has heard every vendor claim to be for everyone. OneOps v1.0 gives up four things, each named precisely in the working record. It gives up <strong>deep audit and federated identity</strong>: the security module and the federated-identity integration a regulated enterprise requires are not in v1.0 <span class="src">(Task 11 · CR4)</span>. It gives up <strong>probe breadth comparable to ServiceNow</strong>: v1.0 ships a selective set of discovery probes that meet the evidence-confidence floor, not the dozens ServiceNow ships <span class="src">(Task 11 · CR2)</span>. It gives up <strong>cross-class lineage</strong>: a workload re-architected from pods to serverless cannot be traced as a single lineage in v0.1 <span class="src">(Task 08 · D4)</span>. And it gives up <strong>first-class API and protection modeling</strong>: API provision is modeled with a disclosed semantic strain, and protection is a holding action, both deferred to v0.3 <span class="src">(Task 07 · G1/G2)</span>. A reader should take this list as confidence rather than apology. A vendor that cannot name what it gives up has not made the choices that produce a coherent product.</p>
+
+    <h3 class="sub">The bet</h3>
+
+    <p>Stated plainly: the mid-market enterprise — five hundred to five thousand employees, actively adopting Kubernetes, often either migrating off a decayed ServiceNow CMDB or starting greenfield — will pay more for legibility, evidence, and genuine AI grounding than it will pay for ServiceNow's breadth or BMC's compliance depth. The wager is that in this segment a trustworthy small graph beats an untrustworthy large one, and that the segment is large enough and underserved enough to build a company on. What would prove the bet right in twelve to eighteen months is customer acquisition concentrated in that segment, demo-to-close conversion driven by the four demonstrable claims rather than feature checklists, and low first-year churn because the graph stayed legible and the evidence model held trust. What would prove it wrong is named with equal precision in §9 — because a bet stated so that the board can ask "where do we stand against these signals" is worth more than one that can only be reported as going well.</p>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- §3 — THE FOUR DEMONSTRABLE CLAIMS ================================ -->
+<!-- =================================================================== -->
+<section id="claims">
+  <div class="wrap">
+    <div class="sec-label">§ 03 · The four demonstrable claims</div>
+    <h2 class="sec-title">Four things a customer can <em>watch</em>, not four things a deck asserts.</h2>
+
+    <p class="intro">OneOps's strategic claims are credible only because they can be shown in a customer call. Four demos carry every executive conversation for the next twelve months, and each is the visible surface of a white-space differentiator validated in cross-platform testing and built as a shipping product capability. They are the substance behind the positioning; the section that follows explains the design beneath them.</p>
+
+    <div class="card-stack">
+      <div class="card">
+        <div class="c-label">D1 · Namespace-inherited ownership · CAP8 / W1</div>
+        <div class="c-title">Reassign one namespace; watch three hundred pods' ownership follow.</div>
+        <p class="c-desc">Change the owner of a Kubernetes namespace, and every pod, config, and secret it contains reflects the new owner instantly — with zero per-pod writes. At Kubernetes churn rates, ServiceNow re-stamps an "owner" field tens of thousands of times for an owner that never changes, and goes stale between syncs anyway. OneOps puts the owner on the stable thing and lets the churning things inherit.</p>
+        <div class="sees"><span class="sees-lab">Who finds it decisive</span><p>Platform engineers and SREs running real Kubernetes estates — anyone who has watched a CMDB rot against pod churn.</p></div>
+      </div>
+      <div class="card">
+        <div class="c-label">D2 · Evidence distinct from claim · CAP10 / W2</div>
+        <div class="c-title">Observed traffic stays evidence until you promote it.</div>
+        <p class="c-desc">Show observed <code>communicatesWith</code> traffic, then promote a real dependency to <code>dependsOn</code> in one action — and the dependency map contains curated dependencies, not packet captures. ServiceNow's dependency maps are noisy because every observed connection becomes a "Depends on": health checks, telemetry scrapes, and real dependencies indistinguishable. OneOps keeps observation and claim separate, so the map is defensible in a root-cause analysis.</p>
+        <div class="sees"><span class="sees-lab">Who finds it decisive</span><p>Service owners who curate dependencies; SREs who learned to ignore the incumbent dependency map because it is noise.</p></div>
+      </div>
+      <div class="card">
+        <div class="c-label">D3 · Evidence on every artifact · CAP9 / W3</div>
+        <div class="c-title">Ask why the graph believes this; get a traceable answer.</div>
+        <p class="c-desc">Click any CI or edge and see its sources, confidence scores, and freshness. Ask why A depends on B and get a real answer — "a human declared it on date X," or "promoted from forty traffic observations on date Y." Incumbent CMDBs present facts as flat truth with no provenance; when the map is wrong, no one can tell why, so no one trusts it. OneOps makes every fact answer for itself.</p>
+        <div class="sees"><span class="sees-lab">Who finds it decisive</span><p>Compliance officers, who need audit lineage, and AI skeptics, who need to verify a suggestion's grounding — two audiences, one demo.</p></div>
+      </div>
+      <div class="card">
+        <div class="c-label">D4 · The de-overloaded blast radius · CAP6 / dependsOn</div>
+        <div class="c-title">Blast radius with no hosting or traffic noise.</div>
+        <p class="c-desc">From a failing CI, get a clean, deterministic impact list — directly-impacted and potentially-impacted — with protection and management edges correctly excluded. ServiceNow's blast radius inherits the overloaded "Depends on," so the list is polluted by hosting and traffic edges and responders distrust it. OneOps splits what ServiceNow conflates, which is what makes the impact list trustworthy under live-incident pressure.</p>
+        <div class="sees"><span class="sees-lab">Who finds it decisive</span><p>SREs and incident commanders under live-incident pressure, where a noisy blast radius is worse than none at all.</p></div>
+      </div>
+    </div>
+
+    <div class="aside tech">
+      <div class="aside-label">The floor beneath the four · CAP5 · graph legibility</div>
+      <p>The four demos all assume one thing: that the graph is legible — that a human can see and navigate it. This is not a fifth differentiator; it is the foundation the four stand on. UCMDB is the cautionary tale that makes the point unavoidable. It had the reconciliation engine and the compute-truths-at-read-time pattern OneOps is rebuilding, and it failed in market anyway because its query language made the graph unreadable to ordinary users. A better backend that no one can read is worth nothing.</p>
+      <p>If service mapping and dependency visualization ship and the graph is illegible, OneOps repeats UCMDB's exact failure with a better engine — which is why the product work named it the single make-or-break capability <span class="src">(Task 11 · Part Four §4)</span>. The four demos are the differentiation. Legibility is the price of admission.</p>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- §4 — THE WHITE-SPACE DIFFERENTIATORS ============================= -->
+<!-- =================================================================== -->
+<section id="whitespace">
+  <div class="wrap">
+    <div class="sec-label">§ 04 · The white-space differentiators · read by everyone</div>
+    <h2 class="sec-title">The four things no incumbent does — each with its honest cost.</h2>
+
+    <p class="intro">This is the intellectual heart of the document, and the section both audiences should read. Each of the four differentiators below is something no incumbent CMDB does; each is sharp enough for an engineer to build against and clear enough for an executive to sell. And each carries a real cost — because a white-space section that is all upside is brochure copy, not validation. The structure is the same for all four: what it is, why no incumbent does it, what it gives customers, what it costs, and the honest answer to the strongest objection a competitor would raise.</p>
+
+    <div class="feature-card">
+      <div class="fc-head">
+        <div>
+          <div class="fc-name">W1 · Namespace-inherited ownership</div>
+          <div class="fc-motto">Put the owner on the stable thing; let the churning things inherit.</div>
+        </div>
+        <div class="fc-stat"><div class="fc-big">2-hop</div><div class="fc-lab">Owner query, not a field read</div></div>
+      </div>
+      <div class="fc-body">
+        <span class="fc-subhead">What it is</span>
+        <p>Ownership of namespaced Kubernetes resources — pods, workload controllers, config maps, secrets, in-cluster data stores — resolves through the chain <code>contains &larr; Namespace</code> plus <code>Namespace ownedBy Party</code>. Everything else carries a direct <code>ownedBy</code> edge <span class="src">(Task 06 · §A.1)</span>.</p>
+
+        <span class="fc-subhead">Why no incumbent does it</span>
+        <p>ServiceNow carries "Owned by" as a flat attribute on every record — every pod, every object, re-stamped with an owner. UCMDB ties owner through a per-CI party relationship. BMC implies it through the hosting hierarchy. All three write ownership <em>per CI</em>, which means all three rewrite it on every churn.</p>
+
+        <span class="fc-subhead">What it gives customers</span>
+        <p>One ownership change governs hundreds of contained CIs. Reassign a namespace to a new team and every pod, config, and secret it contains follows, with zero per-object writes. At Kubernetes churn rates — pods living minutes — this is the difference between an ownership model that stays current and one that rots. It is the velocity-mismatch argument turned into a design: the namespace is the stable anchor, and the fast-moving things inherit from it rather than each carrying a copy that goes stale.</p>
+
+        <div class="cost">
+          <span class="cost-lab">The honest cost</span>
+          <p>"Who owns this pod" becomes a two-hop traversal rather than a single attribute read. For ad-hoc queries and naive integrations expecting a flat owner field, that is genuinely more work, and a customer migrating dashboards that read <code>owner</code> off the CI directly will have to rewrite them. The architecture answers the ergonomics with a read-time resolver that returns the inherited owner in one call <span class="src">(Task 08 · D7)</span> — but the data contract is two hops, and that is real.</p>
+        </div>
+
+        <span class="fc-subhead">The honest counterargument</span>
+        <p>"But ServiceNow just has an owned-by field on every CI." Correct — and at fifty thousand pods churning hourly, ServiceNow rewrites that field fifty thousand times for an owner that never changes, and goes stale between syncs. OneOps made the owner live on the stable thing and the churning things inherit; the trade accepted is that the pod-ownership query is two hops, not one. For an estate that is mostly static VMs, this model gives nothing extra — those carry a direct owner, exactly like the incumbents'.</p>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="fc-head">
+        <div>
+          <div class="fc-name">W2 · <code>communicatesWith</code> as evidence, not claim</div>
+          <div class="fc-motto">A dependency is something someone stands behind, not a packet capture.</div>
+        </div>
+        <div class="fc-stat"><div class="fc-big">+1</div><div class="fc-lab">Edge that incumbents fold away</div></div>
+      </div>
+      <div class="fc-body">
+        <span class="fc-subhead">What it is</span>
+        <p>Observed traffic is a separate edge — <code>communicatesWith</code>, carrying an <code>observation_frequency</code> attribute — that never auto-promotes to <code>dependsOn</code>. Promotion to a dependency claim is an explicit decision: a human confirmation or a service-mapping session, never an automatic upgrade <span class="src">(Task 06 · §G.2)</span>.</p>
+
+        <span class="fc-subhead">Why no incumbent does it</span>
+        <p>ServiceNow, BMC, and UCMDB fold observed traffic into "Depends on." They cannot distinguish "we saw these two services exchange packets" from "this service requires that service to function." UCMDB's <code>talk</code> relationship is the nearest analogue and still carries weaker, less-auditable semantics. The true conceptual peer — OpenTelemetry's service graph — lives in observability, not the CMDB.</p>
+
+        <span class="fc-subhead">What it gives customers</span>
+        <p>A clean dependency-promotion workflow, where evidence accumulates and a human or a rule promotes it; honest confidence scoring, where a <code>dependsOn</code> is a claim someone stands behind rather than a side effect of a health check; and auditable dependency provenance, where you can ask why the graph believes A depends on B and get either "someone declared it" or "promoted from forty observations." This is the difference between a dependency map that survives a root-cause analysis and one that responders learned to ignore.</p>
+
+        <div class="cost">
+          <span class="cost-lab">The honest cost</span>
+          <p>One extra edge type in the model, and an explicit promotion step that automation must implement — observed traffic does not become dependency for free. A team that <em>wants</em> "saw traffic, assume dependency" (the ServiceNow default) has to build the promotion logic OneOps deliberately withholds. For a low-maturity shop, the incumbent's auto-fold is less work upfront. OneOps is betting that the cost of the promotion step is smaller than the cost of a dependency graph nobody trusts.</p>
+        </div>
+
+        <span class="fc-subhead">The honest counterargument</span>
+        <p>"But ServiceNow auto-discovers dependencies from traffic." It auto-discovers <em>traffic</em> and <em>calls it</em> dependency — which is exactly why ServiceNow dependency maps are famously noisy with health-check and telemetry edges nobody curated. OneOps keeps the observation and makes a human or a rule promote it. The cost is the promotion step; the benefit is a dependency graph you can defend in an incident review.</p>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="fc-head">
+        <div>
+          <div class="fc-name">W3 · <code>succeedsLifecycleOf</code> as first-class genealogy</div>
+          <div class="fc-motto">One edge, five subtypes, a queryable lineage — not a stashed string.</div>
+        </div>
+        <div class="fc-stat"><div class="fc-big">5</div><div class="fc-lab">Genealogy subtypes, one edge</div></div>
+      </div>
+      <div class="fc-body">
+        <span class="fc-subhead">What it is</span>
+        <p>A first-class lineage edge with a <code>subtype</code> enum — version, DR, backup, migration, rollback — and a per-class identity-scope rule <span class="src">(Task 06 · §K)</span>. One edge expresses the full genealogy of a thing across its successive forms.</p>
+
+        <span class="fc-subhead">Why no incumbent does it</span>
+        <p>ServiceNow splits the concept across separate relationship types — "Upgrade of," "DR provided by," "Migrated from." BMC and UCMDB overwrite records or stash predecessors in ad-hoc <code>previous_version</code> fields. None has a unified, queryable genealogy edge.</p>
+
+        <span class="fc-subhead">What it gives customers</span>
+        <p>DR-pair tracking (which instance fails over to which), version-succession queries (show this service's lineage across six deploys), and backup-restore lineage — all first-class, queryable, and subtyped. For audit, for a root-cause analysis on "the version we deployed Tuesday," and for change-risk on successive versions, this is structurally better than a flat <code>previous_version</code> string that the next deploy overwrites.</p>
+
+        <div class="cost">
+          <span class="cost-lab">The honest cost</span>
+          <p>Succession is a declared or pipeline-driven fact, not a discovered one. A deploy pipeline must emit the version edge; a DR config must declare the pair. Nothing populates <code>succeedsLifecycleOf</code> from a probe. If a customer's pipelines do not emit it, the edge is empty and the genealogy benefit is theoretical. ServiceNow's "Upgrade of" carries the same write burden, so this is no worse than the incumbents — but it is not free, and a customer expecting discovered genealogy will be disappointed.</p>
+        </div>
+
+        <span class="fc-subhead">The honest counterargument</span>
+        <p>"But UCMDB tracks versions automatically." UCMDB tracks the <em>current</em> version attribute and overwrites history; it does not retain a queryable predecessor chain unless you build one. OneOps gives the chain as a first-class edge — but you have to emit it from your pipeline. If you have no deploy automation, neither model helps.</p>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="fc-head">
+        <div>
+          <div class="fc-name">W4 · The <code>managed</code> flag replaces phantom control-plane CIs</div>
+          <div class="fc-motto">Your graph holds the things you run, not a shadow of AWS's control plane.</div>
+        </div>
+        <div class="fc-stat"><div class="fc-big">0</div><div class="fc-lab">Phantom cloud-account CIs</div></div>
+      </div>
+      <div class="fc-body">
+        <span class="fc-subhead">What it is</span>
+        <p>OneOps does not model "AWS account manages RDS" as an edge. The fact that a resource is provider-orchestrated is carried by a <code>managed=true</code> attribute on the individual class <span class="src">(Task 06 · §H.2)</span> — not by a synthetic manager node.</p>
+
+        <span class="fc-subhead">Why no incumbent does it</span>
+        <p>ServiceNow and UCMDB invent phantom cloud-account and control-plane CIs, plus <code>manages</code>-style relationships, to make cloud orchestration modelable. The result is a proliferation of CIs that represent the provider's control plane rather than the customer's estate — nodes the customer never asked for and then has to maintain.</p>
+
+        <span class="fc-subhead">What it gives customers</span>
+        <p>No proliferation of cloud-orchestration CIs. The graph contains the customer's actual resources, not a synthetic shadow of the cloud provider's control plane, and counts stay honest: a five-thousand-CI estate is five thousand things you run, not eight thousand including phantom accounts and control planes. Honest counts matter when the whole product is a system of record you are trying to make trustworthy.</p>
+
+        <div class="cost">
+          <span class="cost-lab">The honest cost</span>
+          <p>Cross-account questions — "show everything in the prod AWS account" — become attribute filters (<code>WHERE provider=aws AND account=prod</code>) rather than graph traversals from an account node. For customers whose mental model is "the cloud account is a node I navigate from," this is a genuine reframing, and any tooling built to traverse from an account CI has nothing to traverse from. The information is all present; the access pattern is filter, not walk.</p>
+        </div>
+
+        <span class="fc-subhead">The honest counterargument</span>
+        <p>"But ServiceNow shows me the cloud account as a CI I can drill into." It shows you a CI that represents Amazon's billing boundary, not anything you operate — and then you maintain it. OneOps makes <code>account</code> an attribute you filter on. If your governance model is account-centric, "navigate from the account" becoming "filter by the account" is real work; if it is service-centric — which the whole knowledge graph assumes — you never wanted the phantom node.</p>
+      </div>
+    </div>
+
+    <div class="aside">
+      <div class="aside-label">A note on narrowness</div>
+      <p>Each differentiator is sharp for a specific slice and dull elsewhere — namespace inheritance matters at Kubernetes scale, the promotion workflow matters where dependency curation is a real practice, genealogy matters for audit-heavy customers. That is the segmentation strategy stated as a feature, not a weakness: a differentiator that mattered equally to everyone would be a differentiator for no one. The concession inside the concession is that OneOps's growth is therefore gated on those segments being large enough, which §9 names honestly.</p>
+    </div>
+  </div>
+</section>
+
+<div class="act-break">
+  <div class="wrap">
+    <div class="act-label">The technical spine</div>
+    <h2>What was actually built.</h2>
+    <p class="lede">From here the document turns from argument to artifact: the classes, the edges, the write-time contract, and the architecture and product specified on top of them. An executive can stop at the end of §4 with the strategy intact. Engineering starts here.</p>
+  </div>
+</div>
+
+<section id="design">
+  <div class="wrap">
+    <div class="sec-label">§ 05 · The design — classes, edges, and the v0.1 contract</div>
+    <h2 class="sec-title">Thirty-seven concrete classes, eleven edges, and a write-time allowlist.</h2>
+
+    <p class="intro">The ontology is deliberately small. Where ServiceNow ships several hundred CI classes and BMC inherits the deep DMTF CIM hierarchy, OneOps ships thirty-seven concrete classes and six abstract parents, organized into five abstraction-layered domains. The discipline is stated as a rule in Task 04: <span class="src">(Task 04 · 5d)</span> default to an attribute, not a new class — a thing earns class status only when an edge needs to point at it or a query needs to filter on it. Every class below survived that test; the register in Appendix A records the ones that did not. The full per-class metadata — attributes, identity rules, discovery sources — lives in the working record <span class="src">(Task 05b)</span>; what follows is the reference catalogue.</p>
+
+    <h3 class="subsub">The five domains</h3>
+    <p>The domains are abstraction layers, not deployment tiers. <strong>Business</strong> is what the enterprise does and funds; <strong>Application</strong> is the logical software that delivers it; <strong>Platform</strong> is the orchestration substrate applications run on; <strong>Infrastructure</strong> is the compute, network, and storage beneath the platform; <strong>Facility</strong> is the physical and cloud-topological ground everything sits on. The ordering matters because the <code>realizes</code> spine climbs it: a pod realizes an application service, which realizes a business application. Reading a service top-to-bottom is reading down the layers; computing a blast radius is reading back up them.</p>
+
+    <div class="table-wrap">
+      <div class="tbl-caption">Business — 3 classes · what the enterprise does and funds</div>
+      <table>
+        <thead><tr><th>Class</th><th>Definition</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-oneops">BusinessCapability</td><td>A durable business function the enterprise performs ("Payments," "Fraud Detection"), independent of the applications that implement it.</td></tr>
+          <tr><td class="cell-oneops">BusinessApplication</td><td>A funded, named application as the business refers to it — the unit of budget, ownership, and roadmap. <span class="pill v01">weak class</span> Kept alongside BusinessService despite overlap; see register D10.</td></tr>
+          <tr><td class="cell-oneops">BusinessService</td><td>A service the business offers or consumes — the contractable unit an SLA attaches to.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <div class="tbl-caption">Application — 5 classes · the logical software that delivers the business</div>
+      <table>
+        <thead><tr><th>Class</th><th>Definition</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-oneops">ApplicationService</td><td>A logical running service realizing part of a business application; the deployable unit of application function.</td></tr>
+          <tr><td class="cell-oneops">TechnicalService</td><td>A shared technical service (auth, logging, messaging) consumed by other services rather than directly by the business.</td></tr>
+          <tr><td class="cell-oneops">SoftwareComponent</td><td>An installed or deployed software element — library, package, module — tracked for version and vulnerability.</td></tr>
+          <tr><td class="cell-oneops">API</td><td>A published interface another service consumes; the contract surface of a service.</td></tr>
+          <tr><td class="cell-oneops">IdentityProvider</td><td>A first-class authentication authority (the OIDC issuer, the directory) that other resources trust. Promoted to its own class to anchor the <code>reaches</code> security edge.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <div class="tbl-caption">Platform — 12 classes · the orchestration substrate · <em>abstract parents italicized</em></div>
+      <table>
+        <thead><tr><th>Class</th><th>Definition</th></tr></thead>
+        <tbody>
+          <tr><td><em>Workload</em> <span class="pill v01">abstract</span></td><td><em>Parent of the things that run application logic on the platform.</em></td></tr>
+          <tr><td class="cell-oneops">Pod</td><td>The smallest deployable unit on Kubernetes; the running instance of containerized workload. Containers are modeled as <code>Pod.containers[]</code>, not a class — see register.</td></tr>
+          <tr><td class="cell-oneops">ServerlessFunction</td><td>A function-as-a-service unit (Lambda, Cloud Function) with no persistent host.</td></tr>
+          <tr><td class="cell-oneops">RunningSoftware</td><td>A running process that is neither on Kubernetes nor serverless — a daemon or service on a VM. <span class="pill v01">F1</span> Renamed from Process; the first forced amendment to the locked relationship layer.</td></tr>
+          <tr><td class="cell-oneops">WorkloadController</td><td>The declarative controller of a workload's desired state — Deployment, StatefulSet, and DaemonSet collapsed into one class.</td></tr>
+          <tr><td class="cell-oneops">KubernetesCluster</td><td>A Kubernetes cluster as a manageable unit.</td></tr>
+          <tr><td class="cell-oneops">Namespace</td><td>A Kubernetes namespace — the ownership and tenancy boundary inside a cluster, and the anchor for inherited ownership.</td></tr>
+          <tr><td class="cell-oneops">ContainerImage</td><td>An immutable built image a workload instantiates; the root of artifact lineage.</td></tr>
+          <tr><td><em>DataStore</em> <span class="pill v01">abstract</span></td><td><em>Parent of stateful data services.</em></td></tr>
+          <tr><td class="cell-oneops">DatabaseInstance</td><td>A running database server or instance.</td></tr>
+          <tr><td class="cell-oneops">MessageQueue</td><td>A running message broker or queue.</td></tr>
+          <tr><td class="cell-oneops">DatabaseSchema</td><td>A logical schema or database within a DatabaseInstance.</td></tr>
+          <tr><td><em>ConfigResource</em> <span class="pill v01">abstract</span></td><td><em>Parent of configuration artifacts.</em></td></tr>
+          <tr><td class="cell-oneops">ConfigMap</td><td>Non-secret configuration supplied to a workload.</td></tr>
+          <tr><td class="cell-oneops">Secret</td><td>Sensitive configuration — credentials, keys — supplied to a workload, tracked distinctly from ConfigMap for security and access control.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <div class="tbl-caption">Infrastructure — 13 classes · compute, network, and storage · <em>abstract parents italicized</em></div>
+      <table>
+        <thead><tr><th>Class</th><th>Definition</th></tr></thead>
+        <tbody>
+          <tr><td><em>ComputeNode</em> <span class="pill v01">abstract</span></td><td><em>Parent of things that provide compute capacity.</em></td></tr>
+          <tr><td class="cell-oneops">VirtualMachine</td><td>A virtual machine.</td></tr>
+          <tr><td class="cell-oneops">PhysicalServer</td><td>A bare-metal server.</td></tr>
+          <tr><td class="cell-oneops">Hypervisor</td><td>A virtualization host that runs VMs. Placed in Infrastructure: it runs the compute, so it is compute.</td></tr>
+          <tr><td><em>NetworkResource</em> <span class="pill v01">abstract</span></td><td><em>Parent of network elements.</em></td></tr>
+          <tr><td class="cell-oneops">Network</td><td>A network — VPC or VLAN.</td></tr>
+          <tr><td class="cell-oneops">Subnet</td><td>A subdivision of a network.</td></tr>
+          <tr><td class="cell-oneops">LoadBalancer</td><td>A load balancer distributing traffic across targets.</td></tr>
+          <tr><td class="cell-oneops">Firewall</td><td>A firewall or security group enforcing network policy.</td></tr>
+          <tr><td class="cell-oneops">IPAddress</td><td>An assigned IP address.</td></tr>
+          <tr><td class="cell-oneops">NetworkInterface</td><td>A NIC binding a host to a network. <span class="pill v02">next-demotion</span> Flagged as a candidate to fold into its host; kept concrete for v0.1.</td></tr>
+          <tr><td class="cell-oneops">DNSZone</td><td>A DNS zone authoritative for a set of names.</td></tr>
+          <tr><td><em>StorageResource</em> <span class="pill v01">abstract</span></td><td><em>Parent of storage elements.</em></td></tr>
+          <tr><td class="cell-oneops">StorageVolume</td><td>A block or file volume attached to a host.</td></tr>
+          <tr><td class="cell-oneops">ObjectStore</td><td>An object-storage bucket or container.</td></tr>
+          <tr><td class="cell-oneops">Certificate</td><td>A TLS or identity certificate tracked for expiry and trust chain. Placed in Infrastructure as a deployed cryptographic asset.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <div class="tbl-caption">Facility — 4 classes · the physical and cloud-topological ground</div>
+      <table>
+        <thead><tr><th>Class</th><th>Definition</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-oneops">Datacenter</td><td>A physical data-center site.</td></tr>
+          <tr><td class="cell-oneops">Rack</td><td>A rack within a datacenter.</td></tr>
+          <tr><td class="cell-oneops">AvailabilityZone</td><td>A cloud availability zone — the failure-domain primitive that <code>sharesFailureDomain</code> computes against.</td></tr>
+          <tr><td class="cell-oneops">CloudRegion</td><td>A cloud region containing availability zones.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="subsub">The eleven stored edges</h3>
+    <p>Relationships are typed and closed. There are eleven stored edge types — facts written and persisted — and four computed edge types that are never stored but resolved at read time from the eleven. The direction convention is fixed and matches English <span class="src">(Task 04 · P04)</span>: the edge reads subject-verb-object left to right. Every stored edge carries an <code>impact_bearing</code> flag, and this is the single most consequential mechanism in the model: it defaults to <strong>true</strong>, because a flag that defaulted false would silently drop edges out of every blast-radius computation and no one would notice until an incident.</p>
+
+    <div class="edges">
+      <div class="edges-label">Stored — written and persisted</div>
+      <div class="edge"><div class="edge-name">composedOf <span class="dir">whole → part · 1:N</span></div><div class="edge-desc">The part has no independent existence; deleting the whole cascades to the parts. Identity-contributing — the part is identified partly by its whole.</div></div>
+      <div class="edge"><div class="edge-name">contains <span class="dir">container → contained · 1:N</span></div><div class="edge-desc">A boundary or grouping. Unlike <code>composedOf</code>, the contained survives the container's deletion. Namespace contains Pod; Cluster contains Namespace.</div></div>
+      <div class="edge"><div class="edge-name">runsOn <span class="dir">entity → host · N:1</span></div><div class="edge-desc">Execution dependency on a host. Identity-contributing. The <em>absence</em> of a <code>runsOn</code> edge is meaningful — it signals a provider-managed resource (see the <code>managed</code> flag).</div></div>
+      <div class="edge"><div class="edge-name">dependsOn <span class="dir">dependent → provider · N:M</span></div><div class="edge-desc">A declared functional dependency. The deliberate catch-all — which is exactly why six anti-patterns (Appendix) keep it from absorbing relationships that belong to more specific edges.</div></div>
+      <div class="edge"><div class="edge-name">communicatesWith <span class="dir">peer → peer · N:M · asymmetric</span></div><div class="edge-desc">Observed network communication. <strong>Evidence, not a claim</strong> — it records that traffic was seen, and is promoted to <code>dependsOn</code> only by a deliberate human or policy step. The heart of differentiator W2.</div></div>
+      <div class="edge"><div class="edge-name">realizes <span class="dir">realizer → concept · N:M</span></div><div class="edge-desc">Implements a higher-abstraction concept. The vertical spine: the chain <code>criticalPath</code> walks from business concept to infrastructure. Carries a second flag, <code>spine_bearing</code>.</div></div>
+      <div class="edge"><div class="edge-name">memberOf <span class="dir">member → collection · N:M</span></div><div class="edge-desc">Membership in a set or group with no compositional or hosting semantics — the weakest grouping edge, used where nothing stronger is true.</div></div>
+      <div class="edge"><div class="edge-name">manages <span class="dir">manager → managed · N:M</span></div><div class="edge-desc"><strong>Not impact-bearing.</strong> Control-plane management — a WorkloadController managing its Pods. Deliberately excluded from blast radius: managing a thing is not depending on it, and conflating the two is a known incumbent error.</div></div>
+      <div class="edge"><div class="edge-name">ownedBy <span class="dir">CI → Party · N:1</span></div><div class="edge-desc">Accountable ownership, pointing at a Party. Frequently <em>not</em> set per-CI but inherited from the CI's Namespace at read time — differentiator W1.</div></div>
+      <div class="edge"><div class="edge-name">locatedIn <span class="dir">entity → place · N:1</span></div><div class="edge-desc">Physical or topological location, pointing into the Facility domain. The basis on which <code>sharesFailureDomain</code> is computed.</div></div>
+      <div class="edge"><div class="edge-name">succeedsLifecycleOf <span class="dir">successor → predecessor · N:1</span></div><div class="edge-desc">First-class lifecycle genealogy with a subtype enum (<code>version</code> / <code>dr</code> / <code>backup</code> / <code>migration</code> / <code>rollback</code>). Declared, not discovered — differentiator W3.</div></div>
+    </div>
+
+    <div class="edges">
+      <div class="edges-label">Computed — resolved at read time, never stored</div>
+      <div class="edge computed"><div class="edge-name">impactedBy <span class="dir">Directly / Potentially</span></div><div class="edge-desc">Blast radius. Walks <code>runsOn</code>, <code>dependsOn</code>, <code>composedOf</code>, and <code>realizes</code> backward; skips any edge where <code>impact_bearing=false</code>; <strong>never</strong> traverses <code>manages</code> or <code>communicatesWith</code>. Split into Directly- and Potentially-impacted — differentiator behind claim D4.</div></div>
+      <div class="edge computed"><div class="edge-name">criticalPath <span class="dir">business → infrastructure</span></div><div class="edge-desc">The realization chain from a business concept down to the infrastructure carrying it. Traverses the <code>realizes</code> spine, skipping edges where <code>spine_bearing=false</code>.</div></div>
+      <div class="edge computed"><div class="edge-name">sharesFailureDomain <span class="dir">co-location risk</span></div><div class="edge-desc">Co-location risk computed via <code>locatedIn</code> into Facility. Three states, including an explicit <code>failure_domain_unknown</code> sentinel — the system says "I don't know" rather than implying safety it cannot prove.</div></div>
+      <div class="edge computed"><div class="edge-name">reaches <span class="dir">security reachability · v0.2</span></div><div class="edge-desc">Network reachability for attack-path analysis, via <code>communicatesWith</code> plus <code>dependsOn</code> into IdentityProvider. Deferred to v0.2; the class model (IdentityProvider) is already in place to support it.</div></div>
+    </div>
+
+    <div class="aside tech">
+      <div class="aside-label">The bearing-flag mechanism</div>
+      <p>Two flags govern which edges the computed traversals follow. <code>impact_bearing</code> (on every edge, default <strong>true</strong>) controls inclusion in <code>impactedBy</code>; <code>spine_bearing</code> (on <code>realizes</code>, default <strong>true</strong>) controls inclusion in <code>criticalPath</code>. The default direction is the entire point. An edge that should not carry impact is the exception an engineer must consciously mark; the safe behavior — counting an edge as load-bearing until told otherwise — is what you get for free. Register item D6 adopts this for v0.1; risk R1 names enforcing the default as the single highest-priority correctness guarantee in the build.</p>
+    </div>
+
+    <h3 class="subsub">The triplet allowlist, as a density map</h3>
+    <p>The write-time contract is an allowlist of permitted <code>(source-class, edge, target-class)</code> triplets <span class="src">(Task 06)</span>. A relationship the allowlist does not contain is rejected at the API boundary — correctness is enforced on write, not repaired on read <span class="src">(Task 04 · P05)</span>. The full allowlist is eleven sections of class-pair enumeration in the working record; the map below compresses it to the shape that matters — which domains legitimately connect to which, and how densely. Read it and the model's posture is visible at a glance: a dense diagonal (things relate most to their own layer), a <code>realizes</code> spine climbing the upper triangle, <code>runsOn</code> binding Platform to Infrastructure, <code>locatedIn</code> binding both to Facility, a uniform Party column where everything is <code>ownedBy</code> someone — and a near-empty lower-left, because lower layers do not reach up into higher ones.</p>
+
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th class="corner">source ↓ &nbsp; target →</th>
+            <th>Business</th><th>Application</th><th>Platform</th><th>Infrastructure</th><th>Facility</th><th>Party</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="rowlabel">Business</td>
+            <td class="d2">realizes · composedOf</td><td class="d1">dependsOn</td><td class="d0">—</td><td class="d0">—</td><td class="d0">—</td><td class="d1">ownedBy</td>
+          </tr>
+          <tr>
+            <td class="rowlabel">Application</td>
+            <td class="d2">realizes</td><td class="d3">depends · talks · composes</td><td class="d1">dependsOn</td><td class="d1">dependsOn</td><td class="d0">—</td><td class="d1">ownedBy</td>
+          </tr>
+          <tr>
+            <td class="rowlabel">Platform</td>
+            <td class="d0">—</td><td class="d2">realizes</td><td class="d3">contains · composes · manages</td><td class="d2">runsOn</td><td class="d1">locatedIn</td><td class="d1">ownedBy</td>
+          </tr>
+          <tr>
+            <td class="rowlabel">Infrastructure</td>
+            <td class="d0">—</td><td class="d0">—</td><td class="d0">—</td><td class="d3">runsOn · composes · talks</td><td class="d2">locatedIn</td><td class="d1">ownedBy</td>
+          </tr>
+          <tr>
+            <td class="rowlabel">Facility</td>
+            <td class="d0">—</td><td class="d0">—</td><td class="d0">—</td><td class="d0">—</td><td class="d2">contains · locatedIn</td><td class="d1">ownedBy</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="matrix-legend">
+      <span class="lg"><span class="sw" style="background:var(--paper-2)"></span>none — structural only</span>
+      <span class="lg"><span class="sw" style="background:#fdf0ed"></span>one edge type</span>
+      <span class="lg"><span class="sw" style="background:#fbddd5"></span>several</span>
+      <span class="lg"><span class="sw" style="background:#f4c0b3"></span>dense</span>
+    </div>
+    <p class="tbl-caption" style="margin-top:1.2rem">The cell labels name the dominant edge for that domain pair, not the complete set; the full triplet enumeration is Task 06. <code>ownedBy</code> targets the Party model, which is out of scope for the class ontology and shown here only as the destination of the ownership column.</p>
+  </div>
+</section>
+
+<section id="principles">
+  <div class="wrap">
+    <div class="sec-label">§ 06 · The seven house design principles</div>
+    <h2 class="sec-title">The commitments every decision was checked against.</h2>
+
+    <p class="intro">Seven principles were locked in Task 04 and governed every subsequent call. They are not aspirations; they are the test a proposed class, edge, or attribute had to pass. Each commits OneOps to something specific and, more usefully, rules something out — a principle that forbids nothing decides nothing. Where a later decision was hard, it was hard because two principles pulled against each other, and the register records which won.</p>
+
+    <div class="card-stack">
+      <div class="card numbered">
+        <div class="c-num">01</div>
+        <div>
+          <div class="c-label">Task 04 · P01</div>
+          <div class="c-title">Keep the vocabulary small</div>
+          <p class="c-desc">Commits to a closed, hand-curated set of classes and edges small enough to hold in your head. Rules out the incumbent reflex of minting a class per discovered thing — the path that produced ServiceNow's several hundred classes and the class explosion the whole program is a reaction against. The operational form is rule 5d: default to an attribute; a new class must justify itself against an edge or a query.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">02</div>
+        <div>
+          <div class="c-label">Task 04 · P02</div>
+          <div class="c-title">Separate ground truth from derived truth</div>
+          <p class="c-desc">Commits to a hard line between what is written (the eleven stored edges) and what is computed (the four read-time edges). Rules out storing a blast radius, a critical path, or a failure domain as a fact — because a stored derivation goes stale silently and becomes a lie the system tells with confidence. Everything derived is recomputed from ground truth on every read.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">03</div>
+        <div>
+          <div class="c-label">Task 04 · P03</div>
+          <div class="c-title">Evidence on every artifact</div>
+          <p class="c-desc">Commits every CI and every edge to carrying its provenance — source, confidence, freshness, and TTL. Rules out the unattributed assertion: the CMDB that shows a dependency with no record of how it knows, which is how incumbent graphs decay into things operators stop trusting. This principle is the substance behind claim D3 and differentiator W2's distinction between observed and declared.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">04</div>
+        <div>
+          <div class="c-label">Task 04 · P04</div>
+          <div class="c-title">Direction and naming match the mental model</div>
+          <p class="c-desc">Commits edges to reading subject-verb-object in plain English and pointing the way a person would expect (<code>part composedOf whole</code> is wrong; <code>whole composedOf part</code> is right). Rules out direction conventions that are internally consistent but require a lookup table to read — the small daily friction that makes a query language feel hostile and an operator distrust their own traversals.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">05</div>
+        <div>
+          <div class="c-label">Task 04 · P05</div>
+          <div class="c-title">Schema enforces correctness at write time</div>
+          <p class="c-desc">Commits to rejecting malformed relationships at the API boundary via the triplet allowlist, not flagging them in a later reconciliation pass. Rules out the repair-on-read model where bad data is admitted and cleaned up afterward — the model that guarantees the graph is always somewhat wrong. If a write violates the allowlist, it fails; the graph is correct by construction.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">06</div>
+        <div>
+          <div class="c-label">Task 04 · P06</div>
+          <div class="c-title">Edge types and class definitions are config, not schema</div>
+          <p class="c-desc">Commits the class and edge vocabularies to living as runtime configuration a customer can extend without a schema migration or a release. Rules out hard-coding the ontology into the storage layer — the rigidity that makes incumbent CMDBs a professional-services engagement to change. The cost, paid honestly, is that validation happens at runtime against config rather than being enforced by the database itself.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">07</div>
+        <div>
+          <div class="c-label">Task 04 · P07</div>
+          <div class="c-title">Ship a prescriptive default out of the box</div>
+          <p class="c-desc">Commits to shipping the thirty-seven classes, eleven edges, and full allowlist as an opinionated working default — not an empty framework the customer must populate. Rules out the blank-canvas CMDB that technically can model anything and therefore models nothing until a six-month consulting engagement fills it. Extensibility (P06) is the escape hatch; the prescriptive default is the product.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="act-break">
+  <div class="wrap">
+    <div class="act-label">The build</div>
+    <h2>Fourteen components and one unanswered question.</h2>
+    <p class="lede">The architecture is specified to fourteen components and seven named risks. One component — the graph store everything else sits on — is deliberately left undecided, because deciding it without the benchmark would be the kind of premature commitment the rest of the design exists to avoid.</p>
+  </div>
+</div>
+
+<section id="architecture">
+  <div class="wrap">
+    <div class="sec-label">§ 07 · The architecture</div>
+    <h2 class="sec-title">Fourteen components, the bearing-flag and ownership mechanisms, and the known unknown.</h2>
+
+    <p class="intro">Task 10 specifies the system to fourteen components. The table below is the reference; three things around it carry most of the engineering risk and so are pulled out in prose: the graph-storage decision that is intentionally still open, the two mechanisms that make the model's signature behaviors work, and the seven risks that the build plan is organized to retire.</p>
+
+    <div class="table-wrap">
+      <div class="tbl-caption">The fourteen components <span class="src">(Task 10)</span></div>
+      <table>
+        <thead><tr><th>Component</th><th>Purpose</th><th>Owns</th><th>Key trade-off</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-oneops">CMP1 · CI Class Registry</td><td>Holds the 37+6 class definitions as runtime config.</td><td>Class vocabulary</td><td>Config-not-schema (P06) moves class validation to runtime.</td></tr>
+          <tr><td class="cell-oneops">CMP2 · Relationship Registry</td><td>Holds the 11 edge types and the triplet allowlist as config.</td><td>Edge vocabulary &amp; allowlist</td><td>The allowlist must be complete, or valid writes are falsely rejected.</td></tr>
+          <tr><td class="cell-oneops">CMP3 · Identity Resolution Engine</td><td>Three-tier identity: exact key, declared rule, probabilistic match.</td><td>CI dedup &amp; merge</td><td>Aggressive merge risks false-merge; conservative risks duplicates.</td></tr>
+          <tr><td class="cell-oneops">CMP4 · Graph Storage</td><td>Persistence and traversal substrate. <span class="pill v01">known unknown</span></td><td>Storage &amp; queries</td><td>The central bet — deliberately ungated until the three scenarios are benchmarked.</td></tr>
+          <tr><td class="cell-oneops">CMP5 · Ingest Pipeline</td><td>Hybrid: synchronous validation, asynchronous store.</td><td>Data intake</td><td>Sync validation adds write latency; async store adds consistency lag.</td></tr>
+          <tr><td class="cell-oneops">CMP6 · Write-Time Validation</td><td>Enforces the allowlist and the bearing-flag defaults at the boundary.</td><td>Write correctness</td><td>Strictness (P05) versus ingestion friction.</td></tr>
+          <tr><td class="cell-oneops">CMP7 · Evidence Store</td><td>Source, confidence, freshness, and TTL for every artifact.</td><td>Provenance</td><td>Storage overhead on every fact (P03).</td></tr>
+          <tr><td class="cell-oneops">CMP8 · Computed-Edge Resolver</td><td>Resolves the four computed edges at read time.</td><td>Derived truth</td><td>Read latency versus storing derivations and risking staleness (P02).</td></tr>
+          <tr><td class="cell-oneops">CMP9 · NL / Semantic Query Layer</td><td>Natural language as the primary query surface.</td><td>Query experience</td><td>Deliberately not TQL — but LLM-to-query fabrication is a real risk.</td></tr>
+          <tr><td class="cell-oneops">CMP10 · Audit Trail</td><td>Immutable record of every change.</td><td>History</td><td>Write amplification on every mutation.</td></tr>
+          <tr><td class="cell-oneops">CMP11 · Tenant &amp; RBAC</td><td>Tenant isolation and role-based access.</td><td>Multi-tenancy</td><td>A single missing filter predicate crosses a tenant boundary.</td></tr>
+          <tr><td class="cell-oneops">CMP12 · AI Access</td><td>Read-only agent surface behind an approval gate.</td><td>Agent interface</td><td>The gate adds latency but prevents autonomous writes to the system of record.</td></tr>
+          <tr><td class="cell-oneops">CMP13 · Explainability</td><td>Every computed answer can name the edges it walked.</td><td>"Why" tracing</td><td>Requires the resolver to retain and return its traversal path.</td></tr>
+          <tr><td class="cell-oneops">CMP14 · Core Mechanisms</td><td>The bearing-flag enforcement and the namespace-ownership resolver.</td><td>Signature behaviors</td><td>Detailed below — these two make W1 and D4 real.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="aside tech">
+      <div class="aside-label">CMP4 — the graph store is a known unknown</div>
+      <p>Every other component assumes a graph store; which one is not yet decided, and pretending otherwise would violate the design's own honesty. The default lean is <strong>Neo4j</strong>, but the decision is gated on benchmarking the three validation scenarios — the vCenter stack, the Kubernetes multi-pod application, and the multi-tier banking application — against four candidates: <strong>Neo4j</strong>, <strong>Memgraph</strong>, <strong>ArangoDB</strong>, and <strong>Postgres + Apache AGE</strong>. The candidates differ on exactly the axes the model stresses: read-time traversal latency for the computed edges, write throughput under discovery burst, and the single-node ceiling that risk R2 names for Neo4j's Community edition. The benchmark decides; the architecture is built to keep the store swappable until it does.</p>
+    </div>
+
+    <h3 class="subsub">The two mechanisms</h3>
+    <p><strong>The bearing-flag enforcement.</strong> Detailed in §5: every edge carries <code>impact_bearing</code> defaulting true, every <code>realizes</code> edge carries <code>spine_bearing</code> defaulting true, and the computed traversals honor them. Architecturally this lives in CMP6 (defaults applied on write) and CMP8 (defaults honored on read). It is named again here because R1 makes enforcing the default the highest-priority correctness guarantee in the system — a regression that flipped the default to false would not error; it would quietly return blast radiuses that are too small, and the failure would surface as a missed dependency during an incident.</p>
+    <p><strong>The namespace-ownership resolver.</strong> The mechanism behind differentiator W1. Rather than store an <code>ownedBy</code> edge on every CI, OneOps lets a CI inherit ownership from its Namespace and resolves the owner at read time by walking at most two hops (CI → Namespace → Party). This keeps ownership correct when it changes — update the namespace, and ten thousand CIs reflect it instantly — but moves the cost to read time, where it must stay fast. The target is <strong>≤50ms at p99 against 100,000 CIs</strong>; risk R3 names this latency budget as a gating launch criterion, and the resolver lives in CMP8 alongside the computed-edge logic.</p>
+
+    <h3 class="subsub">The seven architectural risks</h3>
+    <div class="table-wrap">
+      <div class="tbl-caption">Named risks the build plan is organized to retire <span class="src">(Task 10 · R1)</span></div>
+      <table>
+        <thead><tr><th>Risk</th><th>What goes wrong</th><th>Priority</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-oneops">R1 · Bearing-flag default</td><td>A regression flips <code>impact_bearing</code> to default-false; blast radiuses silently shrink and no error fires.</td><td><strong>Highest</strong></td></tr>
+          <tr><td class="cell-oneops">R2 · Neo4j single-node ceiling</td><td>If the Community edition is chosen, the single-node write ceiling caps scale with no clustering path.</td><td>High</td></tr>
+          <tr><td class="cell-oneops">R3 · Ownership resolver latency</td><td>The two-hop read-time owner resolution exceeds its 50ms p99 budget at scale, degrading every ownership view.</td><td>High</td></tr>
+          <tr><td class="cell-oneops">R4 · Reconciliation bottleneck</td><td>The IRE cannot keep up with the discovery stream under burst, and the merge backlog grows unbounded.</td><td>Medium</td></tr>
+          <tr><td class="cell-oneops">R5 · Tenant filter leakage</td><td>A missing filter predicate lets one tenant's query return another tenant's CIs.</td><td>High</td></tr>
+          <tr><td class="cell-oneops">R6 · LLM-to-query fabrication</td><td>The NL layer generates a query that runs and returns confident, wrong results.</td><td>Medium</td></tr>
+          <tr><td class="cell-oneops">R7 · Computed-edge staleness</td><td>If computed edges are cached for latency, the cache serves a stale blast radius.</td><td>Medium</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="product">
+  <div class="wrap">
+    <div class="sec-label">§ 08 · The v1.0 product — capabilities and launch criteria</div>
+    <h2 class="sec-title">Fifteen capabilities, six launch gates, and the five ways a customer churns.</h2>
+
+    <p class="intro">Task 11 translates the architecture into a product: fifteen capabilities, each tracing to the component that backs it, and six launch criteria with quantitative thresholds that decide whether v1.0 ships. Five of the fifteen capabilities are differentiating — they are the product surface of the white-space differentiators and carry the demos from §3. The rest are table stakes: necessary to be a credible CMDB, not reasons to switch. The section closes on the five churn risks, because a launch-criteria list with no churn analysis is a plan that has not imagined failure.</p>
+
+    <div class="table-wrap">
+      <div class="tbl-caption">The fifteen capabilities · <span style="color:var(--coral)">★</span> marks the differentiating five <span class="src">(Task 11)</span></div>
+      <table>
+        <thead><tr><th>Capability</th><th>The user's problem</th><th>Backed by</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-oneops">CAP1 · Class Browsing</td><td>"What can this thing even model, and how do I fix a bad merge?"</td><td>CMP1, CMP3</td></tr>
+          <tr><td class="cell-oneops">CAP2 · Allowlist Inspection</td><td>"Which relationships between these two classes are legal?"</td><td>CMP2</td></tr>
+          <tr><td class="cell-oneops">CAP3 · Discovery Integration</td><td>"Map what my scanners find onto the right classes."</td><td>CMP5</td></tr>
+          <tr><td class="cell-oneops">CAP4 · Manual CI &amp; Mapping</td><td>"Some things aren't discoverable — let me model them by hand."</td><td>CMP4, CMP6</td></tr>
+          <tr><td class="cell-oneops">CAP5 · Dependency Visualization <span style="color:var(--coral)">★</span></td><td>"Show me this service and what it depends on, legibly." The make-or-break view.</td><td>CMP8, CMP13</td></tr>
+          <tr><td class="cell-oneops">CAP6 · Impact Analysis <span style="color:var(--coral)">★</span></td><td>"If this fails, what breaks — and what only might?"</td><td>CMP8</td></tr>
+          <tr><td class="cell-oneops">CAP7 · Change Risk</td><td>"How dangerous is this change before I make it?"</td><td>CMP8</td></tr>
+          <tr><td class="cell-oneops">CAP8 · Ownership UX <span style="color:var(--coral)">★</span></td><td>"Who owns this, and why — even when no one set an owner on it?"</td><td>CMP14b</td></tr>
+          <tr><td class="cell-oneops">CAP9 · Evidence Display <span style="color:var(--coral)">★</span></td><td>"How does the system know this, and should I trust it?"</td><td>CMP7</td></tr>
+          <tr><td class="cell-oneops">CAP10 · Promotion Workflow <span style="color:var(--coral)">★</span></td><td>"This observed traffic is a real dependency — make it official."</td><td>CMP6, CMP7</td></tr>
+          <tr><td class="cell-oneops">CAP11 · CI Lifecycle</td><td>"Track this CI's state and its lineage across replacements."</td><td>CMP10</td></tr>
+          <tr><td class="cell-oneops">CAP12 · AI-Assisted Classification</td><td>"I don't know what class this is — suggest one."</td><td>CMP12</td></tr>
+          <tr><td class="cell-oneops">CAP13 · Audit Trail</td><td>"Who changed this, and when?"</td><td>CMP10</td></tr>
+          <tr><td class="cell-oneops">CAP14 · Schema Extension</td><td>"Add a class or edge we need without waiting for a release."</td><td>CMP1, CMP2</td></tr>
+          <tr><td class="cell-oneops">CAP15 · Tenant / MSP</td><td>"Isolate tenants — and, if we're an MSP, see across them."</td><td>CMP11</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="subsub">The six launch criteria</h3>
+    <p>v1.0 does not ship on a date; it ships when six gates are met. Two are pass/fail process gates; one is a security suite; three carry the quantitative thresholds the three validation scenarios were designed to test. The thresholds are not aspirational — they are the numbers below which the product's central claims stop being true.</p>
+
+    <div class="table-wrap">
+      <div class="tbl-caption">Launch gates with thresholds <span class="src">(Task 11 · LC1–LC6)</span></div>
+      <table>
+        <thead><tr><th>Gate</th><th>Criterion</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-oneops">LC1 · Acceptance</td><td>Every capability's acceptance criteria pass.</td></tr>
+          <tr><td class="cell-oneops">LC2 · Scenarios</td><td><strong>Kubernetes:</strong> ≥1,000 writes/s sustained, 5,000 burst, ≤5s p95 ingestion lag. &nbsp;<strong>Banking:</strong> <code>criticalPath</code> ≤500ms p95, <code>impactedBy</code> ≤2s p95. &nbsp;<strong>vCenter:</strong> Tier-1 identity ≥99% accuracy, Tier-3 ≤1% false-merge. &nbsp;<strong>Ownership:</strong> ≤50ms p99 at 100,000 CIs.</td></tr>
+          <tr><td class="cell-oneops">LC3 · Isolation</td><td>The tenant-isolation test suite passes with zero cross-tenant leakage.</td></tr>
+          <tr><td class="cell-oneops">LC4 · Documentation</td><td>Class, edge, allowlist, and API documentation ships with the product.</td></tr>
+          <tr><td class="cell-oneops">LC5 · Migration</td><td>Three migration playbooks — ServiceNow, BMC, UCMDB — are written and validated.</td></tr>
+          <tr><td class="cell-oneops">LC6 · Onboarding</td><td>A customer can reach first value without a professional-services engagement.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="subsub">The five churn risks</h3>
+    <div class="table-wrap">
+      <div class="tbl-caption">Where a signed customer leaves <span class="src">(Task 11 · CR1–CR5)</span></div>
+      <table>
+        <thead><tr><th>Risk</th><th>How it churns</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-oneops">CR1 · Inheritance confusion</td><td>Users who expect an owner set on every CI find inherited ownership unintuitive and read it as missing data.</td></tr>
+          <tr><td class="cell-oneops">CR2 · Discovery depth</td><td>Discovery sees less than the customer expected; the gaps read as the product being incomplete rather than conservative.</td></tr>
+          <tr><td class="cell-oneops">CR3 · Thin Facility / VMware</td><td>VMware-heavy shops find the Facility and virtualization modeling shallower than their estate demands.</td></tr>
+          <tr><td class="cell-oneops">CR4 · Deferred-edge strain</td><td>The absence of <code>providesApi</code> and <code>protectedBy</code> (deferred to v0.2/v0.3) is felt as a missing capability in API- or security-centric accounts.</td></tr>
+          <tr><td class="cell-oneops">CR5 · Unevaluable AI</td><td>Users cannot tell whether an AI-suggested classification is right, so they neither trust nor act on it — the feature becomes noise.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="act-break">
+  <div class="wrap">
+    <div class="act-label">The closing argument</div>
+    <h2>The case against, made honestly.</h2>
+    <p class="lede">A document that only argued for OneOps would not be trustworthy enough to argue with. This section makes the competitor's case, concedes what is fair in it, names the one customer profile where v1.0 lands weakest, and states the signals over the next twelve months that would prove the bet right — or wrong.</p>
+  </div>
+</div>
+
+<section id="against">
+  <div class="wrap">
+    <div class="sec-label">§ 09 · The honest case against</div>
+    <h2 class="sec-title">Four objections, three strong segments, one weak one.</h2>
+
+    <p class="intro">The four objections below are the ones a ServiceNow or UCMDB account team would raise in a competitive deal, stated as they would state them <span class="src">(Task 12 · Pt 4)</span>. Each gets the honest response — not a rebuttal that makes it disappear, but the part that is fair conceded and the part that is answerable answered. An objection with no concession in the reply is a sign the reply is dishonest.</p>
+
+    <div class="card-stack">
+      <div class="card numbered">
+        <div class="c-num">01</div>
+        <div>
+          <div class="c-label">The case against · "Unproven"</div>
+          <div class="c-title">"There are no production deployments at scale. You are buying a thesis."</div>
+          <p class="c-desc">Fair, and unavoidable for a v1.0. The mitigation is structural rather than rhetorical: the three validation scenarios exist precisely to convert the thesis into measured numbers before launch, and the launch criteria (§8) refuse the release until those numbers hold. But the concession stands — until there are reference customers running this in anger, OneOps is a well-reasoned bet, and the reasoning is not the same as the evidence. This document's job is to make the bet legible, not to claim it is already won.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">02</div>
+        <div>
+          <div class="c-label">The case against · "Narrow"</div>
+          <div class="c-title">"It is built for Kubernetes-native mid-market and is weaker everywhere else."</div>
+          <p class="c-desc">True — and deliberate, which is the only honest defense. The narrowness is the strategy: a system of record that tried to be equally good for every estate would inherit exactly the empty-framework fate the design rejects. OneOps is sharp for the cloud-native mid-market wedge and admits softness in VMware-heavy and regulated-enterprise estates (the weak profile below). The objection is correct about the fact and wrong only if it assumes breadth is always a virtue; for a challenger, a sharp wedge beats a dull plain.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">03</div>
+        <div>
+          <div class="c-label">The case against · "'AI-native' is marketing"</div>
+          <div class="c-title">"Strip the label and it is a graph database with an LLM query box."</div>
+          <p class="c-desc">Partly fair, and worth conceding cleanly: the phrase "AI-native" oversells, and OneOps should not lean on it. What is real underneath is narrower and more defensible — an agent surface that is read-only behind an approval gate, natural language as the primary query path instead of a TQL dialect, and, most importantly, the evidence-and-provenance discipline (P03) that lets an AI reason over the graph without fabricating, because every fact carries how it is known. That is a genuine architectural stance. "AI-native" as a slogan is not; the substance is the provenance model, not the label.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">04</div>
+        <div>
+          <div class="c-label">The case against · "The differentiators are niche"</div>
+          <div class="c-title">"Each of the four white-space features matters only to a slice of the market."</div>
+          <p class="c-desc">True, and already conceded in §4's note on narrowness — a differentiator that mattered equally to everyone would differentiate for no one. Namespace inheritance matters at Kubernetes scale; the promotion workflow matters where dependency curation is a real practice; genealogy matters to audit-heavy buyers. The honest form of the objection is not "these are niche" but "OneOps's growth depends on those niches being large enough and growing," which is exactly the bet — and the segment analysis below is where that bet is either validated or not.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subsub">Where v1.0 lands — three strong segments, one weak</h3>
+    <p>Four customer profiles, ranked by how well v1.0 serves them <span class="src">(Task 12 · Pt 3)</span>. The ranking is the segmentation strategy made concrete: OneOps is not for everyone yet, and saying so is more useful than a TAM slide that pretends otherwise.</p>
+
+    <div class="card-stack">
+      <div class="card numbered">
+        <div class="c-num">P1</div>
+        <div>
+          <div class="c-label">Strongest · the primary wedge</div>
+          <div class="c-title">The mid-market Kubernetes adopter</div>
+          <p class="c-desc">The estate the ontology was designed around — cloud-native, namespace-organized, fast-changing, and underserved by incumbents whose models predate Kubernetes. Every differentiator points here, the discovery depth matches the estate, and the buyer feels the velocity-mismatch pain incumbents cannot fix. This is where OneOps wins first and most cleanly.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">P2</div>
+        <div>
+          <div class="c-label">Strong · the largest near-term spend</div>
+          <div class="c-title">The ServiceNow-frustrated enterprise</div>
+          <p class="c-desc">The buyer with budget and a concrete grievance — the CMDB that never achieved value, the class explosion, the consulting bill to change anything. The migration verdict is moderate-to-painful (Appendix C), so the deal is real but not frictionless; the wedge is the specific failure they have already lived, met with a model that does not repeat it.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">P3</div>
+        <div>
+          <div class="c-label">Strong · the low-cost proof</div>
+          <div class="c-title">The greenfield team</div>
+          <p class="c-desc">No incumbent to migrate from, no sunk model to unwind. The prescriptive default (P07) is the whole pitch: a working ontology out of the box instead of a blank canvas. Low deal value individually, but the cheapest place to generate the reference deployments that answer objection AC1 — proof manufactured at low cost.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">P4</div>
+        <div>
+          <div class="c-label">Weakest · not yet</div>
+          <div class="c-title">The regulated enterprise</div>
+          <p class="c-desc">The honest soft spot. Heavy compliance, deep VMware footprints, security-centric relationship needs that lean on the deferred <code>protectedBy</code> and <code>reaches</code> edges, and a risk tolerance that an unproven v1.0 does not meet. OneOps should not chase this segment at launch — the thin Facility modeling (CR3) and deferred security edges (CR4) land hardest here, and a lost lighthouse deal in a regulated account is expensive. This is a v2 conversation, named as such rather than overpromised.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subsub">The twelve-month proof points</h3>
+    <p>The bet is testable, and the signals are known in advance <span class="src">(Task 12 · Pt 5)</span>. Naming them now is what makes the next year an experiment rather than a hope.</p>
+
+    <div class="sees">
+      <span class="sees-lab">Signals the bet is proving right</span>
+      <p>The three validation scenarios hit their thresholds and the graph-store decision resolves cleanly. Mid-market Kubernetes accounts (P1) close on the strength of the four demos. Greenfield deployments (P3) reach value without professional services, validating LC6. Customers describe the dependency graph as legible — the CAP5 floor holds, and the UCMDB cautionary tale is not repeated. Observed-versus-declared (W2) and inherited ownership (W1) are cited by customers as reasons they switched, not features they tolerated.</p>
+    </div>
+
+    <div class="cost">
+      <span class="cost-lab">Signals the bet is proving wrong</span>
+      <p>The graph store cannot meet the latency and throughput thresholds together, forcing a re-architecture. Namespace-inheritance confusion (CR1) shows up as a recurring support and churn theme rather than an onboarding wrinkle. Discovery depth (CR2) loses deals against incumbents whose scanners simply see more. The differentiators prove too niche — the wedge segments are real but too small to compound into a growth story, turning AC4 from an objection into a diagnosis. If two or more of these hold by month twelve, the bet needs revisiting, not just better execution.</p>
+    </div>
+
+    <div class="pullquote">
+      <div class="pq-text">The product is a bet that flat-and-legible beats comprehensive-and-unusable for the customer who has actually tried to use the comprehensive thing. The next twelve months are the wager being settled.</div>
+      <div class="pq-label">§ 09 · The honest case against</div>
+    </div>
+  </div>
+</section>
+
+<div class="act-break">
+  <div class="wrap">
+    <div class="act-label">Reference</div>
+    <h2>The appendices.</h2>
+    <p class="lede">Material to look up rather than read: the full version register, the cross-platform alignment matrix, the three migration verdicts, the principle-to-enforcement map, and the index of where each working file contributes.</p>
+  </div>
+</div>
+
+<section id="appendix">
+  <div class="wrap">
+    <div class="sec-label">§ 10 · Appendices</div>
+    <h2 class="sec-title">The reference record.</h2>
+
+    <h3 class="subsub">A · The version register</h3>
+    <p>Every flagged decision across the twelve-task program with its resolution and target version <span class="src">(Task 08)</span>. <span class="pill v01">v0.1</span> ships now; <span class="pill v02">v0.2</span> and <span class="pill v03">v0.3</span> are sequenced; <span class="pill rej">rejected</span> was considered and declined. Three items resolved as medium-confidence coin-flips and are marked — the calls most likely to be revisited.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Decision</th><th>Resolution</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>D1</td><td><code>providesApi</code> / <code>consumesApi</code> as distinct edges</td><td>Deferred; <code>API</code> class ships, edges follow.</td><td><span class="pill v03">v0.3</span></td></tr>
+          <tr><td>D2</td><td><code>protectedBy</code> security edge</td><td>Deferred — accelerates to v0.2 if a security-led design emerges. <em>Coin-flip.</em></td><td><span class="pill v03">v0.3</span></td></tr>
+          <tr><td>D3</td><td><code>ComputeCluster</code> class (gap G3)</td><td>Deferred; not required by the v0.1 scenarios.</td><td><span class="pill v02">v0.2</span></td></tr>
+          <tr><td>D4</td><td>Cross-class <code>succeedsLifecycleOf</code> (e.g. VM → container migration)</td><td>Same-class genealogy in v0.1; cross-class deferred. <em>Coin-flip.</em></td><td><span class="pill v02">v0.2</span></td></tr>
+          <tr><td>D5</td><td><code>Pod realizes ContainerImage</code> spine semantics</td><td>Kept, refined as non-spine-bearing so it does not pollute <code>criticalPath</code>.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>D6</td><td>The bearing-flag mechanism</td><td>Adopted — <code>impact_bearing</code> / <code>spine_bearing</code> default true.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>D7</td><td>Namespace-inherited ownership via two-hop resolve</td><td>Accepted; read-time resolver, 50ms p99 budget.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>D8</td><td><code>observation_frequency</code> enum on <code>communicatesWith</code></td><td>Confirmed.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>D9</td><td><code>succeedsLifecycleOf</code> subtype enum</td><td>Confirmed — version / dr / backup / migration / rollback.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>D10</td><td><code>BusinessService</code> vs <code>BusinessApplication</code></td><td>Ship both despite overlap; BusinessApplication noted weak. <em>Coin-flip.</em></td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>D11</td><td>Failure domain for provider-managed DataStores</td><td><code>failure_domain_unknown</code> sentinel rather than a false answer.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>D12</td><td><code>IPAddress memberOf Subnet</code></td><td>Simplification rejected; relationship modeled otherwise.</td><td><span class="pill rej">rej</span></td></tr>
+          <tr><td>R1</td><td><code>Container</code> as a class</td><td>Demoted to <code>Pod.containers[]</code> — attribute, not class.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>R2</td><td>Deployment / StatefulSet / DaemonSet as separate classes</td><td>Collapsed into one <code>WorkloadController</code>.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>R3</td><td><code>Cache</code> as its own class</td><td>Folded into the DataStore family; not separately modeled.</td><td><span class="pill rej">rej</span></td></tr>
+          <tr><td>R4</td><td><code>ConfigMap</code> and <code>Secret</code> as one class</td><td>Kept separate — Secret tracked distinctly for security.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>R5</td><td><code>IdentityProvider</code> as an attribute vs a class</td><td>Promoted to its own class to anchor <code>reaches</code>.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>R6</td><td><code>Hypervisor</code> domain placement</td><td>Infrastructure — it runs the compute, so it is compute.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>R7</td><td><code>Certificate</code> domain placement</td><td>Infrastructure — a deployed cryptographic asset.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>R8</td><td><code>NetworkInterface</code> as a concrete class</td><td>Kept concrete; flagged as the next demotion candidate.</td><td><span class="pill v02">v0.2</span></td></tr>
+          <tr><td>R9</td><td>Whether the Facility domain earns its place</td><td>Kept — it is the basis for <code>sharesFailureDomain</code>.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>R10</td><td>Merging the Platform / Infrastructure seam</td><td>Kept as two domains; the seam is meaningful.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>R11</td><td>Maximum abstraction depth</td><td>Capped at three layers; deeper inheritance rejected.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>R12</td><td>A separate <code>Data</code> domain</td><td>Rejected; data services live in Platform.</td><td><span class="pill rej">rej</span></td></tr>
+          <tr><td>R13</td><td><code>KubernetesCluster</code> → <code>Namespace</code> relationship</td><td><code>contains</code> — cluster contains namespace.</td><td><span class="pill v01">v0.1</span></td></tr>
+          <tr><td>R14</td><td>Modeling provider-managed resources</td><td>Absence of <code>runsOn</code> plus <code>managed=true</code> attribute, no phantom CIs.</td><td><span class="pill v01">v0.1</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="subsub">B · Cross-platform alignment matrix</h3>
+    <p>How each of the eleven edges and five domains aligns with the incumbents <span class="src">(Task 07)</span>. Only two edges align strongly across the board (<code>composedOf</code>, <code>memberOf</code>); eight align partially — almost always because OneOps splits one broad incumbent relationship into several precise ones — and one, <code>communicatesWith</code>, is pure white space no incumbent models as evidence.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Edge / domain</th><th>ServiceNow</th><th>BMC Helix</th><th>UCMDB</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-oneops"><code>composedOf</code></td><td><span class="gl full">strong</span></td><td><span class="gl full">strong</span></td><td><span class="gl full">strong</span></td></tr>
+          <tr><td class="cell-oneops"><code>contains</code></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td></tr>
+          <tr><td class="cell-oneops"><code>runsOn</code></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td><td><span class="gl full">strong</span></td></tr>
+          <tr><td class="cell-oneops"><code>dependsOn</code></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td></tr>
+          <tr><td class="cell-oneops"><code>communicatesWith</code></td><td><span class="gl none">white space</span></td><td><span class="gl none">white space</span></td><td><span class="gl none">white space</span></td></tr>
+          <tr><td class="cell-oneops"><code>realizes</code></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td></tr>
+          <tr><td class="cell-oneops"><code>memberOf</code></td><td><span class="gl full">strong</span></td><td><span class="gl full">strong</span></td><td><span class="gl full">strong</span></td></tr>
+          <tr><td class="cell-oneops"><code>manages</code></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td></tr>
+          <tr><td class="cell-oneops"><code>ownedBy</code></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td></tr>
+          <tr><td class="cell-oneops"><code>locatedIn</code></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td><td><span class="gl full">strong</span></td></tr>
+          <tr><td class="cell-oneops"><code>succeedsLifecycleOf</code></td><td><span class="gl half">partial</span></td><td><span class="gl none">white space</span></td><td><span class="gl half">partial</span></td></tr>
+          <tr><td class="cell-oneops">Business domain</td><td><span class="gl full">strong</span></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td></tr>
+          <tr><td class="cell-oneops">Application domain</td><td><span class="gl full">strong</span></td><td><span class="gl full">strong</span></td><td><span class="gl full">strong</span></td></tr>
+          <tr><td class="cell-oneops">Platform domain</td><td><span class="gl half">partial</span></td><td><span class="gl none">white space</span></td><td><span class="gl half">partial</span></td></tr>
+          <tr><td class="cell-oneops">Infrastructure domain</td><td><span class="gl full">strong</span></td><td><span class="gl full">strong</span></td><td><span class="gl full">strong</span></td></tr>
+          <tr><td class="cell-oneops">Facility domain</td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td><td><span class="gl half">partial</span></td></tr>
+        </tbody>
+      </table>
+      <div class="tbl-caption">Three gaps were named where OneOps has no edge an incumbent expects: G1 <code>providesApi</code>, G2 <code>protectedBy</code>, G3 <code>ComputeCluster</code> — all sequenced in the register above.</div>
+    </div>
+
+    <h3 class="subsub">C · The three migration verdicts</h3>
+    <p>What it costs to move from each incumbent, with the five largest mapping decisions per platform <span class="src">(Task 07 · Pt 4)</span>.</p>
+
+    <div class="card-stack">
+      <div class="card">
+        <div class="c-label">Verdict · moderate-to-painful</div>
+        <div class="c-title">ServiceNow</div>
+        <p class="c-desc">Painful chiefly because of scale collapse. The five decisions: (1) several hundred CMDB classes collapse onto 37, a lossy mapping that needs human adjudication; (2) the 53-plus relationship types collapse onto 11; (3) the Identification and Reconciliation Engine rules are reauthored against the new identity tiers; (4) the CSDM service layer remaps onto the <code>realizes</code> spine; (5) discovery patterns are rebuilt as discovery-profile integrations.</p>
+      </div>
+      <div class="card">
+        <div class="c-label">Verdict · painful</div>
+        <div class="c-title">BMC Helix</div>
+        <p class="c-desc">The hardest migration. The five decisions: (1) the deep DMTF CIM inheritance hierarchy unwinds onto shallow semantic types; (2) the Salesforce-style schema-and-workflow model gives way to config-not-schema; (3) the absence of any native pod model means platform CIs are built net-new, not mapped; (4) the Common Data Model classes map onto the 37; (5) the Helix relationship model converts to the 11 edges plus the write-time allowlist.</p>
+      </div>
+      <div class="card">
+        <div class="c-label">Verdict · moderate · closest prior art</div>
+        <div class="c-title">OpenText UCMDB</div>
+        <p class="c-desc">The easiest, because UCMDB is architecturally nearest. The five decisions: (1) the single abstract root ports directly — low effort; (2) calculated relationships map cleanly onto computed edges, a concept UCMDB already shares; (3) the discovery-domain organization re-sorts onto abstraction layers — the real work; (4) TQL queries are rewritten against the NL/semantic layer; (5) the UDM class model re-sorts onto the 37, a manageable remap rather than a collapse.</p>
+      </div>
+    </div>
+
+    <h3 class="subsub">D · Principles, cross-referenced to enforcement</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Principle</th><th>Where it is enforced</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-oneops">P01 · Small vocabulary</td><td>Rule 5d (default to attribute); the closed CMP1 / CMP2 registries.</td></tr>
+          <tr><td class="cell-oneops">P02 · Ground vs derived truth</td><td>CMP8 — the four computed edges are resolved on read, never stored.</td></tr>
+          <tr><td class="cell-oneops">P03 · Evidence on every artifact</td><td>CMP7 Evidence Store — source, confidence, freshness, TTL per fact.</td></tr>
+          <tr><td class="cell-oneops">P04 · English-direction naming</td><td>The fixed edge-direction convention, validated by the triplet allowlist.</td></tr>
+          <tr><td class="cell-oneops">P05 · Write-time correctness</td><td>CMP6 — the allowlist rejects malformed relationships at the boundary.</td></tr>
+          <tr><td class="cell-oneops">P06 · Config, not schema</td><td>CMP1 / CMP2 hold the vocabulary as runtime config, extensible without migration.</td></tr>
+          <tr><td class="cell-oneops">P07 · Prescriptive default</td><td>The shipped 37+6 classes, 11 edges, and full allowlist as the out-of-box default.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="subsub">E · Where each task file contributes</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Working file</th><th>Feeds</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-oneops">Task 01 · CI Decision Framework</td><td>§2 — what counts as a CI; the foundational test.</td></tr>
+          <tr><td class="cell-oneops">Task 02 · Vocabulary Disambiguation</td><td>§5 naming; principle P04.</td></tr>
+          <tr><td class="cell-oneops">Task 03 · Scope and Non-Goals</td><td>§2 — the deferrals (identity, attributes, lifecycle).</td></tr>
+          <tr><td class="cell-oneops">Task 04 · Classification Framework</td><td>§5 domains; §6 the seven principles.</td></tr>
+          <tr><td class="cell-oneops">Task 05a · Draft CI Class List</td><td>§5 — the class catalogue.</td></tr>
+          <tr><td class="cell-oneops">Task 05b · Class Metadata</td><td>§5 — per-class detail (the working record behind the tables).</td></tr>
+          <tr><td class="cell-oneops">Task 06 · Triplet Allowlist</td><td>§5 — the edges and the allowlist matrix. The keystone.</td></tr>
+          <tr><td class="cell-oneops">Task 07 · Cross-Platform Validation</td><td>§4 white-space differentiators; Appendices B and C.</td></tr>
+          <tr><td class="cell-oneops">Task 08 · Gap &amp; Conflict Resolution</td><td>Appendix A — the version register and the v0.1 freeze.</td></tr>
+          <tr><td class="cell-oneops">Task 10 · Architecture Requirements</td><td>§7 — the fourteen components and seven risks.</td></tr>
+          <tr><td class="cell-oneops">Task 11 · Product Requirements</td><td>§8 — capabilities, launch criteria, churn risks.</td></tr>
+          <tr><td class="cell-oneops">Task 12 · CXO Narrative</td><td>§1, §2, §3, and §9 — the strategic frame and the honest case.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-label="Motadata">
+        <g>
+          <path d="M291.6,220.35V45.51c89.35,14.97,159.88,85.5,174.85,174.85h-174.85Z" fill="#f17463"/>
+          <path d="M469.33,260.55c-2.39,115.7-97.04,208.78-213.29,208.78S42.67,373.76,42.67,255.95c0-12.13,1.01-24.08,2.94-35.56C62.24,120.96,147.8,44.87,251.45,42.67v88.31c-54.4,2.02-99.98,39.06-114.78,89.41-3.31,11.21-5.14,23.16-5.14,35.56,0,69.01,55.78,124.98,124.52,124.98,12.31,0,24.26-1.75,35.56-5.15,49.99-14.89,86.84-60.65,88.77-115.24h88.95Z"/>
+        </g>
+      </svg>
+    </div>
+    <div class="foot-brand">Motadata · OneOps</div>
+    <div class="foot-note">The source-of-truth reference for the OneOps CI Ontology — Pillar 2 of the Service-Centric Knowledge Graph. Consolidated from the twelve-task design program; companion to the SKG relationship-layer specification. After this ships, the synthesis phase is over and the build begins.</div>
+    <div class="foot-meta">CI Ontology v0.1 · Frozen 2026-06-16</div>
+  </div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.04, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('section, .act-break').forEach(el => {
+  el.classList.add('fade-in');
+  observer.observe(el);
+});
+</script>
+</body>
+</html>

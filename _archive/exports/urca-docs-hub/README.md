@@ -1,5 +1,8 @@
 # Unified RCA — complete docs hub (portable)
 
+> **FROZEN SNAPSHOT — DO NOT EDIT.** Live hub is `docs/` at the repo root (and `pillar-ab-implementation/` for contracts). This tree under `_archive/exports/` is a portable copy for offline browse only. Regenerate from live sources if you need a newer pack.
+
+
 Standalone copy of the browser documentation hub (`:8765/docs.html`).
 Snapshot: **2026-08-17** (ED hub matches DT/DD chronology: Thesis · Breakdown · Dual-layer · Timeline · Portal walkthrough).
 

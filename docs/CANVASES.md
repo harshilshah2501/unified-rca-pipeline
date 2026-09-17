@@ -6,7 +6,7 @@ Former `.canvas.tsx` companions (Cursor IDE only) map onto these hub pages:
 
 | Former canvas job | Open on the hub |
 |-------------------|-----------------|
-| ObserveOps HLD | [`observeops-pipeline-hld.html`](./observeops-pipeline-hld.html) |
+| ObserveOps HLD (+ workflow · GraphWriter · diagnose) | [`observeops-pipeline-hld.html`](./observeops-pipeline-hld.html) |
 | Shift-processing-left | [`observeops-shift-left-architecture.html`](./observeops-shift-left-architecture.html) |
 | Motadata 3 pillars vs shift-left | [`motadata-3pillars-architecture.html`](./motadata-3pillars-architecture.html) (explained) · [`motadata-3pillars-vs-shift-left.html`](./motadata-3pillars-vs-shift-left.html) (job map) · [`motadata-3pillars-study-qna.html`](./motadata-3pillars-study-qna.html) (study Q&A) · [`motadata-3pillars-implementation-scope.html`](./motadata-3pillars-implementation-scope.html) (kickoff scope) · [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) · [`GRAPH_QNA.md`](./GRAPH_QNA.md) (E1–E5 fabric Q&A) · **A/B slice:** [`pillar-ab-implementation/`](../pillar-ab-implementation/README.md) |
 | Pillar A / map·history / Vortex | [`fabric/`](./fabric/) — deep dive · e1–e5 · map/history · Vortex · exemplars · canvases under `pillar-a/reference/canvases/` |
@@ -18,7 +18,8 @@ Former `.canvas.tsx` companions (Cursor IDE only) map onto these hub pages:
 | Signal categories DT vs DD | [`comparable-pipeline-dt-dd.html`](./comparable-pipeline-dt-dd.html) · DT/DD hubs |
 | Federated vs DT gaps | [`federated-vs-dt-pipeline-gaps.html`](./federated-vs-dt-pipeline-gaps.html) |
 | Clocks × tiers / data lake | [`clock-ab-stage-reference.html`](./clock-ab-stage-reference.html) · [`rca-data-lake-brainstorm.html`](./rca-data-lake-brainstorm.html) |
-| RCA workflow / bakeoff | [`rca-workflow-sim.html`](../benchmarking/dashboard/rca-workflow-sim.html) |
+| Checkout diagnose (map + history) | [`observeops-pipeline-hld.html#diagnose`](./observeops-pipeline-hld.html#diagnose) (inside Our HLD) |
+| RCA workflow / bakeoff | [`rca-workflow-sim.html`](./rca-workflow-sim.html) |
 | E-com gold report | [`ECOM_CHECKOUT_RCA_ANALYSIS.md`](./ECOM_CHECKOUT_RCA_ANALYSIS.md) |
 
 Our HLD: [`observeops-pipeline-hld.html`](./observeops-pipeline-hld.html) (main menu) · secondary articles: [`hld-archive.html`](./hld-archive.html).

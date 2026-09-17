@@ -88,8 +88,17 @@ def load_seed_topology(path_or_dict: Any, tenant: str = "default") -> GraphState
 
 
 def apply_topo_updates(state: GraphState, source: IngestSource, gate: ResolvedOnlyGate | None = None) -> GraphState:
+    """Apply post-E2 ingest lines that are Topology's job.
+
+    Admit mapping (hub walkthrough NOOP / WRITE / DROP):
+      - signal_class != topo_update → NOOP (silent continue; metric/event/trace/anomaly)
+      - gate or catalog fail → DROP (append rejects)
+      - classify_relation skip → phased map-NOOP
+      - classify_relation emit → WRITE (upsert nodes + edge)
+    """
     gate = gate or ResolvedOnlyGate()
     for rec in source.records():
+        # NOOP — not Topology's signal_class (Pillar A / case path / other stores)
         if rec.get("signal_class") != "topo_update":
             continue
         result = gate.admit(rec)

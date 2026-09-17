@@ -4,7 +4,7 @@
 
 **Browser:** [`federated-vs-dt-pipeline-gaps.html`](./federated-vs-dt-pipeline-gaps.html) · [`:8765`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html)
 
-**Related:** [`DYNATRACE_PRODUCTION_PIPELINE.md`](../DYNATRACE_PRODUCTION_PIPELINE.md) · [`eleven-subsystem-mechanisms.html`](../eleven-subsystem-mechanisms.html) · [`federated-pipeline/docs/REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md) · [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](../multi-telemetry-rca-functional-and-acceptance-criteria.md) · [`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) · [`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) §6
+**Related:** [`DYNATRACE_PRODUCTION_PIPELINE.md`](../DYNATRACE_PRODUCTION_PIPELINE.md) · [`eleven-subsystem-mechanisms.html`](../eleven-subsystem-mechanisms.html) · [`federated-pipeline/docs/REQUIREMENTS.md`](../../federated-pipeline/docs/REQUIREMENTS.md) · [`multi-telemetry-rca-functional-and-acceptance-criteria.md`](../multi-telemetry-rca-functional-and-acceptance-criteria.md) · [`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) · [`RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md`](./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md) §6
 
 ---
 
@@ -160,7 +160,7 @@ So Vector was **missing from the Motadata Collect write-up**, not missing as a *
 
 ## 2. Motadata proposed architecture — Federated Part 1
 
-Canonical Motadata design (supplementary to the multi-telemetry FR/AC — not a replacement for it). Same content as PoC [`REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md) / Part 1 brief.
+Canonical Motadata design (supplementary to the multi-telemetry FR/AC — not a replacement for it). Same content as PoC [`REQUIREMENTS.md`](../../federated-pipeline/docs/REQUIREMENTS.md) / Part 1 brief.
 
 ### 2.1 Tier 1 — Event Graph (Dragonfly) — “What” and “When”
 
@@ -252,7 +252,7 @@ Divergent *machinery*: two-tier Dragonfly/Vortex + named algos vs Smartscape∥G
 
 ### 3.4 All 11 DT stages → Federated requirements (detail)
 
-FR ids from [`federated-pipeline/docs/REQUIREMENTS.md`](../federated-pipeline/docs/REQUIREMENTS.md). Fit uses the same Covered / Partial / Missing classes as §0.
+FR ids from [`federated-pipeline/docs/REQUIREMENTS.md`](../../federated-pipeline/docs/REQUIREMENTS.md). Fit uses the same Covered / Partial / Missing classes as §0.
 
 | # | DT stage (teaching) | Job | Federated requirement (nearest) | Fit |
 |---|---------------------|-----|----------------------------------|-----|

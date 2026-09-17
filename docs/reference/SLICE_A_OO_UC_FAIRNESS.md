@@ -2,7 +2,7 @@
 
 **Status:** Complete (fair extracts + scoreboard) — 2026-07-27  
 **Corpus:** ObserveOps UC-1..UC-5 only — **not** the portal-native 29  
-**Related:** [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md) · [`../ingestion-poc/adapters/OO_UC_PUSH.md`](../ingestion-poc/adapters/OO_UC_PUSH.md) · [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) · fair write-ups [`../benchmarking/results/comparison/reports/OO/fair/`](../benchmarking/results/comparison/reports/OO/fair/)
+**Related:** [`OO_UC_FAIRNESS_CHECKLIST.md`](./OO_UC_FAIRNESS_CHECKLIST.md) · [`../ingestion-poc/adapters/OO_UC_PUSH.md`](../../ingestion-poc/adapters/OO_UC_PUSH.md) · [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) · fair write-ups [`../benchmarking/results/comparison/reports/OO/fair/`](../../benchmarking/results/comparison/reports/OO/fair/)
 
 
 ---
@@ -26,11 +26,11 @@
 
 | UC | Pack GT root / signature | Symptom seed | OO write-up (fair) | Contaminated historical? |
 |----|--------------------------|--------------|---------------------|--------------------------|
-| UC-1 | `esxi-host-01` / `cpu_contention` | `orders-api` / `request.p95_latency_ms` | [`fair/UC-1`](../benchmarking/results/comparison/reports/OO/fair/UC-1.md) ✗ | [`_historical_contaminated/uc1_…`](../benchmarking/results/comparison/reports/OO/_historical_contaminated/uc1_esxi_cpu_contention.md) |
-| UC-2 | `switch-core-01:GigE0/2` / `link_failure` | `orders-api` / `tcp.timeouts` | [`fair/UC-2`](../benchmarking/results/comparison/reports/OO/fair/UC-2.md) ✗ | [`uc2_…`](../benchmarking/results/comparison/reports/OO/_historical_contaminated/uc2_core_switch_link_failure.md) |
-| UC-3 | `datastore-01` / `storage_contention` | `orders-api` / `request.p95_latency_ms` | [`fair/UC-3`](../benchmarking/results/comparison/reports/OO/fair/UC-3.md) ✗ | [`uc3_…`](../benchmarking/results/comparison/reports/OO/_historical_contaminated/uc3_datastore_storage_contention.md) |
-| UC-4 | `guest-os-vm-app-01` / `os_resource_exhaustion` | `orders-api` / `error_rate_5xx` | [`fair/UC-4`](../benchmarking/results/comparison/reports/OO/fair/UC-4.md) ✗ | [`uc4_…`](../benchmarking/results/comparison/reports/OO/_historical_contaminated/uc4_guest_os_resource_exhaustion.md) |
-| UC-5 | `orders-api` / `app_resource_exhaustion` | `orders-api` / `request.p95_latency_ms` | [`fair/UC-5`](../benchmarking/results/comparison/reports/OO/fair/UC-5.md) ✓ | [`uc5_…`](../benchmarking/results/comparison/reports/OO/_historical_contaminated/uc5_orders_api_resource_exhaustion.md) |
+| UC-1 | `esxi-host-01` / `cpu_contention` | `orders-api` / `request.p95_latency_ms` | [`fair/UC-1`](../../benchmarking/results/comparison/reports/OO/fair/UC-1.md) ✗ | [`_historical_contaminated/uc1_…`](../../benchmarking/results/comparison/reports/OO/_historical_contaminated/uc1_esxi_cpu_contention.md) |
+| UC-2 | `switch-core-01:GigE0/2` / `link_failure` | `orders-api` / `tcp.timeouts` | [`fair/UC-2`](../../benchmarking/results/comparison/reports/OO/fair/UC-2.md) ✗ | [`uc2_…`](../../benchmarking/results/comparison/reports/OO/_historical_contaminated/uc2_core_switch_link_failure.md) |
+| UC-3 | `datastore-01` / `storage_contention` | `orders-api` / `request.p95_latency_ms` | [`fair/UC-3`](../../benchmarking/results/comparison/reports/OO/fair/UC-3.md) ✗ | [`uc3_…`](../../benchmarking/results/comparison/reports/OO/_historical_contaminated/uc3_datastore_storage_contention.md) |
+| UC-4 | `guest-os-vm-app-01` / `os_resource_exhaustion` | `orders-api` / `error_rate_5xx` | [`fair/UC-4`](../../benchmarking/results/comparison/reports/OO/fair/UC-4.md) ✗ | [`uc4_…`](../../benchmarking/results/comparison/reports/OO/_historical_contaminated/uc4_guest_os_resource_exhaustion.md) |
+| UC-5 | `orders-api` / `app_resource_exhaustion` | `orders-api` / `request.p95_latency_ms` | [`fair/UC-5`](../../benchmarking/results/comparison/reports/OO/fair/UC-5.md) ✓ | [`uc5_…`](../../benchmarking/results/comparison/reports/OO/_historical_contaminated/uc5_orders_api_resource_exhaustion.md) |
 
 OO streams from push: `observeops_uc_uc1` … `observeops_uc_uc5` · filter `corpus=observeops` / `uc_id`.
 
@@ -40,9 +40,9 @@ OO streams from push: `observeops_uc_uc1` … `observeops_uc_uc5` · filter `cor
 
 **Do not duplicate numbers here.** Canonical fair scoreboard:
 
-- [`LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) §2  
-- [`OO/fair/scoreboard.json`](../benchmarking/results/comparison/reports/OO/fair/scoreboard.json)  
-- Per-UC write-ups: [`OO/fair/`](../benchmarking/results/comparison/reports/OO/fair/)
+- [`LEAN_FED_OO_COMPARISON.md`](../../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) §2  
+- [`OO/fair/scoreboard.json`](../../benchmarking/results/comparison/reports/OO/fair/scoreboard.json)  
+- Per-UC write-ups: [`OO/fair/`](../../benchmarking/results/comparison/reports/OO/fair/)
 
 **Headline:** Lean **5/5** · Federated **5/5** · OO fair **1/5** (UC-5 only) · run `adr001-rerun-20260723` · shift-to-now for OO.
 
@@ -92,11 +92,11 @@ Fire condition: same seed metric / threshold as pack Detect (symptom CI only).
 
 ### C. Blind extract → then RCA — **done 2026-07-27**
 
-Canonical write-ups: [`reports/OO/fair/`](../benchmarking/results/comparison/reports/OO/fair/). Score sheet §3 filled. Contaminated = N for fair alerts (historical `OO/uc*_…` still contaminated).
+Canonical write-ups: [`reports/OO/fair/`](../../benchmarking/results/comparison/reports/OO/fair/). Score sheet §3 filled. Contaminated = N for fair alerts (historical `OO/uc*_…` still contaminated).
 
 ### D. Publish — **done 2026-07-27**
 
-[`LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) updated to fair OO **1/5** (contaminated 5/5 narrative withdrawn).
+[`LEAN_FED_OO_COMPARISON.md`](../../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) updated to fair OO **1/5** (contaminated 5/5 narrative withdrawn).
 
 ---
 
@@ -110,8 +110,8 @@ Canonical write-ups: [`reports/OO/fair/`](../benchmarking/results/comparison/rep
 | 4 | Symptom alert templates | **Done** (§4B) |
 | 5 | Fair re-push to OO | **Done** — parity fair push, then **2026-07-27 shift-to-now** (`oo_push_summary_fair_shifted.json`) so incident clock matches data |
 | 6 | Scrub/replace alerts in OO UI | **Done** 2026-07-27 — 5 fair alerts; silence 24h; period 6h |
-| 7 | Blind extracts + re-pull write-ups | **Done** 2026-07-27 — [`reports/OO/fair/`](../benchmarking/results/comparison/reports/OO/fair/) |
-| 8 | Fill score sheet + update compare doc | **Done** — score sheet above + [`LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) |
+| 7 | Blind extracts + re-pull write-ups | **Done** 2026-07-27 — [`reports/OO/fair/`](../../benchmarking/results/comparison/reports/OO/fair/) |
+| 8 | Fill score sheet + update compare doc | **Done** — score sheet above + [`LEAN_FED_OO_COMPARISON.md`](../../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) |
 
 ---
 

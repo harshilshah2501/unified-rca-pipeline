@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Checkout case · diagnose walkthrough (map + history)</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta name="description" content="Step-by-step Motadata ObserveOps diagnose: identify CI, walk map/ dependencies, fetch sketch-history, blast radius, localize, package. Hub companion to the unified pipeline workflow page." />
+<link rel="stylesheet" href="/urca-docs.css" />
+<script src="/theme-init.js"></script>
+<style>
+  .wrap { max-width: 58rem; }
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 0.35rem;
+  }
+  h1 { margin: 0 0 0.5rem; font-size: 1.55rem; font-weight: 650; line-height: 1.25; }
+  h2 { margin: 0 0 0.35rem; font-size: 1.15rem; }
+  h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+  .lead { margin: 0 0 1.1rem; color: var(--muted); font-size: 0.97rem; max-width: 48rem; }
+  .lead code, .how code, .ex code, td code { font-family: var(--mono); font-size: 0.86em; color: var(--accent); }
+  a { color: var(--accent); }
+
+  .nav-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0 0 0.85rem; }
+  .btn {
+    appearance: none; border: 1px solid var(--stroke); background: var(--bg-soft);
+    color: var(--muted); font-family: var(--font); font-size: 0.85rem;
+    padding: 0.45rem 0.85rem; border-radius: 999px; cursor: pointer;
+  }
+  .btn:hover:not(:disabled) { color: var(--text); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.primary {
+    background: var(--accent-soft); border-color: rgba(61, 154, 139, 0.55);
+    color: var(--text); font-weight: 600;
+  }
+  .count { color: var(--faint); font-size: 0.85rem; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 1rem; }
+  .tab {
+    appearance: none; border: 1px solid var(--stroke); background: var(--bg-soft);
+    color: var(--muted); font-family: var(--font); font-size: 0.78rem;
+    padding: 0.35rem 0.65rem; border-radius: 999px; cursor: pointer;
+  }
+  .tab[aria-selected="true"] {
+    color: var(--text); background: var(--accent-soft);
+    border-color: rgba(61, 154, 139, 0.55); font-weight: 600;
+  }
+  .tab.done { border-color: rgba(122, 236, 196, 0.35); }
+
+  .grid-2 {
+    display: grid; gap: 0.85rem; grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0 0 1rem;
+  }
+  @media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .card {
+    border: 1px solid var(--stroke); border-radius: 10px;
+    background: var(--bg-elev); overflow: hidden;
+  }
+  .card-h {
+    display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--stroke);
+    font-size: 0.82rem; font-weight: 600; background: var(--bg-soft);
+  }
+  .card-b { padding: 0.85rem 0.9rem; }
+  .card-b p { margin: 0 0 0.55rem; color: var(--muted); font-size: 0.9rem; line-height: 1.45; }
+  .pill {
+    font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 999px;
+    border: 1px solid var(--stroke); color: var(--muted); white-space: nowrap;
+  }
+  .pill.map { color: #7ba8f5; border-color: rgba(123,168,245,.45); }
+  .pill.hist { color: #f0b35a; border-color: rgba(240,179,90,.45); }
+  .pill.case { color: #e8a070; border-color: rgba(232,160,112,.45); }
+  .pill.human { color: #7aecc4; border-color: rgba(122,236,196,.45); }
+
+  .how { margin: 0; }
+  .how ol { margin: 0.35rem 0 0; padding-left: 1.2rem; color: var(--text); }
+  .how li { margin: 0 0 0.55rem; font-size: 0.9rem; line-height: 1.45; color: var(--muted); }
+  .how li strong { color: var(--text); font-weight: 600; }
+  .ex {
+    margin: 0.75rem 0 0; padding: 0.65rem 0.75rem; border-radius: 8px;
+    background: #0c1016; border: 1px solid var(--stroke);
+    font-family: var(--mono); font-size: 0.8rem; color: #d5dde6;
+  }
+  .evidence {
+    margin: 0.85rem 0 0; padding: 0.65rem 0.8rem; border-radius: 8px;
+    border: 1px solid var(--stroke); border-left: 3px solid var(--faint);
+    background: var(--bg-soft); color: var(--faint); font-size: 0.82rem; line-height: 1.4;
+  }
+
+  .dia {
+    border: 1px solid var(--stroke); border-radius: 10px;
+    background: #10161d; padding: 0.65rem 0.4rem 0.4rem; margin: 0 0 0.5rem;
+  }
+  .dia svg { display: block; width: 100%; height: auto; }
+  .cap { margin: 0; font-size: 0.78rem; color: var(--faint); line-height: 1.35; }
+
+  .callout {
+    border: 1px solid var(--stroke); border-left: 3px solid #f0b35a;
+    background: var(--bg-elev); border-radius: 8px; padding: 0.75rem 0.9rem;
+    margin: 0 0 1.1rem; color: var(--muted); font-size: 0.9rem; line-height: 1.45;
+  }
+  .table-wrap {
+    overflow-x: auto; border: 1px solid var(--stroke); border-radius: 8px; margin: 1rem 0 0;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  th, td {
+    text-align: left; vertical-align: top; padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--stroke);
+  }
+  th {
+    background: var(--bg-soft); color: var(--faint); font-size: 0.72rem;
+    letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600;
+  }
+  tr:last-child td { border-bottom: none; }
+  .meta {
+    margin-top: 1.75rem; padding-top: 1rem; border-top: 1px solid var(--stroke);
+    font-size: 0.82rem; color: var(--faint);
+  }
+</style>
+</head>
+<body class="urca-doc article">
+<div class="wrap article">
+  <div class="eyebrow">Motadata · ObserveOps · E6–E11 diagnose · docs hub</div>
+  <h1>Checkout case — how diagnose uses <code>map/</code> and <code>history/</code></h1>
+  <p class="lead">
+    Interactive walkthrough for one Detect signal on a payment / checkout path.
+    Present topology comes from <code>map/</code> (Pillar B). Metric and baseline history
+    come from sketch rows under <code>history/</code> (Pillar A). The Knowledge Graph / map is
+    an at-the-moment view — it does not store time series.
+    Parent page: <a href="/motadata-unified-pipeline-workflow.html">unified pipeline workflow</a>.
+  </p>
+
+  <div class="callout">
+    <strong style="color:var(--text)">Rooms, not one store.</strong>
+    Scope read-joins neighbors from <code>map/</code> with sketch windows from <code>history/</code>
+    into a WorkingSet. Do not ask Topology for “what was p99 yesterday,” and do not ask
+    sketch-history to rebuild the whole dependency graph.
+  </div>
+
+  <div class="nav-btns">
+    <button type="button" class="btn" id="prev" disabled>Previous</button>
+    <button type="button" class="btn primary" id="next">Next step</button>
+    <button type="button" class="btn" id="reset">Reset</button>
+    <span class="count" id="count">Step 1 of 7</span>
+  </div>
+  <div class="tabs" role="tablist" aria-label="Diagnose steps" id="tabs"></div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-h">
+        <span id="title">…</span>
+        <span class="pill" id="storePill">…</span>
+      </div>
+      <div class="card-b">
+        <h3>What diagnose does</h3>
+        <p id="what"></p>
+        <h3>This scenario</h3>
+        <div class="ex" id="example"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span>Topology focus (present <code>map/</code>)</span></div>
+      <div class="card-b">
+        <div class="dia" aria-hidden="true">
+          <svg id="topo" viewBox="0 0 300 240" role="img" aria-label="Checkout dependency graph"></svg>
+        </div>
+        <p class="cap">Accent edges = upstream deps from the suspect. Grey edges = downstream blast radius. Auth highlights when history implicates a change.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span>How this step works</span></div>
+    <div class="card-b how">
+      <p id="howIntro"></p>
+      <ol id="howSteps"></ol>
+      <div class="evidence" id="howNote"></div>
+    </div>
+  </div>
+
+  <h2 style="margin-top:1.5rem;">Present map vs history stores</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Question</th><th>Motadata room</th><th>Edge Delta comparator (research)</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Who is this CI <strong>now</strong>?</td>
+          <td>Present node in <code>map/</code> (GraphSnapshot)</td>
+          <td>Knowledge Graph entity</td>
+        </tr>
+        <tr>
+          <td>What does it depend on <strong>now</strong>?</td>
+          <td>Outbound edges on present map</td>
+          <td>KG upstream (+ live K8s map)</td>
+        </tr>
+        <tr>
+          <td>Who fails if it fails <strong>now</strong>?</td>
+          <td>Inbound / reverse walk on present map</td>
+          <td>KG blast radius</td>
+        </tr>
+        <tr>
+          <td>Was behaviour worse than baseline around <strong>t0</strong>?</td>
+          <td><strong>sketch-history</strong> rows under <code>history/</code> for that <code>ci_id</code></td>
+          <td>MCP metrics / logs / traces (not KG)</td>
+        </tr>
+        <tr>
+          <td>Did something change recently?</td>
+          <td>Change / deploy evidence (separate from sketches)</td>
+          <td>GitHub / change connectors</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="meta">
+    Hub URL: <a href="/checkout-diagnose-walkthrough.html"><code>:8765/checkout-diagnose-walkthrough.html</code></a>
+    · Embedded from <a href="/motadata-unified-pipeline-workflow.html#investigate">unified pipeline workflow § investigate</a>
+    · ED research notes in repo root <code>E6-E11-mapping.md</code> (comparator only).
+    Teaching spine aligned with <code>lab_checkout</code> fixtures where named.
+  </p>
+</div>
+<script>
+(function () {
+  const STEPS = [
+    {
+      id: "alert",
+      label: "0 · Detect",
+      title: "E6 Detect — form the Signal seed",
+      store: "case",
+      storeLabel: "Case path (not map/)",
+      what: "Turn the firing detector into a Signal: which configuration item, which fault class, and when (t0). No root-cause claim yet.",
+      howIntro: "Diagnose does not start by walking the graph. Detect emits a Signal; Curate later merges correlated Signals into a CaseSeed. The seed must carry enough identity to join map/ and history/.",
+      howSteps: [
+        "Read structured detector fields when present: service / ci name, severity, timestamp, measured value (for example error rate 23%).",
+        "If the alert is free text only, extract a candidate CI name (payment-service / checkout-api) and normalize to the identity namespace Identity already uses.",
+        "Fix t0 and a provisional window so later sketch fetches are bounded — not whole-estate forever.",
+        "Hand off to E7 Curate to merge related Signals into one CaseSeed before Scope.",
+      ],
+      howNote: "Motadata: Signal is fault class only. Edge Delta analogue: monitor event or pipeline signal JSON — still not a Knowledge Graph query.",
+      example: "Signal · payment-service · error_rate spike 23% · t0 = 03:42",
+      showUp: false, showDown: false, highlightAuth: false, highlightPayment: false, showHistoryBadge: false,
+    },
+    {
+      id: "entity",
+      label: "1 · Identify",
+      title: "Resolve the suspect CI on present map/",
+      store: "map",
+      storeLabel: "map/ · present GraphSnapshot",
+      what: "Bind the seed string to a real configuration item (ci_id) and attach type / ownership context from the present graph.",
+      howIntro: "Identity already stamped tenant + ci_id on fabric ingest. On the case path, Scope starts from the CaseSeed CI and loads that node from the current GraphSnapshot under map/ — not from sketch-history.",
+      howSteps: [
+        "Take the seed CI name / id from the CaseSeed.",
+        "Lookup the node in the present GraphSnapshot (Pillar B Topology output). Confirm ci_type (Service, Database, …) and aliases.",
+        "Attach neighborhood metadata available on the node (owner/team when modeled) for paging and citations.",
+        "If the CI is brand-new and not yet on map/, Scope cannot invent topology — fabric must admit the CI first (or you degrade to name-only telemetry joins).",
+      ],
+      howNote: "Present map only. Freshness is E5 Maintain’s job on the fabric side — cases read a versioned snapshot, they do not rewrite topology per alert.",
+      example: "ci_id → payment-service · type Service · on map/ snapshot",
+      showUp: false, showDown: false, highlightAuth: false, highlightPayment: true, showHistoryBadge: false,
+    },
+    {
+      id: "upstream",
+      label: "2 · Upstream",
+      title: "E8 Scope — walk outbound dependencies on map/",
+      store: "map",
+      storeLabel: "map/ · present edges",
+      what: "List CIs this service depends on (depends_on, runs_on, calls, …) to build the WorkingSet neighborhood.",
+      howIntro: "Edges already live in map/ from Topology (GraphWriter). Scope performs a bounded outbound walk from the seed CI — it does not rediscover the estate from raw telemetry inside the case.",
+      howSteps: [
+        "Start at payment-service (or checkout-api in lab_checkout).",
+        "Follow catalog edge types outbound (for example depends_on → auth-service, payments-db).",
+        "Respect WorkingSet budget: depth / fan-out limits so the neighborhood stays diagnosable.",
+        "Keep relationship labels — blocking synchronous deps are checked first when Identify runs.",
+        "Still no latency numbers: this step only shapes the candidate set.",
+      ],
+      howNote: "Pillar B owns edge write path. Case path is read-only on map/.",
+      example: "payment-service → auth-service · payment-gateway-db · stripe-api (async fraud secondary)",
+      showUp: true, showDown: false, highlightAuth: false, highlightPayment: true, showHistoryBadge: false,
+    },
+    {
+      id: "history",
+      label: "3 · History",
+      title: "Join sketch-history rows for those CIs",
+      store: "hist",
+      storeLabel: "history/ · sketch.v1 rows",
+      what: "Prove which neighbor actually degraded around t0 using metric sketches and baselines — not by time-traveling the graph.",
+      howIntro: "map/ told diagnose where to look. history/ tells what changed in time. For each CI in the WorkingSet, fetch sketch.v1 rows (windows, percentiles, seasonal baselines) for the alert window.",
+      howSteps: [
+        "For the seed and each blocking neighbor, read sketch-history keyed by tenant + ci_id (+ metric name) over the Scope window.",
+        "Compare recent window stats to baseline / prior windows (story: auth latency 50ms → 500ms).",
+        "Optionally join change evidence (deploy version near t0) from a change feed — separate from sketches.",
+        "Correlate: payment timeouts + auth sketch breach + auth deploy → working leaf hypothesis.",
+        "Do not expect sketch-history to list dependency edges; do not expect map/ to hold p99 time series.",
+      ],
+      howNote: "Motadata sketch-history = metric sketch retention (E4 Stores / E5 baselines). Edge Delta analogue = MCP telemetry + deploy connectors — not Knowledge Graph edges.",
+      example: "auth-service sketches · p50 50→500ms · deploy v2.14.3 @ 03:30",
+      showUp: true, showDown: false, highlightAuth: true, highlightPayment: true, showHistoryBadge: true,
+    },
+    {
+      id: "blast",
+      label: "4 · Blast",
+      title: "Downstream impact — reverse walk on map/",
+      store: "map",
+      storeLabel: "map/ · reverse edges",
+      what: "Enumerate who depends on the failing CI so Package can state blast radius and stakeholders.",
+      howIntro: "Reverse of upstream: walk inbound edges to payment-service (callers / dependents) on the present snapshot.",
+      howSteps: [
+        "From the suspect CI, traverse inbound catalog edges (who depends_on / calls this CI).",
+        "Label distance: direct callers = 1; transitive via another CI = 2+.",
+        "Enrich with traffic or customer-facing hints from sketches / business tags when available — rates come from history or tags, not static edge rows alone.",
+        "Feed Scope / Package narrative: count of affected CIs and user-impact estimate.",
+      ],
+      howNote: "Blast radius is present topology. Historical “who used to call me last month” needs map snapshots if you require that — not sketch rows.",
+      example: "checkout · subscription · refund (d=1) · order-fulfillment (d=2 via checkout)",
+      showUp: true, showDown: true, highlightAuth: true, highlightPayment: true, showHistoryBadge: false,
+    },
+    {
+      id: "criticality",
+      label: "5 · Localize",
+      title: "E9 Localize — pick the leaf claim",
+      store: "map",
+      storeLabel: "WorkingSet · leaf on map + history",
+      what: "Choose one LeafClaim on the scoped neighborhood: deepest / longest-supported fault, not merely the noisiest alert.",
+      howIntro: "Localize combines present graph structure (where the leaf sits) with history evidence (which CI’s sketches actually broke). Criticality / serial vs parallel dependency patterns bias which leaf is actionable.",
+      howSteps: [
+        "Rank candidates using neighborhood structure (serial payment hop vs parallel auth mesh) plus sketch breaches.",
+        "Select one leaf CI + fault class as LeafClaim (story: auth-service latency / pool exhaustion).",
+        "Carry supporting neighbor context for Identify (EvidenceBundle), not a second competing root.",
+        "Escalate priority when blast radius is customer-facing (checkout blocked).",
+      ],
+      howNote: "Motadata Localize ≠ Edge Delta “criticality score” API — same intent (environmental impact), different product object (LeafClaim).",
+      example: "LeafClaim · auth-service · latency / pool · payment is symptom",
+      showUp: true, showDown: true, highlightAuth: true, highlightPayment: true, showHistoryBadge: true,
+    },
+    {
+      id: "package",
+      label: "6 · Package",
+      title: "E10–E11 — evidence then VerdictCard",
+      store: "human",
+      storeLabel: "EvidenceBundle → VerdictCard",
+      what: "Attach evidence, then package a ticket-ready close for operators — humans approve remediations.",
+      howIntro: "Identify gathers EvidenceBundle (sketches, logs, change). Package emits VerdictCard: suspect, neighborhood, confidence, recommended action.",
+      howSteps: [
+        "Bind LeafClaim to concrete evidence pointers (sketch windows, log excerpts, deploy id).",
+        "Write VerdictCard: root vs symptom, blast radius, confidence, recommended rollback / fix.",
+        "Cite rooms used: map/ edge trail + history/ sketch keys — so operators can re-open the same joins.",
+        "Human executes remediation (rollback auth). Pipeline packages judgment; it does not silently mutate production.",
+      ],
+      howNote: "Verify is judgment inside Identify — not a twelfth stage on the Motadata poster.",
+      example: "VerdictCard · rollback auth-service → prior version · @oncall confirms",
+      showUp: true, showDown: true, highlightAuth: true, highlightPayment: true, showHistoryBadge: true,
+    },
+  ];
+
+  const NODES = [
+    { id: "checkout", x: 40, y: 28, label: "checkout", tier: "down" },
+    { id: "subscription", x: 140, y: 28, label: "subscription", tier: "down" },
+    { id: "refund", x: 240, y: 28, label: "refund", tier: "down" },
+    { id: "payment", x: 140, y: 110, label: "payment", tier: "suspect" },
+    { id: "auth", x: 40, y: 192, label: "auth", tier: "up" },
+    { id: "pgdb", x: 140, y: 192, label: "pay-db", tier: "up" },
+    { id: "stripe", x: 240, y: 192, label: "stripe", tier: "up" },
+  ];
+  const EDGES = [
+    { from: "checkout", to: "payment", kind: "down" },
+    { from: "subscription", to: "payment", kind: "down" },
+    { from: "refund", to: "payment", kind: "down" },
+    { from: "payment", to: "auth", kind: "up" },
+    { from: "payment", to: "pgdb", kind: "up" },
+    { from: "payment", to: "stripe", kind: "up" },
+  ];
+
+  const css = getComputedStyle(document.documentElement);
+  // Fallbacks if CSS vars resolve empty in some themes
+  const color = {
+    text: css.getPropertyValue("--text").trim() || "#e8eef5",
+    muted: css.getPropertyValue("--muted").trim() || "#9aa8b8",
+    stroke: css.getPropertyValue("--stroke").trim() || "#2a3441",
+    accent: css.getPropertyValue("--accent").trim() || "#3d9a8b",
+    soft: css.getPropertyValue("--bg-soft").trim() || "#121821",
+    elev: css.getPropertyValue("--bg-elev").trim() || "#151c26",
+  };
+
+  let idx = 0;
+  const tabsEl = document.getElementById("tabs");
+  const svg = document.getElementById("topo");
+  const nodeMap = Object.fromEntries(NODES.map((n) => [n.id, n]));
+
+  STEPS.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "tab";
+    b.textContent = s.label;
+    b.setAttribute("role", "tab");
+    b.addEventListener("click", () => { idx = i; render(); });
+    tabsEl.appendChild(b);
+  });
+
+  function draw(step) {
+    const accent = color.accent;
+    const muted = color.muted;
+    let html = "";
+    EDGES.forEach((e) => {
+      const show = (e.kind === "up" && step.showUp) || (e.kind === "down" && step.showDown);
+      if (!show) return;
+      const a = nodeMap[e.from], b = nodeMap[e.to];
+      html += `<line x1="${a.x + 28}" y1="${a.y + 14}" x2="${b.x + 28}" y2="${b.y + 14}" stroke="${e.kind === "up" ? accent : muted}" stroke-width="2" opacity="0.85" />`;
+    });
+    NODES.forEach((n) => {
+      const isPayment = n.id === "payment";
+      const isAuth = n.id === "auth";
+      const dimUp = n.tier === "up" && !step.showUp;
+      const dimDown = n.tier === "down" && !step.showDown;
+      const dim = (dimUp || dimDown) && !isPayment;
+      const active = (isPayment && step.highlightPayment) || (isAuth && step.highlightAuth);
+      const fill = dim ? color.soft : active ? accent : color.elev;
+      const stroke = active ? accent : color.stroke;
+      const textFill = dim ? muted : active ? "#0b1210" : color.text;
+      html += `<g opacity="${dim ? 0.35 : 1}"><rect x="${n.x}" y="${n.y}" width="56" height="28" rx="4" fill="${fill}" stroke="${stroke}" stroke-width="1"/><text x="${n.x + 28}" y="${n.y + 18}" text-anchor="middle" fill="${textFill}" font-size="9" font-family="inherit">${n.label}</text></g>`;
+    });
+    if (step.showHistoryBadge) {
+      html += `<g><rect x="8" y="218" width="200" height="16" rx="3" fill="${color.soft}" stroke="${color.stroke}"/><text x="14" y="229" fill="${muted}" font-size="9" font-family="inherit">History: history/ sketches — not map/ edges</text></g>`;
+    }
+    svg.innerHTML = html;
+  }
+
+  function render() {
+    const step = STEPS[idx];
+    document.getElementById("count").textContent = `Step ${idx + 1} of ${STEPS.length}`;
+    document.getElementById("title").textContent = step.title;
+    document.getElementById("what").textContent = step.what;
+    document.getElementById("example").textContent = step.example;
+    document.getElementById("howIntro").textContent = step.howIntro;
+    document.getElementById("howNote").textContent = "Evidence bar: " + step.howNote;
+    const ol = document.getElementById("howSteps");
+    ol.innerHTML = "";
+    step.howSteps.forEach((line) => {
+      const li = document.createElement("li");
+      li.textContent = line;
+      ol.appendChild(li);
+    });
+    const pill = document.getElementById("storePill");
+    pill.textContent = step.storeLabel;
+    pill.className = "pill " + step.store;
+    [...tabsEl.children].forEach((el, i) => {
+      el.setAttribute("aria-selected", i === idx ? "true" : "false");
+      el.classList.toggle("done", i < idx);
+    });
+    document.getElementById("prev").disabled = idx === 0;
+    document.getElementById("next").disabled = idx >= STEPS.length - 1;
+    draw(step);
+  }
+
+  document.getElementById("prev").addEventListener("click", () => { if (idx > 0) { idx--; render(); } });
+  document.getElementById("next").addEventListener("click", () => { if (idx < STEPS.length - 1) { idx++; render(); } });
+  document.getElementById("reset").addEventListener("click", () => { idx = 0; render(); });
+  render();
+})();
+</script>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

@@ -80,9 +80,9 @@ class InvocationGraph:
     def collect_upstream(self, start: str) -> list[str]: ...  # BFS, discovery order
 ```
 
-Reference: [`lean-pipeline/core_engine/lean/invocation_graph.py`](../lean-pipeline/core_engine/lean/invocation_graph.py). Trusts `topology.json`'s edges completely — **no edge derivation, no typed-ID fallback rules**. This is the "typed IDs when cheap" half of D1: the corpus already gives clean typed edges, so Lean does the cheap thing and takes them as-is.
+Reference: [`lean-pipeline/core_engine/lean/invocation_graph.py`](../../lean-pipeline/core_engine/lean/invocation_graph.py). Trusts `topology.json`'s edges completely — **no edge derivation, no typed-ID fallback rules**. This is the "typed IDs when cheap" half of D1: the corpus already gives clean typed edges, so Lean does the cheap thing and takes them as-is.
 
-Directly consumed in production path: `graph = InvocationGraph.from_topology(bundle["topology"])` in [`lean-pipeline/core_engine/observeops/engine.py:32`](../lean-pipeline/core_engine/observeops/engine.py), immediately handed to `best_first_walk()` (E9). **Architecture note:** in this repo, E3's graph construction and E9's walk happen inside one function call, not as separately staged services — the HLD models them as contract-separated stages; the implementation is currently a monolith that satisfies the same data contract. Worth knowing before assuming E3 is independently deployable today.
+Directly consumed in production path: `graph = InvocationGraph.from_topology(bundle["topology"])` in [`lean-pipeline/core_engine/observeops/engine.py:32`](../../lean-pipeline/core_engine/observeops/engine.py), immediately handed to `best_first_walk()` (E9). **Architecture note:** in this repo, E3's graph construction and E9's walk happen inside one function call, not as separately staged services — the HLD models them as contract-separated stages; the implementation is currently a monolith that satisfies the same data contract. Worth knowing before assuming E3 is independently deployable today.
 
 ### 3.2 Federated — `RelationshipGraph` (typed IDs + derived edges)
 
@@ -98,7 +98,7 @@ class RelationshipGraph:
     def build_from_monitoring_db(self, app_id, monitoring_db) -> None: ...
 ```
 
-Reference: [`federated-pipeline/murphy/graph.py`](../federated-pipeline/murphy/graph.py). Two edge sources, both active:
+Reference: [`federated-pipeline/murphy/graph.py`](../../federated-pipeline/murphy/graph.py). Two edge sources, both active:
 
 1. **Explicit edges** from entity metadata (`meta["neighbors"]`, `meta["directed_edges"]`) — the "typed IDs when cheap" case, same as Lean.
 2. **Type-based derived edges** (`_add_default_edges`) — a fixed rule table keyed by `entity_type` (`flow`, `vm`, `microservice`, `host`, `nic`, `container`) that wires edges even when no explicit edge was given (e.g. every `vm` connects to its `host_id` and `nic_ids` automatically). This is the "derived edges first" half of D1 — Federated will still produce a usable graph when the source only gives loosely-typed entities with metadata, not a fully pre-wired topology.
@@ -136,7 +136,9 @@ Edges default to **bidirectional** (`bidirectional=True`), unlike Lean's strictl
 
 ## 6. NFR baseline
 
-HLD §8/§15 leaves E3's "freshness window and bounded staleness" numerically unfilled. This LLD does not invent a number, because **no staleness-tracking code exists to measure against one** (§5) — filling in a target before the mechanism exists would be aspirational, not grounded. This is an explicit gap, not an oversight.
+**Declared-edge freshness (Motadata / operational graph — locked 2026-08-17):** for `declared` edges, soft-stale after **7 days** without corroborating signal or CMDB re-sync, hard-downgrade (exclude from confidence-bearing localize) after **30 days**. Any CMDB pull that still lists the edge resets the clock. Source: [`OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) §3 / decision log #4 (also Fusion). This is the numeric target the Pipeline HLD used to leave open (“no numeric target yet”).
+
+**Bakeoff engines (Lean / Federated) today:** this LLD’s §5 notes that classic `topology.json` loaders still carry **no** staleness marker in code — so the 7d/30d policy is **not yet measured** on the UC bakeoff path. Pillar B PoC writes `valid_from` / `valid_to` on edges and has an E5-shaped maintain stub; wiring that to the 7d/30d clocks is follow-on work, not a reason to leave the product number blank here.
 
 ## 7. Acceptance test (evidence maturity: Grounded)
 
@@ -163,7 +165,7 @@ for uc in ["UC-1", "UC-2", "UC-3", "UC-4", "UC-5"]:
 
 ## 8. Traceability
 
-Per HLD §16: E3 maps to **FR-C (topology/time)**, and (jointly with E5) **FR-I/J (operability/freshness)** — the freshness half is unmet today per §5/§6.
+Per HLD §16: E3 maps to **FR-C (topology/time)**, and (jointly with E5) **FR-I/J (operability/freshness)**. Product freshness numbers for `declared` edges are locked in §6 (7d / 30d); bakeoff engine code still lacks a measured marker (§5).
 
 ## 9. Open decisions carried to future revisions
 
@@ -175,7 +177,7 @@ Per HLD §16: E3 maps to **FR-C (topology/time)**, and (jointly with E5) **FR-I/
 
 ## 10. Pillar A/B PoC acceptance (graph_*.v1 bridge)
 
-The Motadata Pillar B PoC under [`pillar-ab-implementation/pillar-b/poc/graph/`](../pillar-ab-implementation/pillar-b/poc/graph/) emits logical `graph_node.v1` / `graph_edge.v1` and a versioned `graph_snapshot.v1` via the Gate B **`files.v1`** dest (`map/graph_snapshot.json`, `nodes.jsonl`, `edges.jsonl`). Encoding and keys: [`MAP_WRITE_READ_RECORD.md`](../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md). It does **not** replace the bakeoff `topology.json` loader in §2–§3; it is the bridge toward the operational-graph target schema. Vortex/S3 are later encodings of the same logical records.
+The Motadata Pillar B PoC under [`pillar-ab-implementation/pillar-b/poc/graph/`](../../pillar-ab-implementation/pillar-b/poc/graph/) emits logical `graph_node.v1` / `graph_edge.v1` and a versioned `graph_snapshot.v1` via the Gate B **`files.v1`** dest (`map/graph_snapshot.json`, `nodes.jsonl`, `edges.jsonl`). Encoding and keys: [`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md). It does **not** replace the bakeoff `topology.json` loader in §2–§3; it is the bridge toward the operational-graph target schema. Vortex/S3 are later encodings of the same logical records.
 
 **Acceptance (PoC):**
 
@@ -183,7 +185,7 @@ The Motadata Pillar B PoC under [`pillar-ab-implementation/pillar-b/poc/graph/`]
 cd pillar-ab-implementation/pillar-b/poc && make install && make test-graph
 ```
 
-Pass criteria: schema-valid nodes/edges/snapshot; CI-only vertices (Alert/Change rejected); wave-1 relations emitted; `neighbors("checkout-api")` reaches host/db from `fixtures/lab_checkout/`. Schemas: [`pillar-ab-implementation/contracts/schemas/`](../pillar-ab-implementation/contracts/schemas/). Plan: [`IMPLEMENTATION_PLAN.md`](../pillar-ab-implementation/IMPLEMENTATION_PLAN.md).
+Pass criteria: schema-valid nodes/edges/snapshot; CI-only vertices (Alert/Change rejected); wave-1 relations emitted; `neighbors("checkout-api")` reaches host/db from `fixtures/lab_checkout/`. Schemas: [`pillar-ab-implementation/contracts/schemas/`](../../pillar-ab-implementation/contracts/schemas/). Plan: [`IMPLEMENTATION_PLAN.md`](../../pillar-ab-implementation/IMPLEMENTATION_PLAN.md).
 
 ---
 

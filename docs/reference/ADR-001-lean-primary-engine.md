@@ -2,7 +2,7 @@
 
 ## Status
 
-**Evaluation finding** (2026-07-16; measurement refreshed 2026-07-23) — bakeoff recommendation for the classical ObserveOps UC corpus. **Current scoreboard cite:** `adr001-rerun-20260723` ([`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md)). **ADR-era decision evidence:** `bakeoff-phase-b-002` (corpus v1.1.0). **Lean is the primary evaluation engine on this corpus; not a finalized product or GTM commitment.**
+**Evaluation finding** (2026-07-16; measurement refreshed 2026-07-23) — bakeoff recommendation for the classical ObserveOps UC corpus. **Current scoreboard cite:** `adr001-rerun-20260723` ([`COMPARISON.md`](../../benchmarking/results/comparison/COMPARISON.md)). **ADR-era decision evidence:** `bakeoff-phase-b-002` (corpus v1.1.0). **Lean is the primary evaluation engine on this corpus; not a finalized product or GTM commitment.**
 
 ## Context
 
@@ -43,10 +43,10 @@ causal memory.
 | Efficiency | Lean: 5.00 avg observations vs federated 5.60; best-first 2.40 vs naive BFS 2.80 | Lean is lighter on the evaluated paths |
 | Verifiability | Federated: 100% main-path; lean: 60% main-path with explicit tier/CARE/causal audit trail | Lean favored for SRE audit narrative despite lower main-path % |
 
-Evidence: [`COMPARISON.md`](../benchmarking/results/comparison/COMPARISON.md)
-and [`DECISION.md`](../benchmarking/results/comparison/DECISION.md).
+Evidence: [`COMPARISON.md`](../../benchmarking/results/comparison/COMPARISON.md)
+and [`DECISION.md`](../../benchmarking/results/comparison/DECISION.md).
 
-**Rerun (2026-07-23):** matched run `adr001-rerun-20260723` — both engines still **5/5** root+signature; overall better: lean. Per-UC comprehensive reports (no OO gold): [`comparison/reports/`](../benchmarking/results/comparison/reports/README.md).
+**Rerun (2026-07-23):** matched run `adr001-rerun-20260723` — both engines still **5/5** root+signature; overall better: lean. Per-UC comprehensive reports (no OO gold): [`comparison/reports/`](../../benchmarking/results/comparison/reports/README.md).
 
 Related: [`Lean_RCA_PRD.md`](./Lean_RCA_PRD.md) ([`.pdf`](./Lean_RCA_PRD.pdf)) · [`Lean_RCA_Simple_Guide.md`](./Lean_RCA_Simple_Guide.md) ([`.pdf`](./Lean_RCA_Simple_Guide.pdf)).
 

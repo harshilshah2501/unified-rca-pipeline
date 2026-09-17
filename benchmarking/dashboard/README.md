@@ -4,7 +4,7 @@ Static Web UI for **ObserveOps UC** and **Motadata** bakeoffs (Lean · Federated
 
 1. **Guide** — newcomer overview + interactive ingest / Lean·Federated pipeline widget
 2. **Incident Analysis** — `#incident` — ObserveOps UC + Motadata L1 human reports (Lean / Fed / OO tabs)
-3. **RCA workflow sim** — [`rca-workflow-sim.html`](./rca-workflow-sim.html) — shared Detect → Lean vs Federated (for “how”)
+3. **RCA workflow sim** — [`rca-workflow-sim.html`](../../docs/rca-workflow-sim.html) (`:8765/rca-workflow-sim.html`; source under `docs/reference/`) — shared Detect → Lean vs Federated (for “how”)
 4. **Samples** — manual-verify strip (fault buckets · GT vs Lean vs Fed)
 5. **PoC Conduct** — status rail + run jobs + live logs (requires `server.py`)
 6. **Overview** — UC / Motadata L1 / lab EPS KPIs
@@ -16,7 +16,7 @@ OpenObserve peer / Option B metrics are **out of scope** for this PoC console (D
 
 **Walkthrough:** [`../../docs/POC_DEMO_GUIDE.md`](../../docs/POC_DEMO_GUIDE.md)
 
-**Hosted docs hub:** [`http://127.0.0.1:8765/docs.html`](http://127.0.0.1:8765/docs.html) · Comparable DT vs DD: [`/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) · Fed vs DT gaps: [`/federated-vs-dt-pipeline-gaps.html`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html)
+**Hosted docs hub:** [`http://127.0.0.1:8765/docs.html`](http://127.0.0.1:8765/docs.html) · Unified pipeline workflow: [`/motadata-unified-pipeline-workflow.html`](http://127.0.0.1:8765/motadata-unified-pipeline-workflow.html) · Comparable DT vs DD: [`/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) · Fed vs DT gaps: [`/federated-vs-dt-pipeline-gaps.html`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html)
 
 ## Serve (control plane)
 

@@ -42,15 +42,15 @@ href="./federated-vs-dt-pipeline-gaps.html"><code>federated-vs-dt-pipeline-gaps.
 · <a
 href="http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html"><code>:8765</code></a></p>
 <p><strong>Related:</strong> <a
-href="./DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md</code></a>
+href="../DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md</code></a>
 · <a
-href="./eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a>
+href="../eleven-subsystem-mechanisms.html"><code>eleven-subsystem-mechanisms.html</code></a>
 · <a
-href="../federated-pipeline/docs/REQUIREMENTS.md"><code>federated-pipeline/docs/REQUIREMENTS.md</code></a>
+href="../../federated-pipeline/docs/REQUIREMENTS.md"><code>federated-pipeline/docs/REQUIREMENTS.md</code></a>
 · <a
-href="./multi-telemetry-rca-functional-and-acceptance-criteria.md"><code>multi-telemetry-rca-functional-and-acceptance-criteria.md</code></a>
+href="../multi-telemetry-rca-functional-and-acceptance-criteria.md"><code>multi-telemetry-rca-functional-and-acceptance-criteria.md</code></a>
 · <a
-href="./INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a>
+href="../INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a>
 · <a
 href="./RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md"><code>RCA_DATA_LAKE_AND_MODALITY_BRAINSTORM.md</code></a>
 §6</p>
@@ -317,7 +317,7 @@ Smartscape to exist</td>
 <code>SERVICE-INV</code> on first sighting). A CMDB-strict kit can
 instead <strong>orphan</strong> until an approved CI exists — opposite
 gate. Full write-up: <a
-href="./DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md</code></a>
+href="../DYNATRACE_PRODUCTION_PIPELINE.md"><code>DYNATRACE_PRODUCTION_PIPELINE.md</code></a>
 §5.3.</p>
 <p>On the Federated side, Discovery ≈ feeding the <strong>Knowledge
 Graph</strong> (Vortex CSR edges + entity identity). CMDB remains
@@ -486,7 +486,7 @@ Dragonfly <strong>and</strong> structural sinks.</li>
 write-up</strong>, not missing as a <em>job</em>. The job is still
 Collect → Normalize → Fan-out; Vector (or equivalent) is the intended
 <strong>how</strong> for Motadata fabric stages 1–2–4. Design detail: <a
-href="./INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a>.</p>
+href="../INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a>.</p>
 <p><strong>Fan-out in Motadata words (avoid DT confusion)</strong></p>
 <table>
 <colgroup>
@@ -521,7 +521,7 @@ LOS / metrics</td>
 proposed architecture — Federated Part 1</h2>
 <p>Canonical Motadata design (supplementary to the multi-telemetry FR/AC
 — not a replacement for it). Same content as PoC <a
-href="../federated-pipeline/docs/REQUIREMENTS.md"><code>REQUIREMENTS.md</code></a>
+href="../../federated-pipeline/docs/REQUIREMENTS.md"><code>REQUIREMENTS.md</code></a>
 / Part 1 brief.</p>
 <h3 id="tier-1-event-graph-dragonfly-what-and-when">2.1 Tier 1 — Event
 Graph (Dragonfly) — “What” and “When”</h3>
@@ -742,7 +742,7 @@ NATS.</td>
 <td>Collect → Normalize → Fan-out</td>
 <td><strong>Partial / under-named in §2 brief</strong></td>
 <td>Job exists in Clock A teaching + <a
-href="./INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a>;
+href="../INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a>;
 Motadata Part 1 brief often omitted it (G9).</td>
 </tr>
 </tbody>
@@ -865,7 +865,7 @@ Smartscape∥Grail + Davis thin package.</p>
 <h3 id="all-11-dt-stages-federated-requirements-detail">3.4 All 11 DT
 stages → Federated requirements (detail)</h3>
 <p>FR ids from <a
-href="../federated-pipeline/docs/REQUIREMENTS.md"><code>federated-pipeline/docs/REQUIREMENTS.md</code></a>.
+href="../../federated-pipeline/docs/REQUIREMENTS.md"><code>federated-pipeline/docs/REQUIREMENTS.md</code></a>.
 Fit uses the same Covered / Partial / Missing classes as §0.</p>
 <table>
 <colgroup>
@@ -1097,7 +1097,7 @@ sinks (Clock A stages 1–2–4).<br />
 <strong>Motadata §2 short form:</strong> Often starts at
 <code>NATS → Rust → Dragonfly</code> — Event Graph hot path only.<br />
 <strong>Already designed elsewhere:</strong> <a
-href="./INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a>;
+href="../INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a>;
 LIVE Vector configs in ingest PoC.<br />
 <strong>Block (clarity, not invention):</strong> Teams may think
 Motadata has “no Collect stage” or confuse Vector with a lake.
@@ -1128,7 +1128,7 @@ honesty checks.<br />
 </li>
 <li><strong>Vector-class ingest design</strong> — shared
 Collect/Normalize/route fabric already sketched for Motadata (<a
-href="./INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a>);
+href="../INGESTION_PIPELINE_VECTOR.md"><code>INGESTION_PIPELINE_VECTOR.md</code></a>);
 wire it explicitly into §2 (G9).</li>
 </ol>
 <p>These are <strong>necessary but not sufficient</strong> for Motadata
@@ -1216,7 +1216,7 @@ Motadata story. Ask <em>objective achievability</em>, not
 <h2 id="motadata-multi-telemetry-frac-supplementary-acceptance-bar">8.
 Motadata multi-telemetry FR/AC — supplementary acceptance bar</h2>
 <p><strong>Source:</strong> <a
-href="./multi-telemetry-rca-functional-and-acceptance-criteria.md"><code>multi-telemetry-rca-functional-and-acceptance-criteria.md</code></a>
+href="../multi-telemetry-rca-functional-and-acceptance-criteria.md"><code>multi-telemetry-rca-functional-and-acceptance-criteria.md</code></a>
 (draft 2026-07-31).</p>
 <p>Both Motadata artifacts below are <strong>supplementary</strong>, not
 opposing:</p>

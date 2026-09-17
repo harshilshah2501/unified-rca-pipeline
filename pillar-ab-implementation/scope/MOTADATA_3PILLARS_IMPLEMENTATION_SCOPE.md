@@ -6,9 +6,9 @@
 **Leadership source:** [`KR Plan/Motadata_Observability_3_Pillars_Architecture.pdf`](../../KR%20Plan/Motadata_Observability_3_Pillars_Architecture.pdf)  
 **Our clock:** [`OBSERVEOPS_PIPELINE_HLD.md`](../../docs/OBSERVEOPS_PIPELINE_HLD.md) · [shift-left](../../docs/observeops-shift-left-architecture.html)  
 **Conflicts / resolutions:** [`MOTADATA_3PILLARS_STUDY_QNA.md`](../../docs/MOTADATA_3PILLARS_STUDY_QNA.md) §10 · [hub](../../docs/motadata-3pillars-study-qna.html#register)  
-**OKRs:** [`KR Plan/OKR_Harshil_Shah_Block-1 2026-27 (1).xlsx`](../../KR%20Plan/OKR_Harshil_Shah_Block-1%202026-27%20(1).xlsx) (also linked under `../deliverables/`)  
+**OKRs:** [`KR Plan/OKR_Harshil_Shah_Block-1 2026-27 (1).xlsx`](../../KR%20Plan/OKR_Harshil_Shah_Block-1%202026-27%20%281%29.xlsx) (also linked under `../deliverables/`)  
 **Slice home:** [`pillar-ab-implementation/`](../README.md)  
-**Hub:** [`motadata-3pillars-implementation-scope.html`](./motadata-3pillars-implementation-scope.html)
+**Hub:** [`motadata-3pillars-implementation-scope.html`](../../docs/motadata-3pillars-implementation-scope.html)
 
 This work maps the Motadata PDF onto ObserveOps. It does **not** rebuild Motadata’s product. **This workstream is E3–E5** (Pillar B graph, Pillar A sketches in E4, E5 refresh). E1 Collect and E2 Identity are **already specified** (LLDs Done). We do **not** implement them here; we **consume** their output in a fixed format. Pillar C (ReAct) is **out of this block**. P2 has no Motadata pillar.
 
@@ -244,6 +244,6 @@ Cyclic / Murphy-style correlation: **store** a graph+history in P1 that could su
 
 ## 8. Related
 
-- [Slice README](../README.md) · [Implementation scope HTML](./motadata-3pillars-implementation-scope.html) · [Graph contract brief](../contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md)  
+- [Slice README](../README.md) · [Implementation scope HTML](../../docs/motadata-3pillars-implementation-scope.html) · [Graph contract brief](../contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md)  
 - [Study QnA](../../docs/motadata-3pillars-study-qna.html) · [Job map](../../docs/motadata-3pillars-vs-shift-left.html) · [Explained](../../docs/motadata-3pillars-architecture.html)  
 - [`LLD-E1-Collect.md`](../../docs/LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](../../docs/LLD-E2-Identity.md) · [`LLD-E3-Topology.md`](../../docs/LLD-E3-Topology.md) · [`LLD-E4-Stores.md`](../../docs/LLD-E4-Stores.md)

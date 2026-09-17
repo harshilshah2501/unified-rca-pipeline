@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vortex · Parquet · Lance — storage formats learning</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+.dia{margin:1.2rem 0;border:1px solid var(--stroke);border-radius:10px;background:#10161d;padding:.8rem .6rem;overflow-x:auto;}
+.dia svg{display:block;width:100%;height:auto;}
+.int-card{border:1px solid var(--stroke);border-radius:8px;padding:.75rem .9rem;background:var(--bg-elev);margin:.6rem 0;}
+.int-card h3{margin:0 0 .4rem;font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);}
+.int-card p{margin:0;font-size:.9rem;}
+.flow{font-family:var(--mono);font-size:.78rem;color:var(--muted);background:#121821;border:1px solid var(--stroke);border-radius:6px;padding:.5rem .7rem;margin:.5rem 0;display:block;white-space:pre;overflow-x:auto;}
+.fmt-tabs{margin:1.2rem 0;border:1px solid var(--stroke);border-radius:10px;background:var(--bg-elev);overflow:hidden;}
+.fmt-tablist{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--stroke);background:#121821;padding:0 .35rem;}
+.fmt-tab{flex:1 1 0;min-width:8rem;padding:.65rem .85rem;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;color:var(--muted);font-family:var(--font);font-size:.82rem;line-height:1.35;text-align:left;cursor:pointer;}
+.fmt-tab:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.fmt-tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent);background:var(--bg-elev);font-weight:600;}
+.fmt-tabpanel{display:none;}
+.fmt-tabpanel.is-active{display:block;}
+.fmt-frame{background:#0c1016;padding:.5rem .35rem .25rem;}
+.fmt-frame svg{display:block;width:100%;height:auto;max-height:min(48vh,400px);}
+.fmt-caption{padding:1rem 1.1rem 1.15rem;border-top:1px solid var(--stroke);}
+.fmt-caption h3{margin:0 0 .5rem;font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);}
+.fmt-caption p{margin:0 0 .55rem;font-size:.95rem;line-height:1.5;max-width:52rem;}
+.cmp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:1rem 0;}
+.cmp div{border:1px solid var(--stroke);border-radius:8px;padding:.75rem .85rem;background:var(--bg-elev);}
+.cmp h3{margin:0 0 .4rem;font-size:.95rem;color:var(--text);}
+.cmp p{margin:0;font-size:.88rem;color:var(--muted);}
+.cmp .role{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:var(--faint);margin-bottom:.35rem;}
+@media (max-width:720px){.cmp{grid-template-columns:1fr;}}
+@keyframes sf-march{to{stroke-dashoffset:-20;}}
+@keyframes sf-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes sf-blink{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes sf-slide{0%{transform:translateX(0)}100%{transform:translateX(8px)}}
+.fmt-tabpanel .march{stroke-dasharray:5 5;animation:sf-march 1s linear infinite;}
+.fmt-tabpanel .pulse-soft{animation:sf-pulse 2.2s ease-in-out infinite;}
+.fmt-tabpanel .blink{animation:sf-blink 1.8s ease-in-out infinite;}
+@media (prefers-reduced-motion:reduce){
+  .fmt-tabpanel .march,.fmt-tabpanel .pulse-soft,.fmt-tabpanel .blink,
+  .fmt-tabpanel animateMotion,.fmt-tabpanel animate{animation:none!important;}
+  .fmt-tabpanel .march{stroke-dasharray:none;}
+}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="urca-doc article">
+<div class="wrap article">
+  <div class="eyebrow">ObserveOps · E4 destination · learning</div>
+  <h1>Vortex · Parquet · Lance — what each is for</h1>
+  <p class="lead">
+    Three names that often appear together around <strong style="color:var(--text)">S3 object storage</strong> — but they are
+    <strong style="color:var(--text)">not three peer file extensions</strong>.
+    <strong style="color:var(--text)">Vortex</strong> is Motadata’s hot analytical <em>product</em> (engine + query layer).
+    <strong style="color:var(--text)">Parquet</strong> and <strong style="color:var(--text)">Lance</strong> are open
+    <em>columnar encodings</em> — files or tables that can sit <em>on</em> S3.
+    ObserveOps locks the <strong style="color:var(--text)">logical row</strong> first (<code>sketch.v1</code>, <code>graph_edge.v1</code>);
+    physical encoding comes after Signed field tables.
+    Companion: <a href="/vortex-s3-interaction.html">Vortex + S3 interaction</a> (temperature + query path).
+  </p>
+
+  <div class="int-card">
+    <h3>One line each</h3>
+    <p>
+      <strong style="color:var(--text)">Vortex</strong> = query fast (hot index + engine; may read S3 underneath).<br>
+      <strong style="color:var(--text)">Parquet</strong> = remember cheaply (immutable columnar files; scan-friendly cold history).<br>
+      <strong style="color:var(--text)">Lance</strong> = object-native columnar tables (random access + versioning on S3; optional future encoding).
+    </p>
+  </div>
+
+  <h2 id="not-three-peers">Not three formats on the same shelf</h2>
+  <div class="dia" role="img" aria-label="Vortex is a query product above S3; Parquet and Lance are encodings stored on S3">
+    <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+      <rect width="720" height="220" fill="#10161d"/>
+      <text x="360" y="28" text-anchor="middle" fill="#e8d19d" font-size="13" font-weight="600" font-family="ui-monospace,monospace">SAME LOGICAL ROW · DIFFERENT PHYSICAL ROLES</text>
+      <rect x="40" y="48" width="640" height="44" rx="8" fill="#1a2838" stroke="#7ba8f5" class="pulse-soft"/>
+      <text x="360" y="68" text-anchor="middle" fill="#9bb8f5" font-size="12" font-weight="600">VORTEX · hot analytical product</text>
+      <text x="360" y="84" text-anchor="middle" fill="#8a96a4" font-size="10">query layer · indexes · Detect / Retrieval / WorkingSet — not a .parquet file</text>
+      <path d="M360,92 L360,108" stroke="#7ba8f5" stroke-width="1.5" marker-end="url(#sf-a)"/>
+      <rect x="40" y="108" width="640" height="96" rx="8" fill="#0e1319" stroke="#2a3441" stroke-dasharray="6,4"/>
+      <text x="56" y="132" fill="#e8eef4" font-size="12" font-weight="600">S3 · object store (cold durable tier)</text>
+      <rect x="56" y="144" width="280" height="44" rx="6" fill="#171d25" stroke="#f0b35a"/>
+      <text x="196" y="164" text-anchor="middle" fill="#f0b35a" font-size="11" font-weight="600">Parquet files</text>
+      <text x="196" y="180" text-anchor="middle" fill="#8a96a4" font-size="9">partitioned · columnar · scan batches</text>
+      <rect x="364" y="144" width="280" height="44" rx="6" fill="#171d25" stroke="#7aecc4"/>
+      <text x="504" y="164" text-anchor="middle" fill="#7aecc4" font-size="11" font-weight="600">Lance datasets</text>
+      <text x="504" y="180" text-anchor="middle" fill="#8a96a4" font-size="9">fragments · random access · versions</text>
+      <text x="360" y="210" text-anchor="middle" fill="#8a96a4" font-size="10">PoC today: files.v1 JSON/jsonl — same logical keys, lab encoding</text>
+      <defs><marker id="sf-a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#7ba8f5"/></marker></defs>
+    </svg>
+  </div>
+
+  <h2 id="compare">Compare at a glance</h2>
+  <div class="cmp">
+    <div>
+      <div class="role">Product · hot</div>
+      <h3>Vortex</h3>
+      <p>Motadata-shaped analytical engine. Holds or indexes recent <code>map/</code> + <code>history/</code> rows. Serves interactive lookup and the diagnose query layer. May federate scans over cold S3.</p>
+    </div>
+    <div>
+      <div class="role">Format · cold</div>
+      <h3>Parquet</h3>
+      <p>Open columnar <strong style="color:var(--text)">file</strong> format (.parquet). Industry default for data lakes. Best for append-only history, batch analytics, and ETL scans over partitions.</p>
+    </div>
+    <div>
+      <div class="role">Format · cold / hybrid</div>
+      <h3>Lance</h3>
+      <p>Open columnar <strong style="color:var(--text)">table</strong> format (Lance). Built for object storage: fragments, cheap random access, snapshots. Common in ML / vector / modern lakehouse stacks — <em>optional</em> in our Gate B profile.</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th></th><th>Vortex</th><th>Parquet</th><th>Lance</th></tr>
+    </thead>
+    <tbody>
+      <tr><th scope="row">What it is</th><td>Hot analytical <strong>product</strong> + query API</td><td>Columnar <strong>file</strong> format</td><td>Columnar <strong>table</strong> format on object storage</td></tr>
+      <tr><th scope="row">Typical location</th><td>Managed hot tier (may cache S3)</td><td>S3 prefixes / partitions</td><td>S3-backed Lance dataset URI</td></tr>
+      <tr><th scope="row">Primary read pattern</th><td>Key lookup, filter, graph walk, p95 compare</td><td>Partition prune + column scan</td><td>Random access, point reads, version time-travel</td></tr>
+      <tr><th scope="row">Write pattern</th><td>Ingest hot rows; age-out to cold</td><td>Immutable file per batch/window</td><td>Append fragments; compact occasionally</td></tr>
+      <tr><th scope="row">ObserveOps job</th><td>E6 Detect, E8 Retrieval → WorkingSet</td><td>S3 = remember (cold spill)</td><td>Future option if product picks Lance lake</td></tr>
+      <tr><th scope="row">PoC status</th><td>Documented; not wired in pillar PoC</td><td>Named for S3 cold in HLD</td><td>Not locked in contracts yet</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="animations">How each one works (animated)</h2>
+
+  <div class="fmt-tabs" id="fmt-tabs">
+    <div class="fmt-tablist" role="tablist" aria-label="Vortex Parquet Lance">
+      <button type="button" class="fmt-tab" role="tab" aria-selected="true" aria-controls="panel-vortex" data-tab="vortex">Vortex</button>
+      <button type="button" class="fmt-tab" role="tab" aria-selected="false" aria-controls="panel-parquet" data-tab="parquet" tabindex="-1">Parquet</button>
+      <button type="button" class="fmt-tab" role="tab" aria-selected="false" aria-controls="panel-lance" data-tab="lance" tabindex="-1">Lance</button>
+    </div>
+
+    <!-- Vortex -->
+    <div class="fmt-tabpanel is-active" role="tabpanel" id="panel-vortex" aria-labelledby="tab-vortex">
+      <div class="fmt-frame">
+        <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+          <rect width="720" height="320" fill="#0c1016"/>
+          <text x="360" y="28" text-anchor="middle" fill="#9bb8f5" font-size="14" font-weight="600">VORTEX · HOT QUERY PATH</text>
+          <rect x="48" y="52" width="120" height="56" rx="8" fill="#1a2233" stroke="#7ba8f5"/>
+          <text x="108" y="76" text-anchor="middle" fill="#9bb8f5" font-size="11" font-weight="600">Retrieval</text>
+          <text x="108" y="94" text-anchor="middle" fill="#8a96a4" font-size="9">E8 · case scope</text>
+          <rect x="220" y="44" width="280" height="72" rx="8" fill="#171d25" stroke="#8a96a4" class="pulse-soft"/>
+          <text x="360" y="68" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">Vortex query layer</text>
+          <text x="360" y="86" text-anchor="middle" fill="#8a96a4" font-size="10">index on (tenant, entity_id, metric_id, window…)</text>
+          <text x="360" y="102" text-anchor="middle" fill="#8a96a4" font-size="10">walk map/ · pull history/ sketches</text>
+          <rect x="552" y="52" width="120" height="56" rx="8" fill="#1a2830" stroke="#7aecc4"/>
+          <text x="612" y="76" text-anchor="middle" fill="#7aecc4" font-size="11" font-weight="600">WorkingSet</text>
+          <text x="612" y="94" text-anchor="middle" fill="#8a96a4" font-size="9">bounded evidence</text>
+          <path d="M168,80 L220,80" stroke="#7ba8f5" stroke-width="2" class="march" marker-end="url(#sf-b)"/>
+          <path d="M500,80 L552,80" stroke="#7aecc4" stroke-width="2" class="march"/>
+          <rect x="80" y="140" width="560" height="64" rx="8" fill="#1a2838" stroke="#5e7a9a"/>
+          <text x="360" y="164" text-anchor="middle" fill="#e8eef4" font-size="11" font-weight="600">Hot rows · same logical JSON fields</text>
+          <rect x="100" y="174" width="200" height="22" rx="4" fill="#121821" stroke="#3d9a8b"/>
+          <text x="200" y="189" text-anchor="middle" fill="#7aecc4" font-size="9" font-family="ui-monospace,monospace">map/ graph_snapshot</text>
+          <rect x="420" y="174" width="200" height="22" rx="4" fill="#121821" stroke="#7ba8f5"/>
+          <text x="520" y="189" text-anchor="middle" fill="#9bb8f5" font-size="9" font-family="ui-monospace,monospace">history/ sketch.v1</text>
+          <path d="M360,204 L360,228" stroke="#f0b35a" stroke-width="2" class="march"/>
+          <text x="374" y="222" fill="#f0b35a" font-size="10">miss → federate</text>
+          <rect x="80" y="232" width="560" height="48" rx="8" fill="#0e1319" stroke="#2a3441" stroke-dasharray="6,4"/>
+          <text x="360" y="252" text-anchor="middle" fill="#8a96a4" font-size="11">S3 cold · Parquet or Lance partitions (scan on demand)</text>
+          <text x="360" y="268" text-anchor="middle" fill="#f06060" font-size="10" font-weight="600">Diagnose never opens S3 directly</text>
+          <circle r="4" fill="#7ba8f5"><animateMotion dur="2s" repeatCount="indefinite" path="M168,80 L220,80 L360,80"/></circle>
+          <circle r="4" fill="#7aecc4"><animateMotion dur="2s" repeatCount="indefinite" begin="1s" path="M500,80 L552,80"/></circle>
+          <defs><marker id="sf-b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#7ba8f5"/></marker></defs>
+        </svg>
+      </div>
+      <div class="fmt-caption">
+        <h3>Vortex — interactive engine, not a file suffix</h3>
+        <p>Writers land logical rows after E3/E4. Vortex keeps a <strong style="color:var(--text)">hot working set</strong> and exposes the
+        <strong style="color:var(--text)">query layer</strong> Retrieval uses. When a key is missing from hot storage, the engine may
+        <strong style="color:var(--text)">federate</strong> a scan over cold S3 objects — but the diagnose path still goes through Vortex, not ad-hoc S3 dumps.</p>
+        <span class="flow">E3/E4 writers → Vortex (hot) → age-out → S3 (Parquet/Lance)
+Retrieval → Vortex query layer → WorkingSet → E9/E10</span>
+      </div>
+    </div>
+
+    <!-- Parquet -->
+    <div class="fmt-tabpanel" role="tabpanel" id="panel-parquet" hidden>
+      <div class="fmt-frame">
+        <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+          <rect width="720" height="320" fill="#0c1016"/>
+          <text x="360" y="28" text-anchor="middle" fill="#f0b35a" font-size="14" font-weight="600">PARQUET · COLUMNAR FILES ON S3</text>
+          <rect x="48" y="48" width="140" height="48" rx="8" fill="#171d25" stroke="#7ba8f5"/>
+          <text x="118" y="70" text-anchor="middle" fill="#9bb8f5" font-size="11" font-weight="600">E4 flush</text>
+          <text x="118" y="86" text-anchor="middle" fill="#8a96a4" font-size="9">sketch.v1 window closes</text>
+          <path d="M188,72 L240,72" stroke="#f0b35a" stroke-width="2" class="march"/>
+          <rect x="240" y="48" width="200" height="48" rx="8" fill="#1a2233" stroke="#f0b35a"/>
+          <text x="340" y="70" text-anchor="middle" fill="#e8eef4" font-size="11" font-weight="600">Columnar encode</text>
+          <text x="340" y="86" text-anchor="middle" fill="#8a96a4" font-size="9">entity_id · metric_id · digest…</text>
+          <path d="M440,72 L492,72" stroke="#f0b35a" stroke-width="2" class="march"/>
+          <rect x="492" y="40" width="180" height="64" rx="8" fill="#0e1319" stroke="#2a3441" stroke-dasharray="6,4"/>
+          <text x="582" y="62" text-anchor="middle" fill="#f0b35a" font-size="10" font-family="ui-monospace,monospace">…/date=2026-08-20/</text>
+          <text x="582" y="78" text-anchor="middle" fill="#f0b35a" font-size="10" font-family="ui-monospace,monospace">part-000.parquet</text>
+          <text x="360" y="128" text-anchor="middle" fill="#8a96a4" font-size="10">One file = many rows · stored by column strips (row groups)</text>
+          <rect x="80" y="148" width="560" height="100" rx="8" fill="#121821" stroke="#5e7a9a"/>
+          <text x="100" y="172" fill="#e8eef4" font-size="11" font-weight="600">Inside one Parquet file</text>
+          <rect x="100" y="182" width="80" height="52" rx="4" fill="#1a2838" stroke="#7ba8f5"/>
+          <text x="140" y="204" text-anchor="middle" fill="#9bb8f5" font-size="9">entity_id</text>
+          <text x="140" y="220" text-anchor="middle" fill="#8a96a4" font-size="8">col A</text>
+          <rect x="190" y="182" width="80" height="52" rx="4" fill="#1a2838" stroke="#7ba8f5"/>
+          <text x="230" y="204" text-anchor="middle" fill="#9bb8f5" font-size="9">metric_id</text>
+          <rect x="280" y="182" width="80" height="52" rx="4" fill="#1a2838" stroke="#7ba8f5"/>
+          <text x="320" y="204" text-anchor="middle" fill="#9bb8f5" font-size="9">window_start</text>
+          <rect x="370" y="182" width="120" height="52" rx="4" fill="#1a2838" stroke="#f0b35a"/>
+          <text x="430" y="204" text-anchor="middle" fill="#f0b35a" font-size="9">digest / baseline</text>
+          <path d="M520,206 L560,206" stroke="#7aecc4" stroke-width="2" class="march"/>
+          <text x="590" y="204" fill="#7aecc4" font-size="10">batch scan</text>
+          <text x="360" y="278" text-anchor="middle" fill="#8a96a4" font-size="10">Read: prune partitions → read row groups → decode needed columns only</text>
+          <circle r="3.5" fill="#f0b35a"><animateMotion dur="2.5s" repeatCount="indefinite" path="M188,72 L340,72 L492,72"/></circle>
+        </svg>
+      </div>
+      <div class="fmt-caption">
+        <h3>Parquet — immutable cold history</h3>
+        <p>Each closed window becomes (or appends to) a <strong style="color:var(--text)">partitioned object</strong> on S3.
+        Columns are stored together, so analytics reads only the fields it needs. ObserveOps teaching paths use Hive-style prefixes
+        (<code>tenant=…/metric_id=…/date=…</code>). Best when queries are <strong style="color:var(--text)">batch scans</strong> over time ranges — backfill, retention, federated cold read through Vortex.</p>
+        <span class="flow">sketch.v1 row → Parquet writer → s3://…/date=…/part-NNN.parquet
+Query (via Vortex): partition filter → column projection → rows</span>
+      </div>
+    </div>
+
+    <!-- Lance -->
+    <div class="fmt-tabpanel" role="tabpanel" id="panel-lance" hidden>
+      <div class="fmt-frame">
+        <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+          <rect width="720" height="320" fill="#0c1016"/>
+          <text x="360" y="28" text-anchor="middle" fill="#7aecc4" font-size="14" font-weight="600">LANCE · FRAGMENTS ON OBJECT STORAGE</text>
+          <rect x="48" y="52" width="624" height="56" rx="8" fill="#0e1319" stroke="#2a3441" stroke-dasharray="6,4"/>
+          <text x="360" y="76" text-anchor="middle" fill="#e8eef4" font-size="11" font-weight="600">S3 URI · Lance dataset (table)</text>
+          <text x="360" y="94" text-anchor="middle" fill="#8a96a4" font-size="10">many small fragment objects + manifest (not one giant Parquet file)</text>
+          <rect x="80" y="128" width="120" height="56" rx="6" fill="#171d25" stroke="#7aecc4" class="blink"/>
+          <text x="140" y="150" text-anchor="middle" fill="#7aecc4" font-size="10">fragment v3</text>
+          <text x="140" y="166" text-anchor="middle" fill="#8a96a4" font-size="8">new rows</text>
+          <rect x="220" y="128" width="120" height="56" rx="6" fill="#171d25" stroke="#7aecc4"/>
+          <text x="280" y="150" text-anchor="middle" fill="#7aecc4" font-size="10">fragment v2</text>
+          <rect x="360" y="128" width="120" height="56" rx="6" fill="#171d25" stroke="#7aecc4"/>
+          <text x="420" y="150" text-anchor="middle" fill="#7aecc4" font-size="10">fragment v1</text>
+          <rect x="500" y="128" width="140" height="56" rx="6" fill="#1a2233" stroke="#8a96a4"/>
+          <text x="570" y="150" text-anchor="middle" fill="#e8eef4" font-size="10">manifest</text>
+          <text x="570" y="166" text-anchor="middle" fill="#8a96a4" font-size="8">version pointer</text>
+          <path d="M200,184 L200,210" stroke="#7aecc4" stroke-width="1.5" class="march"/>
+          <path d="M300,184 L300,210" stroke="#7aecc4" stroke-width="1.5" class="march"/>
+          <path d="M420,184 L420,210" stroke="#7aecc4" stroke-width="1.5" class="march"/>
+          <rect x="120" y="210" width="480" height="48" rx="8" fill="#121821" stroke="#5e7a9a"/>
+          <text x="360" y="232" text-anchor="middle" fill="#e8eef4" font-size="11">Random access: fetch one sketch key without full partition scan</text>
+          <text x="360" y="248" text-anchor="middle" fill="#8a96a4" font-size="10">Snapshot / time-travel: manifest selects fragment set · good for ML + vector sidecars</text>
+          <text x="360" y="292" text-anchor="middle" fill="#8a96a4" font-size="10">ObserveOps: optional Gate B encoding — same sketch.v1 columns, Lance physical layout</text>
+        </svg>
+      </div>
+      <div class="fmt-caption">
+        <h3>Lance — object-native columnar table</h3>
+        <p>Lance stores a <strong style="color:var(--text)">dataset</strong> as many fragment files plus a manifest. Writes append new fragments;
+        readers can do <strong style="color:var(--text)">point lookups</strong> and <strong style="color:var(--text)">version snapshots</strong> efficiently on S3 — useful when cold tier still needs selective reads without loading whole Parquet partitions. Not required by current PoC contracts; listed here because teams often compare it next to Parquet when designing the cold lake.</p>
+        <span class="flow">append fragment → update manifest → readers pin a version
+Optional: Vortex federates Lance dataset same as Parquet partitions</span>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="observeops">ObserveOps mapping — same logical row</h2>
+  <p>Gate B rule: change the physical profile, <strong style="color:var(--text)">not</strong> the logical schema.</p>
+  <span class="flow">Logical (locked today)          Physical (chosen per dest profile)
+─────────────────────────       ─────────────────────────────────────
+sketch.v1 JSON fields      →    Vortex hot table OR S3 Parquet OR Lance dataset
+graph_edge.v1 fields       →    same — map/ room keys unchanged
+PoC lab                    →    files.v1 · UTF-8 JSON / JSONL under poc/out/</span>
+
+  <div class="wwh two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1rem 0;">
+    <div class="int-card" style="margin:0">
+      <h3>When Parquet fits</h3>
+      <p>Aged sketch windows, compliance retention, batch rebuild into Vortex, cheap storage per GB. Scan by <code>date=</code> / <code>metric_id=</code> partition.</p>
+    </div>
+    <div class="int-card" style="margin:0">
+      <h3>When Lance fits</h3>
+      <p>Selective cold reads, dataset versioning, ML feature stores beside observability, random access without full partition scan. Product choice — not locked in PoC.</p>
+    </div>
+  </div>
+
+  <h2 id="related">Related</h2>
+  <p class="note">
+    <a href="/vortex-s3-interaction.html">Vortex + S3 interaction</a> — temperature, query layer, three spill patterns ·
+    <a href="/docs/GRAPH_QNA.md#g17">GRAPH_QNA G17</a> — both S3 and Vortex jobs ·
+    <a href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md">Pillar A deep dive</a> §7.3–7.4 ·
+    <a href="/docs/MAP_WRITE_READ_RECORD.md">Map write/read record</a> ·
+    <a href="/pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md">Gate B dest profile</a>.
+  </p>
+</div>
+<script>
+(function(){
+  var root=document.getElementById("fmt-tabs");
+  if(!root)return;
+  var tabs=root.querySelectorAll(".fmt-tab");
+  var panels=root.querySelectorAll(".fmt-tabpanel");
+  function activate(id){
+    tabs.forEach(function(t){
+      var on=t.getAttribute("data-tab")===id;
+      t.setAttribute("aria-selected",on?"true":"false");
+      t.tabIndex=on?0:-1;
+    });
+    panels.forEach(function(p){
+      var on=p.id==="panel-"+id;
+      p.classList.toggle("is-active",on);
+      p.hidden=!on;
+    });
+    if(history.replaceState)history.replaceState(null,"","#"+id);
+  }
+  tabs.forEach(function(t){
+    t.addEventListener("click",function(){activate(t.getAttribute("data-tab"));});
+  });
+  var h=(location.hash||"").replace("#","");
+  if(["vortex","parquet","lance"].indexOf(h)>=0)activate(h);
+})();
+</script>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

@@ -1,6 +1,8 @@
 # Motadata → ingest.v1 adapter (+ depth / broaden)
 
-Converts local Motadata dumps in `datasets/ingest_samples/jsonl_resolved/` (gitignored large files) into `ingest.v1` JSONL.
+Converts local Motadata dumps in `datasets/ingest_samples/jsonl_resolved/` (gitignored large files, ~4.3G) into `ingest.v1` JSONL.
+
+**Dump policy / when dumps are optional:** [`../README.md`](../README.md) · helper [`local_dumps.py`](local_dumps.py) (clear exit if dumps missing).
 
 ## Depth / broaden tools
 
