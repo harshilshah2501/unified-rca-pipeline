@@ -1161,9 +1161,10 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   <p>
     LLD backlog: <a href="/docs/LLD-E1-Collect.md"><code>LLD-E1 Collect</code></a> (Done) ·
     <a href="/docs/LLD-E2-Identity.md"><code>LLD-E2 Identity / Normalize</code></a> (Done) ·
-    <a href="/docs/LLD-E3-Topology.md"><code>LLD-E3</code></a> (operational-graph chapter is the target map shape) ·
-    <a href="/docs/LLD-E4-Stores.md"><code>LLD-E4</code></a> (E3–E4 still Draft) ·
-    <code>LLD-E5</code> through <code>LLD-E11</code> still backlog. Layer I remains outside <code>LLD-E*</code> until explicit productization.
+    <a href="/docs/LLD-E3-Topology.md"><code>LLD-E3</code></a> (Draft — Motadata <code>map/</code> + bakeoff; operational-graph is target map shape) ·
+    <a href="/docs/LLD-E4-Stores.md"><code>LLD-E4</code></a> (Draft — Motadata sketches + bakeoff stores) ·
+    <a href="/docs/LLD-E5-Maintain.md"><code>LLD-E5 Maintain</code></a> (Design stub) ·
+    <code>LLD-E6</code> through <code>LLD-E11</code> still backlog. Layer I remains outside <code>LLD-E*</code> until explicit productization.
   </p>
   <div class="note">Contracts resync (2026-08-13): identity-join note, Normalize = E2, D1–D4 / D-E2-1 / D-E2-2 Signed, E1/E2 LLDs Done. Fusion is the teaching path for step-by-step detail. Full NFR / identity namespace / revision history lives in the Pipeline HLD markdown.</div>
   </section>
@@ -1614,7 +1615,12 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   <p class="lead">
     Walkthrough for the Pillar B Topology orchestrator under
     <code>pillar-ab-implementation/pillar-b/poc</code>.
-    Input: post-E2 <code>ingest.v1</code> with <code>signal_class=topo_update</code> (plus optional seed).
+    <strong style="color:var(--text)">P1 first (Increment 1):</strong> deep always-on fabric
+    E1–E5 for <code>map/</code> — guide
+    <code>pillar-ab-implementation/pillar-b/MAP_P1_FABRIC_EVAL.md</code>;
+    proofs <code>test_p1_map_fabric.py</code>.
+    P2/P3 use-case map reads (CaseSeed → WorkingSet) are the <em>next</em> increment.
+    Input: post-E2 <code>ingest.v1</code> with <code>signal_class=topo_update</code> (plus optional estate bootstrap — not E7 CaseSeed).
     Output: Gate B <code>files.v1</code> under <code>map/</code>.
     OneOps / Fusion HTML briefs under <code>references/</code> are catalog material only — they are not GraphWriter callers.
     Part of <a href="#overview">Our HLD</a> · Topology writer under <code>pillar-ab-implementation/pillar-b/poc</code>.
@@ -1638,7 +1644,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     </div>
     <div class="callout info">
       GraphWriter is an orchestrator, not a network service. It is called by the lab CLI (or a future Topology worker).
-      It reads seed + ingest, writes Dest <code>map/</code>, and optionally runs the E5 maintain stub.
+      It reads optional bootstrap + ingest, writes Dest <code>map/</code>, and optionally runs the E5 maintain stub.
     </div>
     <div class="table-wrap">
       <table>
@@ -1662,9 +1668,9 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
             <td>JSONL of <code>ingest.v1</code>. GraphWriter filters <code>signal_class = topo_update</code>; <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> are silent NOOP.</td>
           </tr>
           <tr>
-            <td>topology.seed.json (lab)</td>
+            <td>topology.bootstrap.json (lab)</td>
             <td>Optional bootstrap</td>
-            <td><code>load_seed</code> fills GraphState with declared nodes/edges before the stream runs.</td>
+            <td><code>load_bootstrap</code> fills GraphState with declared nodes/edges before the stream runs.</td>
           </tr>
           <tr>
             <td>ResolvedOnlyGate (ab_shared)</td>
@@ -2012,8 +2018,8 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
         <tbody>
           <tr>
             <td>1</td>
-            <td><code>load_seed(topology.seed.json)</code></td>
-            <td>Creates GraphState. Qualifies each seed CI type. Declared seed edges get <code>evidence_type</code> declared, <code>telemetry_source</code> topology.seed.</td>
+            <td><code>load_bootstrap(topology.bootstrap.json)</code></td>
+            <td>Creates GraphState. Qualifies each bootstrap CI type. Declared bootstrap edges get <code>evidence_type</code> declared, <code>telemetry_source</code> topology.bootstrap.</td>
           </tr>
           <tr>
             <td>2</td>
@@ -2101,7 +2107,7 @@ make install &amp;&amp; make flush
 # → poc/out/default/map/{graph_snapshot.json,nodes.jsonl,edges.jsonl}</pre>
     <div class="grid-2" style="margin-top:1rem">
       <div class="card">
-        <div class="card-h">Seed vertices (topology.seed.json)</div>
+        <div class="card-h">Bootstrap vertices (topology.bootstrap.json)</div>
         <div class="card-b">
           <p>bs-checkout (BusinessService)</p>
           <p>checkout-api (Service)</p>
@@ -2131,8 +2137,8 @@ make install &amp;&amp; make flush
       </div>
     </div>
     <p class="note">
-      CLI path: <code>GraphWriter.load_seed</code> → <code>ingest(stream.resolved.jsonl)</code> → <code>FileDest.flush</code>.
-      Same five relations appear both in seed and stream so the lab round-trips a small estate map.
+      CLI path: <code>GraphWriter.load_bootstrap</code> → <code>ingest(stream.resolved.jsonl)</code> → <code>FileDest.flush</code>.
+      Same five relations appear both in bootstrap and stream so the lab round-trips a small estate map.
       Expected-vs-actual spines: <code>poc/fixtures/lab_checkout/SAMPLE_IO.md</code>.
     </p>
   </section>

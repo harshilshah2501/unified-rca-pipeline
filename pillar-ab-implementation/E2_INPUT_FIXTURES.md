@@ -305,7 +305,7 @@ From [`pillar-b/poc/fixtures/lab_checkout/stream.resolved.jsonl`](./pillar-b/poc
 
 **Writer expects:** `relation`, `src_ci_id`, `dst_ci_id`, `identity.status` = `resolved`; wave-1 relation names (`runs_on`, `depends_on`, `communicates_with`, `part_of`, `hosted_on` in the lab).  
 **Output room:** `map/` → `graph_edge.v1` inside `GraphSnapshot`.  
-**Also load:** [`pillar-b/poc/fixtures/lab_checkout/topology.seed.json`](./pillar-b/poc/fixtures/lab_checkout/topology.seed.json) for declared baseline nodes and edges before streaming updates.
+**Also load:** [`pillar-b/poc/fixtures/lab_checkout/topology.bootstrap.json`](./pillar-b/poc/fixtures/lab_checkout/topology.bootstrap.json) for declared bootstrap nodes and edges before streaming updates.
 
 Pillar B **does not infer** `relation` from spans inside the PoC — the relationship must already be explicit on the `topo_update` line (or in seed topology). Upstream adapters or future E3 derivation produce those lines.
 
@@ -322,14 +322,14 @@ pillar-ab-implementation/
 │   └── stream.reject.jsonl              ← negative cases for A gate
 ├── pillar-b/poc/fixtures/lab_checkout/
 │   ├── expected/ingest.example.json
-│   ├── topology.seed.json               ← declared graph seed (not from E2)
+│   ├── topology.bootstrap.json               ← declared estate bootstrap (not from E2)
 │   ├── stream.resolved.jsonl            ← Pillar B happy path (topo only)
 │   └── stream.reject.jsonl              ← negative cases for B gate
 └── integration/fixtures/lab_checkout/
     ├── expected/ingest.example.json
     ├── stream.resolved.jsonl            ← mixed metric + topo (read-join harness)
     ├── stream.reject.jsonl
-    └── topology.seed.json
+    └── topology.bootstrap.json
 ```
 
 | File | Use when |
@@ -376,7 +376,7 @@ PRODUCTION (not built inside pillar-a/ or pillar-b/ packages):
 LAB PoC (what exists today):
   fixtures/lab_checkout/stream.*.jsonl   ← hand-authored as if E2 already ran
        ├─ metric lines  →  SketchWriter
-       └─ topo lines    →  GraphWriter (+ topology.seed.json)
+       └─ topo lines    →  GraphWriter (+ topology.bootstrap.json)
 ```
 
 Shared stub code both pillars import: `poc/ab_shared/identity_gate.py` (`ResolvedOnlyGate`), `ingest_source.py` (`JsonlIngestSource`).

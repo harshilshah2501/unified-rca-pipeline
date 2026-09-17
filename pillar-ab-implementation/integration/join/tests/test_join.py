@@ -2,7 +2,7 @@ from ab_shared.dest import MemoryDest
 from ab_shared.ingest_source import JsonlIngestSource
 from ab_shared.paths import FIXTURES
 from graph.change_fact import append_change_fact, make_change_fact
-from graph.graph_builder import apply_topo_updates, load_seed_topology
+from graph.graph_builder import apply_topo_stream, load_estate_bootstrap_state
 from graph.snapshot import build_snapshot, publish_snapshot
 from join.harness import door_c_flags, identity_join, working_set_embryo
 from join.maintain import maintain
@@ -10,8 +10,8 @@ from sketch.sketch_flush import SketchWriter
 
 
 def _build_both(dest: MemoryDest):
-    state = load_seed_topology(FIXTURES / "topology.seed.json")
-    apply_topo_updates(state, JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    state = load_estate_bootstrap_state(FIXTURES / "topology.bootstrap.json")
+    apply_topo_stream(state, JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
     snap = build_snapshot(state)
     publish_snapshot(dest, snap)
     writer = SketchWriter()

@@ -2,13 +2,13 @@ from ab_shared.dest import MemoryDest
 from ab_shared.ingest_source import JsonlIngestSource, ListIngestSource
 from ab_shared.paths import FIXTURES
 from ab_shared.schema import is_valid
-from graph.graph_builder import apply_topo_updates, load_seed_topology
+from graph.graph_builder import apply_topo_stream, load_estate_bootstrap_state
 from graph.neighbors import neighbor_ids
 from graph.snapshot import build_snapshot, load_snapshot, publish_snapshot
 
 
-def test_seed_and_neighbors():
-    state = load_seed_topology(FIXTURES / "topology.seed.json")
+def test_bootstrap_and_neighbors():
+    state = load_estate_bootstrap_state(FIXTURES / "topology.bootstrap.json")
     snap = build_snapshot(state)
     ids = neighbor_ids(snap, "checkout-api")
     assert "linux-server-app-01" in ids
@@ -17,20 +17,20 @@ def test_seed_and_neighbors():
 
 
 def test_never_ci_not_emitted():
-    seed = {
+    bootstrap = {
         "nodes": [
             {"id": "checkout-api", "type": "Service", "name": "checkout-api"},
             {"id": "a1", "type": "Alert", "name": "alert"},
         ],
         "edges": [],
     }
-    state = load_seed_topology(seed)
+    state = load_estate_bootstrap_state(bootstrap)
     assert "a1" not in state.nodes
     assert any(r[1] == "never_ci_vertex" for r in state.rejects)
 
 
 def test_unknown_relation_rejected_from_updates():
-    state = load_seed_topology(FIXTURES / "topology.seed.json")
+    state = load_estate_bootstrap_state(FIXTURES / "topology.bootstrap.json")
     src = ListIngestSource(
         [
             {
@@ -47,13 +47,13 @@ def test_unknown_relation_rejected_from_updates():
             }
         ]
     )
-    apply_topo_updates(state, src)
+    apply_topo_stream(state, src)
     assert any(r[1] == "unknown_relation" for r in state.rejects)
 
 
 def test_snapshot_schema_and_dest():
-    state = load_seed_topology(FIXTURES / "topology.seed.json")
-    apply_topo_updates(state, JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    state = load_estate_bootstrap_state(FIXTURES / "topology.bootstrap.json")
+    apply_topo_stream(state, JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
     snap = build_snapshot(state)
     for n in snap["nodes"]:
         assert is_valid("graph_node_v1.schema.json", n)

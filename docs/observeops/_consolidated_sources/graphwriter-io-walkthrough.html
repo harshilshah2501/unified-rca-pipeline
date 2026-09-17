@@ -276,7 +276,7 @@
   <p class="lead">
     Walkthrough for the Pillar B Topology orchestrator under
     <code>pillar-ab-implementation/pillar-b/poc</code>.
-    Input: post-E2 <code>ingest.v1</code> with <code>signal_class=topo_update</code> (plus optional seed).
+    Input: post-E2 <code>ingest.v1</code> with <code>signal_class=topo_update</code> (plus optional estate bootstrap).
     Output: Gate B <code>files.v1</code> under <code>map/</code>.
     OneOps / Fusion HTML briefs under <code>references/</code> are catalog material only — they are not GraphWriter callers.
     Hub URL: <a href="/graphwriter-io-walkthrough.html"><code>:8765/graphwriter-io-walkthrough.html</code></a>.
@@ -300,7 +300,7 @@
     </div>
     <div class="callout info">
       GraphWriter is an orchestrator, not a network service. It is called by the lab CLI (or a future Topology worker).
-      It reads seed + ingest, writes Dest <code>map/</code>, and optionally runs the E5 maintain stub.
+      It reads optional bootstrap + ingest, writes Dest <code>map/</code>, and optionally runs the E5 maintain stub.
     </div>
     <div class="table-wrap">
       <table>
@@ -324,9 +324,9 @@
             <td>JSONL of <code>ingest.v1</code>. GraphWriter filters <code>signal_class = topo_update</code>; <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> are silent NOOP.</td>
           </tr>
           <tr>
-            <td>topology.seed.json (lab)</td>
+            <td>topology.bootstrap.json (lab)</td>
             <td>Optional bootstrap</td>
-            <td><code>load_seed</code> fills GraphState with declared nodes/edges before the stream runs.</td>
+            <td><code>load_bootstrap</code> fills GraphState with declared nodes/edges before the stream runs.</td>
           </tr>
           <tr>
             <td>ResolvedOnlyGate (ab_shared)</td>
@@ -674,8 +674,8 @@
         <tbody>
           <tr>
             <td>1</td>
-            <td><code>load_seed(topology.seed.json)</code></td>
-            <td>Creates GraphState. Qualifies each seed CI type. Declared seed edges get <code>evidence_type</code> declared, <code>telemetry_source</code> topology.seed.</td>
+            <td><code>load_bootstrap(topology.bootstrap.json)</code></td>
+            <td>Creates GraphState. Qualifies each bootstrap CI type. Declared bootstrap edges get <code>evidence_type</code> declared, <code>telemetry_source</code> topology.bootstrap.</td>
           </tr>
           <tr>
             <td>2</td>
@@ -763,7 +763,7 @@ make install &amp;&amp; make flush
 # → poc/out/default/map/{graph_snapshot.json,nodes.jsonl,edges.jsonl}</pre>
     <div class="grid-2" style="margin-top:1rem">
       <div class="card">
-        <div class="card-h">Seed vertices (topology.seed.json)</div>
+        <div class="card-h">Bootstrap vertices (topology.bootstrap.json)</div>
         <div class="card-b">
           <p>bs-checkout (BusinessService)</p>
           <p>checkout-api (Service)</p>
@@ -793,8 +793,8 @@ make install &amp;&amp; make flush
       </div>
     </div>
     <p class="note">
-      CLI path: <code>GraphWriter.load_seed</code> → <code>ingest(stream.resolved.jsonl)</code> → <code>FileDest.flush</code>.
-      Same five relations appear both in seed and stream so the lab round-trips a small estate map.
+      CLI path: <code>GraphWriter.load_bootstrap</code> → <code>ingest(stream.resolved.jsonl)</code> → <code>FileDest.flush</code>.
+      Same five relations appear both in bootstrap and stream so the lab round-trips a small estate map.
       Expected-vs-actual spines: <code>poc/fixtures/lab_checkout/SAMPLE_IO.md</code>.
     </p>
   </section>

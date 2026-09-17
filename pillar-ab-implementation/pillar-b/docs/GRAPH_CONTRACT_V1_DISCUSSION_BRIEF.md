@@ -1,1 +1,0 @@
-../../contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md

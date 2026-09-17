@@ -6,17 +6,20 @@
 
 A and B are **parallel writers** after Identity (E2). Pillar B owns the `map/` room. Pillar A owns `history/` sketches from `metric_sample` only — GraphWriter silent-skips those lines.
 
+**Doc map:** [`docs/README.md`](./docs/README.md)
+
 ---
 
 ## Reading order
 
-1. This README (I/O + spine)  
-2. Hub walkthrough: [`http://127.0.0.1:8765/graphwriter-io-walkthrough.html`](http://127.0.0.1:8765/graphwriter-io-walkthrough.html) (NOOP / WRITE / DROP)  
-3. Post-E2 ingest map: [`../E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md)  
-4. Map output contract: [`../contracts/MAP_WRITE_READ_RECORD.md`](../contracts/MAP_WRITE_READ_RECORD.md)  
-5. Lab expected vs actual: [`poc/fixtures/lab_checkout/SAMPLE_IO.md`](./poc/fixtures/lab_checkout/SAMPLE_IO.md)  
-6. Run: `cd poc && make install && make test-all` (optional `make flush`)  
-7. Deeper fabric: [`docs/GRAPH_QNA.md`](./docs/GRAPH_QNA.md) · product briefs: [`references/README.md`](./references/README.md)
+1. **This README** — I/O + admit + quick start  
+2. [`docs/MAP_P1_FABRIC_EVAL.md`](./docs/MAP_P1_FABRIC_EVAL.md) — E1–E5 eval, terminology  
+3. [`docs/Codebase-go-through.md`](./docs/Codebase-go-through.md) — how the code is wired  
+4. [`poc/fixtures/lab_checkout/SAMPLE_IO.md`](./poc/fixtures/lab_checkout/SAMPLE_IO.md) — Case A/B goldens  
+5. Run: `cd poc && make install && make test-all` (optional `make flush`)  
+6. Hub visual: [Our HLD → GraphWriter](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter)
+
+**Increment lock:** P1 (E1–E5) for `map/` only. P2/P3 use-case map reads are the next increment.
 
 ---
 
@@ -27,10 +30,10 @@ cd pillar-b/poc
 python3 -m venv .venv
 make install
 make test-all
-make flush    # optional lab: seed + topo stream → map/
+make flush    # optional lab: bootstrap + topo stream → map/
 ```
 
-Expected: shared + graph unit tests pass (no sketch package import).
+Lab-only notes: [`poc/README.md`](./poc/README.md).
 
 ---
 
@@ -40,17 +43,19 @@ Expected: shared + graph unit tests pass (no sketch package import).
 |--|----------|
 | **Stage** | E3 Topology (parallel to E4 sketch writer) |
 | **Room** | `map/` |
-| **Input** | `ingest.v1` with `signal_class=topo_update` (and seed topology), `identity.status=resolved` |
+| **Input** | `ingest.v1` with `signal_class=topo_update` (and optional estate bootstrap), `identity.status=resolved` |
 | **Rejects (DROP)** | unresolved / synthesized identity; never-CI types; unknown `relation` |
 | **Silent skip (NOOP)** | Non-topo lines: `metric_sample`, `event`, `trace_span`, `anomaly`, … |
 | **Phased map-NOOP** | Relation in the fifteen-name catalog but not wave-1 (e.g. `mounts`) — no write, usually not a DROP |
 | **Output (WRITE → flush)** | `Dest.put("map", …)` → `graph_snapshot.json`, `nodes.jsonl`, `edges.jsonl` |
 | **Logical keys** | Node `(tenant, ci_id)` · Edge `(tenant, edge_id)` · Snapshot `(tenant, version)` |
-| **Encoding** | UTF-8 **JSON** / JSON Lines — see [`contracts/MAP_WRITE_READ_RECORD.md`](./contracts/MAP_WRITE_READ_RECORD.md) |
+| **Encoding** | UTF-8 **JSON** / JSON Lines — [`../contracts/MAP_WRITE_READ_RECORD.md`](../contracts/MAP_WRITE_READ_RECORD.md) (slice SoT) |
 | **Must not** | Write sketches into `map/`; put Alert / Incident / ticket / Change-as-CI on the snapshot |
 | **Read helpers** | `load_snapshot(dest)`; `neighbors(ci_id)` over in-memory / loaded graph |
 
 ### Admit actions (hub language ↔ code)
+
+**What “admit” means:** GraphWriter’s **per-line triage** of an incoming `ingest.v1` record — choose NOOP / WRITE / DROP (or phased skip). Not authentication, Collect schema validation, or a named E-stage. Fuller terminology: [`docs/MAP_P1_FABRIC_EVAL.md`](./docs/MAP_P1_FABRIC_EVAL.md).
 
 | Hub action | Code path | Effect |
 |------------|-----------|--------|
@@ -61,61 +66,38 @@ Expected: shared + graph unit tests pass (no sketch package import).
 
 Wave-1 emit set: `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of`.
 
-Optional later: `history/change_facts.jsonl` via change-fact helper — **not** part of `publish_snapshot`.
-
 Vortex / S3: same logical records later; PoC dest is **`files.v1`** only.
 
 ---
 
-## Layout
+## Layout (PoC-minimal)
 
 ```text
 pillar-b/
 ├── README.md
-├── docs/
-│   ├── graphwriter-io-walkthrough.html  ← symlink → ../../../docs/fabric/ (hub Site tab)
-│   └── GRAPH_*.md / MAP_*               ← symlinks to shared contracts
-├── references/   ← Motadata OneOps / Fusion SaaS HTML briefs (product; not PoC SoT)
-│   └── README.md
-├── contracts/
-│   ├── schemas/                 ← symlinks → ../../contracts/schemas/ (SoT)
-│   ├── MAP_WRITE_READ_RECORD.md
-│   ├── GATE_B_DEST_PROFILE.md
-│   └── IDENTIFIED_STREAM_REJECT.md
-└── poc/
-    ├── ab_shared/     ← identity gate, dest, ingest, schema
-    ├── graph/         ← qualify, edges, builder, snapshot, graph_writer, maintain, neighbors
-    ├── fixtures/lab_checkout/
-    ├── Makefile
-    └── requirements.txt
+├── docs/                     ← PoC guides only (see docs/README.md)
+├── contracts/schemas/        ← symlinks → ../contracts/schemas/ (SoT; required by tests)
+├── references/               ← OPTIONAL product HTML library (not PoC SoT)
+└── poc/                      ← code, fixtures, tests
 ```
+
+Normative map write/read, reject codes, Gate B dest, and fabric Q&A live under the **slice** tree [`../contracts/`](../contracts/) — not duplicated here.
 
 ---
 
-## PoC code spine
+## PoC code spine (one line)
 
-```text
-ingest.v1 topo_update (identity resolved) + topology.seed.json
-  → GraphWriter (ci_qualify / edge_catalog / provenance / graph_builder)
-  → build_snapshot → validate graph_snapshot.v1
-  → publish_snapshot → Dest map/{graph_snapshot.json,nodes.jsonl,edges.jsonl}
-  → load_snapshot / neighbors
-  → maintain_graph_validity (E5 stub: expire valid_to, drop stale corroborating)
-```
+Estate bootstrap + resolved `topo_update` → GraphWriter → `GraphState` → flush → `map/` → optional E5 maintain → re-flush.  
+Diagram + modules: [`docs/Codebase-go-through.md`](./docs/Codebase-go-through.md).
 
-Lab CLI: `make flush` or `python -m graph.cli_flush` (topo-only `fixtures/lab_checkout/stream.resolved.jsonl`).  
-Mixed metric + topo tape lives under `integration/fixtures/lab_checkout/` for read-join only.
+P1 proofs: `poc/graph/tests/unit/test_p1_map_fabric.py`.
 
 ---
 
 ## Related
 
-- GraphWriter I/O walkthrough: [`docs/graphwriter-io-walkthrough.html`](./docs/graphwriter-io-walkthrough.html) → [`:8765/graphwriter-io-walkthrough.html`](http://127.0.0.1:8765/graphwriter-io-walkthrough.html)  
-- Post-E2 fixtures (what A and B consume): [`../E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md)  
-- Lab SAMPLE_IO: [`poc/fixtures/lab_checkout/SAMPLE_IO.md`](./poc/fixtures/lab_checkout/SAMPLE_IO.md)  
-- Product references (OneOps / Fusion HTML briefs): [`references/README.md`](./references/README.md)  
+- Post-E2 signal router: [`../E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md)  
 - Map write/read (SoT): [`../contracts/MAP_WRITE_READ_RECORD.md`](../contracts/MAP_WRITE_READ_RECORD.md)  
-- Fabric Q&A: [`docs/GRAPH_QNA.md`](./docs/GRAPH_QNA.md)  
-- Reject codes: [`contracts/IDENTIFIED_STREAM_REJECT.md`](./contracts/IDENTIFIED_STREAM_REJECT.md)  
-- Raw / Identity LUT discussion: [`../discussion/04-raw-data-identity-lut-open-questions.md`](../discussion/04-raw-data-identity-lut-open-questions.md)  
-- Implementation plan: [`../IMPLEMENTATION_PLAN.md`](../IMPLEMENTATION_PLAN.md)
+- Fabric Q&A (SoT): [`../contracts/GRAPH_QNA.md`](../contracts/GRAPH_QNA.md)  
+- Reject codes (SoT): [`../contracts/IDENTIFIED_STREAM_REJECT.md`](../contracts/IDENTIFIED_STREAM_REJECT.md)  
+- Optional product briefs: [`references/README.md`](./references/README.md)

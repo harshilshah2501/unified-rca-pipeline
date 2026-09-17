@@ -27,6 +27,15 @@ E2 Identity stamps join keys so `TelemetryEnvelope` records (E1's output) become
 **Failure if missing:** cross-modal joins collapse — E4/E10 cannot correlate metrics/traces/logs for the same entity.
 **Degradation:** unresolved records move to an unattributed queue (query surface over `identity.status != resolved`, FR-B1). They are never silently dropped. They are **not** localize or ServiceOps-ticket targets (D-E2-1).
 
+### 1.1 Maturity planes (converters vs Pillar A/B labs)
+
+| Plane | What you see today | Implication |
+|-------|-------------------|-------------|
+| **Bakeoff converters** | May still use proxies (`labels.bound`, `"Unknown"` `ci_type`) until `identity.*` emission lands (§6 follow-up) | Treat proxies as `identity.status != resolved` for Detect/Localize/Package |
+| **Pillar A/B PoC labs** | Fixtures **require** stamped `identity.status: resolved` ([`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md)) | Writers reject unresolved/synthesized — stricter *admit* than D-E2-1 synthesis policy |
+
+These are not two contracts. D-E2-1 still synthesizes on bind miss; Pillar writers simply **do not admit** non-resolved lines into `map/` or `history/`. Operational-graph `telemetry_key_index` / instance-scope bind detail remains Design enrichment on top of this LLD — see [`OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) §4 E2.
+
 ---
 
 ## 2. Two identity-resolution mechanisms in this repo (both real, different maturity)

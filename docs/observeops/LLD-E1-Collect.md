@@ -82,13 +82,15 @@ E1 does **not** emit `identity.*`. That overlay is E2 ([`LLD-E2-Identity.md`](./
 
 ### 2.1 `signal_class` values admitted now
 
-| Class | Emitted by | Primary downstream consumer |
-|---|---|---|
-| `metric_sample` | Metric series replay, Prometheus scrape, OTLP metrics | E6 Detect (anomaly evaluation), E4 Stores |
-| `anomaly` | Pre-marked threshold crossings (replay converter can pre-tag these; live path defers to E6) | E6 Detect, E7 Curate |
-| `event` | Log lines, structured events, syslog | E4 Stores, E10 Identify (evidence) |
-| `trace_span` | OTLP/Jaeger/Zipkin traces, ddtrace-style spans | E9 Localize, E10 Identify (self-time/error leaf) |
-| `topo_update` | Topology crawler audit fan-out (sibling path, not the primary A-TOPO writer) | E3 Topology only — E1 does not act on these |
+E1 only **admits** these classes. After E2 Identity, Motadata fabric writers filter by class (see [`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md) cheat sheet · [`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G31). GraphWriter admit actions (NOOP / WRITE / DROP) live in E3 / Pillar B — not in Collect.
+
+| Class | Emitted by | Motadata fabric consumer (after E2) | Other / bakeoff consumers |
+|---|---|---|---|
+| `metric_sample` | Metric series replay, Prometheus scrape, OTLP metrics | **Pillar A** → `sketch.v1` in `history/` · **E6 Detect** (door C / thresholds) | Lean/Federated structural stores |
+| `anomaly` | Pre-marked threshold crossings (replay may pre-tag; live path often recomputes from samples) | Both pillars **skip** | E6 Detect · E7 Curate |
+| `event` | Log lines, structured events, syslog | Both pillars **skip** (not `sketch.v1`) | E4 evidence surfaces · E10 Identify · Lean/Fed |
+| `trace_span` | OTLP/Jaeger/Zipkin traces, ddtrace-style spans | Both pillars **skip** | E9 Localize · E10 Identify · Fed Nezha/speed |
+| `topo_update` | Discovery / crawler / lab topo stream | **Pillar B GraphWriter** → `map/` (`graph_*.v1`) | Bakeoff: audit fan-out; primary load often corpus `topology.json` (§4) |
 
 ### 2.2 Reserved `signal_class` values (unused this pass)
 
@@ -152,9 +154,16 @@ Reference: [`ingestion-poc/pipeline/f1_run.py`](../../ingestion-poc/pipeline/f1_
 
 ---
 
-## 4. `topo_update` boundary note
+## 4. `topo_update` boundary note — two topologies of truth
 
-`observeops_to_ingest_v1.py` also emits `topo_updates.jsonl` — one `topo_update` line per topology edge, timestamped at `incident_start`. This is the **audit fan-out** described in `INGESTION_PIPELINE_VECTOR.md` §4 ("optional: emit topo_update events into Vector for audit fan-out"), not the primary `A-TOPO` writer. The primary topology snapshot is `topology.json` itself, copied through unchanged and consumed directly by E3. Do not read `topo_updates.jsonl` as the topology source of truth.
+Do not collapse these paths:
+
+| Path | What is SoT for edges | Who consumes |
+|------|----------------------|--------------|
+| **Bakeoff / Lean–Federated** | Corpus `topology.json` (static load) | E3 loaders in Lean `InvocationGraph` / Fed `RelationshipGraph` ([`LLD-E3-Topology.md`](./LLD-E3-Topology.md) bakeoff path) |
+| **Motadata Pillar B** | Bootstrap topology **plus** post-E2 `signal_class=topo_update` stream with `identity.status=resolved` | GraphWriter → Dest `map/` ([`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) · [`pillar-b/README.md`](../../pillar-ab-implementation/pillar-b/README.md)) |
+
+`observeops_to_ingest_v1.py` also emits `topo_updates.jsonl` — one `topo_update` line per topology edge, timestamped at `incident_start`. For the **bakeoff** path that file is the **audit fan-out** described in `INGESTION_PIPELINE_VECTOR.md` §4, not the primary A-TOPO writer — corpus `topology.json` remains the bakeoff static topology. For the **Motadata map** path, `topo_update` lines *are* the GraphWriter write path (alongside an optional estate bootstrap file (`topology.bootstrap.json`)). E1 still does not interpret edges either way.
 
 ---
 

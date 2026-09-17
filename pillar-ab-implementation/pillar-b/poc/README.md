@@ -1,4 +1,7 @@
-# Pillar B PoC
+# Pillar B PoC — lab runbook
+
+**Doc job:** how to install, test, and flush this lab.  
+**Not this page:** package I/O / admit table → [`../README.md`](../README.md). Stage eval → [`../docs/MAP_P1_FABRIC_EVAL.md`](../docs/MAP_P1_FABRIC_EVAL.md). Code tour → [`../docs/Codebase-go-through.md`](../docs/Codebase-go-through.md). Doc map → [`../docs/README.md`](../docs/README.md).
 
 Lab Topology writer: resolved `topo_update` → `GraphSnapshot` → Gate B **`files.v1`** under `map/`.
 
@@ -6,10 +9,10 @@ Lab Topology writer: resolved `topo_update` → `GraphSnapshot` → Gate B **`fi
 
 ```bash
 make install && make test-all
-make flush    # seed + stream.resolved.jsonl → poc/out/<tenant>/map/
+make flush    # bootstrap + stream.resolved.jsonl → poc/out/<tenant>/map/
 ```
 
-## Dest keys
+## Dest keys after flush
 
 | Dest key | Encoding |
 |----------|----------|
@@ -17,14 +20,4 @@ make flush    # seed + stream.resolved.jsonl → poc/out/<tenant>/map/
 | `map/nodes.jsonl` | One `graph_node.v1` per line |
 | `map/edges.jsonl` | One `graph_edge.v1` per line |
 
-## Guide links
-
-| Doc | Why |
-|-----|-----|
-| [`../README.md`](../README.md) | Package I/O, admit NOOP/WRITE/DROP, reading order |
-| [`fixtures/lab_checkout/SAMPLE_IO.md`](./fixtures/lab_checkout/SAMPLE_IO.md) | Expected spines vs live flush |
-| [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md) | Post-E2 `signal_class` router (A vs B) |
-| [`../../contracts/MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md) | Normative map write/read |
-| [GraphWriter walkthrough](http://127.0.0.1:8765/graphwriter-io-walkthrough.html) | Hub Site tab (seven steps) |
-
-**Admit reminder:** GraphWriter admits only `topo_update` with resolved identity. `metric_sample`, `event`, `trace_span`, and `anomaly` are silent NOOP here (Pillar A sketches are metrics-only; logs/traces need other history surfaces if stored).
+Fixtures and Case A/B goldens: [`fixtures/lab_checkout/SAMPLE_IO.md`](./fixtures/lab_checkout/SAMPLE_IO.md).

@@ -234,6 +234,7 @@ The same template applies to every stage:
 ### E3 Topology (P1)
 - Purpose: maintain walkable dependency graph for neighborhood reasoning.
 - Graph extension (Draft): interactive [Fusion](./observeops-fusion-guide.html) then normative [`OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) · worked example [`observeops-ci-graph.html`](./observeops-ci-graph.html). Schema is Grounded as an authored artifact; live E3 discovery remains Design-level. Does **not** replace this contract.
+- Motadata fabric: after E2, **E3 Topology ∥ E4 Stores** — Pillar B writes versioned `GraphSnapshot` under `map/`; see [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) §10.
 - Trigger: continuous updates + periodic refresh.
 - Inputs: `IdentifiedRecord`, discovery relations, optional CMDB enrich.
 - Outputs: `GraphSnapshot`.
@@ -241,25 +242,27 @@ The same template applies to every stage:
 - Postconditions: queryable neighbors, directionality, depth.
 - Failure if missing: localize cannot reason over propagation.
 - Degradation: stale graph increases ambiguity and misranking risk.
-- NFR sketch: freshness window and bounded staleness (no numeric target yet — flag for LLD-E3).
-- Reference implementation: lean graph walk; federated KG analog.
+- NFR sketch: freshness window and bounded staleness — product default for **`declared` edges**: soft-stale after **7 days**, hard-downgrade after **30 days** without corroboration or CMDB re-sync (operational-graph decision #4 · [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) §6). Bakeoff engines still lack markers.
+- Reference implementation: lean graph walk; federated KG analog; Motadata Pillar B GraphWriter.
 - Lab proof: ERROR cascades and SLOWDOWN path depth require topology. **[Grounded]**
 
 ### E4 Stores (P1)
 - Purpose: persist queryable evidence over time under shared identity.
+- Motadata fabric: Pillar A sketch writer → `sketch.v1` in `history/` (**metrics-only**); parallel to E3, not sequential after it. Logs/traces use other evidence surfaces — see [`LLD-E4-Stores.md`](./LLD-E4-Stores.md) §0.
 - Trigger: continuous writes.
 - Inputs: `IdentifiedRecord`.
-- Outputs: modality-specific query surfaces and history.
+- Outputs: modality-specific query surfaces and history (Motadata: sketches; bakeoff: Lean/Fed stores).
 - Preconditions: storage backends available.
 - Postconditions: time-sliced evidence retrievable by CI and tags.
 - Failure if missing: detect and identify have no historical evidence.
 - Degradation: missing modality produces thin evidence bundles.
-- NFR sketch: retention and query latency budgets (no numeric target yet — flag for LLD-E4).
-- Reference implementation: lean datasets and store abstractions; federated stores.
+- NFR sketch: retention and query latency budgets (no numeric target yet — flag for LLD-E4 Done gate).
+- Reference implementation: lean datasets and store abstractions; federated stores; Motadata Pillar A.
 - Lab proof: MTL-like queries and identify evidence depend on E4. **[Grounded]**
 
 ### E5 Maintain (P1)
 - Purpose: keep estate fresh (retention, indexing, discovery freshness, deploy feed).
+- Motadata: maintains **`map/` validity** and **`history/` baselines** separately — does not create edges and does not merge rooms ([`LLD-E5-Maintain.md`](./LLD-E5-Maintain.md)).
 - Trigger: scheduled/continuous maintenance.
 - Inputs: store/index metadata, discovery updates, change feeds.
 - Outputs: freshness baseline and maintain state.
@@ -267,8 +270,8 @@ The same template applies to every stage:
 - Postconditions: pipeline remains detect-ready.
 - Failure if missing: data drift/staleness silently degrades RCA quality.
 - Degradation: larger correlation windows needed, confidence drops.
-- NFR sketch: index freshness and lifecycle correctness (no numeric target yet — flag for LLD-E5).
-- Reference implementation: explicit in our HLD even when vendor stages differ.
+- NFR sketch: index freshness and lifecycle correctness — declared-edge 7d/30d defaults live under E3/E5 (above); broader retention still open for LLD-E5 Done.
+- Reference implementation: explicit in our HLD even when vendor stages differ; Pillar B `maintain_graph_validity` stub.
 - Lab proof: not always visible in single run, but prerequisite for reliability. **[Design-level — no dedicated lab]**
 
 ### E6 Detect (P2)
@@ -354,8 +357,9 @@ The same template applies to every stage:
 Directional object catalog:
 
 - `TelemetryEnvelope` (E1 -> E2) — on-wire `ingest.v1`
-- `IdentifiedRecord` (E2 -> E3,E4) — same `ingest.v1` line after identity overlay (`identity.*`); not a second schema this pass
+- `IdentifiedRecord` (E2 -> E3,E4) — same `ingest.v1` line after identity overlay (`identity.*`); not a second schema this pass. Motadata fabric **fans out in parallel** after E2 (E3 Topology ∥ E4 Stores), not a forced E3-then-E4 sequence ([`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G12).
 - `GraphSnapshot` (E3 -> E6,E7,E9)
+- StoreEvidence / sketches (E4 -> E6,E9,E10) — Motadata Detect door C reads `sketch.v1`; case path joins `map/` ∥ `history/` at E8
 - `Signal` (E6 -> E7)
 - `CaseSeed` (E7 -> E8)
 - `WorkingSet` (E8 -> E9)
@@ -514,6 +518,7 @@ Primary FR/AC reference: [`multi-telemetry-rca-functional-and-acceptance-criteri
 | v1.0 | 2026-08-13 | Full rewrite following docs-hub audit: added §5 stage-vocabulary crosswalk (normative), added §9.1 evidence-maturity legend, extended §10 Detect-class matrix with DD local-only categories, filled §15 NFR targets from FR/AC §6, proposed sign-off for D1–D4 with cited evidence (§13), added §0/§2 (why-this-revision, goals/non-goals). HTML companion `observeops-pipeline-hld.html` **resynced same day** — crosswalk section, E6 evidence-maturity note, and ADR sign-off proposals added there; this markdown remains the canonical full text (NFR targets, evidence-maturity legend, revision history live only here). |
 | v1.1 | 2026-08-13 | Patch (not a rewrite): §4 identity-join note; §5 rule 4 (Normalize = E2); §8 E1/E2 tightened (telemetry-only Collect; `IdentifiedRecord` overlay); §11.1 identity namespace; D1–D4 Signed; D-E2-1 / D-E2-2 Signed; D5 still Review; LLD-E1 and LLD-E2 marked Done. HTML companion resynced. |
 | v1.1a | 2026-08-14 | Teaching annex only: Edge Delta L0 hub added as a third independent vendor lens. D5 stays Review; evidence column cites ED AI Team geometry. No contract or ADR flip. |
+| v1.1b | 2026-09-17 | P1 LLD realign: §8 E3 freshness 7d/30d; Motadata E3∥E4 fan-out; §9 object catalog note; LLD-E3/E4 dual-path Drafts; LLD-E5 Maintain Design stub. |
 
 ## 18. LLD backlog and HLD-to-LLD gate
 
@@ -521,9 +526,9 @@ LLD backlog:
 
 1. [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) — **Done** (2026-08-13; Collect / `ingest.v1`)
 2. [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) — **Done** (2026-08-13; Normalize / Identity overlay)
-3. [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) — **Draft for review** (2026-08-13)
-4. [`LLD-E4-Stores.md`](./LLD-E4-Stores.md) — **Draft for review** (2026-08-13)
-5. `LLD-E5-Maintain` — backlog
+3. [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) — **Draft for review** (v1.1 dual-path: Motadata `map/` + bakeoff load)
+4. [`LLD-E4-Stores.md`](./LLD-E4-Stores.md) — **Draft for review** (v1.1 dual-path: Motadata sketches + bakeoff stores)
+5. [`LLD-E5-Maintain.md`](./LLD-E5-Maintain.md) — **Design-level stub** (v0.1)
 6. `LLD-E6-Detect` — backlog
 7. `LLD-E7-Curate` — backlog
 8. `LLD-E8-Scope` — backlog

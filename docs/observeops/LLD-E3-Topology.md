@@ -1,27 +1,30 @@
 # LLD-E3 — Topology
 
 **Status:** Draft for review
-**Version:** v1.0
+**Version:** v1.1
 **Owner:** ObserveOps RCA engineering
 **Parent:** [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §8 (E3 Topology contract), §5 (crosswalk: E3 is part of the 5-stage "Ingest" phase)
-**Related surfaces:** [Our HLD](./observeops-pipeline-hld.html) · [Fusion](./observeops-fusion-guide.html) (Graph Explained tab) · schema source below.
-**Schema source (Draft, not yet merged into this LLD):** [`OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) — node/edge/identity/index/fault-signature model + per-edge provenance. Worked example: [`observeops-ci-graph.html`](./observeops-ci-graph.html) · [`linux-server-ci-telemetry.json`](./linux-server-ci-telemetry.json) (authored illustration, not live E3 output).
-**Gate checklist (per HLD §18):** stage ID/purpose referenced ✓ · concrete schema/API defined ✓ (§2–§3) · acceptance test from corpus/lab replay ✓ (§6) · evidence-maturity tag stated ✓ (§6, §7)
+**Related surfaces:** [Our HLD](./observeops-pipeline-hld.html) · [Fusion](./observeops-fusion-guide.html) (Graph Explained tab) · Motadata Pillar B [`pillar-b/README.md`](../../pillar-ab-implementation/pillar-b/README.md) · [`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md)
+**Schema source (target map shape):** [`OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) — node/edge/identity/index/fault-signature model + per-edge provenance. Worked example: [`observeops-ci-graph.html`](./observeops-ci-graph.html) · [`linux-server-ci-telemetry.json`](./linux-server-ci-telemetry.json) (authored illustration, not live E3 output).
+**Gate checklist (per HLD §18):** stage ID/purpose referenced ✓ · concrete schema/API defined ✓ (§2–§3 bakeoff · §10 Motadata) · acceptance test from corpus/lab replay ✓ (§7 bakeoff · §10 PoC) · evidence-maturity tag stated ✓
 
 ---
 
-## 0. What this LLD owns vs the operational-graph chapter
+## 0. Dual path — Motadata map vs bakeoff load
 
-Do not treat these as one schema. The Pipeline HLD says what E3 is *for*. This LLD is what bakeoff actually loads. The operational-graph chapter is the *target* map shape — not merged here yet.
+Do not treat these as one schema. E3 is the **sole writer of the topology / `map/` room**. Pillar A writes `history/` sketches in parallel after E2 — that does not make a second graph writer ([`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G12).
 
 | Surface | Owns | Does not own |
 |---|---|---|
-| [Pipeline HLD](./OBSERVEOPS_PIPELINE_HLD.md) | E3 purpose, I/O object (`GraphSnapshot`), ADR D1 | Per-edge provenance fields |
+| [Pipeline HLD](./OBSERVEOPS_PIPELINE_HLD.md) | E3 purpose, I/O object (`GraphSnapshot`), ADR D1 | Per-edge provenance field tables |
 | [Operational-graph chapter](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) | **Target** node/edge/identity/signature shape (`evidence_type`, `refresh`, `confidence`, fault signatures) | Bakeoff runtime format |
-| **This LLD** | What Lean and Federated **load today**: corpus `topology.json` + the two `GraphSnapshot` implementations in §3 | Those target provenance fields |
+| **This LLD — Motadata path (§10)** | Pillar B GraphWriter: `topo_update` + optional bootstrap → `graph_snapshot.v1` under Dest `map/`; NOOP / WRITE / DROP; wave-1 relations | Continuous live discovery crawler (Design) |
+| **This LLD — bakeoff path (§2–§3)** | What Lean and Federated **load today**: corpus `topology.json` + `InvocationGraph` / `RelationshipGraph` | Motadata Dest keys / `graph_*.v1` |
 | [Fusion](./observeops-fusion-guide.html) | Clickable walk of the pipeline (and the map) | The written spec |
 
-Worked illustration of the **target** schema: [`observeops-ci-graph.html`](./observeops-ci-graph.html) · [`linux-server-ci-telemetry.json`](./linux-server-ci-telemetry.json) (authored, not live E3). Merging that schema onto `topology.json` is a future LLD revision, not something this draft already did.
+**Relation-name honesty:** bakeoff corpus edges may use names such as `hosted_by`, `uplink_to`, `stored_on`. Motadata catalog / wave-1 use snake_case names such as `hosted_on`, `runs_on`, `depends_on`, `communicates_with`, `part_of` ([`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G4/G8 · Pillar B `edge_catalog.py`). Same *ideas*, different wire names — do not silently equate them.
+
+Worked illustration of the **target** schema: [`observeops-ci-graph.html`](./observeops-ci-graph.html) · [`linux-server-ci-telemetry.json`](./linux-server-ci-telemetry.json) (authored, not live E3). Merging that schema onto bakeoff `topology.json` is a future LLD revision.
 
 ---
 
@@ -29,17 +32,19 @@ Worked illustration of the **target** schema: [`observeops-ci-graph.html`](./obs
 
 E3 Topology maintains a walkable dependency graph so E6 Detect, E7 Curate, and E9 Localize can reason about neighborhoods instead of isolated CIs. Per HLD §9's contract catalog, `GraphSnapshot` fans out to `E6, E7, E9` and E9 also has a dotted (advisory, not blocking) dependency drawn directly from E3.
 
-**Trigger:** continuous updates + periodic refresh (design intent — see §5 for what's actually implemented).
+After E2 Identity, Motadata fabric **fans out in parallel**: E3 Topology ∥ E4 Stores ([`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G12). E3 does not wait for sketches; sketches do not emit edges.
+
+**Trigger:** continuous updates + periodic refresh (design intent — see §5 for bakeoff reality; §10 for Pillar B stream upsert).
 **Inputs:** `IdentifiedRecord` (from E2), discovery relations, optional CMDB enrichment.
-**Outputs:** `GraphSnapshot`.
-**Preconditions:** identity keys must exist (E2 has run).
+**Outputs:** `GraphSnapshot` — Motadata: versioned `graph_snapshot.v1` in `map/`; bakeoff: in-memory Lean/Fed graph objects (§3).
+**Preconditions:** identity keys must exist (E2 has run). Motadata writers additionally require `identity.status=resolved`.
 **Postconditions:** queryable neighbors, directionality, depth.
 **Failure if missing:** E9 Localize cannot reason over propagation — no walk target.
-**Degradation:** stale graph increases ambiguity and misranking risk at E9.
+**Degradation:** stale graph increases ambiguity and misranking risk at E9. Product freshness defaults for `declared` edges: soft-stale **7 days**, hard-downgrade **30 days** (operational-graph decision #4; §6). Bakeoff engines still lack markers (§5).
 
-## 2. Input schema — `topology.json`
+## 2. Input schema — bakeoff `topology.json`
 
-This is the **implemented corpus shape** — what bakeoff and lab runs actually load. It does **not** yet carry operational-graph chapter fields (`evidence_type`, `refresh`, `confidence`, nested `rca.fault_signatures`). Those live on the authored CI illustration, not here.
+This is the **implemented corpus shape** — what bakeoff and lab runs actually load. It does **not** yet carry operational-graph chapter fields (`evidence_type`, `refresh`, `confidence`, nested `rca.fault_signatures`). Those live on the authored CI illustration, not here. Motadata stream shape is `ingest.v1` + `topo_update` (§10), not this JSON file.
 
 Same shape across both engines and the whole ObserveOps corpus:
 
@@ -175,9 +180,17 @@ Per HLD §16: E3 maps to **FR-C (topology/time)**, and (jointly with E5) **FR-I/
 - **CMDB enrichment is entirely unimplemented,** consistent with the HLD calling it optional — but worth stating plainly rather than letting "optional" imply "partially done."
 - **Lean's `node_types` lookup has no guard for a `to`-only node** (§5) — low risk on the frozen corpus (nodes list is complete there) but a real risk if E3 is ever fed a partial/derived topology the way Federated's builder tolerates.
 
-## 10. Pillar A/B PoC acceptance (graph_*.v1 bridge)
+## 10. Motadata Pillar B path — `graph_*.v1` / Dest `map/` (primary Motadata contract)
 
-The Motadata Pillar B PoC under [`pillar-ab-implementation/pillar-b/poc/graph/`](../../pillar-ab-implementation/pillar-b/poc/graph/) emits logical `graph_node.v1` / `graph_edge.v1` and a versioned `graph_snapshot.v1` via the Gate B **`files.v1`** dest (`map/graph_snapshot.json`, `nodes.jsonl`, `edges.jsonl`). Encoding and keys: [`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md). It does **not** replace the bakeoff `topology.json` loader in §2–§3; it is the bridge toward the operational-graph target schema. Vortex/S3 are later encodings of the same logical records.
+For Motadata unified fabric, E3 Topology is implemented by the Pillar B GraphWriter under [`pillar-ab-implementation/pillar-b/poc/graph/`](../../pillar-ab-implementation/pillar-b/poc/graph/). This is the **Motadata write path** for `map/`. Bakeoff §2–§3 remains the Lean/Federated load path — neither replaces the other.
+
+| | |
+|--|--|
+| **IN** | Optional `topology.bootstrap.json` + post-E2 `ingest.v1` with `signal_class=topo_update` and `identity.status=resolved` ([`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md)) |
+| **OUT** | `graph_snapshot.v1` + `nodes.jsonl` / `edges.jsonl` via Gate B Dest (`map/…`) — [`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) |
+| **Admit** | **NOOP** — wrong `signal_class` (`metric_sample`, `event`, `trace_span`, `anomaly`, …) · **WRITE** — wave-1 emit · **DROP** — unresolved/synthesized identity, never-CI types, unknown relation · phased map-NOOP — catalog relation not yet wave-1 ([`pillar-b/README.md`](../../pillar-ab-implementation/pillar-b/README.md)) |
+| **Wave-1 emit** | `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of` |
+| **E5 stub** | [`maintain.py`](../../pillar-ab-implementation/pillar-b/poc/graph/maintain.py) `maintain_graph_validity` — expire `valid_to`, drop stale corroborating; does **not** create edges ([`LLD-E5-Maintain.md`](./LLD-E5-Maintain.md)) |
 
 **Acceptance (PoC):**
 
@@ -185,8 +198,10 @@ The Motadata Pillar B PoC under [`pillar-ab-implementation/pillar-b/poc/graph/`]
 cd pillar-ab-implementation/pillar-b/poc && make install && make test-graph
 ```
 
-Pass criteria: schema-valid nodes/edges/snapshot; CI-only vertices (Alert/Change rejected); wave-1 relations emitted; `neighbors("checkout-api")` reaches host/db from `fixtures/lab_checkout/`. Schemas: [`pillar-ab-implementation/contracts/schemas/`](../../pillar-ab-implementation/contracts/schemas/). Plan: [`IMPLEMENTATION_PLAN.md`](../../pillar-ab-implementation/IMPLEMENTATION_PLAN.md).
+Pass criteria: schema-valid nodes/edges/snapshot; CI-only vertices (Alert/Change rejected); wave-1 relations emitted; `neighbors("checkout-api")` reaches host/db from `fixtures/lab_checkout/`. Schemas: [`pillar-ab-implementation/contracts/schemas/`](../../pillar-ab-implementation/contracts/schemas/). Guide: [`SAMPLE_IO.md`](../../pillar-ab-implementation/pillar-b/poc/fixtures/lab_checkout/SAMPLE_IO.md). Hub walkthrough: [`graphwriter-io-walkthrough.html`](../fabric/graphwriter-io-walkthrough.html).
+
+**Design gaps (honest):** continuous derivation at per-edge `refresh` cadence is not lab-built; unresolved-bucket → discovery feedback into E3 is Design-level (operational-graph §4 E2/E3).
 
 ---
 
-*Part of the LLD backlog defined in [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §18. Siblings: [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) · [`LLD-E4-Stores.md`](./LLD-E4-Stores.md).*
+*Part of the LLD backlog defined in [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §18. Siblings: [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) · [`LLD-E4-Stores.md`](./LLD-E4-Stores.md) · [`LLD-E5-Maintain.md`](./LLD-E5-Maintain.md).*

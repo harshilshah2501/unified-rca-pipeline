@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="320" viewBox="0 0 920 320" role="img" aria-labelledby="title desc">
+  <title id="title">Pillar B GraphWriter runtime spine</title>
+  <desc id="desc">Estate bootstrap and topo stream feed GraphWriter into GraphState, then flush to map. Optional E5 maintain_validity leads to a version-bumped re-flush.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4a5568"/>
+    </marker>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#1a2332" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .box { fill: #ffffff; stroke: #2d3a4a; stroke-width: 1.5; }
+      .box-input { fill: #f4f7fa; stroke: #5a6a7a; stroke-width: 1.25; stroke-dasharray: 5 3; }
+      .box-core { fill: #e8f4f1; stroke: #2a7a6a; stroke-width: 1.75; }
+      .box-out { fill: #eef2f8; stroke: #3d5a80; stroke-width: 1.5; }
+      .box-e5 { fill: #faf6ee; stroke: #8a7040; stroke-width: 1.5; }
+      .label { font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; font-size: 13px; fill: #1a2332; text-anchor: middle; }
+      .label-sm { font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; font-size: 11px; fill: #4a5568; text-anchor: middle; }
+      .mono { font-family: "IBM Plex Mono", "Consolas", ui-monospace, monospace; font-size: 12px; fill: #1a2332; text-anchor: middle; }
+      .caption { font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; font-size: 12px; fill: #5a6a7a; text-anchor: start; }
+      .flow { stroke: #4a5568; stroke-width: 1.75; fill: none; marker-end: url(#arrow); }
+      .flow-opt { stroke: #8a7040; stroke-width: 1.5; fill: none; stroke-dasharray: 6 4; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="920" height="320" rx="8" fill="#f8fafb"/>
+
+  <!-- Inputs -->
+  <rect class="box-input" x="24" y="48" width="200" height="52" rx="8" filter="url(#shadow)"/>
+  <text class="mono" x="124" y="70">topology.bootstrap.json</text>
+  <text class="label-sm" x="124" y="88">estate bootstrap (optional)</text>
+
+  <rect class="box-input" x="24" y="128" width="200" height="52" rx="8" filter="url(#shadow)"/>
+  <text class="mono" x="124" y="150">stream.*.jsonl</text>
+  <text class="label-sm" x="124" y="168">topo_update (post-E2)</text>
+
+  <!-- Merge lines into GraphWriter -->
+  <path class="flow" d="M 224 74 H 268"/>
+  <path class="flow" d="M 224 154 H 268"/>
+  <path class="flow" d="M 268 74 V 154"/>
+  <path class="flow" d="M 268 114 H 300"/>
+
+  <!-- GraphWriter -->
+  <rect class="box-core" x="300" y="86" width="140" height="56" rx="8" filter="url(#shadow)"/>
+  <text class="label" x="370" y="112" font-weight="500">GraphWriter</text>
+  <text class="label-sm" x="370" y="130">orchestrator</text>
+
+  <path class="flow" d="M 440 114 H 480"/>
+
+  <!-- GraphState -->
+  <rect class="box" x="480" y="86" width="120" height="56" rx="8" filter="url(#shadow)"/>
+  <text class="label" x="540" y="112" font-weight="500">GraphState</text>
+  <text class="label-sm" x="540" y="130">nodes + edges</text>
+
+  <path class="flow" d="M 600 114 H 640"/>
+
+  <!-- flush -->
+  <rect class="box" x="640" y="86" width="88" height="56" rx="8" filter="url(#shadow)"/>
+  <text class="label" x="684" y="120" font-weight="500">flush</text>
+
+  <path class="flow" d="M 728 114 H 768"/>
+
+  <!-- map/ -->
+  <rect class="box-out" x="768" y="86" width="128" height="56" rx="8" filter="url(#shadow)"/>
+  <text class="mono" x="832" y="112">map/</text>
+  <text class="label-sm" x="832" y="130">GraphSnapshot</text>
+
+  <!-- E5 branch from GraphWriter / GraphState -->
+  <path class="flow-opt" d="M 540 142 V 200 H 370"/>
+  <path class="flow-opt" d="M 370 200 V 218"/>
+
+  <rect class="box-e5" x="290" y="218" width="160" height="56" rx="8" filter="url(#shadow)"/>
+  <text class="label" x="370" y="242" font-weight="500">maintain_validity</text>
+  <text class="label-sm" x="370" y="260">E5 · optional</text>
+
+  <path class="flow-opt" d="M 450 246 H 560"/>
+
+  <rect class="box-e5" x="560" y="218" width="168" height="56" rx="8" filter="url(#shadow)"/>
+  <text class="label" x="644" y="242" font-weight="500">re-flush</text>
+  <text class="label-sm" x="644" y="260">version bump</text>
+
+  <path class="flow-opt" d="M 728 246 H 800 V 142"/>
+
+  <text class="caption" x="24" y="300">Solid = write path · Dashed gold = optional E5 maintain then republish to map/</text>
+</svg>

@@ -1,8 +1,10 @@
 # Pillar B — product references (OneOps / Fusion SaaS)
 
-**What this folder is:** Motadata leadership HTML briefs about the **Service-Centric Knowledge Graph** (configuration-item catalog + relationship vocabulary) and how that model compares to enterprise CMDB incumbents (ServiceNow, BMC Helix, OpenText UCMDB).
+**Optional library — not required to run or evaluate the Pillar B PoC.** Cold readers start at [`../README.md`](../README.md) / [`../docs/README.md`](../docs/README.md), not here.
 
-**What this folder is not:** The live Pillar B **implementation source of truth**. Wire shapes, PoC dest keys, and the locked sit-down enum live under [`../contracts/`](../contracts/) (shared slice SoT: [`../../contracts/`](../../contracts/)). Lab code and fixtures live under [`../poc/`](../poc/).
+**What this folder is:** Motadata leadership HTML briefs about the **Service-Centric Knowledge Graph** (configuration-item catalog + relationship vocabulary) and how that model compares to enterprise CMDB incumbents (ServiceNow, BMC Helix, OpenText UCMDB). Also Edge Delta → Motadata comparator notes.
+
+**What this folder is not:** The live Pillar B **implementation source of truth**. Wire shapes, PoC dest keys, and the locked sit-down enum live under the **slice** [`../../contracts/`](../../contracts/). Lab code and fixtures live under [`../poc/`](../poc/). Package `contracts/` holds **schema symlinks only**.
 
 **How to open the HTML:** Prefer a small local server (pages are large and interactive):
 
@@ -120,6 +122,7 @@ That design agrees with our ObserveOps / Pillar B teaching on one important poin
 | Fabric rules FAQ | Not here | [`GRAPH_QNA.md`](../../contracts/GRAPH_QNA.md) |
 | What GraphWriter writes under `map/` | Not here | [`MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md) |
 | Dest profile | Not here | [`GATE_B_DEST_PROFILE.md`](../../contracts/GATE_B_DEST_PROFILE.md) |
+| Reject codes | Not here | [`IDENTIFIED_STREAM_REJECT.md`](../../contracts/IDENTIFIED_STREAM_REJECT.md) |
 | Lab input after Identity | Not here | [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md) |
 
 Until product and implementers **explicitly reconcile** the Fusion/OneOps vocabulary with the GRAPH_CONTRACT enum, treat these HTMLs as **upstream product reference** and the `contracts/` tree as what Pillar B code and fixtures follow today.

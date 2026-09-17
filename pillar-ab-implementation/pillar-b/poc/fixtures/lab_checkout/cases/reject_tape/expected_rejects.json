@@ -1,7 +1,7 @@
 {
   "case": "reject_tape",
   "inputs": {
-    "seed": "topology.seed.json",
+    "bootstrap": "topology.bootstrap.json",
     "stream": "stream.reject.jsonl"
   },
   "reject_reasons": [
@@ -17,7 +17,7 @@
     "synth-topo",
     "unresolved-topo"
   ],
-  "seed_nodes_still_present": [
+  "bootstrap_nodes_still_present": [
     "app-runtime-jvm",
     "bs-checkout",
     "checkout-api",

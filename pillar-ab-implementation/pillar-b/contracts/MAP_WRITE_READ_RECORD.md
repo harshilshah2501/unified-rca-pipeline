@@ -1,1 +1,0 @@
-../../contracts/MAP_WRITE_READ_RECORD.md

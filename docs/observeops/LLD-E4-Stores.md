@@ -1,10 +1,24 @@
 # LLD-E4 — Stores
 
 **Status:** Draft for review
-**Version:** v1.0
+**Version:** v1.1
 **Owner:** ObserveOps RCA engineering
 **Parent:** [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §8 (E4 Stores contract), §5 (crosswalk: E4 is part of the 5-stage "Ingest" phase)
-**Gate checklist (per HLD §18):** stage ID/purpose referenced ✓ · concrete schema/API defined ✓ (§2–§3) · acceptance test from corpus/lab replay ✓ (§6) · evidence-maturity tag stated ✓ (§6, §7)
+**Related:** Motadata Pillar A [`pillar-a/`](../../pillar-ab-implementation/pillar-a/) · [`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) · [`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md)
+**Gate checklist (per HLD §18):** stage ID/purpose referenced ✓ · concrete schema/API defined ✓ (§1 Motadata · §2 bakeoff) · acceptance test ✓ (§5 bakeoff · §8 PoC) · evidence-maturity tag stated ✓
+
+---
+
+## 0. Dual path — Motadata history vs bakeoff evidence stores
+
+E4 is part of always-on fabric. After E2, Motadata runs **E4 Stores ∥ E3 Topology** (same stream, different `signal_class` filters). Rooms stay independent: `history/` never syncs continuously into `map/` ([`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G16).
+
+| Path | What E4 means | Primary artifact |
+|------|----------------|------------------|
+| **Motadata Pillar A (§1, §8)** | Metric sketch history for Detect door C and WorkingSet joins | `sketch.v1` rows under Dest `history/` — **metrics-only** |
+| **Bakeoff Lean / Federated (§2)** | Reference-engine evidence bundles / structural+speed stores | Flat UC JSON / in-memory Fed stores — multi-modality |
+
+Do not equate “E4 Stores” with “all MELTS in one sketch.” Logs (`event`) and traces (`trace_span`) still matter for Identify on bakeoff/reference paths; they **silent-skip** at Pillar A SketchWriter (G31). Future Motadata log/trace history would be **other history row types**, not an expansion of `sketch.v1`.
 
 ---
 
@@ -12,17 +26,21 @@
 
 E4 Stores persists queryable evidence over time under the shared identity E2 established, so E6 Detect and E10 Identify have historical evidence to reason over (and E9 has an advisory dotted dependency on it per HLD §9's contract diagram, same as E3).
 
+**Motadata fabric job (Pillar A):** admit `metric_sample` with resolved identity → aggregate into windowed `sketch.v1` (T-Digest + buckets + seasonal baseline). Sketches do **not** carry edges (`src_ci_id` / `dst_ci_id` / `relation` forbidden).
+
 **Trigger:** continuous writes.
 **Inputs:** `IdentifiedRecord` (E2's output).
-**Outputs:** modality-specific query surfaces and history.
-**Preconditions:** storage backends available.
-**Postconditions:** time-sliced evidence retrievable by CI and tags.
+**Outputs:** Motadata — `sketch.v1` / `history/`; bakeoff — modality-specific query surfaces (§2).
+**Preconditions:** storage backends available (PoC: Gate B `files.v1`).
+**Postconditions:** time-sliced evidence retrievable by CI (`entity_id` ≡ `ci_id`) and tags.
 **Failure if missing:** E6 Detect and E10 Identify have no historical evidence to work from.
 **Degradation:** missing modality produces thin evidence bundles (E10 is supposed to flag this explicitly, per HLD §8 E10).
 
-## 2. Two store implementations — genuinely different maturity, not just different code
+Operational-graph §4 says E4 may **read** shared identity / plane applicability from the graph. That is join-key / applicability context — **not** “sketch rows contain topology.”
 
-Unlike E1–E3, where both engines implement roughly comparable mechanisms, **E4 is where Lean and Federated diverge sharply**, and this LLD reports that honestly rather than smoothing it over.
+## 2. Two bakeoff store implementations — genuinely different maturity, not just different code
+
+Unlike E1–E3, where both engines implement roughly comparable mechanisms, **bakeoff E4 is where Lean and Federated diverge sharply**, and this LLD reports that honestly rather than smoothing it over. Motadata Pillar A (§8) is a third, product-shaped path.
 
 ### 2.1 Lean — flat files, no store abstraction at all
 
@@ -132,7 +150,7 @@ for uc in ["UC-1", "UC-2", "UC-3", "UC-4", "UC-5"]:
     assert all(a["crossed"] for a in crossed_anomalies(bundle))
 ```
 
-Pass criteria: loads without error for every UC (including the three that have no `events.json`), the `(ci, signal)` index is well-formed, and `crossed_anomalies` never returns an anomaly with `crossed: false`.
+Pass criteria: loads without error for every UC-1..UC-5 (every current corpus UC ships `events.json`; the `.exists()` guard remains defensive for optional/missing-file degradation — see §4). The `(ci, signal)` index is well-formed, and `crossed_anomalies` never returns an anomaly with `crossed: false`.
 
 **Federated path:**
 
@@ -157,9 +175,18 @@ Per HLD §16: E4 maps to **FR-C (topology/time)** jointly with E3, and (jointly 
 - **Federated stores have no persistence across restarts.** Acceptable for PoC per `STORAGE_TIERS.md`'s own framing, but should be explicitly re-confirmed as in-scope-or-not before any live (non-replay) deployment, since E1's live Vector configs assume something is durably receiving their output.
 - **GB/day figures are extrapolated, not measured** — do not let them drift into being cited as a capacity SLA in a later doc; the cost report itself already carries this caveat, and this LLD preserves it rather than losing it in a later summary.
 
-## 8. Pillar A/B PoC acceptance (`sketch.v1` bridge)
+## 8. Motadata Pillar A path — `sketch.v1` / Dest `history/` (primary Motadata contract)
 
-The Motadata Pillar A PoC under [`pillar-ab-implementation/pillar-a/poc/sketch/`](../../pillar-ab-implementation/pillar-a/poc/sketch/) writes hybrid `sketch.v1` rows (T-Digest + buckets + seasonal baseline) through the Gate B **`files.v1`** dest (`history/sketches.jsonl`). It does **not** replace Lean bundle load or Federated store stand-ins in §2; it is the bridge toward the Motadata percentile store. A and B remain **parallel writers**; optional WorkingSet read-join lives under [`integration/`](../../pillar-ab-implementation/integration/), not a combined writer package.
+The Motadata Pillar A PoC under [`pillar-ab-implementation/pillar-a/poc/sketch/`](../../pillar-ab-implementation/pillar-a/poc/sketch/) writes hybrid `sketch.v1` rows (T-Digest + buckets + seasonal baseline) through the Gate B **`files.v1`** dest (`history/sketches.jsonl`). This is the **Motadata E4 write path**. Bakeoff §2 remains Lean/Federated reference evidence — neither replaces the other.
+
+| | |
+|--|--|
+| **Admits** | `metric_sample` + `identity.status=resolved` |
+| **Silent skip** | `topo_update`, `event`, `trace_span`, `anomaly`, … |
+| **Must not** | Emit edges; write into `map/` |
+| **Join** | `entity_id` ≡ graph `ci_id` at read time (E8 Scope / integration harness) |
+
+A and B remain **parallel writers**; optional WorkingSet read-join lives under [`integration/`](../../pillar-ab-implementation/integration/), not a combined writer package. Deep dive: [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md).
 
 **Acceptance (PoC):**
 
@@ -173,4 +200,4 @@ Pass criteria: schema-valid rows without topology edges; wave-1 metrics only; `g
 
 ---
 
-*Part of the LLD backlog defined in [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §18. Siblings: [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) · [`LLD-E3-Topology.md`](./LLD-E3-Topology.md).*
+*Part of the LLD backlog defined in [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §18. Siblings: [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) · [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) · [`LLD-E5-Maintain.md`](./LLD-E5-Maintain.md).*

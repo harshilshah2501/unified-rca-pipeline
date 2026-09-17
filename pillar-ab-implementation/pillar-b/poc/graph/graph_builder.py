@@ -19,7 +19,7 @@ class GraphState:
     rejects: list[tuple[dict, str]] = field(default_factory=list)
 
 
-def _node_from_seed(tenant: str, n: dict) -> dict[str, Any]:
+def _node_from_bootstrap(tenant: str, n: dict) -> dict[str, Any]:
     ci_type = n["type"]
     ok, reason = may_emit_vertex(ci_type)
     if not ok:
@@ -40,7 +40,11 @@ def _node_from_seed(tenant: str, n: dict) -> dict[str, Any]:
     }
 
 
-def load_seed_topology(path_or_dict: Any, tenant: str = "default") -> GraphState:
+def load_estate_bootstrap_state(path_or_dict: Any, tenant: str = "default") -> GraphState:
+    """Load declared estate bootstrap (lab/CMDB-style starting map).
+
+    Not E7 CaseSeed — that is a case-path tip after Curate.
+    """
     if hasattr(path_or_dict, "read_text"):
         data = json.loads(path_or_dict.read_text(encoding="utf-8"))
     elif isinstance(path_or_dict, (str, bytes)):
@@ -55,7 +59,7 @@ def load_seed_topology(path_or_dict: Any, tenant: str = "default") -> GraphState
         if not ok:
             state.rejects.append((n, reason or "never_ci_vertex"))
             continue
-        node = _node_from_seed(tenant, n)
+        node = _node_from_bootstrap(tenant, n)
         state.nodes[node["ci_id"]] = node
     for e in data.get("edges", []):
         action, reason = classify_relation(e["relation"])
@@ -78,7 +82,7 @@ def load_seed_topology(path_or_dict: Any, tenant: str = "default") -> GraphState
             "discovered_via": build_discovered_via(
                 "declared",
                 confidence="medium",
-                telemetry_source="topology.seed",
+                telemetry_source="topology.bootstrap",
                 direction_inference=f"{src} -> {dst}",
             ),
             "valid_from": "2026-08-20T00:00:00Z",
@@ -87,7 +91,7 @@ def load_seed_topology(path_or_dict: Any, tenant: str = "default") -> GraphState
     return state
 
 
-def apply_topo_updates(state: GraphState, source: IngestSource, gate: ResolvedOnlyGate | None = None) -> GraphState:
+def apply_topo_stream(state: GraphState, source: IngestSource, gate: ResolvedOnlyGate | None = None) -> GraphState:
     """Apply post-E2 ingest lines that are Topology's job.
 
     Admit mapping (hub walkthrough NOOP / WRITE / DROP):
@@ -131,7 +135,9 @@ def apply_topo_updates(state: GraphState, source: IngestSource, gate: ResolvedOn
                 ok2, reason2 = may_emit_vertex(ctype)
                 if not ok2:
                     continue
-                state.nodes[cid] = _node_from_seed(state.tenant, {"id": cid, "type": ctype, "name": cname})
+                state.nodes[cid] = _node_from_bootstrap(
+                    state.tenant, {"id": cid, "type": ctype, "name": cname}
+                )
         bind = rec.get("identity", {}).get("bind_source", "topo_update")
         edge_id = f"e_{src}_{relation}_{dst}"
         state.edges[edge_id] = {

@@ -14,10 +14,10 @@ from graph.graph_writer import GraphWriter
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Pillar B GraphWriter flush (lab)")
     p.add_argument(
-        "--seed",
+        "--bootstrap",
         type=Path,
-        default=FIXTURES / "topology.seed.json",
-        help="Seed topology JSON (nodes + declared edges)",
+        default=FIXTURES / "topology.bootstrap.json",
+        help="Declared estate bootstrap JSON (nodes + edges). Not E7 CaseSeed.",
     )
     p.add_argument(
         "--stream",
@@ -32,11 +32,13 @@ def main(argv: list[str] | None = None) -> int:
         help="FileDest root (writes <tenant>/map/graph_snapshot.json, nodes.jsonl, edges.jsonl)",
     )
     p.add_argument("--tenant", default="default")
-    p.add_argument("--version", default="1", help="GraphSnapshot version for initial flush")
+    p.add_argument("--version", default="1", help="GraphSnapshot version for initial publish_map")
     p.add_argument(
+        "--maintain-map",
         "--maintain-validity",
+        dest="maintain_map",
         action="store_true",
-        help="After flush, run E5 graph validity stub and republish snapshot",
+        help="After publish_map, run E5 maintain_map and republish snapshot",
     )
     p.add_argument(
         "--as-of",
@@ -46,24 +48,24 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument(
         "--snapshot-version-after-maintain",
         default="2",
-        help="GraphSnapshot version after maintain + second flush",
+        help="GraphSnapshot version after maintain_map + second publish_map",
     )
     args = p.parse_args(argv)
 
     writer = GraphWriter(tenant=args.tenant)
-    if args.seed and args.seed.exists():
-        writer.load_seed(args.seed)
-    writer.ingest(JsonlIngestSource(args.stream))
+    if args.bootstrap and args.bootstrap.exists():
+        writer.load_estate_bootstrap(args.bootstrap)
+    writer.apply_stream(JsonlIngestSource(args.stream))
     dest = FileDest(args.out, tenant=args.tenant)
-    snapshot = writer.flush(dest, version=args.version)
+    snapshot = writer.publish_map(dest, version=args.version)
     maintain_stats: dict[str, int] = {}
-    if args.maintain_validity:
-        maintain_stats = writer.maintain_validity(args.as_of)
-        snapshot = writer.flush(dest, version=args.snapshot_version_after_maintain)
+    if args.maintain_map:
+        maintain_stats = writer.maintain_map(args.as_of)
+        snapshot = writer.publish_map(dest, version=args.snapshot_version_after_maintain)
 
     map_dir = args.out / args.tenant / "map"
     print(
-        f"flushed graph_snapshot.v1 version={snapshot['version']} "
+        f"published graph_snapshot.v1 version={snapshot['version']} "
         f"nodes={len(snapshot['nodes'])} edges={len(snapshot['edges'])} → {map_dir}"
     )
     print(f"rejects={len(writer.rejects)} maintain={maintain_stats or 'skipped'}")

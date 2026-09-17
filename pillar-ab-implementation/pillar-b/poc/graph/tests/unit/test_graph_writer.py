@@ -9,10 +9,10 @@ from graph.snapshot import load_snapshot
 
 def test_graph_writer_happy_path_flush():
     writer = GraphWriter()
-    writer.load_seed(FIXTURES / "topology.seed.json")
-    writer.ingest(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
+    writer.apply_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
     dest = MemoryDest()
-    snapshot = writer.flush(dest)
+    snapshot = writer.publish_map(dest)
     assert snapshot["version"] == "1"
     assert len(snapshot["nodes"]) >= 4
     assert len(snapshot["edges"]) >= 4
@@ -23,10 +23,10 @@ def test_graph_writer_happy_path_flush():
 
 def test_graph_writer_file_dest_roundtrip(tmp_path):
     writer = GraphWriter()
-    writer.load_seed(FIXTURES / "topology.seed.json")
-    writer.ingest(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
+    writer.apply_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
     dest = FileDest(tmp_path, tenant="default")
-    writer.flush(dest)
+    writer.publish_map(dest)
     loaded = load_snapshot(dest)
     assert loaded is not None
     assert neighbor_ids(loaded, "checkout-api")
@@ -34,8 +34,8 @@ def test_graph_writer_file_dest_roundtrip(tmp_path):
 
 def test_graph_writer_silent_skip_non_topo():
     writer = GraphWriter()
-    writer.load_seed(FIXTURES / "topology.seed.json")
-    writer.ingest(
+    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
+    writer.apply_stream(
         ListIngestSource(
             [
                 {
@@ -65,18 +65,18 @@ def test_graph_writer_silent_skip_non_topo():
         )
     )
     assert not writer.rejects
-    snapshot = writer.flush(MemoryDest())
+    snapshot = writer.publish_map(MemoryDest())
     assert any(e["relation"] == "depends_on" for e in snapshot["edges"])
 
 
 def test_graph_writer_reject_tape():
     writer = GraphWriter()
-    writer.load_seed(FIXTURES / "topology.seed.json")
-    writer.ingest(JsonlIngestSource(FIXTURES / "stream.reject.jsonl"))
+    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
+    writer.apply_stream(JsonlIngestSource(FIXTURES / "stream.reject.jsonl"))
     reasons = {reason for _, reason in writer.rejects}
     assert "identity_unresolved" in reasons
     assert "identity_synthesized" in reasons
     assert "never_ci_vertex" in reasons
     assert "unknown_relation" in reasons
-    snapshot = writer.flush(MemoryDest())
+    snapshot = writer.publish_map(MemoryDest())
     assert not any(n["ci_id"] == "alert-1" for n in snapshot["nodes"])

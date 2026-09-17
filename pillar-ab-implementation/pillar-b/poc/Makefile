@@ -25,4 +25,4 @@ test-all: check-schemas
 	$(PY) -m pytest
 
 flush:
-	$(PY) -m graph.cli_flush --maintain-validity
+	$(PY) -m graph.cli_flush --maintain-map

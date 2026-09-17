@@ -2,7 +2,11 @@
 
 **Purpose:** Freeze what GraphWriter should produce from the lab fixtures, then compare **expected** (JSON under `cases/`) to **actual** (live writer flush) in unit tests.
 
-**Router (post-E2):** GraphWriter admits only `topo_update`. Other `signal_class` values (`metric_sample`, `event`, `trace_span`, `anomaly`, …) are **NOOP** (silent skip) — see [`../../../../E2_INPUT_FIXTURES.md`](../../../../E2_INPUT_FIXTURES.md). Hub framing: [GraphWriter walkthrough · Admit](http://127.0.0.1:8765/graphwriter-io-walkthrough.html#admit) (NOOP / WRITE / DROP).
+**Doc job:** Case A/B goldens only. Stage matrix → [`../../../docs/MAP_P1_FABRIC_EVAL.md`](../../../docs/MAP_P1_FABRIC_EVAL.md). Doc map → [`../../../docs/README.md`](../../../docs/README.md).
+
+**P1 entry:** deep fabric eval guide linked above. Case A/B below remain **E3 acceptance** spines — not the full P1 matrix.
+
+**Router (post-E2):** GraphWriter admits only `topo_update`. Other `signal_class` values (`metric_sample`, `event`, `trace_span`, `anomaly`, …) are **NOOP** (silent skip) — see [`../../../../E2_INPUT_FIXTURES.md`](../../../../E2_INPUT_FIXTURES.md). Hub framing: [Our HLD · GraphWriter · Admit](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter) (NOOP / WRITE / DROP).
 
 **How comparison works:** Full `graph_node.v1` / `graph_edge.v1` objects carry provenance and display fields that can grow without changing the estate map. Tests therefore compare a **spine**:
 
@@ -25,12 +29,12 @@ make test-graph   # includes expected vs actual
 
 | | Path |
 |--|------|
-| **Input seed** | [`../topology.seed.json`](../topology.seed.json) |
+| **Input bootstrap** | [`../topology.bootstrap.json`](../topology.bootstrap.json) |
 | **Input stream** | [`../stream.resolved.jsonl`](../stream.resolved.jsonl) |
 | **Expected spine** | [`cases/happy_path/expected_spine.json`](./cases/happy_path/expected_spine.json) |
-| **Actual** | `GraphWriter.load_seed` → `ingest` → `flush` → `graph_snapshot.v1` |
+| **Actual** | `GraphWriter.load_estate_bootstrap` → `apply_stream` → `publish_map` → `graph_snapshot.v1` |
 
-### Input graph (seed nodes + relations)
+### Input graph (bootstrap nodes + relations)
 
 | Node `ci_id` | `ci_type` |
 |--------------|-----------|
@@ -48,7 +52,7 @@ make test-graph   # includes expected vs actual
 | checkout-api | part_of | bs-checkout |
 | checkout-api | communicates_with | payments-db |
 
-The stream repeats the same five `topo_update` facts with `identity.status=resolved` (and richer `bind_source` for provenance). Seed + stream must not invent a sixth relation.
+The stream repeats the same five `topo_update` facts with `identity.status=resolved` (and richer `bind_source` for provenance). Estate bootstrap + stream must not invent a sixth relation.
 
 ### Expected vs actual (spine)
 
@@ -73,7 +77,7 @@ Expected edge ids (stable replace keys):
 
 | | Path |
 |--|------|
-| **Input seed** | [`../topology.seed.json`](../topology.seed.json) |
+| **Input bootstrap** | [`../topology.bootstrap.json`](../topology.bootstrap.json) |
 | **Input stream** | [`../stream.reject.jsonl`](../stream.reject.jsonl) |
 | **Expected** | [`cases/reject_tape/expected_rejects.json`](./cases/reject_tape/expected_rejects.json) |
 
@@ -95,7 +99,7 @@ Expected edge ids (stable replace keys):
 | Distinct reject reasons | four codes listed in golden | sorted set equality |
 | Reject count | 5 | `len(writer.rejects)` |
 | Must not appear | alert-1, chg-1, synth-topo, unresolved-topo | absent from snapshot nodes |
-| Seed estate | five seed CIs still present | all `ci_id`s still on snapshot |
+| Bootstrap estate | five bootstrap CIs still present | all `ci_id`s still on snapshot |
 
 ---
 

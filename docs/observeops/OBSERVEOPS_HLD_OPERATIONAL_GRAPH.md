@@ -68,7 +68,7 @@ The second point is the centre of gravity here. The graph is not a supporting su
 These are restatements of Pipeline HLD §5. They are repeated here because they are the three things readers most often get wrong when moving between our internal vocabulary and vendor-teaching material.
 
 **Invariant 1 — "Ingest" is a phase, not a stage.**
-When a product doc or a roadmap says "Ingest is partial", that is a rollup over five independent stages: E1 Collect, E2 Identity, E3 Topology, E4 Stores, E5 Maintain. Those five sit at different readiness levels and are allowed to. E1 and E2 have closed LLDs; E5 has no dedicated lab at all. Never read a single Ingest status as uniform readiness across P1.
+When a product doc or a roadmap says "Ingest is partial", that is a rollup over five independent stages: E1 Collect, E2 Identity, E3 Topology, E4 Stores, E5 Maintain. Those five sit at different readiness levels and are allowed to. E1 and E2 have closed LLDs; E3–E4 are dual-path Drafts (Motadata + bakeoff); [`LLD-E5-Maintain.md`](./LLD-E5-Maintain.md) is a Design-level stub — E5 still has no dedicated lab. Never read a single Ingest status as uniform readiness across P1.
 
 **Invariant 2 — "Normalize" is E2 Identity, and it is early.**
 Vendor-teaching material (and our own DT/DD hubs) uses `Collect → Normalize` as the opening pair. That Normalize stage is this pipeline's **E2 Identity**, sitting second in P1. It is not a twelfth stage, and it is emphatically not E10 Identify. The name collision between "Normalize/Identity" (E2, early, stamps `tenant`+`ci_id`) and "Identify" (E10, late, corroborates the leaf) is the single highest-frequency reader error in this corpus.
@@ -317,8 +317,8 @@ Paired with the log pattern catalog on the same node — `Out of memory: Killed 
 |---|---|---|
 | **E1 Collect** | — | No graph interaction by design. Wire-format admission only. Source-asserted `ci_id` is carried, never validated against the graph here. |
 | **E2 Identity** | **Reads** (+ feeds back) | Reads `telemetry_key_index` and `match_rules` to stamp `tenant`+`ci_id`. Unresolved records feed the unresolved bucket, which is a **graph-improvement input**, not just an error queue. |
-| **E3 Topology** | **BUILDS / UPDATES** | Owns node creation, edge derivation via ranked methods, provenance stamping, and `GraphSnapshot` emission. The only writer. |
-| **E4 Stores** | **Reads** | Uses `ci_id` as the shared join key across the three query planes. Uses per-CI signal-class applicability to know which planes a CI legitimately has no data in. |
+| **E3 Topology** | **BUILDS / UPDATES** | Owns node creation, edge derivation via ranked methods, provenance stamping, and `GraphSnapshot` emission. The only **topology / `map/` writer**. Pillar A sketch writes go to `history/` in parallel after E2 — they are not a second graph writer. |
+| **E4 Stores** | **Reads** (join context) · **Writes** history | Uses `ci_id` as the shared join key. Motadata Pillar A **writes** `sketch.v1` into `history/` (metrics-only); sketch rows do **not** contain edges. Plane applicability still tells which modalities a CI is expected to lack. |
 | **E5 Maintain** | **Updates** | Edge freshness against per-edge `refresh` cadence; decay/expiry of stale edges; discovery freshness baseline. Does not create edges. |
 | **E6 Detect** | **Reads** | Signal-class applicability gates which detectors are meaningful per CI; `primary_health_signal` gives the per-CI health metric. |
 | **E7 Curate** | **Reads** | Edge adjacency and `criticality` are the merge evidence — correlated signals on adjacent CIs collapse into one seed. |
