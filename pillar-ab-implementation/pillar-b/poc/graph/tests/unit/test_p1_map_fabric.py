@@ -44,7 +44,7 @@ def test_e1_unknown_signal_class_is_graphwriter_noop_not_drop():
     writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
     before_nodes = len(writer.state.nodes)
     before_edges = len(writer.state.edges)
-    writer.apply_stream(
+    writer.write_topo_stream(
         ListIngestSource(
             [
                 {
@@ -81,7 +81,7 @@ def test_e2_unresolved_topo_never_silent_map_write():
     writer = GraphWriter()
     writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
     edge_count = len(writer.state.edges)
-    writer.apply_stream(
+    writer.write_topo_stream(
         ListIngestSource(
             [
                 {
@@ -136,7 +136,7 @@ def test_e3_noop_non_topo_classes():
                 "identity": {"status": "resolved"},
             }
         )
-    writer.apply_stream(ListIngestSource(lines))
+    writer.write_topo_stream(ListIngestSource(lines))
     assert writer.rejects == []
     assert len(writer.state.nodes) == n0
     assert len(writer.state.edges) == e0
@@ -145,7 +145,7 @@ def test_e3_noop_non_topo_classes():
 def test_e3_write_wave1_happy_path():
     writer = GraphWriter()
     writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.apply_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
     assert writer.rejects == []
     snap = writer.publish_map(MemoryDest())
     assert any(e["relation"] == "depends_on" for e in snap["edges"])
@@ -155,7 +155,7 @@ def test_e3_write_wave1_happy_path():
 def test_e3_drop_reject_tape_codes():
     writer = GraphWriter()
     writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.apply_stream(JsonlIngestSource(FIXTURES / "stream.reject.jsonl"))
+    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.reject.jsonl"))
     reasons = {r for _, r in writer.rejects}
     assert reasons >= {
         "identity_unresolved",
@@ -173,7 +173,7 @@ def test_e3_phased_map_noop_catalog_not_wave1():
     writer = GraphWriter()
     writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
     n0, e0 = len(writer.state.nodes), len(writer.state.edges)
-    writer.apply_stream(
+    writer.write_topo_stream(
         ListIngestSource(
             [
                 {
@@ -201,9 +201,9 @@ def test_e3_upsert_idempotency_replay():
     writer = GraphWriter()
     writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
     src = JsonlIngestSource(FIXTURES / "stream.resolved.jsonl")
-    writer.apply_stream(src)
+    writer.write_topo_stream(src)
     after_first = len(writer.state.edges)
-    writer.apply_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
     assert len(writer.state.edges) == after_first
     edge_ids = list(writer.state.edges.keys())
     assert len(edge_ids) == len(set(edge_ids))
@@ -226,10 +226,10 @@ def test_e3_bootstrap_provenance_not_caseseed():
 def test_e4_mixed_tape_map_spine_unchanged_by_non_topo():
     writer = GraphWriter()
     writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.apply_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
     spine_edges = sorted(writer.state.edges.keys())
     spine_nodes = sorted(writer.state.nodes.keys())
-    writer.apply_stream(
+    writer.write_topo_stream(
         ListIngestSource(
             [
                 {
@@ -317,7 +317,7 @@ def test_e5_maintain_does_not_create_edges():
 def test_e5_version_bump_reflush_still_walkable():
     writer = GraphWriter()
     writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.apply_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
     dest = MemoryDest()
     before = writer.publish_map(dest, version="1")
     for edge in writer.state.edges.values():

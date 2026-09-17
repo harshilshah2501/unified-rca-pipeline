@@ -134,7 +134,7 @@ These stay valuable but move **below the fold** or to Tier 2/3 indexes.
 | [`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md) | 2 · **I/O-2** | Lab post-E2 JSONL — pillar writer input | `make flush`, unit tests |
 | [`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | 2 · **I/O-3** | Pillar B `map/` output keys | Validating graph snapshot publish |
 | [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | 2 · **I/O-4** | Pillar A `history/` sketch output | Validating sketch flush |
-| LLD-E1 … LLD-E4 | 2 | Block implementation detail | Building a specific E-stage |
+| LLD-E1 … LLD-E5 | 2 | Block implementation detail | Building a specific E-stage (E5 = Design stub) |
 | Vendor DT / DD / ED hubs | 3 | Independent production references | Vendor compare, not ObserveOps lock |
 | Lean / Federated / bakeoff docs | 3 | Evaluation history | ADR-001 era scoreboards |
 | [`NAVIGATION.md`](../NAVIGATION.md) full index | — (maintainer) | Maintainer map, not cold start | Finding any file in repo |

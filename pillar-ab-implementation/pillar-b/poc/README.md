@@ -9,7 +9,7 @@ Lab Topology writer: resolved `topo_update` → `GraphSnapshot` → Gate B **`fi
 
 ```bash
 make install && make test-all
-make flush    # bootstrap + stream.resolved.jsonl → poc/out/<tenant>/map/
+make publish-map    # bootstrap + stream.resolved.jsonl → poc/out/<tenant>/map/
 ```
 
 ## Dest keys after flush

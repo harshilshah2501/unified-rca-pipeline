@@ -96,7 +96,7 @@ def test_apply_declared_soft_stale():
 def test_writer_maintain_and_reflush():
     writer = GraphWriter()
     writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.apply_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
     dest = MemoryDest()
     before = writer.publish_map(dest, version="1")
     # Mark one stream edge as already expired.

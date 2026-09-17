@@ -10,7 +10,7 @@
 ```bash
 cd pillar-ab-implementation/pillar-b/poc
 make install && make test-all
-make flush    # optional: write poc/out/<tenant>/map/
+make publish-map    # optional: write poc/out/<tenant>/map/
 ```
 
 ---
@@ -36,7 +36,7 @@ flowchart LR
 
 ![Same spine as PNG — use if Mermaid preview is off](./runtime-spine.png)
 
-`GraphWriter` is a thin orchestrator: `load_estate_bootstrap` → `apply_stream` → `publish_map` → optional `maintain_map`. Lab CLI: [`../poc/graph/cli_flush.py`](../poc/graph/cli_flush.py) (`make flush`).
+`GraphWriter` is a thin orchestrator: `load_estate_bootstrap` → `write_topo_stream` → `publish_map` → optional `maintain_map`. Lab CLI: [`../poc/graph/cli_publish_map.py`](../poc/graph/cli_publish_map.py) (`make publish-map`).
 
 ---
 
@@ -52,7 +52,7 @@ pillar-b/
     ├── ab_shared/            ← gate, dest, ingest, schema helpers
     ├── graph/                ← sole map writer path
     ├── fixtures/lab_checkout/
-    └── out/                  ← FileDest after make flush
+    └── out/                  ← FileDest after make publish-map
 ```
 
 Do not confuse with:
@@ -83,7 +83,7 @@ Abstracts “a stream of dict records.” Lab uses `JsonlIngestSource` (files un
 Gate B style destination: `put("map", filename, bytes)` / `get(...)`.
 
 - **`MemoryDest`** — tests (no disk).
-- **`FileDest`** — `make flush` writes under `poc/out/<tenant>/map/`.
+- **`FileDest`** — `make publish-map` writes under `poc/out/<tenant>/map/`.
 
 GraphWriter never opens paths itself; snapshot publish always goes through Dest.
 
@@ -114,8 +114,8 @@ Call order on the happy path: **`graph_writer`** orchestrates → **`graph_build
 The only class most callers need. Methods mirror the spine:
 
 1. `load_estate_bootstrap(...)` — optional estate starting map (not CaseSeed).
-2. `apply_stream(source)` — apply stream lines via `apply_topo_stream`.
-3. `publish_map(dest, version=...)` — build + publish `graph_snapshot.v1`.
+2. `write_topo_stream(source)` — upsert admitted topo lines into GraphState via `apply_topo_stream`.
+3. `publish_map(dest, version=...)` — validate + publish `graph_snapshot.v1` to Dest.
 4. `maintain_map(as_of, ...)` — E5 pass on existing edges; does not create edges.
 
 Rejects are exposed as `writer.rejects` (list of `(record, reason)`).
@@ -175,9 +175,9 @@ Outbound neighbor walks used in acceptance (“checkout-api reaches payments-db�
 
 Compares expected vs actual on a **spine** of ids/types/relations so provenance display fields can grow without breaking Case A goldens.
 
-### `cli_flush.py` — lab entrypoint
+### `cli_publish_map.py` — lab entrypoint
 
-Wires bootstrap + resolved stream + `FileDest` (+ optional maintain). Invoked by `make flush`.
+Wires bootstrap + resolved stream + `FileDest` (+ optional maintain). Invoked by `make publish-map`.
 
 ### Other files in `graph/` (secondary)
 
@@ -236,7 +236,7 @@ Eval narrative for those proofs: [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.
 2. Skim `topology.bootstrap.json` + first lines of `stream.resolved.jsonl`.  
 3. Read `GraphWriter` then `apply_topo_stream` end-to-end.  
 4. `make test-all` — if green, the contract holds.  
-5. `make flush` — inspect `poc/out/default/map/graph_snapshot.json`.  
+5. `make publish-map` — inspect `poc/out/default/map/graph_snapshot.json`.  
 6. Skim `test_p1_map_fabric.py` section headers (E1→E5).  
 7. Optional: [hub GraphWriter tab](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter).
 
@@ -262,11 +262,11 @@ This tree is the **P1 always-on fabric write path** only.
 
 | Caller | Role |
 |--------|------|
-| [`cli_flush.py`](../poc/graph/cli_flush.py) (`make flush`) | Lab operator entry — bootstrap → apply_stream → publish_map → optional maintain_map |
+| [`cli_publish_map.py`](../poc/graph/cli_publish_map.py) (`make publish-map`) | Lab operator entry — bootstrap → write_topo_stream → publish_map → optional maintain_map |
 | Unit / P1 tests under `poc/graph/tests/` | Acceptance proofs |
 | [`integration/join/`](../../integration/join/) (optional) | Read-join smoke that builds a map then joins sketches |
 
-**Product intent (not implemented here):** a Topology **worker** after Identity would call the same sequence on a continuous `topo_update` stream (plus optional CMDB/estate bootstrap). Diagnose stages (E6–E11) **read** `map/` via snapshot/neighbors — they do not call `apply_stream` / `publish_map`.
+**Product intent (not implemented here):** a Topology **worker** after Identity would call the same sequence on a continuous `topo_update` stream (plus optional CMDB/estate bootstrap). Diagnose stages (E6–E11) **read** `map/` via snapshot/neighbors — they do not call `write_topo_stream` / `publish_map`.
 
 Internal helpers (`apply_topo_stream`, `may_emit_vertex`, …) are for `GraphWriter` and tests — not a second public surface.
 
@@ -275,7 +275,7 @@ Internal helpers (`apply_topo_stream`, `may_emit_vertex`, …) are for `GraphWri
 | Scope | Folder / file | Job | Who should import it |
 |-------|---------------|-----|----------------------|
 | **Public orchestrator** | `graph/graph_writer.py` | Sole write API for `map/` | CLI, workers (future), tests |
-| **Lab entry** | `graph/cli_flush.py` | Wire files → writer → Dest | Humans via `make flush` only |
+| **Lab entry** | `graph/cli_publish_map.py` | Wire files → writer → Dest | Humans via `make publish-map` only |
 | **Write core** | `graph_builder.py`, `ci_qualify.py`, `edge_catalog.py`, `provenance.py`, `snapshot.py` | Mutate/validate estate → publish | Only `graph_writer` (+ focused unit tests) |
 | **Maintain (E5)** | `graph/maintain.py` | Validity on existing edges | `graph_writer.maintain_map` |
 | **Read helpers** | `neighbors.py`, `read_api.py` | Walk a published snapshot | Tests; later Diagnose readers |
@@ -291,8 +291,8 @@ Rough layering: **CLI/tests → `GraphWriter` → builder/catalog/qualify/proven
 | Name you see | Plain meaning |
 |--------------|---------------|
 | `load_estate_bootstrap` | Load optional **starting estate** JSON into memory (not CaseSeed) |
-| `apply_stream` | Feed post-E2 stream lines; apply admit triage into `GraphState` |
-| `publish_map` | Validate + **publish** current state to Dest `map/` as one snapshot version |
+| `write_topo_stream` | Admit-triage `topo_update` lines and **upsert into in-memory GraphState** (not Dest yet) |
+| `publish_map` | **Validate** GraphState + **write** `graph_snapshot.v1` / nodes / edges to Dest `map/` |
 | `maintain_map` | E5 pass: expire / stale-corroborating / declared soft·hard marks — **no new edges** |
 | `rejects` | DROP tape: `(record, reason_code)` pairs from this run |
 | `apply_topo_stream` | Per-line admit loop (NOOP / WRITE / DROP / phased skip) |
@@ -302,7 +302,7 @@ Rough layering: **CLI/tests → `GraphWriter` → builder/catalog/qualify/proven
 | `build_snapshot` / `publish_snapshot` | Assemble validated snapshot / write Dest keys |
 | `admit` (on `ResolvedOnlyGate`) | Identity gate check only — not GraphWriter’s full NOOP/WRITE/DROP table |
 
-Renames above are the current public verbs (`load_estate_bootstrap` / `apply_stream` / `publish_map` / `maintain_map`).
+Renames above are the current public verbs (`load_estate_bootstrap` / `write_topo_stream` / `publish_map` / `maintain_map`).
 
 ### Production surfaces (HTTP / RPC / Dest) — what other subsystems use
 
@@ -310,7 +310,7 @@ Honest freeze vs Design (Motadata SoT: [`GATE_B_DEST_PROFILE`](../../contracts/G
 
 | Surface | Audience | Purpose | Status |
 |---------|----------|---------|--------|
-| **Ingest stream** (`ingest.v1` after E2) | Topology worker (internal) | Continuous `topo_update` lines into GraphWriter `apply_stream` | PoC simulates; product worker = Design |
+| **Ingest stream** (`ingest.v1` after E2) | Topology worker (internal) | Continuous `topo_update` lines into GraphWriter `write_topo_stream` | PoC simulates; product worker = Design |
 | **Estate bootstrap load** | Topology / CMDB sync job | Optional starting map (`load_estate_bootstrap`) before stream | PoC file; product CMDB pull = Design |
 | **Dest write protocol** `put("map", key, bytes)` | GraphWriter only | Publish `graph_snapshot` / nodes / edges into the `map/` room | **Frozen logical contract**; PoC encoding `files.v1` |
 | **Dest read protocol** `get("map", "graph_snapshot.json")` | E5 maintain, E8 Scope, Diagnose | Load packaged snapshot; walk neighbors | **Frozen logical contract** |

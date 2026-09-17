@@ -1,4 +1,4 @@
-"""Lab CLI: flush topo stream → map/*.json(l) (Pillar B only)."""
+"""Lab CLI: estate bootstrap + topo stream → publish Dest map/ (Pillar B only)."""
 
 from __future__ import annotations
 
@@ -12,7 +12,9 @@ from graph.graph_writer import GraphWriter
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Pillar B GraphWriter flush (lab)")
+    p = argparse.ArgumentParser(
+        description="Pillar B GraphWriter lab publish: bootstrap + topo stream → map/"
+    )
     p.add_argument(
         "--bootstrap",
         type=Path,
@@ -23,7 +25,7 @@ def main(argv: list[str] | None = None) -> int:
         "--stream",
         type=Path,
         default=FIXTURES / "stream.resolved.jsonl",
-        help="Topo-only ingest.v1 JSONL (metric_sample lines are silently skipped)",
+        help="Topo-only ingest.v1 JSONL (non-topo signal_class lines are silent NOOP)",
     )
     p.add_argument(
         "--out",
@@ -55,7 +57,7 @@ def main(argv: list[str] | None = None) -> int:
     writer = GraphWriter(tenant=args.tenant)
     if args.bootstrap and args.bootstrap.exists():
         writer.load_estate_bootstrap(args.bootstrap)
-    writer.apply_stream(JsonlIngestSource(args.stream))
+    writer.write_topo_stream(JsonlIngestSource(args.stream))
     dest = FileDest(args.out, tenant=args.tenant)
     snapshot = writer.publish_map(dest, version=args.version)
     maintain_stats: dict[str, int] = {}

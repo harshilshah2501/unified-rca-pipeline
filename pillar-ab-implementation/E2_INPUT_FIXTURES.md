@@ -334,8 +334,8 @@ pillar-ab-implementation/
 
 | File | Use when |
 |------|----------|
-| `pillar-a/.../stream.metrics.resolved.jsonl` | Unit tests and `make flush` for Pillar A only |
-| `pillar-b/.../stream.resolved.jsonl` | Unit tests and `python -m graph.cli_flush` for Pillar B only |
+| `pillar-a/.../stream.metrics.resolved.jsonl` | Unit tests and `make publish-map` (alias: `make flush`) for Pillar A only |
+| `pillar-b/.../stream.resolved.jsonl` | Unit tests and `python -m graph.cli_publish_map` for Pillar B only |
 | `integration/.../stream.resolved.jsonl` | After both pillars are green — WorkingSet read-join demo |
 | `*/stream.reject.jsonl` | Gate tests: unresolved, synthesized, never-CI types, unknown relations |
 

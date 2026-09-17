@@ -68,7 +68,7 @@ Always-on fabric (E1–E5) → Pillar A∥B contracts → Detect onward → Refe
 
 </details>
 
-**Fabric visuals** (ordered): [`fabric/README.md`](./fabric/README.md) — data shape journey → E1–E5 architecture → map/history → exemplars.
+**Fabric visuals** (ordered): [`fabric/README.md`](./fabric/README.md) — ingest simulation (Node or Collector → SaaS → Detect) → data shape journey → E1–E5 architecture → map/history → exemplars.
 
 **Pillar A∥B implementation** (contracts + code):
 

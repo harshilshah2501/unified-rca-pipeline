@@ -32,7 +32,7 @@ make test-graph   # includes expected vs actual
 | **Input bootstrap** | [`../topology.bootstrap.json`](../topology.bootstrap.json) |
 | **Input stream** | [`../stream.resolved.jsonl`](../stream.resolved.jsonl) |
 | **Expected spine** | [`cases/happy_path/expected_spine.json`](./cases/happy_path/expected_spine.json) |
-| **Actual** | `GraphWriter.load_estate_bootstrap` → `apply_stream` → `publish_map` → `graph_snapshot.v1` |
+| **Actual** | `GraphWriter.load_estate_bootstrap` → `write_topo_stream` → `publish_map` → `graph_snapshot.v1` |
 
 ### Input graph (bootstrap nodes + relations)
 
@@ -107,4 +107,4 @@ Expected edge ids (stable replace keys):
 
 Illustrative single-object samples under [`expected/`](./expected/) (`graph_node.example.json`, …) remain **shape examples** for humans reading schemas. They are not the case goldens and are not asserted by `test_sample_io.py`.
 
-Full publish under `poc/out/<tenant>/map/` after `make flush` still writes complete `graph_snapshot.json` / `nodes.jsonl` / `edges.jsonl` (including `discovered_via`). Spine equality is the PoC’s regression contract for “did we build the right estate map?”
+Full publish under `poc/out/<tenant>/map/` after `make publish-map` still writes complete `graph_snapshot.json` / `nodes.jsonl` / `edges.jsonl` (including `discovered_via`). Spine equality is the PoC’s regression contract for “did we build the right estate map?”

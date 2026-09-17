@@ -16,7 +16,7 @@ A and B are **parallel writers** after Identity (E2). Pillar B owns the `map/` r
 2. [`docs/MAP_P1_FABRIC_EVAL.md`](./docs/MAP_P1_FABRIC_EVAL.md) — E1–E5 eval, terminology  
 3. [`docs/Codebase-go-through.md`](./docs/Codebase-go-through.md) — how the code is wired  
 4. [`poc/fixtures/lab_checkout/SAMPLE_IO.md`](./poc/fixtures/lab_checkout/SAMPLE_IO.md) — Case A/B goldens  
-5. Run: `cd poc && make install && make test-all` (optional `make flush`)  
+5. Run: `cd poc && make install && make test-all` (optional `make publish-map`)  
 6. Hub visual: [Our HLD → GraphWriter](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter)
 
 **Increment lock:** P1 (E1–E5) for `map/` only. P2/P3 use-case map reads are the next increment.
@@ -30,7 +30,7 @@ cd pillar-b/poc
 python3 -m venv .venv
 make install
 make test-all
-make flush    # optional lab: bootstrap + topo stream → map/
+make publish-map    # optional lab: bootstrap + topo stream → map/
 ```
 
 Lab-only notes: [`poc/README.md`](./poc/README.md).

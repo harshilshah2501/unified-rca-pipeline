@@ -11,7 +11,7 @@ from graph.snapshot import build_snapshot, publish_snapshot
 
 
 class GraphWriter:
-    """Sole map write orchestrator: estate bootstrap → stream → publish → optional maintain."""
+    """Sole map write orchestrator: estate bootstrap → write_topo_stream → publish_map → optional maintain_map."""
 
     def __init__(self, tenant: str = "default", gate: ResolvedOnlyGate | None = None) -> None:
         self.tenant = tenant
@@ -28,8 +28,11 @@ class GraphWriter:
             return []
         return self.state.rejects
 
-    def apply_stream(self, source: IngestSource) -> None:
-        """Admit-triage post-E2 ingest lines into GraphState (NOOP / WRITE / DROP / phased)."""
+    def write_topo_stream(self, source: IngestSource) -> None:
+        """Write admitted topo_update lines into GraphState (NOOP / WRITE / DROP / phased).
+
+        Does not publish to Dest — call publish_map next.
+        """
         if self.state is None:
             self.state = GraphState(tenant=self.tenant)
         apply_topo_stream(self.state, source, self.gate)
