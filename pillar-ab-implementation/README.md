@@ -28,7 +28,7 @@ Shared brief, schemas, samples, fabric Q&A, and **map write/read JSON record**: 
 **JSON schemas SoT:** [`contracts/schemas/`](./contracts/schemas/) — package `*/contracts/schemas/*.json` are **symlinks** (not copies). Guard: `make check-schemas` or `python3 scripts/check_schema_mirrors.py`.  
 Map dest keys/encoding: [`contracts/MAP_WRITE_READ_RECORD.md`](./contracts/MAP_WRITE_READ_RECORD.md).  
 Post-E2 **ingest fixture map** (what A and B consume): [`E2_INPUT_FIXTURES.md`](./E2_INPUT_FIXTURES.md).  
-**Pillar B guide:** [`pillar-b/README.md`](./pillar-b/README.md) (reading order) · lab [`SAMPLE_IO.md`](./pillar-b/poc/fixtures/lab_checkout/SAMPLE_IO.md) · hub [`graphwriter-io-walkthrough.html`](http://127.0.0.1:8765/graphwriter-io-walkthrough.html).  
+**Pillar B guide:** [`pillar-b/README.md`](./pillar-b/README.md) (reading order) · lab [`SAMPLE_IO.md`](./pillar-b/poc/sample_estate/customer_checkout/SAMPLE_IO.md) · hub [`graphwriter-io-walkthrough.html`](http://127.0.0.1:8765/graphwriter-io-walkthrough.html).  
 Implementer **I/O chain** (ingest → fixtures → map/sketch output): [`docs/observeops/OUR_HLD_TIER1.md`](../docs/observeops/OUR_HLD_TIER1.md#tier-2--implementer-io-contracts-not-tier-1).  
 Package `docs/` folders and schema mirrors are **symlinks** — do not replace with copies in the monorepo. Handoff zips should **follow** symlinks so the archive is self-contained (see [`docs/REPO_HYGIENE.md`](../docs/REPO_HYGIENE.md)).
 

@@ -198,7 +198,7 @@ For Motadata unified fabric, E3 Topology is implemented by the Pillar B GraphWri
 cd pillar-ab-implementation/pillar-b/poc && make install && make test-graph
 ```
 
-Pass criteria: schema-valid nodes/edges/snapshot; CI-only vertices (Alert/Change rejected); wave-1 relations emitted; `neighbors("checkout-api")` reaches host/db from `fixtures/lab_checkout/`. Schemas: [`pillar-ab-implementation/contracts/schemas/`](../../pillar-ab-implementation/contracts/schemas/). Guide: [`SAMPLE_IO.md`](../../pillar-ab-implementation/pillar-b/poc/fixtures/lab_checkout/SAMPLE_IO.md). Hub walkthrough: [`graphwriter-io-walkthrough.html`](../fabric/graphwriter-io-walkthrough.html).
+Pass criteria: schema-valid nodes/edges/snapshot; CI-only vertices (Alert/Change rejected); wave-1 relations emitted; `neighbors("checkout-api")` reaches host/db from `sample_estate/customer_checkout/`. Schemas: [`pillar-ab-implementation/contracts/schemas/`](../../pillar-ab-implementation/contracts/schemas/). Guide: [`SAMPLE_IO.md`](../../pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/SAMPLE_IO.md). Hub walkthrough: [`graphwriter-io-walkthrough.html`](../fabric/graphwriter-io-walkthrough.html).
 
 **Design gaps (honest):** continuous derivation at per-edge `refresh` cadence is not lab-built; unresolved-bucket → discovery feedback into E3 is Design-level (operational-graph §4 E2/E3).
 

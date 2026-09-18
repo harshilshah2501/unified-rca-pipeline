@@ -1,6 +1,6 @@
 # Codebase go-through — Pillar B map PoC (P1 / Increment 1)
 
-**Doc job:** walk the **code and fixtures** so a cold reader knows which file does which job on the write path into `map/`.  
+**Doc job:** walk the **code and sample estate** so a cold reader knows which file does which job on the write path into `map/`.  
 **Not this page:** stage eval matrix and admit terminology → [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md). Package I/O front door → [`../README.md`](../README.md). Doc map → [`README.md`](./README.md).
 
 **What this PoC proves:** after Identity, Motadata can build and keep a `map/` knowledge graph from optional **estate bootstrap** + a `topo_update` stream, without writing sketches, without CaseSeed, and without implementing live discovery.
@@ -48,10 +48,10 @@ pillar-b/
 ├── docs/                     ← PoC guides only (this page, MAP_P1, doc map)
 ├── contracts/schemas/        ← schema symlinks → slice SoT (required by tests)
 ├── references/               ← OPTIONAL product HTML (not PoC SoT)
-└── poc/                      ← runnable code + fixtures + tests
+└── poc/                      ← runnable code + sample estate + tests
     ├── ab_shared/            ← gate, dest, ingest, schema helpers
     ├── graph/                ← sole map writer path
-    ├── fixtures/lab_checkout/
+    ├── sample_estate/customer_checkout/  ← teaching estate inputs (not live CMDB)
     └── out/                  ← FileDest after make publish-map
 ```
 
@@ -66,7 +66,7 @@ Do not confuse with:
 
 These modules are **not** the Topology writer. They are small utilities the writer (and tests) depend on so Pillar B can behave like a post-Identity consumer without reimplementing Collect or the full Identity LUT.
 
-Pillar B fixtures already look like post-Identity `ingest.v1`. Collect is Done elsewhere; this package **simulates** its output.
+Pillar B sample-estate inputs already look like post-Identity `ingest.v1`. Collect is Done elsewhere; this package **simulates** its output.
 
 ### `identity_gate.py` — who may become map work
 
@@ -76,7 +76,7 @@ This is the hard door into E3. Full `telemetry_key_index` LUT is Design (named i
 
 ### `ingest_source.py` — how lines enter the writer
 
-Abstracts “a stream of dict records.” Lab uses `JsonlIngestSource` (files under `fixtures/lab_checkout/`). Unit tests use `ListIngestSource` so cases can inject one-off NOOP/DROP lines without new fixture files.
+Abstracts “a stream of dict records.” Lab uses `JsonlIngestSource` (files under `sample_estate/customer_checkout/`). Unit tests use `ListIngestSource` so cases can inject one-off NOOP/DROP lines without new sample-estate files.
 
 ### `dest.py` — where `map/` lands
 
@@ -95,13 +95,13 @@ Loads mirrored JSON Schema from `pillar-b/contracts/schemas/` and validates node
 
 Single catalog of reason codes (`identity_unresolved`, `identity_synthesized`, `never_ci_vertex`, `unknown_relation`, …). GraphWriter appends `(record, reason)` pairs; SAMPLE_IO Case B asserts on these strings. Do not invent ad-hoc reject text in builder code.
 
-### `paths.py` — fixture root
+### `paths.py` — sample estate root
 
-`FIXTURES` points at `poc/fixtures/lab_checkout/` so tests and CLI share one path constant.
+`SAMPLE_ESTATE` points at `poc/sample_estate/customer_checkout/` so tests and CLI share one path constant.
 
 ### `clock.py` — lab time helper
 
-`FrozenClock` exists for shared patterns with Pillar A. E5 maintain in this PoC currently takes an explicit `as_of` timestamp string (fixture clock) rather than injecting `FrozenClock` everywhere — see `maintain.py`.
+`FrozenClock` exists for shared patterns with Pillar A. E5 maintain in this PoC currently takes an explicit `as_of` timestamp string (lab clock) rather than injecting `FrozenClock` everywhere — see `maintain.py`.
 
 ---
 
@@ -188,7 +188,7 @@ Wires bootstrap + resolved stream + `FileDest` (+ optional maintain). Invoked by
 
 ---
 
-## 5. Fixtures — `poc/fixtures/lab_checkout/`
+## 5. Sample estate — `poc/sample_estate/customer_checkout/`
 
 | Artifact | Meaning |
 |----------|---------|
@@ -196,8 +196,8 @@ Wires bootstrap + resolved stream + `FileDest` (+ optional maintain). Invoked by
 | `stream.resolved.jsonl` | Case A — five wave-1 `topo_update` WRITEs |
 | `stream.reject.jsonl` | Case B — DROP mix + metric/event/trace/anomaly NOOPs |
 | `cases/happy_path/` · `cases/reject_tape/` | Golden spines / reject expectations |
-| [`SAMPLE_IO.md`](../poc/fixtures/lab_checkout/SAMPLE_IO.md) | Human expected-vs-actual for Case A/B |
-| [`fixtures README`](../poc/fixtures/lab_checkout/README.md) | Short file inventory |
+| [`SAMPLE_IO.md`](../poc/sample_estate/customer_checkout/SAMPLE_IO.md) | Human expected-vs-actual for Case A/B |
+| [`estate README`](../poc/sample_estate/customer_checkout/README.md) | Why this folder exists + file inventory |
 
 ---
 
@@ -220,7 +220,7 @@ Eval narrative for those proofs: [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.
 
 | Stage | In this codebase | Look at |
 |-------|------------------|---------|
-| **E1 Collect** | Not implemented; simulated by fixture spine | `test_e1_*` in `test_p1_map_fabric.py` |
+| **E1 Collect** | Not implemented; simulated by sample-estate spine | `test_e1_*` in `test_p1_map_fabric.py` |
 | **E2 Identity** | Gate only (`ResolvedOnlyGate`); no LUT | `ab_shared/identity_gate.py` |
 | **E3 Topology** | Sole map writer | `graph_writer` → `graph_builder` → `snapshot` |
 | **E4 Stores** | Absent by design here; non-topo lines NOOP | `test_e4_mixed_tape_*` |
@@ -272,6 +272,31 @@ Internal helpers (`apply_topo_stream`, `may_emit_vertex`, …) are for `GraphWri
 
 ### Python files by purpose and scope
 
+These scopes match the **Pillar B map PoC navigator** canvas layers. They are file roles, not Motadata pipeline stages.
+
+**How they relate (call / dependency direction):**
+
+```text
+Lab entry  ──calls──►  Public orchestrator  ──uses──►  Write core
+                                 │                         │
+                                 │                         └──uses──►  Shared glue
+                                 │
+                                 └──publish_map──►  Dest map/  ◄──read──  Read helpers
+
+Production surfaces = Dest map/ + ingest.v1 stream (product), not a GraphWriter HTTP API.
+Spine = the whole write story above (not a separate package).
+```
+
+**Cold-reader order** (same as the navigator):
+
+1. **Spine** — one write story into `map/`  
+2. **Public orchestrator** — only write API (`graph_writer.py`)  
+3. **Lab entry** — `make publish-map` / CLI (PoC only)  
+4. **Write core** — builder, catalog, qualify, snapshot, maintain  
+5. **Shared glue** — `ab_shared` gate / Dest / ingest / schema  
+6. **Read helpers** — neighbors / load snapshot after publish  
+7. **Production surfaces** — Dest rooms + stream honesty (read last)
+
 | Scope | Folder / file | Job | Who should import it |
 |-------|---------------|-----|----------------------|
 | **Public orchestrator** | `graph/graph_writer.py` | Sole write API for `map/` | CLI, workers (future), tests |
@@ -282,7 +307,7 @@ Internal helpers (`apply_topo_stream`, `may_emit_vertex`, …) are for `GraphWri
 | **Test-only compare** | `compare.py` | Spine equality for SAMPLE_IO | Tests only |
 | **Secondary** | `change_fact.py` | Optional change facts — not part of `publish_snapshot` | Ignore for P1 map path |
 | **Shared utilities** | `ab_shared/*` | Gate, Dest, ingest sources, schemas, reject codes | Writer + tests (Pillar A–style shared patterns) |
-| **Fixtures / paths** | `ab_shared/paths.py`, `fixtures/` | Lab data locations | CLI + tests |
+| **Sample estate / paths** | `ab_shared/paths.py`, `sample_estate/` | Sample estate locations | CLI + tests |
 
 Rough layering: **CLI/tests → `GraphWriter` → builder/catalog/qualify/provenance → snapshot/Dest**. Do not call builder from Diagnose.
 

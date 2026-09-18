@@ -1,6 +1,6 @@
-# Pillar B lab — sample inputs / expected outputs
+# Pillar B — sample estate inputs / expected outputs
 
-**Purpose:** Freeze what GraphWriter should produce from the lab fixtures, then compare **expected** (JSON under `cases/`) to **actual** (live writer flush) in unit tests.
+**Purpose:** Freeze what GraphWriter should produce from this sample estate (customer checkout), then compare **expected** (JSON under `cases/`) to **actual** (live writer flush) in unit tests.
 
 **Doc job:** Case A/B goldens only. Stage matrix → [`../../../docs/MAP_P1_FABRIC_EVAL.md`](../../../docs/MAP_P1_FABRIC_EVAL.md). Doc map → [`../../../docs/README.md`](../../../docs/README.md).
 

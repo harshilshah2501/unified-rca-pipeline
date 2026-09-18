@@ -63,14 +63,14 @@ Wave-1 emit set: `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `par
 
 ---
 
-## Fixtures and acceptance
+## Sample estate and acceptance
 
 | Artifact | Role |
 |----------|------|
-| [`poc/fixtures/lab_checkout/topology.bootstrap.json`](./poc/fixtures/lab_checkout/topology.bootstrap.json) | Estate bootstrap |
-| [`poc/fixtures/lab_checkout/stream.resolved.jsonl`](./poc/fixtures/lab_checkout/stream.resolved.jsonl) | Case A WRITE spine |
-| [`poc/fixtures/lab_checkout/stream.reject.jsonl`](./poc/fixtures/lab_checkout/stream.reject.jsonl) | Case B DROP + NOOP mix |
-| [`poc/fixtures/lab_checkout/SAMPLE_IO.md`](./poc/fixtures/lab_checkout/SAMPLE_IO.md) | Expected vs actual |
+| [`../poc/sample_estate/customer_checkout/topology.bootstrap.json`](../poc/sample_estate/customer_checkout/topology.bootstrap.json) | Estate bootstrap |
+| [`../poc/sample_estate/customer_checkout/stream.resolved.jsonl`](../poc/sample_estate/customer_checkout/stream.resolved.jsonl) | Case A WRITE spine |
+| [`../poc/sample_estate/customer_checkout/stream.reject.jsonl`](../poc/sample_estate/customer_checkout/stream.reject.jsonl) | Case B DROP + NOOP mix |
+| [`../poc/sample_estate/customer_checkout/SAMPLE_IO.md`](../poc/sample_estate/customer_checkout/SAMPLE_IO.md) | Expected vs actual |
 
 ---
 

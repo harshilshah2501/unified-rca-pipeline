@@ -17,7 +17,7 @@ cd pillar-a/poc
 python3 -m venv .venv
 make install
 make test-all
-make flush          # optional: FileDest history/sketches.jsonl from lab fixture
+make flush          # optional: FileDest history/sketches.jsonl from sample estate
 ```
 
 Expected: shared + sketch unit tests pass (no graph/join).
@@ -67,7 +67,7 @@ pillar-a/
 └── poc/
     ├── ab_shared/     ← stubs: identity gate, season, dest, ingest, schema
     ├── sketch/        ← Pillar A writer + read API
-    ├── fixtures/lab_checkout/   ← metric-only streams (no topo_update); see ../E2_INPUT_FIXTURES.md
+    ├── sample_estate/customer_checkout/   ← metric-only streams (no topo_update); see ../E2_INPUT_FIXTURES.md
     ├── Makefile
     └── requirements.txt
 ```

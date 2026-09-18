@@ -30,7 +30,7 @@ PYTHONPATH=lean-pipeline:. python3 ingestion-poc/builders/n45_chain.py
 python3 ingestion-poc/adapters/motadata_to_ingest_v1.py --smoke
 ```
 
-Pillar A∥B **lab fixtures** under `pillar-ab-implementation/*/poc/fixtures/` do **not** need these dumps.
+Pillar A∥B **sample estate** under `pillar-ab-implementation/*/poc/sample_estate/` do **not** need these dumps.
 
 ---
 
@@ -69,7 +69,7 @@ If an adapter cannot find the dump, it exits with a short message pointing at th
 | Goal | Use |
 |------|-----|
 | Ingest contract + Vector smoke | `datasets/ingest_samples/observeops-replay/` (in git) |
-| Pillar A∥B writers | `pillar-ab-implementation/*/poc/fixtures/lab_checkout/` |
+| Pillar A∥B writers | `pillar-ab-implementation/*/poc/sample_estate/customer_checkout/` |
 | Motadata L1 bakeoff packs already built | `datasets/ingest_samples/motadata-ingest/incidents/` (committed packs; rebuild needs dumps) |
 | Full Motadata lake convert | Local `jsonl_resolved/` only |
 

@@ -171,7 +171,7 @@ cd pillar-ab-implementation/pillar-a/poc && make install && make test-all
 cd ../../pillar-b/poc && make install && make test-all
 ```
 
-Lab fixtures (resolved `ingest.v1`): `pillar-a/poc/fixtures/lab_checkout/`, `pillar-b/poc/fixtures/lab_checkout/`, `integration/fixtures/lab_checkout/`.
+Sample estate (resolved `ingest.v1`): `pillar-a/poc/sample_estate/customer_checkout/`, `pillar-b/poc/sample_estate/customer_checkout/`, `integration/sample_estate/customer_checkout/`.
 
 Former combined PoC lives under [`_archive/pillar-ab-combined-poc-2026-08/`](../_archive/pillar-ab-combined-poc-2026-08/) — do not expand.
 
@@ -334,7 +334,7 @@ cd federated-pipeline && python3 -m http.server 8770   # learning UI
 |------------|---------|
 | **Orient Motadata Pillar A∥B** | [`pillar-ab-implementation/README.md`](../pillar-ab-implementation/README.md) → [`OUR_HLD_TIER1.md`](./observeops/OUR_HLD_TIER1.md) |
 | **Run Pillar A / B unit suites** | `pillar-a/poc` or `pillar-b/poc` → `make install && make test-all` |
-| **See post-E2 writer input** | [`E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md) + lab `fixtures/lab_checkout/` |
+| **See post-E2 writer input** | [`E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md) + `sample_estate/customer_checkout/` |
 | **Change map/sketch contracts** | Edit **`pillar-ab-implementation/contracts/`** only ([`REPO_HYGIENE.md`](./REPO_HYGIENE.md)) |
 | **Demo the PoC console** | `dashboard/server.py` → follow [`POC_DEMO_GUIDE.md`](./POC_DEMO_GUIDE.md) |
 | **Diagnose one UC (bakeoff)** | `python -m lean_rca diagnose UC-N --format report` |
@@ -361,7 +361,7 @@ cd federated-pipeline && python3 -m http.server 8770   # learning UI
 | Vector / lab | See `ingestion-poc/vector/*.toml`, `ingestion-poc/compose/*.yml`, `lab/README.md` |
 | OpenObserve fetch | `OPENOBSERVE_URL`, `ORG`, `USER`, `PASSWORD` (peer track only) |
 
-No root `.env` is required for the basic UC path. Motadata dumps must exist locally under `jsonl_resolved/` (gitignored) for Motadata **adapters**; Pillar A∥B **lab fixtures** under `pillar-*/poc/fixtures/` do not need those dumps.
+No root `.env` is required for the basic UC path. Motadata dumps must exist locally under `jsonl_resolved/` (gitignored) for Motadata **adapters**; Pillar A∥B **sample estate** under `pillar-*/poc/sample_estate/` do not need those dumps.
 
 ---
 

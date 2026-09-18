@@ -4,7 +4,7 @@ from ab_shared.clock import FrozenClock
 from ab_shared.dest import FileDest, MemoryDest
 from ab_shared.identity_gate import ResolvedOnlyGate
 from ab_shared.ingest_source import JsonlIngestSource
-from ab_shared.paths import FIXTURES
+from ab_shared.paths import SAMPLE_ESTATE
 from ab_shared.reject_codes import REJECT_CODES
 from ab_shared.schema import is_valid
 from ab_shared.season import HourOfWeekSeason
@@ -21,7 +21,7 @@ def test_reject_catalog_lists_pillar_a_codes():
 def test_schemas_validate_golden_examples():
     import json
 
-    expected = FIXTURES / "expected"
+    expected = SAMPLE_ESTATE / "expected"
     assert is_valid(
         "ingest_v1.schema.json",
         json.loads((expected / "ingest.example.json").read_text()),
@@ -49,7 +49,7 @@ def test_gate_drops_unattributed_and_synthesized():
 
 def test_gate_reason_codes_from_reject_fixture():
     gate = ResolvedOnlyGate()
-    src = JsonlIngestSource(FIXTURES / "stream.reject.jsonl")
+    src = JsonlIngestSource(SAMPLE_ESTATE / "stream.reject.jsonl")
     reasons = []
     for rec in src.records():
         result = gate.admit(rec)

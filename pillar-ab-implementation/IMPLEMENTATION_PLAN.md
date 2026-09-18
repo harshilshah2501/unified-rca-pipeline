@@ -57,7 +57,7 @@ Subsystem plans: Cursor `pillar_a_subsystem_plan` · `pillar_b_subsystem_plan`.
 | Reject list | `contracts/IDENTIFIED_STREAM_REJECT.md` |
 | Gate B profile | `contracts/GATE_B_DEST_PROFILE.md` |
 | Map write/read (JSON) | `contracts/MAP_WRITE_READ_RECORD.md` + `schemas/graph_snapshot_v1.schema.json` |
-| Fixtures | per-package `poc/fixtures/lab_checkout/` · map: [`E2_INPUT_FIXTURES.md`](./E2_INPUT_FIXTURES.md) |
+| Fixtures | per-package `poc/sample_estate/customer_checkout/` · map: [`E2_INPUT_FIXTURES.md`](./E2_INPUT_FIXTURES.md) |
 | Stubs | per-package `poc/ab_shared/` |
 | Independence | graph/sketch unit tests + import AST check |
 

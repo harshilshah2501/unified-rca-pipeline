@@ -7,7 +7,7 @@ from pathlib import Path
 
 from ab_shared.dest import FileDest
 from ab_shared.ingest_source import JsonlIngestSource
-from ab_shared.paths import FIXTURES, POC_ROOT
+from ab_shared.paths import SAMPLE_ESTATE, POC_ROOT
 from graph.graph_writer import GraphWriter
 
 
@@ -18,13 +18,13 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument(
         "--bootstrap",
         type=Path,
-        default=FIXTURES / "topology.bootstrap.json",
+        default=SAMPLE_ESTATE / "topology.bootstrap.json",
         help="Declared estate bootstrap JSON (nodes + edges). Not E7 CaseSeed.",
     )
     p.add_argument(
         "--stream",
         type=Path,
-        default=FIXTURES / "stream.resolved.jsonl",
+        default=SAMPLE_ESTATE / "stream.resolved.jsonl",
         help="Topo-only ingest.v1 JSONL (non-topo signal_class lines are silent NOOP)",
     )
     p.add_argument(

@@ -1,6 +1,6 @@
 from ab_shared.dest import MemoryDest
 from ab_shared.ingest_source import JsonlIngestSource
-from ab_shared.paths import FIXTURES
+from ab_shared.paths import SAMPLE_ESTATE
 from graph.change_fact import append_change_fact, make_change_fact
 from graph.graph_builder import apply_topo_stream, load_estate_bootstrap_state
 from graph.snapshot import build_snapshot, publish_snapshot
@@ -10,12 +10,12 @@ from sketch.sketch_flush import SketchWriter
 
 
 def _build_both(dest: MemoryDest):
-    state = load_estate_bootstrap_state(FIXTURES / "topology.bootstrap.json")
-    apply_topo_stream(state, JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    state = load_estate_bootstrap_state(SAMPLE_ESTATE / "topology.bootstrap.json")
+    apply_topo_stream(state, JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
     snap = build_snapshot(state)
     publish_snapshot(dest, snap)
     writer = SketchWriter()
-    writer.ingest(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.ingest(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
     writer.flush(dest)
     return state, writer, snap
 

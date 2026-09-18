@@ -8,7 +8,7 @@ from __future__ import annotations
 from ab_shared.dest import MemoryDest
 from ab_shared.identity_gate import ResolvedOnlyGate
 from ab_shared.ingest_source import JsonlIngestSource, ListIngestSource
-from ab_shared.paths import FIXTURES
+from ab_shared.paths import SAMPLE_ESTATE
 from ab_shared.schema import is_valid
 from graph.graph_writer import GraphWriter
 from graph.maintain import (
@@ -28,10 +28,10 @@ from graph.snapshot import load_snapshot
 # ---------------------------------------------------------------------------
 
 
-def test_e1_fixture_lines_carry_ingest_v1_spine():
-    """Wire admit shape: lab fixtures look like Collect-admitted ingest.v1."""
+def test_e1_sample_estate_lines_carry_ingest_v1_spine():
+    """Wire admit shape: sample-estate lines look like Collect-admitted ingest.v1."""
     for name in ("stream.resolved.jsonl", "stream.reject.jsonl"):
-        for rec in JsonlIngestSource(FIXTURES / name).records():
+        for rec in JsonlIngestSource(SAMPLE_ESTATE / name).records():
             assert rec.get("schema_version") == "ingest.v1"
             assert "signal_class" in rec
             assert "ts" in rec and "tenant" in rec and "ci_id" in rec
@@ -41,7 +41,7 @@ def test_e1_fixture_lines_carry_ingest_v1_spine():
 def test_e1_unknown_signal_class_is_graphwriter_noop_not_drop():
     """Collect would reject unknown classes; GraphWriter NOOPs non-topo_update."""
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     before_nodes = len(writer.state.nodes)
     before_edges = len(writer.state.edges)
     writer.write_topo_stream(
@@ -79,7 +79,7 @@ def test_e2_gate_rejects_unresolved_and_synthesized():
 
 def test_e2_unresolved_topo_never_silent_map_write():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     edge_count = len(writer.state.edges)
     writer.write_topo_stream(
         ListIngestSource(
@@ -107,7 +107,7 @@ def test_e2_unresolved_topo_never_silent_map_write():
 
 def test_e2_telemetry_key_index_is_design_stub_documented():
     """PoC does not ship telemetry_key_index; guide names it as Design."""
-    guide = (FIXTURES.parents[2] / "docs" / "MAP_P1_FABRIC_EVAL.md").read_text(encoding="utf-8")
+    guide = (SAMPLE_ESTATE.parents[2] / "docs" / "MAP_P1_FABRIC_EVAL.md").read_text(encoding="utf-8")
     assert "telemetry_key_index" in guide
     assert "Design" in guide
 
@@ -119,7 +119,7 @@ def test_e2_telemetry_key_index_is_design_stub_documented():
 
 def test_e3_noop_non_topo_classes():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     n0, e0 = len(writer.state.nodes), len(writer.state.edges)
     lines = []
     for signal_class in ("metric_sample", "event", "trace_span", "anomaly"):
@@ -144,8 +144,8 @@ def test_e3_noop_non_topo_classes():
 
 def test_e3_write_wave1_happy_path():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
     assert writer.rejects == []
     snap = writer.publish_map(MemoryDest())
     assert any(e["relation"] == "depends_on" for e in snap["edges"])
@@ -154,8 +154,8 @@ def test_e3_write_wave1_happy_path():
 
 def test_e3_drop_reject_tape_codes():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.reject.jsonl"))
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.reject.jsonl"))
     reasons = {r for _, r in writer.rejects}
     assert reasons >= {
         "identity_unresolved",
@@ -171,7 +171,7 @@ def test_e3_drop_reject_tape_codes():
 
 def test_e3_phased_map_noop_catalog_not_wave1():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     n0, e0 = len(writer.state.nodes), len(writer.state.edges)
     writer.write_topo_stream(
         ListIngestSource(
@@ -199,11 +199,11 @@ def test_e3_phased_map_noop_catalog_not_wave1():
 
 def test_e3_upsert_idempotency_replay():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    src = JsonlIngestSource(FIXTURES / "stream.resolved.jsonl")
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    src = JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl")
     writer.write_topo_stream(src)
     after_first = len(writer.state.edges)
-    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
     assert len(writer.state.edges) == after_first
     edge_ids = list(writer.state.edges.keys())
     assert len(edge_ids) == len(set(edge_ids))
@@ -211,7 +211,7 @@ def test_e3_upsert_idempotency_replay():
 
 def test_e3_bootstrap_provenance_not_caseseed():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     for edge in writer.state.edges.values():
         dv = edge["discovered_via"]
         assert dv["evidence_type"] == "declared"
@@ -225,8 +225,8 @@ def test_e3_bootstrap_provenance_not_caseseed():
 
 def test_e4_mixed_tape_map_spine_unchanged_by_non_topo():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
     spine_edges = sorted(writer.state.edges.keys())
     spine_nodes = sorted(writer.state.nodes.keys())
     writer.write_topo_stream(
@@ -259,7 +259,7 @@ def test_e4_mixed_tape_map_spine_unchanged_by_non_topo():
 
 def test_e5_declared_soft_and_hard_with_fixture_clock():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     # Bootstrap edges use valid_from=2026-08-20; move clock past soft then hard.
     soft_as_of = "2026-08-28T00:00:00Z"  # 8 days later → soft
     stats_soft = writer.maintain_map(
@@ -316,8 +316,8 @@ def test_e5_maintain_does_not_create_edges():
 
 def test_e5_version_bump_reflush_still_walkable():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
     dest = MemoryDest()
     before = writer.publish_map(dest, version="1")
     for edge in writer.state.edges.values():

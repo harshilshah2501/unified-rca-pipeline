@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-# pillar-a/poc/ab_shared/paths.py → POC_ROOT = pillar-a/poc
 POC_ROOT = Path(__file__).resolve().parents[1]
-FIXTURES = POC_ROOT / "fixtures" / "lab_checkout"
-# pillar-a/contracts
+# Sample estate data for the customer-checkout teaching scenario (not live CMDB).
+SAMPLE_ESTATE = POC_ROOT / "sample_estate" / "customer_checkout"
 CONTRACTS = POC_ROOT.parent / "contracts"

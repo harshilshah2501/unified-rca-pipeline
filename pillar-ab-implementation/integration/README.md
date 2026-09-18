@@ -4,6 +4,6 @@
 
 Imports **both** packages’ read APIs. Not part of the Pillar A teammate zip.
 
-To run later, put both `pillar-a/poc` and `pillar-b/poc` on `PYTHONPATH` (or install editable) and point fixtures at `integration/fixtures/lab_checkout` (mixed metric + topo stream). Fixture map: [`../E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md).
+To run later, put both `pillar-a/poc` and `pillar-b/poc` on `PYTHONPATH` (or install editable) and point the sample estate at `integration/sample_estate/customer_checkout` (mixed metric + topo stream). Post-E2 input map: [`../E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md).
 
 Join modules: `join/harness.py`, `join/maintain.py`.

@@ -23,7 +23,7 @@ Only `README.md` is tracked in git. `*.jsonl` matches `.gitignore`.
 |----------|----------------|
 | `ingestion-poc/adapters/motadata_*.py` / `build_motadata_*.py` | **Yes** (defaults here) |
 | ObserveOps UC replay (`observeops-replay/`) | No |
-| Pillar A/B `poc/fixtures/lab_checkout/` | No |
+| Pillar A/B `poc/sample_estate/customer_checkout/` | No |
 | Lean UC bakeoff (`datasets/observeops/UC-*`) | No |
 | Docs hub `:8765` | No |
 

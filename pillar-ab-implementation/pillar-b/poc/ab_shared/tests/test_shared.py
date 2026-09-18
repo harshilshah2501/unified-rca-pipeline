@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from ab_shared.clock import FrozenClock
 from ab_shared.dest import FileDest, MemoryDest
 from ab_shared.identity_gate import ResolvedOnlyGate
-from ab_shared.paths import FIXTURES
+from ab_shared.paths import SAMPLE_ESTATE
 from ab_shared.reject_codes import REJECT_CODES
 from ab_shared.schema import is_valid
 from ab_shared.season import HourOfWeekSeason
@@ -22,7 +22,7 @@ def test_reject_catalog_lists_all_codes():
 def test_schemas_validate_golden_examples():
     import json
 
-    expected = FIXTURES / "expected"
+    expected = SAMPLE_ESTATE / "expected"
     assert is_valid("ingest_v1.schema.json", json.loads((expected / "ingest.example.json").read_text()))
     assert is_valid("graph_node_v1.schema.json", json.loads((expected / "graph_node.example.json").read_text()))
     assert is_valid("graph_edge_v1.schema.json", json.loads((expected / "graph_edge.example.json").read_text()))

@@ -10,7 +10,7 @@ One page should have **one job**. Contract / Q&A / product HTML are **not** copi
 | E1–E5 map eval (admit, gaps, Increment 1) | [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md) |
 | How the **code** is wired | [`Codebase-go-through.md`](./Codebase-go-through.md) |
 | Who calls APIs / file roles / method glossary | [`Codebase-go-through.md` § Clarifications](./Codebase-go-through.md#clarifications) |
-| Case A/B expected vs actual | [`../poc/fixtures/lab_checkout/SAMPLE_IO.md`](../poc/fixtures/lab_checkout/SAMPLE_IO.md) |
+| Case A/B expected vs actual | [`../poc/sample_estate/customer_checkout/SAMPLE_IO.md`](../poc/sample_estate/customer_checkout/SAMPLE_IO.md) |
 | Hub visual (NOOP / WRITE / DROP) | [Our HLD → GraphWriter](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter) |
 
 Suggested order: **package README → MAP_P1_FABRIC_EVAL → Codebase-go-through → SAMPLE_IO → `make test-all`**.
@@ -34,7 +34,7 @@ Suggested order: **package README → MAP_P1_FABRIC_EVAL → Codebase-go-through
 
 | Path | Purpose | Required for PoC? |
 |------|---------|-------------------|
-| [`../poc/`](../poc/) | Code, fixtures, tests | **Yes** |
+| [`../poc/`](../poc/) | Code, sample estate, tests | **Yes** |
 | [`../contracts/schemas/`](../contracts/schemas/) | Schema symlinks for validation | **Yes** (code path) |
 | [`../../contracts/`](../../contracts/) | Slice SoT: map write/read, reject codes, GRAPH_QNA, samples | **Yes** (read/link; do not fork) |
 | [`../references/`](../references/) | Motadata OneOps / Fusion product HTML + ED comparator notes | **No** — optional library; not wire SoT |

@@ -222,7 +222,7 @@
     Hub URL: <a href="/checkout-diagnose-walkthrough.html"><code>:8765/checkout-diagnose-walkthrough.html</code></a>
     · Embedded from <a href="/motadata-unified-pipeline-workflow.html#investigate">unified pipeline workflow § investigate</a>
     · ED research notes in repo root <code>E6-E11-mapping.md</code> (comparator only).
-    Teaching spine aligned with <code>lab_checkout</code> fixtures where named.
+    Teaching spine aligned with <code>customer_checkout</code> fixtures where named.
   </p>
 </div>
 <script>
@@ -273,7 +273,7 @@
       what: "List CIs this service depends on (depends_on, runs_on, calls, …) to build the WorkingSet neighborhood.",
       howIntro: "Edges already live in map/ from Topology (GraphWriter). Scope performs a bounded outbound walk from the seed CI — it does not rediscover the estate from raw telemetry inside the case.",
       howSteps: [
-        "Start at payment-service (or checkout-api in lab_checkout).",
+        "Start at payment-service (or checkout-api in customer_checkout).",
         "Follow catalog edge types outbound (for example depends_on → auth-service, payments-db).",
         "Respect WorkingSet budget: depth / fan-out limits so the neighborhood stays diagnosable.",
         "Keep relationship labels — blocking synchronous deps are checked first when Identify runs.",

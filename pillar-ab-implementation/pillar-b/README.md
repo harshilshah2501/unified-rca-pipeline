@@ -15,7 +15,7 @@ A and B are **parallel writers** after Identity (E2). Pillar B owns the `map/` r
 1. **This README** — I/O + admit + quick start  
 2. [`docs/MAP_P1_FABRIC_EVAL.md`](./docs/MAP_P1_FABRIC_EVAL.md) — E1–E5 eval, terminology  
 3. [`docs/Codebase-go-through.md`](./docs/Codebase-go-through.md) — how the code is wired  
-4. [`poc/fixtures/lab_checkout/SAMPLE_IO.md`](./poc/fixtures/lab_checkout/SAMPLE_IO.md) — Case A/B goldens  
+4. [`poc/sample_estate/customer_checkout/SAMPLE_IO.md`](./poc/sample_estate/customer_checkout/SAMPLE_IO.md) — Case A/B goldens  
 5. Run: `cd poc && make install && make test-all` (optional `make publish-map`)  
 6. Hub visual: [Our HLD → GraphWriter](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter)
 
@@ -78,7 +78,7 @@ pillar-b/
 ├── docs/                     ← PoC guides only (see docs/README.md)
 ├── contracts/schemas/        ← symlinks → ../contracts/schemas/ (SoT; required by tests)
 ├── references/               ← OPTIONAL product HTML library (not PoC SoT)
-└── poc/                      ← code, fixtures, tests
+└── poc/                      ← code, sample estate, tests
 ```
 
 Normative map write/read, reject codes, Gate B dest, and fabric Q&A live under the **slice** tree [`../contracts/`](../contracts/) — not duplicated here.

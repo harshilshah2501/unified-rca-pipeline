@@ -20,4 +20,4 @@ make publish-map    # bootstrap + stream.resolved.jsonl → poc/out/<tenant>/map
 | `map/nodes.jsonl` | One `graph_node.v1` per line |
 | `map/edges.jsonl` | One `graph_edge.v1` per line |
 
-Fixtures and Case A/B goldens: [`fixtures/lab_checkout/SAMPLE_IO.md`](./fixtures/lab_checkout/SAMPLE_IO.md).
+Sample estate and Case A/B goldens: [`sample_estate/customer_checkout/SAMPLE_IO.md`](./sample_estate/customer_checkout/SAMPLE_IO.md).

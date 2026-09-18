@@ -38,7 +38,7 @@ const STEPS: { id: StepId; label: string; blurb: string }[] = [
   { id: "isolate", label: "7 · Isolate A/B", blurb: "What is already split; what to restructure" },
 ];
 
-/** Observed 2026-08-26 from SketchWriter on fixtures/lab_checkout/stream.resolved.jsonl */
+/** Observed 2026-08-26 from SketchWriter on sample_estate/customer_checkout/stream.resolved.jsonl */
 const FLUSH_ROWS = [
   {
     entity: "checkout-api",
@@ -174,7 +174,7 @@ function StepMap() {
           ["Pillar A", "poc/sketch/", "Admit → window → T-Digest/buckets → baseline → flush"],
           ["Pillar B", "poc/graph/", "CI qualify, edges, GraphSnapshot → map/"],
           ["Join", "poc/join/", "Identity join, WorkingSet embryo, door-C flags"],
-          ["Fixture", "poc/fixtures/lab_checkout/", "Mixed metric + topo stream (A ignores topo)"],
+          ["Sample estate", "poc/sample_estate/customer_checkout/", "Mixed metric + topo stream (A ignores topo)"],
         ]}
         rowTone={["neutral", "info", "neutral", "warning", "neutral"]}
       />
@@ -551,8 +551,8 @@ function StepIsolate() {
           ["poc/ab_shared/", "poc/shared/", "Identity, season, dest protocol"],
           ["poc/join/", "poc/integration/", "Only place both pillars meet"],
           [
-            "fixtures/lab_checkout/ (mixed)",
-            "fixtures/sketch/ + fixtures/graph/ + optional lab_checkout/",
+            "sample_estate/customer_checkout/ (shared story)",
+            "keep shared estate; metric-only vs topo-only streams already split per pillar",
             "A tests never open topo lines",
           ],
           [

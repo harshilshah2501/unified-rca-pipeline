@@ -1,6 +1,6 @@
 from ab_shared.dest import FileDest, MemoryDest
 from ab_shared.ingest_source import JsonlIngestSource, ListIngestSource
-from ab_shared.paths import FIXTURES
+from ab_shared.paths import SAMPLE_ESTATE
 from graph.graph_writer import GraphWriter
 from graph.neighbors import neighbor_ids
 from graph.read_api import get_neighbors
@@ -9,8 +9,8 @@ from graph.snapshot import load_snapshot
 
 def test_graph_writer_happy_path_flush():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
     dest = MemoryDest()
     snapshot = writer.publish_map(dest)
     assert snapshot["version"] == "1"
@@ -23,8 +23,8 @@ def test_graph_writer_happy_path_flush():
 
 def test_graph_writer_file_dest_roundtrip(tmp_path):
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
     dest = FileDest(tmp_path, tenant="default")
     writer.publish_map(dest)
     loaded = load_snapshot(dest)
@@ -34,7 +34,7 @@ def test_graph_writer_file_dest_roundtrip(tmp_path):
 
 def test_graph_writer_silent_skip_non_topo():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     writer.write_topo_stream(
         ListIngestSource(
             [
@@ -71,8 +71,8 @@ def test_graph_writer_silent_skip_non_topo():
 
 def test_graph_writer_reject_tape():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.reject.jsonl"))
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.reject.jsonl"))
     reasons = {reason for _, reason in writer.rejects}
     assert "identity_unresolved" in reasons
     assert "identity_synthesized" in reasons

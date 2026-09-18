@@ -1,6 +1,6 @@
 from ab_shared.dest import MemoryDest
 from ab_shared.ingest_source import JsonlIngestSource
-from ab_shared.paths import FIXTURES
+from ab_shared.paths import SAMPLE_ESTATE
 from graph.graph_builder import GraphState
 from graph.graph_writer import GraphWriter
 from graph.maintain import drop_stale_corroborating, expire_edges, maintain_graph_validity
@@ -95,8 +95,8 @@ def test_apply_declared_soft_stale():
 
 def test_writer_maintain_and_reflush():
     writer = GraphWriter()
-    writer.load_estate_bootstrap(FIXTURES / "topology.bootstrap.json")
-    writer.write_topo_stream(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
     dest = MemoryDest()
     before = writer.publish_map(dest, version="1")
     # Mark one stream edge as already expired.

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from ab_shared.dest import FileDest
 from ab_shared.ingest_source import JsonlIngestSource
-from ab_shared.paths import FIXTURES, POC_ROOT
+from ab_shared.paths import SAMPLE_ESTATE, POC_ROOT
 from ab_shared.season import HourOfWeekSeason
 from sketch.maintain import refresh_seasonal_baselines
 from sketch.sketch_flush import SketchWriter
@@ -18,7 +18,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument(
         "--stream",
         type=Path,
-        default=FIXTURES / "stream.resolved.jsonl",
+        default=SAMPLE_ESTATE / "stream.resolved.jsonl",
         help="Metric-only ingest.v1 JSONL",
     )
     p.add_argument(

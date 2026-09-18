@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from ab_shared.clock import FrozenClock
 from ab_shared.dest import MemoryDest
 from ab_shared.ingest_source import JsonlIngestSource
-from ab_shared.paths import FIXTURES
+from ab_shared.paths import SAMPLE_ESTATE
 from ab_shared.schema import is_valid
 from ab_shared.season import HourOfWeekSeason
 from sketch.sketch_flush import SketchWriter
@@ -12,7 +12,7 @@ from sketch.sketch_read import get_metric_baseline, get_window_percentiles
 
 def test_flush_and_read_checkout_latency():
     writer = SketchWriter(season=HourOfWeekSeason())
-    writer.ingest(JsonlIngestSource(FIXTURES / "stream.resolved.jsonl"))
+    writer.ingest(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
     dest = MemoryDest()
     rows = writer.flush(dest)
     assert rows
@@ -41,7 +41,7 @@ def test_flush_and_read_checkout_latency():
 
 def test_rejects_unknown_metric_from_fixture():
     writer = SketchWriter()
-    writer.ingest(JsonlIngestSource(FIXTURES / "stream.reject.jsonl"))
+    writer.ingest(JsonlIngestSource(SAMPLE_ESTATE / "stream.reject.jsonl"))
     assert any(r[1] == "unknown_metric_id" for r in writer.rejects)
     assert any(r[1] == "identity_unresolved" for r in writer.rejects)
     assert any(r[1] == "identity_synthesized" for r in writer.rejects)
