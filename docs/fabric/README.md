@@ -12,7 +12,7 @@ Compatibility symlinks at `docs/<filename>` keep `:8765` URLs working.
 
 | Order | Visual | Topic |
 |-------|--------|--------|
-| 0 | [`edge-platform-detect-simulation.html`](./edge-platform-detect-simulation.html) | **Time story** — Edge devices · Node · optional Collector · SaaS; two ingest doors; Detect Signal. Notes: [`SIMULATION_THREAD.md`](./SIMULATION_THREAD.md) |
+| 0 | [`edge-platform-detect-simulation.html`](./edge-platform-detect-simulation.html) | **Looping film** — Edge devices · Node · optional Collector · SaaS; two ingest doors; Detect Signal. Notes: [`SIMULATION_THREAD.md`](./SIMULATION_THREAD.md) |
 | 1 | [`data-shape-journey.html`](./data-shape-journey.html) | **E1–E11 data evolution** — Edge devices vs Platform; names, forms, structure |
 | 2 | [`e1-e5-pipeline-architecture.html`](./e1-e5-pipeline-architecture.html) | E2 fan-out → `map/` ∥ `history/`; Edge · Gateway · Platform |
 | 2b | [`inventory-catalog-on-the-map.html`](./inventory-catalog-on-the-map.html) | **Inventory vs catalog** → `graph_edge.v1`; LUT vs `map/`; G10–G11 teaching |

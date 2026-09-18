@@ -104,26 +104,29 @@
     padding: 0.08em 0.35em;
     border-radius: 4px;
   }
-  .controls {
-    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-    margin-bottom: 18px; padding: 10px 12px;
+  .filmbar {
+    margin-bottom: 18px; padding: 12px 14px 14px;
     background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
   }
-  .btn {
-    font-family: var(--font-body); font-size: 15px; font-weight: 600;
-    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
-    padding: 10px 16px; border-radius: 6px; cursor: pointer;
+  .filmbar-meta {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    margin-bottom: 10px; font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--faint);
   }
-  .btn:hover { border-color: var(--accent); }
-  .btn.primary { background: var(--accent); color: #fbfaf7; border-color: var(--accent); }
-  .btn:disabled { opacity: 0.38; cursor: not-allowed; }
-  .phase-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
-  .pill {
+  .track { height: 3px; background: var(--line); border-radius: 99px; overflow: hidden; margin-bottom: 12px; }
+  .track > i {
+    display: block; height: 100%; width: 0%;
+    background: var(--accent); border-radius: 99px;
+    transition: width 80ms linear;
+  }
+  .beats { display: flex; flex-wrap: wrap; gap: 6px; }
+  .beat {
     font-family: var(--font-body); font-size: 13px; font-weight: 600;
-    padding: 7px 12px; border-radius: 6px;
-    border: 1px solid var(--line); color: var(--muted); background: transparent; cursor: pointer;
+    padding: 6px 11px; border-radius: 6px;
+    border: 1px solid var(--line); color: var(--muted); background: transparent;
   }
-  .pill.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+  .beat.on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+  .beat.done { color: var(--faint); }
   .brief {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr));
@@ -167,6 +170,33 @@
   .box.detect { fill: var(--warn-soft); stroke: var(--warn); }
   .box.muted { fill: transparent; stroke: var(--faint); stroke-dasharray: 4 4; opacity: 0.72; }
   .box.idle { opacity: 0.55; }
+  .box.live { stroke-width: 2.1; }
+  .box.node.live { stroke: var(--accent); }
+  .box.col.live { stroke: var(--col); }
+  .box.map.live { stroke: var(--map); stroke-dasharray: none; }
+  .box.hist.live { stroke: var(--hist); stroke-dasharray: none; }
+  .box.detect.live { stroke: var(--warn); }
+  .box.edge.live { stroke: var(--accent); }
+  @keyframes sigpulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .chip.pulse { animation: sigpulse 1.35s ease-in-out infinite; }
+  .ico-badge { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+  .ico { color: var(--muted); }
+  .ico.accent { color: var(--accent); }
+  .ico.map { color: var(--map); }
+  .ico.hist { color: var(--hist); }
+  .ico.col { color: var(--col); }
+  .ico.warn { color: var(--warn); }
+  .box.idle + .actor { opacity: 0.42; }
+  .box.live + .actor .ico-badge { stroke-width: 1.5; }
+  .box.edge.live + .actor .ico-badge { stroke: var(--accent); }
+  .box.node.live + .actor .ico-badge { stroke: var(--accent); }
+  .box.col.live + .actor .ico-badge { stroke: var(--col); }
+  .box.map.live + .actor .ico-badge { stroke: var(--map); }
+  .box.hist.live + .actor .ico-badge { stroke: var(--hist); }
+  .box.detect.live + .actor .ico-badge { stroke: var(--warn); }
   .lbl { font-family: var(--font-serif); font-size: 17px; font-weight: 600; fill: var(--ink); }
   .sub { font-family: var(--font-body); font-size: 13.5px; fill: var(--muted); }
   .tag { font-family: var(--font-body); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; fill: var(--faint); text-transform: uppercase; }
@@ -189,7 +219,7 @@
   .hint { margin-top: 22px; font-size: 15px; color: var(--faint); line-height: 1.55; max-width: 78ch; }
   .hint a { color: var(--accent); }
   @media (prefers-reduced-motion: reduce) {
-    .packet, .wire { transition: none !important; animation: none !important; }
+    .packet, .wire, .chip.pulse { transition: none !important; animation: none !important; }
   }
 </style>
 </head>
@@ -199,6 +229,7 @@
   <h1>From the machine to a Signal, without opening a case</h1>
   <p class="lead">
     Four columns, left to right: <strong>Edge devices</strong>, <strong>Node</strong>, optional <strong>Collector</strong>, <strong>SaaS</strong>.
+    The page plays itself like a short film: packets move, then the loop starts again. There are no step buttons.
     Data may enter SaaS from the Node agent or from the Collector — nowhere else.
     The Collector may aggregate what the Node already shaped, or collect network and application telemetry that never sat on a Node.
     SaaS writes <code>map/</code> and <code>history/</code> in parallel, then Detect raises a <code>Signal</code>.
@@ -208,11 +239,13 @@
     <a href="../observeops/observeops-shift-left-architecture.html">Shift-left locus</a>.
   </p>
 
-  <div class="controls">
-    <button class="btn" type="button" id="btnPrev" disabled>Previous</button>
-    <button class="btn primary" type="button" id="btnPlay">Play</button>
-    <button class="btn" type="button" id="btnNext">Next</button>
-    <div class="phase-pills" id="pills"></div>
+  <div class="filmbar" aria-hidden="true">
+    <div class="filmbar-meta">
+      <span id="filmStatus">Looping film</span>
+      <span id="filmClock">Beat 1 of 7</span>
+    </div>
+    <div class="track"><i id="filmFill"></i></div>
+    <div class="beats" id="beats"></div>
   </div>
 
   <div class="brief" id="brief">
@@ -254,99 +287,230 @@
         <marker id="arrW" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M0 0 L10 5 L0 10z" fill="#8a6a32"/>
         </marker>
+        <symbol id="i-estate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19V9.5L9 5l5 4.5V19H4z"/><path d="M14 19v-8h6v8"/><path d="M8.5 19v-4h3v4"/>
+        </symbol>
+        <symbol id="i-agent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3.4 19 7.4v9.2l-7 4-7-4V7.4L12 3.4z"/>
+          <circle cx="12" cy="12" r="2"/>
+        </symbol>
+        <symbol id="i-hopper" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 5h16l-5.2 7.2V20l-5.6-2.4v-5.4L4 5z"/>
+        </symbol>
+        <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 18h10.5a3.6 3.6 0 0 0 .2-7.2 5 5 0 0 0-9.6-1.4A3.6 3.6 0 0 0 7 18z"/>
+        </symbol>
+        <symbol id="i-host" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3.5" y="4.5" width="17" height="11.5" rx="1.6"/><path d="M8 20h8M12 16v4"/>
+        </symbol>
+        <symbol id="i-svc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4.5 8.5 12 5l7.5 3.5L12 12z"/><path d="M4.5 12.5 12 16l7.5-3.5"/><path d="M4.5 16 12 19.5 19.5 16"/>
+        </symbol>
+        <symbol id="i-net" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3.5" y="9" width="17" height="5.5" rx="1.2"/>
+          <path d="M7 14.5V19M12 14.5V19M17 14.5V19M7 5v4M17 5v4"/>
+        </symbol>
+        <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 13h16l-2.2 6.2H6.2L4 13z"/>
+          <path d="M8 13V8.2h8V13"/>
+          <path d="M10 10.2h4"/>
+        </symbol>
+        <symbol id="i-stamp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="12" r="3"/><path d="M12 12h8M17 12v3.5M20 12v2.2"/>
+        </symbol>
+        <symbol id="i-door" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 21V5.5A1.5 1.5 0 0 1 8.5 4H18v17H7z"/><path d="M15 12.5h.01"/>
+        </symbol>
+        <symbol id="i-merge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 4.5v4c0 3.4 6 3.8 6 8"/><path d="M18 4.5v4c0 3.4-6 3.8-6 8"/><path d="M12 16.5V20"/><path d="M9.5 18.2H14.5"/>
+        </symbol>
+        <symbol id="i-sniff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 18.5h.01"/><path d="M8.2 14.8a5.4 5.4 0 0 1 7.6 0"/><path d="M5.4 11.8a9.4 9.4 0 0 1 13.2 0"/>
+        </symbol>
+        <symbol id="i-gate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 20V8.5L12 4l8 4.5V20"/><path d="M12 20v-7.5"/><path d="M8 20v-4h8v4"/>
+        </symbol>
+        <symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7" cy="8" r="2.3"/><circle cx="17" cy="8.5" r="2.3"/><circle cx="12" cy="17" r="2.3"/>
+          <path d="M9.2 8.4h5.4M8.2 10.1l2.6 5M15.8 10.4l-2.5 4.7"/>
+        </symbol>
+        <symbol id="i-bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 18V11M10 18V6.5M15 18v-8M20 18V9"/>
+        </symbol>
+        <symbol id="i-warm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 11a7 7 0 0 1 11.5-5.2L18.5 4v5.5H13"/><path d="M19 13a7 7 0 0 1-11.5 5.2L5.5 20v-5.5H11"/>
+        </symbol>
+        <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3.5 12s3.4-6 8.5-6 8.5 6 8.5 6-3.4 6-8.5 6-8.5-6-8.5-6z"/><circle cx="12" cy="12" r="2.4"/>
+        </symbol>
+        <symbol id="i-case" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 8h5.2l1.8 2H20v9.5H4V8z"/><path d="M8 8V6.2A1.2 1.2 0 0 1 9.2 5h5.6A1.2 1.2 0 0 1 16 6.2V8"/>
+        </symbol>
       </defs>
 
       <rect id="zEdge" x="10" y="36" width="278" height="644" rx="8" fill="var(--zone-edge)" stroke="var(--line)"/>
-      <text class="zone-label" x="24" y="64">Edge devices</text>
-      <text class="zone-sub" x="24" y="86">Where bytes are born</text>
+      <g class="actor" transform="translate(22, 48)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-estate" class="ico accent" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="zone-label" x="58" y="64">Edge devices</text>
+      <text class="zone-sub" x="58" y="86">Where bytes are born</text>
 
       <rect id="zNode" x="298" y="36" width="278" height="644" rx="8" fill="var(--zone-node)" stroke="var(--line)"/>
-      <text class="zone-label" x="312" y="64">Node</text>
-      <text class="zone-sub" x="312" y="86">Agent on the machine · E1 + E2</text>
+      <g class="actor" transform="translate(310, 48)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-agent" class="ico accent" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="zone-label" x="346" y="64">Node</text>
+      <text class="zone-sub" x="346" y="86">Agent on the machine · E1 + E2</text>
 
       <rect id="zCol" class="box idle" x="586" y="36" width="258" height="644" rx="8" fill="var(--zone-col)" stroke="var(--col)" stroke-dasharray="6 5" stroke-opacity="0.45"/>
-      <text class="zone-label" x="600" y="64">Collector</text>
-      <text class="zone-sub" x="600" y="86">Optional · second SaaS door</text>
+      <g class="actor" transform="translate(598, 48)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-hopper" class="ico col" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="zone-label" x="634" y="64">Collector</text>
+      <text class="zone-sub" x="634" y="86">Optional · second SaaS door</text>
 
       <rect id="zSaas" x="854" y="36" width="536" height="644" rx="8" fill="var(--zone-saas)" stroke="var(--line)"/>
-      <text class="zone-label" x="868" y="64">SaaS platform</text>
-      <text class="zone-sub" x="868" y="86">map/ parallel to history/ · then Detect</text>
+      <g class="actor" transform="translate(866, 48)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-cloud" class="ico accent" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="zone-label" x="902" y="64">SaaS platform</text>
+      <text class="zone-sub" x="902" y="86">map/ parallel to history/ · then Detect</text>
 
       <line x1="854" y1="100" x2="854" y2="668" stroke="var(--tls)" stroke-width="1.5" stroke-dasharray="2 6"/>
       <text class="tag" x="868" y="112">TLS · already-shaped ingest.v1</text>
 
       <rect class="box edge" id="devVm" x="28" y="128" width="242" height="88" rx="6"/>
-      <text class="tag" x="44" y="150">Host</text>
-      <text class="lbl" x="44" y="176">guest-os-vm-app-01</text>
-      <text class="sub" x="44" y="198">CPU, load, guest logs</text>
+      <g class="actor" transform="translate(40, 140)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-host" class="ico accent" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="76" y="158">Host</text>
+      <text class="lbl" x="44" y="186">guest-os-vm-app-01</text>
+      <text class="sub" x="44" y="208">CPU, load, guest logs</text>
 
       <rect class="box edge" id="devApi" x="28" y="232" width="242" height="88" rx="6"/>
-      <text class="tag" x="44" y="254">Service</text>
-      <text class="lbl" x="44" y="280">orders-api</text>
-      <text class="sub" x="44" y="302">p95 latency, 5xx, spans</text>
+      <g class="actor" transform="translate(40, 244)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-svc" class="ico accent" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="76" y="262">Service</text>
+      <text class="lbl" x="44" y="290">orders-api</text>
+      <text class="sub" x="44" y="312">p95 latency, 5xx, spans</text>
 
       <rect class="box edge" id="devSw" x="28" y="336" width="242" height="88" rx="6"/>
-      <text class="tag" x="44" y="358">Network</text>
-      <text class="lbl" x="44" y="384">switch-core-01</text>
-      <text class="sub" x="44" y="406">SNMP, interface flows</text>
+      <g class="actor" transform="translate(40, 348)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-net" class="ico warn" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="76" y="366">Network</text>
+      <text class="lbl" x="44" y="394">switch-core-01</text>
+      <text class="sub" x="44" y="416">SNMP, interface flows</text>
 
       <text class="sub" x="149" y="452" text-anchor="middle">Raw MELT, traps, flows</text>
 
       <rect class="box node" id="nE1" x="316" y="150" width="242" height="108" rx="6"/>
-      <text class="tag" x="332" y="174">E1 Collect</text>
-      <text class="lbl" x="332" y="204">Admit the envelope</text>
-      <text class="sub" x="332" y="228">ingest.v1 · no CI bind · no RCA</text>
+      <g class="actor" transform="translate(328, 162)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-inbox" class="ico accent" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="364" y="180">E1 Collect</text>
+      <text class="lbl" x="332" y="214">Admit the envelope</text>
+      <text class="sub" x="332" y="238">ingest.v1 · no CI bind · no RCA</text>
 
       <rect class="box node" id="nE2" x="316" y="282" width="242" height="118" rx="6"/>
-      <text class="tag" x="332" y="306">E2 Identity · Normalize</text>
-      <text class="lbl" x="332" y="336">Stamp join keys</text>
-      <text class="sub" x="332" y="360">tenant + ci_id · mask PII</text>
-      <text class="sub" x="332" y="380">Not E10 Identify</text>
+      <g class="actor" transform="translate(328, 294)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-stamp" class="ico accent" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="364" y="312">E2 Identity · Normalize</text>
+      <text class="lbl" x="332" y="346">Stamp join keys</text>
+      <text class="sub" x="332" y="370">tenant + ci_id · mask PII</text>
+      <text class="sub" x="332" y="390">Not E10 Identify</text>
 
       <rect class="box node" id="nDoorA" x="332" y="428" width="210" height="52" rx="6"/>
-      <text class="sub" x="437" y="460" text-anchor="middle">Detect door A · shown, not fired</text>
+      <g class="actor" transform="translate(344, 440)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-door" class="ico warn" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="sub" x="380" y="458">Door A · not fired</text>
 
       <rect class="box col idle" id="nAgg" x="604" y="150" width="222" height="118" rx="6"/>
-      <text class="tag" x="620" y="174">From the Node</text>
-      <text class="lbl" x="620" y="204">Aggregate, dedup</text>
-      <text class="sub" x="620" y="228">Reduce volume, then egress</text>
-      <text class="sub" x="620" y="248">Does not replace Identity</text>
+      <g class="actor" transform="translate(616, 162)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-merge" class="ico col" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="652" y="180">From the Node</text>
+      <text class="lbl" x="620" y="214">Aggregate, dedup</text>
+      <text class="sub" x="620" y="238">Reduce volume, then egress</text>
+      <text class="sub" x="620" y="258">Does not replace Identity</text>
 
       <rect class="box col idle" id="nDirect" x="604" y="292" width="222" height="118" rx="6"/>
-      <text class="tag" x="620" y="316">No Node hop</text>
-      <text class="lbl" x="620" y="346">Network / app collect</text>
-      <text class="sub" x="620" y="370">SNMP, flows, APM export</text>
-      <text class="sub" x="620" y="390">Still a SaaS ingest door</text>
+      <g class="actor" transform="translate(616, 304)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-sniff" class="ico col" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="652" y="322">No Node hop</text>
+      <text class="lbl" x="620" y="356">Network / app collect</text>
+      <text class="sub" x="620" y="380">SNMP, flows, APM export</text>
+      <text class="sub" x="620" y="400">Still a SaaS ingest door</text>
 
       <rect class="box node" id="nIng" x="872" y="128" width="230" height="78" rx="6"/>
-      <text class="tag" x="888" y="150">Ingest API</text>
-      <text class="lbl" x="888" y="178">Node or Collector</text>
+      <g class="actor" transform="translate(884, 140)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-gate" class="ico accent" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="920" y="158">Ingest API</text>
+      <text class="lbl" x="888" y="188">Node or Collector</text>
 
       <rect class="box map" id="nMap" x="1122" y="118" width="246" height="96" rx="6"/>
-      <text class="tag" x="1138" y="140">E3 · Pillar B</text>
-      <text class="lbl" x="1138" y="168" fill="var(--map)">map/</text>
-      <text class="sub" x="1138" y="192">Graph snapshot · edges</text>
+      <g class="actor" transform="translate(1134, 130)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-graph" class="ico map" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="1170" y="148">E3 · Pillar B</text>
+      <text class="lbl" x="1138" y="178" fill="var(--map)">map/</text>
+      <text class="sub" x="1138" y="202">Graph snapshot · edges</text>
 
       <rect class="box hist" id="nHist" x="1122" y="232" width="246" height="96" rx="6"/>
-      <text class="tag" x="1138" y="254">E4 · Pillar A</text>
-      <text class="lbl" x="1138" y="282" fill="var(--hist)">history/</text>
-      <text class="sub" x="1138" y="306">Sketches · windows · baseline</text>
+      <g class="actor" transform="translate(1134, 244)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-bars" class="ico hist" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="1170" y="262">E4 · Pillar A</text>
+      <text class="lbl" x="1138" y="292" fill="var(--hist)">history/</text>
+      <text class="sub" x="1138" y="316">Sketches · windows · baseline</text>
 
       <rect class="box node" id="nE5" x="872" y="232" width="230" height="96" rx="6"/>
-      <text class="tag" x="888" y="254">E5 Maintain</text>
-      <text class="lbl" x="888" y="282">Keep rooms warm</text>
-      <text class="sub" x="888" y="306">No case yet</text>
+      <g class="actor" transform="translate(884, 244)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-warm" class="ico accent" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="920" y="262">E5 Maintain</text>
+      <text class="lbl" x="888" y="292">Keep rooms warm</text>
+      <text class="sub" x="888" y="316">No case yet</text>
 
       <rect class="box detect" id="nDet" x="872" y="360" width="496" height="112" rx="6"/>
-      <text class="tag" x="888" y="384">E6 · Door C</text>
-      <text class="lbl" x="888" y="416">Detect</text>
-      <text class="sub" x="888" y="442">Threshold or anomaly vs written baseline → Signal. No root cause.</text>
-      <text class="chip" id="sigBadge" x="1168" y="416" opacity="0">Signal · orders-api p95</text>
+      <g class="actor" transform="translate(884, 372)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-eye" class="ico warn" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="920" y="390">E6 · Door C</text>
+      <text class="lbl" x="888" y="426">Detect</text>
+      <text class="sub" x="888" y="452">Threshold or anomaly vs written baseline → Signal. No root cause.</text>
+      <text class="chip" id="sigBadge" x="1168" y="426" opacity="0">Signal · orders-api p95</text>
 
       <rect class="box muted" id="nTriage" x="872" y="496" width="496" height="112" rx="6"/>
-      <text class="tag" x="888" y="520">Increment 2 · not played</text>
-      <text class="lbl" x="888" y="552">Triage and diagnose</text>
-      <text class="sub" x="888" y="578">E7 Curate · E8 Scope · E9–E11 Localize, Identify, Package</text>
+      <g class="actor" transform="translate(884, 508)">
+        <rect class="ico-badge" width="28" height="28" rx="7"/>
+        <use href="#i-case" class="ico" x="4" y="4" width="20" height="20"/>
+      </g>
+      <text class="tag" x="920" y="526">Increment 2 · not played</text>
+      <text class="lbl" x="888" y="562">Triage and diagnose</text>
+      <text class="sub" x="888" y="588">E7 Curate · E8 Scope · E9–E11 Localize, Identify, Package</text>
 
       <text class="sub" x="1245" y="226" text-anchor="middle">no sync</text>
       <line id="noSync" x1="1245" y1="214" x2="1245" y2="232" stroke="var(--warn)" stroke-dasharray="3 3" opacity="0.3"/>
@@ -371,15 +535,15 @@
     </svg>
 
     <div class="legend">
-      <span><i class="sw" style="border-color:var(--accent);background:var(--accent-soft)"></i> Path A · Node straight to SaaS</span>
-      <span><i class="sw" style="border-color:var(--col);background:var(--col-soft)"></i> Path B · Node via Collector</span>
+      <span><i class="sw" style="border-color:var(--accent);background:var(--accent-soft)"></i> Node straight to SaaS</span>
+      <span><i class="sw" style="border-color:var(--col);background:var(--col-soft)"></i> Node via Collector</span>
       <span><i class="sw" style="border-color:var(--warn);background:var(--warn-soft)"></i> Collector-direct · no Node</span>
       <span><i class="sw" style="border-color:var(--map);background:var(--map-soft)"></i> map/</span>
       <span><i class="sw" style="border-color:var(--hist);background:var(--hist-soft)"></i> history/</span>
     </div>
   </div>
   <p class="hint">
-    Prefer reduced motion? Use Previous and Next; Play will snap to stills.
+    The film loops from Emit through Detect. Packets slide on every beat; after Detect the loop starts again.
     Increment 2 will animate Curate through Package.
     Locks: <a href="./SIMULATION_THREAD.md">SIMULATION_THREAD.md</a>.
   </p>
@@ -389,90 +553,99 @@
   const phases = [
     {
       title: "Emit",
-      kicker: "Step 1 of 7 · Edge devices",
+      kicker: "Beat 1 of 7 · Edge devices",
       lede: "Telemetry starts on the estate. These boxes are sources, not SaaS ingest.",
       where: "Customer hosts, VMs, services, and switches. Nothing has entered the Node agent or the Collector yet.",
       io: "Out: raw metrics, logs, spans, SNMP, and flows. No <code>ingest.v1</code> envelope yet.",
-      not: "Not Collect. Not identity bind. Not Detect. The SaaS column is still empty."
+      not: "Not Collect. Not identity bind. Not Detect. The SaaS column is still empty.",
+      live: ["devVm", "devApi", "devSw"]
     },
     {
       title: "Collect",
-      kicker: "Step 2 of 7 · E1 on the Node",
+      kicker: "Beat 2 of 7 · E1 on the Node",
       lede: "The Node agent admits wire-format records as <code>ingest.v1</code> envelopes.",
       where: "Node (DaemonSet or host agent). The Collector stays idle until a later packet actually uses it.",
       io: "In: vendor-shaped streams. Out: <code>TelemetryEnvelope</code> / <code>ingest.v1</code>. Source-asserted ids may still be empty.",
-      not: "E1 does not resolve <code>ci_id</code>, does not score anomalies, and does not write <code>map/</code> or <code>history/</code>."
+      not: "E1 does not resolve <code>ci_id</code>, does not score anomalies, and does not write <code>map/</code> or <code>history/</code>.",
+      live: ["nE1"]
     },
     {
       title: "Normalize",
-      kicker: "Step 3 of 7 · E2 Identity",
+      kicker: "Beat 3 of 7 · E2 Identity",
       lede: "Normalize is Identity on the Node: stamp join keys so later rooms can meet.",
       where: "Still the Node. Masking and resource attributes happen before TLS. Door A is visible and is not fired in this increment.",
       io: "In: admitted envelope. Out: overlay with <code>tenant</code> + <code>ci_id</code>, PII masked. Same contract — not a second on-wire format.",
-      not: "This is not E10 Identify (fault class). Identity bind-miss is a later queue, not a third store."
+      not: "This is not E10 Identify (fault class). Identity bind-miss is a later queue, not a third store.",
+      live: ["nE2"]
     },
     {
       title: "Two doors",
-      kicker: "Step 4 of 7 · SaaS ingest",
+      kicker: "Beat 4 of 7 · SaaS ingest",
       lede: "SaaS has two doors only. Three packets show every legal way through them.",
-      where: "Path A leaves the Node for the ingest API. Path B visits Collector (aggregate / dedup) then SaaS. SNMP/flow appears in Collector with no Node hop.",
+      where: "One packet leaves the Node for the ingest API. One visits Collector (aggregate / dedup) then SaaS. SNMP and flow appear in Collector with no Node hop.",
       io: "In: identified stream, or Collector-direct network/app records. Out: one ingest API. TLS carries already-shaped <code>ingest.v1</code>.",
-      not: "Coordinator is not a data path. There is no third SaaS door. Collector does not replace E2 Identity."
+      not: "Coordinator is not a data path. There is no third SaaS door. Collector does not replace E2 Identity.",
+      live: ["nIng", "nAgg", "nDirect"]
     },
     {
       title: "Fan-out",
-      kicker: "Step 5 of 7 · E3 ∥ E4",
+      kicker: "Beat 5 of 7 · E3 ∥ E4",
       lede: "The same identified stream writes two rooms. They never copy each other.",
       where: "SaaS control plane. Pillar B Topology fills <code>map/</code>. Pillar A sketches fill <code>history/</code>. Parallel writers after Identity.",
       io: "In: identified records. Out: <code>GraphSnapshot</code> in <code>map/</code> and <code>sketch.v1</code> rows in <code>history/</code>, keyed by the same <code>ci_id</code>.",
-      not: "No sync job between rooms. Diagnose will join at read. Node and Collector only buffer — they are not the lake."
+      not: "No sync job between rooms. Diagnose will join at read. Node and Collector only buffer — they are not the lake.",
+      live: ["nMap", "nHist"]
     },
     {
       title: "Maintain",
-      kicker: "Step 6 of 7 · E5",
+      kicker: "Beat 6 of 7 · E5",
       lede: "Always-on fabric stays warm. There is still no incident.",
       where: "SaaS policy (retention, baselines, fleet config). Agents execute pushed config. This is housekeeping, not a case.",
       io: "In: rooms already written. Out: freshness, TTL, seasonal baselines in Pillar A. Topology validity may refresh separately in Pillar B.",
-      not: "Maintain does not merge rooms, does not raise a Signal, and does not start triage."
+      not: "Maintain does not merge rooms, does not raise a Signal, and does not start triage.",
+      live: ["nE5"]
     },
     {
       title: "Detect",
-      kicker: "Step 7 of 7 · E6 Door C",
+      kicker: "Beat 7 of 7 · E6 Door C",
       lede: "Detect reads what fabric already wrote. A Signal is not a root cause.",
       where: "SaaS monitors on <code>history/</code> (and thresholds carried on the stream). Door A on the Node remains unfired here. Collector cluster triggers are deferred.",
       io: "In: sketch vs baseline, or <code>orders-api</code> p95 vs threshold. Out: <code>Signal</code> — fault class only, noisy by design.",
-      not: "Not Curate (one seed), not Scope (WorkingSet), not Localize or Identify. The muted band is increment 2."
+      not: "Not Curate (one seed), not Scope (WorkingSet), not Localize or Identify. The muted band is increment 2.",
+      live: ["nDet"]
     }
   ];
 
-  let i = 0;
-  let playing = false;
-  let timer = null;
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  const pills = document.getElementById("pills");
-  const btnPrev = document.getElementById("btnPrev");
-  const btnNext = document.getElementById("btnNext");
-  const btnPlay = document.getElementById("btnPlay");
+  const reduce = false;
+  const beatsEl = document.getElementById("beats");
+  const fillEl = document.getElementById("filmFill");
+  const clockEl = document.getElementById("filmClock");
+  const statusEl = document.getElementById("filmStatus");
+  const boxIds = ["devVm","devApi","devSw","nE1","nE2","nAgg","nDirect","nIng","nMap","nHist","nE5","nDet"];
+  const packetIds = ["pA","pB","pC","pMap","pHist","pSig"];
+  const wireIds = ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist","wE5","wHistDet"];
 
   phases.forEach((p, idx) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "pill";
-    b.textContent = (idx + 1) + "  " + p.title;
-    b.title = p.kicker;
-    b.addEventListener("click", () => { stop(); go(idx); });
-    pills.appendChild(b);
+    const s = document.createElement("span");
+    s.className = "beat";
+    s.textContent = (idx + 1) + "  " + p.title;
+    beatsEl.appendChild(s);
   });
 
-  function on(el, yes) {
-    if (!el) return;
-    el.classList.toggle("on", !!yes);
-    el.classList.toggle("active", !!yes);
+  let generation = 0;
+  const TRAVEL = reduce ? 0 : 1100;
+  const HOLD = reduce ? 4200 : 2200;
+  const HOLD_END = reduce ? 5200 : 3600;
+  const LOOP_GAP = reduce ? 800 : 1400;
+
+  function el(id) { return document.getElementById(id); }
+  function wireOn(id, yes) {
+    const n = el(id);
+    if (n) n.classList.toggle("active", !!yes);
   }
-  function idle(el, yes) {
-    if (!el) return;
-    el.classList.toggle("idle", !!yes);
+  function idle(id, yes) {
+    const n = el(id);
+    if (n) n.classList.toggle("idle", !!yes);
   }
   function moveAlong(packet, path, t) {
     const len = path.getTotalLength();
@@ -481,134 +654,176 @@
     packet.setAttribute("cy", pt.y);
   }
   function hidePackets() {
-    ["pA","pB","pC","pMap","pHist","pSig"].forEach(id => {
-      document.getElementById(id).classList.remove("on");
-    });
+    packetIds.forEach(id => el(id).classList.remove("on"));
   }
   function wiresOff() {
-    ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist","wE5","wHistDet"].forEach(id => {
-      document.getElementById(id).classList.remove("active");
+    wireIds.forEach(id => wireOn(id, false));
+  }
+  function liveBoxes(ids) {
+    boxIds.forEach(id => el(id).classList.toggle("live", ids.indexOf(id) !== -1));
+  }
+  function ease(t) {
+    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  }
+  function wait(ms, gen) {
+    return new Promise(resolve => {
+      const t0 = performance.now();
+      const tick = (now) => {
+        if (gen !== generation) return resolve(false);
+        if (now - t0 >= ms) return resolve(true);
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
     });
   }
+  function travel(packet, path, ms, gen) {
+    if (reduce) {
+      packet.classList.add("on");
+      moveAlong(packet, path, 1);
+      return Promise.resolve(true);
+    }
+    packet.classList.add("on");
+    return new Promise(resolve => {
+      const t0 = performance.now();
+      moveAlong(packet, path, 0);
+      const tick = (now) => {
+        if (gen !== generation) return resolve(false);
+        const t = Math.min(1, (now - t0) / ms);
+        moveAlong(packet, path, ease(t));
+        if (t < 1) requestAnimationFrame(tick);
+        else resolve(true);
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+  function stagger(ms, gen) {
+    return wait(reduce ? 0 : ms, gen);
+  }
 
-  function render(n) {
+  function renderBrief(n) {
     const p = phases[n];
-    document.getElementById("briefKicker").textContent = p.kicker;
-    document.getElementById("briefLede").innerHTML = p.lede;
-    document.getElementById("briefWhere").innerHTML = p.where;
-    document.getElementById("briefIo").innerHTML = p.io;
-    document.getElementById("briefNot").innerHTML = p.not;
-    [...pills.children].forEach((el, idx) => el.classList.toggle("active", idx === n));
-    btnPrev.disabled = n === 0;
-    btnNext.disabled = n === phases.length - 1;
+    el("briefKicker").textContent = p.kicker;
+    el("briefLede").innerHTML = p.lede;
+    el("briefWhere").innerHTML = p.where;
+    el("briefIo").innerHTML = p.io;
+    el("briefNot").innerHTML = p.not;
+    [...beatsEl.children].forEach((node, idx) => {
+      node.classList.toggle("on", idx === n);
+      node.classList.toggle("done", idx < n);
+    });
+    clockEl.textContent = "Beat " + (n + 1) + " of " + phases.length;
+    fillEl.style.width = (((n + 1) / phases.length) * 100).toFixed(1) + "%";
+    liveBoxes(p.live);
+  }
+
+  function resetScene() {
     wiresOff();
     hidePackets();
-    document.getElementById("sigBadge").style.opacity = "0";
-    idle(document.getElementById("zCol"), n < 3);
-    idle(document.getElementById("nAgg"), n < 3);
-    idle(document.getElementById("nDirect"), n < 3);
+    liveBoxes([]);
+    el("sigBadge").style.opacity = "0";
+    el("sigBadge").classList.remove("pulse");
+    el("noSync").style.opacity = "0.3";
+    idle("zCol", true);
+    idle("nAgg", true);
+    idle("nDirect", true);
+  }
 
-    if (n >= 0) {
-      on(document.getElementById("wDevE1"), true);
-      const pA = document.getElementById("pA");
-      pA.classList.add("on");
-      moveAlong(pA, document.getElementById("wDevE1"), n === 0 ? 0.35 : 1);
+  async function playBeat(n, gen) {
+    renderBrief(n);
+    if (n === 0) {
+      wireOn("wDevE1", true);
+      return travel(el("pA"), el("wDevE1"), TRAVEL, gen);
     }
-    if (n >= 1) on(document.getElementById("wE1E2"), true);
-    if (n >= 2) {
-      const pA = document.getElementById("pA");
-      pA.classList.add("on");
-      moveAlong(pA, document.getElementById("wE1E2"), 1);
+    if (n === 1) {
+      wireOn("wDevE1", true);
+      wireOn("wE1E2", true);
+      el("pA").classList.add("on");
+      moveAlong(el("pA"), el("wDevE1"), 1);
+      return wait(HOLD * 0.45, gen);
     }
-    if (n >= 3) {
-      idle(document.getElementById("zCol"), false);
-      idle(document.getElementById("nAgg"), false);
-      idle(document.getElementById("nDirect"), false);
-      ["wNodeSaas","wNodeCol","wColSaas","wNetCol"].forEach(id => on(document.getElementById(id), true));
-      const pA = document.getElementById("pA");
-      const pB = document.getElementById("pB");
-      const pC = document.getElementById("pC");
-      pA.classList.add("on"); pB.classList.add("on"); pC.classList.add("on");
-      moveAlong(pA, document.getElementById("wNodeSaas"), 1);
-      moveAlong(pB, document.getElementById("wColSaas"), 1);
-      moveAlong(pC, document.getElementById("wNetCol"), 1);
+    if (n === 2) {
+      wireOn("wDevE1", true);
+      wireOn("wE1E2", true);
+      return travel(el("pA"), el("wE1E2"), TRAVEL, gen);
     }
-    if (n >= 4) {
-      on(document.getElementById("wIngMap"), true);
-      on(document.getElementById("wIngHist"), true);
-      document.getElementById("noSync").style.opacity = "0.85";
-      const pMap = document.getElementById("pMap");
-      const pHist = document.getElementById("pHist");
-      pMap.classList.add("on"); pHist.classList.add("on");
-      moveAlong(pMap, document.getElementById("wIngMap"), 1);
-      moveAlong(pHist, document.getElementById("wIngHist"), 1);
-    } else {
-      document.getElementById("noSync").style.opacity = "0.3";
+    if (n === 3) {
+      idle("zCol", false);
+      idle("nAgg", false);
+      idle("nDirect", false);
+      ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol"].forEach(id => wireOn(id, true));
+      const a = (async () => {
+        await travel(el("pA"), el("wNodeSaas"), TRAVEL + 120, gen);
+      })();
+      const b = (async () => {
+        await stagger(180, gen);
+        await travel(el("pB"), el("wNodeCol"), TRAVEL * 0.7, gen);
+        await travel(el("pB"), el("wColSaas"), TRAVEL * 0.7, gen);
+      })();
+      const c = (async () => {
+        await stagger(320, gen);
+        await travel(el("pC"), el("wNetCol"), TRAVEL, gen);
+      })();
+      await Promise.all([a, b, c]);
+      return gen === generation;
     }
-    if (n >= 5) on(document.getElementById("wE5"), true);
-    if (n >= 6) {
-      on(document.getElementById("wHistDet"), true);
-      const pSig = document.getElementById("pSig");
-      pSig.classList.add("on");
-      moveAlong(pSig, document.getElementById("wHistDet"), 1);
-      document.getElementById("sigBadge").style.opacity = "1";
+    if (n === 4) {
+      idle("zCol", false);
+      idle("nAgg", false);
+      idle("nDirect", false);
+      ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist"].forEach(id => wireOn(id, true));
+      el("noSync").style.opacity = "0.85";
+      await Promise.all([
+        travel(el("pMap"), el("wIngMap"), TRAVEL, gen),
+        travel(el("pHist"), el("wIngHist"), TRAVEL, gen)
+      ]);
+      return gen === generation;
+    }
+    if (n === 5) {
+      idle("zCol", false);
+      idle("nAgg", false);
+      idle("nDirect", false);
+      ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist","wE5"].forEach(id => wireOn(id, true));
+      el("noSync").style.opacity = "0.85";
+      el("pMap").classList.add("on");
+      el("pHist").classList.add("on");
+      moveAlong(el("pMap"), el("wIngMap"), 1);
+      moveAlong(el("pHist"), el("wIngHist"), 1);
+      return wait(HOLD * 0.4, gen);
+    }
+    if (n === 6) {
+      idle("zCol", false);
+      idle("nAgg", false);
+      idle("nDirect", false);
+      wireIds.forEach(id => wireOn(id, true));
+      el("noSync").style.opacity = "0.85";
+      const ok = await travel(el("pSig"), el("wHistDet"), TRAVEL, gen);
+      if (!ok) return false;
+      el("sigBadge").style.opacity = "1";
+      el("sigBadge").classList.add("pulse");
+      return true;
+    }
+    return true;
+  }
+
+  async function loop(gen) {
+    while (gen === generation) {
+      resetScene();
+      statusEl.textContent = reduce ? "Still cycle · reduced motion" : "Looping film";
+      fillEl.style.width = "0%";
+      for (let n = 0; n < phases.length; n++) {
+        if (gen !== generation) return;
+        const ok = await playBeat(n, gen);
+        if (!ok) return;
+        const hold = n === phases.length - 1 ? HOLD_END : HOLD;
+        const survived = await wait(hold, gen);
+        if (!survived) return;
+      }
+      statusEl.textContent = "Replay";
+      await wait(LOOP_GAP, gen);
     }
   }
 
-  function animatePhase(n, done) {
-    if (reduce) { if (done) done(); return; }
-    function travel(packet, path, cb) {
-      packet.classList.add("on");
-      let t = 0;
-      const step = () => {
-        t += 0.05;
-        moveAlong(packet, path, t);
-        if (t < 1) requestAnimationFrame(step);
-        else if (cb) cb();
-      };
-      requestAnimationFrame(step);
-    }
-    if (n === 0) travel(document.getElementById("pA"), document.getElementById("wDevE1"), done);
-    else if (n === 3) {
-      travel(document.getElementById("pA"), document.getElementById("wNodeSaas"));
-      travel(document.getElementById("pB"), document.getElementById("wColSaas"));
-      travel(document.getElementById("pC"), document.getElementById("wNetCol"), done);
-    }
-    else if (n === 4) {
-      travel(document.getElementById("pMap"), document.getElementById("wIngMap"));
-      travel(document.getElementById("pHist"), document.getElementById("wIngHist"), done);
-    }
-    else if (n === 6) travel(document.getElementById("pSig"), document.getElementById("wHistDet"), done);
-    else if (done) done();
-  }
-
-  function go(n) {
-    i = Math.max(0, Math.min(phases.length - 1, n));
-    render(i);
-  }
-  function stop() {
-    playing = false;
-    btnPlay.textContent = "Play";
-    if (timer) { clearTimeout(timer); timer = null; }
-  }
-  function playNext() {
-    if (!playing) return;
-    if (i >= phases.length - 1) { stop(); return; }
-    go(i + 1);
-    animatePhase(i, () => { timer = setTimeout(playNext, 1800); });
-  }
-
-  btnPrev.addEventListener("click", () => { stop(); go(i - 1); });
-  btnNext.addEventListener("click", () => { stop(); go(i + 1); });
-  btnPlay.addEventListener("click", () => {
-    if (playing) { stop(); return; }
-    playing = true;
-    btnPlay.textContent = "Pause";
-    if (i >= phases.length - 1) go(0);
-    timer = setTimeout(playNext, 800);
-  });
-
-  go(0);
+  loop(generation);
 })();
 </script>
 </body>

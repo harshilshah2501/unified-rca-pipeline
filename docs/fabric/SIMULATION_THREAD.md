@@ -6,7 +6,7 @@ This page records what the [edge → Detect simulation](./edge-platform-detect-s
 
 ## Increment 1 (built)
 
-Animate through a raised Detect event. Do **not** animate Curate, Scope, Localize, Identify, or Package.
+A looping film on one page: packets move themselves from Emit through a raised Detect event. There are no Play / Previous / Next controls. Do **not** animate Curate, Scope, Localize, Identify, or Package.
 
 ### Two SaaS ingest points only
 
