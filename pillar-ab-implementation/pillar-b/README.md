@@ -77,6 +77,7 @@ pillar-b/
 ├── README.md
 ├── docs/                     ← PoC guides only (see docs/README.md)
 ├── contracts/schemas/        ← symlinks → ../contracts/schemas/ (SoT; required by tests)
+├── reference/canvases/       ← Cursor canvas copies (navigator, GraphWriter I/O)
 ├── references/               ← OPTIONAL product HTML library (not PoC SoT)
 └── poc/                      ← code, sample estate, tests
 ```

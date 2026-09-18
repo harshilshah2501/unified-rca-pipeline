@@ -354,4 +354,4 @@ No Motadata-specific navigator is required:
 4. Start at `graph_writer.py` → F12 into `apply_topo_stream` → References on `GraphWriter` for CLI + tests.  
 5. In chat: `@graph_writer.py` or ask for the call chain from `publish_map`.  
 
-Editor navigation + this go-through + the Cursor canvas **Pillar B map PoC navigator** (open the `.canvas.tsx` beside chat) are the interactive maps for this PoC.
+Editor navigation + this go-through + the in-repo canvas [`../reference/canvases/pillar-b-poc-navigator.canvas.tsx`](../reference/canvases/pillar-b-poc-navigator.canvas.tsx) (open beside chat) are the interactive maps for this PoC.
