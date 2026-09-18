@@ -371,7 +371,7 @@ function StepBody({ step }: { step: StepId }) {
       <Stack gap={12}>
         <Callout tone="info">
           GraphWriter is an orchestrator, not a network service. It is called
-          by the lab CLI (or a future Topology worker). It reads seed +
+          by the lab CLI (or a future Topology writer). It reads seed +
           ingest, writes Dest map/, and optionally runs the E5 maintain stub.
         </Callout>
         <Table

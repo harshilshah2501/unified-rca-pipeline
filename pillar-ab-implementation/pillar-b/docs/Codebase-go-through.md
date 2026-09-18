@@ -266,7 +266,7 @@ This tree is the **P1 always-on fabric write path** only.
 | Unit / P1 tests under `poc/graph/tests/` | Acceptance proofs |
 | [`integration/join/`](../../integration/join/) (optional) | Read-join smoke that builds a map then joins sketches |
 
-**Product intent (not implemented here):** a Topology **worker** after Identity would call the same sequence on a continuous `topo_update` stream (plus optional CMDB/estate bootstrap). Diagnose stages (E6–E11) **read** `map/` via snapshot/neighbors — they do not call `write_topo_stream` / `publish_map`.
+**Product intent (not implemented here):** a **Topology writer** after Identity would call the same sequence on a continuous `topo_update` stream (plus optional CMDB/estate bootstrap). Diagnose stages (E6–E11) **read** `map/` via snapshot/neighbors — they do not call `write_topo_stream` / `publish_map`.
 
 Internal helpers (`apply_topo_stream`, `may_emit_vertex`, …) are for `GraphWriter` and tests — not a second public surface.
 
@@ -276,15 +276,36 @@ These scopes match the **Pillar B map PoC navigator** canvas layers. They are fi
 
 **How they relate (call / dependency direction):**
 
-```text
-Lab entry  ──calls──►  Public orchestrator  ──uses──►  Write core
-                                 │                         │
-                                 │                         └──uses──►  Shared glue
-                                 │
-                                 └──publish_map──►  Dest map/  ◄──read──  Read helpers
+```mermaid
+flowchart LR
+  entry[Lab entry<br/>CLI / make]
+  orch[Public orchestrator<br/>GraphWriter]
+  core[Write core]
+  shared[Shared glue<br/>ab_shared]
+  dest[Dest map/]
+  read[Read helpers]
 
-Production surfaces = Dest map/ + ingest.v1 stream (product), not a GraphWriter HTTP API.
-Spine = the whole write story above (not a separate package).
+  entry -->|calls| orch
+  orch -->|uses| core
+  core -->|uses| shared
+  orch -->|publish_map| dest
+  read -->|reads| dest
+```
+
+**Spine** is the whole write story above (not a separate package). **Production surfaces** are the same Dest `map/` plus the `ingest.v1` stream in product — not a GraphWriter HTTP API.
+
+**GraphWriter call sequence:**
+
+```mermaid
+flowchart LR
+  boot[load_estate_bootstrap]
+  stream[write_topo_stream]
+  pub1[publish_map]
+  maint[maintain_map<br/>optional E5]
+  pub2[publish_map<br/>re-flush]
+
+  boot --> stream --> pub1
+  pub1 -.->|optional| maint --> pub2
 ```
 
 **Cold-reader order** (same as the navigator):
@@ -299,7 +320,7 @@ Spine = the whole write story above (not a separate package).
 
 | Scope | Folder / file | Job | Who should import it |
 |-------|---------------|-----|----------------------|
-| **Public orchestrator** | `graph/graph_writer.py` | Sole write API for `map/` | CLI, workers (future), tests |
+| **Public orchestrator** | `graph/graph_writer.py` | Sole write API for `map/` | CLI, Topology writer (future), tests |
 | **Lab entry** | `graph/cli_publish_map.py` | Wire files → writer → Dest | Humans via `make publish-map` only |
 | **Write core** | `graph_builder.py`, `ci_qualify.py`, `edge_catalog.py`, `provenance.py`, `snapshot.py` | Mutate/validate estate → publish | Only `graph_writer` (+ focused unit tests) |
 | **Maintain (E5)** | `graph/maintain.py` | Validity on existing edges | `graph_writer.maintain_map` |
@@ -335,7 +356,7 @@ Honest freeze vs Design (Motadata SoT: [`GATE_B_DEST_PROFILE`](../../contracts/G
 
 | Surface | Audience | Purpose | Status |
 |---------|----------|---------|--------|
-| **Ingest stream** (`ingest.v1` after E2) | Topology worker (internal) | Continuous `topo_update` lines into GraphWriter `write_topo_stream` | PoC simulates; product worker = Design |
+| **Ingest stream** (`ingest.v1` after E2) | Topology writer (internal) | Continuous `topo_update` lines into GraphWriter `write_topo_stream` | PoC simulates; product Topology writer = Design |
 | **Estate bootstrap load** | Topology / CMDB sync job | Optional starting map (`load_estate_bootstrap`) before stream | PoC file; product CMDB pull = Design |
 | **Dest write protocol** `put("map", key, bytes)` | GraphWriter only | Publish `graph_snapshot` / nodes / edges into the `map/` room | **Frozen logical contract**; PoC encoding `files.v1` |
 | **Dest read protocol** `get("map", "graph_snapshot.json")` | E5 maintain, E8 Scope, Diagnose | Load packaged snapshot; walk neighbors | **Frozen logical contract** |
