@@ -1,3 +1,5 @@
+"""Thin read API wrappers over ``neighbors`` for callers that prefer get_* names."""
+
 from __future__ import annotations
 
 from typing import Any

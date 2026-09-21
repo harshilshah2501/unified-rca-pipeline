@@ -2,6 +2,10 @@
 
 Independent of Pillar A seasonal baselines. Not a package merge with sketches.
 
+Runs on existing edges only (expire, stale corroborating, declared soft/hard).
+Does not invent new topology. After maintain, callers typically ``publish_map``
+again so Dest reflects the marks.
+
 Declared-edge clocks (7d soft / 30d hard) are Design-numeric product defaults from
 the operational graph — injectable for lab clocks; not yet vendor-lab validated.
 """

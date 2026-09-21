@@ -1,3 +1,9 @@
+"""Path constants for the Pillar B PoC tree.
+
+``SAMPLE_ESTATE`` points at the customer-checkout teaching scenario
+(``poc/sample_estate/customer_checkout/``) so CLI and tests share one root.
+"""
+
 from __future__ import annotations
 
 from pathlib import Path

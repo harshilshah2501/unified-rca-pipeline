@@ -1,3 +1,13 @@
+"""Validate GraphState and publish / load the Dest ``map/`` room.
+
+``publish_map`` on GraphWriter ends here: schema-validate nodes, edges, and the
+packaged ``graph_snapshot.v1``, then ``Dest.put`` under room ``map/``.
+
+PoC encoding is Gate B ``files.v1`` (JSON / JSONL). Product keeps the same
+logical keys; Vortex/S3 are later temperature encodings — not a second schema.
+See ``contracts/MAP_WRITE_READ_RECORD.md``.
+"""
+
 from __future__ import annotations
 
 import json
@@ -9,6 +19,7 @@ from graph.graph_builder import GraphState
 
 
 def build_snapshot(state: GraphState, *, version: str = "1") -> dict[str, Any]:
+    """Assemble and schema-validate a ``graph_snapshot.v1`` from in-memory state."""
     nodes = list(state.nodes.values())
     edges = list(state.edges.values())
     for n in nodes:
@@ -43,6 +54,7 @@ def publish_snapshot(dest: Dest, snapshot: dict[str, Any]) -> None:
 
 
 def load_snapshot(dest: Dest) -> dict[str, Any] | None:
+    """Read packaged snapshot from Dest ``map/`` (Scope / Diagnose / tests)."""
     raw = dest.get("map", "graph_snapshot.json")
     if raw is None:
         return None

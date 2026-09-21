@@ -15,10 +15,8 @@ import {
   Stat,
   Table,
   Text,
-  computeDAGLayout,
   useCanvasState,
   useHostTheme,
-  useMemo,
 } from "cursor/canvas";
 
 type LayerId =
@@ -237,8 +235,8 @@ const API_ROWS = [
   },
 ];
 
-/** DAG node id → layer tab (Dest opens Production surfaces). */
-const REL_NODES: {
+/** Horizontal write-path packages (Dest room is laid out separately below Write core). */
+const REL_PACKAGES: {
   id: string;
   label: string;
   sub: string;
@@ -253,16 +251,12 @@ const REL_NODES: {
   },
   { id: "core", label: "Write core", sub: "builder · catalog", layer: "write-core" },
   { id: "shared", label: "Shared glue", sub: "ab_shared", layer: "shared" },
-  { id: "dest", label: "Dest map/", sub: "snapshot room", layer: "prod" },
-  { id: "read", label: "Read helpers", sub: "neighbors · load", layer: "read" },
 ];
 
-const REL_EDGES: { from: string; to: string; label: string }[] = [
+const PACKAGE_FLOW: { from: string; to: string; label: string }[] = [
   { from: "entry", to: "orch", label: "calls" },
   { from: "orch", to: "core", label: "uses" },
   { from: "core", to: "shared", label: "uses" },
-  { from: "orch", to: "dest", label: "publish_map" },
-  { from: "read", to: "dest", label: "reads" },
 ];
 
 const VERB_STEPS: {
@@ -294,6 +288,15 @@ const VERB_STEPS: {
   },
 ];
 
+const PKG_W = 136;
+const PKG_H = 52;
+const PKG_GAP = 48;
+const DIAGRAM_PAD = 16;
+const DEST_W = 200;
+const DEST_H = 72;
+const READ_W = 136;
+const READ_H = 52;
+
 function LayerRelationDiagram({
   activeLayer,
   onSelect,
@@ -302,43 +305,43 @@ function LayerRelationDiagram({
   onSelect: (id: LayerId) => void;
 }) {
   const theme = useHostTheme();
-  const nw = 148;
-  const nh = 52;
-  const layout = useMemo(
-    () =>
-      computeDAGLayout({
-        nodes: REL_NODES.map((n) => ({ id: n.id })),
-        edges: REL_EDGES.map((e) => ({ from: e.from, to: e.to })),
-        direction: "horizontal",
-        nodeWidth: nw,
-        nodeHeight: nh,
-        rankGap: 72,
-        nodeGap: 36,
-        padding: 16,
-      }),
-    [],
+
+  const pkgXs = REL_PACKAGES.map(
+    (_, i) => DIAGRAM_PAD + i * (PKG_W + PKG_GAP),
   );
+  const pkgY = DIAGRAM_PAD;
+  const coreIdx = REL_PACKAGES.findIndex((p) => p.id === "core");
+  const coreCx = pkgXs[coreIdx] + PKG_W / 2;
 
-  const meta = (id: string) => REL_NODES.find((n) => n.id === id);
-  const edgeLabel = (from: string, to: string) =>
-    REL_EDGES.find((e) => e.from === from && e.to === to)?.label ?? "";
+  const arrowTop = pkgY + PKG_H;
+  const destY = arrowTop + 56;
+  const destX = coreCx - DEST_W / 2;
+  const readX = destX + DEST_W + PKG_GAP;
+  const readY = destY + (DEST_H - READ_H) / 2;
 
-  // SVG onClick is unreliable in the canvas host — draw edges in SVG, put
-  // real <button> nodes on top so layer selection works.
+  const diagramW = Math.max(
+    DIAGRAM_PAD * 2 + REL_PACKAGES.length * PKG_W + (REL_PACKAGES.length - 1) * PKG_GAP,
+    readX + READ_W + DIAGRAM_PAD,
+  );
+  const diagramH = destY + DEST_H + DIAGRAM_PAD;
+
+  const destSelected = activeLayer === "prod";
+  const readSelected = activeLayer === "read";
+
   return (
     <Stack gap={10}>
       <div
         style={{
           position: "relative",
-          width: layout.width,
-          height: layout.height,
+          width: diagramW,
+          height: diagramH,
           maxWidth: "100%",
           overflow: "auto",
         }}
       >
         <svg
-          width={layout.width}
-          height={layout.height}
+          width={diagramW}
+          height={diagramH}
           style={{
             position: "absolute",
             left: 0,
@@ -349,69 +352,120 @@ function LayerRelationDiagram({
         >
           <defs>
             <marker
-              id="rel-arrow"
+              id="flow-arrow"
               viewBox="0 0 10 10"
               refX={9}
               refY={5}
-              markerWidth={6}
-              markerHeight={6}
+              markerWidth={7}
+              markerHeight={7}
               orient="auto-start-reverse"
             >
               <path d="M 0 0 L 10 5 L 0 10 z" fill={theme.stroke.secondary} />
             </marker>
+            <marker
+              id="publish-arrow"
+              viewBox="0 0 10 10"
+              refX={9}
+              refY={5}
+              markerWidth={7}
+              markerHeight={7}
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z" fill={theme.accent.primary} />
+            </marker>
           </defs>
-          {layout.edges.map((e) => {
-            const midX = (e.sourceX + e.targetX) / 2;
-            const midY = (e.sourceY + e.targetY) / 2 - 8;
+
+          {PACKAGE_FLOW.map((e, i) => {
+            const x1 = pkgXs[i] + PKG_W;
+            const x2 = pkgXs[i + 1];
+            const y = pkgY + PKG_H / 2;
             return (
               <g key={`${e.from}-${e.to}`}>
                 <line
-                  x1={e.sourceX}
-                  y1={e.sourceY}
-                  x2={e.targetX}
-                  y2={e.targetY}
+                  x1={x1}
+                  y1={y}
+                  x2={x2}
+                  y2={y}
                   stroke={theme.stroke.secondary}
                   strokeWidth={1.5}
-                  markerEnd="url(#rel-arrow)"
+                  markerEnd="url(#flow-arrow)"
                 />
                 <text
-                  x={midX}
-                  y={midY}
+                  x={(x1 + x2) / 2}
+                  y={y - 8}
                   textAnchor="middle"
                   fill={theme.text.tertiary}
-                  fontSize={9}
+                  fontSize={10}
                 >
-                  {edgeLabel(e.from, e.to)}
+                  {e.label}
                 </text>
               </g>
             );
           })}
+
+          {/* Write core → Dest room */}
+          <line
+            x1={coreCx}
+            y1={arrowTop}
+            x2={coreCx}
+            y2={destY}
+            stroke={theme.accent.primary}
+            strokeWidth={2}
+            markerEnd="url(#publish-arrow)"
+          />
+          <text
+            x={coreCx + 10}
+            y={(arrowTop + destY) / 2 + 4}
+            fill={theme.accent.primary}
+            fontSize={11}
+            fontWeight={600}
+          >
+            publish_map
+          </text>
+
+          {/* Read helpers → Dest room */}
+          <line
+            x1={readX}
+            y1={readY + READ_H / 2}
+            x2={destX + DEST_W}
+            y2={destY + DEST_H / 2}
+            stroke={theme.stroke.secondary}
+            strokeWidth={1.5}
+            markerEnd="url(#flow-arrow)"
+          />
+          <text
+            x={(readX + destX + DEST_W) / 2}
+            y={destY + DEST_H / 2 - 10}
+            textAnchor="middle"
+            fill={theme.text.tertiary}
+            fontSize={10}
+          >
+            reads
+          </text>
         </svg>
-        {layout.nodes.map((n) => {
-          const m = meta(n.id);
-          if (!m) return null;
-          const selected = activeLayer === m.layer;
+
+        {REL_PACKAGES.map((p, i) => {
+          const selected = activeLayer === p.layer;
           return (
             <button
-              key={n.id}
+              key={p.id}
               type="button"
-              onClick={() => onSelect(m.layer)}
+              onClick={() => onSelect(p.layer)}
               aria-pressed={selected}
-              aria-label={`Open layer: ${m.label}`}
+              aria-label={`Open layer: ${p.label}`}
               style={{
                 position: "absolute",
-                left: n.x,
-                top: n.y,
-                width: nw,
-                height: nh,
+                left: pkgXs[i],
+                top: pkgY,
+                width: PKG_W,
+                height: PKG_H,
                 margin: 0,
                 padding: "6px 8px",
                 boxSizing: "border-box",
                 borderRadius: 4,
-                border: `1px solid ${
+                border: `${selected ? 2 : 1}px solid ${
                   selected ? theme.accent.primary : theme.stroke.secondary
                 }`,
-                borderWidth: selected ? 2 : 1,
                 background: selected
                   ? theme.fill.tertiary
                   : theme.fill.secondary,
@@ -433,7 +487,7 @@ function LayerRelationDiagram({
                   textAlign: "center",
                 }}
               >
-                {m.label}
+                {p.label}
               </span>
               <span
                 style={{
@@ -443,16 +497,114 @@ function LayerRelationDiagram({
                   textAlign: "center",
                 }}
               >
-                {m.sub}
+                {p.sub}
               </span>
             </button>
           );
         })}
+
+        {/* Dest room — oval / stadium, accent surface */}
+        <button
+          type="button"
+          onClick={() => onSelect("prod")}
+          aria-pressed={destSelected}
+          aria-label="Open layer: Dest map/ room"
+          style={{
+            position: "absolute",
+            left: destX,
+            top: destY,
+            width: DEST_W,
+            height: DEST_H,
+            margin: 0,
+            padding: "8px 16px",
+            boxSizing: "border-box",
+            borderRadius: DEST_H / 2,
+            border: `${destSelected ? 2 : 1}px solid ${theme.accent.primary}`,
+            background: destSelected
+              ? theme.accent.primary
+              : theme.accent.control,
+            color: theme.text.onAccent,
+            cursor: "pointer",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 2,
+            fontFamily: "inherit",
+          }}
+        >
+          <span style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.2 }}>
+            Dest map/
+          </span>
+          <span
+            style={{
+              fontSize: 9,
+              opacity: 0.9,
+              lineHeight: 1.2,
+              textAlign: "center",
+            }}
+          >
+            snapshot · nodes · edges
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onSelect("read")}
+          aria-pressed={readSelected}
+          aria-label="Open layer: Read helpers"
+          style={{
+            position: "absolute",
+            left: readX,
+            top: readY,
+            width: READ_W,
+            height: READ_H,
+            margin: 0,
+            padding: "6px 8px",
+            boxSizing: "border-box",
+            borderRadius: 4,
+            border: `${readSelected ? 2 : 1}px solid ${
+              readSelected ? theme.accent.primary : theme.stroke.secondary
+            }`,
+            background: readSelected
+              ? theme.fill.tertiary
+              : theme.fill.secondary,
+            color: theme.text.primary,
+            cursor: "pointer",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 2,
+            fontFamily: "inherit",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: readSelected ? 600 : 500,
+              lineHeight: 1.2,
+              textAlign: "center",
+            }}
+          >
+            Read helpers
+          </span>
+          <span
+            style={{
+              fontSize: 9,
+              color: theme.text.secondary,
+              lineHeight: 1.2,
+              textAlign: "center",
+            }}
+          >
+            neighbors · load
+          </span>
+        </button>
       </div>
+
       <Text size="small" tone="secondary">
-        Click a box to open that layer. Spine is the whole write story (not a
-        separate package). Production surfaces = Dest map/ + ingest.v1 stream —
-        not a GraphWriter HTTP API.
+        Click a box or the Dest room for detail below. Lab entry maps to
+        Topology writer in product.
       </Text>
     </Stack>
   );
@@ -572,6 +724,59 @@ function CallSequenceFlow() {
   );
 }
 
+function LayerDetailPanel({ active }: { active: (typeof LAYERS)[number] }) {
+  return (
+    <Card>
+      <CardHeader
+        trailing={
+          <Row gap={6}>
+            <Pill tone="neutral" size="sm">
+              Read #{active.readOrder}
+            </Pill>
+            <Pill tone="info" active>
+              {active.title}
+            </Pill>
+          </Row>
+        }
+      >
+        {active.title}
+      </CardHeader>
+      <CardBody>
+        <Stack gap={12}>
+          <Text>{active.blurb}</Text>
+          <Stack gap={4}>
+            <Text weight="medium">Related how</Text>
+            <Text size="small" tone="secondary">
+              {active.relates}
+            </Text>
+          </Stack>
+          {active.id === "overview" ? (
+            <Text tone="secondary" size="small">
+              Guides: docs/MAP_P1_FABRIC_EVAL.md · docs/Codebase-go-through.md
+            </Text>
+          ) : null}
+          {active.files.length > 0 ? (
+            <Table
+              headers={["File / surface", "Job", "Who calls"]}
+              rows={active.files.map((f) => [f.file, f.job, f.callers])}
+            />
+          ) : null}
+        </Stack>
+      </CardBody>
+    </Card>
+  );
+}
+
+const READ_BLURBS: Record<number, string> = {
+  1: "Big picture",
+  2: "Only write API",
+  3: "How to run once",
+  4: "Internals",
+  5: "Supporting stubs",
+  6: "After publish",
+  7: "Product honesty",
+};
+
 export default function PillarBPocNavigator() {
   const theme = useHostTheme();
   const [layer, setLayer] = useCanvasState<LayerId>(
@@ -604,54 +809,11 @@ export default function PillarBPocNavigator() {
 
       <H2>How the layers relate</H2>
       <Text tone="secondary" size="small">
-        Call and dependency direction. Boxes are clickable.
+        Write path left-to-right; publish_map drops into Dest map/; readers
+        load that room. Click for detail below.
       </Text>
       <LayerRelationDiagram activeLayer={layer} onSelect={setLayer} />
 
-      <H2>GraphWriter call sequence</H2>
-      <CallSequenceFlow />
-
-      <Divider />
-
-      <H2>Read in this order</H2>
-      <Text tone="secondary" size="small">
-        Click a step to open that layer. Same order as
-        docs/Codebase-go-through.md clarifications.
-      </Text>
-      <Stack gap={6}>
-        {READ_ORDER.map((l) => (
-          <Row key={l.id} gap={10} align="center">
-            <Pill tone={l.id === layer ? "info" : "neutral"} size="sm">
-              {String(l.readOrder)}
-            </Pill>
-            <Button
-              variant={l.id === layer ? "primary" : "secondary"}
-              onClick={() => setLayer(l.id)}
-            >
-              {l.title}
-            </Button>
-            <Text size="small" tone="secondary">
-              {l.readOrder === 1
-                ? "Big picture"
-                : l.readOrder === 2
-                  ? "Only write API"
-                  : l.readOrder === 3
-                    ? "How to run once"
-                    : l.readOrder === 4
-                      ? "Internals"
-                      : l.readOrder === 5
-                        ? "Supporting stubs"
-                        : l.readOrder === 6
-                          ? "After publish"
-                          : "Product honesty"}
-            </Text>
-          </Row>
-        ))}
-      </Stack>
-
-      <Divider />
-
-      <H2>Choose a layer</H2>
       <Row gap={8} wrap>
         {READ_ORDER.map((l) => (
           <Button
@@ -663,46 +825,18 @@ export default function PillarBPocNavigator() {
           </Button>
         ))}
       </Row>
+      <Text size="small" tone="secondary">
+        Same selection as the diagram. Read order:{" "}
+        {READ_BLURBS[active.readOrder] ?? ""} ·{" "}
+        {READ_ORDER.map((l) => l.title).join(" → ")}
+      </Text>
 
-      <Card>
-        <CardHeader
-          trailing={
-            <Row gap={6}>
-              <Pill tone="neutral" size="sm">
-                Read #{active.readOrder}
-              </Pill>
-              <Pill tone="info">{active.title}</Pill>
-            </Row>
-          }
-        >
-          {active.title}
-        </CardHeader>
-        <CardBody>
-          <Stack gap={12}>
-            <Text>{active.blurb}</Text>
-            <Stack gap={4}>
-              <Text weight="medium">Related how</Text>
-              <Text size="small" tone="secondary">
-                {active.relates}
-              </Text>
-            </Stack>
-            {active.id === "overview" ? (
-              <Stack gap={8}>
-                <Text tone="secondary" size="small">
-                  Layer DAG and call-sequence cards are above this panel. Guides:
-                  docs/MAP_P1_FABRIC_EVAL.md · docs/Codebase-go-through.md
-                </Text>
-              </Stack>
-            ) : null}
-            {active.files.length > 0 ? (
-              <Table
-                headers={["File / surface", "Job", "Who calls"]}
-                rows={active.files.map((f) => [f.file, f.job, f.callers])}
-              />
-            ) : null}
-          </Stack>
-        </CardBody>
-      </Card>
+      <LayerDetailPanel active={active} />
+
+      <Divider />
+
+      <H2>GraphWriter call sequence</H2>
+      <CallSequenceFlow />
 
       <Divider />
 

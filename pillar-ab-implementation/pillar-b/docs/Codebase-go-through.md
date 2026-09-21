@@ -126,13 +126,14 @@ Owns `GraphState` (`nodes`, `edges`, `rejects`).
 
 - **`load_estate_bootstrap_state`** — reads `topology.bootstrap.json`, qualifies CI types, emits declared edges with provenance `topology.bootstrap`.
 - **`apply_topo_stream`** — the E3 heart: for each line, choose NOOP / WRITE / DROP / phased skip. (“Admit” = that per-line triage — [terminology](./MAP_P1_FABRIC_EVAL.md#terminology-do-not-blur).)
+- **`_make_node` / `_make_edge`** — after admit, shape `graph_node.v1` / `graph_edge.v1` objects (same helpers for bootstrap and stream; callers pass different provenance / `valid_from`).
 
-```94:125:pillar-ab-implementation/pillar-b/poc/graph/graph_builder.py
-def apply_topo_stream(...):
-    # signal_class != topo_update → NOOP
-    # gate / never-CI / unknown relation → DROP
-    # classify_relation skip → phased map-NOOP
-    # classify_relation emit → WRITE (upsert)
+```python
+# apply_topo_stream outline:
+# signal_class != topo_update → NOOP
+# gate / never-CI / unknown relation → DROP
+# classify_relation skip → phased map-NOOP
+# classify_relation emit → WRITE via _make_node (endpoints) + _make_edge
 ```
 
 Outcome table (NOOP / WRITE / DROP) lives in the [package README](../README.md#admit-actions-hub-language--code) — not duplicated here.
@@ -277,22 +278,15 @@ These scopes match the **Pillar B map PoC navigator** canvas layers. They are fi
 **How they relate (call / dependency direction):**
 
 ```mermaid
-flowchart LR
-  entry[Lab entry<br/>CLI / make]
-  orch[Public orchestrator<br/>GraphWriter]
-  core[Write core]
-  shared[Shared glue<br/>ab_shared]
-  dest[Dest map/]
-  read[Read helpers]
-
-  entry -->|calls| orch
-  orch -->|uses| core
-  core -->|uses| shared
-  orch -->|publish_map| dest
-  read -->|reads| dest
+flowchart TB
+  entry[Lab entry] -->|calls| orch[Public orchestrator]
+  orch -->|uses| core[Write core]
+  core -->|uses| shared[Shared glue]
+  core -->|publish_map| dest((Dest map/))
+  read[Read helpers] -->|reads| dest
 ```
 
-**Spine** is the whole write story above (not a separate package). **Production surfaces** are the same Dest `map/` plus the `ingest.v1` stream in product — not a GraphWriter HTTP API.
+**Spine** is the whole write story (not a separate package). **Production surfaces** encode Dest `map/` (plus the `ingest.v1` stream) — not a GraphWriter HTTP API.
 
 **GraphWriter call sequence:**
 
@@ -343,6 +337,7 @@ Rough layering: **CLI/tests → `GraphWriter` → builder/catalog/qualify/proven
 | `rejects` | DROP tape: `(record, reason_code)` pairs from this run |
 | `apply_topo_stream` | Per-line admit loop (NOOP / WRITE / DROP / phased skip) |
 | `load_estate_bootstrap_state` | Bootstrap load returning a bare `GraphState` (builder-level) |
+| `_make_node` / `_make_edge` | Shape `graph_node.v1` / `graph_edge.v1` after admit (bootstrap + stream) |
 | `classify_relation` | Relation name → emit / skip / reject |
 | `may_emit_vertex` | CI type allowed on map? else DROP |
 | `build_snapshot` / `publish_snapshot` | Assemble validated snapshot / write Dest keys |

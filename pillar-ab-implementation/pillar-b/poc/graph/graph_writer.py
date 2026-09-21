@@ -1,3 +1,14 @@
+"""Public orchestrator for Motadata Pillar B map writes.
+
+``GraphWriter`` is the only library surface other code should call to mutate and
+publish ``map/``. In the PoC, ``cli_publish_map`` (and unit tests) call it; in
+product intent a Topology writer service would call the same verbs on a
+continuous ``topo_update`` stream.
+
+Internal modules (builder, catalog, qualify, snapshot, maintain) are for this
+class and focused unit tests — not for Diagnose.
+"""
+
 from __future__ import annotations
 
 from typing import Any
@@ -15,30 +26,33 @@ class GraphWriter:
 
     def __init__(self, tenant: str = "default", gate: ResolvedOnlyGate | None = None) -> None:
         self.tenant = tenant
+        # Same resolved-only identity policy as Pillar A sketches.
         self.gate = gate or ResolvedOnlyGate()
+        # None until bootstrap or first write_topo_stream; holds in-memory estate.
         self.state: GraphState | None = None
 
     def load_estate_bootstrap(self, path_or_dict: Any, *, tenant: str | None = None) -> None:
-        """Load optional declared starting estate into memory. Not E7 CaseSeed."""
+        """Load optional declared starting estate into memory (first fill / CMDB-style seed)."""
         self.state = load_estate_bootstrap_state(path_or_dict, tenant=tenant or self.tenant)
 
     @property
     def rejects(self) -> list[tuple[dict, str]]:
+        """DROP tape for this run: ``(record, reason_code)`` pairs."""
         if self.state is None:
             return []
         return self.state.rejects
 
     def write_topo_stream(self, source: IngestSource) -> None:
-        """Write admitted topo_update lines into GraphState (NOOP / WRITE / DROP / phased).
+        """Admit-triage ``topo_update`` lines into GraphState (NOOP / WRITE / DROP / phased).
 
-        Does not publish to Dest — call publish_map next.
+        Does not publish to Dest — call ``publish_map`` next. Only upserts in-memory GraphState.
         """
         if self.state is None:
             self.state = GraphState(tenant=self.tenant)
         apply_topo_stream(self.state, source, self.gate)
 
     def publish_map(self, dest: Dest, *, version: str = "1") -> dict[str, Any]:
-        """Validate GraphState and publish graph_snapshot.v1 (+ nodes/edges JSONL) to Dest map/."""
+        """Validate GraphState and publish ``graph_snapshot.v1`` (+ nodes/edges JSONL) to Dest ``map/``."""
         if self.state is None:
             self.state = GraphState(tenant=self.tenant)
         snapshot = build_snapshot(self.state, version=version)
@@ -53,7 +67,10 @@ class GraphWriter:
         soft_stale_days: int | None = None,
         hard_downgrade_days: int | None = None,
     ) -> dict[str, int]:
-        """E5: expire / drop stale corroborating / mark declared soft·hard — does not create edges."""
+        """E5: expire / drop stale corroborating / mark declared soft·hard — does not create edges.
+
+        Call ``publish_map`` again afterward if Dest should reflect maintain marks.
+        """
         if self.state is None:
             return {
                 "expired_edges": 0,

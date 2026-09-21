@@ -1,3 +1,15 @@
+"""Relation-name catalog for edges on Dest ``map/``.
+
+``classify_relation`` decides emit / skip / reject for a ``relation`` string:
+
+* **emit** — in the fifteen-name catalog *and* wave-1 → WRITE
+* **skip** — in catalog but not wave-1 yet → phased map-NOOP (no DROP)
+* **reject** — unknown relation → DROP (``unknown_relation``)
+
+Wrong ``signal_class`` is handled earlier as silent NOOP in ``apply_topo_stream``,
+not here. This module does not judge business correctness of a dependency.
+"""
+
 from __future__ import annotations
 
 from ab_shared import reject_codes as rc

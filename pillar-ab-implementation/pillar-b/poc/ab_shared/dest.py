@@ -1,3 +1,10 @@
+"""Destination protocol for logical rooms (``map/`` · ``history/``).
+
+GraphWriter publishes via ``Dest.put("map", …)``. Scope/Diagnose read via ``get``.
+PoC uses ``FileDest`` / ``MemoryDest`` (Gate B ``files.v1``). Product later plugs
+Vortex/S3 adapters with the same put/get keys — not a second schema.
+"""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -5,12 +12,16 @@ from typing import Protocol
 
 
 class Dest(Protocol):
+    """Minimal room/key byte store shared by Pillar A and Pillar B."""
+
     def put(self, room: str, key: str, payload: bytes) -> None: ...
     def get(self, room: str, key: str) -> bytes | None: ...
     def list_keys(self, room: str) -> list[str]: ...
 
 
 class MemoryDest:
+    """In-memory Dest for unit tests (no disk)."""
+
     def __init__(self) -> None:
         self._store: dict[tuple[str, str], bytes] = {}
 
@@ -25,7 +36,7 @@ class MemoryDest:
 
 
 class FileDest:
-    """Gate B files.v1: poc/out/<tenant>/{map,history}/..."""
+    """Gate B files.v1: ``poc/out/<tenant>/{map,history}/...``."""
 
     def __init__(self, root: Path, tenant: str = "default") -> None:
         self.root = Path(root) / tenant

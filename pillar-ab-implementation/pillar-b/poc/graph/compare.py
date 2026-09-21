@@ -1,4 +1,9 @@
-"""Compare GraphWriter actual snapshot to case expected spine (stable keys only)."""
+"""Compare GraphWriter actual snapshot to case expected spine (stable keys only).
+
+Full node/edge objects carry provenance and display fields that may grow; SAMPLE_IO
+goldens assert on ``ci_id`` / ``ci_type`` / ``edge_id`` / relation endpoints instead.
+Tests only — not a product read API.
+"""
 
 from __future__ import annotations
 

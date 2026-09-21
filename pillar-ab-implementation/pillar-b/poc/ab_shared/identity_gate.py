@@ -1,3 +1,9 @@
+"""Identity door into writers: only ``identity.status = resolved`` admits.
+
+Simulates the post-E2 contract without a live LUT. Unresolved / synthesized
+lines DROP with stable reject codes. Shared policy with Pillar A sketches.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

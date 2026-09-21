@@ -1,4 +1,11 @@
-"""Lab CLI: estate bootstrap + topo stream → publish Dest map/ (Pillar B only)."""
+"""Lab entry: one-shot CLI that stands in for a Topology writer.
+
+Wires sample-estate files → GraphWriter → FileDest ``map/``.
+Product intent replaces this process with a long-running Topology writer;
+the GraphWriter verbs stay the same.
+
+Invoke via ``make publish-map`` from ``poc/``.
+"""
 
 from __future__ import annotations
 
@@ -19,7 +26,7 @@ def main(argv: list[str] | None = None) -> int:
         "--bootstrap",
         type=Path,
         default=SAMPLE_ESTATE / "topology.bootstrap.json",
-        help="Declared estate bootstrap JSON (nodes + edges). Not E7 CaseSeed.",
+        help="Declared estate bootstrap JSON (nodes + edges).",
     )
     p.add_argument(
         "--stream",

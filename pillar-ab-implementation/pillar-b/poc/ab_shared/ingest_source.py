@@ -1,3 +1,9 @@
+"""Ingest stream adapters: JSONL files or in-memory lists of ``ingest.v1`` dicts.
+
+Lab CLI and tests feed GraphWriter through these; product would stream from
+the post-Identity bus into the same ``IngestSource.records()`` shape.
+"""
+
 from __future__ import annotations
 
 import json
@@ -10,6 +16,8 @@ class IngestSource(Protocol):
 
 
 class ListIngestSource:
+    """Unit-test helper: inject one-off NOOP/DROP lines without new estate files."""
+
     def __init__(self, items: Iterable[dict]) -> None:
         self._items = list(items)
 
@@ -18,6 +26,8 @@ class ListIngestSource:
 
 
 class JsonlIngestSource:
+    """One JSON object per line (sample estate streams, reject tapes)."""
+
     def __init__(self, path: Path) -> None:
         self.path = Path(path)
 

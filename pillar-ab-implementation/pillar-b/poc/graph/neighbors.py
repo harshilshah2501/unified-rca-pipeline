@@ -1,3 +1,9 @@
+"""Read helpers: walk a published ``graph_snapshot.v1``.
+
+Used by tests and (product intent) Scope / Diagnose over Dest ``map/``.
+Does not call GraphWriter write APIs.
+"""
+
 from __future__ import annotations
 
 from collections import deque
@@ -35,4 +41,5 @@ def neighbors(
 
 
 def neighbor_ids(snapshot: dict[str, Any], ci_id: str, **kwargs: Any) -> list[str]:
+    """Unique destination ``ci_id``s from ``neighbors``."""
     return sorted({e["dst_ci_id"] for e in neighbors(snapshot, ci_id, **kwargs)})

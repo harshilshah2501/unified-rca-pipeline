@@ -1,3 +1,10 @@
+"""JSON Schema validation against ``pillar-b/contracts/schemas`` mirrors.
+
+``publish_map`` / ``build_snapshot`` call ``validate`` so Dest never receives
+half-shaped map objects. Schemas symlink to the slice SoT under
+``pillar-ab-implementation/contracts/schemas/``.
+"""
+
 from __future__ import annotations
 
 import json
@@ -18,6 +25,7 @@ def _validator(name: str) -> Draft202012Validator:
 
 
 def validate(name: str, instance: dict) -> None:
+    """Raise ``jsonschema.ValidationError`` if ``instance`` fails schema ``name``."""
     _validator(name).validate(instance)
 
 
