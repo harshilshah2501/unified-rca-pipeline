@@ -126,7 +126,7 @@ HLD object `IdentifiedRecord` = `ingest.v1` + `identity` object.
   "tenant": "default",
   "ci_id": "esxi-host-01",
   "ci_type": "HypervisorHost",
-  "signal_class": "metric_sample",
+  "fact_kind": "metric_sample",
   "name": "cpu.ready",
   "value": 12.4,
   "identity": {
@@ -166,7 +166,7 @@ HLD object `IdentifiedRecord` = `ingest.v1` + `identity` object.
 1. **Keep synthesis** for observability of misses — every record stays visible; nothing is silently dropped (FR-B1).
 2. **`identity.status != resolved` is not a localize target and not a ServiceOps-ticket target.** E9 must not pick a synthesized/unattributed CI as `LeafClaim`. E11 must not open a ServiceOps incident on one.
 3. **Unattributed queue** is the query surface over those records (`identity.status` in `{unattributed, synthesized}`, or today's proxies), not a second pipeline.
-4. **True poison** (malformed JSON, `schema_version` mismatch, unknown `signal_class`) is **E1 dead-letter**, not E2 synthesis. That DLQ is deferred to Vector D5 ([`LLD-E1-Collect.md`](./LLD-E1-Collect.md) §5).
+4. **True poison** (malformed JSON, `schema_version` mismatch, unknown `fact_kind`) is **E1 dead-letter**, not E2 synthesis. That DLQ is deferred to Vector D5 ([`LLD-E1-Collect.md`](./LLD-E1-Collect.md) §5).
 
 Vector live CI-bind remains Design-level until D3/D5 land. When it lands, it must implement this policy, not the old "dead-letter on bind miss" sentence.
 

@@ -142,15 +142,15 @@ def apply_topo_stream(state: GraphState, source: IngestSource, gate: ResolvedOnl
     """Apply post-E2 ingest lines that are Topology's job.
 
     Admit mapping (hub walkthrough NOOP / WRITE / DROP):
-      - signal_class != topo_update → NOOP (silent continue; metric/event/trace/anomaly)
+      - fact_kind != topo_update → NOOP (silent continue; metric/event/trace/anomaly)
       - gate or catalog fail → DROP (append rejects)
       - classify_relation skip → phased map-NOOP
       - classify_relation emit → WRITE (upsert nodes + edge)
     """
     gate = gate or ResolvedOnlyGate()
     for rec in source.records():
-        # NOOP — not Topology's signal_class (Pillar A / other stores own those lines).
-        if rec.get("signal_class") != "topo_update":
+        # NOOP — not Topology's fact_kind (Pillar A / other stores own those lines).
+        if rec.get("fact_kind") != "topo_update":
             continue
         result = gate.admit(rec)
         if not result.accepted:

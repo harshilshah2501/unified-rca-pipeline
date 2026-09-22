@@ -139,7 +139,7 @@ Examples: file logs, Kubernetes pod logs / API events, OTLP (4317 gRPC / 4318 HT
 
 - TelemetryEnvelope abstraction
 - Required `ci_id` / `ci_type` (no CMDB bind at ingest)
-- Motadata `signal_class` enum
+- Motadata `fact_kind` enum
 - Reserved classes such as `change_event`, `cmdb_sync`, `ticket`
 - Schema-version reject at ingestion (parsers / processors handle format)
 
@@ -164,7 +164,7 @@ See [§7](#7-destination-types). Threshold nodes emit **signals** to trigger des
 | E1 Collect | Source nodes | Per-pipeline sources, not one global stage object |
 | `ingest.v1` / TelemetryEnvelope | OTLP / JSON / syslog / … items | No single Motadata envelope |
 | `ci_id` / `ci_type` | Resource attributes (`service.name`, `k8s.pod.name`, …) | Semantic conventions; optional lookup |
-| `signal_class` | Item types: log · metric · trace · event · **signal** | Different enum; “signal” ≠ Motadata `signal_class` |
+| `fact_kind` | Item types: log · metric · trace · event · **signal** | Different enum; “signal” ≠ Motadata `fact_kind` |
 | E2 Identity | Processors (enrich / OTTL / lookup) | No resolved / synthesized identity gate |
 | E3 Topology / `map/` | Knowledge Graph + Service Map | Two products; KG not a public GraphWriter store |
 | E4 Stores / sketches | ED Platform (e.g. ClickHouse) + archive destinations | Not `sketch.v1` / `map/` contracts |

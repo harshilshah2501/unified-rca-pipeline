@@ -65,7 +65,7 @@ def write_federated_stores(
             if not line:
                 continue
             row = json.loads(line)
-            cls = row.get("signal_class")
+            cls = row.get("fact_kind")
             ci = str(row.get("ci_id") or "")
             if ci:
                 entities.add(ci)
@@ -114,7 +114,7 @@ def write_federated_stores(
                 trace_id = labels.get("trace_id") or row.get("name") or "no-trace"
                 span_id = labels.get("span_id") or ""
                 service = str(row.get("ci_id") or "")
-                event_type = str(row.get("name") or row.get("signal_class") or "event")
+                event_type = str(row.get("name") or row.get("fact_kind") or "event")
                 ts = row.get("ts") or ""
                 try:
                     epoch = datetime.fromisoformat(
@@ -130,7 +130,7 @@ def write_federated_stores(
                     "member": f"{span_id}:{service}:{event_type}",
                     "timestamp": epoch,
                     "pattern": pattern,
-                    "source_signal_class": row.get("signal_class"),
+                    "source_fact_kind": row.get("fact_kind"),
                 }
                 speed_fh.write(json.dumps(stub, separators=(",", ":")) + "\n")
                 speed_keys += 1

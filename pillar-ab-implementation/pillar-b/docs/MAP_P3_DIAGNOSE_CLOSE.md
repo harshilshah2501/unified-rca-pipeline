@@ -1,7 +1,7 @@
 # P3 stub harness — EvidenceBundle → VerdictCard
 
 **Doc job:** Optional **lab close** stubs after a leaf path is chosen.  
-**Not the PoC mission.** Core knowledge-graph use cases → [Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx). Prior stub → [`MAP_P2_CASE_PATH.md`](./MAP_P2_CASE_PATH.md).
+**Not the PoC mission.** Core knowledge-graph use cases → [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html). Prior stub → [`MAP_P2_CASE_PATH.md`](./MAP_P2_CASE_PATH.md).
 
 **Stance:** Identify / Package evidence and narrative are **assumed or stubbed** (default lab evidence, no live ticket create). Useful only to show “walk found a leaf → operator-shaped card.” Graph truth still comes from build/maintain + walk.
 
@@ -44,8 +44,8 @@ LeafClaim ──build_evidence_bundle──► EvidenceBundle ──package_verd
 
 | Artifact | Path |
 |----------|------|
-| Expected | [`../poc/sample_estate/customer_checkout/cases/increment3/expected_verdict.json`](../poc/sample_estate/customer_checkout/cases/increment3/expected_verdict.json) |
-| Upstream storm | Increment 2 `cases/increment2/signal_storm.json` |
+| Expected | [`../poc/sample_estate/customer_checkout/cases/stub_diagnose_close/expected_verdict.json`](../poc/sample_estate/customer_checkout/cases/stub_diagnose_close/expected_verdict.json) |
+| Upstream storm | stub case-path harness `cases/stub_case_path/signal_storm.json` |
 
 | Check | Expected |
 |-------|----------|

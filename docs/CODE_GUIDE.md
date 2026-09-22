@@ -78,7 +78,7 @@ Design docs live under `docs/`. Runtime Motadata writers live under `pillar-ab-i
 ```
 Sources                 Front door              After Identity (E2)
 ─────────               ──────────              ───────────────────
-Motadata dumps     ──►  ingest.v1 JSONL   ──►  signal_class fan-out
+Motadata dumps     ──►  ingest.v1 JSONL   ──►  fact_kind fan-out
 ObserveOps replay  ──►  (ingestion-poc)        ├── metric_sample → Pillar A → history/ (sketch.v1)
 Lab fixtures       ──►                         └── topo_update   → Pillar B → map/     (graph_*)
                                                           │
@@ -149,7 +149,7 @@ PYTHONPATH=lean-pipeline:. .venv/bin/python ingestion-poc/builders/n45_chain.py
 |------|----------------|
 | `contracts/` | **Source of truth** — schemas, `GRAPH_QNA`, `MAP_WRITE_READ_RECORD`, Gate B dest profile |
 | `contracts/schemas/` | `ingest_v1`, `sketch.v1`, graph node/edge / snapshot JSON schemas |
-| `E2_INPUT_FIXTURES.md` | What writers consume after E2 (lab JSONL paths + `signal_class`) |
+| `E2_INPUT_FIXTURES.md` | What writers consume after E2 (lab JSONL paths + `fact_kind`) |
 | `pillar-a/poc/` | Sketch / percentile writer PoC (`history/` keys; `files.v1` dest) |
 | `pillar-b/poc/` | Graph materializer PoC (`map/` keys; `topo_update` + seed topology) |
 | `integration/` | Optional **read-join** harness after both unit suites are green (not an A∪B merge) |

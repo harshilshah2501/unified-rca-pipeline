@@ -20,7 +20,7 @@ def normalize_metric_id(record: dict) -> str | None:
 
 def admit_metric(record: dict, gate: ResolvedOnlyGate | None = None) -> tuple[dict | None, str | None]:
     gate = gate or ResolvedOnlyGate()
-    if record.get("signal_class") != "metric_sample":
+    if record.get("fact_kind") != "metric_sample":
         return None, None
     result = gate.admit(record)
     if not result.accepted:

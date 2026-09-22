@@ -47,7 +47,7 @@ One JSON object per line, time-ordered, UTF-8, newline-delimited (JSONL). Canoni
   "tenant": "default",
   "ci_id": "orders-api",
   "ci_type": "Service",
-  "signal_class": "metric_sample",
+  "fact_kind": "metric_sample",
   "name": "request.p95_latency_ms",
   "value": 1450.0,
   "threshold": 1000.0,
@@ -70,7 +70,7 @@ One JSON object per line, time-ordered, UTF-8, newline-delimited (JSONL). Canoni
 | `tenant` | string | Yes | `"default"` in every current corpus/lab path — multi-tenant is not exercised yet. Part of the future ServiceOps join key (`tenant`+`ci_id`) |
 | `ci_id` | string | Yes at E2; at E1 may be source-asserted placeholder | E1 does **not** validate this against topology. An unresolvable `ci_id` is legal at E1 and becomes E2's problem |
 | `ci_type` | string | Yes at E2; at E1 may be `"Unknown"` / source class | ObserveOps corpus types: `NetworkPort`, `HypervisorHost`, `Datastore`, `VirtualMachine`, `GuestOS`, `Service`. Additive taxonomy — new types do not require an `ingest.v1` bump |
-| `signal_class` | enum | Yes | Admitted now: §2.1. Reserved unused: §2.2. Unknown → reject / dead-letter |
+| `fact_kind` | enum | Yes | Admitted now: §2.1. Reserved unused: §2.2. Unknown → reject / dead-letter |
 | `name` | string | Yes | Metric name, log/event type, span operation, or edge relation (for `topo_update`) |
 | `value` | number | Usually | Numeric value; `1.0` for boolean/event occurrences. Not required for every future reserved class |
 | `threshold` | number \| null | If known | Carried through for E6 Detect; E1 does not evaluate it |
@@ -80,7 +80,7 @@ One JSON object per line, time-ordered, UTF-8, newline-delimited (JSONL). Canoni
 
 E1 does **not** emit `identity.*`. That overlay is E2 ([`LLD-E2-Identity.md`](./LLD-E2-Identity.md) §3).
 
-### 2.1 `signal_class` values admitted now
+### 2.1 `fact_kind` values admitted now
 
 E1 only **admits** these classes. After E2 Identity, Motadata fabric writers filter by class (see [`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md) cheat sheet · [`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G31). GraphWriter admit actions (NOOP / WRITE / DROP) live in E3 / Pillar B — not in Collect.
 
@@ -92,7 +92,7 @@ E1 only **admits** these classes. After E2 Identity, Motadata fabric writers fil
 | `trace_span` | OTLP/Jaeger/Zipkin traces, ddtrace-style spans | Both pillars **skip** | E9 Localize · E10 Identify · Fed Nezha/speed |
 | `topo_update` | Discovery / crawler / lab topo stream | **Pillar B GraphWriter** → `map/` (`graph_*.v1`) | Bakeoff: audit fan-out; primary load often corpus `topology.json` (§4) |
 
-### 2.2 Reserved `signal_class` values (unused this pass)
+### 2.2 Reserved `fact_kind` values (unused this pass)
 
 Named so later ServiceOps/CMDB sources do not collide with today's enum. **Do not emit these from E1 now. Do not implement collectors for them in this LLD.**
 
@@ -102,7 +102,7 @@ Named so later ServiceOps/CMDB sources do not collide with today's enum. **Do no
 | `cmdb_sync` | CMDB / discovery snapshot or delta | Optional CMDB enrichment of P1; identity join, not a second Collect plane |
 | `ticket` | ServiceOps incident / ITSM record | Future join onto the same `ci_id`; E11 is still the RCA→ServiceOps egress |
 
-**Extension policy:** a line whose `signal_class` is not in §2.1 and not in §2.2, or whose `schema_version != "ingest.v1"`, is **poison**. Policy is reject or dead-letter. Do not coerce it into `event` or invent a class.
+**Extension policy:** a line whose `fact_kind` is not in §2.1 and not in §2.2, or whose `schema_version != "ingest.v1"`, is **poison**. Policy is reject or dead-letter. Do not coerce it into `event` or invent a class.
 
 ---
 
@@ -161,7 +161,7 @@ Do not collapse these paths:
 | Path | What is SoT for edges | Who consumes |
 |------|----------------------|--------------|
 | **Bakeoff / Lean–Federated** | Corpus `topology.json` (static load) | E3 loaders in Lean `InvocationGraph` / Fed `RelationshipGraph` ([`LLD-E3-Topology.md`](./LLD-E3-Topology.md) bakeoff path) |
-| **Motadata Pillar B** | Bootstrap topology **plus** post-E2 `signal_class=topo_update` stream with `identity.status=resolved` | GraphWriter → Dest `map/` ([`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) · [`pillar-b/README.md`](../../pillar-ab-implementation/pillar-b/README.md)) |
+| **Motadata Pillar B** | Bootstrap topology **plus** post-E2 `fact_kind=topo_update` stream with `identity.status=resolved` | GraphWriter → Dest `map/` ([`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) · [`pillar-b/README.md`](../../pillar-ab-implementation/pillar-b/README.md)) |
 
 `observeops_to_ingest_v1.py` also emits `topo_updates.jsonl` — one `topo_update` line per topology edge, timestamped at `incident_start`. For the **bakeoff** path that file is the **audit fan-out** described in `INGESTION_PIPELINE_VECTOR.md` §4, not the primary A-TOPO writer — corpus `topology.json` remains the bakeoff static topology. For the **Motadata map** path, `topo_update` lines *are* the GraphWriter write path (alongside an optional estate bootstrap file (`topology.bootstrap.json`)). E1 still does not interpret edges either way.
 
@@ -173,7 +173,7 @@ Do not collapse these paths:
 |---|---|---|
 | Source unreachable / auth missing | No data enters pipeline for that source; other sources unaffected | Grounded — this is just "the script/config for that source doesn't run" |
 | `ci_type` unresolvable from topology (replay path) | Falls back to `"Unknown"` (`_ci_type()` in the replay converter). That fallback is **E2** behavior running inside the replay script | Grounded — implemented, see `observeops_to_ingest_v1.py` |
-| Malformed / schema-violating line, unknown `signal_class`, or `schema_version != "ingest.v1"` | **Policy:** dead-letter / reject. Do not coerce. | **Design-level — not yet implemented.** Deferred to [`INGESTION_POC_PLAN.md`](../INGESTION_POC_PLAN.md) design phase **D5** (HA / auth / DLQ product hardening, Post-PoC) and [`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) §D5. `f1_run.py` has no dead-letter path today. This LLD is Done with that scope note — DLQ is not a remaining E1 design question |
+| Malformed / schema-violating line, unknown `fact_kind`, or `schema_version != "ingest.v1"` | **Policy:** dead-letter / reject. Do not coerce. | **Design-level — not yet implemented.** Deferred to [`INGESTION_POC_PLAN.md`](../INGESTION_POC_PLAN.md) design phase **D5** (HA / auth / DLQ product hardening, Post-PoC) and [`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) §D5. `f1_run.py` has no dead-letter path today. This LLD is Done with that scope note — DLQ is not a remaining E1 design question |
 | CI bind failure | **Not an E1 failure.** E2 D-E2-1 (synthesize + `identity.status`) applies. Vector docs that said "CI bind failure → dead-letter" are superseded by HLD D-E2-1 for identity misses; E1 DLQ is for **poison envelopes**, not unresolved CIs | Signed in HLD §13 |
 
 Live (non-replay) throughput SLA: inherit [`INGESTION_PIPELINE_VECTOR.md`](../INGESTION_PIPELINE_VECTOR.md) §6.0 — saved replay is the fairness baseline; live is secondary. This LLD does **not** invent a live EPS number.
@@ -205,7 +205,7 @@ python3 ingestion-poc/replay/observeops_to_ingest_v1.py --all
 **Pass criteria:**
 
 1. `datasets/ingest_samples/observeops-replay/UC-N/stream.jsonl` exists for `N = 1..5`.
-2. Every line parses as JSON with `schema_version == "ingest.v1"`, a parseable ISO-8601 `ts`, and `signal_class` in the §2.1 enum (not a reserved §2.2 class).
+2. Every line parses as JSON with `schema_version == "ingest.v1"`, a parseable ISO-8601 `ts`, and `fact_kind` in the §2.1 enum (not a reserved §2.2 class).
 3. `manifest.json` per UC reports `stream_lines`, `metric_series_files`, `event_lines` matching the corpus's `metrics/*.json` file count and `events.json` line count.
 4. `ground_truth_root_ci` in the manifest matches `datasets/observeops/UC-N/ground_truth.json`'s `root_ci` (sanity check that the copy-through didn't corrupt the eval-only artifact).
 

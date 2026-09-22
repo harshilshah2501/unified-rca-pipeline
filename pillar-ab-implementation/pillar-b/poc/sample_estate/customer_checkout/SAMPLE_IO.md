@@ -6,7 +6,7 @@
 
 **P1 entry:** deep fabric eval guide linked above. Case A/B below remain **E3 acceptance** spines — not the full P1 matrix.
 
-**Router (post-E2):** GraphWriter admits only `topo_update`. Other `signal_class` values (`metric_sample`, `event`, `trace_span`, `anomaly`, …) are **NOOP** (silent skip) — see [`../../../../E2_INPUT_FIXTURES.md`](../../../../E2_INPUT_FIXTURES.md). Hub framing: [Our HLD · GraphWriter · Admit](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter) (NOOP / WRITE / DROP).
+**Router (post-E2):** GraphWriter admits only `topo_update`. Other `fact_kind` values (`metric_sample`, `event`, `trace_span`, `anomaly`, …) are **NOOP** (silent skip) — see [`../../../../E2_INPUT_FIXTURES.md`](../../../../E2_INPUT_FIXTURES.md). Hub framing: [Our HLD · GraphWriter · Admit](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter) (NOOP / WRITE / DROP).
 
 **How comparison works:** Full `graph_node.v1` / `graph_edge.v1` objects carry provenance and display fields that can grow without changing the estate map. Tests therefore compare a **spine**:
 
@@ -25,13 +25,13 @@ make test-graph   # includes expected vs actual
 
 ---
 
-## Case A — happy path
+## Case A — map build spine (WRITE)
 
 | | Path |
 |--|------|
 | **Input bootstrap** | [`../topology.bootstrap.json`](../topology.bootstrap.json) |
 | **Input stream** | [`../stream.resolved.jsonl`](../stream.resolved.jsonl) |
-| **Expected spine** | [`cases/happy_path/expected_spine.json`](./cases/happy_path/expected_spine.json) |
+| **Expected spine** | [`cases/case_a_map_spine/expected_spine.json`](./cases/case_a_map_spine/expected_spine.json) |
 | **Actual** | `GraphWriter.load_estate_bootstrap` → `write_topo_stream` → `publish_map` → `graph_snapshot.v1` |
 
 ### Input graph (bootstrap nodes + relations)
@@ -73,13 +73,13 @@ Expected edge ids (stable replace keys):
 
 ---
 
-## Case B — reject tape
+## Case B — reject / NOOP tape
 
 | | Path |
 |--|------|
 | **Input bootstrap** | [`../topology.bootstrap.json`](../topology.bootstrap.json) |
 | **Input stream** | [`../stream.reject.jsonl`](../stream.reject.jsonl) |
-| **Expected** | [`cases/reject_tape/expected_rejects.json`](./cases/reject_tape/expected_rejects.json) |
+| **Expected** | [`cases/case_b_rejects/expected_rejects.json`](./cases/case_b_rejects/expected_rejects.json) |
 
 ### Input lines that must not become map vertices/edges
 

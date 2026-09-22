@@ -33,12 +33,12 @@ def test_e1_sample_estate_lines_carry_ingest_v1_spine():
     for name in ("stream.resolved.jsonl", "stream.reject.jsonl"):
         for rec in JsonlIngestSource(SAMPLE_ESTATE / name).records():
             assert rec.get("schema_version") == "ingest.v1"
-            assert "signal_class" in rec
+            assert "fact_kind" in rec
             assert "ts" in rec and "tenant" in rec and "ci_id" in rec
             assert is_valid("ingest_v1.schema.json", rec)
 
 
-def test_e1_unknown_signal_class_is_graphwriter_noop_not_drop():
+def test_e1_unknown_fact_kind_is_graphwriter_noop_not_drop():
     """Collect would reject unknown classes; GraphWriter NOOPs non-topo_update."""
     writer = GraphWriter()
     writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
@@ -53,7 +53,7 @@ def test_e1_unknown_signal_class_is_graphwriter_noop_not_drop():
                     "tenant": "default",
                     "ci_id": "checkout-api",
                     "ci_type": "Service",
-                    "signal_class": "not_a_real_class",
+                    "fact_kind": "not_a_real_class",
                     "identity": {"status": "resolved"},
                 }
             ]
@@ -90,7 +90,7 @@ def test_e2_unresolved_topo_never_silent_map_write():
                     "tenant": "default",
                     "ci_id": "ghost-svc",
                     "ci_type": "Service",
-                    "signal_class": "topo_update",
+                    "fact_kind": "topo_update",
                     "relation": "depends_on",
                     "src_ci_id": "ghost-svc",
                     "dst_ci_id": "payments-db",
@@ -122,7 +122,7 @@ def test_e3_noop_non_topo_classes():
     writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     n0, e0 = len(writer.state.nodes), len(writer.state.edges)
     lines = []
-    for signal_class in ("metric_sample", "event", "trace_span", "anomaly"):
+    for fact_kind in ("metric_sample", "event", "trace_span", "anomaly"):
         lines.append(
             {
                 "schema_version": "ingest.v1",
@@ -130,7 +130,7 @@ def test_e3_noop_non_topo_classes():
                 "tenant": "default",
                 "ci_id": "checkout-api",
                 "ci_type": "Service",
-                "signal_class": signal_class,
+                "fact_kind": fact_kind,
                 "name": "probe",
                 "value": 1.0,
                 "identity": {"status": "resolved"},
@@ -142,7 +142,7 @@ def test_e3_noop_non_topo_classes():
     assert len(writer.state.edges) == e0
 
 
-def test_e3_write_wave1_happy_path():
+def test_e3_write_wave1_case_a():
     writer = GraphWriter()
     writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
@@ -152,7 +152,7 @@ def test_e3_write_wave1_happy_path():
     assert "payments-db" in neighbor_ids(snap, "checkout-api")
 
 
-def test_e3_drop_reject_tape_codes():
+def test_e3_drop_case_b_reject_codes():
     writer = GraphWriter()
     writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.reject.jsonl"))
@@ -182,7 +182,7 @@ def test_e3_phased_map_noop_catalog_not_wave1():
                     "tenant": "default",
                     "ci_id": "checkout-api",
                     "ci_type": "Service",
-                    "signal_class": "topo_update",
+                    "fact_kind": "topo_update",
                     "relation": "mounts",
                     "src_ci_id": "checkout-api",
                     "dst_ci_id": "linux-server-app-01",
@@ -238,7 +238,7 @@ def test_e4_mixed_tape_map_spine_unchanged_by_non_topo():
                     "tenant": "default",
                     "ci_id": "checkout-api",
                     "ci_type": "Service",
-                    "signal_class": sc,
+                    "fact_kind": sc,
                     "name": "noise",
                     "value": 9.0,
                     "identity": {"status": "resolved"},

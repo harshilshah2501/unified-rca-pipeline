@@ -39,7 +39,7 @@ def test_unknown_relation_rejected_from_updates():
                 "tenant": "default",
                 "ci_id": "checkout-api",
                 "ci_type": "Service",
-                "signal_class": "topo_update",
+                "fact_kind": "topo_update",
                 "relation": "CORRELATED_WITH",
                 "src_ci_id": "checkout-api",
                 "dst_ci_id": "payments-db",

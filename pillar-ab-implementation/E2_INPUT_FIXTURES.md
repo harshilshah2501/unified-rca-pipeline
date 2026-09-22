@@ -13,9 +13,9 @@
 
 After **E2 Identity (Normalize)**, every admitted line is still **`ingest.v1`**. E2 adds an **`identity`** object on the same object — not a second on-wire format.
 
-**Pillar A (E4 sketch writer)** and **Pillar B (E3 graph writer)** read the **same stream shape**. They differ only by **`signal_class`** (two consumers on the fabric path — full consumer map in [`signal_class` cheat sheet](#signal_class-cheat-sheet)):
+**Pillar A (E4 sketch writer)** and **Pillar B (E3 graph writer)** read the **same stream shape**. They differ only by **`fact_kind`** (two consumers on the fabric path — full consumer map in [`fact_kind` cheat sheet](#fact_kind-cheat-sheet)):
 
-| `signal_class` | Pillar A | Pillar B | Other primary consumers (not A/B) |
+| `fact_kind` | Pillar A | Pillar B | Other primary consumers (not A/B) |
 |----------------|----------|----------|-----------------------------------|
 | `metric_sample` | Admit → `sketch.v1` | Silent skip | **E6 Detect** · Lean/Federated structural |
 | `topo_update` | Silent skip | Admit → `graph_edge.v1` | **E3 Topology** only |
@@ -30,9 +30,9 @@ Ingest envelope overview: [`docs/INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FOR
 
 ---
 
-## `signal_class` cheat sheet
+## `fact_kind` cheat sheet
 
-Every admitted **`ingest.v1`** line carries **`signal_class`** as a snake_case string. It routes the row — like declaring what *kind* of fact the line is. It is **not** a separate object and **not** MELTS or RED on the wire (RED metrics arrive as many **`metric_sample`** lines).
+Every admitted **`ingest.v1`** line carries **`fact_kind`** as a snake_case string. It routes the row — like declaring what *kind* of fact the line is. It is **not** a separate object and **not** MELTS or RED on the wire (RED metrics arrive as many **`metric_sample`** lines).
 
 **Schema enum (writers + PoC):** [`contracts/schemas/ingest_v1.schema.json`](./contracts/schemas/ingest_v1.schema.json)
 
@@ -40,13 +40,13 @@ Every admitted **`ingest.v1`** line carries **`signal_class`** as a snake_case s
 metric_sample | anomaly | event | trace_span | topo_update
 ```
 
-**Reserved (do not emit):** `change_event`, `cmdb_sync`, `ticket` — see [Reserved classes](#reserved-signal_class-values) below.
+**Reserved (do not emit):** `change_event`, `cmdb_sync`, `ticket` — see [Reserved classes](#reserved-fact_kind-values) below.
 
 ### Who consumes each class
 
-`signal_class` is the **router label** on the shared `ingest.v1` stream. After E2 Identity, different pipeline stages (and reference engines) subscribe to different classes. Pillar A and Pillar B are only two consumers on the Motadata fabric path.
+`fact_kind` is the **router label** on the shared `ingest.v1` stream. After E2 Identity, different pipeline stages (and reference engines) subscribe to different classes. Pillar A and Pillar B are only two consumers on the Motadata fabric path.
 
-| `signal_class` | Primary ObserveOps consumer(s) | Reference / PoC implementation | Pillar A / B PoC |
+| `fact_kind` | Primary ObserveOps consumer(s) | Reference / PoC implementation | Pillar A / B PoC |
 |----------------|--------------------------------|--------------------------------|------------------|
 | `metric_sample` | **E4 Stores** (sketch history) · **E6 Detect** (evaluate samples vs baseline / threshold) | Pillar A `SketchWriter` · `ingestion-poc/detect/threshold_detect.py` (recomputes from samples; ignores pre-baked `anomaly`) · Lean + Federated **structural** tier · Federated `metric_slice.jsonl` | **Pillar A admits** · Pillar B skips |
 | `topo_update` | **E3 Topology** (graph edges on `map/`) | Pillar B `GraphWriter` · corpus `topology.json` (primary seed in lab) · `topo_updates.jsonl` audit fan-out · Lean **A-TOPO** refresh | Pillar A skips · **Pillar B admits** |
@@ -56,11 +56,11 @@ metric_sample | anomaly | event | trace_span | topo_update
 
 Normative stage map (E1 view): [`docs/observeops/LLD-E1-Collect.md`](../docs/observeops/LLD-E1-Collect.md) §2.1. Fabric writer filter rules: [`contracts/GRAPH_QNA.md`](./contracts/GRAPH_QNA.md) G31.
 
-**Spine on every line:** `schema_version`, `ts`, `tenant`, `ci_id`, `ci_type`, `signal_class`. After E2 add **`identity`**. Unknown `signal_class` → **E1 Collect** reject / dead-letter (do not guess).
+**Spine on every line:** `schema_version`, `ts`, `tenant`, `ci_id`, `ci_type`, `fact_kind`. After E2 add **`identity`**. Unknown `fact_kind` → **E1 Collect** reject / dead-letter (do not guess).
 
 ### Field cheat (by class)
 
-| `signal_class` | `name` usually means | Key fields beyond spine |
+| `fact_kind` | `name` usually means | Key fields beyond spine |
 |----------------|----------------------|-------------------------|
 | `metric_sample` | Metric name | `value`; optional `labels.trace_id` for exemplars |
 | `topo_update` | Often omitted | `relation`, `src_ci_id`, `dst_ci_id` |
@@ -85,7 +85,7 @@ One numeric measurement after bind. Pillar A lab input.
   "tenant": "default",
   "ci_id": "checkout-api",
   "ci_type": "Service",
-  "signal_class": "metric_sample",
+  "fact_kind": "metric_sample",
   "name": "request.latency_ms",
   "value": 92.1,
   "labels": { "source": "lab-node", "trace_id": "abc123" },
@@ -110,7 +110,7 @@ One explicit relationship. Pillar B lab input.
   "tenant": "default",
   "ci_id": "checkout-api",
   "ci_type": "Service",
-  "signal_class": "topo_update",
+  "fact_kind": "topo_update",
   "relation": "communicates_with",
   "src_ci_id": "checkout-api",
   "dst_ci_id": "payments-db",
@@ -135,7 +135,7 @@ Pre-marked threshold crossing.
   "tenant": "default",
   "ci_id": "orders-api",
   "ci_type": "Service",
-  "signal_class": "anomaly",
+  "fact_kind": "anomaly",
   "name": "http.error_rate",
   "value": 0.42,
   "threshold": 0.05,
@@ -160,7 +160,7 @@ Discrete log / SNMP / alert-style occurrence.
   "tenant": "default",
   "ci_id": "switch-core-01:GigE0/2",
   "ci_type": "NetworkPort",
-  "signal_class": "event",
+  "fact_kind": "event",
   "name": "linkDown",
   "value": 1.0,
   "labels": { "proto": "snmp" },
@@ -183,7 +183,7 @@ One span with duration.
   "tenant": "default",
   "ci_id": "orders-api",
   "ci_type": "Service",
-  "signal_class": "trace_span",
+  "fact_kind": "trace_span",
   "name": "POST /checkout",
   "value": 1200.0,
   "labels": {
@@ -198,7 +198,7 @@ One span with duration.
 
 ### Mixed JSONL (integration lab)
 
-One file may interleave classes; each pillar filters by `signal_class`:
+One file may interleave classes; each pillar filters by `fact_kind`:
 
 ```text
 metric_sample  →  SketchWriter  →  history/
@@ -208,7 +208,7 @@ topo_update    →  GraphWriter   →  map/
 
 Fixture: [`integration/sample_estate/customer_checkout/stream.resolved.jsonl`](./integration/sample_estate/customer_checkout/stream.resolved.jsonl).
 
-### Reserved `signal_class` values
+### Reserved `fact_kind` values
 
 Do **not** emit in the current pass. E1 rejects unknown classes.
 
@@ -237,7 +237,7 @@ Pretty-printed reference (same file in all three fixture trees):
   "tenant": "default",
   "ci_id": "checkout-api",
   "ci_type": "Service",
-  "signal_class": "metric_sample",
+  "fact_kind": "metric_sample",
   "name": "request.latency_ms",
   "value": 92.1,
   "labels": { "source": "lab-node" },
@@ -266,7 +266,7 @@ From [`pillar-a/poc/sample_estate/customer_checkout/stream.metrics.resolved.json
   "tenant": "default",
   "ci_id": "checkout-api",
   "ci_type": "Service",
-  "signal_class": "metric_sample",
+  "fact_kind": "metric_sample",
   "name": "request.latency_ms",
   "value": 92.1,
   "labels": { "source": "lab-node" },
@@ -292,7 +292,7 @@ From [`pillar-b/poc/sample_estate/customer_checkout/stream.resolved.jsonl`](./pi
   "tenant": "default",
   "ci_id": "checkout-api",
   "ci_type": "Service",
-  "signal_class": "topo_update",
+  "fact_kind": "topo_update",
   "relation": "communicates_with",
   "src_ci_id": "checkout-api",
   "dst_ci_id": "payments-db",
@@ -316,7 +316,7 @@ Pillar B **does not infer** `relation` from spans inside the PoC — the relatio
 ```text
 pillar-ab-implementation/
 ├── pillar-a/poc/sample_estate/customer_checkout/
-│   ├── expected/ingest.example.json     ← all five signal_class examples (pretty)
+│   ├── expected/ingest.example.json     ← all five fact_kind examples (pretty)
 │   ├── stream.metrics.resolved.jsonl    ← Pillar A happy path (metric only)
 │   ├── stream.resolved.jsonl            ← same as metrics file (alias)
 │   └── stream.reject.jsonl              ← negative cases for A gate
@@ -401,7 +401,7 @@ To feed pillar writers from replay, add an E2-normalize step (or hand-stamp `ide
 | Doc | Topic |
 |-----|--------|
 | [`docs/observeops/OUR_HLD_TIER1.md`](../docs/observeops/OUR_HLD_TIER1.md) | Tier 1 vs Tier 2; implementer I/O chain I/O-1 … I/O-4 |
-| [`docs/INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FORMAT.md) | E1 envelope, delivery options, identity overlay (**I/O-1**); links here for `signal_class` examples |
+| [`docs/INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FORMAT.md) | E1 envelope, delivery options, identity overlay (**I/O-1**); links here for `fact_kind` examples |
 | [`contracts/MAP_WRITE_READ_RECORD.md`](./contracts/MAP_WRITE_READ_RECORD.md) | Pillar B `map/` output keys after GraphWriter flush (**I/O-3**) |
 | [`docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | Pillar A `history/` sketch output (**I/O-4**) |
 | [`scope/MOTADATA_3PILLARS_MERGED_SCOPE.md`](./scope/MOTADATA_3PILLARS_MERGED_SCOPE.md) §B5–B6 | What we expect from E1 and E2 |

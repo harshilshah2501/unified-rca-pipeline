@@ -1,4 +1,4 @@
-"""Increment 2–3 stub harness exports (optional).
+"""Stub case-path / diagnose-close harness exports (optional).
 
 These modules assume Detect/Curate/Identify/Package and drive walk-through APIs.
 Core PoC use cases remain build/maintain + walk — see reference/canvases/pillar-b-poc-navigator.canvas.tsx.

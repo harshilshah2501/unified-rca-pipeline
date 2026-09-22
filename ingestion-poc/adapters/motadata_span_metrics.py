@@ -109,7 +109,7 @@ def synthesize(
             "tenant": "default",
             "ci_id": svc,
             "ci_type": "Service",
-            "signal_class": "metric_sample",
+            "fact_kind": "metric_sample",
             "severity": None,
             "labels": labels,
         }

@@ -65,17 +65,17 @@
       <a href="/docs/observeops/OUR_HLD_TIER1.md#tier-2--implementer-io-contracts-not-tier-1">OUR_HLD_TIER1 § I/O chain</a>.
     </p>
 
-    <a class="archive-row" href="/docs/INGEST_DATA_FORMAT.md" data-keywords="tier2 io-1 ingest.v1 e1 e2 envelope signal_class corpus delivery identity overlay">
+    <a class="archive-row" href="/docs/INGEST_DATA_FORMAT.md" data-keywords="tier2 io-1 ingest.v1 e1 e2 envelope fact_kind corpus delivery identity overlay">
       <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-1</span><h3>Ingest data format</h3></div>
-      <p>E1 <code>ingest.v1</code> envelope, <code>signal_class</code> enum, corpus folder layout, E2 identity overlay. Upstream of pillar writers.</p>
+      <p>E1 <code>ingest.v1</code> envelope, <code>fact_kind</code> enum, corpus folder layout, E2 identity overlay. Upstream of pillar writers.</p>
     </a>
-    <a class="archive-row" href="/docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md" data-keywords="tier2 discussion fact kind signal_class logs event bind_source provenance rename deferred team notes">
+    <a class="archive-row" href="/docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md" data-keywords="tier2 discussion fact kind fact_kind logs event bind_source provenance team notes">
       <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Discussion</span><h3>Ingest fact kinds (team notes)</h3></div>
-      <p>Spoken <strong>fact kind</strong> vs wire <code>signal_class</code>; <strong>logs → <code>event</code></strong> (no separate log kind); bind vs edge provenance; rename deferred.</p>
+      <p>Wire key <code>fact_kind</code>; <strong>logs → <code>event</code></strong> (no separate log kind); bind vs edge provenance.</p>
       <div class="also">Also on Our HLD Overview → <a href="/observeops-pipeline-hld.html#implementer-io">Implementer I/O</a>.</div>
     </a>
-    <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md#signal_class-cheat-sheet" data-keywords="tier2 io-2 signal_class metric_sample topo_update anomaly event trace_span cheat sheet">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-2</span><h3>signal_class cheat sheet</h3></div>
+    <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md#fact_kind-cheat-sheet" data-keywords="tier2 io-2 fact_kind metric_sample topo_update anomaly event trace_span cheat sheet">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-2</span><h3>fact_kind cheat sheet</h3></div>
       <p>All five admitted classes with JSON examples — <strong>consumers per class</strong>, Pillar A/B routing, mixed JSONL.</p>
       <div class="also">Section inside <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md">Post-E2 ingest fixtures</a>.</div>
     </a>
@@ -105,30 +105,35 @@
       <a href="/observeops-pipeline-hld.html#pillar-b-poc">#pillar-b-poc</a>.
       Package doc map:
       <a href="/pillar-ab-implementation/pillar-b/docs/README.md">pillar-b/docs/README.md</a>.
+      No hub-Tier tags on these rows — just the demo reading order.
     </p>
-    <a class="archive-row" href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md" data-keywords="pillar b poc team walkthrough demo admit signal_class fact kind make test-all">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">PoC demo</span><h3>Team walkthrough</h3></div>
-      <p>One-stop demo script — two use cases, fact kinds, admit, <code>bind_source</code>, I/O, run commands.</p>
+    <a class="archive-row" href="/pillar-b-poc-hub.html" data-keywords="pillar b poc hub navigator canvas graphwriter map history layers walkthrough">
+      <div class="row-top"><span class="tag">Hub</span><h3>Pillar B PoC hub</h3></div>
+      <p>Browser door for all PoC canvases — two use cases, layers, call sequences, GraphWriter + map/history links.</p>
+    </a>
+    <a class="archive-row" href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md" data-keywords="pillar b poc team walkthrough demo admit fact_kind fact kind make test-all">
+      <div class="row-top"><span class="tag">Demo</span><h3>Team walkthrough</h3></div>
+      <p>Demo script — two use cases, fact kinds, admit, <code>bind_source</code>, I/O, run commands.</p>
     </a>
     <a class="archive-row" href="/pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md" data-keywords="pillar b map p1 fabric eval build maintain walk test_map_walk">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">PoC eval</span><h3>MAP_P1 fabric eval</h3></div>
+      <div class="row-top"><span class="tag">Eval</span><h3>MAP_P1 fabric eval</h3></div>
       <p>What “done” means for build/maintain + walk proofs (<code>test_p1_map_fabric</code>, <code>test_map_walk</code>).</p>
     </a>
     <a class="archive-row" href="/pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md" data-keywords="pillar b codebase go-through module tour graph_writer neighbors">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">PoC code</span><h3>Codebase go-through</h3></div>
+      <div class="row-top"><span class="tag">Code</span><h3>Codebase go-through</h3></div>
       <p>File-by-file tour of GraphWriter, walk APIs, sample estate, tests.</p>
     </a>
     <a class="archive-row" href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/SAMPLE_IO.md" data-keywords="pillar b sample io case a case b spine expected">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">PoC goldens</span><h3>SAMPLE_IO (Case A/B)</h3></div>
+      <div class="row-top"><span class="tag">Goldens</span><h3>SAMPLE_IO (Case A/B)</h3></div>
       <p>Expected vs actual map spines for customer-checkout estate.</p>
     </a>
     <a class="archive-row" href="/observeops-pipeline-hld.html#graphwriter" data-keywords="graphwriter hub tab noop write drop topology">
-      <div class="row-top"><span class="tag tier1">Hub tab</span><h3>GraphWriter I/O (Our HLD)</h3></div>
+      <div class="row-top"><span class="tag">Hub</span><h3>GraphWriter I/O (Our HLD)</h3></div>
       <p>Interactive who / pipeline / admit / lab walkthrough on the HLD hub.</p>
     </a>
-    <a class="archive-row" href="/docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md" data-keywords="fact kind signal_class logs event discussion">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Discussion</span><h3>Ingest fact kinds (again)</h3></div>
-      <p>Also listed under Implementer I/O — linked here so the PoC demo path is complete.</p>
+    <a class="archive-row" href="/docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md" data-keywords="fact kind fact_kind logs event discussion">
+      <div class="row-top"><span class="tag">Discussion</span><h3>Ingest fact kinds</h3></div>
+      <p>Logs → <code>event</code>; spoken fact kind vs wire <code>fact_kind</code>. Also under Implementer I/O.</p>
     </a>
   </section>
 
@@ -136,13 +141,9 @@
     <h2>Fabric &amp; data contracts</h2>
     <p class="sect-lead">P1 always-on fabric (E1–E5): data shape, Pillar A ∥ B stores, graph/sketch lock list. Also on <a href="/observeops-pipeline-hld.html#fabric">Our HLD → Fabric</a>.</p>
 
-    <a class="archive-row" href="/edge-platform-detect-simulation.html" data-keywords="tier2 simulation animation node collector saas map history detect ingest edge devices">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Visual</span><h3>Edge → Detect simulation</h3></div>
-      <p>Four columns: Edge devices · Node · optional Collector · SaaS. Two ingest doors; always-on map/ ∥ history/; Detect raises a Signal.</p>
-    </a>
-    <a class="archive-row" href="/edge-platform-case-simulation.html" data-keywords="tier2 simulation animation storm curate scope localize caseseed workingset leafclaim detect triage">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Visual</span><h3>Detect → Localize simulation</h3></div>
-      <p>Warm fabric → Signal storm → CaseSeed → WorkingSet → LeafClaim. Identify and Package stay muted.</p>
+    <a class="archive-row" href="/edge-platform-detect-simulation.html" data-keywords="tier2 simulation animation node collector saas map history detect ingest edge devices curate scope localize anomaly event capture">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Visual</span><h3>Unified fabric simulation</h3></div>
+      <p>One film: Edge · Node · Collector · SaaS. Ingest fans out to map/ ∥ history/; E5 warms both; capture → Detect → Localize.</p>
     </a>
     <a class="archive-row" href="/data-shape-journey.html" data-keywords="tier1 data shape journey e1 e11 ingest sketch verdict edge platform evolution">
       <div class="row-top"><span class="tag tier1">Tier 1</span><h3>Data shape journey</h3></div>
@@ -225,12 +226,7 @@
       <div class="row-top"><span class="tag">Diagram</span><h3>Standalone pipeline diagram</h3></div>
       <p>Picture of E1–E11 phases — companion to the written spec.</p>
     </a>
-    <a class="archive-row" href="/docs/linux-server-ci-telemetry.json" data-keywords="telemetry json keys signatures">
-      <div class="row-top"><span class="tag">Data</span><h3>CI telemetry JSON</h3></div>
-      <p>228 keys · 125 fault signatures · authored for the example map.</p>
-    </a>
   </section>
-
   <section id="chapters" class="archive-section">
     <h2>Chapters &amp; catalogs</h2>
     <p class="sect-lead">Extra detail on the map and Detect taxonomy — same pipeline, not second HLDs.</p>

@@ -1,6 +1,6 @@
-# Pillar B — product references (OneOps / Fusion SaaS)
+# Pillar B — archived product docs (OneOps / Fusion SaaS)
 
-**Optional library — not required to run or evaluate the Pillar B PoC.** Cold readers start at [`../README.md`](../README.md) / [`../docs/README.md`](../docs/README.md), not here.
+**Optional library — not required to run or evaluate the Pillar B PoC.** Cold readers start at [`../README.md`](../README.md) / [`../docs/README.md`](../docs/README.md), not here. Folder name: `archived-docs/` (formerly `references/`).
 
 **What this folder is:** Motadata leadership HTML briefs about the **Service-Centric Knowledge Graph** (configuration-item catalog + relationship vocabulary) and how that model compares to enterprise CMDB incumbents (ServiceNow, BMC Helix, OpenText UCMDB). Also Edge Delta → Motadata comparator notes.
 
@@ -9,7 +9,7 @@
 **How to open the HTML:** Prefer a small local server (pages are large and interactive):
 
 ```bash
-cd pillar-ab-implementation/pillar-b/references
+cd pillar-ab-implementation/pillar-b/archived-docs
 python3 -m http.server 8771
 # → http://127.0.0.1:8771/
 ```
@@ -115,7 +115,7 @@ That design agrees with our ObserveOps / Pillar B teaching on one important poin
 
 ## Relation to Pillar B contracts (do not conflate)
 
-| Topic | This `references/` folder | Canonical for the PoC / sit-down |
+| Topic | This `archived-docs/` folder | Canonical for the PoC / sit-down |
 |--------|---------------------------|----------------------------------|
 | Edge names | camelCase product names (11 stored + 4 computed) | snake_case **fifteen** storage enum in [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](../../contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) §4.2 |
 | Node / edge samples | Not here | [`GRAPH_NODE_EDGE_SAMPLES.md`](../../contracts/GRAPH_NODE_EDGE_SAMPLES.md) |

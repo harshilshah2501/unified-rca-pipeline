@@ -4,14 +4,14 @@
   "title": "ingest.v1",
   "description": "Identified ingest line consumed by Pillar A/B writers. Subset of fields writers care about.",
   "type": "object",
-  "required": ["schema_version", "ts", "tenant", "ci_id", "signal_class"],
+  "required": ["schema_version", "ts", "tenant", "ci_id", "fact_kind"],
   "properties": {
     "schema_version": { "const": "ingest.v1" },
     "ts": { "type": "string", "minLength": 1 },
     "tenant": { "type": "string", "minLength": 1 },
     "ci_id": { "type": "string", "minLength": 1 },
     "ci_type": { "type": "string" },
-    "signal_class": {
+    "fact_kind": {
       "type": "string",
       "enum": ["metric_sample", "anomaly", "event", "trace_span", "topo_update"]
     },

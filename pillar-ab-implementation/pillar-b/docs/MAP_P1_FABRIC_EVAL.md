@@ -1,7 +1,7 @@
 # P1 map fabric eval — build / maintain / walk
 
 **Doc job:** Core **knowledge-graph** eval — build + maintain `map/`, then walk it.  
-**PoC framing:** [Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx) · code tour → [`Codebase-go-through.md`](./Codebase-go-through.md) · package door → [`../README.md`](../README.md).
+**PoC framing:** [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) · code tour → [`Codebase-go-through.md`](./Codebase-go-through.md) · package door → [`../README.md`](../README.md).
 
 **In scope:** GraphWriter admit → publish → E5 maintain → walk helpers.  
 **Stubbed / assumed:** Collect/Identity (fixtures), sketches, Detect/Curate/Identify/Package (optional `case_path/` harness only).
@@ -36,7 +36,7 @@ Spine for E3: **optional estate bootstrap + `topo_update` → nodes/edges + prov
 
 | Stage | Map interaction | PoC proof | Honest gap |
 |-------|-----------------|-----------|------------|
-| **E1 Collect** | **None** — wire admit only; does not write or read `map/` | Fixture lines carry `schema_version=ingest.v1` + known `signal_class` spine; GraphWriter never “Collect-rejects” | Live Collect Done elsewhere; Pillar B **simulates** post-E2 |
+| **E1 Collect** | **None** — wire admit only; does not write or read `map/` | Fixture lines carry `schema_version=ingest.v1` + known `fact_kind` spine; GraphWriter never “Collect-rejects” | Live Collect Done elsewhere; Pillar B **simulates** post-E2 |
 | **E2 Identity** | **Gate into writers** — `ResolvedOnlyGate`; Design: read `telemetry_key_index` | Unresolved / synthesized `topo_update` → **DROP** (reject tape); never silent map write | Full LUT + unresolved→discovery feedback = Design |
 | **E3 Topology** | **Sole `map/` writer** | NOOP / WRITE / DROP / phased skip / upsert idempotency (below) | Live continuous discovery = Design; PoC = bootstrap + stream upsert |
 | **E4 Stores** | **Orthogonal** — Pillar A `history/` sketches | Mixed tape leaves map spine unchanged for metric/event/trace/anomaly | Log/trace history ≠ `sketch.v1` |
@@ -51,7 +51,7 @@ Spine for E3: **optional estate bootstrap + `topo_update` → nodes/edges + prov
 | **1 · Build + maintain** | Estate bootstrap + `topo_update` admit + Dest publish + E5 marks | `test_p1_map_fabric`, `test_maintain`, `test_graph_writer`, `test_sample_io` Case A/B |
 | **2 · Walk-through** | Read published `map/`: hops, inbound/outbound, relation filters, reachable set, leaf paths, confidence-bearing filter after E5 | `test_map_walk` (+ smoke neighbors in older writer/builder tests) |
 
-Optional stub harnesses that *call* walk APIs (not core PoC): `test_case_path`, `test_identify_package` — see [Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx).
+Optional stub harnesses that *call* walk APIs (not core PoC): `test_case_path`, `test_identify_package` — see [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html).
 
 ### Walk-through proofs (`test_map_walk.py`)
 
@@ -73,7 +73,7 @@ Aligned with hub Admit language and [`../README.md`](../README.md):
 
 | Outcome | When | Effect |
 |---------|------|--------|
-| **NOOP** | `signal_class` ≠ `topo_update` | No state change, no reject row |
+| **NOOP** | `fact_kind` ≠ `topo_update` | No state change, no reject row |
 | **WRITE** | Resolved identity + CI vertex + wave-1 relation emit | Upsert node(s) + edge → flush `map/` |
 | **DROP** | Unresolved/synthesized identity; never-CI type; unknown relation | Append `writer.rejects`; map unchanged |
 | **Phased map-NOOP** | Catalog relation not in wave-1 (e.g. `mounts`) | No write; usually not a DROP |
@@ -81,7 +81,7 @@ Aligned with hub Admit language and [`../README.md`](../README.md):
 
 Wave-1 emit set: `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of`.
 
-**E1 vs E3 reject boundary:** unknown / reserved `signal_class` on the wire is a **Collect** concern. GraphWriter treats non-`topo_update` as **NOOP**, not DROP. Do not count Collect rejects as GraphWriter DROPs.
+**E1 vs E3 reject boundary:** unknown / reserved `fact_kind` on the wire is a **Collect** concern. GraphWriter treats non-`topo_update` as **NOOP**, not DROP. Do not count Collect rejects as GraphWriter DROPs.
 
 ---
 

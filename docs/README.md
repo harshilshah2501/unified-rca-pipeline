@@ -37,8 +37,8 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) | **Ingestion design** — Vector shared fabric; RCA-ready artifacts for Lean vs Federated |
 | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) | Ingestion PoC milestones, hardware, weekly checklist |
 | [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) | `ingest.v1` contract + ObserveOps/Motadata converters |
-| [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md) | Team notes: fact kinds · **logs are `event`** · rename deferred |
-| [`pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md`](../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | **Pillar B PoC** one-stop team demo (hub: [Our HLD](./observeops/observeops-pipeline-hld.html#pillar-b-poc)) |
+| [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md) | Team notes: fact kinds · **logs are `event`** · wire key `fact_kind` |
+| [`pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md`](../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | **Pillar B PoC** team demo (hub: [Pillar B PoC hub](./fabric/pillar-b-poc-hub.html) · [Our HLD](./observeops/observeops-pipeline-hld.html#pillar-b-poc)) |
 | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) | Fair Lean vs Federated compare (shared detect) |
 | [`observeops-pipeline-hld.html`](./observeops-pipeline-hld.html) | **Our HLD hub** — reading paths · [#fabric](observeops/observeops-pipeline-hld.html#fabric) · [Pipeline HLD](./observeops/OBSERVEOPS_PIPELINE_HLD.md) · [Fusion](./observeops/observeops-fusion-guide.html) · [archive](./observeops/hld-archive.html) |
 | [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) · [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) · [`LLD-E4-Stores.md`](./LLD-E4-Stores.md) | Block-level LLDs — E1 Collect **Done**, E2 Identity/Normalize **Done**; E3–E4 Draft; E5–E11 backlog in the HLD §18 |

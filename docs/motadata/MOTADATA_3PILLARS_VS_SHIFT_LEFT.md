@@ -141,7 +141,7 @@ Working ToDo (leadership ask vs resolution): [study Q&A §10](./motadata-3pillar
 | Detect doors | Alerting on sketches (platform) | Both doors; Node-first default is Open (Gate C) | PDF implements door C. Doors A/B still ours to build |
 | AI / D5 | Agent is the RCA engine | D5 Review; operator path always on; Layer I optional | **Do not flip D5** because the PDF is agentic |
 | Curate D3 | Dedupe as an agent tool | Required one seed before diagnose | Keep E7 in front of the agent, not inside it |
-| E1 sources | ITSM listed with telemetry | Telemetry-only Collect; ticket is reserved `signal_class` | ITSM stays E11 egress / future join, not E1 |
+| E1 sources | ITSM listed with telemetry | Telemetry-only Collect; ticket is reserved `fact_kind` | ITSM stays E11 egress / future join, not E1 |
 | Remediation | `execute_remediation()` with policy | HLD scope-out: no remediation execution | Policy pattern is reusable; executor is not E11 |
 
 ---

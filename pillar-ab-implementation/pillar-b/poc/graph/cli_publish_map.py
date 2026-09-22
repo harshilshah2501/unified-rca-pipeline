@@ -32,7 +32,7 @@ def main(argv: list[str] | None = None) -> int:
         "--stream",
         type=Path,
         default=SAMPLE_ESTATE / "stream.resolved.jsonl",
-        help="Topo-only ingest.v1 JSONL (non-topo signal_class lines are silent NOOP)",
+        help="Topo-only ingest.v1 JSONL (non-topo fact_kind lines are silent NOOP)",
     )
     p.add_argument(
         "--out",

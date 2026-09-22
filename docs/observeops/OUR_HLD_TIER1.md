@@ -7,6 +7,21 @@
 
 ---
 
+## Naming hygiene (avoid letter clutter)
+
+This repo already has too many **letter codes**. Prefer plain words in hub navigation.
+
+| Keep (Motadata / product) | Prefer saying | Avoid as hub labels |
+|---------------------------|---------------|---------------------|
+| **Pillar A** / **Pillar B** / **Pillar C** | sketches · knowledge graph · optional agent | Renaming pillars |
+| **Hub Tier 1 / 2 / 3** | must-read · depth · archive | Extra “Band A / Band B” codes |
+| Detect **entry on Node / Gateway / platform** | say the locus | Overloading hub talks with “Door A/B/C” (those names stay in Detect/shift-left docs only) |
+| Datadog **Monitors / Watchdog** | product names | Importing Datadog “Door A/B” into Motadata hub copy |
+
+**Do not invent** new Path/Band/Door letter codes for reading lists. If two audiences need different pages, title the sections **Everyone** and **Implementers**.
+
+---
+
 ## What Tier 1 means
 
 **Disambiguation — “Tier” is overloaded in this repo.** On this page and on Our HLD hub tags, **hub Tier** means reading depth for Motadata / ObserveOps docs (Tier 1 = must-read, Tier 2 = depth, Tier 3 = archive/history). It is **not**:
@@ -31,7 +46,7 @@ When you write a new page, say **hub Tier**, **evidentiary Tier**, or **storage 
 
 ## Tier 1 catalog (six pages + Tier 2 I/O chain)
 
-### Band A — Everyone (five pages)
+### Everyone (five pages)
 
 Read in this order on first visit.
 
@@ -44,17 +59,17 @@ Read in this order on first visit.
 | **4** | **GRAPH_QNA** | [`../GRAPH_QNA.md`](../GRAPH_QNA.md) | Locked fabric rules — fan-out, `map/` vs `history/`, rooms ≠ temperature, sketch vs graph. FAQ with TOC. |
 | **5** | **Glossary** | [`urca-glossary.html`](./urca-glossary.html) | Disambiguate Normalize vs Identify, Detect classes, tier vocabulary — before reading deeper docs. |
 
-**Band A completes when:** you can explain the one pipeline (E1–E11), the two parallel writers after Identity (`map/` ∥ `history/`), and where locked rules live (GRAPH_QNA).
+**Done with Everyone when:** you can explain the one pipeline (E1–E11), the two parallel writers after Identity (`map/` ∥ `history/`), and where locked rules live (GRAPH_QNA).
 
-### Band B — Implementers (one entry page)
+### Implementers (one entry page)
 
-Add when wiring **Pillar A (sketches)** or **Pillar B (graph)** — not required for product or leadership orientation.
+Add when wiring **Pillar A** (sketches) or **Pillar B** (knowledge graph) — not required for product or leadership orientation.
 
 | # | Page | Path | One-line job |
 |---|------|------|--------------|
-| **6** | **Pillar A + B slice** | [`../../pillar-ab-implementation/README.md`](../../pillar-ab-implementation/README.md) | Code layout, contracts SoT, what each pillar owns, how to run unit tests. **Next hop (Pillar B demo):** [`pillar-b/docs/TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md). |
+| **6** | **Pillar A + B slice** | [`../../pillar-ab-implementation/README.md`](../../pillar-ab-implementation/README.md) | Code layout, contracts SoT, what each pillar owns, how to run unit tests. For a Pillar B demo, continue to [`TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md). |
 
-**Band B completes when:** you know which package to open, where JSON schemas live under `pillar-ab-implementation/contracts/`, and (for Pillar B demos) you have opened the team walkthrough.
+**Done with Implementers when:** you know which package to open, where JSON schemas live under `pillar-ab-implementation/contracts/`, and (for Pillar B demos) you have opened the team walkthrough.
 
 ### Tier 2 — Implementer I/O contracts (not Tier 1)
 
@@ -73,14 +88,14 @@ E1 Collect envelope          E2 Identity overlay           Pillar writers       
 
 | Order | Page | Canonical path | Stage | One-line job |
 |-------|------|----------------|-------|--------------|
-| **I/O-1** | **Ingest data format** | [`../INGEST_DATA_FORMAT.md`](../INGEST_DATA_FORMAT.md) | E1 (+ §2.2 E2 overlay) | `ingest.v1` envelope, `signal_class` enum, corpus folder layout, identity overlay spec. For **data owners and converter authors** — wider than the lab fixtures. |
+| **I/O-1** | **Ingest data format** | [`../INGEST_DATA_FORMAT.md`](../INGEST_DATA_FORMAT.md) | E1 (+ §2.2 E2 overlay) | `ingest.v1` envelope, `fact_kind` enum, corpus folder layout, identity overlay spec. For **data owners and converter authors** — wider than the lab fixtures. |
 | **I/O-2** | **Post-E2 ingest fixtures** | [`../../pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md) | After E2 (lab stub) | **What Pillar A and B actually read today** — resolved-only JSONL paths, `metric_sample` vs `topo_update`. Subset of I/O-1 focused on pillar PoC tapes. |
 | **I/O-3** | **Map write/read record** | [`../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | E3 output (`map/`) | Pillar B **output** keys — `graph_snapshot.json`, `nodes.jsonl`, `edges.jsonl`, logical keys, `files.v1` PoC profile. Hub mirror: [`docs/MAP_WRITE_READ_RECORD.md`](../MAP_WRITE_READ_RECORD.md) when present. |
 | **I/O-4** | **Pillar A deep dive** (history output) | [`../fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | E4 output (`history/`) | Pillar A **output** — `sketch.v1` row shape, windows, Vortex/S3 temperature. Pair with I/O-3 for both rooms. |
 
-**Pillar B PoC demo pack (Tier 2, after I/O-2):** [`TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) → [`MAP_P1_FABRIC_EVAL.md`](../../pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md) → [`Codebase-go-through.md`](../../pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md). Hub: [`observeops-pipeline-hld.html#pillar-b-poc`](./observeops-pipeline-hld.html#pillar-b-poc).
+**Pillar B PoC demo pack (after I/O-2):** [`pillar-b-poc-hub.html`](../fabric/pillar-b-poc-hub.html) → [`TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) → [`MAP_P1_FABRIC_EVAL.md`](../../pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md) → [`Codebase-go-through.md`](../../pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md). Hub: [`observeops-pipeline-hld.html#pillar-b-poc`](./observeops-pipeline-hld.html#pillar-b-poc).
 
-**Why these are Tier 2, not Tier 1:** Tier 1 answers “what is ObserveOps?” These answer “what bytes on the wire for **this** PoC slice?” A product reviewer stops at Band A; an engineer reads I/O-1 → I/O-2 before code, then I/O-3 or I/O-4 when validating flush output.
+**Why these are Tier 2, not Tier 1:** Tier 1 answers “what is ObserveOps?” These answer “what bytes on the wire for **this** PoC slice?” A product reviewer stops after the **Everyone** pages; an engineer reads I/O-1 → I/O-2 before code, then I/O-3 or I/O-4 when validating flush output.
 
 **Overlap to avoid confusion:**
 
@@ -99,7 +114,7 @@ E1 Collect envelope          E2 Identity overlay           Pillar writers       
 
 1. Fusion → 2. Pipeline HLD → 3. Data shape journey → 4. GRAPH_QNA → 5. Glossary  
 
-Skip Band B unless reviewing Pillar A/B delivery.
+Skip the implementer entry (#6) unless reviewing Pillar A/B delivery.
 
 ### Pillar A or B engineer
 
@@ -107,7 +122,7 @@ Skip Band B unless reviewing Pillar A/B delivery.
 
 **Tier 2 I/O chain (in order):** Ingest data format → Post-E2 fixtures → run pillar code → Map write/read (B) or Pillar A deep dive (A output)
 
-**Pillar B team demo (after I/O-2):** [`TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) → [`MAP_P1_FABRIC_EVAL.md`](../../pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md) → `cd pillar-b/poc && make test-all`. Hub: [`#pillar-b-poc`](./observeops-pipeline-hld.html#pillar-b-poc).
+**Pillar B team demo (after I/O-2):** [`pillar-b-poc-hub.html`](../fabric/pillar-b-poc-hub.html) → [`TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) → [`MAP_P1_FABRIC_EVAL.md`](../../pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md) → `cd pillar-b/poc && make test-all`. Hub: [`#pillar-b-poc`](./observeops-pipeline-hld.html#pillar-b-poc).
 
 Optional: Pipeline HLD E3/E4 sections · Fusion sanity check  
 
@@ -161,12 +176,13 @@ The hub’s five paths collapse into Tier 1 + Tier 2:
 
 ## Hub refactor checklist
 
-- [x] Above the fold: Band A five links + implementer entry (#6) + I/O chain
+- [x] Above the fold: Everyone (five links) + Implementers entry (#6) + I/O chain
 - [x] Remove duplicate launchpad cards that repeat paths 1–5
 - [x] Remove duplicate fabric cards (single exemplars/RED entry)
 - [x] Spec detail note → prefer Pipeline HLD MD (long accordion retained below fold)
 - [x] Tag archive rows: Tier 1 / Tier 2 / Tier 2 · I/O / Tier 3 + `#implementer-io` section
 - [x] Point [`NAVIGATION.md`](../NAVIGATION.md) §1 at this file for cold start
+- [x] Drop “Band A / Band B” labels — use Everyone / Implementers only
 
 ---
 

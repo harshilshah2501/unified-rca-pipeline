@@ -101,7 +101,7 @@ Derived from [`lean-pipeline/docs/ARCHITECTURE.md`](../../lean-pipeline/docs/ARC
 Ingress is E1 Collect. Egress is E11 Package to operator verdict card and optional incident handoff. CMDB remains optional enrichment; discovery-first default remains valid.
 
 
-**Identity-join (v1.1):** `Operator_ServiceOps` consumes E11 today. The same `tenant`+`ci_id` that E2 stamps is the join key a future ServiceOps ticket or CMDB CI must use — not a second identity plane and not a parallel Collect. E1 still admits telemetry only this pass. Reserved unused `signal_class` names (`change_event`, `cmdb_sync`, `ticket`) exist so those sources can land later without colliding with today's enum.
+**Identity-join (v1.1):** `Operator_ServiceOps` consumes E11 today. The same `tenant`+`ci_id` that E2 stamps is the join key a future ServiceOps ticket or CMDB CI must use — not a second identity plane and not a parallel Collect. E1 still admits telemetry only this pass. Reserved unused `fact_kind` names (`change_event`, `cmdb_sync`, `ticket`) exist so those sources can land later without colliding with today's enum.
 
 ## 5. Stage-vocabulary crosswalk (normative — new in v1.0)
 
@@ -209,7 +209,7 @@ The same template applies to every stage:
 - Inputs: external telemetry envelopes.
 - Outputs: `TelemetryEnvelope` (on-wire: `ingest.v1` JSONL). Source-asserted `ci_id`/`ci_type` are carried, not validated against topology.
 - Preconditions: source auth/config available.
-- Postconditions: incoming events are accepted into ingestion path as well-formed `ingest.v1` lines. Unknown `signal_class` and schema-version mismatch reject or dead-letter (do not guess). Reserved unused classes: `change_event`, `cmdb_sync`, `ticket`.
+- Postconditions: incoming events are accepted into ingestion path as well-formed `ingest.v1` lines. Unknown `fact_kind` and schema-version mismatch reject or dead-letter (do not guess). Reserved unused classes: `change_event`, `cmdb_sync`, `ticket`.
 - Failure if missing: no data enters pipeline.
 - Degradation: partial source loss still allows scoped RCA on remaining sources.
 - NFR sketch: sustained ingest throughput ≥ platform peak (validated, not just designed for — FR-K1/AC); backpressure safety with no correlation-affecting signal loss during soak. Measured bakeoff EPS is Grounded evidence, not a live product SLA ([`LLD-E1-Collect.md`](./LLD-E1-Collect.md) §6).
@@ -453,7 +453,7 @@ Rules:
 - Aliases live on the identity record. They are not competing primary keys.
 - E11 Package later creates a ServiceOps incident **on this same `ci_id`** (FR-J1). Collect/Normalize must not emit unstable or invented roots that would become tickets.
 - `identity.status != resolved` is not a localize target and not a ServiceOps-ticket target (D-E2-1).
-- Reserved unused `signal_class` values this pass: `change_event`, `cmdb_sync`, `ticket`. Do not implement those Collect sources here.
+- Reserved unused `fact_kind` values this pass: `change_event`, `cmdb_sync`, `ticket`. Do not implement those Collect sources here.
 
 ## 12. Implementation map (internal engineering)
 

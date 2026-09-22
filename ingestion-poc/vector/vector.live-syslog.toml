@@ -27,7 +27,7 @@ ts = format_timestamp!(now(), format: "%Y-%m-%dT%H:%M:%SZ")
   "tenant": tenant,
   "ci_id": host,
   "ci_type": "Host",
-  "signal_class": "event",
+  "fact_kind": "event",
   "name": "syslog.message",
   "value": 1.0,
   "threshold": null,
@@ -44,17 +44,17 @@ ts = format_timestamp!(now(), format: "%Y-%m-%dT%H:%M:%SZ")
 [transforms.route_lean]
 type = "filter"
 inputs = ["to_ingest_v1"]
-condition = '.signal_class == "anomaly" || .signal_class == "event" || .signal_class == "metric_sample"'
+condition = '.fact_kind == "anomaly" || .fact_kind == "event" || .fact_kind == "metric_sample"'
 
 [transforms.route_structural]
 type = "filter"
 inputs = ["to_ingest_v1"]
-condition = '.signal_class == "metric_sample" || .signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+condition = '.fact_kind == "metric_sample" || .fact_kind == "event" || .fact_kind == "trace_span" || .fact_kind == "anomaly"'
 
 [transforms.route_speed]
 type = "filter"
 inputs = ["to_ingest_v1"]
-condition = '.signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+condition = '.fact_kind == "event" || .fact_kind == "trace_span" || .fact_kind == "anomaly"'
 
 [sinks.lean_feed]
 type = "file"

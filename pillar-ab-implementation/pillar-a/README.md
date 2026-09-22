@@ -30,7 +30,7 @@ Expected: shared + sketch unit tests pass (no graph/join).
 |--|----------|
 | **Stage** | E4 Stores (parallel to E3 Topology) |
 | **Room** | `history/` |
-| **Input** | `ingest.v1` with `signal_class=metric_sample`, `identity.status=resolved` |
+| **Input** | `ingest.v1` with `fact_kind=metric_sample`, `identity.status=resolved` |
 | **Rejects** | `identity_unresolved`, `identity_synthesized`, `unknown_metric_id` |
 | **Silent skip** | Non-metric lines (`topo_update`, …) |
 | **Output** | `sketch.v1` → `Dest.put("history", "sketches.jsonl", …)` |

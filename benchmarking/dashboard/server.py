@@ -324,6 +324,26 @@ def _markdown_page(url_path: str, text: str) -> bytes:
   border-radius: 10px;
   overflow-x: auto;
 }}
+.md-page img {{
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: .75rem 0 1rem;
+}}
+.md-page figure.doc-fig {{
+  margin: .75rem 0 1.25rem;
+  padding: .75rem .9rem;
+  background: var(--bg-elev);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  overflow-x: auto;
+}}
+.md-page figure.doc-fig img {{ margin: 0; }}
+.md-page figure.doc-fig figcaption {{
+  margin-top: .55rem;
+  font-size: .82rem;
+  color: var(--muted);
+}}
 </style>
 </head>
 <body class="urca-doc article">

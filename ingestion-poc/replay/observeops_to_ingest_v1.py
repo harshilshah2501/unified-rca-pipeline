@@ -69,7 +69,7 @@ def metric_rows(
             "tenant": "default",
             "ci_id": ci,
             "ci_type": ci_type,
-            "signal_class": "metric_sample",
+            "fact_kind": "metric_sample",
             "name": signal,
             "value": value,
             "threshold": threshold_f,
@@ -87,7 +87,7 @@ def metric_rows(
             and value > threshold_f
         ):
             anom = dict(base)
-            anom["signal_class"] = "anomaly"
+            anom["fact_kind"] = "anomaly"
             anom["labels"] = {
                 **base["labels"],
                 "crossed": True,
@@ -113,7 +113,7 @@ def event_rows(
                 "tenant": "default",
                 "ci_id": ci,
                 "ci_type": _ci_type(topology, ci),
-                "signal_class": "event",
+                "fact_kind": "event",
                 "name": ev.get("event_type") or "event",
                 "value": 1.0,
                 "threshold": None,
@@ -176,7 +176,7 @@ def convert_uc(
         day = str(incident_start)[:10]
         rows = [r for r in rows if str(r["ts"])[:10] >= day]
 
-    rows.sort(key=lambda r: (r["ts"], r["ci_id"], r["name"], r["signal_class"]))
+    rows.sort(key=lambda r: (r["ts"], r["ci_id"], r["name"], r["fact_kind"]))
 
     out_dir = out_root / uc_id
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -205,7 +205,7 @@ def convert_uc(
                 "tenant": "default",
                 "ci_id": edge.get("from"),
                 "ci_type": _ci_type(topology, edge.get("from", "")),
-                "signal_class": "topo_update",
+                "fact_kind": "topo_update",
                 "name": edge.get("relation") or "edge",
                 "value": 1.0,
                 "threshold": None,
@@ -261,7 +261,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--no-anomaly-rows",
         action="store_true",
-        help="Do not emit signal_class=anomaly duplicates for crossings",
+        help="Do not emit fact_kind=anomaly duplicates for crossings",
     )
     parser.add_argument(
         "--incident-day-only",

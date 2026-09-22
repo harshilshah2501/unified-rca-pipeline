@@ -113,7 +113,7 @@ def convert_log(row: dict[str, Any]) -> dict[str, Any]:
         "tenant": "default",
         "ci_id": str(host),
         "ci_type": "Host",
-        "signal_class": "event",
+        "fact_kind": "event",
         "name": row.get("event_log_type") or attrs.get("syslog.tag") or "log",
         "value": 1.0,
         "threshold": None,
@@ -162,7 +162,7 @@ def convert_metric_numeric(
                 "tenant": "default",
                 "ci_id": ci_id,
                 "ci_type": ci_type,
-                "signal_class": "metric_sample",
+                "fact_kind": "metric_sample",
                 "name": str(name),
                 "value": num,
                 "threshold": thr,
@@ -197,7 +197,7 @@ def convert_metric_string(
                 "tenant": "default",
                 "ci_id": ci_id,
                 "ci_type": ci_type,
-                "signal_class": "event",
+                "fact_kind": "event",
                 "name": str(name),
                 "value": 1.0,
                 "threshold": None,
@@ -230,7 +230,7 @@ def convert_trace(row: dict[str, Any]) -> dict[str, Any]:
         "tenant": "default",
         "ci_id": str(svc),
         "ci_type": "Service",
-        "signal_class": "trace_span",
+        "fact_kind": "trace_span",
         "name": row.get("service_trace_root_span_name") or "trace",
         "value": dur_ms,
         "threshold": None,
@@ -266,7 +266,7 @@ def convert_span(row: dict[str, Any]) -> dict[str, Any]:
         "tenant": "default",
         "ci_id": str(svc),
         "ci_type": "Service",
-        "signal_class": "trace_span",
+        "fact_kind": "trace_span",
         "name": row.get("service_span_name") or "span",
         "value": dur_ms,
         "threshold": None,
@@ -435,7 +435,7 @@ def main(argv: list[str] | None = None) -> int:
     unbound_monitors: set[str] = set()
     thr_set = 0
     for r in rows:
-        by_class[r["signal_class"]] = by_class.get(r["signal_class"], 0) + 1
+        by_class[r["fact_kind"]] = by_class.get(r["fact_kind"], 0) + 1
         kind = (r.get("labels") or {}).get("signal_kind") or "?"
         by_kind[kind] = by_kind.get(kind, 0) + 1
         cis.add(r["ci_id"])
@@ -445,7 +445,7 @@ def main(argv: list[str] | None = None) -> int:
         mid = labels.get("monitor_id")
         if mid is not None and not labels.get("bound"):
             unbound_monitors.add(str(mid))
-        if r.get("threshold") is not None and r.get("signal_class") == "metric_sample":
+        if r.get("threshold") is not None and r.get("fact_kind") == "metric_sample":
             thr_set += 1
 
     manifest = {
@@ -461,7 +461,7 @@ def main(argv: list[str] | None = None) -> int:
         },
         "include": sorted(include),
         "stream_lines": len(rows),
-        "by_signal_class": by_class,
+        "by_fact_kind": by_class,
         "by_signal_kind": by_kind,
         "unique_ci_ids": len(cis),
         "ci_id_sample": sorted(cis)[:30],

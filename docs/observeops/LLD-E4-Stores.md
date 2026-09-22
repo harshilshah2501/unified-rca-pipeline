@@ -11,7 +11,7 @@
 
 ## 0. Dual path — Motadata history vs bakeoff evidence stores
 
-E4 is part of always-on fabric. After E2, Motadata runs **E4 Stores ∥ E3 Topology** (same stream, different `signal_class` filters). Rooms stay independent: `history/` never syncs continuously into `map/` ([`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G16).
+E4 is part of always-on fabric. After E2, Motadata runs **E4 Stores ∥ E3 Topology** (same stream, different `fact_kind` filters). Rooms stay independent: `history/` never syncs continuously into `map/` ([`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G16).
 
 | Path | What E4 means | Primary artifact |
 |------|----------------|------------------|

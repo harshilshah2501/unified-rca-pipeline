@@ -1,4 +1,4 @@
-"""Increment 3 — LeafClaim → EvidenceBundle → VerdictCard."""
+"""stub diagnose-close harness — LeafClaim → EvidenceBundle → VerdictCard."""
 
 from __future__ import annotations
 
@@ -17,8 +17,8 @@ from graph.case_path import (
 )
 from graph.graph_writer import GraphWriter
 
-I2 = SAMPLE_ESTATE / "cases" / "increment2"
-I3 = SAMPLE_ESTATE / "cases" / "increment3"
+I2 = SAMPLE_ESTATE / "cases" / "stub_case_path"
+I3 = SAMPLE_ESTATE / "cases" / "stub_diagnose_close"
 
 
 def _pipeline_to_claim():
@@ -95,7 +95,7 @@ def test_i3_package_can_omit_narrative():
 
 
 def test_i3_full_diagnose_close():
-    """Increment 1 map + Increment 2 case path + Increment 3 Identify/Package."""
+    """Increment 1 map + stub case-path harness case path + stub diagnose-close harness Identify/Package."""
     expected = json.loads((I3 / "expected_verdict.json").read_text(encoding="utf-8"))
     _snap, seed, ws, claim = _pipeline_to_claim()
     bundle = build_evidence_bundle(claim, ws)

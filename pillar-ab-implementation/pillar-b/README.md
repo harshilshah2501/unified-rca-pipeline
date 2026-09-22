@@ -6,7 +6,7 @@
 
 A and B are **parallel writers** after Identity (E2). Pillar B owns the `map/` room. Pillar A owns `history/` sketches from `metric_sample` only — GraphWriter silent-skips those lines.
 
-**This PoC has two use cases only:** (1) **build + maintain** the knowledge graph, (2) **walk-through** a published `map/`. Detect / Curate / Identify / Package / sketches are assumed or stubbed. Framing lives in the [Pillar B PoC Navigator canvas](./reference/canvases/pillar-b-poc-navigator.canvas.tsx) (open beside chat).
+**This PoC has two use cases only:** (1) **build + maintain** the knowledge graph, (2) **walk-through** a published `map/`. Detect / Curate / Identify / Package / sketches are assumed or stubbed. Framing lives on the [Pillar B PoC hub](../../docs/fabric/pillar-b-poc-hub.html) ([`:8765/pillar-b-poc-hub.html`](http://127.0.0.1:8765/pillar-b-poc-hub.html)); optional Cursor canvas beside chat.
 
 **Doc map:** [`docs/README.md`](./docs/README.md) · **Team walkthrough:** [`docs/TEAM_WALKTHROUGH.md`](./docs/TEAM_WALKTHROUGH.md)
 
@@ -15,8 +15,8 @@ A and B are **parallel writers** after Identity (E2). Pillar B owns the `map/` r
 ## Reading order
 
 1. **This README** — I/O + admit + quick start  
-2. [`docs/TEAM_WALKTHROUGH.md`](./docs/TEAM_WALKTHROUGH.md) — one-stop team demo (signal_class, admit, run)  
-3. [Pillar B PoC Navigator canvas](./reference/canvases/pillar-b-poc-navigator.canvas.tsx) — what is in vs stubbed (two use cases)  
+2. [`docs/TEAM_WALKTHROUGH.md`](./docs/TEAM_WALKTHROUGH.md) — team demo (fact_kind, admit, run)  
+3. [Pillar B PoC hub](../../docs/fabric/pillar-b-poc-hub.html) — what is in vs stubbed (two use cases; `:8765/pillar-b-poc-hub.html`)  
 4. [`docs/MAP_P1_FABRIC_EVAL.md`](./docs/MAP_P1_FABRIC_EVAL.md) — build/maintain + walk eval  
 5. [`docs/Codebase-go-through.md`](./docs/Codebase-go-through.md) — how the code is wired  
 6. [`poc/sample_estate/customer_checkout/SAMPLE_IO.md`](./poc/sample_estate/customer_checkout/SAMPLE_IO.md) — Case A/B goldens  
@@ -47,7 +47,7 @@ Lab-only notes: [`poc/README.md`](./poc/README.md).
 |--|----------|
 | **Stage** | E3 Topology (parallel to E4 sketch writer) |
 | **Room** | `map/` |
-| **Input** | `ingest.v1` with `signal_class=topo_update` (and optional estate bootstrap), `identity.status=resolved` |
+| **Input** | `ingest.v1` with `fact_kind=topo_update` (and optional estate bootstrap), `identity.status=resolved` |
 | **Rejects (DROP)** | unresolved / synthesized identity; never-CI types; unknown `relation` |
 | **Silent skip (NOOP)** | Non-topo lines: `metric_sample`, `event`, `trace_span`, `anomaly`, … |
 | **Phased map-NOOP** | Relation in the fifteen-name catalog but not wave-1 (e.g. `mounts`) — no write, usually not a DROP |
@@ -63,7 +63,7 @@ Lab-only notes: [`poc/README.md`](./poc/README.md).
 
 | Hub action | Code path | Effect |
 |------------|-----------|--------|
-| **NOOP** | `signal_class != "topo_update"` → `continue` | No state change, no reject |
+| **NOOP** | `fact_kind != "topo_update"` → `continue` | No state change, no reject |
 | **WRITE** | gate + `may_emit_vertex` + `classify_relation` → `emit` | Upsert node(s) + edge in `GraphState` |
 | **DROP** | gate fail / never-CI / `unknown_relation` | Append `writer.rejects`; map unchanged |
 | Phased NOOP | `classify_relation` → `skip` | Catalog relation, not wave-1 yet |
@@ -81,8 +81,8 @@ pillar-b/
 ├── README.md
 ├── docs/                     ← PoC guides only (see docs/README.md)
 ├── contracts/schemas/        ← symlinks → ../contracts/schemas/ (SoT; required by tests)
-├── reference/canvases/       ← Cursor canvas copies (navigator, GraphWriter I/O)
-├── references/               ← OPTIONAL product HTML library (not PoC SoT)
+├── reference/canvases/       ← Cursor canvas copies (hub door: pillar-b-poc-hub.html)
+├── archived-docs/            ← OPTIONAL product HTML library (not PoC SoT)
 └── poc/                      ← code, sample estate, tests
 ```
 
@@ -105,4 +105,4 @@ P1 proofs: `poc/graph/tests/unit/test_p1_map_fabric.py`.
 - Map write/read (SoT): [`../contracts/MAP_WRITE_READ_RECORD.md`](../contracts/MAP_WRITE_READ_RECORD.md)  
 - Fabric Q&A (SoT): [`../contracts/GRAPH_QNA.md`](../contracts/GRAPH_QNA.md)  
 - Reject codes (SoT): [`../contracts/IDENTIFIED_STREAM_REJECT.md`](../contracts/IDENTIFIED_STREAM_REJECT.md)  
-- Optional product briefs: [`references/README.md`](./references/README.md)
+- Optional product briefs: [`archived-docs/README.md`](./archived-docs/README.md)

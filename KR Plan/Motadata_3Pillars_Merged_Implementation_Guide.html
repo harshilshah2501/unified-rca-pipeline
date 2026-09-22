@@ -504,7 +504,7 @@ opposed.</td>
 <tr class="even">
 <td>L6</td>
 <td>ITSM / change as Collect?</td>
-<td>No this pass. Reserved <code>signal_class</code> only.</td>
+<td>No this pass. Reserved <code>fact_kind</code> only.</td>
 </tr>
 <tr class="odd">
 <td>L7</td>
@@ -648,12 +648,12 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tenant&quot;</span><span class="fu">:</span> <span class="st">&quot;default&quot;</span><span class="fu">,</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ci_id&quot;</span><span class="fu">:</span> <span class="st">&quot;checkout-api&quot;</span><span class="fu">,</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ci_type&quot;</span><span class="fu">:</span> <span class="st">&quot;Service&quot;</span><span class="fu">,</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;signal_class&quot;</span><span class="fu">:</span> <span class="st">&quot;metric_sample&quot;</span><span class="fu">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;fact_kind&quot;</span><span class="fu">:</span> <span class="st">&quot;metric_sample&quot;</span><span class="fu">,</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;request.p95_latency_ms&quot;</span><span class="fu">,</span></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="fl">1450.0</span><span class="fu">,</span></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;labels&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;source&quot;</span><span class="fu">:</span> <span class="st">&quot;lab-node&quot;</span> <span class="fu">}</span></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<p>Admitted <code>signal_class</code>: <code>metric_sample</code>,
+<p>Admitted <code>fact_kind</code>: <code>metric_sample</code>,
 <code>anomaly</code>, <code>event</code>, <code>trace_span</code>,
 <code>topo_update</code>.<br />
 Reserved (do not emit): <code>change_event</code>,

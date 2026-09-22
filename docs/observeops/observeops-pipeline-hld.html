@@ -863,25 +863,26 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     <a href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md"><span class="ioLbl">I/O-4</span>Pillar A deep dive</a>
   </div>
 
-  <h3 id="pillar-b-poc">Pillar B PoC — team demo (Tier 2)</h3>
+  <h3 id="pillar-b-poc">Pillar B PoC — team demo</h3>
   <p style="margin:0 0 .5rem;font-size:.92rem;color:var(--muted);">
     Motadata knowledge-graph lab under <code>pillar-ab-implementation/pillar-b/</code> —
     build/maintain + walk <code>map/</code>. Not the Lean/Federated bakeoff console.
     Archive: <a href="/hld-archive.html#pillar-b-poc">#pillar-b-poc</a>.
   </p>
   <div class="tier1Band">
-    <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md"><strong>Team walkthrough</strong><span>One-stop demo · admit · run</span></a>
+    <a href="/pillar-b-poc-hub.html"><strong>Pillar B PoC hub</strong><span>Navigator · canvases → hub doors</span></a>
+    <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md"><strong>Team walkthrough</strong><span>Demo · admit · run</span></a>
     <a href="/pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md"><strong>MAP_P1 eval</strong><span>Build/maintain + walk proofs</span></a>
     <a href="/pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md"><strong>Codebase go-through</strong><span>Module tour + spine</span></a>
     <a href="/pillar-ab-implementation/pillar-b/docs/README.md"><strong>Pillar B doc map</strong><span>Reading order in package</span></a>
-    <a href="/docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md"><strong>Fact kinds notes</strong><span>Logs → event · spoken alias</span></a>
+    <a href="/docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md"><strong>Fact kinds notes</strong><span>Logs → event · wire `fact_kind`</span></a>
     <a href="#graphwriter"><strong>GraphWriter tab</strong><span>Hub visual · NOOP/WRITE/DROP</span></a>
   </div>
   <p style="margin:.35rem 0 0;font-size:.85rem;color:var(--muted);">
-    Interactive layer navigator (Cursor canvas): open
-    <code>pillar-ab-implementation/pillar-b/reference/canvases/pillar-b-poc-navigator.canvas.tsx</code>
-    via Command Palette → <strong style="color:var(--text)">Open Canvas</strong>
-    (Explorer click shows source only).
+    Framing, layer index, and call sequences live on
+    <a href="/pillar-b-poc-hub.html"><code>:8765/pillar-b-poc-hub.html</code></a>
+    (replaces dead <code>.canvas.tsx</code> clicks). Optional Cursor panel: Command Palette →
+    <strong style="color:var(--text)">Open Canvas</strong> → <code>pillar-b-poc-navigator</code>.
   </p>
 
   <h2 id="hld-pack">Reading paths (detail)</h2>
@@ -925,14 +926,9 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   </p>
   <div class="grid two">
     <a class="card" href="/edge-platform-detect-simulation.html">
-      <div class="k compare">Film 1</div>
-      <h3>Edge → Detect simulation</h3>
-      <p>Node or Collector → SaaS · warm <code>map/</code> ∥ <code>history/</code> · Detect raises a <code>Signal</code>.</p>
-    </a>
-    <a class="card" href="/edge-platform-case-simulation.html">
-      <div class="k compare">Film 2</div>
-      <h3>Detect → Localize simulation</h3>
-      <p>Signal storm → <code>CaseSeed</code> → <code>WorkingSet</code> → <code>LeafClaim</code>. Identify / Package muted.</p>
+      <div class="k compare">Unified film</div>
+      <h3>Edge → Localize simulation</h3>
+      <p>Ingest → <code>map/</code> ∥ <code>history/</code> · E5 warms both · capture → Detect → Curate → WorkingSet → LeafClaim.</p>
     </a>
     <a class="card" href="/e1-e5-pipeline-architecture.html">
       <div class="k compare">P1 fabric</div>
@@ -1328,7 +1324,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
           <div class="stack">
             <div class="node">resolved identity?</div>
             <div class="varr">↓</div>
-            <div class="node">correct signal_class?</div>
+            <div class="node">correct fact_kind?</div>
             <div class="varr">↓</div>
             <div class="node ok">WRITE · or NOOP · or DROP</div>
           </div>
@@ -1652,12 +1648,14 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     E1–E5 for <code>map/</code> — guide
     <a href="/pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md"><code>pillar-b/docs/MAP_P1_FABRIC_EVAL.md</code></a>;
     proofs <code>test_p1_map_fabric.py</code>.
-    Team one-stop:
+    Team walkthrough:
     <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md">TEAM_WALKTHROUGH.md</a>.
+    Framing hub:
+    <a href="/pillar-b-poc-hub.html">pillar-b-poc-hub.html</a>.
     Case-path stubs under <code>case_path/</code> are optional harnesses, not the PoC mission.
-    Input: post-E2 <code>ingest.v1</code> with <code>signal_class=topo_update</code> (plus optional estate bootstrap — not E7 CaseSeed).
+    Input: post-E2 <code>ingest.v1</code> with <code>fact_kind=topo_update</code> (plus optional estate bootstrap — not E7 CaseSeed).
     Output: Gate B <code>files.v1</code> under <code>map/</code>.
-    OneOps / Fusion HTML briefs under <code>references/</code> are catalog material only — they are not GraphWriter callers.
+    OneOps / Fusion HTML briefs under <code>archived-docs/</code> are catalog material only — they are not GraphWriter callers.
     Part of <a href="#overview">Our HLD</a> · Topology writer under <code>pillar-ab-implementation/pillar-b/poc</code>.
   </p>
 
@@ -1700,7 +1698,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
           <tr>
             <td>Shared ingest stream</td>
             <td>Same wire as Pillar A</td>
-            <td>JSONL of <code>ingest.v1</code>. GraphWriter filters <code>signal_class = topo_update</code>; <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> are silent NOOP.</td>
+            <td>JSONL of <code>ingest.v1</code>. GraphWriter filters <code>fact_kind = topo_update</code>; <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> are silent NOOP.</td>
           </tr>
           <tr>
             <td>topology.bootstrap.json (lab)</td>
@@ -1828,7 +1826,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   "tenant": "default",
   "ci_id": "checkout-api",
   "ci_type": "Service",
-  "signal_class": "topo_update",
+  "fact_kind": "topo_update",
   "relation": "runs_on",
   "src_ci_id": "checkout-api",
   "dst_ci_id": "linux-server-app-01",
@@ -1866,7 +1864,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
           <tr><th>Check</th><th>This line</th><th>Result</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>signal_class</code></td><td><code>topo_update</code></td><td>Not skipped</td></tr>
+          <tr><td><code>fact_kind</code></td><td><code>topo_update</code></td><td>Not skipped</td></tr>
           <tr><td><code>identity.status</code></td><td><code>resolved</code></td><td>Gate admits</td></tr>
           <tr><td><code>ci_type</code></td><td><code>Service</code></td><td>May emit vertex</td></tr>
           <tr><td><code>relation</code></td><td><code>runs_on</code></td><td>Wave-1 catalog · upsert edge</td></tr>
@@ -1911,7 +1909,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
 
         <!-- Decision 1 -->
         <rect x="280" y="112" width="300" height="52" rx="8" fill="#171d25" stroke="#2a3441"/>
-        <text x="430" y="132" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">② signal_class = topo_update ?</text>
+        <text x="430" y="132" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">② fact_kind = topo_update ?</text>
         <text x="430" y="150" text-anchor="middle" fill="#8a96a4" font-size="10">Router: is this Topology’s job?</text>
 
         <!-- NO branch → NOOP -->
@@ -1965,7 +1963,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     <div class="admit-legend" aria-label="Action legend">
       <div>
         <div class="tag noop">A · NOOP</div>
-        <p><strong style="color:var(--text)">Silent skip.</strong> Wrong <code>signal_class</code> for GraphWriter. No state change, no reject code. Examples: <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> (Pillar A sketches are metrics-only; logs/traces are not <code>sketch.v1</code>).</p>
+        <p><strong style="color:var(--text)">Silent skip.</strong> Wrong <code>fact_kind</code> for GraphWriter. No state change, no reject code. Examples: <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> (Pillar A sketches are metrics-only; logs/traces are not <code>sketch.v1</code>).</p>
       </div>
       <div>
         <div class="tag write">B · WRITE</div>
@@ -1981,7 +1979,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Case</th><th>signal_class</th><th>identity</th><th>relation</th><th>Action</th><th>Outcome</th></tr>
+          <tr><th>Case</th><th>fact_kind</th><th>identity</th><th>relation</th><th>Action</th><th>Outcome</th></tr>
         </thead>
         <tbody>
           <tr class="tone-success">

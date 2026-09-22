@@ -206,7 +206,7 @@
 <table>
   <thead><tr><th>Topic</th><th>What happens</th></tr></thead>
   <tbody>
-    <tr><td>Input</td><td>Post-E2 <code>ingest.v1</code> with <code>signal_class=topo_update</code> (plus optional topology seed)</td></tr>
+    <tr><td>Input</td><td>Post-E2 <code>ingest.v1</code> with <code>fact_kind=topo_update</code> (plus optional topology seed)</td></tr>
     <tr><td>Partners</td><td>E2 Identity upstream; shared ingest stream; Dest under <code>map/</code>; optional E5 maintain stub</td></tr>
     <tr><td>Admit</td><td>Resolved identity only; catalog CI types; fifteen-name edge catalog (wave-1 may skip some relations)</td></tr>
     <tr><td>Build</td><td>Seed + stream → GraphState → flush GraphSnapshot / Gate B <code>files.v1</code></td></tr>

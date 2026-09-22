@@ -1,4 +1,4 @@
-"""Increment 2 — Signal storm → CaseSeed → WorkingSet → LeafClaim."""
+"""stub case-path harness — Signal storm → CaseSeed → WorkingSet → LeafClaim."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from graph.maintain import MAINTAIN_HARD_DOWNGRADED, apply_declared_freshness
 from graph.snapshot import build_snapshot
 from graph.graph_builder import load_estate_bootstrap_state
 
-I2 = SAMPLE_ESTATE / "cases" / "increment2"
+I2 = SAMPLE_ESTATE / "cases" / "stub_case_path"
 
 
 def _published_checkout_map():

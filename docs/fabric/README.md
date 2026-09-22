@@ -12,12 +12,12 @@ Compatibility symlinks at `docs/<filename>` keep `:8765` URLs working.
 
 | Order | Visual | Topic |
 |-------|--------|--------|
-| 0 | [`edge-platform-detect-simulation.html`](./edge-platform-detect-simulation.html) | **Film 1** — Edge · Node · optional Collector · SaaS; two ingest doors; Detect `Signal`. Notes: [`SIMULATION_THREAD.md`](./SIMULATION_THREAD.md) |
-| 0b | [`edge-platform-case-simulation.html`](./edge-platform-case-simulation.html) | **Film 2** — warm `map/`∥`history/` → Signal storm → `CaseSeed` → `WorkingSet` → `LeafClaim`. Identify/Package muted |
+| 0 | [`edge-platform-detect-simulation.html`](./edge-platform-detect-simulation.html) | **Unified film** — Edge · Node · Collector · SaaS; ingest → `map/`∥`history/`; E5 warms both; capture → Detect → Localize. Locks: [`SIMULATION_THREAD.md`](./SIMULATION_THREAD.md) |
 | 1 | [`data-shape-journey.html`](./data-shape-journey.html) | **E1–E11 data evolution** — Edge devices vs Platform; names, forms, structure |
 | 2 | [`e1-e5-pipeline-architecture.html`](./e1-e5-pipeline-architecture.html) | E2 fan-out → `map/` ∥ `history/`; Edge · Gateway · Platform |
 | 2b | [`inventory-catalog-on-the-map.html`](./inventory-catalog-on-the-map.html) | **Inventory vs catalog** → `graph_edge.v1`; LUT vs `map/`; G10–G11 teaching |
 | 2c | [`graphwriter-io-walkthrough.html`](./graphwriter-io-walkthrough.html) | **GraphWriter I/O** — partners, admit, seed→flush · Site tab · [`:8765`](http://127.0.0.1:8765/graphwriter-io-walkthrough.html) |
+| 2d | [`pillar-b-poc-hub.html`](./pillar-b-poc-hub.html) | **Pillar B PoC hub** — navigator framing + all PoC canvases → hub doors · [`:8765`](http://127.0.0.1:8765/pillar-b-poc-hub.html) |
 | 3 | [`map-history-storage-blocks.html`](./map-history-storage-blocks.html) | Rooms, R/W, no sync; join at WorkingSet |
 | 4 | [`map-history-storage-animation.html`](./map-history-storage-animation.html) | Animated write → rooms → read-join |
 | 5 | [`vortex-s3-interaction.html`](./vortex-s3-interaction.html) | Rooms vs temperature (Vortex + S3) |
@@ -28,8 +28,8 @@ Compatibility symlinks at `docs/<filename>` keep `:8765` URLs working.
 
 | Doc | Topic |
 |-----|--------|
-| [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./INGEST_FACT_KINDS_DISCUSSION.md) | **Team notes** — fact kind vs `signal_class`; **logs → `event`**; bind vs provenance; rename deferred |
-| [`../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | **Pillar B PoC demo** — one-stop team walkthrough (hub: [Our HLD #pillar-b-poc](../observeops/observeops-pipeline-hld.html#pillar-b-poc)) |
+| [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./INGEST_FACT_KINDS_DISCUSSION.md) | **Team notes** — `fact_kind` wire key · **logs → `event`** · bind vs provenance |
+| [`../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | **Pillar B PoC demo** — team walkthrough (hub: [Pillar B PoC hub](./pillar-b-poc-hub.html) · [Our HLD #pillar-b-poc](../observeops/observeops-pipeline-hld.html#pillar-b-poc)) |
 | [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](./PILLAR_A_PERCENTILES_DEEP_DIVE.md) | Inputs → `sketch.v1` / S3 / Vortex |
 | [`red-metrics-and-exemplars.md`](./red-metrics-and-exemplars.md) | Redirect → [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html) §RED |
 | [`end-to-end-algorithm-walkthrough.md`](./end-to-end-algorithm-walkthrough.md) | Admit → window → Detect door C |

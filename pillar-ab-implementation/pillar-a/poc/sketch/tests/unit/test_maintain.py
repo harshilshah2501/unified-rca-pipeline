@@ -11,7 +11,7 @@ def _sample(ts: str, value: float) -> dict:
         "tenant": "default",
         "ci_id": "checkout-api",
         "ci_type": "Service",
-        "signal_class": "metric_sample",
+        "fact_kind": "metric_sample",
         "name": "request.latency_ms",
         "value": value,
         "identity": {"status": "resolved"},

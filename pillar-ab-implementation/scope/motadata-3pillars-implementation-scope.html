@@ -100,12 +100,12 @@ pre{overflow-x:auto;padding:1rem;background:var(--bg-elev);border:1px solid var(
   "tenant": "default",
   "ci_id": "checkout-api",
   "ci_type": "Service",
-  "signal_class": "metric_sample",
+  "fact_kind": "metric_sample",
   "name": "request.p95_latency_ms",
   "value": 1450.0,
   "labels": { "source": "lab-node" }
 }</pre>
-  <p>Admitted <code>signal_class</code>: metric_sample, anomaly, event, trace_span, topo_update. Reserved (do not emit): change_event, cmdb_sync, ticket.</p>
+  <p>Admitted <code>fact_kind</code>: metric_sample, anomaly, event, trace_span, topo_update. Reserved (do not emit): change_event, cmdb_sync, ticket.</p>
   <p>Preferred lab folder: <code>datasets/ingest_samples/&lt;suite&gt;/&lt;incident_id&gt;/stream.jsonl</code> + <code>topology.json</code> + optional <code>ground_truth.json</code>.</p>
 
   <h2 id="e2">4. What we expect from E2 (not our build)</h2>

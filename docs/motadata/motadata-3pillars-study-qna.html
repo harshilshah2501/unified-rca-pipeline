@@ -190,7 +190,7 @@ li{margin:.35rem 0;}
   <p>
     Our HLD is stricter: E9/E11 only <code>identity.status = resolved</code>.
     D-E2-1: synthesized or unresolved is not a ticket.
-    Change and ticket are reserved <code>signal_class</code> values, not Collect this pass.
+    Change and ticket are reserved <code>fact_kind</code> values, not Collect this pass.
   </p>
 
   <h2 id="edges">5. Motadata edges — four jobs</h2>
@@ -451,7 +451,7 @@ li{margin:.35rem 0;}
     <p><span class="lbl">What</span><br>
       Something in the estate was modified — deploy, config, git SHA, change ticket.
       Motadata makes Change a vertex with CHANGED_BY.
-      We reserved change_event as a signal_class and do not Collect it this pass.
+      We reserved change_event as a fact_kind and do not Collect it this pass.
     </p>
     <p><span class="lbl">Why</span><br>
       The walk “deps → recent changes → abnormal metrics” is how you stop blaming the symptom app for a bad release.

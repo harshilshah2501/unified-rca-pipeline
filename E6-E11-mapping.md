@@ -9,7 +9,7 @@
 | Document | Role |
 |----------|------|
 | [`docs/anomaly-detection.md`](docs/anomaly-detection.md) | How Edge Delta detects (baselines, monitors, edge vs platform) |
-| [`pillar-ab-implementation/pillar-b/references/ED-MD-New.md`](pillar-ab-implementation/pillar-b/references/ED-MD-New.md) | Broader Edge Delta ↔ Motadata concept map |
+| [`pillar-ab-implementation/pillar-b/archived-docs/ED-MD-New.md`](pillar-ab-implementation/pillar-b/archived-docs/ED-MD-New.md) | Broader Edge Delta ↔ Motadata concept map |
 | [`docs/observeops/OBSERVEOPS_PIPELINE_HLD.md`](docs/observeops/OBSERVEOPS_PIPELINE_HLD.md) | Canonical E1–E11 definitions |
 | [Knowledge Graph](https://docs.edgedelta.com/knowledge-graph/) | Official freshness / reconcile statements |
 | [Interpret Data Items](https://docs.edgedelta.com/data-item/) · [Data Item Examples](https://docs.edgedelta.com/data-item-examples/) | `_type`, event/signal shapes |
@@ -164,7 +164,7 @@ Aligned with this repo’s Edge Delta research notes:
 | **E7 is the weakest match** | Default is **one thread per event**, not Curate’s “storm → one seed”. Correlation is mostly **inside** threads or via **Composite Monitors**. See [§7](#7-e7-deep-dive--one-thread-per-event). |
 | **No `ci_id` / CMDB seed** | Localization is `service` + Knowledge Graph entities, not Motadata configuration-item identity. |
 | **KG freshness** | Full re-reconcile is **daily**; brand-new entities may lack KG blast radius / ownership until then. Telemetry and K8s service map can still work. See [§8](#8-knowledge-graph-freshness-24-hour-reconcile). |
-| **`_type` ≠ Motadata signal_class** | Edge Delta `_type` is the OTEL-shaped **data item kind** (`log` / `metric` / `event` / `signal` / …). See [§9](#9-events-signals-and-_type-values). |
+| **`_type` ≠ Motadata fact_kind** | Edge Delta `_type` is the OTEL-shaped **data item kind** (`log` / `metric` / `event` / `signal` / …). See [§9](#9-events-signals-and-_type-values). |
 | **KG access is implicit** | No public MCP tools for blast radius / neighbors; teammates use a built-in capability. See [§10](#10-knowledge-graph-io-for-ai-teammates). |
 | **Sandbox / L0–L4 / example narrative** | Useful product story; spot-check against current docs before locking an ADR. |
 | **Connector split** | Streaming (telemetry) vs event (AI triggers/tools) should stay distinct in comparator docs. |
@@ -350,7 +350,7 @@ Hypothetical stores (Neo4j write-through, Neptune, DynamoDB+views, ClickHouse ba
 
 | Phrase people say | What Edge Delta usually means |
 |-------------------|-------------------------------|
-| “Signal type” | Often the data-item field **`_type`** (`log`, `metric`, `event`, `signal`, …) — **not** Motadata `signal_class` |
+| “Signal type” | Often the data-item field **`_type`** (`log`, `metric`, `event`, `signal`, …) — **not** Motadata `fact_kind` |
 | **Event** | Data item with `_type: "event"` (platform monitors, K8s inputs, connectors, …) |
 | **Signal** | Separate data item `_type: "signal"` from **Threshold nodes** on **edge / Gateway pipelines** |
 | **Alert** | Monitor **state** / notification language — not always a distinct `_type` |
@@ -362,7 +362,7 @@ From [Interpret Edge Delta Data Items](https://docs.edgedelta.com/data-item/) an
 
 | Field | Role |
 |-------|------|
-| `_type` | **Data-item kind** for pipeline routing: `log`, `metric`, `event`, `signal`, … (see [§9.4](#94-_type-values-pipeline-routing)). This is **not** Motadata `signal_class` and **not** the same as `event_type`. |
+| `_type` | **Data-item kind** for pipeline routing: `log`, `metric`, `event`, `signal`, … (see [§9.4](#94-_type-values-pipeline-routing)). This is **not** Motadata `fact_kind` and **not** the same as `event_type`. |
 | `timestamp` | Event time (docs: uint64 nanoseconds since Unix epoch on agent items; ingestion APIs may also accept RFC3339 strings) |
 | `body` | Human-readable message / payload body |
 | `severity_text` | Severity / level description (e.g. `ALERT`, `Warning`) |
@@ -551,7 +551,7 @@ Product / docs answers list these data-item kinds (confirm against current [Data
 | `health` | Agent / component health |
 | `custom` | Non-standard schemas (when used) |
 
-These values drive **processor / destination routing**, not Motadata Collect `signal_class`.
+These values drive **processor / destination routing**, not Motadata Collect `fact_kind`.
 
 ### 9.5 How severity is determined
 

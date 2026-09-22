@@ -7,7 +7,7 @@ from graph.read_api import get_neighbors
 from graph.snapshot import load_snapshot
 
 
-def test_graph_writer_happy_path_flush():
+def test_graph_writer_case_a_flush():
     writer = GraphWriter()
     writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
@@ -44,7 +44,7 @@ def test_graph_writer_silent_skip_non_topo():
                     "tenant": "default",
                     "ci_id": "checkout-api",
                     "ci_type": "Service",
-                    "signal_class": "metric_sample",
+                    "fact_kind": "metric_sample",
                     "name": "request.latency_ms",
                     "value": 42.0,
                     "identity": {"status": "resolved"},
@@ -55,7 +55,7 @@ def test_graph_writer_silent_skip_non_topo():
                     "tenant": "default",
                     "ci_id": "checkout-api",
                     "ci_type": "Service",
-                    "signal_class": "topo_update",
+                    "fact_kind": "topo_update",
                     "relation": "depends_on",
                     "src_ci_id": "checkout-api",
                     "dst_ci_id": "payments-db",
@@ -69,7 +69,7 @@ def test_graph_writer_silent_skip_non_topo():
     assert any(e["relation"] == "depends_on" for e in snapshot["edges"])
 
 
-def test_graph_writer_reject_tape():
+def test_graph_writer_case_b_rejects():
     writer = GraphWriter()
     writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.reject.jsonl"))

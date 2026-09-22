@@ -546,7 +546,7 @@ Sources (MELTS-shaped telemetry)
     ↓  shift-left (optional)
 Shaped / aggregated stream     ← rollups, dedup, mask — still telemetry records
     ↓  E1 Collect
-ingest.v1  (signal_class: metric_sample | event | trace_span | topo_update | …)
+ingest.v1  (fact_kind: metric_sample | event | trace_span | topo_update | …)
     ↓  E2 Identity
     ├─► E3 Topology  → map/
     └─► E4 Sketch writer  → history/sketch.v1   ← second aggregation; metrics only
@@ -554,7 +554,7 @@ ingest.v1  (signal_class: metric_sample | event | trace_span | topo_update | …
         E6 Detect (door C): p95 vs seasonal baseline on sketch rows
 ```
 
-**At E3/E4, writers use `signal_class`, not MELTS letters** (**G31**). Pillar A admits `metric_sample` and builds sketches; Pillar B admits `topo_update`; other classes are skipped or routed to other store surfaces. PoC fixtures may still be **one sample per `metric_sample` line** — E4 **aggregates those samples into windowed sketch rows**; that is not the same object as the edge aggregated stream.
+**At E3/E4, writers use `fact_kind`, not MELTS letters** (**G31**). Pillar A admits `metric_sample` and builds sketches; Pillar B admits `topo_update`; other classes are skipped or routed to other store surfaces. PoC fixtures may still be **one sample per `metric_sample` line** — E4 **aggregates those samples into windowed sketch rows**; that is not the same object as the edge aggregated stream.
 
 **Only the Metrics path becomes `sketch.v1`.** Events, logs, and traces do not land in sketch rows (non-metric lines are silent-skipped by Pillar A; schema forbids edge fields). Other modalities need other evidence surfaces (Lean bundle files, future execution graph, etc.) — out of the A/B freeze for topology + sketches (**GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md** §8).
 
@@ -651,8 +651,8 @@ Pillar A consumes **whole identified metric lines** (already stamped at E2). It 
 
 | Line kind | Pillar A | Pillar B |
 |-----------|----------|----------|
-| `signal_class: metric_sample` | Admit → sketch writer (`sketch.v1`) | **Silent skip (NOOP)** |
-| `signal_class: topo_update` | **Silent skip (NOOP)** — not a reject | Admit → graph builder (**WRITE** if catalog checks pass) |
+| `fact_kind: metric_sample` | Admit → sketch writer (`sketch.v1`) | **Silent skip (NOOP)** |
+| `fact_kind: topo_update` | **Silent skip (NOOP)** — not a reject | Admit → graph builder (**WRITE** if catalog checks pass) |
 | `event` / `trace_span` / `anomaly` | Silent skip (not `sketch.v1`) | **Silent skip (NOOP)** — case path / other stores |
 
 Topology rows (`runs_on`, `depends_on`, …) are **not** sketch inputs and **never** become `sketch.v1` fields. “One file feeds both products” is **fixture packaging**, not a claim that sketches store edges. Full consumer map: [`E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md).

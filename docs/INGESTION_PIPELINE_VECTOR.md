@@ -51,7 +51,7 @@ Edge Delta Telemetry Pipelines are a **vendor analog** for this ingest+detect fr
 | Option | What it is | Fits Lean | Fits Federated | Relative detect cost |
 |--------|------------|-----------|----------------|----------------------|
 | **A. Threshold / alert rules** | Metric/event vs threshold → `crossed` + seed | Default for classic infra | Usable as trigger | ★★ (usually cheapest) |
-| **B. Vector transform detect** | Remap/filter marks `signal_class: anomaly` | Good with ingest PoC | Same | ★★–★★★ |
+| **B. Vector transform detect** | Remap/filter marks `fact_kind: anomaly` | Good with ingest PoC | Same | ★★–★★★ |
 | **C. Existing ObserveOps alerter** | Product already raises tickets | Best reuse | Same | ★ (if already paid) |
 | **D. Panorama-class gray-failure detector** | Observer/majority voting | Optional later if thresholds miss gray failures | Native federated hop | ★★★★ |
 
@@ -128,7 +128,7 @@ All Vector transforms should converge toward a common envelope before sinks dive
   "tenant": "default",
   "ci_id": "esxi-host-01",
   "ci_type": "HypervisorHost",
-  "signal_class": "anomaly|event|metric_sample|trace_span|topo_update",
+  "fact_kind": "anomaly|event|metric_sample|trace_span|topo_update",
   "name": "cpu.usage.average",
   "value": 92.0,
   "threshold": 80.0,
@@ -138,7 +138,7 @@ All Vector transforms should converge toward a common envelope before sinks dive
 }
 ```
 
-Topology updates use `signal_class: "topo_update"` with edge payloads in `labels` / nested `topo` object (see §5).
+Topology updates use `fact_kind: "topo_update"` with edge payloads in `labels` / nested `topo` object (see §5).
 
 ---
 

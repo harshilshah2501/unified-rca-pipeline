@@ -238,7 +238,7 @@
       <p class="blurb">Sources → Processors → Destinations — not ingest.v1 / TelemetryEnvelope</p>
     </div>
     <div class="callout">
-      Motadata PoC wire is <code>ingest.v1</code> with <code>ci_id</code>, <code>signal_class</code>, identity.
+      Motadata PoC wire is <code>ingest.v1</code> with <code>ci_id</code>, <code>fact_kind</code>, identity.
       Edge Delta agents speak OpenTelemetry-shaped items (logs / metrics / traces / events) plus signals.
       There is <strong style="color:var(--text)">no CMDB bind at source</strong>.
     </div>
@@ -251,7 +251,7 @@
         <text x="130" y="112" text-anchor="middle" fill="#b8c4d0" font-size="10">syslog · Kafka · CloudWatch</text>
         <text x="130" y="128" text-anchor="middle" fill="#b8c4d0" font-size="10">K8s / Windows events</text>
         <text x="130" y="156" text-anchor="middle" fill="#8a96a4" font-size="9">Motadata ≈ E1 Collect</text>
-        <text x="130" y="176" text-anchor="middle" fill="#8a96a4" font-size="9">no ci_id / signal_class</text>
+        <text x="130" y="176" text-anchor="middle" fill="#8a96a4" font-size="9">no ci_id / fact_kind</text>
         <text x="130" y="192" text-anchor="middle" fill="#8a96a4" font-size="9">resource attrs instead</text>
 
         <path d="M230,130 H270" stroke="#8a96a4" stroke-width="2"/>
@@ -305,7 +305,7 @@
           <tr><td>E1 Collect</td><td>Source nodes</td><td>Per-pipeline sources, not one global stage object</td></tr>
           <tr><td><code>ingest.v1</code> / TelemetryEnvelope</td><td>OTLP / JSON / syslog / … items</td><td>No single Motadata envelope on the wire</td></tr>
           <tr><td><code>ci_id</code> / <code>ci_type</code></td><td>Resource attributes (<code>service.name</code>, <code>k8s.pod.name</code>, …)</td><td>Semantic conventions; optional lookup for CI ids</td></tr>
-          <tr><td><code>signal_class</code></td><td>Item types: log · metric · trace · event · signal</td><td>Different enum; not a CMDB class router</td></tr>
+          <tr><td><code>fact_kind</code></td><td>Item types: log · metric · trace · event · signal</td><td>Different enum; not a CMDB class router</td></tr>
           <tr><td>E2 Identity</td><td>Processors (enrich / OTTL / lookup)</td><td>No resolved/synthesized identity gate as Motadata defines it</td></tr>
           <tr><td>E3 Topology / <code>map/</code></td><td>Knowledge Graph + Service Map</td><td>Two products; KG not GraphWriter-shaped public store</td></tr>
           <tr><td>E4 Stores / sketches</td><td>ED Platform (e.g. ClickHouse) + archive destinations</td><td>Not Motadata <code>sketch.v1</code> rows</td></tr>
@@ -431,7 +431,7 @@
         <text x="440" y="90" text-anchor="middle" fill="#e8eef4" font-size="11">Data item · Threshold node</text>
         <text x="440" y="114" text-anchor="middle" fill="#b8c4d0" font-size="10">Always derived at the edge</text>
         <text x="440" y="134" text-anchor="middle" fill="#b8c4d0" font-size="10">→ trigger destinations</text>
-        <text x="440" y="164" text-anchor="middle" fill="#8a96a4" font-size="9">Not Motadata signal_class</text>
+        <text x="440" y="164" text-anchor="middle" fill="#8a96a4" font-size="9">Not Motadata fact_kind</text>
         <text x="440" y="180" text-anchor="middle" fill="#8a96a4" font-size="9">Name collision — different meaning</text>
 
         <rect x="590" y="40" width="260" height="160" rx="8" fill="#1a222c" stroke="#f0b35a"/>

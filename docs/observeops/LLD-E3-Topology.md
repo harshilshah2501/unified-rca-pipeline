@@ -5,7 +5,7 @@
 **Owner:** ObserveOps RCA engineering
 **Parent:** [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §8 (E3 Topology contract), §5 (crosswalk: E3 is part of the 5-stage "Ingest" phase)
 **Related surfaces:** [Our HLD](./observeops-pipeline-hld.html) · [Fusion](./observeops-fusion-guide.html) (Graph Explained tab) · Motadata Pillar B [`pillar-b/README.md`](../../pillar-ab-implementation/pillar-b/README.md) · [`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md)
-**Schema source (target map shape):** [`OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) — node/edge/identity/index/fault-signature model + per-edge provenance. Worked example: [`observeops-ci-graph.html`](./observeops-ci-graph.html) · [`linux-server-ci-telemetry.json`](./linux-server-ci-telemetry.json) (authored illustration, not live E3 output).
+**Schema source (target map shape):** [`OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) — node/edge/identity/index/fault-signature model + per-edge provenance. Worked example: [`observeops-ci-graph.html`](./observeops-ci-graph.html) (authored illustration, not live E3 output).
 **Gate checklist (per HLD §18):** stage ID/purpose referenced ✓ · concrete schema/API defined ✓ (§2–§3 bakeoff · §10 Motadata) · acceptance test from corpus/lab replay ✓ (§7 bakeoff · §10 PoC) · evidence-maturity tag stated ✓
 
 ---
@@ -24,7 +24,7 @@ Do not treat these as one schema. E3 is the **sole writer of the topology / `map
 
 **Relation-name honesty:** bakeoff corpus edges may use names such as `hosted_by`, `uplink_to`, `stored_on`. Motadata catalog / wave-1 use snake_case names such as `hosted_on`, `runs_on`, `depends_on`, `communicates_with`, `part_of` ([`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G4/G8 · Pillar B `edge_catalog.py`). Same *ideas*, different wire names — do not silently equate them.
 
-Worked illustration of the **target** schema: [`observeops-ci-graph.html`](./observeops-ci-graph.html) · [`linux-server-ci-telemetry.json`](./linux-server-ci-telemetry.json) (authored, not live E3). Merging that schema onto bakeoff `topology.json` is a future LLD revision.
+Worked illustration of the **target** schema: [`observeops-ci-graph.html`](./observeops-ci-graph.html) (authored, not live E3). Merging that schema onto bakeoff `topology.json` is a future LLD revision.
 
 ---
 
@@ -186,9 +186,9 @@ For Motadata unified fabric, E3 Topology is implemented by the Pillar B GraphWri
 
 | | |
 |--|--|
-| **IN** | Optional `topology.bootstrap.json` + post-E2 `ingest.v1` with `signal_class=topo_update` and `identity.status=resolved` ([`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md)) |
+| **IN** | Optional `topology.bootstrap.json` + post-E2 `ingest.v1` with `fact_kind=topo_update` and `identity.status=resolved` ([`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md)) |
 | **OUT** | `graph_snapshot.v1` + `nodes.jsonl` / `edges.jsonl` via Gate B Dest (`map/…`) — [`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) |
-| **Admit** | **NOOP** — wrong `signal_class` (`metric_sample`, `event`, `trace_span`, `anomaly`, …) · **WRITE** — wave-1 emit · **DROP** — unresolved/synthesized identity, never-CI types, unknown relation · phased map-NOOP — catalog relation not yet wave-1 ([`pillar-b/README.md`](../../pillar-ab-implementation/pillar-b/README.md)) |
+| **Admit** | **NOOP** — wrong `fact_kind` (`metric_sample`, `event`, `trace_span`, `anomaly`, …) · **WRITE** — wave-1 emit · **DROP** — unresolved/synthesized identity, never-CI types, unknown relation · phased map-NOOP — catalog relation not yet wave-1 ([`pillar-b/README.md`](../../pillar-ab-implementation/pillar-b/README.md)) |
 | **Wave-1 emit** | `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of` |
 | **E5 stub** | [`maintain.py`](../../pillar-ab-implementation/pillar-b/poc/graph/maintain.py) `maintain_graph_validity` — expire `valid_to`, drop stale corroborating; does **not** create edges ([`LLD-E5-Maintain.md`](./LLD-E5-Maintain.md)) |
 

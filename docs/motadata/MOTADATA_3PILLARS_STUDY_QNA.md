@@ -79,7 +79,7 @@ The **CI bar** is right: localize and ticket need a **stable id** (or a scoped i
 | Underspecified | Database, Deployment, Network | Pause until you pick the id (instance vs cluster; k8s Deployment vs release vs runbook; NIC/subnet/LB vs “Network”) |
 | Events reified as nodes | Change, Alert, Incident, ITSMTicket, Metric, LogPattern, Trace | **Not CIs.** Fact/evidence/case objects |
 
-Our HLD is stricter: E9/E11 only `identity.status = resolved`. D-E2-1: synthesized/unresolved ≠ ticket. Change/ticket are reserved `signal_class`, not Collect this pass.
+Our HLD is stricter: E9/E11 only `identity.status = resolved`. D-E2-1: synthesized/unresolved ≠ ticket. Change/ticket are reserved `fact_kind`, not Collect this pass.
 
 ---
 
@@ -162,7 +162,7 @@ If the count is this table: **(1) service map, (2) Smartscape, (3) ours, (4) Mot
 | **Identity** | `service` (+ tags). Soft | One `entityId` on **map and lake** | `tenant`+`ci_id`. Aliases on the identity record. Unresolved ≠ localize/ticket (**D-E2-1**) | `entity_id` + `entity_type` + `tenant_id`. Persistence not specified per type |
 | **Edges** | `CALLS` / inferred `DEPENDS_ON` from traces or eBPF | Typed relationships OneAgent keeps fresh | 15 types (`depends_on`, `runs_on`, `communicates_with`, …) each with provenance: `authoritative` \| `declared` \| `corroborating` | `CALLS` · `DEPENDS_ON` · `RUNS_ON` · `CONTAINS` · … plus `TRIGGERED` · `CORRELATED_WITH` · `RESOLVED_BY` · `AFFECTS` |
 | **Time** | “Current” map; often lags | Live discovery; not a lake rebuild | Edges: `refresh` cadence; `declared` can stale (**E5**). Nodes are CIs, not `valid_from` event facts | `valid_from` / `valid_to` on **nodes and edges** (graph history). Not Detect time |
-| **Not on the map** | Host→pod→process, Change, Alert | Alert/Problem are Davis objects, not Smartscape vertex types in the service-map sense | **E6 `Signal`**, **E7 `CaseSeed`**, **E11 `VerdictCard`**. Change is reserved `signal_class`, not Collect | Almost nothing: they reify Detect/case/ticket onto the same graph |
+| **Not on the map** | Host→pod→process, Change, Alert | Alert/Problem are Davis objects, not Smartscape vertex types in the service-map sense | **E6 `Signal`**, **E7 `CaseSeed`**, **E11 `VerdictCard`**. Change is reserved `fact_kind`, not Collect | Almost nothing: they reify Detect/case/ticket onto the same graph |
 | **Who walks** | Human / APM UI. Does **not** name the leaf | Davis neighborhood walk | **E8** hop budget · **E9** leaf rule. Gateway **assist** may emit a call-graph; **SaaS owns** the snapshot | Rust ReAct agent (Pillar C) *and* the documented traversal recipe. PDF is SaaS-only |
 | **Locus** | APM/eBPF UI | SaaS | Node cues; Gateway **assist** = thin call-map; **SaaS owns** snapshot | PDF is SaaS column only |
 | **Evidence store** | Traces in APM (same product rail) | Sibling: **Grail**, same `entityId` | Sibling: **E4 dest(s)**, same `ci_id` (**D2**). Map does not rebuild from the lake | Sibling: **Vortex/S3** sketches + graph. Agent must not dump the lake (retrieval layer = our E8) |
@@ -220,7 +220,7 @@ Each **topic** below is context for that row (what it is and why it is needed). 
 
 ### Change
 
-**What:** “Something in the estate was modified” — deploy, config, git SHA, change ticket. Motadata makes **Change a vertex** with `CHANGED_BY`. We reserved `change_event` as a `signal_class` and **do not Collect it this pass**.
+**What:** “Something in the estate was modified” — deploy, config, git SHA, change ticket. Motadata makes **Change a vertex** with `CHANGED_BY`. We reserved `change_event` as a `fact_kind` and **do not Collect it this pass**.
 
 **Why:** The Motadata walk *deps → recent changes → abnormal metrics* is how you stop blaming the symptom app for a bad release. That hitch is real. Making Change a **CI** (ticket root, eternal id) is not: a change is an **operation with a time**, not a host.
 

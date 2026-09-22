@@ -1,3 +1,5 @@
+// @ts-nocheck — git reference copy; Cursor types live only for managed canvases/ via Open Canvas.
+
 import {
   Button,
   Callout,

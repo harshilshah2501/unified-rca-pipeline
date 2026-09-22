@@ -62,7 +62,7 @@ python3 ingestion-poc/adapters/motadata_to_ingest_v1.py --smoke \
 
 **Output:** `datasets/ingest_samples/motadata-ingest/` (`stream*.jsonl` gitignored; `ci_bind.json`, `incidents/`, `manifest.json` OK to commit)
 
-| Source | → signal_class | ci_id |
+| Source | → fact_kind | ci_id |
 |--------|----------------|-------|
 | `log.jsonl` | `event` | hostname / `event_source` |
 | `metric_numeric.jsonl` | `metric_sample` + **threshold** | bound name or `monitor-{id}` |

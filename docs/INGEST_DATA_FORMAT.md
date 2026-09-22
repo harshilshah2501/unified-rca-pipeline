@@ -4,7 +4,7 @@
 **Tier:** Tier 2 implementer I/O (**I/O-1**) — see [`observeops/OUR_HLD_TIER1.md`](./observeops/OUR_HLD_TIER1.md). Pillar lab fixtures: [`../pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md) (**I/O-2**).
 **Machine schema (JSON Schema):** [`../pillar-ab-implementation/contracts/schemas/ingest_v1.schema.json`](../pillar-ab-implementation/contracts/schemas/ingest_v1.schema.json) — validators use this file; keep prose below aligned with it.
 **Build order:** **Federated pipeline first (F1)**, then **Lean bundle writer (L0)** from the **same** normalized stream  
-**Related:** [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) §3.4 · [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · HLD v1.1 [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §11.1 · [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) (Normalize)
+**Related:** [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) §3.4 · [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · HLD v1.1 [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §11.1 · [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) (Normalize) · spoken **fact kind** notes: [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md)
 
 ---
 
@@ -21,7 +21,7 @@ All sources should land as **`ingest.v1` JSONL** — one JSON object per line, t
   "tenant": "default",
   "ci_id": "orders-api",
   "ci_type": "Service",
-  "signal_class": "metric_sample",
+  "fact_kind": "metric_sample",
   "name": "request.p95_latency_ms",
   "value": 1450.0,
   "threshold": 1000.0,
@@ -41,8 +41,8 @@ All sources should land as **`ingest.v1` JSONL** — one JSON object per line, t
 
 **Two layers (do not conflate):**
 
-1. **JSON Schema minimal** (`ingest_v1.schema.json` `required[]`): `schema_version`, `ts`, `tenant`, `ci_id`, `signal_class` — what validators enforce today.
-2. **Product / PoC prose (this table):** also expect `ci_type` and `name` on every healthy line so Identity and Detect have a type and a metric/event name. Missing `ci_type` / `name` may still parse against the schema but will fail downstream quality gates and lab fixtures.
+1. **JSON Schema minimal** (`ingest_v1.schema.json` `required[]`): `schema_version`, `ts`, `tenant`, `ci_id`, `fact_kind` — what validators enforce today.
+2. **Product / PoC prose (this table):** also expect `ci_type` on healthy lines. Expect `name` for `metric_sample` / `anomaly` / `event` / `trace_span`; **`topo_update` often omits `name`** and uses `relation` / `src_ci_id` / `dst_ci_id` instead (see §2).
 
 | Field | Type | Schema `required` | Product expect | Notes |
 |-------|------|-------------------|----------------|-------|
@@ -51,29 +51,33 @@ All sources should land as **`ingest.v1` JSONL** — one JSON object per line, t
 | `tenant` | string | Yes | Yes | e.g. `"default"` |
 | `ci_id` | string | Yes | Yes | Stable CI / service id after E2. At E1 this may be source-asserted or a placeholder; E2 resolves it. Primary join key with `tenant` for topology, stores, and a future ServiceOps ticket |
 | `ci_type` | string | No (property defined) | Yes | e.g. `Service`, `HypervisorHost`. Additive taxonomy — see [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) §3 |
-| `signal_class` | enum | Yes | Yes | Admitted now: §2. Reserved unused: §2.1 |
-| `name` | string | No (property defined) | Yes | Metric name, log type, span operation, etc. |
-| `value` | number | No | Usually | Numeric value; use `1.0` for boolean events |
-| `threshold` | number \| null | No | If known | For detect / anomaly marking |
-| `severity` | number | No | Optional | Normalized severity or ratio |
-| `labels` | object | No | Optional | Trace ids, route, host, raw metadata |
-| `raw_ref` | string | No | Optional | Pointer to original record |
+| `fact_kind` | enum | Yes | Yes | Router label (spoken: **fact kind**). Admitted now: §2. Reserved unused: §2.1 |
+| `name` | string | No (property defined) | Usually | Metric / event / span name. Often omitted on `topo_update` |
+| `value` | number | No | Usually | Numeric value; use `1.0` for boolean events; duration_ms for spans |
+| `threshold` | number \| null | No (extra field; schema allows via `additionalProperties`) | If known | For detect / anomaly marking |
+| `severity` | number or string | No (extra field) | Optional | Lab fixtures sometimes use a number ratio, sometimes a string level — both parse; prefer a number when you mean a ratio |
+| `relation` / `src_ci_id` / `dst_ci_id` | string | No | Required for healthy `topo_update` | Edge assertion fields — see §2 |
+| `labels` | object | No | Optional | Trace ids, route, host, raw metadata. Schema: string values only |
+| `raw_ref` | string | No (extra field) | Optional | Pointer to original record |
+| `identity` | object | No | After E2 | Overlay — §2.2 |
 
 ---
 
-## 2. `signal_class` values
+## 2. `fact_kind` values (fact kinds)
 
-Full JSON examples and Pillar A/B routing: [`pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md#signal_class-cheat-sheet) (**I/O-2**).
+Wire field name is **`fact_kind`** (router label for who should care about the line). Full JSON examples and Pillar A/B routing: [`pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md#fact_kind-cheat-sheet) (**I/O-2**). Discussion (logs → `event`): [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md).
 
-| Class | Federated use | Lean use | Primary consumer (ObserveOps) |
-|-------|---------------|----------|-------------------------------|
-| `metric_sample` | Structural tier (Murphy/Panorama context) | Anomaly detect input | **E4 Stores** · **E6 Detect** |
-| `anomaly` | Structural + speed tier | `A-ANOM` | **E6 Detect** · **E7 Curate** |
-| `event` | Structural + speed tier | `A-EVT` | **E4 Stores** · **E10 Identify** |
-| `trace_span` | **Required for Nezha** — speed tier (`tg:` / `pc:`) | Optional | **E9 Localize** · **E10 Identify** |
-| `topo_update` | Structural graph refresh | `A-TOPO` refresh | **E3 Topology** only |
+| Fact kind (`fact_kind`) | Federated use | Lean use | Primary consumer (ObserveOps) | Kind-specific fields |
+|----------------------------|---------------|----------|-------------------------------|----------------------|
+| `metric_sample` | Structural tier (Murphy/Panorama context) | Anomaly detect input | **E4 Stores** · **E6 Detect** | `name`, `value` |
+| `anomaly` | Structural + speed tier | `A-ANOM` | **E6 Detect** · **E7 Curate** | `name`, `value`, `threshold`, `severity` |
+| `event` | Structural + speed tier | `A-EVT` | **E4 Stores** · **E10 Identify** | `name` (includes **logs**), `value` often `1.0` |
+| `trace_span` | **Required for Nezha** — speed tier (`tg:` / `pc:`) | Optional | **E9 Localize** · **E10 Identify** | `name`, `value` = duration_ms, trace labels |
+| `topo_update` | Structural graph refresh | `A-TOPO` refresh | **E3 Topology** only | `relation`, `src_ci_id`, `dst_ci_id` (`name` optional) |
 
-### 2.1 Reserved `signal_class` values (do not emit this pass)
+Schema enum matches this five-value set exactly (`ingest_v1.schema.json`). There is **no** separate `log` kind — raw logs map to `event` (§5).
+
+### 2.1 Reserved `fact_kind` values (do not emit this pass)
 
 Named so later ServiceOps / CMDB sources do not collide with today's enum. Collectors for these are **out of E1 this pass**. Unknown classes (not in §2 and not in this table) must be rejected or dead-lettered — do not guess. See [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) §2.2.
 
@@ -103,7 +107,7 @@ After E2, the same `ingest.v1` line carries an `identity` object. HLD `Identifie
 
 `service` / `env` / `version` stay optional `labels` (HLD D-E2-2). Primary join key is `tenant`+`ci_id`.
 
-Poison envelopes (bad JSON, wrong `schema_version`, unknown `signal_class`) are **E1 dead-letter**, not E2 synthesis. DLQ implementation is Vector D5.
+Poison envelopes (bad JSON, wrong `schema_version`, unknown `fact_kind`) are **E1 dead-letter**, not E2 synthesis. DLQ implementation is Vector D5.
 
 ---
 
@@ -138,6 +142,7 @@ datasets/ingest_samples/<suite>/<incident_id>/
 ```
 
 **Motadata exception (bulk export):** flat suite under `datasets/ingest_samples/jsonl_resolved/` (logs/metrics/traces/spans JSONL) → convert with `motadata_to_ingest_v1.py` → `motadata-ingest/stream.jsonl`. See §11.
+
 ---
 
 ## 4. Metrics — acceptable raw formats
@@ -163,7 +168,7 @@ datasets/ingest_samples/<suite>/<incident_id>/
 | **Syslog RFC5424** | Yes | Vector syslog source |
 | Plain text files | OK with parser | Need stable service/host field for CI bind |
 
-Maps to `signal_class: "event"` (**fact kind** `event`). There is **no** separate `log` value in the five-kind enum — see [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md) §2.
+Maps to `fact_kind: "event"` (**fact kind** `event`). There is **no** separate `log` value in the five-kind enum — see [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md) §2.
 
 ---
 
@@ -189,7 +194,7 @@ One line per span:
   "tenant": "default",
   "ci_id": "checkout-service",
   "ci_type": "Service",
-  "signal_class": "trace_span",
+  "fact_kind": "trace_span",
   "name": "POST /checkout",
   "value": 842.0,
   "threshold": null,
@@ -209,7 +214,14 @@ One line per span:
 
 ## 7. Topology (both engines)
 
-Use existing ObserveOps shape:
+**Two shapes — do not mix them up:**
+
+| Shape | Where | Role |
+|-------|-------|------|
+| ObserveOps `topology.json` (this section) | Beside incident stream for Lean / Federated bakeoff | Seed graph for classic-infra UC packs — edge field often `type: "calls"` |
+| Motadata Pillar B `topo_update` lines + optional `topology.bootstrap.json` | Pillar B sample estate | Wave-1 relations (`runs_on`, `depends_on`, …) → Dest `map/` — see I/O-2 / I/O-3 |
+
+Use existing ObserveOps shape for Federated/Lean incident folders:
 
 ```json
 {
@@ -222,6 +234,7 @@ File: `topology.json` beside the incident stream.
 Federated: structural tier / DashMap LOS context.  
 Lean: `topology.json` in bundle.
 
+Motadata GraphWriter does **not** read this ObserveOps `topology.json` as its primary map write path — it admits `ingest.v1` with `fact_kind=topo_update` (plus lab bootstrap).
 ---
 
 ## 8. Build order (Federated first, then Lean)
@@ -270,7 +283,7 @@ For [`FEDERATED_JUSTIFICATION_REPORT.md`](./FEDERATED_JUSTIFICATION_REPORT.md), 
 
 - [ ] All events have UTC `ts`
 - [ ] After E2, resolved `ci_id` values exist in `topology.json` (E1 may carry unresolved ids; those must not become localize/ticket targets)
-- [ ] Every line has `schema_version == "ingest.v1"` and a §2 `signal_class` (not a reserved §2.1 class unless you are delivering a future source by agreement)
+- [ ] Every line has `schema_version == "ingest.v1"` and a §2 `fact_kind` (not a reserved §2.1 class unless you are delivering a future source by agreement)
 - [ ] Incident window includes **baseline + fault** (≥15–30 min baseline for metrics)
 - [ ] Traces include `trace_id` + `span_id` + `parent_span_id` (Federated)
 - [ ] `ground_truth.json` per incident for scoring
@@ -312,7 +325,7 @@ python3 ingestion-poc/adapters/motadata_to_ingest_v1.py --smoke
 
 Adapter: [`motadata_to_ingest_v1.py`](../ingestion-poc/adapters/motadata_to_ingest_v1.py) · [README](../ingestion-poc/adapters/README.md)
 
-| Motadata source | `signal_class` | `ci_id` |
+| Motadata source | `fact_kind` | `ci_id` |
 |-----------------|----------------|---------|
 | `log.jsonl` | `event` | hostname / `event_source` |
 | `metric_numeric.jsonl` | `metric_sample` (+ threshold) | bound name or `monitor-{id}` |

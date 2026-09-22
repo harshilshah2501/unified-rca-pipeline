@@ -121,7 +121,7 @@ This work maps Motadata onto ObserveOps. It does **not** rebuild Motadata's prod
 | L3 | Alert / Incident / ticket on the map? | No. CIs only. Alert = E6 `Signal`. |
 | L4 | ReAct as default Package? | No. D5 stays Review. Operator E9-E11 with Layer I off. |
 | L5 | Curate inside the agent? | No. E7 one `CaseSeed` first (D3). |
-| L6 | ITSM / change as Collect? | No this pass. Reserved `signal_class` only. |
+| L6 | ITSM / change as Collect? | No this pass. Reserved `fact_kind` only. |
 | L7 | Vortex the only lake? | No. One E4 dest among others. Sketches = E4. Graph = E3. |
 | L8 | Sketches vs map? | Sketches = Grail-like history (E4). Map = Smartscape-like graph (E3). |
 
@@ -176,14 +176,14 @@ Example envelope:
   "tenant": "default",
   "ci_id": "checkout-api",
   "ci_type": "Service",
-  "signal_class": "metric_sample",
+  "fact_kind": "metric_sample",
   "name": "request.p95_latency_ms",
   "value": 1450.0,
   "labels": { "source": "lab-node" }
 }
 ```
 
-Admitted `signal_class`: `metric_sample`, `anomaly`, `event`, `trace_span`, `topo_update`.  
+Admitted `fact_kind`: `metric_sample`, `anomaly`, `event`, `trace_span`, `topo_update`.  
 Reserved (do not emit): `change_event`, `cmdb_sync`, `ticket`.
 
 Preferred lab folder:

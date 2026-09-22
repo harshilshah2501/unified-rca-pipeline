@@ -14,8 +14,8 @@ from graph.graph_writer import GraphWriter
 CASES = SAMPLE_ESTATE / "cases"
 
 
-def test_happy_path_expected_vs_actual_spine():
-    expected = json.loads((CASES / "happy_path" / "expected_spine.json").read_text(encoding="utf-8"))
+def test_case_a_map_spine_expected_vs_actual():
+    expected = json.loads((CASES / "case_a_map_spine" / "expected_spine.json").read_text(encoding="utf-8"))
     writer = GraphWriter(tenant=expected["tenant"])
     writer.load_estate_bootstrap(SAMPLE_ESTATE / expected["inputs"]["bootstrap"])
     writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / expected["inputs"]["stream"]))
@@ -25,8 +25,8 @@ def test_happy_path_expected_vs_actual_spine():
     assert not diffs, "\n".join(diffs)
 
 
-def test_reject_tape_expected_vs_actual():
-    expected = json.loads((CASES / "reject_tape" / "expected_rejects.json").read_text(encoding="utf-8"))
+def test_case_b_rejects_expected_vs_actual():
+    expected = json.loads((CASES / "case_b_rejects" / "expected_rejects.json").read_text(encoding="utf-8"))
     writer = GraphWriter()
     writer.load_estate_bootstrap(SAMPLE_ESTATE / expected["inputs"]["bootstrap"])
     writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / expected["inputs"]["stream"]))

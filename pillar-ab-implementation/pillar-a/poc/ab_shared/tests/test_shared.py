@@ -24,7 +24,7 @@ def test_schemas_validate_golden_examples():
     expected = SAMPLE_ESTATE / "expected"
     ingest_doc = json.loads((expected / "ingest.example.json").read_text())
     assert "examples" in ingest_doc
-    classes = {ex["signal_class"] for ex in ingest_doc["examples"]}
+    classes = {ex["fact_kind"] for ex in ingest_doc["examples"]}
     assert classes == {
         "metric_sample",
         "topo_update",
@@ -34,7 +34,7 @@ def test_schemas_validate_golden_examples():
     }
     for ex in ingest_doc["examples"]:
         line = {k: v for k, v in ex.items() if not k.startswith("_")}
-        assert is_valid("ingest_v1.schema.json", line), ex.get("signal_class")
+        assert is_valid("ingest_v1.schema.json", line), ex.get("fact_kind")
     assert is_valid(
         "sketch_v1.schema.json",
         json.loads((expected / "sketch.example.json").read_text()),

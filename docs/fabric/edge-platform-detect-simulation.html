@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Edge → Detect — ingest simulation</title>
+<title>ObserveOps fabric — edge → Detect → Localize</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,650&display=swap" rel="stylesheet">
@@ -12,155 +12,109 @@
     --font-serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
     --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
     --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-    --bg: #f6f4ef;
-    --surface: #fbfaf7;
-    --ink: #1c1a16;
-    --muted: #5c5850;
-    --faint: #8a857c;
+    --bg: #f6f4ef; --surface: #fbfaf7; --ink: #1c1a16; --muted: #5c5850; --faint: #8a857c;
     --line: rgba(28, 26, 22, 0.10);
-    --accent: #3d5a73;
-    --accent-soft: rgba(61, 90, 115, 0.08);
-    --map: #8b4a55;
-    --map-soft: rgba(139, 74, 85, 0.08);
-    --hist: #3d6b58;
-    --hist-soft: rgba(61, 107, 88, 0.08);
-    --col: #6b5a82;
-    --col-soft: rgba(107, 90, 130, 0.08);
-    --warn: #8a6a32;
-    --warn-soft: rgba(138, 106, 50, 0.10);
-    --zone-edge: #f3f1eb;
-    --zone-node: #f2f3f2;
-    --zone-col: #f4f2f6;
-    --zone-saas: #f1f3f1;
-    --tls: rgba(138, 106, 50, 0.45);
+    --accent: #3d5a73; --accent-soft: rgba(61, 90, 115, 0.08);
+    --map: #8b4a55; --map-soft: rgba(139, 74, 85, 0.08);
+    --hist: #3d6b58; --hist-soft: rgba(61, 107, 88, 0.08);
+    --col: #6b5a82; --col-soft: rgba(107, 90, 130, 0.08);
+    --warn: #8a6a32; --warn-soft: rgba(138, 106, 50, 0.10);
+    --evt: #5a4a6b; --evt-soft: rgba(90, 74, 107, 0.10);
+    --seed: #5a4a3a; --seed-soft: rgba(90, 74, 58, 0.10);
+    --zone-edge: #f3f1eb; --zone-node: #f2f3f2; --zone-col: #f4f2f6; --zone-saas: #f1f3f1;
+    --zone-ingest: #f4f3ef; --tls: rgba(138, 106, 50, 0.45);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #161513;
-      --surface: #1c1b18;
-      --ink: #ece8e0;
-      --muted: #b4aea4;
-      --faint: #8a857c;
+      --bg: #161513; --surface: #1c1b18; --ink: #ece8e0; --muted: #b4aea4; --faint: #8a857c;
       --line: rgba(236, 232, 224, 0.12);
-      --accent: #8eabc2;
-      --accent-soft: rgba(142, 171, 194, 0.12);
-      --map: #d09aa2;
-      --map-soft: rgba(208, 154, 162, 0.12);
-      --hist: #8fbfa8;
-      --hist-soft: rgba(143, 191, 168, 0.12);
-      --col: #b5a6c9;
-      --col-soft: rgba(181, 166, 201, 0.12);
-      --warn: #d4b56a;
-      --warn-soft: rgba(212, 181, 106, 0.14);
-      --zone-edge: #1a1916;
-      --zone-node: #1b1c1b;
-      --zone-col: #1c1a1e;
-      --zone-saas: #1a1c1a;
-      --tls: rgba(212, 181, 106, 0.4);
+      --accent: #8eabc2; --accent-soft: rgba(142, 171, 194, 0.12);
+      --map: #d09aa2; --map-soft: rgba(208, 154, 162, 0.12);
+      --hist: #8fbfa8; --hist-soft: rgba(143, 191, 168, 0.12);
+      --col: #b5a6c9; --col-soft: rgba(181, 166, 201, 0.12);
+      --warn: #d4b56a; --warn-soft: rgba(212, 181, 106, 0.14);
+      --evt: #b5a6c9; --evt-soft: rgba(181, 166, 201, 0.12);
+      --seed: #c4b09a; --seed-soft: rgba(196, 176, 154, 0.12);
+      --zone-edge: #1a1916; --zone-node: #1b1c1b; --zone-col: #1c1a1e; --zone-saas: #1a1c1a;
+      --zone-ingest: #191816; --tls: rgba(212, 181, 106, 0.4);
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: var(--font-body);
-    background: var(--bg);
-    color: var(--ink);
-    padding: 48px 28px 80px;
-    min-height: 100vh;
-    font-size: 17px;
-    line-height: 1.55;
+    font-family: var(--font-body); background: var(--bg); color: var(--ink);
+    padding: 40px 24px 72px; min-height: 100vh; font-size: 16.5px; line-height: 1.55;
   }
-  .wrap { max-width: 1320px; margin: 0 auto; }
+  .wrap { max-width: 1480px; margin: 0 auto; }
   .eyebrow {
-    font-family: var(--font-body);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--faint);
-    margin-bottom: 10px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 8px;
   }
   h1 {
-    font-family: var(--font-serif);
-    font-size: clamp(1.85rem, 2.6vw, 2.45rem);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-    margin-bottom: 14px;
-    max-width: 28ch;
+    font-family: var(--font-serif); font-size: clamp(1.7rem, 2.4vw, 2.25rem);
+    font-weight: 600; letter-spacing: -0.02em; line-height: 1.2;
+    margin-bottom: 12px; max-width: 40ch;
   }
   .lead {
-    color: var(--muted);
-    font-size: 1.125rem;
-    max-width: 68ch;
-    margin-bottom: 28px;
-    line-height: 1.6;
+    color: var(--muted); font-size: 1.05rem; max-width: 92ch;
+    margin-bottom: 22px; line-height: 1.6;
   }
   .lead a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-  .lead code, .brief code, .narration code, .hint code {
-    font-family: var(--font-mono);
-    font-size: 0.88em;
-    background: var(--accent-soft);
-    color: var(--accent);
-    padding: 0.08em 0.35em;
-    border-radius: 4px;
+  .lead code, .brief code, .hint code {
+    font-family: var(--font-mono); font-size: 0.88em;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 0.08em 0.35em; border-radius: 4px;
   }
   .filmbar {
-    margin-bottom: 18px; padding: 12px 14px 14px;
+    margin-bottom: 14px; padding: 10px 12px 12px;
     background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
   }
   .filmbar-meta {
     display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
-    margin-bottom: 10px; font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
+    margin-bottom: 8px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.08em;
     text-transform: uppercase; color: var(--faint);
   }
-  .track { height: 3px; background: var(--line); border-radius: 99px; overflow: hidden; margin-bottom: 12px; }
+  .track { height: 3px; background: var(--line); border-radius: 99px; overflow: hidden; margin-bottom: 10px; }
   .track > i {
     display: block; height: 100%; width: 0%;
-    background: var(--accent); border-radius: 99px;
-    transition: width 80ms linear;
+    background: var(--accent); border-radius: 99px; transition: width 80ms linear;
   }
-  .beats { display: flex; flex-wrap: wrap; gap: 6px; }
+  .beats { display: flex; flex-wrap: wrap; gap: 5px; }
   .beat {
-    font-family: var(--font-body); font-size: 13px; font-weight: 600;
-    padding: 6px 11px; border-radius: 6px;
+    font-size: 12.5px; font-weight: 600; padding: 5px 9px; border-radius: 6px;
     border: 1px solid var(--line); color: var(--muted); background: transparent;
   }
   .beat.on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
   .beat.done { color: var(--faint); }
   .brief {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr));
-    gap: 0;
-    margin-bottom: 20px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    overflow: hidden;
+    grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+    gap: 0; margin-bottom: 16px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
   }
-  .brief > div { padding: 18px 20px; border-right: 1px solid var(--line); }
+  .brief > div { padding: 14px 16px; border-right: 1px solid var(--line); }
   .brief > div:last-child { border-right: none; }
   .brief .k {
-    font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--faint); margin-bottom: 8px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 6px;
   }
-  .brief .v { font-size: 16px; color: var(--ink); line-height: 1.5; }
-  .brief .lede { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 500; line-height: 1.4; color: var(--ink); }
+  .brief .v { font-size: 15px; color: var(--ink); line-height: 1.45; }
+  .brief .lede { font-family: var(--font-serif); font-size: 1.12rem; font-weight: 500; line-height: 1.35; }
   @media (max-width: 960px) {
     .brief { grid-template-columns: 1fr 1fr; }
     .brief > div:nth-child(1) { grid-column: 1 / -1; }
   }
   .stage {
     position: relative; background: var(--surface); border: 1px solid var(--line);
-    border-radius: 10px; padding: 28px 16px 18px; overflow: auto;
+    border-radius: 10px; padding: 24px 12px 14px; overflow: auto;
   }
   .stage-label {
-    position: absolute; top: 12px; left: 18px;
-    font-size: 12px; font-weight: 600; letter-spacing: 0.1em;
+    position: absolute; top: 10px; left: 16px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--faint);
   }
-  svg.anim { width: 100%; min-width: 1080px; height: auto; display: block; margin-top: 8px; }
-  .zone-label { font-family: var(--font-body); font-size: 15px; font-weight: 650; fill: var(--ink); }
-  .zone-sub { font-family: var(--font-body); font-size: 13px; fill: var(--muted); }
+  svg.anim { width: 100%; min-width: 1180px; height: auto; display: block; margin-top: 6px; }
+  .zone-label { font-size: 14px; font-weight: 650; fill: var(--ink); }
+  .zone-sub { font-size: 12px; fill: var(--muted); }
   .box { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
   .box.edge { fill: var(--zone-edge); }
   .box.node { fill: var(--zone-node); }
@@ -168,20 +122,22 @@
   .box.map { fill: var(--map-soft); stroke: var(--map); stroke-dasharray: 5 4; }
   .box.hist { fill: var(--hist-soft); stroke: var(--hist); stroke-dasharray: 5 4; }
   .box.detect { fill: var(--warn-soft); stroke: var(--warn); }
-  .box.muted { fill: transparent; stroke: var(--faint); stroke-dasharray: 4 4; opacity: 0.72; }
+  .box.seed { fill: var(--seed-soft); stroke: var(--seed); }
+  .box.scope { fill: var(--accent-soft); stroke: var(--accent); }
+  .box.evt { fill: var(--evt-soft); stroke: var(--evt); }
+  .box.muted { fill: transparent; stroke: var(--faint); stroke-dasharray: 4 4; opacity: 0.7; }
   .box.idle { opacity: 0.55; }
-  .box.live { stroke-width: 2.1; }
-  .box.node.live { stroke: var(--accent); }
+  .box.live { stroke-width: 2.1; stroke-dasharray: none; }
+  .box.node.live, .box.edge.live { stroke: var(--accent); }
   .box.col.live { stroke: var(--col); }
-  .box.map.live { stroke: var(--map); stroke-dasharray: none; }
-  .box.hist.live { stroke: var(--hist); stroke-dasharray: none; }
+  .box.map.live { stroke: var(--map); }
+  .box.hist.live { stroke: var(--hist); }
   .box.detect.live { stroke: var(--warn); }
-  .box.edge.live { stroke: var(--accent); }
-  @keyframes sigpulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-  .chip.pulse { animation: sigpulse 1.35s ease-in-out infinite; }
+  .box.seed.live { stroke: var(--seed); }
+  .box.scope.live { stroke: var(--accent); }
+  .box.evt.live { stroke: var(--evt); }
+  @keyframes sigpulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .chip.pulse { animation: sigpulse 1.25s ease-in-out infinite; }
   .ico-badge { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
   .ico { color: var(--muted); }
   .ico.accent { color: var(--accent); }
@@ -189,35 +145,62 @@
   .ico.hist { color: var(--hist); }
   .ico.col { color: var(--col); }
   .ico.warn { color: var(--warn); }
+  .ico.evt { color: var(--evt); }
+  .ico.seed { color: var(--seed); }
   .box.idle + .actor { opacity: 0.42; }
   .box.live + .actor .ico-badge { stroke-width: 1.5; }
-  .box.edge.live + .actor .ico-badge { stroke: var(--accent); }
+  .box.edge.live + .actor .ico-badge,
   .box.node.live + .actor .ico-badge { stroke: var(--accent); }
   .box.col.live + .actor .ico-badge { stroke: var(--col); }
   .box.map.live + .actor .ico-badge { stroke: var(--map); }
   .box.hist.live + .actor .ico-badge { stroke: var(--hist); }
   .box.detect.live + .actor .ico-badge { stroke: var(--warn); }
-  .lbl { font-family: var(--font-serif); font-size: 17px; font-weight: 600; fill: var(--ink); }
-  .sub { font-family: var(--font-body); font-size: 13.5px; fill: var(--muted); }
-  .tag { font-family: var(--font-body); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; fill: var(--faint); text-transform: uppercase; }
-  .wire { fill: none; stroke-width: 1.8; stroke-linecap: round; opacity: 0.22; }
+  .box.seed.live + .actor .ico-badge { stroke: var(--seed); }
+  .box.scope.live + .actor .ico-badge { stroke: var(--accent); }
+  .box.evt.live + .actor .ico-badge { stroke: var(--evt); }
+  .lbl { font-family: var(--font-serif); font-size: 15px; font-weight: 600; fill: var(--ink); }
+  .sub { font-size: 12px; fill: var(--muted); }
+  .tag { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; fill: var(--faint); text-transform: uppercase; }
+  .mono { font-family: var(--font-mono); font-size: 11px; fill: var(--accent); }
+  .wire { fill: none; stroke-width: 1.7; stroke-linecap: round; opacity: 0.2; }
   .wire.j { stroke: var(--accent); }
   .wire.a { stroke: var(--hist); }
   .wire.b { stroke: var(--map); }
   .wire.c { stroke: var(--col); }
   .wire.w { stroke: var(--warn); }
+  .wire.e { stroke: var(--evt); }
+  .wire.s { stroke: var(--seed); }
   .wire.active { opacity: 0.95; }
   .packet { opacity: 0; pointer-events: none; }
   .packet.on { opacity: 1; }
-  .chip { font-family: var(--font-body); font-size: 14px; font-weight: 600; fill: var(--warn); }
+  .chip { font-size: 11.5px; font-weight: 600; fill: var(--warn); opacity: 0; }
+  .chip.on { opacity: 1; }
+  .chip.evt { fill: var(--evt); }
+  .chip.seed { fill: var(--seed); }
+  .chip.hist { fill: var(--hist); }
   .legend {
-    display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px;
-    font-size: 14px; color: var(--muted);
+    display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px;
+    font-size: 13.5px; color: var(--muted);
   }
-  .legend span { display: inline-flex; align-items: center; gap: 8px; }
-  .sw { width: 12px; height: 12px; border-radius: 2px; border: 1.5px solid; }
-  .hint { margin-top: 22px; font-size: 15px; color: var(--faint); line-height: 1.55; max-width: 78ch; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .sw { width: 11px; height: 11px; border-radius: 2px; border: 1.5px solid; }
+  .hint { margin-top: 18px; font-size: 14.5px; color: var(--faint); line-height: 1.55; max-width: 95ch; }
   .hint a { color: var(--accent); }
+
+  .zone-mega { fill: transparent; stroke: var(--line); stroke-width: 1.4; }
+  .lane-label { font-size: 12px; font-weight: 650; fill: var(--muted); letter-spacing: 0.04em; }
+  .mega-title { font-size: 15px; font-weight: 700; fill: var(--ink); }
+  .mega-sub { font-size: 12px; fill: var(--muted); }
+  .wlab { opacity: 0.42; }
+  .wlab.on { opacity: 1; }
+  .wlab-bg { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+  .wlab.on .wlab-bg { stroke: var(--accent); }
+  .wlab-t {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+    fill: var(--muted); dominant-baseline: middle;
+  }
+  .wlab.on .wlab-t { fill: var(--ink); font-weight: 600; }
+
   @media (prefers-reduced-motion: reduce) {
     .packet, .wire, .chip.pulse { transition: none !important; animation: none !important; }
   }
@@ -225,32 +208,28 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="eyebrow">ObserveOps · increment 1 · always-on fabric to Detect</div>
-  <h1>From the machine to a Signal, without opening a case</h1>
+  <div class="eyebrow">ObserveOps · one film · two zones · labeled handoffs</div>
+  <h1>Ingestion on the left, SaaS processing on the right</h1>
   <p class="lead">
-    Four columns, left to right: <strong>Edge devices</strong>, <strong>Node</strong>, optional <strong>Collector</strong>, <strong>SaaS</strong>.
-    The page plays itself like a short film: packets move, then the loop starts again. There are no step buttons.
-    Data may enter SaaS from the Node agent or from the Collector — nowhere else.
-    The Collector may aggregate what the Node already shaped, or collect network and application telemetry that never sat on a Node.
-    SaaS writes <code>map/</code> and <code>history/</code> in parallel, then Detect raises a <code>Signal</code>.
-    Triage is drawn, not played here — continue on
-    <a href="./edge-platform-case-simulation.html">film 2 (Detect → Localize)</a>.
-    Checkout names are illustrative.
+    Two zones only: <strong>Ingestion</strong> (Edge devices · Node · optional Collector) and
+    <strong>SaaS platform</strong> (processing: Ingest API → <code>map/</code> ∥ <code>history/</code> → Maintain → Detect → case path).
+    Every arrow is labeled with the contract that crosses it (<code>ingest.v1</code>, <code>GraphSnapshot</code>, <code>sketch.v1</code>, <code>Signal</code>, <code>CaseSeed</code>, <code>WorkingSet</code>, <code>LeafClaim</code>, …).
+    Labels brighten when that beat is live. Identify / Package stay drawn, not fully played.
     <a href="./SIMULATION_THREAD.md">Thread locks</a> ·
-    <a href="./e1-e5-pipeline-architecture.html">E1–E5 architecture</a> ·
-    <a href="../observeops/observeops-shift-left-architecture.html">Shift-left locus</a>.
+    <a href="../INGEST_DATA_FORMAT.md">ingest fact kinds</a> ·
+    <a href="../observeops/observeops-pipeline-hld.html#fabric">Our HLD · Fabric</a>.
   </p>
 
   <div class="filmbar" aria-hidden="true">
     <div class="filmbar-meta">
       <span id="filmStatus">Looping film</span>
-      <span id="filmClock">Beat 1 of 7</span>
+      <span id="filmClock">Beat 1 of 11</span>
     </div>
     <div class="track"><i id="filmFill"></i></div>
     <div class="beats" id="beats"></div>
   </div>
 
-  <div class="brief" id="brief">
+  <div class="brief">
     <div>
       <div class="k" id="briefKicker">Step</div>
       <p class="lede" id="briefLede"></p>
@@ -270,351 +249,367 @@
   </div>
 
   <div class="stage">
-    <span class="stage-label">Estate · Node · Collector · SaaS</span>
-    <svg class="anim" viewBox="0 0 1400 700" xmlns="http://www.w3.org/2000/svg" role="img"
-         aria-label="Four columns: Edge devices, Node, optional Collector, SaaS. Packets enter SaaS from Node or Collector, fill map and history, then Detect raises a Signal.">
+    <span class="stage-label">Two zones · Ingestion | SaaS processing · labeled contracts on every wire</span>
+    <svg class="anim" viewBox="0 0 1480 980" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Two zones: Ingestion (Edge, Node, Collector) and SaaS processing. Wires labeled with contracts.">
       <defs>
-        <marker id="arrJ" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0 0 L10 5 L0 10z" fill="#3d5a73"/>
-        </marker>
-        <marker id="arrC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0 0 L10 5 L0 10z" fill="#6b5a82"/>
-        </marker>
-        <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0 0 L10 5 L0 10z" fill="#8b4a55"/>
-        </marker>
-        <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0 0 L10 5 L0 10z" fill="#3d6b58"/>
-        </marker>
-        <marker id="arrW" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0 0 L10 5 L0 10z" fill="#8a6a32"/>
-        </marker>
-        <symbol id="i-estate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 19V9.5L9 5l5 4.5V19H4z"/><path d="M14 19v-8h6v8"/><path d="M8.5 19v-4h3v4"/>
-        </symbol>
-        <symbol id="i-agent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 3.4 19 7.4v9.2l-7 4-7-4V7.4L12 3.4z"/>
-          <circle cx="12" cy="12" r="2"/>
-        </symbol>
-        <symbol id="i-hopper" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 5h16l-5.2 7.2V20l-5.6-2.4v-5.4L4 5z"/>
-        </symbol>
-        <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 18h10.5a3.6 3.6 0 0 0 .2-7.2 5 5 0 0 0-9.6-1.4A3.6 3.6 0 0 0 7 18z"/>
-        </symbol>
-        <symbol id="i-host" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3.5" y="4.5" width="17" height="11.5" rx="1.6"/><path d="M8 20h8M12 16v4"/>
-        </symbol>
-        <symbol id="i-svc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4.5 8.5 12 5l7.5 3.5L12 12z"/><path d="M4.5 12.5 12 16l7.5-3.5"/><path d="M4.5 16 12 19.5 19.5 16"/>
-        </symbol>
-        <symbol id="i-net" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3.5" y="9" width="17" height="5.5" rx="1.2"/>
-          <path d="M7 14.5V19M12 14.5V19M17 14.5V19M7 5v4M17 5v4"/>
-        </symbol>
-        <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 13h16l-2.2 6.2H6.2L4 13z"/>
-          <path d="M8 13V8.2h8V13"/>
-          <path d="M10 10.2h4"/>
-        </symbol>
-        <symbol id="i-stamp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="9" cy="12" r="3"/><path d="M12 12h8M17 12v3.5M20 12v2.2"/>
-        </symbol>
-        <symbol id="i-door" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 21V5.5A1.5 1.5 0 0 1 8.5 4H18v17H7z"/><path d="M15 12.5h.01"/>
-        </symbol>
-        <symbol id="i-merge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 4.5v4c0 3.4 6 3.8 6 8"/><path d="M18 4.5v4c0 3.4-6 3.8-6 8"/><path d="M12 16.5V20"/><path d="M9.5 18.2H14.5"/>
-        </symbol>
-        <symbol id="i-sniff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 18.5h.01"/><path d="M8.2 14.8a5.4 5.4 0 0 1 7.6 0"/><path d="M5.4 11.8a9.4 9.4 0 0 1 13.2 0"/>
-        </symbol>
-        <symbol id="i-gate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 20V8.5L12 4l8 4.5V20"/><path d="M12 20v-7.5"/><path d="M8 20v-4h8v4"/>
-        </symbol>
-        <symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="7" cy="8" r="2.3"/><circle cx="17" cy="8.5" r="2.3"/><circle cx="12" cy="17" r="2.3"/>
-          <path d="M9.2 8.4h5.4M8.2 10.1l2.6 5M15.8 10.4l-2.5 4.7"/>
-        </symbol>
-        <symbol id="i-bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 18V11M10 18V6.5M15 18v-8M20 18V9"/>
-        </symbol>
-        <symbol id="i-warm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 11a7 7 0 0 1 11.5-5.2L18.5 4v5.5H13"/><path d="M19 13a7 7 0 0 1-11.5 5.2L5.5 20v-5.5H11"/>
-        </symbol>
-        <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3.5 12s3.4-6 8.5-6 8.5 6 8.5 6-3.4 6-8.5 6-8.5-6-8.5-6z"/><circle cx="12" cy="12" r="2.4"/>
-        </symbol>
-        <symbol id="i-case" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 8h5.2l1.8 2H20v9.5H4V8z"/><path d="M8 8V6.2A1.2 1.2 0 0 1 9.2 5h5.6A1.2 1.2 0 0 1 16 6.2V8"/>
-        </symbol>
+        <marker id="arrJ" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#3d5a73"/></marker>
+        <marker id="arrC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#6b5a82"/></marker>
+        <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#8b4a55"/></marker>
+        <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#3d6b58"/></marker>
+        <marker id="arrW" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#8a6a32"/></marker>
+        <marker id="arrE" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#5a4a6b"/></marker>
+        <marker id="arrS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#5a4a3a"/></marker>
+        <symbol id="i-estate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9.5L9 5l5 4.5V19H4z"/><path d="M14 19v-8h6v8"/><path d="M8.5 19v-4h3v4"/></symbol>
+        <symbol id="i-agent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4 19 7.4v9.2l-7 4-7-4V7.4L12 3.4z"/><circle cx="12" cy="12" r="2"/></symbol>
+        <symbol id="i-hopper" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-5.2 7.2V20l-5.6-2.4v-5.4L4 5z"/></symbol>
+        <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18h10.5a3.6 3.6 0 0 0 .2-7.2 5 5 0 0 0-9.6-1.4A3.6 3.6 0 0 0 7 18z"/></symbol>
+        <symbol id="i-host" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="11.5" rx="1.6"/><path d="M8 20h8M12 16v4"/></symbol>
+        <symbol id="i-svc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 8.5 12 5l7.5 3.5L12 12z"/><path d="M4.5 12.5 12 16l7.5-3.5"/><path d="M4.5 16 12 19.5 19.5 16"/></symbol>
+        <symbol id="i-net" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="9" width="17" height="5.5" rx="1.2"/><path d="M7 14.5V19M12 14.5V19M17 14.5V19M7 5v4M17 5v4"/></symbol>
+        <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16l-2.2 6.2H6.2L4 13z"/><path d="M8 13V8.2h8V13"/><path d="M10 10.2h4"/></symbol>
+        <symbol id="i-stamp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="3"/><path d="M12 12h8M17 12v3.5M20 12v2.2"/></symbol>
+        <symbol id="i-door" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V5.5A1.5 1.5 0 0 1 8.5 4H18v17H7z"/><path d="M15 12.5h.01"/></symbol>
+        <symbol id="i-merge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5v4c0 3.4 6 3.8 6 8"/><path d="M18 4.5v4c0 3.4-6 3.8-6 8"/><path d="M12 16.5V20"/><path d="M9.5 18.2H14.5"/></symbol>
+        <symbol id="i-sniff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18.5h.01"/><path d="M8.2 14.8a5.4 5.4 0 0 1 7.6 0"/><path d="M5.4 11.8a9.4 9.4 0 0 1 13.2 0"/></symbol>
+        <symbol id="i-gate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V8.5L12 4l8 4.5V20"/><path d="M12 20v-7.5"/><path d="M8 20v-4h8v4"/></symbol>
+        <symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="8" r="2.3"/><circle cx="17" cy="8.5" r="2.3"/><circle cx="12" cy="17" r="2.3"/><path d="M9.2 8.4h5.4M8.2 10.1l2.6 5M15.8 10.4l-2.5 4.7"/></symbol>
+        <symbol id="i-bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18V11M10 18V6.5M15 18v-8M20 18V9"/></symbol>
+        <symbol id="i-warm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a7 7 0 0 1 11.5-5.2L18.5 4v5.5H13"/><path d="M19 13a7 7 0 0 1-11.5 5.2L5.5 20v-5.5H11"/></symbol>
+        <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12s3.4-6 8.5-6 8.5 6 8.5 6-3.4 6-8.5 6-8.5-6-8.5-6z"/><circle cx="12" cy="12" r="2.4"/></symbol>
+        <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 5.5 13.5H12L11 21l7.5-10.5H12L13 3z"/></symbol>
+        <symbol id="i-msg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6.5h14v9.5H9.5L5 20V6.5z"/></symbol>
+        <symbol id="i-window" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="1.6"/><path d="M3.5 10h17M10 10v9"/></symbol>
+        <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"/><circle cx="12" cy="11" r="2"/></symbol>
+        <symbol id="i-stack" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 8.5 12 5l7.5 3.5L12 12z"/><path d="M4.5 12.5 12 16l7.5-3.5"/><path d="M4.5 16 12 19.5 19.5 16"/></symbol>
+        <symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="1.6"/><path d="M4 10h16M8 14h5"/></symbol>
       </defs>
 
-      <rect id="zEdge" x="10" y="36" width="278" height="644" rx="8" fill="var(--zone-edge)" stroke="var(--line)"/>
-      <g class="actor" transform="translate(22, 48)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-estate" class="ico accent" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="zone-label" x="58" y="64">Edge devices</text>
-      <text class="zone-sub" x="58" y="86">Where bytes are born</text>
+      <!-- ZONE 1: Ingestion -->
+      <rect id="zIngest" x="8" y="34" width="720" height="920" rx="10" fill="var(--zone-ingest)" stroke="var(--accent)" stroke-opacity="0.35"/>
+      <text class="mega-title" x="24" y="58">1 · Ingestion</text>
+      <text class="mega-sub" x="24" y="76">Edge devices · Node · optional Collector</text>
 
-      <rect id="zNode" x="298" y="36" width="278" height="644" rx="8" fill="var(--zone-node)" stroke="var(--line)"/>
-      <g class="actor" transform="translate(310, 48)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-agent" class="ico accent" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="zone-label" x="346" y="64">Node</text>
-      <text class="zone-sub" x="346" y="86">Agent on the machine · E1 + E2</text>
+      <rect x="20" y="96" width="220" height="840" rx="7" fill="var(--zone-edge)" stroke="var(--line)"/>
+      <g class="actor" transform="translate(30, 106)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-estate" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="lane-label" x="62" y="122">Edge devices</text>
 
-      <rect id="zCol" class="box idle" x="586" y="36" width="258" height="644" rx="8" fill="var(--zone-col)" stroke="var(--col)" stroke-dasharray="6 5" stroke-opacity="0.45"/>
-      <g class="actor" transform="translate(598, 48)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-hopper" class="ico col" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="zone-label" x="634" y="64">Collector</text>
-      <text class="zone-sub" x="634" y="86">Optional · second SaaS door</text>
+      <rect x="250" y="96" width="228" height="840" rx="7" fill="var(--zone-node)" stroke="var(--line)"/>
+      <g class="actor" transform="translate(260, 106)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-agent" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="lane-label" x="292" y="122">Node · E1 + E2</text>
 
-      <rect id="zSaas" x="854" y="36" width="536" height="644" rx="8" fill="var(--zone-saas)" stroke="var(--line)"/>
-      <g class="actor" transform="translate(866, 48)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-cloud" class="ico accent" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="zone-label" x="902" y="64">SaaS platform</text>
-      <text class="zone-sub" x="902" y="86">map/ parallel to history/ · then Detect</text>
+      <rect id="zCol" class="box idle" x="488" y="96" width="224" height="840" rx="7" fill="var(--zone-col)" stroke="var(--col)" stroke-dasharray="5 4" stroke-opacity="0.5"/>
+      <g class="actor" transform="translate(498, 106)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-hopper" class="ico col" x="2" y="2" width="20" height="20"/></g>
+      <text class="lane-label" x="530" y="122">Collector · optional</text>
 
-      <line x1="854" y1="100" x2="854" y2="668" stroke="var(--tls)" stroke-width="1.5" stroke-dasharray="2 6"/>
-      <text class="tag" x="868" y="112">TLS · already-shaped ingest.v1</text>
+      <!-- ZONE 2: SaaS -->
+      <rect id="zSaas" x="748" y="34" width="724" height="920" rx="10" fill="var(--zone-saas)" stroke="var(--accent)" stroke-opacity="0.35"/>
+      <g class="actor" transform="translate(760, 42)"><rect class="ico-badge" width="26" height="26" rx="6"/><use href="#i-cloud" class="ico accent" x="3" y="3" width="20" height="20"/></g>
+      <text class="mega-title" x="796" y="58">2 · SaaS platform · processing</text>
+      <text class="mega-sub" x="796" y="76">Ingest fan-out · Maintain both rooms · Detect · triage · localize</text>
 
-      <rect class="box edge" id="devVm" x="28" y="128" width="242" height="88" rx="6"/>
-      <g class="actor" transform="translate(40, 140)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-host" class="ico accent" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="76" y="158">Host</text>
-      <text class="lbl" x="44" y="186">guest-os-vm-app-01</text>
-      <text class="sub" x="44" y="208">CPU, load, guest logs</text>
+      <line x1="736" y1="96" x2="736" y2="942" stroke="var(--tls)" stroke-width="2" stroke-dasharray="3 5"/>
+      <text class="tag" x="742" y="112">TLS boundary</text>
 
-      <rect class="box edge" id="devApi" x="28" y="232" width="242" height="88" rx="6"/>
-      <g class="actor" transform="translate(40, 244)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-svc" class="ico accent" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="76" y="262">Service</text>
-      <text class="lbl" x="44" y="290">orders-api</text>
-      <text class="sub" x="44" y="312">p95 latency, 5xx, spans</text>
+      <!-- Edge cards -->
+      <rect class="box edge" id="devVm" x="34" y="150" width="192" height="72" rx="6"/>
+      <g class="actor" transform="translate(42, 158)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-host" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="74" y="172">Host</text>
+      <text class="lbl" x="46" y="196">guest-os-vm-app-01</text>
+      <text class="sub" x="46" y="212">CPU · logs</text>
 
-      <rect class="box edge" id="devSw" x="28" y="336" width="242" height="88" rx="6"/>
-      <g class="actor" transform="translate(40, 348)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-net" class="ico warn" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="76" y="366">Network</text>
-      <text class="lbl" x="44" y="394">switch-core-01</text>
-      <text class="sub" x="44" y="416">SNMP, interface flows</text>
+      <rect class="box edge" id="devApi" x="34" y="240" width="192" height="72" rx="6"/>
+      <g class="actor" transform="translate(42, 248)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-svc" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="74" y="262">Service</text>
+      <text class="lbl" x="46" y="286">checkout-api</text>
+      <text class="sub" x="46" y="302">p95 · 5xx · spans</text>
 
-      <text class="sub" x="149" y="452" text-anchor="middle">Raw MELT, traps, flows</text>
+      <rect class="box edge" id="devSw" x="34" y="330" width="192" height="72" rx="6"/>
+      <g class="actor" transform="translate(42, 338)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-net" class="ico warn" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="74" y="352">Network</text>
+      <text class="lbl" x="46" y="376">switch-core-01</text>
+      <text class="sub" x="46" y="392">SNMP · flows</text>
 
-      <rect class="box node" id="nE1" x="316" y="150" width="242" height="108" rx="6"/>
-      <g class="actor" transform="translate(328, 162)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-inbox" class="ico accent" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="364" y="180">E1 Collect</text>
-      <text class="lbl" x="332" y="214">Admit the envelope</text>
-      <text class="sub" x="332" y="238">ingest.v1 · no CI bind · no RCA</text>
+      <!-- Node -->
+      <rect class="box node" id="nE1" x="264" y="160" width="200" height="88" rx="6"/>
+      <g class="actor" transform="translate(272, 168)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-inbox" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="304" y="182">E1 Collect</text>
+      <text class="lbl" x="276" y="208">Admit envelope</text>
+      <text class="sub" x="276" y="228">no CI bind yet</text>
 
-      <rect class="box node" id="nE2" x="316" y="282" width="242" height="118" rx="6"/>
-      <g class="actor" transform="translate(328, 294)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-stamp" class="ico accent" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="364" y="312">E2 Identity · Normalize</text>
-      <text class="lbl" x="332" y="346">Stamp join keys</text>
-      <text class="sub" x="332" y="370">tenant + ci_id · mask PII</text>
-      <text class="sub" x="332" y="390">Not E10 Identify</text>
+      <rect class="box node" id="nE2" x="264" y="270" width="200" height="100" rx="6"/>
+      <g class="actor" transform="translate(272, 278)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-stamp" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="304" y="292">E2 Identity</text>
+      <text class="lbl" x="276" y="318">Normalize</text>
+      <text class="sub" x="276" y="338">tenant + ci_id</text>
+      <text class="sub" x="276" y="354">not E10 Identify</text>
 
-      <rect class="box node" id="nDoorA" x="332" y="428" width="210" height="52" rx="6"/>
-      <g class="actor" transform="translate(344, 440)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-door" class="ico warn" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="sub" x="380" y="458">Door A · not fired</text>
+      <rect class="box node" id="nDoorA" x="276" y="390" width="176" height="42" rx="6"/>
+      <g class="actor" transform="translate(284, 396)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-door" class="ico warn" x="2" y="2" width="20" height="20"/></g>
+      <text class="sub" x="316" y="414">Door A · not fired</text>
 
-      <rect class="box col idle" id="nAgg" x="604" y="150" width="222" height="118" rx="6"/>
-      <g class="actor" transform="translate(616, 162)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-merge" class="ico col" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="652" y="180">From the Node</text>
-      <text class="lbl" x="620" y="214">Aggregate, dedup</text>
-      <text class="sub" x="620" y="238">Reduce volume, then egress</text>
-      <text class="sub" x="620" y="258">Does not replace Identity</text>
+      <!-- Collector -->
+      <rect class="box col idle" id="nAgg" x="504" y="160" width="192" height="92" rx="6"/>
+      <g class="actor" transform="translate(512, 168)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-merge" class="ico col" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="544" y="182">From Node</text>
+      <text class="lbl" x="516" y="208">Aggregate / dedup</text>
+      <text class="sub" x="516" y="228">≠ Identity</text>
 
-      <rect class="box col idle" id="nDirect" x="604" y="292" width="222" height="118" rx="6"/>
-      <g class="actor" transform="translate(616, 304)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-sniff" class="ico col" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="652" y="322">No Node hop</text>
-      <text class="lbl" x="620" y="356">Network / app collect</text>
-      <text class="sub" x="620" y="380">SNMP, flows, APM export</text>
-      <text class="sub" x="620" y="400">Still a SaaS ingest door</text>
+      <rect class="box col idle" id="nDirect" x="504" y="274" width="192" height="92" rx="6"/>
+      <g class="actor" transform="translate(512, 282)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-sniff" class="ico col" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="544" y="296">No Node hop</text>
+      <text class="lbl" x="516" y="322">Direct collect</text>
+      <text class="sub" x="516" y="342">SNMP / APM</text>
 
-      <rect class="box node" id="nIng" x="872" y="128" width="230" height="78" rx="6"/>
-      <g class="actor" transform="translate(884, 140)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-gate" class="ico accent" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="920" y="158">Ingest API</text>
-      <text class="lbl" x="888" y="188">Node or Collector</text>
+      <!-- SaaS boxes - keep similar positions shifted -->
+      <rect class="box node" id="nIng" x="768" y="118" width="190" height="70" rx="6"/>
+      <g class="actor" transform="translate(776, 126)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-gate" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="140">Ingest API</text>
+      <text class="lbl" x="780" y="164">Fan-out hub</text>
+      <text class="sub" x="780" y="180">→ both rooms</text>
 
-      <rect class="box map" id="nMap" x="1122" y="118" width="246" height="96" rx="6"/>
-      <g class="actor" transform="translate(1134, 130)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-graph" class="ico map" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="1170" y="148">E3 · Pillar B</text>
-      <text class="lbl" x="1138" y="178" fill="var(--map)">map/</text>
-      <text class="sub" x="1138" y="202">Graph snapshot · edges</text>
+      <rect class="box map" id="nMap" x="1088" y="110" width="360" height="84" rx="6"/>
+      <g class="actor" transform="translate(1096, 118)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-graph" class="ico map" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="1128" y="132">E3 · Pillar B</text>
+      <text class="lbl" x="1100" y="156" fill="var(--map)">map/</text>
+      <text class="sub" x="1100" y="176">GraphSnapshot · edges</text>
 
-      <rect class="box hist" id="nHist" x="1122" y="232" width="246" height="96" rx="6"/>
-      <g class="actor" transform="translate(1134, 244)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-bars" class="ico hist" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="1170" y="262">E4 · Pillar A</text>
-      <text class="lbl" x="1138" y="292" fill="var(--hist)">history/</text>
-      <text class="sub" x="1138" y="316">Sketches · windows · baseline</text>
+      <rect class="box hist" id="nHist" x="1088" y="216" width="360" height="84" rx="6"/>
+      <g class="actor" transform="translate(1096, 224)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-bars" class="ico hist" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="1128" y="238">E4 · Pillar A</text>
+      <text class="lbl" x="1100" y="262" fill="var(--hist)">history/</text>
+      <text class="sub" x="1100" y="282">sketch.v1 · baselines</text>
 
-      <rect class="box node" id="nE5" x="872" y="232" width="230" height="96" rx="6"/>
-      <g class="actor" transform="translate(884, 244)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-warm" class="ico accent" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="920" y="262">E5 Maintain</text>
-      <text class="lbl" x="888" y="292">Keep rooms warm</text>
-      <text class="sub" x="888" y="316">No case yet</text>
+      <text class="sub" x="1268" y="206" text-anchor="middle">no sync</text>
+      <line id="noSync" x1="1268" y1="196" x2="1268" y2="216" stroke="var(--warn)" stroke-dasharray="3 3" opacity="0.35"/>
 
-      <rect class="box detect" id="nDet" x="872" y="360" width="496" height="112" rx="6"/>
-      <g class="actor" transform="translate(884, 372)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-eye" class="ico warn" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="920" y="390">E6 · Door C</text>
-      <text class="lbl" x="888" y="426">Detect</text>
-      <text class="sub" x="888" y="452">Threshold or anomaly vs written baseline → Signal. No root cause.</text>
-      <text class="chip" id="sigBadge" x="1168" y="426" opacity="0">Signal · orders-api p95</text>
+      <rect class="box node" id="nE5" x="768" y="216" width="190" height="84" rx="6"/>
+      <g class="actor" transform="translate(776, 224)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-warm" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="238">E5 Maintain · shared</text>
+      <text class="lbl" x="780" y="262">Warm both</text>
+      <text class="sub" x="780" y="280">validity · baselines</text>
 
-      <rect class="box muted" id="nTriage" x="872" y="496" width="496" height="112" rx="6"/>
-      <g class="actor" transform="translate(884, 508)">
-        <rect class="ico-badge" width="28" height="28" rx="7"/>
-        <use href="#i-case" class="ico" x="4" y="4" width="20" height="20"/>
-      </g>
-      <text class="tag" x="920" y="526">See film 2 · case path</text>
-      <text class="lbl" x="888" y="562">Triage and Localize</text>
-      <text class="sub" x="888" y="588">Storm → CaseSeed → WorkingSet → LeafClaim (separate film)</text>
+      <rect class="box evt" id="nCap" x="768" y="318" width="680" height="92" rx="6"/>
+      <g class="actor" transform="translate(776, 326)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-bolt" class="ico warn" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="340">Capture · five fact_kind values (enum)</text>
+      <text class="mono" id="capMet" x="780" y="364" opacity="0.35">metric_sample</text>
+      <text class="mono" id="capTopo" x="920" y="364" opacity="0.35">topo_update</text>
+      <text class="mono" id="capAno" x="1045" y="364" opacity="0.35">anomaly</text>
+      <text class="mono" id="capEvt" x="1145" y="364" opacity="0.35">event</text>
+      <text class="mono" id="capSpan" x="1225" y="364" opacity="0.35">trace_span</text>
+      <text class="sub" x="780" y="386">No log or error kind — logs use fact_kind event</text>
+      <text class="chip evt" id="evtNameChip" x="780" y="400">event.name example: log.error</text>
 
-      <text class="sub" x="1245" y="226" text-anchor="middle">no sync</text>
-      <line id="noSync" x1="1245" y1="214" x2="1245" y2="232" stroke="var(--warn)" stroke-dasharray="3 3" opacity="0.3"/>
+      <rect class="box detect" id="nDet" x="768" y="428" width="680" height="96" rx="6"/>
+      <g class="actor" transform="translate(776, 436)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-eye" class="ico warn" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="450">E6 Detect · Door C</text>
+      <text class="lbl" x="780" y="474">Signal storm</text>
+      <text class="chip hist" id="skChip" x="980" y="470">Door C reads: sketch p95 vs baseline</text>
+      <text class="chip" id="sigA" x="780" y="502">Signal · Door C</text>
+      <text class="chip" id="sigB" x="980" y="502">Signal · anomaly</text>
+      <text class="chip evt" id="sigC" x="1180" y="502">event correlated</text>
 
-      <path class="wire j" id="wDevE1" d="M270 216 C292 216 292 204 316 204" marker-end="url(#arrJ)"/>
-      <path class="wire j" id="wE1E2" d="M437 258 L437 282" marker-end="url(#arrJ)"/>
-      <path class="wire j" id="wNodeSaas" d="M558 330 C620 330 760 167 872 167" marker-end="url(#arrJ)"/>
-      <path class="wire c" id="wNodeCol" d="M558 341 L604 209" marker-end="url(#arrC)"/>
-      <path class="wire c" id="wColSaas" d="M826 209 C850 209 850 167 872 167" marker-end="url(#arrC)"/>
-      <path class="wire c" id="wNetCol" d="M270 380 C420 430 540 351 604 351" marker-end="url(#arrC)"/>
-      <path class="wire b" id="wIngMap" d="M1102 167 L1122 167" marker-end="url(#arrB)"/>
-      <path class="wire a" id="wIngHist" d="M1102 280 L1122 280" marker-end="url(#arrA)"/>
-      <path class="wire j" id="wE5" d="M987 328 L987 360" marker-end="url(#arrJ)"/>
-      <path class="wire w" id="wHistDet" d="M1245 328 L1100 416" marker-end="url(#arrW)"/>
+      <rect class="box seed" id="nCur" x="768" y="540" width="210" height="104" rx="6"/>
+      <g class="actor" transform="translate(776, 548)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-merge" class="ico seed" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="562">E7 Curate</text>
+      <text class="lbl" x="780" y="588">CaseSeed</text>
+      <text class="chip seed" id="seedBadge" x="780" y="620">one seed</text>
 
-      <circle class="packet" id="pA" r="8" fill="#3d5a73"/>
-      <circle class="packet" id="pB" r="8" fill="#6b5a82"/>
-      <circle class="packet" id="pC" r="8" fill="#8a6a32"/>
+      <rect class="box scope" id="nScope" x="1002" y="540" width="210" height="104" rx="6"/>
+      <g class="actor" transform="translate(1010, 548)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-window" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="1042" y="562">E8 Scope</text>
+      <text class="lbl" x="1014" y="588">WorkingSet</text>
+      <text class="sub" x="1014" y="606">read-join rooms</text>
+      <text class="chip" id="wsBadge" x="1014" y="624" style="fill:var(--accent)">window + suspects</text>
+
+      <rect class="box map" id="nLoc" x="1236" y="540" width="212" height="104" rx="6"/>
+      <g class="actor" transform="translate(1244, 548)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-pin" class="ico map" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="1276" y="562">E9 Localize</text>
+      <text class="lbl" x="1248" y="588">LeafClaim</text>
+      <text class="chip" id="leafBadge" x="1248" y="620" style="fill:var(--map)">payments-db</text>
+
+      <rect class="box muted" id="nId" x="768" y="668" width="320" height="84" rx="6"/>
+      <g class="actor" transform="translate(776, 676)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-stack" class="ico" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="690">E10 Identify · drawn</text>
+      <text class="lbl" x="780" y="716">EvidenceBundle</text>
+      <text class="chip evt" id="idBadge" x="780" y="736">cite log.error</text>
+
+      <rect class="box muted" id="nPkg" x="1112" y="668" width="336" height="84" rx="6"/>
+      <g class="actor" transform="translate(1120, 676)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-card" class="ico" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="1152" y="690">E11 Package · not played</text>
+      <text class="lbl" x="1124" y="716">VerdictCard</text>
+      <text class="sub" x="1124" y="736">operator handoff later</text>
+
+      <!-- wires (IDs preserved) -->
+      <path class="wire j" id="wDevE1" d="M226 210 C240 210 240 204 264 204" marker-end="url(#arrJ)"/>
+      <path class="wire j" id="wE1E2" d="M364 248 L364 270" marker-end="url(#arrJ)"/>
+      <path class="wire j" id="wNodeSaas" d="M464 320 C540 320 660 153 768 153" marker-end="url(#arrJ)"/>
+      <path class="wire c" id="wNodeCol" d="M464 330 L504 206" marker-end="url(#arrC)"/>
+      <path class="wire c" id="wColSaas" d="M696 206 C730 206 740 153 768 153" marker-end="url(#arrC)"/>
+      <path class="wire c" id="wNetCol" d="M226 366 C340 420 440 320 504 320" marker-end="url(#arrC)"/>
+      <path class="wire b" id="wIngMap" d="M958 153 C1010 153 1040 152 1088 152" marker-end="url(#arrB)"/>
+      <path class="wire a" id="wIngHist" d="M958 153 C1010 153 1040 258 1088 258" marker-end="url(#arrA)"/>
+      <path class="wire j" id="wE5Map" d="M958 248 C1010 248 1040 152 1088 152" marker-end="url(#arrJ)"/>
+      <path class="wire j" id="wE5Hist" d="M958 258 C1010 258 1040 258 1088 258" marker-end="url(#arrJ)"/>
+      <path class="wire a" id="wHistCap" d="M1268 300 L1100 360" marker-end="url(#arrA)"/>
+      <path class="wire w" id="wCapDet" d="M1108 410 L1108 428" marker-end="url(#arrW)"/>
+      <path class="wire w" id="wDetCur" d="M900 524 L873 540" marker-end="url(#arrW)"/>
+      <path class="wire s" id="wCurScope" d="M978 592 L1002 592" marker-end="url(#arrS)"/>
+      <path class="wire b" id="wMapScope" d="M1268 194 C1268 470 1120 566 1114 566" marker-end="url(#arrB)"/>
+      <path class="wire a" id="wHistScope" d="M1268 300 C1268 490 1120 596 1114 596" marker-end="url(#arrA)"/>
+      <path class="wire j" id="wScopeLoc" d="M1212 592 L1236 592" marker-end="url(#arrJ)"/>
+      <path class="wire e" id="wEvtId" d="M873 644 L873 668" marker-end="url(#arrE)"/>
+
+      <!-- wire labels -->
+      <g class="wlab" data-for="wDevE1"><rect class="wlab-bg" x="228" y="186" width="58" height="16" rx="3"/><text class="wlab-t" x="257" y="194" text-anchor="middle">raw MELT</text></g>
+      <g class="wlab" data-for="wE1E2"><rect class="wlab-bg" x="372" y="250" width="62" height="16" rx="3"/><text class="wlab-t" x="403" y="258" text-anchor="middle">ingest.v1</text></g>
+      <g class="wlab" data-for="wNodeSaas"><rect class="wlab-bg" x="560" y="128" width="120" height="16" rx="3"/><text class="wlab-t" x="620" y="136" text-anchor="middle">ingest.v1 · identified</text></g>
+      <g class="wlab" data-for="wNodeCol"><rect class="wlab-bg" x="468" y="248" width="62" height="16" rx="3"/><text class="wlab-t" x="499" y="256" text-anchor="middle">ingest.v1</text></g>
+      <g class="wlab" data-for="wColSaas"><rect class="wlab-bg" x="700" y="168" width="62" height="16" rx="3"/><text class="wlab-t" x="731" y="176" text-anchor="middle">ingest.v1</text></g>
+      <g class="wlab" data-for="wNetCol"><rect class="wlab-bg" x="300" y="372" width="78" height="16" rx="3"/><text class="wlab-t" x="339" y="380" text-anchor="middle">SNMP / flows</text></g>
+      <g class="wlab" data-for="wIngMap"><rect class="wlab-bg" x="980" y="128" width="96" height="16" rx="3"/><text class="wlab-t" x="1028" y="136" text-anchor="middle">→ GraphSnapshot</text></g>
+      <g class="wlab" data-for="wIngHist"><rect class="wlab-bg" x="980" y="218" width="88" height="16" rx="3"/><text class="wlab-t" x="1024" y="226" text-anchor="middle">→ sketch.v1</text></g>
+      <g class="wlab" data-for="wE5Map"><rect class="wlab-bg" x="990" y="178" width="58" height="16" rx="3"/><text class="wlab-t" x="1019" y="186" text-anchor="middle">validity</text></g>
+      <g class="wlab" data-for="wE5Hist"><rect class="wlab-bg" x="990" y="278" width="64" height="16" rx="3"/><text class="wlab-t" x="1022" y="286" text-anchor="middle">baselines</text></g>
+      <g class="wlab" data-for="wHistCap"><rect class="wlab-bg" x="1140" y="318" width="100" height="16" rx="3"/><text class="wlab-t" x="1190" y="326" text-anchor="middle">digest + baseline</text></g>
+      <g class="wlab" data-for="wCapDet"><rect class="wlab-bg" x="1118" y="408" width="72" height="16" rx="3"/><text class="wlab-t" x="1154" y="416" text-anchor="middle">fire inputs</text></g>
+      <g class="wlab" data-for="wDetCur"><rect class="wlab-bg" x="848" y="522" width="58" height="16" rx="3"/><text class="wlab-t" x="877" y="530" text-anchor="middle">Signal(s)</text></g>
+      <g class="wlab" data-for="wCurScope"><rect class="wlab-bg" x="980" y="568" width="62" height="16" rx="3"/><text class="wlab-t" x="1011" y="576" text-anchor="middle">CaseSeed</text></g>
+      <g class="wlab" data-for="wMapScope"><rect class="wlab-bg" x="1188" y="470" width="68" height="16" rx="3"/><text class="wlab-t" x="1222" y="478" text-anchor="middle">neighbors</text></g>
+      <g class="wlab" data-for="wHistScope"><rect class="wlab-bg" x="1188" y="510" width="62" height="16" rx="3"/><text class="wlab-t" x="1219" y="518" text-anchor="middle">sketches</text></g>
+      <g class="wlab" data-for="wScopeLoc"><rect class="wlab-bg" x="1210" y="568" width="72" height="16" rx="3"/><text class="wlab-t" x="1246" y="576" text-anchor="middle">WorkingSet</text></g>
+      <g class="wlab" data-for="wEvtId"><rect class="wlab-bg" x="882" y="648" width="68" height="16" rx="3"/><text class="wlab-t" x="916" y="656" text-anchor="middle">event cite</text></g>
+
+      <circle class="packet" id="pA" r="7" fill="#3d5a73"/>
+      <circle class="packet" id="pB" r="7" fill="#6b5a82"/>
+      <circle class="packet" id="pC" r="7" fill="#8a6a32"/>
       <circle class="packet" id="pMap" r="7" fill="#8b4a55"/>
       <circle class="packet" id="pHist" r="7" fill="#3d6b58"/>
-      <circle class="packet" id="pSig" r="9" fill="#8a6a32"/>
+      <circle class="packet" id="pE5a" r="6" fill="#3d5a73"/>
+      <circle class="packet" id="pE5b" r="6" fill="#3d5a73"/>
+      <circle class="packet" id="pSig" r="8" fill="#8a6a32"/>
+      <circle class="packet" id="pSeed" r="8" fill="#5a4a3a"/>
+      <circle class="packet" id="pJoinM" r="6" fill="#8b4a55"/>
+      <circle class="packet" id="pJoinH" r="6" fill="#3d6b58"/>
+      <circle class="packet" id="pLeaf" r="8" fill="#8b4a55"/>
+      <circle class="packet" id="pCite" r="7" fill="#5a4a6b"/>
     </svg>
 
     <div class="legend">
-      <span><i class="sw" style="border-color:var(--accent);background:var(--accent-soft)"></i> Node straight to SaaS</span>
-      <span><i class="sw" style="border-color:var(--col);background:var(--col-soft)"></i> Node via Collector</span>
-      <span><i class="sw" style="border-color:var(--warn);background:var(--warn-soft)"></i> Collector-direct · no Node</span>
-      <span><i class="sw" style="border-color:var(--map);background:var(--map-soft)"></i> map/</span>
-      <span><i class="sw" style="border-color:var(--hist);background:var(--hist-soft)"></i> history/</span>
+      <span><i class="sw" style="border-color:var(--accent);background:var(--accent-soft)"></i> Zone 1 Ingestion · Zone 2 SaaS</span>
+      <span><i class="sw" style="border-color:var(--map);background:var(--map-soft)"></i> map/ · GraphSnapshot</span>
+      <span><i class="sw" style="border-color:var(--hist);background:var(--hist-soft)"></i> history/ · sketch.v1</span>
+      <span><i class="sw" style="border-color:var(--warn);background:var(--warn-soft)"></i> Signal</span>
+      <span><i class="sw" style="border-color:var(--seed);background:var(--seed-soft)"></i> CaseSeed</span>
     </div>
   </div>
   <p class="hint">
-    The film loops from Emit through Detect. Packets slide on every beat; after Detect the loop starts again.
-    Next film: <a href="./edge-platform-case-simulation.html">storm → CaseSeed → WorkingSet → LeafClaim</a>.
+    Wire chips name the handoff object. Ingest fans out to both rooms; E5 Maintain warms both.
     Locks: <a href="./SIMULATION_THREAD.md">SIMULATION_THREAD.md</a>.
   </p>
 </div>
+
 <script>
 (function () {
   const phases = [
     {
       title: "Emit",
-      kicker: "Beat 1 of 7 · Edge devices",
+      kicker: "Beat 1 of 11 · Edge",
       lede: "Telemetry starts on the estate. These boxes are sources, not SaaS ingest.",
-      where: "Customer hosts, VMs, services, and switches. Nothing has entered the Node agent or the Collector yet.",
-      io: "Out: raw metrics, logs, spans, SNMP, and flows. No <code>ingest.v1</code> envelope yet.",
-      not: "Not Collect. Not identity bind. Not Detect. The SaaS column is still empty.",
+      where: "Ingestion zone · Edge devices. Nothing has entered Node or Collector yet.",
+      io: "Out: raw metrics, logs, spans, SNMP, flows.",
+      not: "Not Collect. Not Detect. SaaS rooms are empty.",
       live: ["devVm", "devApi", "devSw"]
     },
     {
       title: "Collect",
-      kicker: "Beat 2 of 7 · E1 on the Node",
-      lede: "The Node agent admits wire-format records as <code>ingest.v1</code> envelopes.",
-      where: "Node (DaemonSet or host agent). The Collector stays idle until a later packet actually uses it.",
-      io: "In: vendor-shaped streams. Out: <code>TelemetryEnvelope</code> / <code>ingest.v1</code>. Source-asserted ids may still be empty.",
-      not: "E1 does not resolve <code>ci_id</code>, does not score anomalies, and does not write <code>map/</code> or <code>history/</code>.",
+      kicker: "Beat 2 of 11 · E1",
+      lede: "Node admits wire-format records as ingest.v1 envelopes.",
+      where: "Ingestion zone · Node agent. Collector stays idle until a packet uses it.",
+      io: "In: vendor streams. Out: TelemetryEnvelope / ingest.v1.",
+      not: "E1 does not resolve ci_id or write map/ / history/.",
       live: ["nE1"]
     },
     {
       title: "Normalize",
-      kicker: "Beat 3 of 7 · E2 Identity",
-      lede: "Normalize is Identity on the Node: stamp join keys so later rooms can meet.",
-      where: "Still the Node. Masking and resource attributes happen before TLS. Door A is visible and is not fired in this increment.",
-      io: "In: admitted envelope. Out: overlay with <code>tenant</code> + <code>ci_id</code>, PII masked. Same contract — not a second on-wire format.",
-      not: "This is not E10 Identify (fault class). Identity bind-miss is a later queue, not a third store.",
+      kicker: "Beat 3 of 11 · E2",
+      lede: "Normalize is Identity: stamp tenant + ci_id so later rooms can meet.",
+      where: "Ingestion zone · Node. Door A is visible and not fired in this film.",
+      io: "In: admitted envelope. Out: identity overlay on the same contract.",
+      not: "Not E10 Identify. Fan-out happens after SaaS ingest, not on the Node.",
       live: ["nE2"]
     },
     {
       title: "Two doors",
-      kicker: "Beat 4 of 7 · SaaS ingest",
-      lede: "SaaS has two doors only. Three packets show every legal way through them.",
-      where: "One packet leaves the Node for the ingest API. One visits Collector (aggregate / dedup) then SaaS. SNMP and flow appear in Collector with no Node hop.",
-      io: "In: identified stream, or Collector-direct network/app records. Out: one ingest API. TLS carries already-shaped <code>ingest.v1</code>.",
-      not: "Coordinator is not a data path. There is no third SaaS door. Collector does not replace E2 Identity.",
+      kicker: "Beat 4 of 11 · Ingest",
+      lede: "SaaS has two doors only: Node direct, or Collector (aggregate or collector-direct).",
+      where: "Boundary: Ingestion → SaaS over TLS. Ingest API is the processing-side hub.",
+      io: "In: identified stream and/or Collector-direct records. Out: one ingest hub.",
+      not: "Coordinator is not a data path. Collector does not replace Identity.",
       live: ["nIng", "nAgg", "nDirect"]
     },
     {
       title: "Fan-out",
-      kicker: "Beat 5 of 7 · E3 ∥ E4",
-      lede: "The same identified stream writes two rooms. They never copy each other.",
-      where: "SaaS control plane. Pillar B Topology fills <code>map/</code>. Pillar A sketches fill <code>history/</code>. Parallel writers after Identity.",
-      io: "In: identified records. Out: <code>GraphSnapshot</code> in <code>map/</code> and <code>sketch.v1</code> rows in <code>history/</code>, keyed by the same <code>ci_id</code>.",
-      not: "No sync job between rooms. Diagnose will join at read. Node and Collector only buffer — they are not the lake.",
-      live: ["nMap", "nHist"]
+      kicker: "Beat 5 of 11 · E3 ∥ E4",
+      lede: "Ingest API fans out to both rooms in parallel. They never copy each other.",
+      where: "Pillar B Topology → map/. Pillar A sketches → history/. Same stream, two writers.",
+      io: "In: identified records. Out: GraphSnapshot and sketch.v1 keyed by the same ci_id.",
+      not: "No sync job. E5 has not run yet. This is not Detect.",
+      live: ["nIng", "nMap", "nHist"]
     },
     {
       title: "Maintain",
-      kicker: "Beat 6 of 7 · E5",
-      lede: "Always-on fabric stays warm. There is still no incident.",
-      where: "SaaS policy (retention, baselines, fleet config). Agents execute pushed config. This is housekeeping, not a case.",
-      io: "In: rooms already written. Out: freshness, TTL, seasonal baselines in Pillar A. Topology validity may refresh separately in Pillar B.",
-      not: "Maintain does not merge rooms, does not raise a Signal, and does not start triage.",
-      live: ["nE5"]
+      kicker: "Beat 6 of 11 · E5 shared",
+      lede: "E5 Maintain is common: keep map/ validity and history/ baselines warm.",
+      where: "SaaS policy over both rooms. Does not create edges and does not merge rooms.",
+      io: "In: rooms already written. Out: freshness on graph and seasonal baselines on sketches.",
+      not: "Maintain is not only for Pillar A. It is not a case opener.",
+      live: ["nE5", "nMap", "nHist"]
+    },
+    {
+      title: "Capture",
+      kicker: "Beat 7 of 11 · fact kinds",
+      lede: "Five fact_kind values only: metric_sample, topo_update, anomaly, event, trace_span.",
+      where: "SaaS capture strip. Metrics → sketches; topo_update → map/; anomaly skips pillars; event (logs too) is evidence; trace_span for Localize/Identify.",
+      io: "Out: correct enum on the wire. Example event.name is log.error — that is a name, not a sixth kind.",
+      not: "No log or error fact_kind. sketch p95 vs baseline is a Door C read, not a fact_kind.",
+      live: ["nCap", "nHist", "nMap", "nIng"]
     },
     {
       title: "Detect",
-      kicker: "Beat 7 of 7 · E6 Door C",
-      lede: "Detect reads what fabric already wrote. A Signal is not a root cause.",
-      where: "SaaS monitors on <code>history/</code> (and thresholds carried on the stream). Door A on the Node remains unfired here. Collector cluster triggers are deferred.",
-      io: "In: sketch vs baseline, or <code>orders-api</code> p95 vs threshold. Out: <code>Signal</code> — fault class only, noisy by design.",
-      not: "Not Curate (one seed), not Scope (WorkingSet), not Localize or Identify. Those play on film 2.",
-      live: ["nDet"]
+      kicker: "Beat 8 of 11 · E6",
+      lede: "Door C reads sketch p95 vs baseline; anomaly line adds a Signal; event correlates.",
+      where: "Platform Detect. Signals are noisy by design and carry no root cause.",
+      io: "Out: Signal storm (Door C SLOWDOWN + anomaly breach + correlated event).",
+      not: "Not Curate yet. Door A stays unfired here.",
+      live: ["nDet", "nCap", "nHist"]
+    },
+    {
+      title: "Curate",
+      kicker: "Beat 9 of 11 · E7",
+      lede: "Curate collapses the storm into one CaseSeed.",
+      where: "SaaS triage. Default policy is one seed.",
+      io: "In: Signals. Out: CaseSeed on the checkout path.",
+      not: "Not Scope. Not Localize.",
+      live: ["nCur", "nDet"]
+    },
+    {
+      title: "Scope",
+      kicker: "Beat 10 of 11 · E8",
+      lede: "Scope read-joins map/ and history/ into a WorkingSet — first join of the two writers.",
+      where: "Neighbors from the graph room; sketches and window from history/.",
+      io: "Out: WorkingSet with suspects, neighborhood, sketch refs, event evidence budget.",
+      not: "Scope does not pick the leaf.",
+      live: ["nScope", "nMap", "nHist", "nCur"]
+    },
+    {
+      title: "Localize",
+      kicker: "Beat 11 of 11 · E9",
+      lede: "Localize emits one LeafClaim. Identify may cite log.error next; Package stays muted.",
+      where: "Diagnose start. ERROR teaching walk → deepest error leaf payments-db.",
+      io: "Out: LeafClaim. Evidence cite chip lights for teaching; full Identify/Package not played.",
+      not: "Not a packaged VerdictCard.",
+      live: ["nLoc", "nScope", "nId"]
     }
   ];
 
@@ -623,9 +618,11 @@
   const fillEl = document.getElementById("filmFill");
   const clockEl = document.getElementById("filmClock");
   const statusEl = document.getElementById("filmStatus");
-  const boxIds = ["devVm","devApi","devSw","nE1","nE2","nAgg","nDirect","nIng","nMap","nHist","nE5","nDet"];
-  const packetIds = ["pA","pB","pC","pMap","pHist","pSig"];
-  const wireIds = ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist","wE5","wHistDet"];
+  const boxIds = ["devVm","devApi","devSw","nE1","nE2","nAgg","nDirect","nIng","nMap","nHist","nE5","nCap","nDet","nCur","nScope","nLoc","nId"];
+  const packetIds = ["pA","pB","pC","pMap","pHist","pE5a","pE5b","pSig","pSeed","pJoinM","pJoinH","pLeaf","pCite"];
+  const wireIds = ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist","wE5Map","wE5Hist","wHistCap","wCapDet","wDetCur","wCurScope","wMapScope","wHistScope","wScopeLoc","wEvtId"];
+  const chipIds = ["skChip","evtNameChip","sigA","sigB","sigC","seedBadge","wsBadge","leafBadge","idBadge"];
+  const factIds = ["capMet","capTopo","capAno","capEvt","capSpan"];
 
   phases.forEach((p, idx) => {
     const s = document.createElement("span");
@@ -635,38 +632,36 @@
   });
 
   let generation = 0;
-  const TRAVEL = reduce ? 0 : 1100;
-  const HOLD = reduce ? 4200 : 2200;
-  const HOLD_END = reduce ? 5200 : 3600;
-  const LOOP_GAP = reduce ? 800 : 1400;
+  const TRAVEL = 980;
+  const HOLD = 2000;
+  const HOLD_END = 3400;
+  const LOOP_GAP = 1200;
 
   function el(id) { return document.getElementById(id); }
   function wireOn(id, yes) {
     const n = el(id);
     if (n) n.classList.toggle("active", !!yes);
+    document.querySelectorAll('.wlab[data-for="'+id+'"]').forEach(g => g.classList.toggle("on", !!yes));
   }
-  function idle(id, yes) {
-    const n = el(id);
-    if (n) n.classList.toggle("idle", !!yes);
+  function chipOn(id, yes, pulse) {
+    const n = el(id); if (!n) return;
+    n.classList.toggle("on", !!yes);
+    n.classList.toggle("pulse", !!pulse);
+    n.style.opacity = yes ? "1" : "0";
   }
+  function factOn(id, yes) { const n = el(id); if (n) n.style.opacity = yes ? "1" : "0.35"; }
   function moveAlong(packet, path, t) {
     const len = path.getTotalLength();
     const pt = path.getPointAtLength(Math.max(0, Math.min(1, t)) * len);
-    packet.setAttribute("cx", pt.x);
-    packet.setAttribute("cy", pt.y);
+    packet.setAttribute("cx", pt.x); packet.setAttribute("cy", pt.y);
   }
-  function hidePackets() {
-    packetIds.forEach(id => el(id).classList.remove("on"));
-  }
-  function wiresOff() {
-    wireIds.forEach(id => wireOn(id, false));
-  }
-  function liveBoxes(ids) {
-    boxIds.forEach(id => el(id).classList.toggle("live", ids.indexOf(id) !== -1));
-  }
-  function ease(t) {
-    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-  }
+  function hidePackets() { packetIds.forEach(id => el(id).classList.remove("on")); }
+  function wiresOff() { wireIds.forEach(id => wireOn(id, false)); }
+  function chipsOff() { chipIds.forEach(id => chipOn(id, false, false)); }
+  function factsOff() { factIds.forEach(id => factOn(id, false)); }
+  function liveBoxes(ids) { boxIds.forEach(id => el(id).classList.toggle("live", ids.indexOf(id) !== -1)); }
+  function idle(id, yes) { const n = el(id); if (n) n.classList.toggle("idle", !!yes); }
+  function ease(t) { return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2; }
   function wait(ms, gen) {
     return new Promise(resolve => {
       const t0 = performance.now();
@@ -679,11 +674,6 @@
     });
   }
   function travel(packet, path, ms, gen) {
-    if (reduce) {
-      packet.classList.add("on");
-      moveAlong(packet, path, 1);
-      return Promise.resolve(true);
-    }
     packet.classList.add("on");
     return new Promise(resolve => {
       const t0 = performance.now();
@@ -692,15 +682,12 @@
         if (gen !== generation) return resolve(false);
         const t = Math.min(1, (now - t0) / ms);
         moveAlong(packet, path, ease(t));
-        if (t < 1) requestAnimationFrame(tick);
-        else resolve(true);
+        if (t < 1) requestAnimationFrame(tick); else resolve(true);
       };
       requestAnimationFrame(tick);
     });
   }
-  function stagger(ms, gen) {
-    return wait(reduce ? 0 : ms, gen);
-  }
+  function stagger(ms, gen) { return wait(ms, gen); }
 
   function renderBrief(n) {
     const p = phases[n];
@@ -719,15 +706,9 @@
   }
 
   function resetScene() {
-    wiresOff();
-    hidePackets();
-    liveBoxes([]);
-    el("sigBadge").style.opacity = "0";
-    el("sigBadge").classList.remove("pulse");
-    el("noSync").style.opacity = "0.3";
-    idle("zCol", true);
-    idle("nAgg", true);
-    idle("nDirect", true);
+    wiresOff(); hidePackets(); chipsOff(); factsOff(); liveBoxes([]);
+    el("noSync").style.opacity = "0.35";
+    idle("zCol", true); idle("nAgg", true); idle("nDirect", true);
   }
 
   async function playBeat(n, gen) {
@@ -737,43 +718,28 @@
       return travel(el("pA"), el("wDevE1"), TRAVEL, gen);
     }
     if (n === 1) {
-      wireOn("wDevE1", true);
-      wireOn("wE1E2", true);
-      el("pA").classList.add("on");
-      moveAlong(el("pA"), el("wDevE1"), 1);
-      return wait(HOLD * 0.45, gen);
+      wireOn("wDevE1", true); wireOn("wE1E2", true);
+      el("pA").classList.add("on"); moveAlong(el("pA"), el("wDevE1"), 1);
+      return wait(HOLD * 0.4, gen);
     }
     if (n === 2) {
-      wireOn("wDevE1", true);
-      wireOn("wE1E2", true);
+      wireOn("wDevE1", true); wireOn("wE1E2", true);
       return travel(el("pA"), el("wE1E2"), TRAVEL, gen);
     }
     if (n === 3) {
-      idle("zCol", false);
-      idle("nAgg", false);
-      idle("nDirect", false);
+      idle("zCol", false); idle("nAgg", false); idle("nDirect", false);
       ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol"].forEach(id => wireOn(id, true));
-      const a = (async () => {
-        await travel(el("pA"), el("wNodeSaas"), TRAVEL + 120, gen);
-      })();
-      const b = (async () => {
-        await stagger(180, gen);
-        await travel(el("pB"), el("wNodeCol"), TRAVEL * 0.7, gen);
-        await travel(el("pB"), el("wColSaas"), TRAVEL * 0.7, gen);
-      })();
-      const c = (async () => {
-        await stagger(320, gen);
-        await travel(el("pC"), el("wNetCol"), TRAVEL, gen);
-      })();
-      await Promise.all([a, b, c]);
+      await Promise.all([
+        travel(el("pA"), el("wNodeSaas"), TRAVEL + 80, gen),
+        (async () => { await stagger(160, gen); await travel(el("pB"), el("wNodeCol"), TRAVEL*0.65, gen); await travel(el("pB"), el("wColSaas"), TRAVEL*0.65, gen); })(),
+        (async () => { await stagger(280, gen); await travel(el("pC"), el("wNetCol"), TRAVEL, gen); })()
+      ]);
       return gen === generation;
     }
     if (n === 4) {
-      idle("zCol", false);
-      idle("nAgg", false);
-      idle("nDirect", false);
+      idle("zCol", false); idle("nAgg", false); idle("nDirect", false);
       ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist"].forEach(id => wireOn(id, true));
-      el("noSync").style.opacity = "0.85";
+      el("noSync").style.opacity = "0.9";
       await Promise.all([
         travel(el("pMap"), el("wIngMap"), TRAVEL, gen),
         travel(el("pHist"), el("wIngHist"), TRAVEL, gen)
@@ -781,28 +747,69 @@
       return gen === generation;
     }
     if (n === 5) {
-      idle("zCol", false);
-      idle("nAgg", false);
-      idle("nDirect", false);
-      ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist","wE5"].forEach(id => wireOn(id, true));
-      el("noSync").style.opacity = "0.85";
-      el("pMap").classList.add("on");
-      el("pHist").classList.add("on");
-      moveAlong(el("pMap"), el("wIngMap"), 1);
-      moveAlong(el("pHist"), el("wIngHist"), 1);
-      return wait(HOLD * 0.4, gen);
+      idle("zCol", false); idle("nAgg", false); idle("nDirect", false);
+      ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist","wE5Map","wE5Hist"].forEach(id => wireOn(id, true));
+      el("noSync").style.opacity = "0.9";
+      el("pMap").classList.add("on"); el("pHist").classList.add("on");
+      moveAlong(el("pMap"), el("wIngMap"), 1); moveAlong(el("pHist"), el("wIngHist"), 1);
+      await Promise.all([
+        travel(el("pE5a"), el("wE5Map"), TRAVEL, gen),
+        travel(el("pE5b"), el("wE5Hist"), TRAVEL, gen)
+      ]);
+      return gen === generation;
     }
     if (n === 6) {
+      idle("zCol", false); idle("nAgg", false); idle("nDirect", false);
+      ["wIngMap","wIngHist","wE5Map","wE5Hist","wHistCap"].forEach(id => wireOn(id, true));
+      el("noSync").style.opacity = "0.9";
+      factIds.forEach(id => factOn(id, true));
+      chipOn("evtNameChip", true, false);
+      await travel(el("pHist"), el("wHistCap"), TRAVEL, gen);
+      return gen === generation;
+    }
+    if (n === 7) {
+      idle("zCol", false); idle("nAgg", false); idle("nDirect", false);
+      ["wIngMap","wIngHist","wE5Map","wE5Hist","wHistCap","wCapDet"].forEach(id => wireOn(id, true));
+      factIds.forEach(id => factOn(id, true));
+      chipOn("evtNameChip", true, false);
+      await travel(el("pSig"), el("wCapDet"), TRAVEL, gen);
+      chipOn("skChip", true, true);
+      chipOn("sigA", true, true);
+      await stagger(200, gen); chipOn("sigB", true, true);
+      await stagger(200, gen); chipOn("sigC", true, true);
+      return gen === generation;
+    }
+    if (n === 8) {
       idle("zCol", false);
-      idle("nAgg", false);
-      idle("nDirect", false);
-      wireIds.forEach(id => wireOn(id, true));
-      el("noSync").style.opacity = "0.85";
-      const ok = await travel(el("pSig"), el("wHistDet"), TRAVEL, gen);
-      if (!ok) return false;
-      el("sigBadge").style.opacity = "1";
-      el("sigBadge").classList.add("pulse");
-      return true;
+      ["wCapDet","wDetCur"].forEach(id => wireOn(id, true));
+      ["skChip","sigA","sigB","sigC"].forEach(id => chipOn(id, true, false));
+      factIds.forEach(id => factOn(id, true));
+      chipOn("evtNameChip", true, false);
+      await travel(el("pSeed"), el("wDetCur"), TRAVEL, gen);
+      chipOn("seedBadge", true, true);
+      return gen === generation;
+    }
+    if (n === 9) {
+      ["wDetCur","wCurScope","wMapScope","wHistScope"].forEach(id => wireOn(id, true));
+      chipOn("seedBadge", true, false);
+      ["sigA","sigB","sigC"].forEach(id => chipOn(id, true, false));
+      await travel(el("pSeed"), el("wCurScope"), TRAVEL * 0.7, gen);
+      await Promise.all([
+        travel(el("pJoinM"), el("wMapScope"), TRAVEL, gen),
+        travel(el("pJoinH"), el("wHistScope"), TRAVEL, gen)
+      ]);
+      chipOn("wsBadge", true, true);
+      return gen === generation;
+    }
+    if (n === 10) {
+      ["wCurScope","wMapScope","wHistScope","wScopeLoc","wEvtId"].forEach(id => wireOn(id, true));
+      chipOn("seedBadge", true, false); chipOn("wsBadge", true, false);
+      ["sigA","sigB","sigC"].forEach(id => chipOn(id, true, false));
+      await travel(el("pLeaf"), el("wScopeLoc"), TRAVEL, gen);
+      chipOn("leafBadge", true, true);
+      await travel(el("pCite"), el("wEvtId"), TRAVEL * 0.7, gen);
+      chipOn("idBadge", true, true);
+      return gen === generation;
     }
     return true;
   }
@@ -810,21 +817,18 @@
   async function loop(gen) {
     while (gen === generation) {
       resetScene();
-      statusEl.textContent = reduce ? "Still cycle · reduced motion" : "Looping film";
+      statusEl.textContent = "Looping film";
       fillEl.style.width = "0%";
       for (let n = 0; n < phases.length; n++) {
         if (gen !== generation) return;
-        const ok = await playBeat(n, gen);
-        if (!ok) return;
+        if (!(await playBeat(n, gen))) return;
         const hold = n === phases.length - 1 ? HOLD_END : HOLD;
-        const survived = await wait(hold, gen);
-        if (!survived) return;
+        if (!(await wait(hold, gen))) return;
       }
       statusEl.textContent = "Replay";
       await wait(LOOP_GAP, gen);
     }
   }
-
   loop(generation);
 })();
 </script>

@@ -1,3 +1,5 @@
+// @ts-nocheck — git reference copy; Cursor types live only for managed canvases/ via Open Canvas.
+
 import {
   Button,
   Callout,
@@ -318,6 +320,9 @@ const DEST_W = 200;
 const DEST_H = 72;
 const READ_W = 136;
 const READ_H = 52;
+/** Gap Dest → Read must fit “load_snapshot · walk” (SVG text sits under buttons if it overlaps). */
+const DEST_READ_GAP = 168;
+const WALK_LABEL_BAND = 22;
 
 function LayerRelationDiagram({
   activeLayer,
@@ -336,10 +341,13 @@ function LayerRelationDiagram({
   const coreCx = pkgXs[coreIdx] + PKG_W / 2;
 
   const arrowTop = pkgY + PKG_H;
-  const destY = arrowTop + 56;
+  // Leave room above Dest/Read for the walk label (never under the Dest button).
+  const destY = arrowTop + 56 + WALK_LABEL_BAND;
   const destX = coreCx - DEST_W / 2;
-  const readX = destX + DEST_W + PKG_GAP;
+  const readX = destX + DEST_W + DEST_READ_GAP;
   const readY = destY + (DEST_H - READ_H) / 2;
+  const walkMidX = destX + DEST_W + DEST_READ_GAP / 2;
+  const walkLabelY = destY - 8;
 
   const diagramW = Math.max(
     DIAGRAM_PAD * 2 + REL_PACKAGES.length * PKG_W + (REL_PACKAGES.length - 1) * PKG_GAP,
@@ -455,12 +463,13 @@ function LayerRelationDiagram({
             strokeWidth={2}
             markerEnd="url(#publish-arrow)"
           />
+          {/* Label sits in the gap above Dest/Read — not inside Dest’s hit box */}
           <text
-            x={(readX + destX + DEST_W) / 2}
-            y={destY + DEST_H / 2 - 12}
+            x={walkMidX}
+            y={walkLabelY}
             textAnchor="middle"
             fill={theme.accent.primary}
-            fontSize={10}
+            fontSize={11}
             fontWeight={600}
           >
             load_snapshot · walk
@@ -793,7 +802,7 @@ const STUB_ROWS = [
   },
   {
     concern: "Detect Signal storm",
-    stance: "Stub JSON under cases/increment2/",
+    stance: "Stub JSON under cases/stub_case_path/",
   },
   {
     concern: "CaseSeed / WorkingSet / LeafClaim",

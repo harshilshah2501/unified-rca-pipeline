@@ -711,7 +711,7 @@
       <tr><td>E4 · Pillar A</td><td><code>entity_id</code></td><td>Same string as <code>ci_id</code> — copied at E4 sketch writer, not re-bound.</td></tr>
       <tr><td>E1 wire</td><td><code>ingest.v1</code></td><td>On-wire schema version for every line E1 Collect admits.</td></tr>
       <tr><td>E2 overlay</td><td><code>IdentifiedRecord</code></td><td>Logical name: same <code>ingest.v1</code> line + <code>identity.*</code> — not a second wire format.</td></tr>
-      <tr><td>E1 class</td><td><code>signal_class: metric_sample</code></td><td>One measurement line — not T-Digest output, not forever-raw in <code>history/</code>.</td></tr>
+      <tr><td>E1 class</td><td><code>fact_kind: metric_sample</code></td><td>One measurement line — not T-Digest output, not forever-raw in <code>history/</code>.</td></tr>
       <tr><td>E3 map</td><td><code>GraphSnapshot</code></td><td>Packaged <code>graph_node.v1</code> + <code>graph_edge.v1</code> in <code>map/</code>.</td></tr>
       <tr><td>E4 history</td><td><code>sketch.v1</code></td><td>Windowed T-Digest + buckets + seasonal baseline — no edge fields.</td></tr>
       <tr><td>E8 read-join</td><td><code>WorkingSet</code></td><td>First time <code>map/</code> neighbors and <code>history/</code> sketches meet for one case.</td></tr>
@@ -775,17 +775,17 @@
       unitGrain: 'One metric_sample line on ingest.v1 — value + ts + labels (no identity overlay yet)',
       sampleFate: '<strong>E1 Collect</strong> admits the shaped stream as <strong>metric_sample</strong>: one measurement per line with <span class="val">value: 842</span>. Still no <code>identity.*</code> block — <strong>E2 Identity (Normalize)</strong> adds join keys.',
       objectIn: 'Shaped stream from Edge',
-      objectOut: 'ingest.v1 · signal_class metric_sample',
+      objectOut: 'ingest.v1 · fact_kind metric_sample',
       purpose: 'Admit well-formed lines. No CI bind, no topology validation — wire format only.',
-      adds: ['schema_version: ingest.v1', 'signal_class: metric_sample', 'ts', 'tenant', 'metric_id', 'value', 'labels'],
+      adds: ['schema_version: ingest.v1', 'fact_kind: metric_sample', 'ts', 'tenant', 'metric_id', 'value', 'labels'],
       drops: ['vendor envelope wrapper', 'edge-specific key names'],
       renames: ['source labels → normalized labels map'],
-      note: 'Platform boundary: first data-shape contract is ingest.v1. E1 Collect admits the shaped stream — wire format only, no identity.status yet. Unknown signal_class rejects or dead-letters.',
+      note: 'Platform boundary: first data-shape contract is ingest.v1. E1 Collect admits the shaped stream — wire format only, no identity.status yet. Unknown fact_kind rejects or dead-letters.',
       jsonBefore: '{\n  "_comment": "Incoming shaped stream (edge)",\n  "resource.service.name": "checkout-api",\n  "host.name": "linux-server-app-01",\n  "metric": "request.latency_ms",\n  "value": 842,\n  "trace_id": "abc123",\n  "timestamp": "2026-08-17T14:32:01.004Z"\n}',
-      json: '{\n  "schema_version": "ingest.v1",\n  "ts": "2026-08-17T14:32:01Z",\n  "tenant": "acme",\n  "signal_class": "metric_sample",\n  "metric_id": "request.latency_ms",\n  "value": 842,\n  "labels": {\n    "service.name": "checkout-api",\n    "host.name": "linux-server-app-01",\n    "trace_id": "abc123",\n    "env": "prod"\n  }\n}',
+      json: '{\n  "schema_version": "ingest.v1",\n  "ts": "2026-08-17T14:32:01Z",\n  "tenant": "acme",\n  "fact_kind": "metric_sample",\n  "metric_id": "request.latency_ms",\n  "value": 842,\n  "labels": {\n    "service.name": "checkout-api",\n    "host.name": "linux-server-app-01",\n    "trace_id": "abc123",\n    "env": "prod"\n  }\n}',
       fieldFate: [
         { field: 'value', before: '842 (edge record)', after: '842 on ingest.v1 line', fate: 'keep', fateLabel: 'keep' },
-        { field: 'signal_class', before: 'absent', after: 'metric_sample', fate: 'add', fateLabel: 'named grain' },
+        { field: 'fact_kind', before: 'absent', after: 'metric_sample', fate: 'add', fateLabel: 'named grain' },
         { field: 'schema_version', before: 'absent', after: 'ingest.v1', fate: 'add', fateLabel: 'wire contract' },
         { field: 'ci_id', before: 'absent', after: 'absent until E2', fate: 'drop', fateLabel: 'not yet bound' }
       ]
@@ -802,8 +802,8 @@
       drops: [],
       renames: ['source labels → resolved ci_id from bind table (LUT)'],
       note: 'Same physical line — not a second schema. Unresolved → quarantine; production writers require identity.status = resolved. See <a href="/docs/GRAPH_QNA.md#G43">GRAPH_QNA G43</a> for ci_id vs entity_id.',
-      jsonBefore: '{\n  "schema_version": "ingest.v1",\n  "signal_class": "metric_sample",\n  "metric_id": "request.latency_ms",\n  "value": 842,\n  "ts": "2026-08-17T14:32:01Z",\n  "labels": { "trace_id": "abc123", "env": "prod" }\n}',
-      json: '{\n  "schema_version": "ingest.v1",\n  "ts": "2026-08-17T14:32:01Z",\n  "tenant": "acme",\n  "ci_id": "checkout-api",\n  "ci_type": "Service",\n  "signal_class": "metric_sample",\n  "metric_id": "request.latency_ms",\n  "value": 842,\n  "labels": { "trace_id": "abc123", "env": "prod" },\n  "identity": {\n    "status": "resolved",\n    "bind_source": "catalog",\n    "aliases": ["checkout-api-prod"]\n  }\n}',
+      jsonBefore: '{\n  "schema_version": "ingest.v1",\n  "fact_kind": "metric_sample",\n  "metric_id": "request.latency_ms",\n  "value": 842,\n  "ts": "2026-08-17T14:32:01Z",\n  "labels": { "trace_id": "abc123", "env": "prod" }\n}',
+      json: '{\n  "schema_version": "ingest.v1",\n  "ts": "2026-08-17T14:32:01Z",\n  "tenant": "acme",\n  "ci_id": "checkout-api",\n  "ci_type": "Service",\n  "fact_kind": "metric_sample",\n  "metric_id": "request.latency_ms",\n  "value": 842,\n  "labels": { "trace_id": "abc123", "env": "prod" },\n  "identity": {\n    "status": "resolved",\n    "bind_source": "catalog",\n    "aliases": ["checkout-api-prod"]\n  }\n}',
       fieldFate: [
         { field: 'value', before: '842', after: '842 (unchanged)', fate: 'keep', fateLabel: 'keep' },
         { field: 'ci_id', before: 'absent', after: 'checkout-api', fate: 'add', fateLabel: 'join key' },
@@ -824,7 +824,7 @@
       renames: [],
       track: 'topology',
       note: 'Parallel to E4 after E2 — not sequential. Sketches never emit edges; topology never stores histograms.',
-      jsonBefore: '{\n  "schema_version": "ingest.v1",\n  "signal_class": "topo_update",\n  "ci_id": "checkout-api",\n  "ci_type": "Service",\n  "labels": {\n    "edge.dst_ci_id": "payments-db",\n    "edge.relation": "depends_on"\n  }\n}',
+      jsonBefore: '{\n  "schema_version": "ingest.v1",\n  "fact_kind": "topo_update",\n  "ci_id": "checkout-api",\n  "ci_type": "Service",\n  "labels": {\n    "edge.dst_ci_id": "payments-db",\n    "edge.relation": "depends_on"\n  }\n}',
       json: '{\n  "schema_version": "graph_snapshot.v1",\n  "tenant": "acme",\n  "nodes": [{\n    "schema_version": "graph_node.v1",\n    "ci_id": "checkout-api",\n    "ci_type": "Service",\n    "identity_status": "resolved"\n  }],\n  "edges": [{\n    "schema_version": "graph_edge.v1",\n    "src_ci_id": "checkout-api",\n    "dst_ci_id": "payments-db",\n    "relation": "depends_on",\n    "discovered_via": { "evidence_type": "declared" }\n  }]\n}',
       fieldFate: [
         { field: 'value (842 ms sample)', before: 'on metric_sample path', after: 'not stored in map/', fate: 'drop', fateLabel: 'metrics → E4' },
@@ -880,7 +880,7 @@
       drops: ['full sketch row (referenced by key)'],
       renames: [],
       note: 'Sketches carry no edges — Detect does not need graph edges for door C. Graph context optional for other doors.',
-      json: '{\n  "signal_class": "anomaly",\n  "detect_class": "SLOWDOWN",\n  "tenant": "acme",\n  "ci_id": "checkout-api",\n  "metric_id": "request.latency_ms",\n  "ts": "2026-08-17T14:35:00Z",\n  "observed_p95": 842,\n  "expected_p95": 320,\n  "severity": "warning"\n}'
+      json: '{\n  "fact_kind": "anomaly",\n  "detect_class": "SLOWDOWN",\n  "tenant": "acme",\n  "ci_id": "checkout-api",\n  "metric_id": "request.latency_ms",\n  "ts": "2026-08-17T14:35:00Z",\n  "observed_p95": 842,\n  "expected_p95": 320,\n  "severity": "warning"\n}'
     },
     E7: {
       id: 'E7', label: 'E7', short: 'Curate',

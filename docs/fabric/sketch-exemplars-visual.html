@@ -247,7 +247,7 @@ table.ex code{font-size:.8rem;word-break:break-all;}
         <tr>
           <td><strong><code>metric_sample</code></strong></td>
           <td>E1 ingest → E4 writer (in memory per window)</td>
-          <td>One identified measurement line: <code>value</code>, <code>ts</code>, labels (e.g. <code>trace_id</code>). <strong>Not</strong> forever-raw in <code>history/</code> after flush. Optional Edge/Gateway may shape telemetry <em>before</em> E1 — the sketch writer still sees <code>signal_class: metric_sample</code>, not a raw lake rescan.</td>
+          <td>One identified measurement line: <code>value</code>, <code>ts</code>, labels (e.g. <code>trace_id</code>). <strong>Not</strong> forever-raw in <code>history/</code> after flush. Optional Edge/Gateway may shape telemetry <em>before</em> E1 — the sketch writer still sees <code>fact_kind: metric_sample</code>, not a raw lake rescan.</td>
         </tr>
         <tr>
           <td><strong><code>ci_id</code></strong> (configuration item)</td>
@@ -267,7 +267,7 @@ table.ex code{font-size:.8rem;word-break:break-all;}
       </tbody>
     </table>
     <div class="flow">Edge (optional) → E1 Collect → E2 Identity bind
-  ingest line: { signal_class: metric_sample, ci_id: "checkout-api",
+  ingest line: { fact_kind: metric_sample, ci_id: "checkout-api",
                  identity: { status: "resolved" }, value: 420, labels: { trace_id: "…" } }
        ↓ E4 admit copies ci_id → entity_id on sketch row
   sketch.v1: { entity_id: "checkout-api", … exemplars[] … }   ← metric_sample stream discarded after flush</div>
@@ -540,7 +540,7 @@ Later     → Detect on digest vs baseline  ·  click exemplar → trace store (
           <text x="360" y="58" text-anchor="middle" fill="#8a96a4" font-size="14">5m window · Thu-09:00 · checkout-api · request.latency_ms</text>
           <rect x="80" y="80" width="560" height="72" rx="10" fill="#1a2233" stroke="#8a96a4" stroke-width="1.5" class="pulse-soft"/>
           <text x="360" y="110" text-anchor="middle" fill="#e8eef4" font-size="16" font-weight="600">5,000 resolved metric_samples</text>
-          <text x="360" y="134" text-anchor="middle" fill="#8a96a4" font-size="13">signal_class: metric_sample · value + ts + ci_id · trace_id in labels</text>
+          <text x="360" y="134" text-anchor="middle" fill="#8a96a4" font-size="13">fact_kind: metric_sample · value + ts + ci_id · trace_id in labels</text>
           <rect x="200" y="178" width="320" height="56" rx="8" fill="#171d25" stroke="#f0b35a"/>
           <text x="360" y="202" text-anchor="middle" fill="#f0b35a" font-size="12" font-family="ui-monospace,monospace">metric_sample { 420 ms, trace-000001 }</text>
           <text x="360" y="222" text-anchor="middle" fill="#8a96a4" font-size="12">input event — writer sees once, then aggregates</text>
@@ -863,7 +863,7 @@ NOT this path: history/ → metric_sample replay → infer trace   ✕</div>
 
           <rect x="24" y="52" width="300" height="88" rx="10" fill="#171d25" stroke="#8a96a4" stroke-width="1.5" class="swap-a"/>
           <text x="174" y="82" text-anchor="middle" fill="#8a96a4" font-size="15" font-weight="600">METRIC_SAMPLE STREAM</text>
-          <text x="174" y="106" text-anchor="middle" fill="#e8eef4" font-size="13">signal_class · value + labels + ci_id</text>
+          <text x="174" y="106" text-anchor="middle" fill="#e8eef4" font-size="13">fact_kind · value + labels + ci_id</text>
           <text x="174" y="128" text-anchor="middle" fill="#f06060" font-size="12">discarded after flush · not in history/</text>
 
           <path d="M174,140 L174,168" fill="none" stroke="#7ba8f5" stroke-width="2.5" marker-end="url(#s1-blue)" class="march"/>

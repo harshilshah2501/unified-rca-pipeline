@@ -91,7 +91,7 @@ Every claim in this document that goes beyond what the repo has already proven c
 
 A **Local-only** tag is not a weaker way of saying Grounded. The gap is intentional and is documented at source.
 
-**One additional honesty note specific to this document.** The operational-graph schema described in §3 is Grounded *as an artifact* — it exists, fully populated, in this repo ([`linux-server-ci-telemetry.json`](./linux-server-ci-telemetry.json), 33 CIs / 40 edges / 228 telemetry keys / 125 fault signatures). But that artifact was **authored**, not emitted by a running E3. The claim "E3 discovers these edges live from the telemetry stream at the stated refresh cadence" is **Design-level**. Do not conflate the two. The schema is proven; the pipeline that produces it continuously is specified.
+**One additional honesty note specific to this document.** The operational-graph schema described in §3 is Grounded *as an artifact* — it is illustrated in this repo ([`observeops-ci-graph.html`](./observeops-ci-graph.html), 33 CIs / 40 edges with provenance). But that illustration was **authored**, not emitted by a running E3. The claim "E3 discovers these edges live from the telemetry stream at the stated refresh cadence" is **Design-level**. Do not conflate the two. The schema is proven; the pipeline that produces it continuously is specified.
 
 ### 2.3 The 8 use cases are not all peers — say so plainly
 
@@ -149,7 +149,7 @@ The corollary is a product requirement, not an implementation detail: **`evidenc
 
 This platform is a multi-tenant observability SaaS. Tenants run VMware, AWS, Kubernetes, bare metal, and combinations nobody planned for. The graph schema must therefore be **CI-taxonomy-agnostic**.
 
-The reference worked example in this repo ([`observeops-ci-graph.html`](./observeops-ci-graph.html) / [`linux-server-ci-telemetry.json`](./linux-server-ci-telemetry.json)) instantiates the schema over a VMware + Linux estate: 33 CIs spanning hypervisor, storage fabric, network, OS, middleware, data and business-service tiers. **That CI list is an illustration, not the target.** What ships is the schema; what varies per tenant is the population.
+The reference worked example in this repo ([`observeops-ci-graph.html`](./observeops-ci-graph.html)) instantiates the schema over a VMware + Linux estate: 33 CIs spanning hypervisor, storage fabric, network, OS, middleware, data and business-service tiers. **That CI list is an illustration, not the target.** What ships is the schema; what varies per tenant is the population.
 
 Throughout this section, concrete names from the worked example appear as *examples of shape*, never as required entities.
 
@@ -241,7 +241,7 @@ This is the same invariant E2 Identity already states in the Pipeline HLD ("unre
 A flat reverse index over every telemetry key the estate can emit. The worked example carries **228 entries**, split 188 host-scoped / 40 instance-scoped. Each entry:
 
 ```
-telemetry_key → signal_class, scope, binding_keys, instance_key,
+telemetry_key → fact_kind, scope, binding_keys, instance_key,
                 resolves_to_ci, scope_parent_via, match_strategy, confidence
 ```
 
@@ -369,7 +369,7 @@ Interactive walk of these five contracts: Fusion → **Pipeline & Graph** (left 
 | | |
 |---|---|
 | **IN** | External telemetry envelopes from agents / OTLP / log streams. Source-asserted `ci_id`/`ci_type` carried but **not** validated. |
-| **OUT** | `TelemetryEnvelope` — on-wire `ingest.v1` JSONL. Unknown `signal_class` and schema-version mismatch reject or dead-letter; never guess. Reserved-unused classes: `change_event`, `cmdb_sync`, `ticket`. |
+| **OUT** | `TelemetryEnvelope` — on-wire `ingest.v1` JSONL. Unknown `fact_kind` and schema-version mismatch reject or dead-letter; never guess. Reserved-unused classes: `change_event`, `cmdb_sync`, `ticket`. |
 | **Graph interaction** | **None, by design.** Binding is E2's job. E1 validating against the graph would couple admission to graph freshness and make ingest fail when discovery lags. |
 
 ### E2 Identity (Normalize)
@@ -597,7 +597,7 @@ All 9 items below were open questions in v0.1. Resolved in a review pass with th
 - Parent: [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) — normative on stage semantics · hub HTML [`observeops-pipeline-hld.html`](./observeops-pipeline-hld.html)
 - Interactive companion: [`observeops-fusion-guide.html`](./observeops-fusion-guide.html) — tabs map in §0
 - Use-case catalog: [`OBSERVEOPS_USE_CASES.md`](./OBSERVEOPS_USE_CASES.md) v1
-- Reference operational graph (worked example): [`linux-server-ci-telemetry.json`](./linux-server-ci-telemetry.json) · [`observeops-ci-graph.html`](./observeops-ci-graph.html)
+- Reference operational graph (worked example): [`observeops-ci-graph.html`](./observeops-ci-graph.html)
 - Pipeline diagram: [`observeops-pipeline-diagram.html`](./observeops-pipeline-diagram.html)
 - Closed LLDs: [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md)
 - Drafts for review: [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) · [`LLD-E4-Stores.md`](./LLD-E4-Stores.md)

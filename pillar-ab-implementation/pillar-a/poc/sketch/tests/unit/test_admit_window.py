@@ -6,7 +6,7 @@ from ab_shared.season import HourOfWeekSeason
 
 def test_admit_resolved_wave1():
     rec = {
-        "signal_class": "metric_sample",
+        "fact_kind": "metric_sample",
         "tenant": "default",
         "ci_id": "checkout-api",
         "ci_type": "Service",
@@ -22,7 +22,7 @@ def test_admit_resolved_wave1():
 
 def test_unknown_metric():
     rec = {
-        "signal_class": "metric_sample",
+        "fact_kind": "metric_sample",
         "tenant": "default",
         "ci_id": "checkout-api",
         "name": "disk.queue_depth",

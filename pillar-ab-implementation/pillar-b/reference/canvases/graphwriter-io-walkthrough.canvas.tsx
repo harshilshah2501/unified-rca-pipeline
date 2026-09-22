@@ -1,3 +1,5 @@
+// @ts-nocheck — git reference copy; Cursor types live only for managed canvases/ via Open Canvas.
+
 import {
   Callout,
   Card,
@@ -57,7 +59,7 @@ const PARTNER_ROWS = [
     partner: "Shared ingest stream",
     role: "Same wire as Pillar A",
     exchange:
-      "JSONL of ingest.v1. GraphWriter filters signal_class = topo_update; metric_sample is a silent skip.",
+      "JSONL of ingest.v1. GraphWriter filters fact_kind = topo_update; metric_sample is a silent skip.",
   },
   {
     partner: "topology.seed.json (lab)",
@@ -130,7 +132,7 @@ const EXAMPLE_LINE = `{
   "tenant": "default",
   "ci_id": "checkout-api",
   "ci_type": "Service",
-  "signal_class": "topo_update",
+  "fact_kind": "topo_update",
   "relation": "runs_on",
   "src_ci_id": "checkout-api",
   "dst_ci_id": "linux-server-app-01",
@@ -431,7 +433,7 @@ function StepBody({ step }: { step: StepId }) {
         <Table
           headers={["Check", "This line", "Result"]}
           rows={[
-            ["signal_class", "topo_update", "Not skipped"],
+            ["fact_kind", "topo_update", "Not skipped"],
             ["identity.status", "resolved", "Gate admits"],
             ["ci_type", "Service", "May emit vertex"],
             ["relation", "runs_on", "Wave-1 catalog · upsert edge"],
@@ -452,7 +454,7 @@ function StepBody({ step }: { step: StepId }) {
           writer.rejects with a shared reason code).
         </Text>
         <Table
-          headers={["Case", "signal_class", "identity", "relation", "Outcome"]}
+          headers={["Case", "fact_kind", "identity", "relation", "Outcome"]}
           rows={ADMIT_ROWS.map((r) => [
             r.case,
             r.signal,

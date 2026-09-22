@@ -22,13 +22,13 @@ source = '''
 .ts = string!(.ts)
 .tenant = string!(.tenant) ?? "default"
 .ci_id = string!(.ci_id)
-.signal_class = string!(.signal_class)
+.fact_kind = string!(.fact_kind)
 '''
 
 [transforms.route_lean]
 type = "filter"
 inputs = ["to_ingest_v1"]
-condition = '.signal_class == "anomaly" || .signal_class == "event" || .signal_class == "metric_sample"'
+condition = '.fact_kind == "anomaly" || .fact_kind == "event" || .fact_kind == "metric_sample"'
 
 # Demo sink: write normalized events for lean_bundle_writer to consume later.
 [sinks.lean_incident_dir]

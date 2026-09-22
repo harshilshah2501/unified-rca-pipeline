@@ -206,7 +206,7 @@ def detect_from_ingest_jsonl(
 ) -> DetectResult:
     """Run threshold detect over `ingest.v1` JSONL (`metric_sample` rows with threshold).
 
-    Ignores pre-baked `signal_class: anomaly` rows so detect is recomputed from samples.
+    Ignores pre-baked `fact_kind: anomaly` rows so detect is recomputed from samples.
     """
     t0 = time.perf_counter()
     crossed: list[dict[str, Any]] = []
@@ -219,7 +219,7 @@ def detect_from_ingest_jsonl(
             if not line:
                 continue
             row = json.loads(line)
-            if row.get("signal_class") != "metric_sample":
+            if row.get("fact_kind") != "metric_sample":
                 continue
             threshold = row.get("threshold")
             if threshold is None:

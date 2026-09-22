@@ -1,7 +1,7 @@
 # P2 stub harness — CaseSeed → WorkingSet → LeafClaim
 
 **Doc job:** Optional **drivers** that exercise walk-through APIs with diagnose-shaped names.  
-**Not the PoC mission.** Core knowledge-graph use cases → [Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx) · [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md).
+**Not the PoC mission.** Core knowledge-graph use cases → [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) · [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md).
 
 **Stance:** Detect storm / Curate / Scope / Localize are **stubbed**. They do not write `map/`. They call `neighbors` / `reachable_ci_ids` / `find_paths` so we can demo a seed → neighborhood → leaf path without owning Detect or sketches.
 
@@ -50,8 +50,8 @@ Signal storm ──curate_storm──► CaseSeed ──build_working_set──�
 
 | Artifact | Path |
 |----------|------|
-| Storm | [`../poc/sample_estate/customer_checkout/cases/increment2/signal_storm.json`](../poc/sample_estate/customer_checkout/cases/increment2/signal_storm.json) |
-| Expected spine | [`../poc/sample_estate/customer_checkout/cases/increment2/expected_case_path.json`](../poc/sample_estate/customer_checkout/cases/increment2/expected_case_path.json) |
+| Storm | [`../poc/sample_estate/customer_checkout/cases/stub_case_path/signal_storm.json`](../poc/sample_estate/customer_checkout/cases/stub_case_path/signal_storm.json) |
+| Expected spine | [`../poc/sample_estate/customer_checkout/cases/stub_case_path/expected_case_path.json`](../poc/sample_estate/customer_checkout/cases/stub_case_path/expected_case_path.json) |
 | Map under test | Case A bootstrap + `stream.resolved.jsonl` → `publish_map` |
 
 | Check | Expected |
@@ -68,4 +68,4 @@ Signal storm ──curate_storm──► CaseSeed ──build_working_set──�
 - Part A/B walk: [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md)  
 - Code tour: [`Codebase-go-through.md`](./Codebase-go-through.md)  
 - Integration sketch join: [`../../integration/README.md`](../../integration/README.md)  
-- Fabric locks: [`../../../docs/fabric/SIMULATION_THREAD.md`](../../../docs/fabric/SIMULATION_THREAD.md) Increment 2  
+- Fabric locks: [`../../../docs/fabric/SIMULATION_THREAD.md`](../../../docs/fabric/SIMULATION_THREAD.md) stub case-path harness  

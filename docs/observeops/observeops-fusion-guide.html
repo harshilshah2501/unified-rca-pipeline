@@ -741,7 +741,7 @@
       </div>
 
       <div id="subpanel-reference" class="subpanel" hidden>
-        <p class="uc-note">Everything on this tab is read directly out of <code>schema_version 1.0</code> in <code>linux-server-ci-telemetry 2.json</code>, cross-checked against the <em>ObserveOps HLD</em> prose. Where the JSON ships a field empty (signal-class descriptions, metric units, <code>primary_health_signal</code>, telemetry-key examples) the definition below is synthesized from the HLD narrative and domain convention, not copied from the file &mdash; see the <strong>Gaps &amp; Recommendations</strong> tab, item 1, for the full list of what's blank.</p>
+        <p class="uc-note">Everything on this tab is cross-checked against the <em>ObserveOps HLD</em> prose and the authored Linux-server illustration in <a href="/observeops-ci-graph.html">observeops-ci-graph.html</a>. Where fields are empty in teaching copy (domain descriptions, metric units, <code>primary_health_signal</code>, telemetry-key examples) the definition below is synthesized from the HLD narrative and domain convention — see the <strong>Gaps &amp; Recommendations</strong> tab, item 1, for the full list of what's blank.</p>
 
         <div class="graph-section">
           <h2>A. Signal classes &mdash; the 13 kinds of telemetry a CI can emit</h2>
@@ -970,14 +970,14 @@ rca:       { is_root_cause_candidate, blast_radius_impact, primary_health_signal
       </div>
 
       <div id="subpanel-gaps" class="subpanel" hidden>
-        <p class="uc-note">Grounded strictly in what's actually in <code>linux-server-ci-telemetry 2.json</code> and the <em>ObserveOps HLD</em> &mdash; nothing speculative added beyond what those two documents themselves flag as open, empty, or deferred.</p>
+        <p class="uc-note">Grounded strictly in the <em>ObserveOps HLD</em> and the authored Linux-server illustration (<a href="/observeops-ci-graph.html">observeops-ci-graph.html</a>) &mdash; nothing speculative added beyond what those sources themselves flag as open, empty, or deferred.</p>
 
         <div class="graph-section">
           <h2>Schema data gaps &mdash; fields shipped empty in the reference file</h2>
           <div class="gap-list">
             <div class="gap-item">
               <div class="gap-item-head"><span class="gap-badge data">Data gap</span><h3>Signal-class descriptions &amp; default sources are blank</h3></div>
-              <p>All 13 entries in <code>signal_classes[]</code> ship <code>description: ""</code> and <code>default_sources: []</code>. The schema declares the taxonomy but doesn't define it in machine-readable form &mdash; every definition on the Schema Reference tab had to be derived from HLD prose, not read off the JSON.</p>
+              <p>All 13 entries in <code>telemetry_domains[]</code> ship <code>description: ""</code> and <code>default_sources: []</code>. The schema declares the taxonomy but doesn't define it in machine-readable form &mdash; every definition on the Schema Reference tab had to be derived from HLD prose, not read off the JSON.</p>
               <p class="impact">Impact: any UI/tooltip that wants to explain a signal class to an operator has nothing to render today; the class names alone aren't self-explanatory (what's the difference between <code>events</code> and <code>logs</code>? not stated anywhere machine-readable).</p>
             </div>
             <div class="gap-item">
@@ -1384,7 +1384,7 @@ rca:       { is_root_cause_candidate, blast_radius_impact, primary_health_signal
       purpose: "Wire-format admission only. Telemetry this pass; no CI binding, no CMDB/change/ticket sources.",
       constIO: io(
         "External telemetry envelopes from agents / OTLP / log streams. Source-asserted <code>ci_id</code>/<code>ci_type</code> carried but not validated.",
-        "<code>TelemetryEnvelope</code> &mdash; on-wire <code>ingest.v1</code> JSONL. Unknown signal_class or schema mismatch: reject or dead-letter, never guess.",
+        "<code>TelemetryEnvelope</code> &mdash; on-wire <code>ingest.v1</code> JSONL. Unknown fact_kind or schema mismatch: reject or dead-letter, never guess.",
         "None, by design. Binding is E2's job &mdash; coupling admission to graph freshness would make ingest fail when discovery lags.",
         ["Grounded", "grounded"]) },
     E2: { name: "Identity (Normalize)", phase: "P1",

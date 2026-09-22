@@ -27,7 +27,7 @@ Do not start sketch writers or `GraphSnapshot` until these are written down (one
 | L3 | Alert / Incident / ticket on the map? | No. CIs only. Alert = E6 `Signal`. |
 | L4 | ReAct as default Package? | No. **D5 stays Review.** Operator E9–E11 with Layer I off. |
 | L5 | Curate inside the agent? | No. E7 one `CaseSeed` first (**D3**). |
-| L6 | ITSM / change as Collect? | No this pass. Reserved `signal_class` only. |
+| L6 | ITSM / change as Collect? | No this pass. Reserved `fact_kind` only. |
 | L7 | Vortex the only lake? | No. **Gate B:** one dest profile among others. Sketches = E4 modality. Graph = E3. |
 | L8 | Sketches vs map? | Sketches = compact history (Grail-like, E4). Map = who-is-connected (Smartscape-like, E3). |
 
@@ -88,7 +88,7 @@ Someone else (or existing converters) **Collects**. This workstream only **reads
 
 | Need | Format | Notes |
 |------|--------|--------|
-| Metrics | As today: OTLP metrics, Prometheus scrape, or already-converted lines | Become `signal_class: metric_sample` |
+| Metrics | As today: OTLP metrics, Prometheus scrape, or already-converted lines | Become `fact_kind: metric_sample` |
 | Logs / structured events | OTLP logs, JSON, syslog | Become `event` |
 | Traces (if door/leaf needs them) | OTLP / Jaeger / Zipkin | Become `trace_span` |
 | Topology cues | `topo_update` lines **or** a sibling `topology.json` | E1 only carries `topo_update`; E3 interprets |
@@ -100,7 +100,7 @@ Someone else (or existing converters) **Collects**. This workstream only **reads
 
 **Format:** UTF-8 **JSONL**, one JSON object per line, time-ordered.
 
-**Envelope:** `schema_version` must be `"ingest.v1"`. Wrong version or unknown `signal_class` → reject / dead-letter (not E2’s problem).
+**Envelope:** `schema_version` must be `"ingest.v1"`. Wrong version or unknown `fact_kind` → reject / dead-letter (not E2’s problem).
 
 Minimum fields (see LLD-E1 §2):
 
@@ -111,7 +111,7 @@ Minimum fields (see LLD-E1 §2):
   "tenant": "default",
   "ci_id": "checkout-api",
   "ci_type": "Service",
-  "signal_class": "metric_sample",
+  "fact_kind": "metric_sample",
   "name": "request.p95_latency_ms",
   "value": 1450.0,
   "threshold": 1000.0,

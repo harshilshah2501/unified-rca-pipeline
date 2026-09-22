@@ -52,7 +52,13 @@ Hub terms (HLD, Dynatrace, Datadog, flamegraph, Detect class, …) live in the b
 
 **symptom seed** — CI/signal where pain showed. Start of the search; usually not the root.
 
-**Tier (hub)** — Our HLD / Motadata **docs reading depth**: hub Tier 1 = must-read above the fold; hub Tier 2 = depth (LLDs, fabric, I/O chain); hub Tier 3 = archive / evaluation history. Locked list: [`OUR_HLD_TIER1.md`](../observeops/OUR_HLD_TIER1.md). Not evidentiary Tier and not storage Tier.
+**Tier (hub)** — Our HLD / Motadata **docs reading depth**: hub Tier 1 = must-read above the fold; hub Tier 2 = depth (LLDs, fabric, I/O chain); hub Tier 3 = archive / evaluation history. Locked list: [`OUR_HLD_TIER1.md`](../observeops/OUR_HLD_TIER1.md). Not evidentiary Tier and not storage Tier. Audience splits on that page are **Everyone** vs **Implementers** — do **not** relabel them Band A/B.
+
+**Pillar A / B / C** — Motadata product pillars: A = sketches (`history/`), B = knowledge graph (`map/`), C = optional ReAct agent. Not Detect entry points and not hub reading bands.
+
+**Detect entry (Node / Gateway / platform)** — where a Detect *Signal* can fire (shift-left locus). Older Motadata notes say “Door A/B/C” for the same three loci; prefer **Node / Gateway / platform** in new hub copy so “Door C” is not confused with “Pillar C.”
+
+**Datadog Door A / B** — vendor-only: Monitors vs Watchdog. Do not import into Motadata hub navigation.
 
 **Tier (lean evidentiary)** — Lean verdict depth. **Tier 1** = main path, temporal + rules, no causal claim. **Tier 2** = CARE ranking when Δt is ambiguous. **Tier 3** = CARE + scoped causal check. Default reading of bare “Tier 3” in bakeoff docs unless the page says **hub Tier** or **storage Tier**.
 

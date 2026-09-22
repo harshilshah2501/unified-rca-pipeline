@@ -1,7 +1,7 @@
 # Codebase go-through — Pillar B knowledge-graph PoC
 
 **Doc job:** walk the **code and sample estate** for the two PoC use cases — **build/maintain** and **walk-through**.  
-**Framing:** [Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx). Eval → [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md). Package door → [`../README.md`](../README.md).
+**Framing:** [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html). Eval → [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md). Package door → [`../README.md`](../README.md).
 
 **What this PoC proves:** after Identity (assumed), Motadata can **build and keep** a `map/` knowledge graph from optional estate bootstrap + a `topo_update` stream, **maintain** edge validity, and **walk** the published snapshot — without owning Detect, sketches, or ServiceOps.
 
@@ -34,16 +34,24 @@ flowchart LR
   State -.-> Maint --> Reflush -.-> Map
 ```
 
-![Same spine as PNG — use if Mermaid preview is off](./runtime-spine.png)
+<figure class="doc-fig">
+  <img src="./runtime-spine.svg" alt="Runtime spine: bootstrap and stream into GraphWriter, GraphState, publish_map, map/, optional maintain_map" width="920" />
+  <figcaption>Same spine as SVG (scales in the hub). Mermaid above is preferred when the preview renders. <a href="./runtime-spine.png">PNG</a> if you need a raster export.</figcaption>
+</figure>
 
-**Call graphs (one-liners on nodes and arrows):**
+**Call graphs (one-liners on nodes and arrows)** — SVG embeds stay readable on `:8765`; full-size PNGs are optional downloads (they are ~4k px wide and look huge if opened raw).
 
-| Use case | Image |
-|----------|--------|
-| **1 · Build + maintain** | [`pillar-b-callgraph.png`](./pillar-b-callgraph.png) · [SVG](./pillar-b-callgraph.svg) · [DOT](./pillar-b-callgraph.dot) |
-| **2 · Walk-through** | [`pillar-b-walk-callgraph.png`](./pillar-b-walk-callgraph.png) · [SVG](./pillar-b-walk-callgraph.svg) · [DOT](./pillar-b-walk-callgraph.dot) |
+<figure class="doc-fig">
+  <img src="./pillar-b-callgraph.svg" alt="Build and maintain call graph" width="920" />
+  <figcaption>Use case 1 · Build + maintain — <a href="./pillar-b-callgraph.svg">SVG</a> · <a href="./pillar-b-callgraph.png">PNG</a> · <a href="./pillar-b-callgraph.dot">DOT</a></figcaption>
+</figure>
 
-Noisier auto dump (write path only): [`pillar-b-callgraph-auto.png`](./pillar-b-callgraph-auto.png).
+<figure class="doc-fig">
+  <img src="./pillar-b-walk-callgraph.svg" alt="Walk-through call graph" width="920" />
+  <figcaption>Use case 2 · Walk-through — <a href="./pillar-b-walk-callgraph.svg">SVG</a> · <a href="./pillar-b-walk-callgraph.png">PNG</a> · <a href="./pillar-b-walk-callgraph.dot">DOT</a></figcaption>
+</figure>
+
+Noisier auto dump (write path only, optional): [`pillar-b-callgraph-auto.png`](./pillar-b-callgraph-auto.png).
 
 `GraphWriter` is a thin orchestrator: `load_estate_bootstrap` → `write_topo_stream` → `publish_map` → optional `maintain_map`. Lab CLI: [`../poc/graph/cli_publish_map.py`](../poc/graph/cli_publish_map.py) (`make publish-map`).
 
@@ -56,7 +64,7 @@ pillar-b/
 ├── README.md                 ← package front door (I/O + admit)
 ├── docs/                     ← PoC guides only (this page, MAP_P1, doc map)
 ├── contracts/schemas/        ← schema symlinks → slice SoT (required by tests)
-├── references/               ← OPTIONAL product HTML (not PoC SoT)
+├── archived-docs/            ← OPTIONAL product HTML (not PoC SoT)
 └── poc/                      ← runnable code + sample estate + tests
     ├── ab_shared/            ← gate, dest, ingest, schema helpers
     ├── graph/                ← sole map writer path
@@ -139,7 +147,7 @@ Owns `GraphState` (`nodes`, `edges`, `rejects`).
 
 ```python
 # apply_topo_stream outline:
-# signal_class != topo_update → NOOP
+# fact_kind != topo_update → NOOP
 # gate / never-CI / unknown relation → DROP
 # classify_relation skip → phased map-NOOP
 # classify_relation emit → WRITE via _make_node (endpoints) + _make_edge
@@ -183,7 +191,7 @@ Outbound / inbound / both, hop budget, relation filters, reachable set, leaf pat
 
 ### `case_path/` — stub harness only (optional)
 
-Drivers that **assume** Detect/Curate/Identify/Package and call walk APIs. Not the knowledge-graph mission — see [Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx).
+Drivers that **assume** Detect/Curate/Identify/Package and call walk APIs. Not the knowledge-graph mission — see [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html).
 
 | Module | Stub role |
 |--------|-----------|
@@ -217,7 +225,8 @@ Wires bootstrap + resolved stream + `FileDest` (+ optional maintain). Invoked by
 | `topology.bootstrap.json` | Estate bootstrap (declared starting map) — **not** CaseSeed |
 | `stream.resolved.jsonl` | Case A — five wave-1 `topo_update` WRITEs |
 | `stream.reject.jsonl` | Case B — DROP mix + metric/event/trace/anomaly NOOPs |
-| `cases/happy_path/` · `cases/reject_tape/` | Golden spines / reject expectations |
+| `cases/case_a_map_spine/` · `cases/case_b_rejects/` | Golden spines / reject expectations (PoC core) |
+| `cases/stub_case_path/` · `cases/stub_diagnose_close/` | Optional Detect→Package harness fixtures (not map mission) |
 | [`SAMPLE_IO.md`](../poc/sample_estate/customer_checkout/SAMPLE_IO.md) | Human expected-vs-actual for Case A/B |
 | [`estate README`](../poc/sample_estate/customer_checkout/README.md) | Why this folder exists + file inventory |
 
@@ -274,7 +283,7 @@ Eval narrative for those proofs: [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.
 - No SketchWriter inside Pillar B  
 - Vortex/S3 encodings deferred — PoC Dest is `files.v1` only  
 
-**Core PoC = build/maintain + walk.** `case_path/` stubs are optional harnesses only ([Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx)).
+**Core PoC = build/maintain + walk.** `case_path/` stubs are optional harnesses only ([Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html)).
 
 ---
 
@@ -393,4 +402,4 @@ No Motadata-specific navigator is required:
 4. Start at `graph_writer.py` → F12 into `apply_topo_stream` → References on `GraphWriter` for CLI + tests.  
 5. In chat: `@graph_writer.py` or ask for the call chain from `publish_map`.  
 
-Editor navigation + this go-through + the in-repo canvas [`../reference/canvases/pillar-b-poc-navigator.canvas.tsx`](../reference/canvases/pillar-b-poc-navigator.canvas.tsx) (open beside chat) are the interactive maps for this PoC.
+Editor navigation + this go-through + the [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) are the interactive maps for this PoC.

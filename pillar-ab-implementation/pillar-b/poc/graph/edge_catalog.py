@@ -6,7 +6,7 @@
 * **skip** — in catalog but not wave-1 yet → phased map-NOOP (no DROP)
 * **reject** — unknown relation → DROP (``unknown_relation``)
 
-Wrong ``signal_class`` is handled earlier as silent NOOP in ``apply_topo_stream``,
+Wrong ``fact_kind`` is handled earlier as silent NOOP in ``apply_topo_stream``,
 not here. This module does not judge business correctness of a dependency.
 """
 
@@ -46,7 +46,7 @@ def classify_relation(relation: str) -> tuple[str, str | None]:
       emit  → WRITE (upsert edge when catalog checks already passed)
       skip  → phased map-NOOP (in fifteen-name catalog, not wave-1 yet)
       reject → DROP (unknown_relation)
-    Wrong signal_class is handled earlier as silent NOOP (continue), not here.
+    Wrong fact_kind is handled earlier as silent NOOP (continue), not here.
     """
     if relation not in ALL_RELATIONS:
         return "reject", rc.UNKNOWN_RELATION

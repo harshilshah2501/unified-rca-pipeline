@@ -276,9 +276,9 @@
   <p class="lead">
     Walkthrough for the Pillar B Topology orchestrator under
     <code>pillar-ab-implementation/pillar-b/poc</code>.
-    Input: post-E2 <code>ingest.v1</code> with <code>signal_class=topo_update</code> (plus optional estate bootstrap).
+    Input: post-E2 <code>ingest.v1</code> with <code>fact_kind=topo_update</code> (plus optional estate bootstrap).
     Output: Gate B <code>files.v1</code> under <code>map/</code>.
-    OneOps / Fusion HTML briefs under <code>references/</code> are catalog material only — they are not GraphWriter callers.
+    OneOps / Fusion HTML briefs under <code>archived-docs/</code> are catalog material only — they are not GraphWriter callers.
     Hub URL: <a href="/graphwriter-io-walkthrough.html"><code>:8765/graphwriter-io-walkthrough.html</code></a>.
   </p>
 
@@ -321,7 +321,7 @@
           <tr>
             <td>Shared ingest stream</td>
             <td>Same wire as Pillar A</td>
-            <td>JSONL of <code>ingest.v1</code>. GraphWriter filters <code>signal_class = topo_update</code>; <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> are silent NOOP.</td>
+            <td>JSONL of <code>ingest.v1</code>. GraphWriter filters <code>fact_kind = topo_update</code>; <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> are silent NOOP.</td>
           </tr>
           <tr>
             <td>topology.bootstrap.json (lab)</td>
@@ -449,7 +449,7 @@
   "tenant": "default",
   "ci_id": "checkout-api",
   "ci_type": "Service",
-  "signal_class": "topo_update",
+  "fact_kind": "topo_update",
   "relation": "runs_on",
   "src_ci_id": "checkout-api",
   "dst_ci_id": "linux-server-app-01",
@@ -487,7 +487,7 @@
           <tr><th>Check</th><th>This line</th><th>Result</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>signal_class</code></td><td><code>topo_update</code></td><td>Not skipped</td></tr>
+          <tr><td><code>fact_kind</code></td><td><code>topo_update</code></td><td>Not skipped</td></tr>
           <tr><td><code>identity.status</code></td><td><code>resolved</code></td><td>Gate admits</td></tr>
           <tr><td><code>ci_type</code></td><td><code>Service</code></td><td>May emit vertex</td></tr>
           <tr><td><code>relation</code></td><td><code>runs_on</code></td><td>Wave-1 catalog · upsert edge</td></tr>
@@ -532,7 +532,7 @@
 
         <!-- Decision 1 -->
         <rect x="280" y="112" width="300" height="52" rx="8" fill="#171d25" stroke="#2a3441"/>
-        <text x="430" y="132" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">② signal_class = topo_update ?</text>
+        <text x="430" y="132" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">② fact_kind = topo_update ?</text>
         <text x="430" y="150" text-anchor="middle" fill="#8a96a4" font-size="10">Router: is this Topology’s job?</text>
 
         <!-- NO branch → NOOP -->
@@ -586,7 +586,7 @@
     <div class="admit-legend" aria-label="Action legend">
       <div>
         <div class="tag noop">A · NOOP</div>
-        <p><strong style="color:var(--text)">Silent skip.</strong> Wrong <code>signal_class</code> for GraphWriter. No state change, no reject code. Examples: <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> (Pillar A sketches are metrics-only; logs/traces are not <code>sketch.v1</code>).</p>
+        <p><strong style="color:var(--text)">Silent skip.</strong> Wrong <code>fact_kind</code> for GraphWriter. No state change, no reject code. Examples: <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> (Pillar A sketches are metrics-only; logs/traces are not <code>sketch.v1</code>).</p>
       </div>
       <div>
         <div class="tag write">B · WRITE</div>
@@ -602,7 +602,7 @@
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Case</th><th>signal_class</th><th>identity</th><th>relation</th><th>Action</th><th>Outcome</th></tr>
+          <tr><th>Case</th><th>fact_kind</th><th>identity</th><th>relation</th><th>Action</th><th>Outcome</th></tr>
         </thead>
         <tbody>
           <tr class="tone-success">

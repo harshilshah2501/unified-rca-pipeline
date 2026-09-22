@@ -26,7 +26,7 @@ def _events_from_stream(stream: Path) -> list[dict[str, Any]]:
         if not line:
             continue
         row = json.loads(line)
-        if row.get("signal_class") != "event":
+        if row.get("fact_kind") != "event":
             continue
         labels = row.get("labels") or {}
         severity = labels.get("severity") or labels.get("level") or "info"

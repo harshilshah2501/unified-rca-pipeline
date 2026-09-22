@@ -130,7 +130,7 @@ Edge Delta’s real pipeline is **Sources → Processors → Destinations**, not
 | TelemetryEnvelope | No equivalent | OpenTelemetry-shaped data items (logs, metrics, traces) |
 | ingest.v1 JSONL | No such format | OTLP, JSON, plain text, syslog, CEF, … |
 | ci_id / ci_type | **Resource attributes** | OTEL semantic conventions (`service.name`, `k8s.pod.name`, …) |
-| signal_class | No equivalent | Typed as log / metric / trace / event (and related) |
+| fact_kind | No equivalent | Typed as log / metric / trace / event (and related) |
 | CMDB / change / ticket at ingest | Not telemetry sources | Use **Connectors** (Jira, PagerDuty, …) for events |
 | schema-version reject | Parser / processor errors | Format handled in processors, not a hard ingest schema gate |
 | FR-K1 / AC | No ED equivalent | Internal requirement IDs |
@@ -165,7 +165,7 @@ telemetry    enrich         • Edge Delta Platform
 | Wire formats | JSON, OTLP Protobuf, plain text, CEF, LEEF, syslog RFC — **not** ingest.v1 JSONL |
 | Data shapes | Logs `{timestamp, body, attributes, resource, severity}` · Metrics `{name, value, timestamp, unit, kind, attributes}` · Traces `{trace_id, span_id, parent_span_id, attributes}` · Events `{event.type, event.domain, timestamp, attributes}` |
 
-**Edge Delta does not have at source:** TelemetryEnvelope · ci_id/ci_type · signal_class enum · change_event/cmdb_sync/ticket reserved classes · schema-version validation at ingestion.
+**Edge Delta does not have at source:** TelemetryEnvelope · ci_id/ci_type · fact_kind enum · change_event/cmdb_sync/ticket reserved classes · schema-version validation at ingestion.
 
 **Example — Kubernetes logs source**
 
@@ -184,7 +184,7 @@ What happens:
 3. Adds **resource attributes** such as `k8s.pod.name`, `k8s.namespace.name`, `service.name`.
 4. Emits an OpenTelemetry-shaped log record.
 
-Still **no** ci_id, signal_class, TelemetryEnvelope, schema gate, or CMDB lookup at this stage.
+Still **no** ci_id, fact_kind, TelemetryEnvelope, schema gate, or CMDB lookup at this stage.
 
 #### Phase 2 — Processing (closest to “E2” enrichment)
 
@@ -693,7 +693,7 @@ Illustrative lookup (conceptual YAML):
   lookup_value: cmdb_ci_id
 ```
 
-For Motadata Pillar B, durable CI–CI topology and blast-radius **computed** edges remain a **separate** product concern from Edge Delta’s Knowledge Graph (see pillar-b `references/` Fusion / OneOps HTMLs and `contracts/`).
+For Motadata Pillar B, durable CI–CI topology and blast-radius **computed** edges remain a **separate** product concern from Edge Delta’s Knowledge Graph (see pillar-b `archived-docs/` Fusion / OneOps HTMLs and `contracts/`).
 
 ---
 

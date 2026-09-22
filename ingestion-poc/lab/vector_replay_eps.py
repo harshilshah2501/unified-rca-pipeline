@@ -23,7 +23,7 @@ def _synthetic_row(i: int) -> dict:
         "tenant": "lab",
         "ci_id": f"svc-{i % 50}",
         "ci_type": "Service",
-        "signal_class": "metric_sample" if i % 3 else "event",
+        "fact_kind": "metric_sample" if i % 3 else "event",
         "name": "lab.metric" if i % 3 else "lab.event",
         "value": float(i % 100),
         "threshold": 50.0 if i % 3 else None,

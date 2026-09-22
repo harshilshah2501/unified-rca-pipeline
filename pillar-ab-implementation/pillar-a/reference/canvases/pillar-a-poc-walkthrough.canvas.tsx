@@ -1,3 +1,5 @@
+// @ts-nocheck — git reference copy; Cursor types live only for managed canvases/ via Open Canvas.
+
 import {
   Button,
   Callout,
@@ -275,7 +277,7 @@ function StepAdmit() {
         <CardBody>
           <Stack gap={8}>
             <Text size="small">
-              signal_class == metric_sample? → no → skip (topo/events ignored)
+              fact_kind == metric_sample? → no → skip (topo/events ignored)
             </Text>
             <Text size="small">
               identity.status == resolved? → no → reject (reason from gate)
