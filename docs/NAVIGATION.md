@@ -51,7 +51,7 @@ Always-on fabric (E1–E5) → Pillar A∥B contracts → Detect onward → Refe
 | Band | Pages |
 |------|--------|
 | **A · Everyone** | Fusion · Pipeline HLD MD · Data shape journey · GRAPH_QNA · Glossary |
-| **B · Implementers** | Pillar A+B README · then Tier 2 I/O chain (ingest format → E2 fixtures → map/sketch output) |
+| **B · Implementers** | Pillar A+B README · [Pillar B TEAM_WALKTHROUGH](../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) · Tier 2 I/O chain |
 
 **Tier 2 (after Tier 1):** [`observeops/hld-archive.html`](./observeops/hld-archive.html) · [`fabric/README.md`](./fabric/README.md) · contract brief · LLDs · Motadata scope HTML.
 
@@ -68,18 +68,25 @@ Always-on fabric (E1–E5) → Pillar A∥B contracts → Detect onward → Refe
 
 </details>
 
-**Fabric visuals** (ordered): [`fabric/README.md`](./fabric/README.md) — ingest simulation (Node or Collector → SaaS → Detect) → data shape journey → E1–E5 architecture → map/history → exemplars.
+**Fabric visuals** (ordered): [`fabric/README.md`](./fabric/README.md) — film 1 (Node or Collector → SaaS → Detect) → film 2 (storm → CaseSeed → WorkingSet → LeafClaim) → data shape journey → E1–E5 architecture → map/history → exemplars.
 
 **Pillar A∥B implementation** (contracts + code):
 
 | Document | Why |
 |----------|-----|
 | [`pillar-ab-implementation/`](../pillar-ab-implementation/README.md) | Code slice — pillar-a / pillar-b / integration |
+| [`pillar-b/docs/TEAM_WALKTHROUGH.md`](../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | **Pillar B PoC one-stop** — demo script, admit, run |
+| [`pillar-b/docs/README.md`](../pillar-ab-implementation/pillar-b/docs/README.md) | Pillar B package doc map (reading order) |
+| [`pillar-b/docs/MAP_P1_FABRIC_EVAL.md`](../pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md) | Build/maintain + walk eval criteria |
+| [`pillar-b/docs/Codebase-go-through.md`](../pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md) | Module tour of GraphWriter + walk |
 | [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) | Sit-down lock list — CI catalog, fifteen edges, `sketch.v1` |
 | [`GRAPH_QNA.md`](./GRAPH_QNA.md) | Fabric Q&A with table of contents |
 | [`MAP_WRITE_READ_RECORD.md`](../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | Pillar B map write/read JSON |
+| [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md) | Fact kind discussion — logs → `event`; `signal_class` spoken alias |
 | [`fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](./fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | Pillar A deep dive |
 | [`fabric/end-to-end-algorithm-walkthrough.md`](./fabric/end-to-end-algorithm-walkthrough.md) | Admit → Detect door C |
+
+Hub doors: [Our HLD → Pillar B PoC](./observeops/observeops-pipeline-hld.html#pillar-b-poc) · [Archive → Pillar B PoC](./observeops/hld-archive.html#pillar-b-poc).
 
 **Motadata teaching** (also on archive):
 
@@ -349,6 +356,7 @@ Use this **after** you have the map — or when you already know the goal.
 | Lean × Fed × OO UC compare | [`../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md`](../benchmarking/results/comparison/reports/LEAN_FED_OO_COMPARISON.md) |
 | Design ingestion (Vector → graphs) | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) |
 | **Understand our HLD** | [Our HLD hub (Overview · Workflow · GraphWriter · Diagnose)](http://127.0.0.1:8765/observeops-pipeline-hld.html) → [Fusion](http://127.0.0.1:8765/observeops-fusion-guide.html) → [Pipeline HLD](./observeops/OBSERVEOPS_PIPELINE_HLD.md) → [Data shape journey](http://127.0.0.1:8765/data-shape-journey.html) → [#fabric](http://127.0.0.1:8765/observeops-pipeline-hld.html#fabric). [shift-left](http://127.0.0.1:8765/observeops-shift-left-architecture.html) · [archive](http://127.0.0.1:8765/hld-archive.html) · [GRAPH_QNA](./GRAPH_QNA.md) |
+| **Demo Motadata Pillar B PoC** (knowledge graph) | [Our HLD → Pillar B PoC](http://127.0.0.1:8765/observeops-pipeline-hld.html#pillar-b-poc) · [`TEAM_WALKTHROUGH.md`](../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) · [`make test-all`](../pillar-ab-implementation/pillar-b/poc/) |
 | **Understand Datadog production fabric** | [`DATADOG_PRODUCTION_PIPELINE.md`](./DATADOG_PRODUCTION_PIPELINE.md) · [HTML `:8765`](http://127.0.0.1:8765/datadog-production-pipeline.html) · [mechanisms](http://127.0.0.1:8765/datadog-subsystem-mechanisms.html) · [evidence](./datadog-tenant-evidence-2026-08-03.md) |
 | **Understand Edge Delta (third independent lens)** | [`ed-ai-team-hub.html`](./ed-ai-team-hub.html) · [Thesis](http://127.0.0.1:8765/edgedelta-production-pipeline.html) · [Breakdown](http://127.0.0.1:8765/edgedelta-subsystem-mechanisms.html) · [Portal](http://127.0.0.1:8765/ed-portal-walkthrough.html) · [`ed-lab-setup.html`](./ed-lab-setup.html) · [evidence](./edgedelta-tenant-evidence-2026-08-14.md) |
 | Ingestion PoC plan (hardware + gates) | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) |

@@ -163,7 +163,7 @@ datasets/ingest_samples/<suite>/<incident_id>/
 | **Syslog RFC5424** | Yes | Vector syslog source |
 | Plain text files | OK with parser | Need stable service/host field for CI bind |
 
-Maps to `signal_class: "event"`.
+Maps to `signal_class: "event"` (**fact kind** `event`). There is **no** separate `log` value in the five-kind enum — see [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md) §2.
 
 ---
 

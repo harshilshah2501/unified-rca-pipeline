@@ -52,9 +52,9 @@ Add when wiring **Pillar A (sketches)** or **Pillar B (graph)** — not required
 
 | # | Page | Path | One-line job |
 |---|------|------|--------------|
-| **6** | **Pillar A + B slice** | [`../../pillar-ab-implementation/README.md`](../../pillar-ab-implementation/README.md) | Code layout, contracts SoT, what each pillar owns, how to run unit tests. |
+| **6** | **Pillar A + B slice** | [`../../pillar-ab-implementation/README.md`](../../pillar-ab-implementation/README.md) | Code layout, contracts SoT, what each pillar owns, how to run unit tests. **Next hop (Pillar B demo):** [`pillar-b/docs/TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md). |
 
-**Band B completes when:** you know which package to open and where JSON schemas live under `pillar-ab-implementation/contracts/`.
+**Band B completes when:** you know which package to open, where JSON schemas live under `pillar-ab-implementation/contracts/`, and (for Pillar B demos) you have opened the team walkthrough.
 
 ### Tier 2 — Implementer I/O contracts (not Tier 1)
 
@@ -75,8 +75,10 @@ E1 Collect envelope          E2 Identity overlay           Pillar writers       
 |-------|------|----------------|-------|--------------|
 | **I/O-1** | **Ingest data format** | [`../INGEST_DATA_FORMAT.md`](../INGEST_DATA_FORMAT.md) | E1 (+ §2.2 E2 overlay) | `ingest.v1` envelope, `signal_class` enum, corpus folder layout, identity overlay spec. For **data owners and converter authors** — wider than the lab fixtures. |
 | **I/O-2** | **Post-E2 ingest fixtures** | [`../../pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md) | After E2 (lab stub) | **What Pillar A and B actually read today** — resolved-only JSONL paths, `metric_sample` vs `topo_update`. Subset of I/O-1 focused on pillar PoC tapes. |
-| **I/O-3** | **Map write/read record** | [`../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | E3 output (`map/`) | Pillar B **output** keys — `graph_snapshot.json`, `nodes.jsonl`, `edges.jsonl`, logical keys, `files.v1` PoC profile. Symlink: [`pillar-b/docs/MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/pillar-b/docs/MAP_WRITE_READ_RECORD.md). |
+| **I/O-3** | **Map write/read record** | [`../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | E3 output (`map/`) | Pillar B **output** keys — `graph_snapshot.json`, `nodes.jsonl`, `edges.jsonl`, logical keys, `files.v1` PoC profile. Hub mirror: [`docs/MAP_WRITE_READ_RECORD.md`](../MAP_WRITE_READ_RECORD.md) when present. |
 | **I/O-4** | **Pillar A deep dive** (history output) | [`../fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | E4 output (`history/`) | Pillar A **output** — `sketch.v1` row shape, windows, Vortex/S3 temperature. Pair with I/O-3 for both rooms. |
+
+**Pillar B PoC demo pack (Tier 2, after I/O-2):** [`TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) → [`MAP_P1_FABRIC_EVAL.md`](../../pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md) → [`Codebase-go-through.md`](../../pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md). Hub: [`observeops-pipeline-hld.html#pillar-b-poc`](./observeops-pipeline-hld.html#pillar-b-poc).
 
 **Why these are Tier 2, not Tier 1:** Tier 1 answers “what is ObserveOps?” These answer “what bytes on the wire for **this** PoC slice?” A product reviewer stops at Band A; an engineer reads I/O-1 → I/O-2 before code, then I/O-3 or I/O-4 when validating flush output.
 
@@ -101,9 +103,11 @@ Skip Band B unless reviewing Pillar A/B delivery.
 
 ### Pillar A or B engineer
 
-**Tier 1:** Data shape journey → GRAPH_QNA → Pillar A + B slice  
+**Tier 1:** Data shape journey → GRAPH_QNA → Pillar A + B slice
 
-**Tier 2 I/O chain (in order):** Ingest data format → Post-E2 fixtures → run pillar code → Map write/read (B) or Pillar A deep dive (A output)  
+**Tier 2 I/O chain (in order):** Ingest data format → Post-E2 fixtures → run pillar code → Map write/read (B) or Pillar A deep dive (A output)
+
+**Pillar B team demo (after I/O-2):** [`TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) → [`MAP_P1_FABRIC_EVAL.md`](../../pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md) → `cd pillar-b/poc && make test-all`. Hub: [`#pillar-b-poc`](./observeops-pipeline-hld.html#pillar-b-poc).
 
 Optional: Pipeline HLD E3/E4 sections · Fusion sanity check  
 

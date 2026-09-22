@@ -108,7 +108,7 @@ def load_estate_bootstrap_state(path_or_dict: Any, tenant: str = "default") -> G
         if not ok:
             state.rejects.append((n, reason or "never_ci_vertex"))
             continue
-        node = _node_from_bootstrap(tenant, n)
+        node = _make_node(tenant, n)
         state.nodes[node["ci_id"]] = node
     for e in data.get("edges", []):
         action, reason = classify_relation(e["relation"])
@@ -183,7 +183,7 @@ def apply_topo_stream(state: GraphState, source: IngestSource, gate: ResolvedOnl
                 ok2, reason2 = may_emit_vertex(ctype)
                 if not ok2:
                     continue
-                state.nodes[cid] = _node_from_bootstrap(
+                state.nodes[cid] = _make_node(
                     state.tenant, {"id": cid, "type": ctype, "name": cname}
                 )
         bind = rec.get("identity", {}).get("bind_source", "topo_update")

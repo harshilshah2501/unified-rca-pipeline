@@ -316,7 +316,7 @@ Pillar B **does not infer** `relation` from spans inside the PoC — the relatio
 ```text
 pillar-ab-implementation/
 ├── pillar-a/poc/sample_estate/customer_checkout/
-│   ├── expected/ingest.example.json     ← canonical pretty example
+│   ├── expected/ingest.example.json     ← all five signal_class examples (pretty)
 │   ├── stream.metrics.resolved.jsonl    ← Pillar A happy path (metric only)
 │   ├── stream.resolved.jsonl            ← same as metrics file (alias)
 │   └── stream.reject.jsonl              ← negative cases for A gate

@@ -12,7 +12,8 @@ Compatibility symlinks at `docs/<filename>` keep `:8765` URLs working.
 
 | Order | Visual | Topic |
 |-------|--------|--------|
-| 0 | [`edge-platform-detect-simulation.html`](./edge-platform-detect-simulation.html) | **Looping film** — Edge devices · Node · optional Collector · SaaS; two ingest doors; Detect Signal. Notes: [`SIMULATION_THREAD.md`](./SIMULATION_THREAD.md) |
+| 0 | [`edge-platform-detect-simulation.html`](./edge-platform-detect-simulation.html) | **Film 1** — Edge · Node · optional Collector · SaaS; two ingest doors; Detect `Signal`. Notes: [`SIMULATION_THREAD.md`](./SIMULATION_THREAD.md) |
+| 0b | [`edge-platform-case-simulation.html`](./edge-platform-case-simulation.html) | **Film 2** — warm `map/`∥`history/` → Signal storm → `CaseSeed` → `WorkingSet` → `LeafClaim`. Identify/Package muted |
 | 1 | [`data-shape-journey.html`](./data-shape-journey.html) | **E1–E11 data evolution** — Edge devices vs Platform; names, forms, structure |
 | 2 | [`e1-e5-pipeline-architecture.html`](./e1-e5-pipeline-architecture.html) | E2 fan-out → `map/` ∥ `history/`; Edge · Gateway · Platform |
 | 2b | [`inventory-catalog-on-the-map.html`](./inventory-catalog-on-the-map.html) | **Inventory vs catalog** → `graph_edge.v1`; LUT vs `map/`; G10–G11 teaching |
@@ -27,6 +28,8 @@ Compatibility symlinks at `docs/<filename>` keep `:8765` URLs working.
 
 | Doc | Topic |
 |-----|--------|
+| [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./INGEST_FACT_KINDS_DISCUSSION.md) | **Team notes** — fact kind vs `signal_class`; **logs → `event`**; bind vs provenance; rename deferred |
+| [`../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | **Pillar B PoC demo** — one-stop team walkthrough (hub: [Our HLD #pillar-b-poc](../observeops/observeops-pipeline-hld.html#pillar-b-poc)) |
 | [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](./PILLAR_A_PERCENTILES_DEEP_DIVE.md) | Inputs → `sketch.v1` / S3 / Vortex |
 | [`red-metrics-and-exemplars.md`](./red-metrics-and-exemplars.md) | Redirect → [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html) §RED |
 | [`end-to-end-algorithm-walkthrough.md`](./end-to-end-algorithm-walkthrough.md) | Admit → window → Detect door C |

@@ -6,20 +6,24 @@
 
 A and B are **parallel writers** after Identity (E2). Pillar B owns the `map/` room. Pillar A owns `history/` sketches from `metric_sample` only — GraphWriter silent-skips those lines.
 
-**Doc map:** [`docs/README.md`](./docs/README.md)
+**This PoC has two use cases only:** (1) **build + maintain** the knowledge graph, (2) **walk-through** a published `map/`. Detect / Curate / Identify / Package / sketches are assumed or stubbed. Framing lives in the [Pillar B PoC Navigator canvas](./reference/canvases/pillar-b-poc-navigator.canvas.tsx) (open beside chat).
+
+**Doc map:** [`docs/README.md`](./docs/README.md) · **Team walkthrough:** [`docs/TEAM_WALKTHROUGH.md`](./docs/TEAM_WALKTHROUGH.md)
 
 ---
 
 ## Reading order
 
 1. **This README** — I/O + admit + quick start  
-2. [`docs/MAP_P1_FABRIC_EVAL.md`](./docs/MAP_P1_FABRIC_EVAL.md) — E1–E5 eval, terminology  
-3. [`docs/Codebase-go-through.md`](./docs/Codebase-go-through.md) — how the code is wired  
-4. [`poc/sample_estate/customer_checkout/SAMPLE_IO.md`](./poc/sample_estate/customer_checkout/SAMPLE_IO.md) — Case A/B goldens  
-5. Run: `cd poc && make install && make test-all` (optional `make publish-map`)  
-6. Hub visual: [Our HLD → GraphWriter](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter)
+2. [`docs/TEAM_WALKTHROUGH.md`](./docs/TEAM_WALKTHROUGH.md) — one-stop team demo (signal_class, admit, run)  
+3. [Pillar B PoC Navigator canvas](./reference/canvases/pillar-b-poc-navigator.canvas.tsx) — what is in vs stubbed (two use cases)  
+4. [`docs/MAP_P1_FABRIC_EVAL.md`](./docs/MAP_P1_FABRIC_EVAL.md) — build/maintain + walk eval  
+5. [`docs/Codebase-go-through.md`](./docs/Codebase-go-through.md) — how the code is wired  
+6. [`poc/sample_estate/customer_checkout/SAMPLE_IO.md`](./poc/sample_estate/customer_checkout/SAMPLE_IO.md) — Case A/B goldens  
+7. Run: `cd poc && make install && make test-all` (optional `make publish-map`)  
+8. Hub visual: [Our HLD → GraphWriter](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter)
 
-**Increment lock:** P1 (E1–E5) for `map/` only. P2/P3 use-case map reads are the next increment.
+**Focus lock:** knowledge graph build/maintain + walk. Case-path modules under `case_path/` are **stubs/harnesses** that drive walks, not the PoC mission.
 
 ---
 
@@ -51,7 +55,7 @@ Lab-only notes: [`poc/README.md`](./poc/README.md).
 | **Logical keys** | Node `(tenant, ci_id)` · Edge `(tenant, edge_id)` · Snapshot `(tenant, version)` |
 | **Encoding** | UTF-8 **JSON** / JSON Lines — [`../contracts/MAP_WRITE_READ_RECORD.md`](../contracts/MAP_WRITE_READ_RECORD.md) (slice SoT) |
 | **Must not** | Write sketches into `map/`; put Alert / Incident / ticket / Change-as-CI on the snapshot |
-| **Read helpers** | `load_snapshot(dest)`; `neighbors(ci_id)` over in-memory / loaded graph |
+| **Read helpers** | `load_snapshot(dest)`; `neighbors` / `reachable_ci_ids` / `find_paths` (Part B walk — see [`docs/MAP_P1_FABRIC_EVAL.md`](./docs/MAP_P1_FABRIC_EVAL.md)) |
 
 ### Admit actions (hub language ↔ code)
 

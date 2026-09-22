@@ -47,9 +47,9 @@ const LAYERS: {
     title: "Spine",
     readOrder: 1,
     blurb:
-      "P1 write path only: estate bootstrap + topo stream → GraphWriter → map/. Diagnose reads map/; it does not call write methods.",
+      "Two use cases only: (1) build + maintain the knowledge graph into Dest map/, (2) walk-through a published snapshot. Detect / Curate / Identify / Package / sketches are assumed or stubbed — not the PoC mission.",
     relates:
-      "Parent frame for every other tab. Read this once, then drill down. Nothing below invents a second write path.",
+      "Parent frame for every other tab. Write path left → publish_map → Dest map/ → walk APIs right. Nothing below invents a second write path or a ServiceOps product surface.",
     files: [],
   },
   {
@@ -165,24 +165,29 @@ const LAYERS: {
     title: "Read helpers",
     readOrder: 6,
     blurb:
-      "Case-path style reads over a published snapshot (PoC stubs for Scope/Diagnose).",
+      "Use case 2 — walk-through: hops, direction, relation filters, reachable set, paths, confidence-bearing filter over a published snapshot. case_path/ drivers are optional harnesses that call these APIs.",
     relates:
-      "Opposite side of the spine: after publish_map, readers load Dest map/ — they do not call write_topo_stream. compare.py is tests-only.",
+      "Opposite side of the spine (use case 2): after publish_map, readers load Dest map/ via load_snapshot — they do not call write_topo_stream. compare.py is tests-only (build proof).",
     files: [
       {
         file: "graph/neighbors.py",
-        job: "Outbound neighbor walk",
-        callers: "tests; later Scope",
+        job: "neighbors / reachable_ci_ids / find_paths",
+        callers: "test_map_walk; case_path stubs",
       },
       {
         file: "graph/read_api.py",
-        job: "load_snapshot helpers",
-        callers: "tests",
+        job: "load_snapshot + confidence_bearing filter",
+        callers: "test_map_walk; case_path stubs",
       },
       {
         file: "graph/compare.py",
         job: "SAMPLE_IO spine equality",
         callers: "tests only",
+      },
+      {
+        file: "graph/case_path/*",
+        job: "Stub Detect→Package drivers (not PoC core)",
+        callers: "test_case_path; test_identify_package",
       },
     ],
   },
@@ -259,12 +264,7 @@ const PACKAGE_FLOW: { from: string; to: string; label: string }[] = [
   { from: "core", to: "shared", label: "uses" },
 ];
 
-const VERB_STEPS: {
-  id: string;
-  method: string;
-  means: string;
-  optional?: boolean;
-}[] = [
+const WRITE_STEPS: { id: string; method: string; means: string }[] = [
   {
     id: "boot",
     method: "load_estate_bootstrap",
@@ -284,7 +284,29 @@ const VERB_STEPS: {
     id: "maintain",
     method: "maintain_map",
     means: "E5 validity marks — then publish_map again",
-    optional: true,
+  },
+];
+
+const WALK_STEPS: { id: string; method: string; means: string }[] = [
+  {
+    id: "load",
+    method: "load_snapshot",
+    means: "Read Dest map/ keys back into a snapshot dict",
+  },
+  {
+    id: "neighbors",
+    method: "get_neighbors",
+    means: "1-hop / multi-hop edges via neighbors() — direction + filters",
+  },
+  {
+    id: "reachable",
+    method: "get_reachable",
+    means: "Seed + neighborhood CI set via reachable_ci_ids()",
+  },
+  {
+    id: "paths",
+    method: "get_paths",
+    means: "Simple paths to CI or leaf type via find_paths()",
   },
 ];
 
@@ -423,24 +445,25 @@ function LayerRelationDiagram({
             publish_map
           </text>
 
-          {/* Read helpers → Dest room */}
+          {/* Dest room → Read helpers (use case 2 · walk-through) */}
           <line
-            x1={readX}
-            y1={readY + READ_H / 2}
-            x2={destX + DEST_W}
-            y2={destY + DEST_H / 2}
-            stroke={theme.stroke.secondary}
-            strokeWidth={1.5}
-            markerEnd="url(#flow-arrow)"
+            x1={destX + DEST_W}
+            y1={destY + DEST_H / 2}
+            x2={readX}
+            y2={readY + READ_H / 2}
+            stroke={theme.accent.primary}
+            strokeWidth={2}
+            markerEnd="url(#publish-arrow)"
           />
           <text
             x={(readX + destX + DEST_W) / 2}
-            y={destY + DEST_H / 2 - 10}
+            y={destY + DEST_H / 2 - 12}
             textAnchor="middle"
-            fill={theme.text.tertiary}
+            fill={theme.accent.primary}
             fontSize={10}
+            fontWeight={600}
           >
-            reads
+            load_snapshot · walk
           </text>
         </svg>
 
@@ -544,7 +567,7 @@ function LayerRelationDiagram({
               textAlign: "center",
             }}
           >
-            snapshot · nodes · edges
+            UC1 publish · UC2 walk hub
           </span>
         </button>
 
@@ -597,129 +620,83 @@ function LayerRelationDiagram({
               textAlign: "center",
             }}
           >
-            neighbors · load
+            neighbors · walk
           </span>
         </button>
       </div>
 
       <Text size="small" tone="secondary">
-        Click a box or the Dest room for detail below. Lab entry maps to
-        Topology writer in product.
+        Two use cases on one spine. Use case 1 (build + maintain): Lab entry →
+        GraphWriter → Write core → Dest map/ via publish_map. Use case 2
+        (walk-through): Dest map/ → Read helpers via load_snapshot · walk.
+        Click a box for detail below.
       </Text>
     </Stack>
   );
 }
 
-function CallSequenceFlow() {
+function SequenceCards({
+  steps,
+  pillTone = "info",
+}: {
+  steps: { id: string; method: string; means: string }[];
+  pillTone?: "info" | "neutral" | "warning";
+}) {
   const theme = useHostTheme();
-  const happy = VERB_STEPS.filter((s) => !s.optional);
-  const optional = VERB_STEPS.find((s) => s.optional);
-
   return (
-    <Stack gap={12}>
-      <Text weight="medium">Happy path (required)</Text>
-      <Row gap={8} align="center" wrap>
-        {happy.map((step, i) => (
-          <Row key={step.id} gap={8} align="center">
-            <Card style={{ minWidth: 180, flex: "0 1 auto" }}>
-              <CardBody>
-                <Stack gap={6}>
-                  <Row gap={6} align="center">
-                    <Pill tone="info" size="sm">
-                      {String(i + 1)}
-                    </Pill>
-                    <Text weight="semibold" size="small">
-                      {step.method}
-                    </Text>
-                  </Row>
-                  <Text size="small" tone="secondary">
-                    {step.means}
+    <Row gap={8} align="center" wrap>
+      {steps.map((step, i) => (
+        <Row key={step.id} gap={8} align="center">
+          <Card style={{ minWidth: 180, flex: "0 1 auto" }}>
+            <CardBody>
+              <Stack gap={6}>
+                <Row gap={6} align="center">
+                  <Pill tone={pillTone} size="sm">
+                    {String(i + 1)}
+                  </Pill>
+                  <Text weight="semibold" size="small">
+                    {step.method}
                   </Text>
-                </Stack>
-              </CardBody>
-            </Card>
-            {i < happy.length - 1 ? (
-              <Text
-                weight="semibold"
-                style={{ color: theme.text.tertiary, fontSize: 18 }}
-              >
-                →
-              </Text>
-            ) : null}
-          </Row>
-        ))}
-      </Row>
+                </Row>
+                <Text size="small" tone="secondary">
+                  {step.means}
+                </Text>
+              </Stack>
+            </CardBody>
+          </Card>
+          {i < steps.length - 1 ? (
+            <Text
+              weight="semibold"
+              style={{ color: theme.text.tertiary, fontSize: 18 }}
+            >
+              →
+            </Text>
+          ) : null}
+        </Row>
+      ))}
+    </Row>
+  );
+}
 
-      {optional ? (
-        <Stack gap={8}>
-          <Text weight="medium">Optional E5 loop (after first publish)</Text>
-          <Row gap={8} align="center" wrap>
-            <Card style={{ minWidth: 180 }}>
-              <CardBody>
-                <Stack gap={6}>
-                  <Row gap={6} align="center">
-                    <Pill tone="neutral" size="sm">
-                      3
-                    </Pill>
-                    <Text weight="semibold" size="small">
-                      publish_map
-                    </Text>
-                  </Row>
-                  <Text size="small" tone="secondary">
-                    Snapshot already on Dest
-                  </Text>
-                </Stack>
-              </CardBody>
-            </Card>
-            <Text
-              weight="semibold"
-              style={{ color: theme.text.tertiary, fontSize: 18 }}
-            >
-              →
-            </Text>
-            <Card style={{ minWidth: 180 }}>
-              <CardBody>
-                <Stack gap={6}>
-                  <Row gap={6} align="center">
-                    <Pill tone="warning" size="sm">
-                      4
-                    </Pill>
-                    <Text weight="semibold" size="small">
-                      {optional.method}
-                    </Text>
-                  </Row>
-                  <Text size="small" tone="secondary">
-                    {optional.means}
-                  </Text>
-                </Stack>
-              </CardBody>
-            </Card>
-            <Text
-              weight="semibold"
-              style={{ color: theme.text.tertiary, fontSize: 18 }}
-            >
-              →
-            </Text>
-            <Card style={{ minWidth: 180 }}>
-              <CardBody>
-                <Stack gap={6}>
-                  <Row gap={6} align="center">
-                    <Pill tone="info" size="sm">
-                      5
-                    </Pill>
-                    <Text weight="semibold" size="small">
-                      publish_map
-                    </Text>
-                  </Row>
-                  <Text size="small" tone="secondary">
-                    Re-flush after maintain marks
-                  </Text>
-                </Stack>
-              </CardBody>
-            </Card>
-          </Row>
-        </Stack>
-      ) : null}
+function CallSequenceFlow() {
+  return (
+    <Stack gap={16}>
+      <Stack gap={8}>
+        <Text weight="medium">GraphWriter — use case 1 · build + maintain</Text>
+        <Text size="small" tone="secondary">
+          Estate bootstrap + topo stream → Dest map/. maintain_map is E5 on an
+          already-published map; call publish_map again to re-flush marks.
+        </Text>
+        <SequenceCards steps={WRITE_STEPS} pillTone="info" />
+      </Stack>
+      <Stack gap={8}>
+        <Text weight="medium">Walk-through — use case 2 · read published map/</Text>
+        <Text size="small" tone="secondary">
+          After publish_map. read_api thin wrappers delegate into neighbors.py.
+          Proof: test_map_walk. Does not call write verbs.
+        </Text>
+        <SequenceCards steps={WALK_STEPS} pillTone="neutral" />
+      </Stack>
     </Stack>
   );
 }
@@ -751,9 +728,24 @@ function LayerDetailPanel({ active }: { active: (typeof LAYERS)[number] }) {
             </Text>
           </Stack>
           {active.id === "overview" ? (
-            <Text tone="secondary" size="small">
-              Guides: docs/MAP_P1_FABRIC_EVAL.md · docs/Codebase-go-through.md
-            </Text>
+            <Stack gap={8}>
+              <Text tone="secondary" size="small">
+                Eval detail: docs/MAP_P1_FABRIC_EVAL.md · code tour:
+                docs/Codebase-go-through.md · call graphs:
+                docs/pillar-b-callgraph.png (build) ·
+                docs/pillar-b-walk-callgraph.png (walk)
+              </Text>
+              <Stack gap={4}>
+                <Text weight="medium">How to judge success</Text>
+                <Text size="small" tone="secondary">
+                  1. Case A/B map spines match SAMPLE_IO after build. 2. Walk
+                  tests show multi-hop / inbound / confidence-bearing behavior
+                  on published map/. 3. Maintain changes what a walk is allowed
+                  to see (expire / hard-downgrade). If a change does not improve
+                  build, maintain, or walk, it is out of focus.
+                </Text>
+              </Stack>
+            </Stack>
           ) : null}
           {active.files.length > 0 ? (
             <Table
@@ -773,9 +765,49 @@ const READ_BLURBS: Record<number, string> = {
   3: "How to run once",
   4: "Internals",
   5: "Supporting stubs",
-  6: "After publish",
+  6: "Walk-through",
   7: "Product honesty",
 };
+
+const USE_CASE_ROWS = [
+  {
+    useCase: "1 · Build + maintain",
+    owns: "Admit topo_update, upsert nodes/edges, publish GraphSnapshot, E5 validity marks",
+    proof: "test_p1_map_fabric, test_maintain, test_graph_writer, test_sample_io",
+  },
+  {
+    useCase: "2 · Walk-through",
+    owns: "Read published snapshot: hops, direction, relation filters, reachable set, paths, confidence-bearing",
+    proof: "test_map_walk",
+  },
+];
+
+const STUB_ROWS = [
+  {
+    concern: "E1 Collect / E2 Identity",
+    stance: "Assumed done — fixtures look like post-E2 ingest.v1",
+  },
+  {
+    concern: "Pillar A sketches / history/",
+    stance: "Out of package; optional sketch_provider hook only",
+  },
+  {
+    concern: "Detect Signal storm",
+    stance: "Stub JSON under cases/increment2/",
+  },
+  {
+    concern: "CaseSeed / WorkingSet / LeafClaim",
+    stance: "Thin drivers that call walk APIs — not a second product",
+  },
+  {
+    concern: "EvidenceBundle / VerdictCard",
+    stance: "Lab stubs for a diagnose-shaped close — not ServiceOps",
+  },
+  {
+    concern: "Live Vortex / S3 / discovery crawler",
+    stance: "Dest is files.v1; discovery = Design",
+  },
+];
 
 export default function PillarBPocNavigator() {
   const theme = useHostTheme();
@@ -790,27 +822,51 @@ export default function PillarBPocNavigator() {
       <Stack gap={6}>
         <H1>Pillar B map PoC navigator</H1>
         <Text tone="secondary">
-          Interactive index for pillar-ab-implementation/pillar-b/poc. Open
-          beside chat; use Pylance F12 in the editor for symbol jumps.
+          Interactive index for pillar-ab-implementation/pillar-b/poc. This
+          package proves a knowledge graph / topology PoC — two use cases only.
+          Open beside chat; use Pylance F12 in the editor for symbol jumps.
         </Text>
       </Stack>
 
       <Grid columns={4} gap={12}>
-        <Stat value="P1" label="Always-on fabric E1–E5" />
+        <Stat value="2" label="Use cases (build · walk)" tone="info" />
         <Stat value="map/" label="Sole GraphWriter room" />
         <Stat value="4" label="Public write verbs" />
-        <Stat value="Dest" label="Prod integration surface" tone="info" />
+        <Stat value="Dest" label="Prod integration surface" />
       </Grid>
 
-      <Callout tone="info" title="Start in code">
-        Open graph/graph_writer.py → F12 into apply_topo_stream → Shift+F12 on
-        GraphWriter for every caller (CLI + tests).
+      <Callout tone="info" title="PoC focus lock">
+        Build/maintain and walk-through own the mission. case_path/ under Read
+        helpers is optional harness only. Start in code: graph/graph_writer.py →
+        F12 into apply_topo_stream → Shift+F12 on GraphWriter for every caller.
       </Callout>
+
+      <H2>The only two use cases that matter</H2>
+      <Text tone="secondary" size="small">
+        Build/maintain → GraphState → publish_map → Dest map/ ← walk-through
+        (neighbors / reachable / paths). maintain_map (optional E5) sits on the
+        write side.
+      </Text>
+      <Table
+        headers={["Use case", "What we own", "Proof"]}
+        rows={USE_CASE_ROWS.map((r) => [r.useCase, r.owns, r.proof])}
+      />
+
+      <H3>What we stub or assume (not PoC core)</H3>
+      <Table
+        headers={["Concern", "Stance in this PoC"]}
+        rows={STUB_ROWS.map((r) => [r.concern, r.stance])}
+      />
+      <Text size="small" tone="secondary">
+        Stub harness docs: docs/MAP_P2_CASE_PATH.md · docs/MAP_P3_DIAGNOSE_CLOSE.md
+        — optional, not the knowledge-graph mission.
+      </Text>
 
       <H2>How the layers relate</H2>
       <Text tone="secondary" size="small">
-        Write path left-to-right; publish_map drops into Dest map/; readers
-        load that room. Click for detail below.
+        Use case 1 — write path left-to-right, then publish_map into Dest map/.
+        Use case 2 — Dest map/ rightward into Read helpers (load_snapshot ·
+        walk). Click for detail below.
       </Text>
       <LayerRelationDiagram activeLayer={layer} onSelect={setLayer} />
 
@@ -835,7 +891,7 @@ export default function PillarBPocNavigator() {
 
       <Divider />
 
-      <H2>GraphWriter call sequence</H2>
+      <H2>Call sequences</H2>
       <CallSequenceFlow />
 
       <Divider />
@@ -849,12 +905,13 @@ export default function PillarBPocNavigator() {
       <H3>Docs</H3>
       <Stack gap={4}>
         <Text size="small" tone="secondary">
-          Package README · docs/README.md (doc map) · SAMPLE_IO Case A/B · slice
-          contracts/MAP_WRITE_READ_RECORD.md ·
-          reference/canvases/pillar-b-poc-navigator.canvas.tsx
+          Package README · docs/README.md (doc map) · MAP_P1_FABRIC_EVAL ·
+          Codebase-go-through · SAMPLE_IO Case A/B ·
+          contracts/MAP_WRITE_READ_RECORD.md
         </Text>
         <Text size="small" style={{ color: theme.text.tertiary }}>
-          Canvas state remembers your last layer selection across reloads.
+          This canvas is the framing home (two use cases + layer index). State
+          remembers your last layer selection across reloads.
         </Text>
       </Stack>
     </Stack>

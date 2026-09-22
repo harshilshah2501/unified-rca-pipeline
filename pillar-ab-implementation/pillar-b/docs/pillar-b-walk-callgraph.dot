@@ -1,0 +1,178 @@
+digraph pillar_b_walk_path {
+  // Curated walk-through call graph — use case 2
+  graph [
+    rankdir=TB
+    splines=true
+    concentrate=false
+    nodesep=0.55
+    ranksep=1.0
+    fontname="Helvetica"
+    fontsize=13
+    label="Pillar B — map/ walk-through call graph\nEach box = function (one-liner). Each arrow = call (one-liner).\nReads a published GraphSnapshot — does not write map/."
+    labelloc=t
+    bgcolor="white"
+    pad=0.35
+  ];
+  node [
+    shape=box
+    style="rounded,filled"
+    fontname="Helvetica"
+    fontsize=10
+    margin="0.18,0.12"
+  ];
+  edge [
+    fontname="Helvetica"
+    fontsize=8
+    color="#555555"
+    arrowsize=0.7
+  ];
+
+  subgraph cluster_snap {
+    label="Published map/ (from use case 1)"
+    bgcolor="#EAF6EE"
+    color="#6AAB7A"
+    snap [
+      fillcolor="#B8DFC4"
+      label=<<B>graph_snapshot.v1</B><BR/><FONT POINT-SIZE="9">Already-published nodes+edges in Dest or memory</FONT>>
+    ];
+    load [
+      fillcolor="#C8E6C9"
+      label=<<B>load_snapshot(dest)</B><BR/><FONT POINT-SIZE="9">Read map/ keys back into a snapshot dict</FONT>>
+    ];
+  }
+
+  subgraph cluster_api {
+    label="1 · Read API (thin wrappers)"
+    bgcolor="#EAF2FA"
+    color="#6A93B8"
+    get_n [
+      fillcolor="#C9DDF0"
+      label=<<B>get_neighbors()</B><BR/><FONT POINT-SIZE="9">Caller-facing neighbor id list</FONT>>
+    ];
+    get_e [
+      fillcolor="#C9DDF0"
+      label=<<B>get_neighbor_edges()</B><BR/><FONT POINT-SIZE="9">Caller-facing edge objects in hop budget</FONT>>
+    ];
+    get_r [
+      fillcolor="#C9DDF0"
+      label=<<B>get_reachable()</B><BR/><FONT POINT-SIZE="9">WorkingSet-lite CI set from a seed</FONT>>
+    ];
+    get_p [
+      fillcolor="#C9DDF0"
+      label=<<B>get_paths()</B><BR/><FONT POINT-SIZE="9">Paths from seed to target CI or type</FONT>>
+    ];
+  }
+
+  subgraph cluster_core {
+    label="2 · Walk core (neighbors.py)"
+    bgcolor="#F8F3E8"
+    color="#B8955A"
+    neigh [
+      fillcolor="#E8D9B8"
+      label=<<B>neighbors()</B><BR/><FONT POINT-SIZE="9">BFS edges: out / in / both + filters</FONT>>
+    ];
+    nids [
+      fillcolor="#E8D9B8"
+      label=<<B>neighbor_ids()</B><BR/><FONT POINT-SIZE="9">Unique other-endpoint ci_ids</FONT>>
+    ];
+    reach [
+      fillcolor="#E8D9B8"
+      label=<<B>reachable_ci_ids()</B><BR/><FONT POINT-SIZE="9">Seed + neighborhood within hops</FONT>>
+    ];
+    paths [
+      fillcolor="#E8D9B8"
+      label=<<B>find_paths()</B><BR/><FONT POINT-SIZE="9">Simple paths to CI or ci_type leaf</FONT>>
+    ];
+  }
+
+  subgraph cluster_helpers {
+    label="3 · Walk internals"
+    bgcolor="#F8EDED"
+    color="#B87A7A"
+    index [
+      fillcolor="#E8B8B8"
+      label=<<B>_index_edges()</B><BR/><FONT POINT-SIZE="9">Build by_src / by_dst edge indexes</FONT>>
+    ];
+    ok [
+      fillcolor="#C8E6C9"
+      label=<<B>_edge_ok()</B><BR/><FONT POINT-SIZE="9">Relation + confidence-bearing filter</FONT>>
+    ];
+    adj [
+      fillcolor="#C8E6C9"
+      label=<<B>_adjacent()</B><BR/><FONT POINT-SIZE="9">Other endpoint for out/in/both hop</FONT>>
+    ];
+  }
+
+  subgraph cluster_stub {
+    label="4 · Optional stubs (not PoC core)"
+    bgcolor="#FAFAFA"
+    color="#AAAAAA"
+    style=dashed
+    scope [
+      fillcolor="#EEEEEE"
+      label=<<B>build_working_set()</B><BR/><FONT POINT-SIZE="9">Stub Scope: seed tip → walk neighborhood</FONT>>
+    ];
+    loc [
+      fillcolor="#EEEEEE"
+      label=<<B>localize_leaf()</B><BR/><FONT POINT-SIZE="9">Stub Localize: deepest Database/Host path</FONT>>
+    ];
+  }
+
+  subgraph cluster_tests {
+    label="Callers in this PoC"
+    bgcolor="#F4F4F4"
+    color="#AAAAAA"
+    tests [
+      fillcolor="#DDDDDD"
+      label=<<B>test_map_walk.py</B><BR/><FONT POINT-SIZE="9">Use-case-2 proofs (hops, filters, E5)</FONT>>
+    ];
+    stubs [
+      fillcolor="#DDDDDD"
+      label=<<B>test_case_path.py</B><BR/><FONT POINT-SIZE="9">Optional stub harness calling walks</FONT>>
+    ];
+  }
+
+  // snapshot load
+  load -> snap [style=dashed label="returns snapshot dict"];
+
+  // tests → API / core
+  tests -> get_n [label="assert 1-hop / filters"];
+  tests -> get_r [label="assert reachable set"];
+  tests -> get_p [label="assert leaf paths"];
+  tests -> neigh [label="direct walk API"];
+  tests -> load  [label="Dest roundtrip then walk"];
+  stubs -> scope [style=dashed label="seed → WorkingSet"];
+  stubs -> loc   [style=dashed label="WorkingSet → LeafClaim"];
+
+  // API → core
+  get_n -> nids  [label="delegate"];
+  get_e -> neigh [label="delegate"];
+  get_r -> reach [label="delegate"];
+  get_p -> paths [label="delegate"];
+
+  // core → core / helpers
+  nids -> neigh  [label="collect dst/src ids"];
+  reach -> neigh [label="expand neighborhood"];
+  paths -> index [label="index edges for BFS"];
+  paths -> ok    [label="skip filtered edges"];
+  paths -> adj   [label="step to next CI"];
+  neigh -> index [label="index edges for BFS"];
+  neigh -> ok    [label="relation / hard-downgrade"];
+  neigh -> adj   [label="follow direction"];
+
+  // stubs → core
+  scope -> reach [style=dashed label="ci_ids in WorkingSet"];
+  scope -> neigh [style=dashed label="edges in WorkingSet"];
+  scope -> nids  [style=dashed label="neighbor_ids field"];
+  scope -> paths [style=dashed label="paths_to_hosts/databases"];
+  loc -> paths   [style=dashed label="reads paths already on WorkingSet"];
+
+  // snapshot feeds walks
+  snap -> neigh [style=dashed label="nodes+edges input"];
+  snap -> paths [style=dashed label="nodes+edges input"];
+  snap -> reach [style=dashed label="seed must exist on snapshot"];
+
+  { rank=same; get_n; get_e; get_r; get_p }
+  { rank=same; neigh; nids; reach; paths }
+  { rank=same; index; ok; adj }
+}

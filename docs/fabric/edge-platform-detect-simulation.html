@@ -233,7 +233,9 @@
     Data may enter SaaS from the Node agent or from the Collector — nowhere else.
     The Collector may aggregate what the Node already shaped, or collect network and application telemetry that never sat on a Node.
     SaaS writes <code>map/</code> and <code>history/</code> in parallel, then Detect raises a <code>Signal</code>.
-    Triage is drawn, not played. Checkout names are illustrative.
+    Triage is drawn, not played here — continue on
+    <a href="./edge-platform-case-simulation.html">film 2 (Detect → Localize)</a>.
+    Checkout names are illustrative.
     <a href="./SIMULATION_THREAD.md">Thread locks</a> ·
     <a href="./e1-e5-pipeline-architecture.html">E1–E5 architecture</a> ·
     <a href="../observeops/observeops-shift-left-architecture.html">Shift-left locus</a>.
@@ -508,9 +510,9 @@
         <rect class="ico-badge" width="28" height="28" rx="7"/>
         <use href="#i-case" class="ico" x="4" y="4" width="20" height="20"/>
       </g>
-      <text class="tag" x="920" y="526">Increment 2 · not played</text>
-      <text class="lbl" x="888" y="562">Triage and diagnose</text>
-      <text class="sub" x="888" y="588">E7 Curate · E8 Scope · E9–E11 Localize, Identify, Package</text>
+      <text class="tag" x="920" y="526">See film 2 · case path</text>
+      <text class="lbl" x="888" y="562">Triage and Localize</text>
+      <text class="sub" x="888" y="588">Storm → CaseSeed → WorkingSet → LeafClaim (separate film)</text>
 
       <text class="sub" x="1245" y="226" text-anchor="middle">no sync</text>
       <line id="noSync" x1="1245" y1="214" x2="1245" y2="232" stroke="var(--warn)" stroke-dasharray="3 3" opacity="0.3"/>
@@ -544,7 +546,7 @@
   </div>
   <p class="hint">
     The film loops from Emit through Detect. Packets slide on every beat; after Detect the loop starts again.
-    Increment 2 will animate Curate through Package.
+    Next film: <a href="./edge-platform-case-simulation.html">storm → CaseSeed → WorkingSet → LeafClaim</a>.
     Locks: <a href="./SIMULATION_THREAD.md">SIMULATION_THREAD.md</a>.
   </p>
 </div>
@@ -611,7 +613,7 @@
       lede: "Detect reads what fabric already wrote. A Signal is not a root cause.",
       where: "SaaS monitors on <code>history/</code> (and thresholds carried on the stream). Door A on the Node remains unfired here. Collector cluster triggers are deferred.",
       io: "In: sketch vs baseline, or <code>orders-api</code> p95 vs threshold. Out: <code>Signal</code> — fault class only, noisy by design.",
-      not: "Not Curate (one seed), not Scope (WorkingSet), not Localize or Identify. The muted band is increment 2.",
+      not: "Not Curate (one seed), not Scope (WorkingSet), not Localize or Identify. Those play on film 2.",
       live: ["nDet"]
     }
   ];

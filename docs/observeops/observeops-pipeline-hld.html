@@ -848,7 +848,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     <a href="/data-shape-journey.html"><strong>3 · Data shape journey</strong><span>Fabric · E1–E11 forms</span></a>
     <a href="/docs/GRAPH_QNA.md"><strong>4 · GRAPH_QNA</strong><span>Locked fabric rules</span></a>
     <a href="/urca-glossary.html"><strong>5 · Glossary</strong><span>Terms first</span></a>
-    <a href="/pillar-ab-implementation/README.md"><strong>6 · Pillar A+B</strong><span>Implementers — code entry</span></a>
+    <a href="/pillar-ab-implementation/README.md"><strong>6 · Pillar A+B</strong><span>Slice README → Pillar B PoC demo</span></a>
   </div>
 
   <h3 id="implementer-io">Tier 2 · Implementer I/O (wire records)</h3>
@@ -862,6 +862,27 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     <a href="/docs/MAP_WRITE_READ_RECORD.md"><span class="ioLbl">I/O-3</span>Map write/read (Pillar B)</a>
     <a href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md"><span class="ioLbl">I/O-4</span>Pillar A deep dive</a>
   </div>
+
+  <h3 id="pillar-b-poc">Pillar B PoC — team demo (Tier 2)</h3>
+  <p style="margin:0 0 .5rem;font-size:.92rem;color:var(--muted);">
+    Motadata knowledge-graph lab under <code>pillar-ab-implementation/pillar-b/</code> —
+    build/maintain + walk <code>map/</code>. Not the Lean/Federated bakeoff console.
+    Archive: <a href="/hld-archive.html#pillar-b-poc">#pillar-b-poc</a>.
+  </p>
+  <div class="tier1Band">
+    <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md"><strong>Team walkthrough</strong><span>One-stop demo · admit · run</span></a>
+    <a href="/pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md"><strong>MAP_P1 eval</strong><span>Build/maintain + walk proofs</span></a>
+    <a href="/pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md"><strong>Codebase go-through</strong><span>Module tour + spine</span></a>
+    <a href="/pillar-ab-implementation/pillar-b/docs/README.md"><strong>Pillar B doc map</strong><span>Reading order in package</span></a>
+    <a href="/docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md"><strong>Fact kinds notes</strong><span>Logs → event · spoken alias</span></a>
+    <a href="#graphwriter"><strong>GraphWriter tab</strong><span>Hub visual · NOOP/WRITE/DROP</span></a>
+  </div>
+  <p style="margin:.35rem 0 0;font-size:.85rem;color:var(--muted);">
+    Interactive layer navigator (Cursor canvas): open
+    <code>pillar-ab-implementation/pillar-b/reference/canvases/pillar-b-poc-navigator.canvas.tsx</code>
+    via Command Palette → <strong style="color:var(--text)">Open Canvas</strong>
+    (Explorer click shows source only).
+  </p>
 
   <h2 id="hld-pack">Reading paths (detail)</h2>
   <p>
@@ -890,7 +911,8 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   <p>
     <a href="/motadata-3pillars-implementation-scope.html">3 pillars implementation scope</a> (Tier 2 kickoff) ·
     <a href="/observeops-shift-left-architecture.html">Shift-left</a> (Node / optional Gateway / SaaS) ·
-    implementer I/O chain above (<a href="#implementer-io">I/O-1 … I/O-4</a>).
+    implementer I/O chain above (<a href="#implementer-io">I/O-1 … I/O-4</a>) ·
+    <a href="#pillar-b-poc">Pillar B PoC demo</a> (team walkthrough → tests).
   </p>
 
   <h3 id="path-archive">5 · Archive &amp; deep chapters</h3>
@@ -902,6 +924,16 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     Below: additional P1 fabric visuals. Full index: <a href="/hld-archive.html#fabric">archive → Fabric</a>.
   </p>
   <div class="grid two">
+    <a class="card" href="/edge-platform-detect-simulation.html">
+      <div class="k compare">Film 1</div>
+      <h3>Edge → Detect simulation</h3>
+      <p>Node or Collector → SaaS · warm <code>map/</code> ∥ <code>history/</code> · Detect raises a <code>Signal</code>.</p>
+    </a>
+    <a class="card" href="/edge-platform-case-simulation.html">
+      <div class="k compare">Film 2</div>
+      <h3>Detect → Localize simulation</h3>
+      <p>Signal storm → <code>CaseSeed</code> → <code>WorkingSet</code> → <code>LeafClaim</code>. Identify / Package muted.</p>
+    </a>
     <a class="card" href="/e1-e5-pipeline-architecture.html">
       <div class="k compare">P1 fabric</div>
       <h3>E1–E5 pipeline architecture</h3>
@@ -935,6 +967,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   </div>
   <p class="note" style="margin-top:.75rem;">
     More Tier 2: <a href="/map-history-storage-animation.html">room animation</a> ·
+    <a href="/fabric/SIMULATION_THREAD.md">simulation locks</a> ·
     <a href="/hld-archive.html">full archive</a> (searchable, tier tags).
   </p>
 
@@ -1617,9 +1650,11 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     <code>pillar-ab-implementation/pillar-b/poc</code>.
     <strong style="color:var(--text)">P1 first (Increment 1):</strong> deep always-on fabric
     E1–E5 for <code>map/</code> — guide
-    <code>pillar-ab-implementation/pillar-b/MAP_P1_FABRIC_EVAL.md</code>;
+    <a href="/pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md"><code>pillar-b/docs/MAP_P1_FABRIC_EVAL.md</code></a>;
     proofs <code>test_p1_map_fabric.py</code>.
-    P2/P3 use-case map reads (CaseSeed → WorkingSet) are the <em>next</em> increment.
+    Team one-stop:
+    <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md">TEAM_WALKTHROUGH.md</a>.
+    Case-path stubs under <code>case_path/</code> are optional harnesses, not the PoC mission.
     Input: post-E2 <code>ingest.v1</code> with <code>signal_class=topo_update</code> (plus optional estate bootstrap — not E7 CaseSeed).
     Output: Gate B <code>files.v1</code> under <code>map/</code>.
     OneOps / Fusion HTML briefs under <code>references/</code> are catalog material only — they are not GraphWriter callers.
@@ -2152,10 +2187,11 @@ make install &amp;&amp; make flush
   <p class="meta">
     Source of truth: <code>docs/fabric/graphwriter-io-walkthrough.html</code>
     (flat hub URL <a href="/graphwriter-io-walkthrough.html"><code>/graphwriter-io-walkthrough.html</code></a>).
-    Package mirror: <code>pillar-b/docs/</code> symlink.
-    Sample I/O: <a href="/docs/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/SAMPLE_IO.md">SAMPLE_IO.md</a> ·
-    Post-E2 router: <a href="/docs/pillar-ab-implementation/E2_INPUT_FIXTURES.md">E2_INPUT_FIXTURES.md</a> ·
-    Contracts: <a href="/docs/MAP_WRITE_READ_RECORD.md">MAP_WRITE_READ_RECORD.md</a>.
+    Package docs: <a href="/pillar-ab-implementation/pillar-b/docs/README.md">pillar-b/docs/</a>.
+    Sample I/O: <a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/SAMPLE_IO.md">SAMPLE_IO.md</a> ·
+    Post-E2 router: <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md">E2_INPUT_FIXTURES.md</a> ·
+    Contracts: <a href="/docs/MAP_WRITE_READ_RECORD.md">MAP_WRITE_READ_RECORD.md</a> ·
+    Team demo: <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md">TEAM_WALKTHROUGH.md</a>.
   </p>
 </div>
 

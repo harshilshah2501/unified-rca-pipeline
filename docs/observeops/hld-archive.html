@@ -45,6 +45,7 @@
 
   <nav class="archive-toc" aria-label="Sections">
     <a href="#implementer-io">Tier 2 · I/O</a>
+    <a href="#pillar-b-poc">Pillar B PoC</a>
     <a href="#fabric">Fabric &amp; contracts</a>
     <a href="#motadata">Motadata 3 pillars</a>
     <a href="#examples">Examples</a>
@@ -67,6 +68,11 @@
     <a class="archive-row" href="/docs/INGEST_DATA_FORMAT.md" data-keywords="tier2 io-1 ingest.v1 e1 e2 envelope signal_class corpus delivery identity overlay">
       <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-1</span><h3>Ingest data format</h3></div>
       <p>E1 <code>ingest.v1</code> envelope, <code>signal_class</code> enum, corpus folder layout, E2 identity overlay. Upstream of pillar writers.</p>
+    </a>
+    <a class="archive-row" href="/docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md" data-keywords="tier2 discussion fact kind signal_class logs event bind_source provenance rename deferred team notes">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Discussion</span><h3>Ingest fact kinds (team notes)</h3></div>
+      <p>Spoken <strong>fact kind</strong> vs wire <code>signal_class</code>; <strong>logs → <code>event</code></strong> (no separate log kind); bind vs edge provenance; rename deferred.</p>
+      <div class="also">Also on Our HLD Overview → <a href="/observeops-pipeline-hld.html#implementer-io">Implementer I/O</a>.</div>
     </a>
     <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md#signal_class-cheat-sheet" data-keywords="tier2 io-2 signal_class metric_sample topo_update anomaly event trace_span cheat sheet">
       <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-2</span><h3>signal_class cheat sheet</h3></div>
@@ -91,6 +97,41 @@
     </a>
   </section>
 
+  <section id="pillar-b-poc" class="archive-section">
+    <h2>Pillar B PoC — team demo</h2>
+    <p class="sect-lead">
+      Motadata knowledge-graph lab (build/maintain + walk <code>map/</code>). Distinct from the Lean/Federated bakeoff console under
+      <code>:8765/</code>. Hub Overview:
+      <a href="/observeops-pipeline-hld.html#pillar-b-poc">#pillar-b-poc</a>.
+      Package doc map:
+      <a href="/pillar-ab-implementation/pillar-b/docs/README.md">pillar-b/docs/README.md</a>.
+    </p>
+    <a class="archive-row" href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md" data-keywords="pillar b poc team walkthrough demo admit signal_class fact kind make test-all">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">PoC demo</span><h3>Team walkthrough</h3></div>
+      <p>One-stop demo script — two use cases, fact kinds, admit, <code>bind_source</code>, I/O, run commands.</p>
+    </a>
+    <a class="archive-row" href="/pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md" data-keywords="pillar b map p1 fabric eval build maintain walk test_map_walk">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">PoC eval</span><h3>MAP_P1 fabric eval</h3></div>
+      <p>What “done” means for build/maintain + walk proofs (<code>test_p1_map_fabric</code>, <code>test_map_walk</code>).</p>
+    </a>
+    <a class="archive-row" href="/pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md" data-keywords="pillar b codebase go-through module tour graph_writer neighbors">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">PoC code</span><h3>Codebase go-through</h3></div>
+      <p>File-by-file tour of GraphWriter, walk APIs, sample estate, tests.</p>
+    </a>
+    <a class="archive-row" href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/SAMPLE_IO.md" data-keywords="pillar b sample io case a case b spine expected">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">PoC goldens</span><h3>SAMPLE_IO (Case A/B)</h3></div>
+      <p>Expected vs actual map spines for customer-checkout estate.</p>
+    </a>
+    <a class="archive-row" href="/observeops-pipeline-hld.html#graphwriter" data-keywords="graphwriter hub tab noop write drop topology">
+      <div class="row-top"><span class="tag tier1">Hub tab</span><h3>GraphWriter I/O (Our HLD)</h3></div>
+      <p>Interactive who / pipeline / admit / lab walkthrough on the HLD hub.</p>
+    </a>
+    <a class="archive-row" href="/docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md" data-keywords="fact kind signal_class logs event discussion">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Discussion</span><h3>Ingest fact kinds (again)</h3></div>
+      <p>Also listed under Implementer I/O — linked here so the PoC demo path is complete.</p>
+    </a>
+  </section>
+
   <section id="fabric" class="archive-section">
     <h2>Fabric &amp; data contracts</h2>
     <p class="sect-lead">P1 always-on fabric (E1–E5): data shape, Pillar A ∥ B stores, graph/sketch lock list. Also on <a href="/observeops-pipeline-hld.html#fabric">Our HLD → Fabric</a>.</p>
@@ -98,6 +139,10 @@
     <a class="archive-row" href="/edge-platform-detect-simulation.html" data-keywords="tier2 simulation animation node collector saas map history detect ingest edge devices">
       <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Visual</span><h3>Edge → Detect simulation</h3></div>
       <p>Four columns: Edge devices · Node · optional Collector · SaaS. Two ingest doors; always-on map/ ∥ history/; Detect raises a Signal.</p>
+    </a>
+    <a class="archive-row" href="/edge-platform-case-simulation.html" data-keywords="tier2 simulation animation storm curate scope localize caseseed workingset leafclaim detect triage">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Visual</span><h3>Detect → Localize simulation</h3></div>
+      <p>Warm fabric → Signal storm → CaseSeed → WorkingSet → LeafClaim. Identify and Package stay muted.</p>
     </a>
     <a class="archive-row" href="/data-shape-journey.html" data-keywords="tier1 data shape journey e1 e11 ingest sketch verdict edge platform evolution">
       <div class="row-top"><span class="tag tier1">Tier 1</span><h3>Data shape journey</h3></div>
@@ -266,6 +311,7 @@
     · <a href="/observeops-pipeline-hld.html">← Our HLD hub</a>
     · <a href="/observeops-pipeline-hld.html#fabric">Fabric section</a>
     · <a href="#implementer-io">Implementer I/O</a>
+    · <a href="#pillar-b-poc">Pillar B PoC</a>
     · <a href="/docs.html">Full docs hub</a>
     · <a href="/urca-glossary.html">Glossary</a>
   </p>

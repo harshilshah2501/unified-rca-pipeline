@@ -1,9 +1,9 @@
-# Codebase go-through — Pillar B map PoC (P1 / Increment 1)
+# Codebase go-through — Pillar B knowledge-graph PoC
 
-**Doc job:** walk the **code and sample estate** so a cold reader knows which file does which job on the write path into `map/`.  
-**Not this page:** stage eval matrix and admit terminology → [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md). Package I/O front door → [`../README.md`](../README.md). Doc map → [`README.md`](./README.md).
+**Doc job:** walk the **code and sample estate** for the two PoC use cases — **build/maintain** and **walk-through**.  
+**Framing:** [Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx). Eval → [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md). Package door → [`../README.md`](../README.md).
 
-**What this PoC proves:** after Identity, Motadata can build and keep a `map/` knowledge graph from optional **estate bootstrap** + a `topo_update` stream, without writing sketches, without CaseSeed, and without implementing live discovery.
+**What this PoC proves:** after Identity (assumed), Motadata can **build and keep** a `map/` knowledge graph from optional estate bootstrap + a `topo_update` stream, **maintain** edge validity, and **walk** the published snapshot — without owning Detect, sketches, or ServiceOps.
 
 **Home package:** `pillar-ab-implementation/pillar-b/` · **Runnable lab:** `pillar-b/poc/`
 
@@ -35,6 +35,15 @@ flowchart LR
 ```
 
 ![Same spine as PNG — use if Mermaid preview is off](./runtime-spine.png)
+
+**Call graphs (one-liners on nodes and arrows):**
+
+| Use case | Image |
+|----------|--------|
+| **1 · Build + maintain** | [`pillar-b-callgraph.png`](./pillar-b-callgraph.png) · [SVG](./pillar-b-callgraph.svg) · [DOT](./pillar-b-callgraph.dot) |
+| **2 · Walk-through** | [`pillar-b-walk-callgraph.png`](./pillar-b-walk-callgraph.png) · [SVG](./pillar-b-walk-callgraph.svg) · [DOT](./pillar-b-walk-callgraph.dot) |
+
+Noisier auto dump (write path only): [`pillar-b-callgraph-auto.png`](./pillar-b-callgraph-auto.png).
 
 `GraphWriter` is a thin orchestrator: `load_estate_bootstrap` → `write_topo_stream` → `publish_map` → optional `maintain_map`. Lab CLI: [`../poc/graph/cli_publish_map.py`](../poc/graph/cli_publish_map.py) (`make publish-map`).
 
@@ -168,9 +177,21 @@ Runs against existing `GraphState`:
 
 Hard-downgraded edges stay on the published map but leave `confidence_bearing_edges`. Details: [`LLD-E5-Maintain`](../../../docs/observeops/LLD-E5-Maintain.md).
 
-### `neighbors.py` / `read_api.py` — walk a published snapshot
+### `neighbors.py` / `read_api.py` — use case 2 (walk-through)
 
-Outbound neighbor walks used in acceptance (“checkout-api reaches payments-db”). Diagnose-scale WorkingSet / leaf-path reads are **not** in this increment.
+Outbound / inbound / both, hop budget, relation filters, reachable set, leaf paths, `confidence_bearing_only`. Proofs: `test_map_walk.py`. Chain fixture: `walk_chain.bootstrap.json`.
+
+### `case_path/` — stub harness only (optional)
+
+Drivers that **assume** Detect/Curate/Identify/Package and call walk APIs. Not the knowledge-graph mission — see [Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx).
+
+| Module | Stub role |
+|--------|-----------|
+| `signal.py` / `curate.py` | Fake storm → CaseSeed tip |
+| `scope.py` / `localize.py` | Tip → neighborhood / leaf via walks |
+| `identify.py` / `package.py` | Lab evidence + operator-shaped card |
+
+Proofs: `test_case_path.py`, `test_identify_package.py` (optional relative to core PoC).
 
 ### `compare.py` — SAMPLE_IO spine equality
 
@@ -206,7 +227,9 @@ Wires bootstrap + resolved stream + `FileDest` (+ optional maintain). Invoked by
 
 | Test file | Focus |
 |-----------|--------|
-| **`test_p1_map_fabric.py`** | Full P1 matrix: E1 boundary, E2 gate, E3 triage, E4 orthogonality, E5 freshness |
+| **`test_p1_map_fabric.py`** | Use case 1: E1 boundary, E2 gate, E3 triage, E4 orthogonality, E5 freshness |
+| **`test_map_walk.py`** | Use case 2: hops, inbound, reachable set, leaf paths, E5 confidence filter |
+| `test_case_path.py` · `test_identify_package.py` | Optional stubs (not core PoC) |
 | `test_graph_writer.py` | Happy path flush, silent skip, reject tape |
 | `test_sample_io.py` | Case A/B spine equality |
 | `test_maintain.py` | Expire / corroborating / declared soft unit cases |
@@ -245,13 +268,13 @@ Eval narrative for those proofs: [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.
 
 ## 9. Explicit non-goals
 
-- No E6–E11 map **reads** (CaseSeed → WorkingSet → leaf path)  
-- No eight use-case fixture packs  
+- No live ServiceOps ticket create  
+- No eight product use-case packs (Detect classes as product scope)  
 - No live discovery crawler / `telemetry_key_index` LUT  
 - No SketchWriter inside Pillar B  
 - Vortex/S3 encodings deferred — PoC Dest is `files.v1` only  
 
-This tree is the **P1 always-on fabric write path** only.
+**Core PoC = build/maintain + walk.** `case_path/` stubs are optional harnesses only ([Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx)).
 
 ---
 

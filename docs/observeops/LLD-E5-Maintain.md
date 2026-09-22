@@ -51,7 +51,7 @@ From operational-graph decision log #4 (also cited in [`LLD-E3-Topology.md`](./L
 | **30 days** | Hard-downgrade — exclude from confidence-bearing localization paths |
 | CMDB pull that still includes the edge | Resets the clock |
 
-Bakeoff Lean/Federated graphs still lack freshness markers. Pillar B PoC: expire `valid_to`, drop stale corroborating, and apply declared soft-stale (7d) / hard-downgrade (30d) markers via fixture `as_of` on [`maintain.py`](../../pillar-ab-implementation/pillar-b/poc/graph/maintain.py) (Design-numeric; see [`MAP_P1_FABRIC_EVAL.md`](../../pillar-ab-implementation/pillar-b/MAP_P1_FABRIC_EVAL.md)).
+Bakeoff Lean/Federated graphs still lack freshness markers. Pillar B PoC: expire `valid_to`, drop stale corroborating, and apply declared soft-stale (7d) / hard-downgrade (30d) markers via fixture `as_of` on [`maintain.py`](../../pillar-ab-implementation/pillar-b/poc/graph/maintain.py) (Design-numeric; see [`MAP_P1_FABRIC_EVAL.md`](../../pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md)).
 
 ---
 

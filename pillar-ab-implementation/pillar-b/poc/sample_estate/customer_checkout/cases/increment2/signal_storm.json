@@ -1,0 +1,48 @@
+{
+  "signals": [
+    {
+      "signal_id": "sig-checkout-latency",
+      "tenant": "default",
+      "ci_id": "checkout-api",
+      "ci_type": "Service",
+      "detect_class": "ERROR",
+      "ts": "2026-08-20T03:32:00Z",
+      "metric_id": "request.latency_ms",
+      "severity": "critical",
+      "observed": { "p95": 842, "expected_p95": 170 }
+    },
+    {
+      "signal_id": "sig-checkout-web-5xx",
+      "tenant": "default",
+      "ci_id": "checkout-api",
+      "ci_type": "Service",
+      "detect_class": "ERROR",
+      "ts": "2026-08-20T03:32:10Z",
+      "metric_id": "http.server.errors",
+      "severity": "critical",
+      "observed": { "rate": 0.18 }
+    },
+    {
+      "signal_id": "sig-payments-latency",
+      "tenant": "default",
+      "ci_id": "payments-db",
+      "ci_type": "Database",
+      "detect_class": "SLOWDOWN",
+      "ts": "2026-08-20T03:32:05Z",
+      "metric_id": "db.query.latency_ms",
+      "severity": "warning",
+      "observed": { "p95": 420, "expected_p95": 80 }
+    },
+    {
+      "signal_id": "sig-host-cpu",
+      "tenant": "default",
+      "ci_id": "linux-server-app-01",
+      "ci_type": "Host",
+      "detect_class": "SATURATION",
+      "ts": "2026-08-20T03:33:00Z",
+      "metric_id": "cpu.utilization_pct",
+      "severity": "warning",
+      "observed": { "p95": 91, "expected_p95": 55 }
+    }
+  ]
+}

@@ -1,17 +1,18 @@
-# P1 map fabric eval — E1–E5 (Increment 1)
+# P1 map fabric eval — build / maintain / walk
 
-**Doc job:** Increment 1 **eval contract** — stage matrix (map lens), terminology, proofs and honest gaps.  
-**Not this page:** file-by-file code tour → [`Codebase-go-through.md`](./Codebase-go-through.md). Package I/O front door → [`../README.md`](../README.md). Doc map → [`README.md`](./README.md).
+**Doc job:** Core **knowledge-graph** eval — build + maintain `map/`, then walk it.  
+**PoC framing:** [Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx) · code tour → [`Codebase-go-through.md`](./Codebase-go-through.md) · package door → [`../README.md`](../README.md).
 
-**Scope:** Always-on fabric only — how Collect → Identity → GraphWriter → `map/` (plus Maintain) behaves for the knowledge-graph PoC.  
-**Not in this guide:** P2/P3 case-path map reads (CaseSeed → WorkingSet → leaf path). That is the next increment.
+**In scope:** GraphWriter admit → publish → E5 maintain → walk helpers.  
+**Stubbed / assumed:** Collect/Identity (fixtures), sketches, Detect/Curate/Identify/Package (optional `case_path/` harness only).
 
 **Run proofs:**
 
 ```bash
 cd pillar-ab-implementation/pillar-b/poc
 make test-all
-# includes graph/tests/unit/test_p1_map_fabric.py
+# Use case 1: graph/tests/unit/test_p1_map_fabric.py (+ maintain / sample_io / writer)
+# Use case 2: graph/tests/unit/test_map_walk.py
 ```
 
 ---
@@ -40,6 +41,27 @@ Spine for E3: **optional estate bootstrap + `topo_update` → nodes/edges + prov
 | **E3 Topology** | **Sole `map/` writer** | NOOP / WRITE / DROP / phased skip / upsert idempotency (below) | Live continuous discovery = Design; PoC = bootstrap + stream upsert |
 | **E4 Stores** | **Orthogonal** — Pillar A `history/` sketches | Mixed tape leaves map spine unchanged for metric/event/trace/anomaly | Log/trace history ≠ `sketch.v1` |
 | **E5 Maintain** | **Validity on existing edges** — does not create edges | Expire `valid_to`; stale corroborating; declared soft 7d / hard 30d (Design-numeric, fixture clock) | Full discovery re-derive = Design |
+
+---
+
+## Two use cases (test matrix)
+
+| Use case | Job | Primary tests |
+|----------|-----|----------------|
+| **1 · Build + maintain** | Estate bootstrap + `topo_update` admit + Dest publish + E5 marks | `test_p1_map_fabric`, `test_maintain`, `test_graph_writer`, `test_sample_io` Case A/B |
+| **2 · Walk-through** | Read published `map/`: hops, inbound/outbound, relation filters, reachable set, leaf paths, confidence-bearing filter after E5 | `test_map_walk` (+ smoke neighbors in older writer/builder tests) |
+
+Optional stub harnesses that *call* walk APIs (not core PoC): `test_case_path`, `test_identify_package` — see [Pillar B PoC Navigator canvas](../reference/canvases/pillar-b-poc-navigator.canvas.tsx).
+
+### Walk-through proofs (`test_map_walk.py`)
+
+| Band | Proof |
+|------|--------|
+| **B1** | 1-hop outbound on customer_checkout; `runs_on` / multi-relation filters; inbound to `payments-db` and host; missing seed / `hops=0` → empty |
+| **B2** | Multi-hop on [`walk_chain.bootstrap.json`](../poc/sample_estate/customer_checkout/walk_chain.bootstrap.json); `reachable_ci_ids` WorkingSet-lite; path to named leaf and to `Host` type; relation-scoped path; undirected `both` from a leaf host |
+| **B3** | Dest load still walkable; expire removes edge from relation walk; `confidence_bearing_only` skips `hard_downgraded`; maintain re-flush WorkingSet still non-empty |
+
+Helpers: [`../poc/graph/neighbors.py`](../poc/graph/neighbors.py) · thin wrappers [`../poc/graph/read_api.py`](../poc/graph/read_api.py).
 
 ---
 
