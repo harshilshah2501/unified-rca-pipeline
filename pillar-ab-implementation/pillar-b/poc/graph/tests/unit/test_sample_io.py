@@ -34,7 +34,7 @@ def test_case_b_rejects_expected_vs_actual():
     assert reasons == expected["reject_reasons"]
     assert len(writer.rejects) == expected["reject_count"]
     snapshot = writer.publish_map(MemoryDest())
-    present = {n["ci_id"] for n in snapshot["nodes"]}
+    present = {n["entity_id"] for n in snapshot["nodes"]}
     for cid in expected["must_not_appear_as_nodes"]:
         assert cid not in present, f"{cid} must not land on map/"
     for cid in expected["bootstrap_nodes_still_present"]:

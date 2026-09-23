@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from graph.case_path.scope import WorkingSet
+from graph.ci_qualify import to_product_type
 
 # Prefer deeper dependency leaves for ERROR / AVAILABILITY teaching stories.
 _LEAF_TYPE_PREF = ("Database", "Host", "Runtime", "Service")
@@ -49,7 +50,8 @@ def localize_leaf(
     2. Else prefer deepest path ending at Database, then Host.
     3. Else fall back to seed CI (thin graph).
     """
-    nodes = {n["ci_id"]: n for n in snapshot.get("nodes") or []}
+    # Map nodes use Motadata entity_id / type; case-path API keeps seed_ci_id join name.
+    nodes = {n["entity_id"]: n for n in snapshot.get("nodes") or []}
     seed = working_set.seed_ci_id
     detect = working_set.detect_class
 
@@ -60,7 +62,7 @@ def localize_leaf(
             case_id=working_set.case_id,
             tenant=working_set.tenant,
             claim_ci_id=prefer_ci,
-            claim_ci_type=str(n.get("ci_type") or "Unknown"),
+            claim_ci_type=to_product_type(str(n.get("type") or "Unknown")),
             detect_class=detect,
             path_from_seed=tuple(path),
             rationale=f"lab prefer_ci={prefer_ci} present on WorkingSet",
@@ -78,7 +80,7 @@ def localize_leaf(
             case_id=working_set.case_id,
             tenant=working_set.tenant,
             claim_ci_id=leaf,
-            claim_ci_type=str(n.get("ci_type") or "Database"),
+            claim_ci_type=to_product_type(str(n.get("type") or "db")),
             detect_class=detect,
             path_from_seed=tuple(path),
             rationale=(
@@ -98,7 +100,7 @@ def localize_leaf(
             case_id=working_set.case_id,
             tenant=working_set.tenant,
             claim_ci_id=leaf,
-            claim_ci_type=str(n.get("ci_type") or "Host"),
+            claim_ci_type=to_product_type(str(n.get("type") or "host")),
             detect_class=detect,
             path_from_seed=tuple(path),
             rationale=f"deepest Host leaf on WorkingSet from {seed}",
@@ -108,11 +110,12 @@ def localize_leaf(
 
     # Thin fallback
     n = nodes.get(seed) or {}
+    stored = str(n.get("type") or working_set.detect_class)
     return LeafClaim(
         case_id=working_set.case_id,
         tenant=working_set.tenant,
         claim_ci_id=seed,
-        claim_ci_type=str(n.get("ci_type") or working_set.detect_class),
+        claim_ci_type=to_product_type(stored),
         detect_class=detect,
         path_from_seed=(seed,),
         rationale="no Database/Host path in WorkingSet; claim remains on seed",

@@ -57,7 +57,14 @@ def test_snapshot_schema_and_dest():
     snap = build_snapshot(state)
     for n in snap["nodes"]:
         assert is_valid("graph_node_v1.schema.json", n)
-        assert n["identity_status"] == "resolved"
+        assert "tenant" not in n
+        assert n["version"] >= 1
+        assert n["last_seen"]
+    for e in snap["edges"]:
+        assert is_valid("graph_edge_v1.schema.json", e)
+        assert "tenant" not in e
+        assert "discovered_via" not in e
+        assert isinstance(e["edge_id"], int)
     dest = MemoryDest()
     publish_snapshot(dest, snap)
     loaded = load_snapshot(dest)

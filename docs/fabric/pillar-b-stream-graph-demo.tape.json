@@ -1,0 +1,444 @@
+{
+  "_comment": "Demo tape: B0 = estate bootstrap of CI nodes only (pre-stream). Edges appear gradually on each stream topo_update WRITE (Forward), in sync with the left panel. line.common \u222a line.specific = flat ingest.v1. Use _comment for humans \u2014 strict JSON has no //.",
+  "title": "Interleaved fact_kind replay \u2014 customer checkout",
+  "description": "Pillar B stream|graph demo: B0 loads estate CI nodes; then interleaved ingest.v1. Each topo_update WRITE adds/upserts one edge on map/; other kinds NOOP or Sketch admit.",
+  "source": "pillar-ab-implementation/pillar-b/docs/INTERLEAVED_FACT_KIND_SCENARIO.md",
+  "field_guide": {
+    "common": [
+      "schema_version",
+      "ts",
+      "tenant",
+      "ci_id",
+      "ci_type",
+      "fact_kind",
+      "identity"
+    ],
+    "by_fact_kind": {
+      "topo_update": [
+        "relation",
+        "src_ci_id",
+        "dst_ci_id"
+      ],
+      "metric_sample": [
+        "name",
+        "value",
+        "labels"
+      ],
+      "trace_span": [
+        "name",
+        "value",
+        "labels"
+      ],
+      "event": [
+        "name",
+        "value",
+        "labels"
+      ],
+      "anomaly": [
+        "name",
+        "value",
+        "threshold",
+        "severity"
+      ]
+    }
+  },
+  "nodes": {
+    "_comment": "SVG layout skeleton. B0 lights CI nodes; stream WRITE edges light endpoints + draw arcs.",
+    "bs-checkout": {
+      "ci_type": "BusinessService",
+      "label": "bs-checkout",
+      "x": 206,
+      "y": 24
+    },
+    "checkout-api": {
+      "ci_type": "Service",
+      "label": "checkout-api",
+      "x": 206,
+      "y": 130
+    },
+    "app-runtime-jvm": {
+      "ci_type": "Runtime",
+      "label": "app-runtime-jvm",
+      "x": 24,
+      "y": 250
+    },
+    "payments-db": {
+      "ci_type": "Database",
+      "label": "payments-db",
+      "x": 400,
+      "y": 250
+    },
+    "linux-server-app-01": {
+      "ci_type": "Host",
+      "label": "linux-server-app-01",
+      "x": 206,
+      "y": 380
+    }
+  },
+  "steps": [
+    {
+      "id": "B0",
+      "kind": "bootstrap",
+      "_comment": "Pre-stream: load_estate_bootstrap places known CIs on the map (vertices only in this demo). Not CaseSeed. Not ingest.v1. Edges are withheld so Forward can show each topo_update WRITE populate map/ in sync with the stream.",
+      "headline": "Estate bootstrap \u2014 CI nodes before the stream",
+      "sketch": "NOOP",
+      "graph": "BOOTSTRAP",
+      "caption": "load_estate_bootstrap \u2192 known CIs on map/ (edges arrive with stream WRITEs)",
+      "estate": {
+        "source": "poc/sample_estate/customer_checkout/topology.bootstrap.json",
+        "api": "GraphWriter.load_estate_bootstrap",
+        "provenance": "topology.bootstrap",
+        "evidence_default": "declared",
+        "nodes": [
+          "bs-checkout",
+          "checkout-api",
+          "linux-server-app-01",
+          "app-runtime-jvm",
+          "payments-db"
+        ],
+        "edges": [],
+        "_comment": "Lab topology.bootstrap.json also has declared edges; this demo uses nodes-only bootstrap so the graph grows edge-by-edge with the tape."
+      }
+    },
+    {
+      "id": "T0",
+      "_comment": "First edge from stream: inventory topo_update \u2192 GraphWriter WRITE runs_on (authoritative). SketchWriter NOOP.",
+      "headline": "Inventory places JVM on host",
+      "sketch": "NOOP",
+      "graph": "WRITE",
+      "caption": "GraphWriter WRITE runs_on \u00b7 SketchWriter NOOP \u2014 first edge on map/",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:29:50Z",
+          "tenant": "default",
+          "ci_id": "app-runtime-jvm",
+          "ci_type": "Runtime",
+          "fact_kind": "topo_update",
+          "identity": {
+            "status": "resolved",
+            "bind_source": "inventory"
+          }
+        },
+        "specific": {
+          "relation": "runs_on",
+          "src_ci_id": "app-runtime-jvm",
+          "dst_ci_id": "linux-server-app-01"
+        }
+      },
+      "edge": {
+        "relation": "runs_on",
+        "src": "app-runtime-jvm",
+        "dst": "linux-server-app-01",
+        "evidence": "authoritative"
+      }
+    },
+    {
+      "id": "T1a",
+      "_comment": "Metric on the wire: SketchWriter ADMIT, GraphWriter NOOP \u2014 map/ edges unchanged.",
+      "headline": "Steady latency sample",
+      "sketch": "ADMIT",
+      "graph": "NOOP",
+      "caption": "SketchWriter admits metric_sample \u00b7 GraphWriter NOOP",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:00Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "metric_sample",
+          "identity": {
+            "status": "resolved",
+            "bind_source": "topology_lookup"
+          }
+        },
+        "specific": {
+          "name": "request.latency_ms",
+          "value": 92.1,
+          "labels": {
+            "trace_id": "abc123"
+          }
+        }
+      }
+    },
+    {
+      "id": "T1b",
+      "_comment": "Second metric; still no GraphWriter mutation.",
+      "headline": "Error-rate sample",
+      "sketch": "ADMIT",
+      "graph": "NOOP",
+      "caption": "SketchWriter admits \u00b7 GraphWriter NOOP (still no map change)",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:05Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "metric_sample",
+          "identity": {
+            "status": "resolved",
+            "bind_source": "topology_lookup"
+          }
+        },
+        "specific": {
+          "name": "request.error_rate",
+          "value": 0.02
+        }
+      }
+    },
+    {
+      "id": "T2a",
+      "_comment": "Catalog stream line: WRITE part_of (composition) \u2014 new edge on map/.",
+      "headline": "Catalog: API part of business service",
+      "sketch": "NOOP",
+      "graph": "WRITE",
+      "caption": "WRITE part_of (composition) \u00b7 SketchWriter NOOP",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:08Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "topo_update",
+          "identity": {
+            "status": "resolved",
+            "bind_source": "service-catalog"
+          }
+        },
+        "specific": {
+          "relation": "part_of",
+          "src_ci_id": "checkout-api",
+          "dst_ci_id": "bs-checkout"
+        }
+      },
+      "edge": {
+        "relation": "part_of",
+        "src": "checkout-api",
+        "dst": "bs-checkout",
+        "evidence": "declared"
+      }
+    },
+    {
+      "id": "T2b",
+      "_comment": "Catalog stream line: WRITE depends_on (need) \u2014 new edge on map/.",
+      "headline": "Catalog: API depends on payments DB",
+      "sketch": "NOOP",
+      "graph": "WRITE",
+      "caption": "WRITE depends_on (need) \u00b7 SketchWriter NOOP",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:08Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "topo_update",
+          "identity": {
+            "status": "resolved",
+            "bind_source": "service-catalog"
+          }
+        },
+        "specific": {
+          "relation": "depends_on",
+          "src_ci_id": "checkout-api",
+          "dst_ci_id": "payments-db"
+        }
+      },
+      "edge": {
+        "relation": "depends_on",
+        "src": "checkout-api",
+        "dst": "payments-db",
+        "evidence": "declared"
+      }
+    },
+    {
+      "id": "T3",
+      "_comment": "Teaching point: a span with peer.service is NOT an edge until a separate topo_update emitter fires. Bootstrap already had communicates_with as declared.",
+      "headline": "APM span with peer.service",
+      "sketch": "NOOP",
+      "graph": "NOOP",
+      "caption": "Both pillars NOOP \u2014 peer label may feed a future topo_update emitter",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:10Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "trace_span",
+          "identity": {
+            "status": "resolved",
+            "bind_source": "apm"
+          }
+        },
+        "specific": {
+          "name": "POST /checkout",
+          "value": 210.0,
+          "labels": {
+            "trace_id": "abc123",
+            "span_id": "span-7",
+            "peer.service": "payments-db"
+          }
+        }
+      }
+    },
+    {
+      "id": "T4a",
+      "_comment": "Log/event labels (downstream) are evidence for operators, not GraphWriter edges.",
+      "headline": "Error log (event)",
+      "sketch": "NOOP",
+      "graph": "NOOP",
+      "caption": "Logs are fact_kind event \u00b7 A/B NOOP (labels are not edges)",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:11Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "event",
+          "identity": {
+            "status": "resolved",
+            "bind_source": "topology_lookup"
+          }
+        },
+        "specific": {
+          "name": "log.error",
+          "value": 1.0,
+          "labels": {
+            "level": "error",
+            "msg": "payment gateway timeout",
+            "downstream": "payments-db"
+          }
+        }
+      }
+    },
+    {
+      "id": "T4b",
+      "_comment": "Spike metric; SketchWriter ADMIT only.",
+      "headline": "Latency spikes",
+      "sketch": "ADMIT",
+      "graph": "NOOP",
+      "caption": "SketchWriter admits \u00b7 GraphWriter NOOP",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:12Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "metric_sample",
+          "identity": {
+            "status": "resolved",
+            "bind_source": "topology_lookup"
+          }
+        },
+        "specific": {
+          "name": "request.latency_ms",
+          "value": 980.0,
+          "labels": {
+            "trace_id": "abc123"
+          }
+        }
+      }
+    },
+    {
+      "id": "T5",
+      "_comment": "Detect consumes anomaly; Pillar A/B writers NOOP (Detect may later read map/).",
+      "headline": "Detect anomaly",
+      "sketch": "NOOP",
+      "graph": "NOOP",
+      "caption": "Detect consumes anomaly \u00b7 Pillar A/B NOOP (may later read map/)",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:15Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "anomaly",
+          "identity": {
+            "status": "resolved",
+            "bind_source": "topology_lookup"
+          }
+        },
+        "specific": {
+          "name": "request.latency_ms",
+          "value": 980.0,
+          "threshold": 500.0,
+          "severity": "high"
+        }
+      }
+    },
+    {
+      "id": "T6",
+      "_comment": "APM emitter: separate communicates_with topo_update \u2014 new corroborating edge (not a mutation of the earlier span).",
+      "headline": "APM emitter: span peers \u2192 topo_update",
+      "sketch": "NOOP",
+      "graph": "WRITE",
+      "caption": "WRITE communicates_with \u00b7 corroborating \u00b7 SketchWriter NOOP",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:20Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "topo_update",
+          "identity": {
+            "status": "resolved",
+            "bind_source": "apm"
+          }
+        },
+        "specific": {
+          "relation": "communicates_with",
+          "src_ci_id": "checkout-api",
+          "dst_ci_id": "payments-db"
+        }
+      },
+      "edge": {
+        "relation": "communicates_with",
+        "src": "checkout-api",
+        "dst": "payments-db",
+        "evidence": "corroborating"
+      }
+    },
+    {
+      "id": "T7",
+      "_comment": "Service runs_on host \u2014 new corroborating edge; story spine complete.",
+      "headline": "Service runs on host",
+      "sketch": "NOOP",
+      "graph": "WRITE",
+      "caption": "WRITE runs_on \u00b7 corroborating \u00b7 map spine complete for this story",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:22Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "topo_update",
+          "identity": {
+            "status": "resolved",
+            "bind_source": "topology_lookup"
+          }
+        },
+        "specific": {
+          "relation": "runs_on",
+          "src_ci_id": "checkout-api",
+          "dst_ci_id": "linux-server-app-01"
+        }
+      },
+      "edge": {
+        "relation": "runs_on",
+        "src": "checkout-api",
+        "dst": "linux-server-app-01",
+        "evidence": "corroborating"
+      }
+    }
+  ],
+  "bootstrap_source": "pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/topology.bootstrap.json"
+}

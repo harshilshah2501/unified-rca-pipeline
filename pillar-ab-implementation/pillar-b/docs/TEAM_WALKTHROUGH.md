@@ -23,13 +23,14 @@ If you only open one page before the meeting, make it **this file**. Framing + l
 
 ## 2. Fifteen-minute demo script
 
-1. **Spine story** — After Identity, Motadata fans out: Topology (Pillar B) ∥ Stores (Pillar A). Both read `ingest.v1`; B admits only `topo_update`.  
-2. **Show sample tape** — `poc/sample_estate/customer_checkout/stream.resolved.jsonl` (WRITE) and `stream.reject.jsonl` (NOOP + DROP).  
-3. **Run** — from `pillar-b/poc`: `make install && make test-all` (optional `make publish-map` → `out/default/map/`).  
-4. **Open published map** — `graph_snapshot.json` + `nodes.jsonl` + `edges.jsonl`.  
-5. **Walk** — point at `neighbors.py` / `read_api.py` and `test_map_walk.py`.  
-6. **Call graphs** — [`pillar-b-callgraph.png`](./pillar-b-callgraph.png) (build) · [`pillar-b-walk-callgraph.png`](./pillar-b-walk-callgraph.png) (walk).  
-7. **Pillar B PoC hub** — layers + call sequences (build and walk).
+1. **Spine story** — After Identity, Motadata fans out: Topology (Pillar B) ∥ Stores (Pillar A). Both read `ingest.v1`; B admits only `topo_update`. Identity / validity / provenance: §5.  
+2. **Stream → graph demo** — open [`pillar-b-stream-graph-demo.html`](http://127.0.0.1:8765/pillar-b-stream-graph-demo.html); step Forward/Back through the interleaved tape (left = current line, right = `map/`).  
+3. **Show sample tape** — `poc/sample_estate/customer_checkout/stream.resolved.jsonl` (WRITE) and `stream.reject.jsonl` (NOOP + DROP).  
+4. **Run** — from `pillar-b/poc`: `make install && make test-all` (optional `make publish-map` → `out/default/map/`).  
+5. **Open published map** — `graph_snapshot.json` + `nodes.jsonl` + `edges.jsonl` (note Motadata `entity_id` / `edge_type` / Snowflake `edge_id`; tenant on the snapshot envelope only).
+6. **Walk** — point at `neighbors.py` / `read_api.py` and `test_map_walk.py`.  
+7. **Call graphs** — [`pillar-b-callgraph.png`](./pillar-b-callgraph.png) (build) · [`pillar-b-walk-callgraph.png`](./pillar-b-walk-callgraph.png) (walk).  
+8. **Pillar B PoC hub** — layers + call sequences (build and walk).
 
 ---
 
@@ -87,14 +88,17 @@ Spine on **every** line: `schema_version`, `ts`, `tenant`, `ci_id`, `ci_type`, `
 
 Reserved (do not emit this pass): `change_event`, `cmdb_sync`, `ticket` — future ServiceOps / CMDB / change feeds.
 
-### 3.2 Node bind vs edge provenance
+### 3.2 Node bind vs edge provenance (preview)
+
+Three different questions — do not collapse them:
 
 | Concern | Lives on | Field | Meaning |
 |---------|----------|-------|---------|
-| **How did this CI get its id?** | Node / ingest line | `identity.bind_source` | Which binder/look-up attached `ci_id` (`topology_lookup`, `inventory`, `apm`, …) |
-| **How strong is this relationship fact?** | Edge | `discovered_via` (provenance block) | `evidence_type` = `authoritative` \| `declared` \| `corroborating`, plus `confidence`, `telemetry_source`, … |
+| **How did this CI get its id?** | Ingest line | `identity` (esp. `bind_source`) | Which binder/look-up attached `ci_id` (admit-time; not stored on Motadata node) |
+| **How was this relationship proved?** | Edge | `evidence_event_id` (+ optional PoC `origin` / `telemetry_source`) | Snowflake of the proving event; E5 uses `valid_to` / `origin`, not `discovered_via` |
+| **How long is the edge believed?** | Edge | `valid_from` / `valid_to` | Validity window for E5 Maintain |
 
-They are parallel ideas at different layers: **bind → identity of the vertex**; **provenance → trust of the edge**. In this PoC, GraphWriter copies `bind_source` into `discovered_via.telemetry_source` and maps it to `evidence_type` via `evidence_for_source` (`provenance.py`). E5 maintain later decays edges using `evidence_type`, not `bind_source` directly.
+Full Identity field list, validity rules, and `bind_source` → Maintain implications: **§5**.
 
 ### 3.3 Sample estate folders (Case A/B vs stubs)
 
@@ -194,11 +198,103 @@ Discussion (logs → `event`, spoken **fact kind**): [`../../../docs/fabric/INGE
 
 Code: `poc/graph/graph_builder.py` → `apply_topo_stream`. Lab tapes: `stream.resolved.jsonl` / `stream.reject.jsonl`.
 
+### Wave-1 relations (always name the type on a WRITE)
+
+An edge is not “A → B” alone. The wire field **`relation`** is the typed link. Lab wave-1 allowlist (schema still has fifteen names):
+
+| `relation` | Plain meaning | Case A example |
+|------------|---------------|----------------|
+| `runs_on` | A executes on B (process / runtime on host) | `app-runtime-jvm` --`runs_on`→ `linux-server-app-01` · `checkout-api` --`runs_on`→ `linux-server-app-01` |
+| `hosted_on` | Guest / VM on hypervisor (same family as hosting) | (available; not in the five-line Case A tape) |
+| `depends_on` | A **needs** B to function (declared dependency) | `checkout-api` --`depends_on`→ `payments-db` (service catalog) |
+| `part_of` | A is a **child / component** of parent B (composition) | `checkout-api` --`part_of`→ `bs-checkout` (business service) |
+| `communicates_with` | A **calls / talks to** B (observed traffic) | `checkout-api` --`communicates_with`→ `payments-db` (APM) |
+
+**Admit reminder:** every `topo_update` line is **SketchWriter NOOP** (wrong kind for sketches) and **GraphWriter** triage (WRITE / DROP / phased skip). Never omit `relation` when describing a WRITE.
+
+Full fifteen-name catalog: [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](../../contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) §4.2.
+
 ---
 
-## 5. `bind_source` (node) and `discovered_via` (edge)
+## 5. Identity, bind, provenance, and edge validity
 
-See §3.2 for the side-by-side. Short version: **`bind_source` answers “who bound this CI?”**; **`discovered_via` answers “how trustworthy is this edge?”**
+### 5.1 The `identity` object (after E2)
+
+**E2 Identity** stamps an `identity` overlay on every `ingest.v1` line. GraphWriter and SketchWriter do **not** invent it. Collect/adapters + Identity bind LUT own it.
+
+```json
+"identity": {
+  "status": "resolved",
+  "bind_source": "topology_lookup",
+  "aliases": ["svc:checkout-api", "monitor-88"]
+}
+```
+
+| Subfield | What it answers | Allowed / typical values | Who cares |
+|----------|-----------------|--------------------------|-----------|
+| **`status`** (required) | Did bind succeed enough for production join? | `resolved` · `unattributed` · `synthesized` | Pillar A/B admit **only** `resolved`. Unresolved/synthesized → GraphWriter **DROP** (or Sketch skip). Not E9 leaf / ServiceOps ticket targets (D-E2-1) |
+| **`bind_source`** | Which binder attached this `ci_id`? | Free string today: e.g. `topology_lookup`, `inventory`, `apm`, `service-catalog`, `object.name`, `plugin_fallback`, `unbound` | Audit on the **node/line**. PoC also copies it into edge `discovered_via.telemetry_source` → maps to `evidence_type` |
+| **`aliases`** | Source-native names for later CMDB/ServiceOps match | Array of strings (monitor id, hostname, IP, …) | Matching aids — **not** competing primary keys. Join key remains `(tenant, ci_id)` |
+
+Related spine fields Identity helps set (outside the nested object):
+
+| Field | Role |
+|-------|------|
+| `tenant` + ingest `ci_id` ≡ map `entity_id` | Primary join key within Dest tenant for map, sketches, localize, tickets |
+| `ci_type` | Vertex type after bind (`Service`, `Host`, `Runtime`, …) |
+| `labels.bound` | Older Motadata proxy until `identity.status` is always emitted |
+
+Normative: [`LLD-E2-Identity.md`](../../../docs/observeops/LLD-E2-Identity.md).
+
+### 5.2 `bind_source` (ingest) vs `evidence_event_id` (edge)
+
+| Concern | Lives on | Field | Meaning |
+|---------|----------|-------|---------|
+| **How did this CI get its id?** | Ingest line | `identity.bind_source` | Which binder attached `ci_id` (admit-time only) |
+| **How was this relationship proved?** | Edge on `map/` | `evidence_event_id` | Snowflake; optional PoC `origin` = `declared` \| `stream` for E5 |
+
+Parallel layers: **bind → identity of the vertex (ingest)**; **evidence_event_id → proving event of the edge**. Stored edges no longer carry `discovered_via`. E5 Maintain decays using **`valid_to`**, stream vs declared **`origin`**, and node **`last_seen` / `version`**.
+
+| `evidence_type` | Means | Closer wording |
+|-----------------|-------|----------------|
+| **`authoritative`** | A system of record **owns** the fact (agent inventory / cgroup, Kubernetes API, …) | Owned by inventory |
+| **`declared`** | Human or config **asserted** it (CMDB, service catalog, Helm, Terraform) | Asserted in config |
+| **`corroborating`** | Telemetry **suggests** it (APM spans, logs, eBPF peers) | Inferred from live data |
+
+Strength order: authoritative > declared > corroborating. See [`GRAPH_QNA.md`](../../contracts/GRAPH_QNA.md) G8–G11.
+
+### 5.3 Edge validity (`valid_from` / `valid_to`)
+
+**Yes — edges should carry a validity window.** On Motadata `graph_edge.v1` these are **sibling fields** next to `edge_type` (not nested inside a provenance block):
+
+| Field | Role |
+|-------|------|
+| `valid_from` | When Topology started believing this edge |
+| `valid_to` | When belief ends (`null` = open-ended until Maintain changes it) |
+
+Schema: [`graph_edge_v1.schema.json`](../contracts/schemas/graph_edge_v1.schema.json). Contract note: [`GRAPH_QNA.md`](../../contracts/GRAPH_QNA.md) G9.
+
+**This PoC:** GraphWriter sets `valid_from` from the ingest line’s `ts` and leaves `valid_to` null on WRITE. **E5 Maintain** (`maintain.py`) later:
+
+- expires edges whose `valid_to` is past `as_of`;
+- drops stale **corroborating** edges by age when no `valid_to` was set;
+- soft-stales / hard-downgrades **declared** edges (product defaults ~**7 days** / ~**30 days** without catalog re-sync or corroboration).
+
+Walk implication: after Maintain, some edges leave confidence-bearing paths even though the CI ids still exist. Product stub: [`LLD-E5-Maintain.md`](../../../docs/observeops/LLD-E5-Maintain.md).
+
+### 5.4 Implications of various `bind_source` values
+
+`bind_source` does **not** set the validity clock by itself. In the PoC it feeds `evidence_type`, which **does** change Maintain / lifetime feel:
+
+| Typical `bind_source` | Mapped `evidence_type` (PoC) | Validity / Maintain feel |
+|-----------------------|------------------------------|---------------------------|
+| `inventory`, agent, cgroup, kubernetes | **authoritative** | Strongest; keep long-lived / open `valid_to` until inventory withdraws the hosting fact |
+| `service-catalog`, `cmdb`, terraform, helm | **declared** | Soft-stale ~7d without refresh; hard-downgrade ~30d; CMDB re-sync resets the clock |
+| `apm`, traces, weak / generic telemetry | **corroborating** | Shortest life; often nearer `valid_to` or age-out from `valid_from` if peers stop appearing |
+
+Same estate can hold **both** catalog `depends_on` (declared, longer) and APM `communicates_with` (corroborating, shorter) to `payments-db` — different `relation` and provenance, not duplicates of one fact.
+
+Mapping code: `evidence_for_source` in `poc/graph/provenance.py` (substring heuristics on the source string).
 
 ---
 
@@ -265,6 +361,8 @@ make publish-map    # optional: write out/default/map/
 |------|-----|
 | [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) | Framing · layers · call sequences · canvas → hub map |
 | [`PILLAR_B_POC_CHAT_QNA.md`](./PILLAR_B_POC_CHAT_QNA.md) | Session Q&A — stream vs files, fact kinds, production topo emitters |
+| [`INTERLEAVED_FACT_KIND_SCENARIO.md`](./INTERLEAVED_FACT_KIND_SCENARIO.md) | Mixed fact-kind checkout story with sample JSON and relation-named WRITEs |
+| [Stream → graph demo](../../../docs/fabric/pillar-b-stream-graph-demo.html) | Split UI replay — stream left, `map/` grows on WRITE ([`:8765`](http://127.0.0.1:8765/pillar-b-stream-graph-demo.html)) |
 | [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md) | What “done” means for build/walk |
 | [`Codebase-go-through.md`](./Codebase-go-through.md) | File-by-file code tour |
 | [`../poc/sample_estate/customer_checkout/SAMPLE_IO.md`](../poc/sample_estate/customer_checkout/SAMPLE_IO.md) | Case A/B goldens |

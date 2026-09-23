@@ -17,7 +17,7 @@
 | **Vortex** | Logical schema first — JSON field tables now; protobuf later as encoding only (no Vortex `.proto`/API yet). **Hybrid store:** strict spine for join/walk keys; flexible attributes per entity or edge type (§6.1). |
 | **Sketch row** | One row = T-Digest + explicit buckets + seasonal baseline under `(metric, entity, window, season_key)`. |
 
-**Non-negotiables still locked:** configuration-item vertices only (Alert / Incident / ticket are **not** nodes); same `tenant`+`ci_id` for graph and sketches; D5 stays Review.
+**Non-negotiables still locked:** configuration-item vertices only (Alert / Incident / ticket are **not** nodes); join within Dest tenant is ingest `ci_id` ≡ sketch `entity_id` ≡ map `entity_id`; D5 stays Review. Motadata-aligned storage: **no `tenant` on node/edge rows**; Snowflake `edge_id` / `evidence_event_id`; no stored `discovered_via`.
 
 ---
 
@@ -27,11 +27,11 @@ These are the decisions the sit-down is for. They are written in ordinary langua
 
 | # | Decision to lock | What “yes” means |
 |---|------------------|------------------|
-| 1 | **Primary identity** | Every topology node and every sketch row is keyed by **`tenant` + `ci_id`**. After Identity bind, sketch field `entity_id` is the **same string** as `ci_id` — not a second root key. |
-| 2 | **Configuration-item type catalog** | Use the **richer type set** in §3 (Service, Host, Runtime, Datastore, …) — not a Service/Host-only MVP — and keep types as a **versioned closed enum**. |
-| 3 | **Node metadata** | Adopt the minimum identity fields and the optional fields listed in §3.4 (tier, scope, aliases, validity, …). |
-| 4 | **Edge type catalog** | Lock **all fifteen** relations in §4.2 as the storage enum (Motadata names map *into* this enum as aliases). |
-| 5 | **Edge metadata and audit** | Adopt the identity fields in §4.3 and the `discovered_via` provenance block plus `valid_from` / `valid_to` / refresh in §4.4. |
+| 1 | **Primary identity** | Within a Dest tenant, every topology node and every sketch row joins on the **same string**: ingest `ci_id` → map `entity_id` ≡ sketch `entity_id`. Tenant lives on the snapshot / Dest path, **not** on Motadata node/edge rows. |
+| 2 | **Configuration-item type catalog** | Use the **richer type set** in §3 — Motadata storage uses lowercase (`service`, `host`, `db`, …); ingest may still say PascalCase. Keep types as a **versioned closed enum**. Non-CI Motadata names never become vertices. |
+| 3 | **Node metadata** | Adopt Motadata columns in §3.4 (`entity_id`, `type`, `name`, `metadata` JSON string, `last_seen`, `version`, validity). |
+| 4 | **Edge type catalog** | Lock **all fifteen** relations in §4.2; storage enum is Motadata SCREAMING_SNAKE (`DEPENDS_ON`, …); ingest still uses snake_case. |
+| 5 | **Edge metadata and audit** | Motadata columns: Snowflake `edge_id` + `evidence_event_id`, `source_id` / `target_id`, `edge_type`, `valid_from` / `valid_to`. Upsert key is `(source_id, edge_type, target_id)`. **No** stored `discovered_via`. |
 | 6 | **Exchange format** | Share **JSON examples** now; generate `.proto` / DDL only **after** Signed and when Vortex needs encoding. |
 | 7 | **Sketch row shape** | One **`sketch.v1`** row holds T-Digest + buckets + seasonal baseline together (§5). |
 
@@ -154,35 +154,32 @@ These are events or facts about a moment in time. They should not be nodes on th
 
 ### 3.1 What is an entity on this graph
 
-An **entity** on the topology map is a **configuration item** with stable `tenant`+`ci_id` that may be localized or ticketed.  
+An **entity** on the topology map is a **configuration item** with stable `entity_id` (within the Dest tenant) that may be localized or ticketed.  
 It is **not** Alert, Incident, Signal, Verdict, or Change-as-configuration-item.
 
 ### 3.2 Primary ID
 
 | Field | Rule |
 |-------|------|
-| `tenant` | Namespace |
-| `ci_id` | Stable within tenant |
-| `entity_id` | Alias of `ci_id` after Identity bind — **not** a second root key |
+| Dest `tenant` | Namespace on snapshot envelope / path — **not** a Motadata node column |
+| `entity_id` | Stable within tenant; same string as ingest `ci_id` / sketch `entity_id` after Identity bind |
+| ingest `ci_id` | Remains on `ingest.v1`; GraphWriter maps it to `entity_id` at the boundary |
 
 ### 3.3 Configuration-item types (closed enum we version)
 
-Align with operational-graph / ObserveOps corpus thinking. Types are a **closed enum we version**; we do not invent free-text types per writer.
+Align with Motadata lowercase storage names. Ingest may still use PascalCase (`Service` → `service`, `Database` → `db`, `Runtime` → `process`, `BusinessService` → `business_service`).
 
-| Family | Example `ci_type` values | Why needed |
-|--------|--------------------------|------------|
-| Business / service | `BusinessService`, `Service` (technical), `Customer` | Symptom seed, ERROR/SLOWDOWN, account scope |
-| Runtime / middleware | `Runtime`, `Middleware` (e.g. JVM, nginx), named `Queue` | Leaf depth on app stacks / messaging |
-| Data | `Database` (named instance/cluster), `Datastore` | DB / storage leaves |
-| Compute / OS | `Host`, `GuestOS`, `VirtualMachine`, `HypervisorHost` | Contention / hosting walks |
-| Container (optional) | `Pod`, `Container` | Ephemeral; require `scope_parent` + validity |
-| Storage / network | `NetworkPort`, filesystem/LUN-class items as needed; `Endpoint` only with durable URL/route | Disk latency/usage, fabric, stable routes |
-| Observation | `Monitor` / collector item (if we model `monitored_by`) | MONITORING_UNAVAILABLE |
+| Family | Example Motadata `type` | Why needed |
+|--------|-------------------------|------------|
+| Business / service | `business_service`, `service`, `customer` | Symptom seed, ERROR/SLOWDOWN, account scope |
+| Runtime / middleware | `process`, named `queue` | Leaf depth on app stacks / messaging |
+| Data | `db` (named instance/cluster) | DB leaves |
+| Compute / OS | `host` | Contention / hosting walks |
+| Container (optional) | `pod`, `container`, `k8s_deployment` | Ephemeral; use validity windows |
+| Network | `network`, `endpoint` | Fabric / durable routes |
+| Observation | (collector as `service` if modeled) | MONITORING_UNAVAILABLE |
 
-**Corpus types already seen in bakeoff topology:**  
-`NetworkPort`, `HypervisorHost`, `Datastore`, `VirtualMachine`, `GuestOS`, `Service`.
-
-**Still not graph entities:** Alert, Incident, ITSMTicket, Metric, Trace, LogPattern, Change-as-configuration-item.
+**Still not graph entities:** `alert`, `incident`, `itsm_ticket`, `red_metric`, `log_pattern`, `trace`, `change`.
 
 ### 3.4 Node metadata
 
@@ -191,75 +188,52 @@ A `graph_node.v1` object is one **topology vertex**: a durable configuration ite
 How it is built, in order:
 
 1. Collect admits telemetry (host name, agent id, Kubernetes UID, and so on).
-2. Identity stamps a stable `ci_id` inside `tenant`. `identity_status` becomes `resolved`, or stays `unattributed` / `synthesized` off the snapshot.
-3. Topology writes this JSON as a vertex on `GraphSnapshot`. Only vertices with **`identity_status = resolved`** go on that snapshot.
-4. Display and walk fields (`ci_name`, `tier`, `instance_scope`, aliases) come from inventory, not from the symptom.
+2. Identity stamps a stable `ci_id` inside `tenant` on the ingest line. `identity.status` becomes `resolved`, or stays unresolved / synthesized off the snapshot.
+3. Topology maps the line to Motadata columns and writes this JSON as a vertex on `GraphSnapshot`. Only **resolved** ingest lines are admitted; status is not copied onto the node.
+4. Display fields (`name`, optional tags in `metadata`) come from inventory, not from the symptom.
 
-Machine-required fields are listed in [`pillar-ab-implementation/contracts/schemas/graph_node_v1.schema.json`](./schemas/graph_node_v1.schema.json). This brief adds a few **conditional** fields so Localize can walk.
+Machine-required fields are listed in [`schemas/graph_node_v1.schema.json`](./schemas/graph_node_v1.schema.json).
 
-**Always required (schema + identity)**
+**Always required (Motadata + schema)**
 
 | Field | Example | Meaning |
 |-------|---------|---------|
 | `schema_version` | `graph_node.v1` | Which node contract this is. Constant. |
-| `tenant` | `default` | Isolation namespace. Same tenant on sketches and tickets. |
-| `ci_id` | `linux-server-app-01` | Stable id **within that tenant**. Primary key with `tenant`. After bind, sketch `entity_id` is this same string — not a second root. |
-| `ci_type` | `Host` | Closed enum we version (`Host`, `Service`, `Database`, …). Not free text per writer. |
-| `ci_name` | `app-01` | Human display name. Not the join key. |
-| `identity_status` | `resolved` | `resolved` \| `unattributed` \| `synthesized`. Snapshot writer accepts **resolved only**. |
+| `entity_id` | `linux-server-app-01` | Stable id within Dest tenant. Same string as sketch `entity_id`. |
+| `type` | `host` | Motadata lowercase closed enum. |
+| `name` | `app-01` | Human display name. Not the join key. |
+| `metadata` | `"{\"env\":\"rca-lab\"}"` | JSON object as a **string**. |
+| `last_seen` | `2026-08-20T03:30:00Z` | Refreshed on every upsert. |
+| `version` | `1` | Monotonic integer per `entity_id`. |
+| `valid_from` / `valid_to` | `null` / `null` | When this vertex was believed true. |
 
-**Recommended on day one (in the Host sample; not in the JSON Schema `required` array)**
-
-| Field | Example | Meaning |
-|-------|---------|---------|
-| `tier` | `os` | Stack layer so Localize can walk down (os / app / data / …). Tenant-shaped names are OK; the *concept* is required for descent. |
-| `instance_scope` | `single` | `single` or `multi-instance`. Disks, mounts, and JVM processes are often multi-instance. |
-| `monitored_via` | `["agent"]` | How we observe it (agent, SNMP, vCenter, …). Explains MONITORING_UNAVAILABLE later. |
-| `aliases` | `["app-01.lab.local"]` | Other names Identity already folded into this `ci_id` (FQDN, IP, monitor id). |
-| `labels` | `{ "env": "rca-lab" }` | Facets (env, version, service). Not identity. |
-| `valid_from` / `valid_to` | `null` / `null` | When this vertex was believed true. `null` here means open-ended / long-lived host. |
-
-**Optional, or required only in some cases**
-
-| Field | When you must set it |
-|-------|----------------------|
-| `ci_class` | Optional coarse class if `ci_type` is not enough. |
-| `scope_parent` | **Required** when `instance_scope` is `multi-instance`, or for `Pod` / `Container`: the durable parent `ci_id` (Deployment, Host, …). |
-| `valid_from` / `valid_to` as real timestamps | **Required** for ephemeral or multi-instance rows where lifetime matters (pod UID dies; a mount comes and goes). |
-| `kpi_catalog_ref` | Optional pointer to the metric catalog. |
-| `entity_id` | Do **not** add as a second key. It is an alias of `ci_id` after bind. |
+**Optional extras** live inside the `metadata` JSON string (aliases, scope_parent, monitored_via, …) or as schema `additionalProperties`. Do **not** invent a second primary key beside `entity_id`.
 
 **What this JSON is not:** Alert, Incident, ticket, Metric, Trace, LogPattern, and Change-as-configuration-item do not get a `graph_node.v1`. Those hitch the walk as facts or evidence; they are not vertices.
 
-**Writer rule:** GraphSnapshot vertices only with `identity_status = resolved`.
+**Writer rule:** GraphSnapshot vertices only from ingest lines with `identity.status = resolved`. Status is admit-time only.
 
-**Hybrid, not one rigid row shape for every type:** Host, Pod, and Database share the required spine above. Type-specific extras (Kubernetes UID, mount path, catalog owner, …) stay optional or in `labels` / additional fields. The machine schema allows that on purpose (`additionalProperties: true`). Full hybrid rule for Vortex: §6.1.
+**Hybrid, not one rigid row shape for every type:** Host, Pod, and Database share the Motadata spine above. Type-specific extras stay in `metadata`. The machine schema allows that on purpose (`additionalProperties: true`). Full hybrid rule for Vortex: §6.1.
 
 ### 3.5 Node JSON examples
 
-One illustrative Host sample remains here for the sit-down one-pager. **Full sample JSON for every qualified configuration-item type** lives in [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md).
+One illustrative Host sample remains here for the sit-down one-pager. **Full sample JSON** lives in [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md).
 
 ```json
 {
   "schema_version": "graph_node.v1",
-  "tenant": "default",
-  "ci_id": "linux-server-app-01",
-  "ci_type": "Host",
-  "ci_name": "app-01",
-  "tier": "os",
-  "instance_scope": "single",
-  "identity_status": "resolved",
-  "monitored_via": ["agent"],
-  "aliases": ["app-01.lab.local"],
-  "labels": { "env": "rca-lab" },
+  "entity_id": "linux-server-app-01",
+  "type": "host",
+  "name": "app-01",
+  "metadata": "{\"aliases\":[\"app-01.lab.local\"],\"env\":\"rca-lab\"}",
+  "last_seen": "2026-08-20T03:30:00Z",
   "valid_from": null,
-  "valid_to": null
+  "valid_to": null,
+  "version": 1
 }
 ```
 
-This Host is already bound: `default` + `linux-server-app-01` is the join key. Type `Host` and tier `os` tell Localize this is compute/OS. `instance_scope: single` means you do not need `scope_parent`. `identity_status: resolved` means it may sit on the snapshot. Agent plus alias `app-01.lab.local` are how we recognized it. Null validity means we are not treating this host as a short-lived replica.
-
-If this were a Pod, you would still have the six required fields, plus `scope_parent` pointing at the workload, and real `valid_from` / `valid_to`.
+This Host is already bound: Dest tenant `default` + `entity_id` `linux-server-app-01` is the join key (same string as sketch `entity_id`). Type `host` tells Localize this is compute/OS. Null validity means we are not treating this host as a short-lived replica.
 
 ---
 
@@ -267,209 +241,95 @@ If this were a Pod, you would still have the six required fields, plus `scope_pa
 
 ### 4.1 What an edge is (and what it is not)
 
-The topology map is not only a list of configuration items. It also stores **how those items relate**. An **edge** is one such relationship: it names two configuration items (source and destination), a typed relation such as `runs_on` or `depends_on`, and enough audit fields that a later reader can answer “who discovered this, how, and when was it still believed true?”
+The topology map stores **how configuration items relate**. An **edge** names two CIs (`source_id` / `target_id`), a Motadata `edge_type` such as `RUNS_ON` or `DEPENDS_ON`, Snowflake `edge_id` / `evidence_event_id`, and `valid_from` / `valid_to`.
 
-In practice that means every edge is:
+In practice every edge is:
 
-- **Typed** — the relation comes from the closed catalog in §4.2 (not free text).
-- **Directed** — the arrow has a meaning (for example workload → host for `runs_on`).
-- **Auditable** — a `discovered_via` block records evidence strength, source stream, and refresh cadence (§4.4).
-- **Time-bounded** — `valid_from` / `valid_to` say when the fact was believed true (needed for pods and other short-lived items).
+- **Typed** — `edge_type` from the closed Motadata catalog in §4.2 (ingest snake_case maps at the writer).
+- **Directed** — the arrow has a meaning (workload → host for `RUNS_ON`).
+- **Auditable** — `evidence_event_id` points at the proving event; optional PoC `origin` helps E5 maintain.
+- **Time-bounded** — `valid_from` / `valid_to` say when the fact was believed true.
 
 **What does *not* belong on this topology edge catalog**
-
-Later pipeline stages also invent relationship-like words. Those jobs are real, but they are **not** Pillar B / Topology (`GraphSnapshot`) edges:
 
 | Word you may hear elsewhere | What it actually is | Why it is not an E3 topology edge |
 |-----------------------------|---------------------|-----------------------------------|
 | `CORRELATED_WITH` (Curate) | “These alerts/signals belong together in a case” | Connects **signals / cases**, not two estate configuration items |
 | `RESOLVED_BY` (Package) | “This verdict / ticket closed that case” | Packaging / case outcome — not estate topology |
-| `AFFECTS` as stored blast radius | “If this breaks, these other things hurt” | Impact is **computed or asserted at investigation time**, not a durable map fact we freeze here |
-
-Motadata product names such as `CALLS`, `RUNS_ON`, or `CONTAINS` map **into** the fifteen-relation enum below as aliases. We do not keep two edge vocabularies in storage.
-
-Field-by-field construction is in §4.3. Provenance meanings are in §4.4. JSON samples are in §4.5.
+| `AFFECTS` as stored blast radius | “If this breaks, these other things hurt” | Impact is **computed at investigation time**, not a durable map fact |
 
 ### 4.2 Full relation catalog (lock as enum)
 
-| `relation` | Plain meaning | Typical walk use |
-|------------|---------------|------------------|
-| `depends_on` | A needs B | ERROR / dependency descent |
-| `runs_on` | A executes on B | Contention / tenancy |
-| `mounts` | A mounts B | Disk path |
-| `connects_to` | L2/L3 adjacency | Network |
-| `backs` | A backs B | Storage backup relationship |
-| `uses` | A uses B (often inferred) | Trace-derived dependency |
-| `hosted_on` | Guest/VM on hypervisor | Virtualization ascent |
-| `member_of` | A in cluster/group | Cluster scope |
-| `part_of` | Child of parent | Composition |
-| `routes_through` | Path via middlebox | Network path |
-| `authenticates_via` | Auth dependency | Identity path |
-| `monitored_by` | Observed by collector | MONITORING_UNAVAILABLE |
-| `backed_up_by` | Backup target | DR context |
-| `clustered_with` | Peer same tier | Peer / HA |
-| `communicates_with` | Calls / talks to | Service map |
+| Ingest `relation` | Motadata `edge_type` | Plain meaning |
+|-------------------|----------------------|---------------|
+| `depends_on` | `DEPENDS_ON` | A needs B |
+| `runs_on` | `RUNS_ON` | A executes on B |
+| `mounts` | `MOUNTS` | A mounts B |
+| `connects_to` | `CONNECTS_TO` | L2/L3 adjacency |
+| `backs` | `BACKS` | A backs B |
+| `uses` | `USES` | A uses B (often inferred) |
+| `hosted_on` | `HOSTED_ON` | Guest/VM on hypervisor |
+| `member_of` | `MEMBER_OF` | A in cluster/group |
+| `part_of` | `PART_OF` | Child of parent |
+| `routes_through` | `ROUTES_THROUGH` | Path via middlebox |
+| `authenticates_via` | `AUTHENTICATES_VIA` | Auth dependency |
+| `monitored_by` | `MONITORED_BY` | Observed by collector |
+| `backed_up_by` | `BACKED_UP_BY` | Backup target |
+| `clustered_with` | `CLUSTERED_WITH` | Peer same tier |
+| `communicates_with` | `COMMUNICATES_WITH` | Calls / talks to |
 
 ### 4.3 Edge metadata
 
-A `graph_edge.v1` object is one **typed, directed relationship** between two configuration items that already exist as vertices. It is not a Curate correlation, a Package outcome, or a blast-radius assertion computed at investigation time.
+A `graph_edge.v1` object is one **typed, directed relationship** between two CI vertices.
 
-How it is built, in order:
+How it is built:
 
-1. Collect and Identity produce two bound configuration items in the **same** `tenant` (source and destination).
-2. Topology decides the **relation** from inventory, catalog, or telemetry — always a name from the closed enum in §4.2, never free text.
-3. Topology writes this JSON as an arc on `GraphSnapshot`. Both `src_ci_id` and `dst_ci_id` must already be **resolved** vertices on that snapshot (same rule as nodes).
-4. The writer stamps `discovered_via` so a later reader can see who discovered the fact, how strongly, and how often it is refreshed.
-5. `valid_from` / `valid_to` sit on the **edge object** (not inside `discovered_via`) and bound when this relationship was believed true.
+1. Collect and Identity produce two bound CIs in the same Dest tenant.
+2. Topology picks a catalog `relation`; GraphWriter maps snake_case → Motadata `edge_type`.
+3. Both ends must already be CI vertices on the snapshot.
+4. Allocate or reuse Snowflake `edge_id` via upsert key `(source_id, edge_type, target_id)`; stamp `evidence_event_id`.
+5. Set `valid_from` / `valid_to` on the edge object.
 
-Machine-required fields are listed in [`pillar-ab-implementation/contracts/schemas/graph_edge_v1.schema.json`](./schemas/graph_edge_v1.schema.json). This brief adds **recommended** provenance fields so the sit-down sample is auditable on day one.
-
-**Always required (schema + identity)**
+Machine-required fields: [`schemas/graph_edge_v1.schema.json`](./schemas/graph_edge_v1.schema.json).
 
 | Field | Example | Meaning |
 |-------|---------|---------|
-| `schema_version` | `graph_edge.v1` | Which edge contract this is. Constant. |
-| `tenant` | `default` | Isolation namespace. Must match both endpoint nodes and any sketches you join later. |
-| `edge_id` | `e_jvm_runs_on_host` | Stable id for **this arc** within the tenant (not the same as `ci_id`). Lets refresh replace or close the same fact without inventing a new identity each poll. |
-| `src_ci_id` | `app-runtime-jvm` | Source vertex. Same string as that node’s `ci_id`. The tail of the arrow. |
-| `dst_ci_id` | `linux-server-app-01` | Destination vertex. Same string as that node’s `ci_id`. The head of the arrow. |
-| `relation` | `runs_on` | Closed enum of fifteen names (§4.2). Motadata product words such as `RUNS_ON` map **into** this enum; they are not a second storage vocabulary. |
-| `discovered_via` | `{ "evidence_type": "authoritative", … }` | Provenance object. Schema requires at least `evidence_type` inside it. Meanings of the inner fields are in §4.4. |
+| `schema_version` | `graph_edge.v1` | Edge contract id |
+| `edge_id` | `7146828800000001` | Snowflake UInt64; stable across upserts of the same logical edge |
+| `source_id` | `app-runtime-jvm` | Source vertex `entity_id` |
+| `target_id` | `linux-server-app-01` | Destination vertex `entity_id` |
+| `edge_type` | `RUNS_ON` | Motadata SCREAMING_SNAKE enum (§4.2) |
+| `evidence_event_id` | `7146828800000102` | Snowflake of the proving ingest/event row |
+| `valid_from` / `valid_to` | timestamps or `null` | When this relationship was believed true |
 
-**Recommended on day one (in the `runs_on` sample; not all listed in the JSON Schema `required` array)**
+**Upsert identity:** `(source_id, edge_type, target_id)` — not the snowflake. On refresh, reuse `edge_id` and update `valid_from` / `evidence_event_id`.
 
-| Field | Example | Meaning |
-|-------|---------|---------|
-| `discovered_via.confidence` | `high` | `high` \| `medium` \| `low` \| `n/a` — how sure the writer is, separate from *how* the fact was learned (`evidence_type`). |
-| `discovered_via.telemetry_source` | `agent/process-inventory/cgroup` | Which stream produced the edge (agent inventory, trace index, CMDB sync, …). |
-| `discovered_via.direction_inference` | `workload -> host` | Why the arrow points this way (inventory parent, client span, catalog dependency, …). |
-| `discovered_via.refresh` | `poll 5m` | How often Topology re-derives this fact. |
-| `valid_from` / `valid_to` | RFC3339 / `null` | When this **relationship** was believed true. `null` `valid_to` means still open. Hosting `runs_on` for a long-lived JVM may stay open; a pod’s `part_of` should close when the UID dies. |
+**Retired from storage:** nested `discovered_via` / `evidence_type` tiers. E5 maintain uses `valid_to`, PoC `origin` (`declared` vs `stream`), and node `last_seen` / `version`.
 
-**Optional, or required only in some cases**
+### 4.4 Provenance (admit-time / maintain helpers)
 
-| Field | When you must set it |
-|-------|----------------------|
-| `discovered_via.signal_fields` | Preferred when evidence is telemetry: the exact fields matched (for example span peer service). |
-| `discovered_via.endpoint_binding` | Preferred when the two ends were not already `ci_id`s: how names, IPs, or UIDs resolved to configuration-item ids. |
-| `valid_from` / `valid_to` as real timestamps | **Required** when either endpoint is ephemeral (Pod, Container) or the relation itself comes and goes (mount, peer for an hour of traces). |
-| `criticality` | Optional `critical` / `high` / `medium` / `low` for walk priority — not identity. |
+Ingest still carries `identity.bind_source`. GraphWriter may copy it to optional PoC `telemetry_source` and set `origin` to `declared` (bootstrap) or `stream` (topo stream). That is **not** Motadata table DDL — it only drives E5 soft/hard and stale-stream drop.
 
-**What this JSON is not:** `CORRELATED_WITH`, `RESOLVED_BY`, and stored blast-radius `AFFECTS` are not `graph_edge.v1` rows (see the table in §4.1). A sketch row never carries `src_ci_id` / `dst_ci_id` / `relation`.
-
-**Writer rules:** Both endpoints must be `identity_status = resolved` vertices in the same `tenant`. `src_ci_id` must not equal `dst_ci_id`. `relation` must be one of the fifteen enum values. Schema is complete on day one; writers may emit only a subset of relations until the sources exist (§4.6).
-
-**Hybrid on edges too:** every edge shares the required spine (`tenant`, `edge_id`, two `ci_id`s, `relation`, `discovered_via`). Extra provenance fields and type-specific decorations may differ by relation and source. Do not invent a new free-text `relation` name to carry metadata — put extras beside the spine. Full hybrid rule: §6.1.
-
-### 4.4 Provenance block on every edge
-
-Every edge carries a `discovered_via` object so the map is not a mystery. The most important field for sit-down clarity is **`evidence_type`**: how strongly may we trust this relationship?
-
-| `evidence_type` | Plain meaning | Example |
-|-----------------|---------------|---------|
-| **`authoritative`** | A system of record or inventory that *owns* the fact stated this relationship. Prefer this when available. | Agent process inventory / cgroup says JVM `app-runtime-jvm` **runs on** host `linux-server-app-01`. Kubernetes API says Deployment X owns ReplicaSet Y. |
-| **`declared`** | A human or config file *asserted* the relationship (CMDB, service catalog, Helm values, Terraform). True until proven otherwise, but not observed live. | Service catalog entry: `checkout-api` **depends_on** `payments-db`. |
-| **`corroborating`** | Telemetry *suggests* the relationship (trace call graph, repeated log fields, eBPF peer map) but nothing owns it as inventory. Useful for discovery; weaker alone. | APM spans repeatedly show `checkout-api` calling `inventory-api` → candidate `communicates_with` / `uses` until inventory confirms. |
-
-Other fields **inside** `discovered_via` (schema requires only `evidence_type`; the rest are recommended or optional — see §4.3):
-
-| Field | Purpose |
-|-------|---------|
-| `confidence` | `high` \| `medium` \| `low` \| `n/a` — how sure the writer is |
-| `telemetry_source` | Which stream produced the edge (agent inventory, trace index, CMDB sync, …) |
-| `signal_fields` | Exact fields matched (optional but preferred) |
-| `endpoint_binding` | How the two ends resolved to configuration-item ids |
-| `direction_inference` | Why the arrow points this way |
-| `refresh` | Re-derivation cadence (e.g. `poll 5m`) |
-
-**Not inside `discovered_via`:** `valid_from` / `valid_to` and `criticality` are **sibling** fields on the edge object. The JSON Schema places them next to `relation`, not nested under provenance. Do not copy validity timestamps only into the inner block and omit them on the edge.
-
-### 4.5 Edge JSON examples
-
-One illustrative `runs_on` sample remains here (`evidence_type: authoritative`). **Full sample JSON for all fifteen relations** lives in [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md).
+### 4.5 Edge JSON example
 
 ```json
 {
   "schema_version": "graph_edge.v1",
-  "tenant": "default",
-  "edge_id": "e_jvm_runs_on_host",
-  "src_ci_id": "app-runtime-jvm",
-  "dst_ci_id": "linux-server-app-01",
-  "relation": "runs_on",
-  "discovered_via": {
-    "evidence_type": "authoritative",
-    "confidence": "high",
-    "telemetry_source": "agent/process-inventory/cgroup",
-    "direction_inference": "workload -> host",
-    "refresh": "poll 5m"
-  },
+  "edge_id": 7146828800000002,
+  "source_id": "app-runtime-jvm",
+  "target_id": "linux-server-app-01",
+  "edge_type": "RUNS_ON",
   "valid_from": "2026-08-20T00:00:00Z",
-  "valid_to": null
+  "valid_to": null,
+  "evidence_event_id": 7146828800000102
 }
 ```
 
-This `runs_on` edge is already joinable: tenant `default`, JVM `app-runtime-jvm` **runs on** host `linux-server-app-01`. `edge_id` names the arc so a later poll can refresh the same fact. `discovered_via.evidence_type` is `authoritative` because process inventory / cgroup *owns* the hosting fact. Open `valid_to` means we still believe the JVM is on that host.
+Full fifteen-edge samples: [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md).
 
-The next two samples keep the same outer shape (`schema_version`, `tenant`, `edge_id`, two `ci_id`s, `relation`, `discovered_via`, validity). Only **how we learned the fact** changes: catalog assertion (`declared`) versus trace suggestion (`corroborating`, with a closed `valid_to` because the peer was only seen in that hour).
+### 4.6 Writer subset
 
-Declared vs corroborating (same relation shape, different `evidence_type`):
-
-```json
-{
-  "schema_version": "graph_edge.v1",
-  "tenant": "default",
-  "edge_id": "e_checkout_depends_on_payments_db",
-  "src_ci_id": "checkout-api",
-  "dst_ci_id": "payments-db",
-  "relation": "depends_on",
-  "discovered_via": {
-    "evidence_type": "declared",
-    "confidence": "medium",
-    "telemetry_source": "service-catalog/sync",
-    "direction_inference": "catalog dependency arrow",
-    "refresh": "daily"
-  },
-  "valid_from": "2026-08-01T00:00:00Z",
-  "valid_to": null
-}
-```
-
-```json
-{
-  "schema_version": "graph_edge.v1",
-  "tenant": "default",
-  "edge_id": "e_checkout_communicates_with_inventory",
-  "src_ci_id": "checkout-api",
-  "dst_ci_id": "inventory-api",
-  "relation": "communicates_with",
-  "discovered_via": {
-    "evidence_type": "corroborating",
-    "confidence": "low",
-    "telemetry_source": "apm/spans",
-    "signal_fields": ["span.peer.service=inventory-api"],
-    "direction_inference": "client span -> server service name",
-    "refresh": "rolling 1h"
-  },
-  "valid_from": "2026-08-20T03:00:00Z",
-  "valid_to": "2026-08-20T04:00:00Z"
-}
-```
-
-### 4.6 Phased emission — schema complete, writers grow
-
-§4.2 locks **fifteen relation names in the schema** so Vortex tables and LLD enums do not keep changing. That does **not** mean every lab writer must emit all fifteen on day one.
-
-**Problem this section solves:** If “Done” for Topology required every relation to appear in the first lab, we would block on missing sources (backup inventory, fabric discovery, HA peer maps, …).
-
-**Approach:** Keep the catalog honest in storage. **Phase which relations writers emit** as sources appear.
-
-| Phase | Emit these relations (even while the schema already lists all fifteen) |
-|-------|------------------------------------------------------------------------|
-| Lab wave 1 | `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of` |
-| Lab wave 2 | `mounts`, `connects_to`, `monitored_by`, `member_of`, `uses` |
-| Later | Remaining storage / network / HA types (`backs`, `backed_up_by`, `clustered_with`, `routes_through`, `authenticates_via`, …) as sources appear |
-
-So: **schema is rich on day one; writers grow.** That unblocks Vortex table creation without pretending we already have every discovery source.
+Schema carries all fifteen Motadata `edge_type` names on day one; wave-1 writers may emit only `RUNS_ON`, `HOSTED_ON`, `DEPENDS_ON`, `COMMUNICATES_WITH`, `PART_OF`. Other catalog relations are phased skip (map unchanged).
 
 ---
 

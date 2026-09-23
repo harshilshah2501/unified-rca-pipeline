@@ -66,7 +66,7 @@ def test_graph_writer_silent_skip_non_topo():
     )
     assert not writer.rejects
     snapshot = writer.publish_map(MemoryDest())
-    assert any(e["relation"] == "depends_on" for e in snapshot["edges"])
+    assert any(e["edge_type"] == "DEPENDS_ON" for e in snapshot["edges"])
 
 
 def test_graph_writer_case_b_rejects():
@@ -79,4 +79,4 @@ def test_graph_writer_case_b_rejects():
     assert "never_ci_vertex" in reasons
     assert "unknown_relation" in reasons
     snapshot = writer.publish_map(MemoryDest())
-    assert not any(n["ci_id"] == "alert-1" for n in snapshot["nodes"])
+    assert not any(n["entity_id"] == "alert-1" for n in snapshot["nodes"])

@@ -1,17 +1,10 @@
 {
   "schema_version": "graph_edge.v1",
-  "tenant": "default",
-  "edge_id": "e_jvm_runs_on_host",
-  "src_ci_id": "app-runtime-jvm",
-  "dst_ci_id": "linux-server-app-01",
-  "relation": "runs_on",
-  "discovered_via": {
-    "evidence_type": "authoritative",
-    "confidence": "high",
-    "telemetry_source": "agent/process-inventory/cgroup",
-    "direction_inference": "workload -> host",
-    "refresh": "poll 5m"
-  },
+  "edge_id": 7146828800000001,
+  "source_id": "app-runtime-jvm",
+  "target_id": "linux-server-app-01",
+  "edge_type": "RUNS_ON",
   "valid_from": "2026-08-20T00:00:00Z",
-  "valid_to": null
+  "valid_to": null,
+  "evidence_event_id": 7146828800000002
 }

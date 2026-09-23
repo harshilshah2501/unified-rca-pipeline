@@ -39,8 +39,8 @@ This whole document is the one-pager for that meeting: freeze which Motadata nam
 
 **A. No and no.**
 
-- A **`sketch.v1`** row is one configuration item + one metric + one time window. It has `entity_id` (same string as graph `ci_id` after bind). It does **not** have `src_ci_id`, `dst_ci_id`, or `relation`. Join map and history later by identity and time.
-- **Alert, Incident, ITSMTicket, Metric, Trace, LogPattern, Change-as-configuration-item** are **not** `graph_node.v1` vertices. They are facts / evidence / case objects that hitch the walk; long-lived tickets point *at* durable configuration items (Service, Host, named Database, …), they are not the map themselves.
+- A **`sketch.v1`** row is one configuration item + one metric + one time window. It has `entity_id` (same string as map `entity_id` / ingest `ci_id` after bind). It does **not** have `source_id`, `target_id`, or `edge_type`. Join map and history later by identity and time within the Dest tenant.
+- **Alert, Incident, ITSMTicket, Metric, Trace, LogPattern, Change-as-configuration-item** are **not** `graph_node.v1` vertices. They are facts / evidence / case objects that hitch the walk; long-lived tickets point *at* durable configuration items (`service`, `host`, named `db`, …), they are not the map themselves.
 
 ### G4. Are `CORRELATED_WITH`, `RESOLVED_BY`, or blast-radius `AFFECTS` topology edges? (§4.1)
 
@@ -110,9 +110,9 @@ Wave names are **our sequencing** so Topology “Done” is not blocked on every
 
 **Examples:** cgroup says JVM runs on host → `authoritative` `runs_on`. Catalog says API depends on DB → `declared` `depends_on`. Spans show A calling B → `corroborating` `communicates_with` until inventory confirms.
 
-### G9. Do `valid_from` / `valid_to` live inside `discovered_via`? (§4.3–4.4)
+### G9. Do `valid_from` / `valid_to` live inside provenance? (§4.3–4.4)
 
-**A. No.** On `graph_edge.v1`, **`valid_from` / `valid_to` (and `criticality`) are sibling fields on the edge object**, next to `relation`. Schema requires `discovered_via.evidence_type` inside the provenance block; confidence, telemetry source, direction, refresh live *inside* `discovered_via`. Do not put validity only in the inner block and omit it on the edge.
+**A. No.** On Motadata-aligned `graph_edge.v1`, **`valid_from` / `valid_to` are sibling fields** next to `edge_type`. There is **no** nested `discovered_via` on the stored edge. Audit uses Snowflake `evidence_event_id`. Upsert identity is `(source_id, edge_type, target_id)`; `edge_id` is a snowflake reused on refresh.
 
 ### G10. How does Topology decide `relation` from inventory, catalog, or telemetry? (§4.3–4.4)
 
@@ -298,7 +298,7 @@ See also: [`LLD-E2-Identity.md`](../../docs/observeops/LLD-E2-Identity.md) · [`
 | E9 / E10 | both | walk / `query_graph` + `get_metric_baseline` (+ optional hot-bin) |
 | Optional Pillar C | WorkingSet only | same tools; no S3 dump |
 
-**Join key:** conceptual only — `tenant` + `ci_id` (map) ≡ `entity_id` (history). Not a third column named `join_key`. Bind/LUT-like work is **E2 Identity**, not a third store room.
+**Join key:** Dest `tenant` + map `entity_id` ≡ sketch `entity_id` (ingest still says `ci_id`). Motadata node/edge rows do **not** carry `tenant`. Bind/LUT-like work is **E2 Identity**, not a third store room.
 
 **Physical dest:** lab files, Motadata store, or Vortex+S3 — same logical rooms; hot/cold is temperature (§6).
 

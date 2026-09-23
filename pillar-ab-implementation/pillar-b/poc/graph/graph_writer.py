@@ -67,9 +67,10 @@ class GraphWriter:
         soft_stale_days: int | None = None,
         hard_downgrade_days: int | None = None,
     ) -> dict[str, int]:
-        """E5: expire / drop stale corroborating / mark declared soft·hard — does not create edges.
+        """E5: expire / drop stale stream edges / mark declared soft·hard — does not create edges.
 
         Call ``publish_map`` again afterward if Dest should reflect maintain marks.
+        Uses Motadata ``valid_to`` / ``origin`` — not ``discovered_via`` tiers.
         """
         if self.state is None:
             return {
@@ -77,6 +78,7 @@ class GraphWriter:
                 "stale_corroborating": 0,
                 "declared_soft_stale": 0,
                 "declared_hard_downgraded": 0,
+                "nodes_touched": 0,
             }
         kwargs: dict[str, Any] = {
             "corroborating_max_age_seconds": corroborating_max_age_seconds,

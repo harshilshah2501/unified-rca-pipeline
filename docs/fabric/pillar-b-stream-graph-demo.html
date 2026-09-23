@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pillar B — stream → knowledge graph demo</title>
+<meta name="description" content="Split UI: incoming ingest.v1 stream on the left, gradual GraphWriter map upserts on the right. Only topo_update WRITE lines grow the graph." />
+<link rel="stylesheet" href="/urca-docs.css" />
+<script src="/theme-init.js"></script>
+<style>
+  .sg-demo {
+    /* Edges — discovered_via.evidence_type (muted, distinct; not neon) */
+    --ev-auth: #4a9b78;
+    --ev-decl: #7d8fb0;
+    --ev-corr: #c4a35a;
+    /* Nodes — ci_type (keep Database away from declared blue) */
+    --ci-bs: #9a5b3c;
+    --ci-bs-soft: rgba(154, 91, 60, 0.14);
+    --ci-service: #0f766e;
+    --ci-service-soft: rgba(15, 118, 110, 0.14);
+    --ci-runtime: #a16207;
+    --ci-runtime-soft: rgba(161, 98, 7, 0.14);
+    --ci-db: #4c6a9a;
+    --ci-db-soft: rgba(76, 106, 154, 0.16);
+    --ci-host: #57534e;
+    --ci-host-soft: rgba(87, 83, 78, 0.16);
+    /* Stream card — fact_kind admit (not map colors) */
+    --fk-topo: #3d8a6a;
+    --fk-metric: #5b8fb8;
+    --fk-span: #8b7bb8;
+    --fk-event: #b87a9a;
+    --fk-anomaly: #c46a6a;
+    max-width: 1280px; margin: 0 auto; padding: 1.25rem 1.25rem 3rem;
+  }
+  .sg-demo .eyebrow {
+    font-size: .72rem; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: .35rem;
+  }
+  .sg-demo h1 { letter-spacing: -0.02em; margin-bottom: .35rem; }
+  .sg-demo .lead { color: var(--muted); max-width: 78ch; margin: .35rem 0 1rem; line-height: 1.55; }
+  .sg-demo .lead code {
+    font-size: .88em; color: var(--accent);
+    background: var(--accent-soft); padding: .08em .35em; border-radius: 4px;
+  }
+  .sg-rules {
+    display: flex; flex-wrap: wrap; gap: .4rem .5rem;
+    margin: 0 0 1.05rem; padding: 0; list-style: none;
+  }
+  .sg-rules li {
+    font-size: .76rem; padding: .3rem .6rem; border-radius: 999px;
+    border: 1px solid var(--stroke); background: var(--bg-elev); color: var(--muted);
+  }
+  .sg-rules li strong { color: var(--fg, inherit); font-weight: 600; }
+  .sg-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: .55rem;
+    margin-bottom: .95rem; padding: .7rem .8rem;
+    border: 1px solid var(--stroke); border-radius: 12px;
+    background: linear-gradient(180deg, var(--bg-elev), var(--bg-soft, var(--bg-elev)));
+  }
+  .sg-bar button {
+    font: inherit; font-size: .88rem; font-weight: 500;
+    padding: .42rem .9rem; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--stroke); background: var(--bg); color: inherit;
+    transition: border-color .15s, background .15s;
+  }
+  .sg-bar button:hover:not(:disabled) { border-color: var(--accent); }
+  .sg-bar button.primary {
+    background: var(--accent); color: #fff; border-color: transparent;
+  }
+  .sg-bar button.primary:hover:not(:disabled) { filter: brightness(1.06); }
+  .sg-bar button:disabled { opacity: .4; cursor: not-allowed; }
+  .sg-bar .meta {
+    font-size: .8rem; color: var(--muted); margin-left: auto;
+    font-variant-numeric: tabular-nums; letter-spacing: .02em;
+  }
+  .sg-bar .track {
+    flex: 1 1 140px; height: 5px; min-width: 100px;
+    background: var(--stroke); border-radius: 99px; overflow: hidden;
+  }
+  .sg-bar .track > i {
+    display: block; height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--ci-service), var(--accent));
+    border-radius: 99px; transition: width .2s ease;
+  }
+  .sg-split {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: stretch;
+  }
+  @media (max-width: 960px) { .sg-split { grid-template-columns: 1fr; } }
+  .sg-panel {
+    border: 1px solid var(--stroke); border-radius: 14px; background: var(--bg-elev);
+    display: flex; flex-direction: column; min-height: 560px; overflow: hidden;
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--stroke) 60%, transparent);
+  }
+  .sg-panel.stream-panel header { border-bottom-color: color-mix(in srgb, var(--fk-metric) 35%, var(--stroke)); }
+  .sg-panel.graph-panel header { border-bottom-color: color-mix(in srgb, var(--ci-service) 40%, var(--stroke)); }
+  .sg-panel header {
+    padding: .75rem 1rem; border-bottom: 1px solid var(--stroke);
+    display: flex; justify-content: space-between; align-items: baseline; gap: .5rem;
+    background: color-mix(in srgb, var(--bg-soft, var(--bg)) 70%, transparent);
+  }
+  .sg-panel header h2 { font-size: .95rem; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+  .sg-panel header h2 code {
+    font-size: .78em; margin-left: .25rem; padding: .1em .4em; border-radius: 4px;
+    background: var(--ci-service-soft); color: var(--ci-service);
+  }
+  .sg-panel header span { font-size: .74rem; color: var(--muted); }
+  .sg-stream {
+    flex: 1; overflow: hidden; padding: 1rem;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    background:
+      radial-gradient(ellipse 70% 50% at 0% 0%, color-mix(in srgb, var(--fk-metric) 8%, transparent), transparent 60%),
+      var(--bg-elev);
+  }
+  .sg-stream-empty {
+    color: var(--muted); font-size: .88rem; line-height: 1.55;
+    padding: 1.5rem .4rem; border: 1px dashed var(--stroke); border-radius: 10px;
+    background: color-mix(in srgb, var(--bg) 80%, transparent);
+  }
+  .sg-card {
+    border: 1px solid var(--stroke); border-radius: 12px; padding: .85rem .95rem;
+    background: var(--bg); font-size: .84rem;
+    border-left: 4px solid var(--card-accent, var(--accent));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-accent, var(--accent)) 18%, transparent);
+  }
+  .sg-card.kind-topo_update { --card-accent: var(--fk-topo); }
+  .sg-card.kind-metric_sample { --card-accent: var(--fk-metric); }
+  .sg-card.kind-trace_span { --card-accent: var(--fk-span); }
+  .sg-card.kind-event { --card-accent: var(--fk-event); }
+  .sg-card.kind-anomaly { --card-accent: var(--fk-anomaly); }
+  .sg-card.kind-bootstrap { --card-accent: var(--ev-decl); }
+  .sg-card .row1 { display: flex; flex-wrap: wrap; gap: .35rem .5rem; align-items: center; margin-bottom: .45rem; }
+  .sg-card .ts { font-family: ui-monospace, monospace; font-size: .74rem; color: var(--muted); }
+  .sg-chip {
+    font-family: ui-monospace, monospace; font-size: .72rem; font-weight: 600;
+    padding: .16rem .45rem; border-radius: 6px; letter-spacing: .01em;
+  }
+  .fk-topo { background: color-mix(in srgb, var(--fk-topo) 18%, transparent); color: var(--fk-topo); }
+  .fk-metric { background: color-mix(in srgb, var(--fk-metric) 18%, transparent); color: var(--fk-metric); }
+  .fk-span { background: color-mix(in srgb, var(--fk-span) 18%, transparent); color: var(--fk-span); }
+  .fk-event { background: color-mix(in srgb, var(--fk-event) 18%, transparent); color: var(--fk-event); }
+  .fk-anomaly { background: color-mix(in srgb, var(--fk-anomaly) 18%, transparent); color: var(--fk-anomaly); }
+  .admit-write { background: color-mix(in srgb, var(--fk-topo) 20%, transparent); color: var(--fk-topo); }
+  .admit-admit { background: color-mix(in srgb, var(--fk-metric) 20%, transparent); color: var(--fk-metric); }
+  .admit-noop { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
+  .admit-bootstrap { background: color-mix(in srgb, var(--ev-decl) 20%, transparent); color: var(--ev-decl); }
+  .sg-card .headline { font-weight: 600; font-size: .94rem; margin-bottom: .28rem; letter-spacing: -0.01em; }
+  .sg-card .caption { color: var(--muted); font-size: .8rem; margin-bottom: .55rem; line-height: 1.45; }
+  .sg-card .note {
+    font-size: .78rem; line-height: 1.45; margin: 0 0 .55rem;
+    padding: .4rem .55rem; border-radius: 7px;
+    color: color-mix(in srgb, var(--card-accent, var(--accent)) 85%, var(--muted));
+    background: color-mix(in srgb, var(--card-accent, var(--accent)) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--card-accent, var(--accent)) 22%, transparent);
+  }
+  .sg-json-mark {
+    display: flex; flex-wrap: wrap; gap: .45rem .75rem;
+    font-size: .72rem; color: var(--muted); margin: 0 0 .4rem;
+  }
+  .sg-json-mark span { display: inline-flex; align-items: center; gap: .3rem; }
+  .sg-json-mark .dot {
+    width: 8px; height: 8px; border-radius: 2px; display: inline-block;
+  }
+  .sg-json-mark .dot.common { background: var(--muted); }
+  .sg-json-mark .dot.specific { background: var(--card-accent, var(--accent)); }
+  .sg-card pre.sg-json {
+    margin: 0; padding: .6rem .65rem; border-radius: 8px;
+    background: color-mix(in srgb, var(--bg-soft, var(--bg)) 85%, #000 6%);
+    border: 1px solid var(--stroke);
+    font-family: ui-monospace, monospace; font-size: .72rem; line-height: 1.5;
+    white-space: pre-wrap; word-break: break-word; overflow: visible;
+    color: color-mix(in srgb, var(--fg, inherit) 88%, var(--muted));
+  }
+  .sg-card pre.sg-json .k-common { color: var(--muted); font-weight: 600; }
+  .sg-card pre.sg-json .k-specific {
+    color: var(--card-accent, var(--accent)); font-weight: 600;
+  }
+  .sg-graph-wrap {
+    flex: 1; padding: .5rem .6rem .65rem; display: flex; flex-direction: column; gap: .45rem;
+    overflow: hidden; min-height: 0;
+    background:
+      radial-gradient(ellipse 60% 45% at 50% 0%, color-mix(in srgb, var(--ci-service) 10%, transparent), transparent 65%),
+      var(--bg-elev);
+  }
+  /* flex:0 — do not stretch the SVG box (that letterboxed the graph and looked “shrunk”). */
+  .sg-graph-wrap svg {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 560 / 450;
+    flex: 0 0 auto;
+    border-radius: 10px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--bg) 92%, var(--ci-service) 8%), var(--bg));
+    border: 1px solid var(--stroke);
+    display: block;
+  }
+  .sg-edge-list {
+    font-size: .76rem; color: var(--muted); padding: .15rem .15rem 0; flex-shrink: 0;
+    display: flex; flex-direction: column; gap: .28rem;
+    max-height: 7.5rem; overflow: auto;
+  }
+  .sg-edge-list .el {
+    display: flex; flex-wrap: wrap; align-items: center; gap: .35rem;
+    padding: .28rem .45rem; border-radius: 7px;
+    background: color-mix(in srgb, var(--bg) 80%, transparent);
+    border: 1px solid var(--stroke);
+  }
+  .sg-edge-list .el .rel {
+    font-family: ui-monospace, monospace; font-weight: 600; font-size: .72rem;
+    padding: .08rem .35rem; border-radius: 4px;
+  }
+  .sg-edge-list .el .rel.auth { color: var(--ev-auth); background: color-mix(in srgb, var(--ev-auth) 14%, transparent); }
+  .sg-edge-list .el .rel.decl { color: var(--ev-decl); background: color-mix(in srgb, var(--ev-decl) 14%, transparent); }
+  .sg-edge-list .el .rel.corr { color: var(--ev-corr); background: color-mix(in srgb, var(--ev-corr) 14%, transparent); }
+  .sg-edge-list code { font-size: .9em; }
+  .node-g { opacity: 0.28; transition: opacity .28s ease; }
+  .node-g.on { opacity: 1; }
+  .node-g.pulse .n-body { animation: sgPulse .75s ease; }
+  .edge-g { opacity: 0; transition: opacity .3s ease; }
+  .edge-g.on { opacity: 1; }
+  .edge-g.pulse path, .edge-g.pulse text { animation: sgPulse .75s ease; }
+  .edge-g .edge-lbl-bg {
+    fill: var(--bg);
+    fill-opacity: 0.88;
+  }
+  @keyframes sgPulse {
+    0% { filter: drop-shadow(0 0 0 transparent); }
+    45% { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 55%, transparent)); }
+    100% { filter: drop-shadow(0 0 0 transparent); }
+  }
+  .sg-legend {
+    display: flex; flex-direction: column; gap: .65rem;
+    font-size: .74rem; color: var(--muted); margin-top: .9rem;
+    padding: .75rem .85rem; border-radius: 10px; border: 1px solid var(--stroke);
+    background: var(--bg-elev);
+  }
+  .sg-legend .row {
+    display: flex; flex-wrap: wrap; align-items: flex-start; gap: .45rem .85rem;
+  }
+  .sg-legend .row-title {
+    flex: 0 0 13rem; font-size: .68rem; font-weight: 600;
+    letter-spacing: .05em; text-transform: uppercase; color: var(--muted);
+    padding-top: .1rem;
+  }
+  .sg-legend .row-title code {
+    font-size: .85em; text-transform: none; letter-spacing: 0; font-weight: 500;
+  }
+  .sg-legend .group { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .45rem .75rem; flex: 1; }
+  .sg-legend span { display: inline-flex; align-items: center; gap: .32rem; }
+  .sg-swatch {
+    width: 11px; height: 11px; border-radius: 3px; display: inline-block;
+    border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  }
+  .sg-swatch.node {
+    width: 12px; height: 12px; border-radius: 3px; border-width: 2px; background: transparent;
+  }
+  .sg-swatch.line {
+    width: 18px; height: 3px; border-radius: 2px; border: none;
+  }
+  .sg-swatch.line.auth { background: var(--ev-auth); }
+  .sg-swatch.line.decl { background: var(--ev-decl); }
+  .sg-swatch.line.corr {
+    background: repeating-linear-gradient(90deg, var(--ev-corr) 0 4px, transparent 4px 7px);
+    height: 3px;
+  }
+  .sg-foot { margin-top: 1.1rem; font-size: .82rem; color: var(--muted); }
+  .sg-foot a { color: var(--accent); }
+</style>
+</head>
+<body class="urca-doc article">
+<div class="wrap article sg-demo">
+  <p class="eyebrow">Pillar B PoC · demo</p>
+  <h1>Stream → knowledge graph</h1>
+  <p class="lead">
+    Step through estate <strong>bootstrap</strong> (CI nodes), then the interleaved <code>ingest.v1</code> tape.
+    Left: the current action (bootstrap payload, or one flat wire JSON with keys marked common vs
+    <code>fact_kind</code>-specific). Right: <strong>map/</strong> — nodes from bootstrap, then
+    <strong>one edge per</strong> stream <code>topo_update</code> WRITE as you Forward (in sync with the left panel).
+    Metrics, spans, events, and anomalies show as NOOPs (or SketchWriter admits).
+  </p>
+  <ul class="sg-rules">
+    <li><strong>Bootstrap</strong> — known CIs (vertices) before the stream</li>
+    <li><strong>One wire</strong> after Identity</li>
+    <li><strong>Writers filter</strong> by <code>fact_kind</code></li>
+    <li><strong>Each WRITE</strong> adds one <code>relation</code> edge</li>
+    <li><strong>Span ≠ edge</strong> until a separate topo emitter</li>
+  </ul>
+
+  <div class="sg-bar" role="toolbar" aria-label="Step controls">
+    <button type="button" id="btn-back">← Back</button>
+    <button type="button" class="primary" id="btn-forward">Forward →</button>
+    <button type="button" id="btn-reset">Reset</button>
+    <div class="track" aria-hidden="true"><i id="track-fill"></i></div>
+    <div class="meta" id="step-meta">Step 0 / 0</div>
+  </div>
+
+  <div class="sg-split">
+    <section class="sg-panel stream-panel" aria-label="Incoming stream">
+      <header>
+        <h2>Incoming stream</h2>
+        <span>bootstrap · then post-E2 <code>ingest.v1</code></span>
+      </header>
+      <div class="sg-stream" id="stream"></div>
+    </section>
+    <section class="sg-panel graph-panel" aria-label="Knowledge graph">
+      <header>
+        <h2>Knowledge graph <code>map/</code></h2>
+        <span id="graph-status">empty — waiting for bootstrap</span>
+      </header>
+      <div class="sg-graph-wrap">
+        <svg id="graph-svg" viewBox="0 0 560 450" role="img" aria-label="Customer checkout knowledge graph" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <marker id="arr-auth" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#4a9b78"/>
+            </marker>
+            <marker id="arr-decl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#7d8fb0"/>
+            </marker>
+            <marker id="arr-corr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#c4a35a"/>
+            </marker>
+          </defs>
+          <g id="edges"></g>
+          <g id="nodes"></g>
+        </svg>
+        <div class="sg-edge-list" id="edge-list">No edges yet. · edge color = <code>discovered_via.evidence_type</code></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="sg-legend" aria-label="Color legend">
+    <div class="row">
+      <div class="row-title">Nodes · <code>ci_type</code></div>
+      <div class="group">
+        <span><i class="sg-swatch node" style="border-color:var(--ci-bs); background:var(--ci-bs-soft)"></i> BusinessService</span>
+        <span><i class="sg-swatch node" style="border-color:var(--ci-service); background:var(--ci-service-soft)"></i> Service</span>
+        <span><i class="sg-swatch node" style="border-color:var(--ci-runtime); background:var(--ci-runtime-soft)"></i> Runtime</span>
+        <span><i class="sg-swatch node" style="border-color:var(--ci-db); background:var(--ci-db-soft)"></i> Database</span>
+        <span><i class="sg-swatch node" style="border-color:var(--ci-host); background:var(--ci-host-soft)"></i> Host</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-title">Edges · <code>discovered_via</code></div>
+      <div class="group">
+        <span><i class="sg-swatch line auth"></i> authoritative</span>
+        <span><i class="sg-swatch line decl"></i> declared</span>
+        <span><i class="sg-swatch line corr"></i> corroborating (dashed)</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-title">Stream · admit</div>
+      <div class="group">
+      <span><i class="sg-swatch" style="background:var(--ev-decl)"></i> Bootstrap (nodes)</span>
+      <span><i class="sg-swatch" style="background:var(--fk-topo)"></i> Graph WRITE (+edge)</span>
+      <span><i class="sg-swatch" style="background:var(--fk-metric)"></i> Sketch ADMIT</span>
+      <span><i class="sg-swatch" style="background:var(--muted)"></i> NOOP</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="sg-foot">
+    Scenario: <a href="/pillar-ab-implementation/pillar-b/docs/INTERLEAVED_FACT_KIND_SCENARIO.md">INTERLEAVED_FACT_KIND_SCENARIO.md</a>
+    · Walkthrough <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md">TEAM_WALKTHROUGH.md</a>
+    · Hub <a href="/pillar-b-poc-hub.html">Pillar B PoC hub</a>
+    · Tape <a href="/pillar-b-stream-graph-demo.tape.json"><code>pillar-b-stream-graph-demo.tape.json</code></a>
+    · Estate <a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/topology.bootstrap.json"><code>topology.bootstrap.json</code></a>
+  </p>
+</div>
+
+<script>
+(function () {
+  const NODE_W = 148, NODE_H = 44;
+  const EDGE_PAD = 26;
+  let tape = null;
+  let idx = -1;
+  const edges = new Map();
+  const liveNodes = new Set();
+
+  const $ = (id) => document.getElementById(id);
+  const streamEl = $("stream");
+  const edgesG = $("edges");
+  const nodesG = $("nodes");
+  const edgeList = $("edge-list");
+  const graphStatus = $("graph-status");
+  const stepMeta = $("step-meta");
+  const trackFill = $("track-fill");
+  const btnBack = $("btn-back");
+  const btnForward = $("btn-forward");
+  const btnReset = $("btn-reset");
+
+  const CI_PALETTE = {
+    BusinessService: { stroke: "#9a5b3c", fill: "rgba(154,91,60,0.14)", text: "#9a5b3c" },
+    Service: { stroke: "#0f766e", fill: "rgba(15,118,110,0.14)", text: "#0f766e" },
+    Runtime: { stroke: "#a16207", fill: "rgba(161,98,7,0.14)", text: "#a16207" },
+    Database: { stroke: "#4c6a9a", fill: "rgba(76,106,154,0.16)", text: "#4c6a9a" },
+    Host: { stroke: "#57534e", fill: "rgba(87,83,78,0.16)", text: "#57534e" }
+  };
+  /* Edge stroke = discovered_via.evidence_type (same muted tokens as legend). */
+  const EV_PALETTE = {
+    authoritative: { color: "#4a9b78", marker: "arr-auth", cls: "auth", dash: "" },
+    declared: { color: "#7d8fb0", marker: "arr-decl", cls: "decl", dash: "" },
+    corroborating: { color: "#c4a35a", marker: "arr-corr", cls: "corr", dash: "5 3.5" }
+  };
+
+  function fkClass(kind) {
+    if (kind === "topo_update") return "fk-topo";
+    if (kind === "metric_sample") return "fk-metric";
+    if (kind === "trace_span") return "fk-span";
+    if (kind === "event") return "fk-event";
+    if (kind === "anomaly") return "fk-anomaly";
+    return "fk-event";
+  }
+
+  const COMMON_KEYS = [
+    "schema_version", "ts", "tenant", "ci_id", "ci_type", "fact_kind", "identity"
+  ];
+  const SPECIFIC_KEYS = [
+    "relation", "src_ci_id", "dst_ci_id", "name", "value", "labels",
+    "threshold", "severity", "metric_id"
+  ];
+
+  function admitChip(step) {
+    if (step.kind === "bootstrap" || step.graph === "BOOTSTRAP") {
+      return { cls: "admit-bootstrap", text: "Estate bootstrap" };
+    }
+    if (step.graph === "WRITE") return { cls: "admit-write", text: "Graph WRITE" };
+    if (step.sketch === "ADMIT") return { cls: "admit-admit", text: "Sketch ADMIT" };
+    return { cls: "admit-noop", text: "NOOP" };
+  }
+
+  /** Flat ingest.v1 view — common ∪ specific (or legacy flat line). */
+  function flattenLine(line) {
+    if (!line) return {};
+    if (line.common) {
+      return Object.assign({}, line.common, line.specific || {});
+    }
+    return line;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function keyKind(key) {
+    if (COMMON_KEYS.indexOf(key) >= 0) return "common";
+    if (SPECIFIC_KEYS.indexOf(key) >= 0) return "specific";
+    return "specific";
+  }
+
+  /** One flat JSON object; top-level keys color-marked common vs specific. */
+  function markedJsonHtml(flat) {
+    const ordered = {};
+    COMMON_KEYS.forEach(function (k) {
+      if (flat[k] !== undefined) ordered[k] = flat[k];
+    });
+    SPECIFIC_KEYS.forEach(function (k) {
+      if (flat[k] !== undefined) ordered[k] = flat[k];
+    });
+    Object.keys(flat).forEach(function (k) {
+      if (ordered[k] === undefined) ordered[k] = flat[k];
+    });
+
+    const keys = Object.keys(ordered);
+    let out = "{\n";
+    keys.forEach(function (k, i) {
+      const kind = keyKind(k);
+      const val = JSON.stringify(ordered[k], null, 2)
+        .split("\n")
+        .map(function (line, li) { return li === 0 ? line : "  " + line; })
+        .join("\n");
+      const comma = i < keys.length - 1 ? "," : "";
+      out +=
+        '  <span class="k-' + kind + '">"' + escapeHtml(k) + '"</span>: ' +
+        escapeHtml(val) + comma + "\n";
+    });
+    out += "}";
+    return out;
+  }
+
+  function renderBootstrapCard(step) {
+    const admit = admitChip(step);
+    const estate = step.estate || {};
+    const preview = {
+      api: estate.api,
+      source: estate.source,
+      provenance: estate.provenance,
+      evidence_default: estate.evidence_default,
+      nodes: estate.nodes,
+      edges: estate.edges
+    };
+    streamEl.innerHTML =
+      '<article class="sg-card kind-bootstrap">' +
+      '<div class="row1">' +
+      '<span class="ts">pre-stream</span>' +
+      '<span class="sg-chip admit-bootstrap">topology.bootstrap</span>' +
+      '<span class="sg-chip ' + admit.cls + '">' + admit.text + "</span>" +
+      "</div>" +
+      '<div class="headline">' + step.id + " · " + step.headline + "</div>" +
+      '<div class="caption">' + step.caption + "</div>" +
+      (step._comment ? '<div class="note">' + escapeHtml(step._comment) + "</div>" : "") +
+      '<div class="sg-json-mark" aria-hidden="true">' +
+      "<span>Not an ingest.v1 line — estate CI vertices only; edges follow stream WRITEs</span>" +
+      "</div>" +
+      '<pre class="sg-json">' + escapeHtml(JSON.stringify(preview, null, 2)) + "</pre>" +
+      "</article>";
+  }
+
+  function renderCurrentLine() {
+    if (!tape) return;
+    if (idx < 0) {
+      streamEl.innerHTML =
+        '<p class="sg-stream-empty">Cold start: <code>map/</code> is empty. Press <strong>Forward</strong> for ' +
+        "<strong>estate bootstrap</strong> (CI nodes), then each stream <code>topo_update</code> WRITE adds one edge.</p>";
+      return;
+    }
+    const step = tape.steps[idx];
+    if (step.kind === "bootstrap") {
+      renderBootstrapCard(step);
+      return;
+    }
+    const admit = admitChip(step);
+    const flat = flattenLine(step.line);
+    const kind = flat.fact_kind || "event";
+    streamEl.innerHTML =
+      '<article class="sg-card kind-' + kind + '">' +
+      '<div class="row1">' +
+      '<span class="ts">' + String(flat.ts || "").replace("2026-08-20T", "") + "</span>" +
+      '<span class="sg-chip ' + fkClass(kind) + '">' + kind + "</span>" +
+      '<span class="sg-chip ' + admit.cls + '">' + admit.text + "</span>" +
+      (flat.relation ? '<span class="sg-chip fk-topo">' + flat.relation + "</span>" : "") +
+      "</div>" +
+      '<div class="headline">' + step.id + " · " + step.headline + "</div>" +
+      '<div class="caption">' + step.caption + "</div>" +
+      (step._comment ? '<div class="note">' + escapeHtml(step._comment) + "</div>" : "") +
+      '<div class="sg-json-mark" aria-hidden="true">' +
+      '<span><i class="dot common"></i> common (every ingest.v1)</span>' +
+      '<span><i class="dot specific"></i> specific (this fact_kind)</span>' +
+      "</div>" +
+      '<pre class="sg-json">' + markedJsonHtml(flat) + "</pre>" +
+      "</article>";
+  }
+
+  function nodeCenter(id) {
+    const n = tape.nodes[id];
+    return { x: n.x + NODE_W / 2, y: n.y + NODE_H / 2 };
+  }
+
+  function buildSkeleton() {
+    nodesG.innerHTML = "";
+    edgesG.innerHTML = "";
+    Object.entries(tape.nodes).forEach(([id, n]) => {
+      if (id === "_comment" || !n || typeof n !== "object" || !n.ci_type) return;
+      const pal = CI_PALETTE[n.ci_type] || CI_PALETTE.Service;
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("id", "node-" + id);
+      g.setAttribute("class", "node-g");
+      g.innerHTML =
+        '<rect class="n-body" x="' + n.x + '" y="' + n.y + '" width="' + NODE_W + '" height="' + NODE_H +
+        '" rx="9" fill="' + pal.fill + '" stroke="' + pal.stroke + '" stroke-width="1.75"/>' +
+        '<text x="' + (n.x + NODE_W / 2) + '" y="' + (n.y + 19) +
+        '" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" font-weight="600" fill="' + pal.text + '">' +
+        n.label + "</text>" +
+        '<text x="' + (n.x + NODE_W / 2) + '" y="' + (n.y + 34) +
+        '" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="' + pal.stroke + '" opacity="0.85">' +
+        n.ci_type + "</text>";
+      nodesG.appendChild(g);
+    });
+  }
+
+  function edgeKey(e) {
+    return e.relation + "|" + e.src + "|" + e.dst;
+  }
+
+  /** Parallel edges sharing src→dst: index + count for offset/curve/label stagger. */
+  function parallelInfo(e) {
+    const siblings = Array.from(edges.values())
+      .filter(function (x) { return x.src === e.src && x.dst === e.dst; })
+      .sort(function (a, b) { return a.relation.localeCompare(b.relation); });
+    const i = Math.max(0, siblings.findIndex(function (x) { return x.relation === e.relation; }));
+    const n = Math.max(1, siblings.length);
+    const mid = (n - 1) / 2;
+    return { i: i, n: n, slot: i - mid };
+  }
+
+  function drawEdge(e, pulse) {
+    const key = edgeKey(e);
+    const eid = "edge-" + key.replace(/\|/g, "_");
+    let g = document.getElementById(eid);
+    const a = nodeCenter(e.src);
+    const b = nodeCenter(e.dst);
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const ux = dx / len, uy = dy / len;
+    const px = -uy, py = ux;
+    const info = parallelInfo(e);
+    const bow = info.n > 1 ? info.slot * 52 : 0;
+    const pad = EDGE_PAD;
+    const x1 = a.x + ux * pad;
+    const y1 = a.y + uy * pad;
+    const x2 = b.x - ux * pad;
+    const y2 = b.y - uy * pad;
+    const cx = (x1 + x2) / 2 + px * bow;
+    const cy = (y1 + y2) / 2 + py * bow;
+    // Quadratic midpoint (t=0.5) for label anchor; stagger t slightly per sibling
+    const t = info.n > 1 ? 0.38 + info.i * (0.24 / Math.max(1, info.n - 1)) : 0.5;
+    const omt = 1 - t;
+    const lx = omt * omt * x1 + 2 * omt * t * cx + t * t * x2;
+    const ly = omt * omt * y1 + 2 * omt * t * cy + t * t * y2;
+    const pal = EV_PALETTE[e.evidence] || EV_PALETTE.corroborating;
+    const pathD = info.n > 1
+      ? ("M" + x1 + " " + y1 + " Q" + cx + " " + cy + " " + x2 + " " + y2)
+      : ("M" + x1 + " " + y1 + " L" + x2 + " " + y2);
+    const lw = Math.max(100, e.relation.length * 6.8 + 22);
+    const html =
+      '<path d="' + pathD +
+      '" fill="none" stroke="' + pal.color + '" stroke-width="2" stroke-linecap="round"' +
+      (pal.dash ? ' stroke-dasharray="' + pal.dash + '"' : "") +
+      ' marker-end="url(#' + pal.marker + ')"/>' +
+      '<rect class="edge-lbl-bg" x="' + (lx - lw / 2) + '" y="' + (ly - 18) + '" width="' + lw + '" height="28" rx="4"/>' +
+      '<text x="' + lx + '" y="' + (ly - 4) + '" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" font-weight="600" fill="' + pal.color + '">' +
+      e.relation + "</text>" +
+      '<text x="' + lx + '" y="' + (ly + 9) + '" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="' + pal.color + '" opacity="0.9">' +
+      e.evidence + "</text>";
+    if (!g) {
+      g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("id", eid);
+      g.setAttribute("class", "edge-g");
+      edgesG.appendChild(g);
+    }
+    g.innerHTML = html;
+    requestAnimationFrame(() => {
+      g.classList.add("on");
+      if (pulse) {
+        g.classList.remove("pulse");
+        void g.offsetWidth;
+        g.classList.add("pulse");
+      }
+    });
+  }
+
+  /** After any edge set change, redraw all edges so parallel offsets stay correct. */
+  function redrawAllEdges(pulseKey) {
+    Array.from(edges.values()).forEach(function (e) {
+      drawEdge(e, pulseKey && edgeKey(e) === pulseKey);
+    });
+  }
+
+  function showNode(id, pulse) {
+    liveNodes.add(id);
+    const g = document.getElementById("node-" + id);
+    if (!g) return;
+    g.classList.add("on");
+    if (pulse) {
+      g.classList.remove("pulse");
+      void g.offsetWidth;
+      g.classList.add("pulse");
+    }
+  }
+
+  function refreshEdgeList() {
+    if (!edges.size) {
+      const nodesLit = liveNodes.size;
+      if (nodesLit) {
+        edgeList.innerHTML =
+          "No edges yet — Forward stream <code>topo_update</code> WRITEs to grow map/.";
+        graphStatus.textContent = "bootstrapped · " + nodesLit + " node(s) · 0 edges";
+      } else {
+        edgeList.innerHTML = "No edges yet. · edge color = <code>discovered_via.evidence_type</code>";
+        graphStatus.textContent = "empty — waiting for bootstrap";
+      }
+      return;
+    }
+    const lines = Array.from(edges.values()).map((e) => {
+      const pal = EV_PALETTE[e.evidence] || EV_PALETTE.corroborating;
+      return (
+        '<div class="el"><code>' + e.src + "</code>" +
+        '<span class="rel ' + pal.cls + '">' + e.relation + "</span>" +
+        "<code>" + e.dst + "</code>" +
+        '<span class="rel ' + pal.cls + '" title="discovered_via.evidence_type">' + e.evidence + "</span></div>"
+      );
+    });
+    edgeList.innerHTML = lines.join("");
+    graphStatus.textContent = edges.size + " edge(s) · " + liveNodes.size + " node(s)";
+  }
+
+  function updateChrome() {
+    const n = tape ? tape.steps.length : 0;
+    stepMeta.textContent = "Step " + Math.max(0, idx + 1) + " / " + n;
+    trackFill.style.width = (n && idx >= 0 ? ((idx + 1) / n) * 100 : 0) + "%";
+    btnBack.disabled = !tape || idx < 0;
+    btnForward.disabled = !tape || idx >= n - 1;
+    renderCurrentLine();
+  }
+
+  function applyBootstrap(step, pulse) {
+    const estate = step.estate || {};
+    (estate.nodes || []).forEach(function (id) {
+      showNode(id, pulse);
+    });
+    (estate.edges || []).forEach(function (e) {
+      edges.set(edgeKey(e), e);
+    });
+    const pulseKey = pulse && estate.edges && estate.edges[0] ? edgeKey(estate.edges[0]) : null;
+    redrawAllEdges(pulseKey);
+  }
+
+  function applyStep(i, pulse) {
+    const step = tape.steps[i];
+    if (step.kind === "bootstrap") {
+      applyBootstrap(step, pulse);
+      return;
+    }
+    if (step.edge) {
+      showNode(step.edge.src, pulse);
+      showNode(step.edge.dst, pulse);
+      edges.set(edgeKey(step.edge), step.edge);
+      redrawAllEdges(pulse ? edgeKey(step.edge) : null);
+    } else {
+      const flat = flattenLine(step.line);
+      if (flat.ci_id && tape.nodes[flat.ci_id]) showNode(flat.ci_id, false);
+    }
+  }
+
+  function rebuildTo(index) {
+    edges.clear();
+    liveNodes.clear();
+    buildSkeleton();
+    for (let i = 0; i <= index; i++) applyStep(i, i === index);
+    refreshEdgeList();
+  }
+
+  function stepForward() {
+    if (!tape || idx >= tape.steps.length - 1) return;
+    idx += 1;
+    applyStep(idx, true);
+    refreshEdgeList();
+    updateChrome();
+  }
+
+  function stepBack() {
+    if (!tape || idx < 0) return;
+    idx -= 1;
+    if (idx < 0) {
+      edges.clear();
+      liveNodes.clear();
+      buildSkeleton();
+      refreshEdgeList();
+    } else {
+      rebuildTo(idx);
+    }
+    updateChrome();
+  }
+
+  function reset() {
+    idx = -1;
+    edges.clear();
+    liveNodes.clear();
+    if (tape) buildSkeleton();
+    refreshEdgeList();
+    updateChrome();
+  }
+
+  btnBack.addEventListener("click", stepBack);
+  btnForward.addEventListener("click", stepForward);
+  btnReset.addEventListener("click", reset);
+
+  function boot(data) {
+    tape = data;
+    idx = -1;
+    buildSkeleton();
+    refreshEdgeList();
+    updateChrome();
+  }
+
+  fetch("/pillar-b-stream-graph-demo.tape.json")
+    .then((r) => {
+      if (!r.ok) throw new Error("tape " + r.status);
+      return r.json();
+    })
+    .then(boot)
+    .catch((err) => {
+      return fetch("/docs/fabric/pillar-b-stream-graph-demo.tape.json").then((r) => {
+        if (!r.ok) throw err;
+        return r.json();
+      }).then(boot);
+    })
+    .catch((err) => {
+      graphStatus.textContent = "Failed to load tape: " + err.message;
+      console.error(err);
+    });
+})();
+</script>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

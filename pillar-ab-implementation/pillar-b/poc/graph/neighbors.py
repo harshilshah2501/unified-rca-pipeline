@@ -11,9 +11,11 @@ from __future__ import annotations
 from collections import deque
 from typing import Any, Iterable, Literal
 
+from graph.ci_qualify import storage_type_matches
+from graph.edge_catalog import normalize_relation, to_edge_type
+
 Direction = Literal["out", "in", "both"]
 
-# Align with maintain.py — hard-downgraded edges leave confidence-bearing walks.
 _MAINTAIN_HARD = "hard_downgraded"
 
 
@@ -23,9 +25,17 @@ def _index_edges(
     by_src: dict[str, list[dict[str, Any]]] = {}
     by_dst: dict[str, list[dict[str, Any]]] = {}
     for e in snapshot.get("edges") or []:
-        by_src.setdefault(e["src_ci_id"], []).append(e)
-        by_dst.setdefault(e["dst_ci_id"], []).append(e)
+        by_src.setdefault(e["source_id"], []).append(e)
+        by_dst.setdefault(e["target_id"], []).append(e)
     return by_src, by_dst
+
+
+def _edge_type_ok(edge: dict[str, Any], name: str) -> bool:
+    stored = edge.get("edge_type") or ""
+    try:
+        return stored == to_edge_type(name)
+    except ValueError:
+        return stored == name or normalize_relation(stored) == normalize_relation(name)
 
 
 def _edge_ok(
@@ -35,10 +45,12 @@ def _edge_ok(
     relations: Iterable[str] | None,
     confidence_bearing_only: bool,
 ) -> bool:
-    if relation and edge.get("relation") != relation:
+    if relation and not _edge_type_ok(edge, relation):
         return False
-    if relations is not None and edge.get("relation") not in set(relations):
-        return False
+    if relations is not None:
+        allowed = list(relations)
+        if not any(_edge_type_ok(edge, r) for r in allowed):
+            return False
     if confidence_bearing_only and edge.get("maintain_status") == _MAINTAIN_HARD:
         return False
     return True
@@ -51,7 +63,7 @@ def _adjacent(
     direction: Direction,
 ) -> str | None:
     """Return the other endpoint when traversing ``direction`` from ``current``."""
-    src, dst = edge["src_ci_id"], edge["dst_ci_id"]
+    src, dst = edge["source_id"], edge["target_id"]
     if direction == "out" and src == current:
         return dst
     if direction == "in" and dst == current:
@@ -74,19 +86,15 @@ def neighbors(
     direction: Direction = "out",
     confidence_bearing_only: bool = False,
 ) -> list[dict[str, Any]]:
-    """Return edges reachable within ``hops`` from ``ci_id``.
+    """Return edges reachable within ``hops`` from ``ci_id`` (product join name).
 
-    * ``direction="out"`` — follow ``src → dst`` (default, estate dependency walk).
-    * ``direction="in"`` — follow reverse (who points at this CI).
-    * ``direction="both"`` — undirected hop budget.
-
-    When ``confidence_bearing_only`` is true, edges with
-    ``maintain_status=hard_downgraded`` are skipped (E5 hard mark).
+    Resolves against Motadata ``entity_id`` / ``source_id`` / ``target_id``.
+    ``relation`` filters accept ingest snake_case or Motadata SCREAMING_SNAKE.
     """
     if hops < 1:
         return []
     by_src, by_dst = _index_edges(snapshot)
-    node_ids = {n.get("ci_id") for n in snapshot.get("nodes") or []}
+    node_ids = {n.get("entity_id") for n in snapshot.get("nodes") or []}
     if ci_id not in node_ids and ci_id not in by_src and ci_id not in by_dst:
         return []
 
@@ -127,17 +135,17 @@ def neighbors(
 
 
 def neighbor_ids(snapshot: dict[str, Any], ci_id: str, **kwargs: Any) -> list[str]:
-    """Unique other-endpoint ``ci_id``s from ``neighbors`` (not including the seed)."""
+    """Unique other-endpoint entity ids from ``neighbors`` (not including the seed)."""
     direction: Direction = kwargs.get("direction", "out")
     ids: set[str] = set()
     for e in neighbors(snapshot, ci_id, **kwargs):
         if direction == "out":
-            ids.add(e["dst_ci_id"])
+            ids.add(e["target_id"])
         elif direction == "in":
-            ids.add(e["src_ci_id"])
+            ids.add(e["source_id"])
         else:
-            ids.add(e["src_ci_id"])
-            ids.add(e["dst_ci_id"])
+            ids.add(e["source_id"])
+            ids.add(e["target_id"])
     ids.discard(ci_id)
     return sorted(ids)
 
@@ -153,11 +161,8 @@ def reachable_ci_ids(
     confidence_bearing_only: bool = False,
     include_seed: bool = True,
 ) -> list[str]:
-    """WorkingSet-lite: CI ids reachable from a symptom/seed within ``hops``.
-
-    Includes the seed when ``include_seed`` and the seed exists on the snapshot.
-    """
-    node_ids = {n.get("ci_id") for n in snapshot.get("nodes") or []}
+    """WorkingSet-lite: entity ids reachable from a symptom/seed within ``hops``."""
+    node_ids = {n.get("entity_id") for n in snapshot.get("nodes") or []}
     if seed_ci not in node_ids:
         return []
     reached = {seed_ci} if include_seed else set()
@@ -170,8 +175,8 @@ def reachable_ci_ids(
         relations=relations,
         confidence_bearing_only=confidence_bearing_only,
     ):
-        reached.add(e["src_ci_id"])
-        reached.add(e["dst_ci_id"])
+        reached.add(e["source_id"])
+        reached.add(e["target_id"])
     if not include_seed:
         reached.discard(seed_ci)
     return sorted(reached)
@@ -192,25 +197,27 @@ def find_paths(
 ) -> list[list[str]]:
     """Directed/undirected simple paths from seed to a target CI or CI type.
 
-    Each path is a list of ``ci_id`` including seed and leaf. Empty if seed missing
-    or no path within ``max_hops``. Caps at ``max_paths`` for test determinism.
+    ``target_ci_types`` may use ingest PascalCase (``Host``) or Motadata (``host``).
+    Each path is a list of ``entity_id`` including seed and leaf.
     """
-    nodes_by_id = {n["ci_id"]: n for n in snapshot.get("nodes") or [] if n.get("ci_id")}
+    nodes_by_id = {
+        n["entity_id"]: n for n in snapshot.get("nodes") or [] if n.get("entity_id")
+    }
     if seed_ci not in nodes_by_id:
         return []
-    type_set = set(target_ci_types) if target_ci_types is not None else None
+    type_filters = list(target_ci_types) if target_ci_types is not None else None
     by_src, by_dst = _index_edges(snapshot)
 
     paths: list[list[str]] = []
-    # (node, path_ci_ids, path_edge_ids)
     q: deque[tuple[str, list[str], set[str]]] = deque([(seed_ci, [seed_ci], set())])
 
     def _is_target(cid: str) -> bool:
         if target_ci is not None and cid == target_ci:
             return True
-        if type_set is not None:
+        if type_filters is not None:
             n = nodes_by_id.get(cid) or {}
-            if n.get("ci_type") in type_set:
+            stored = str(n.get("type") or "")
+            if any(storage_type_matches(stored, t) for t in type_filters):
                 return True
         return False
 

@@ -46,9 +46,9 @@ def test_b1_relation_filter_runs_on_only():
     ids = neighbor_ids(snap, "checkout-api", hops=1, relation="runs_on")
     assert ids == ["linux-server-app-01"]
     edges = neighbors(snap, "checkout-api", hops=1, relations={"depends_on", "part_of"})
-    rels = {e["relation"] for e in edges}
-    assert rels <= {"depends_on", "part_of"}
-    assert "runs_on" not in rels
+    rels = {e["edge_type"] for e in edges}
+    assert rels <= {"DEPENDS_ON", "PART_OF"}
+    assert "RUNS_ON" not in rels
 
 
 def test_b1_inbound_who_points_at_payments_db():
@@ -203,7 +203,7 @@ def test_b3_expire_removes_edge_from_walk():
     # Expire the depends_on edge to payments-db
     victim = None
     for e in writer.state.edges.values():
-        if e["relation"] == "depends_on" and e["dst_ci_id"] == "payments-db":
+        if e["edge_type"] == "DEPENDS_ON" and e["target_id"] == "payments-db":
             e["valid_to"] = "2026-08-20T03:00:00Z"
             victim = e["edge_id"]
             break
@@ -221,7 +221,7 @@ def test_b3_expire_removes_edge_from_walk():
 def test_b3_hard_downgrade_excluded_from_confidence_bearing_walk():
     state = load_estate_bootstrap_state(SAMPLE_ESTATE / "walk_chain.bootstrap.json")
     # Age the storefront→checkout declared edge past hard window
-    eid = "e_storefront-web_depends_on_checkout-api"
+    eid = "storefront-web|DEPENDS_ON|checkout-api"
     assert eid in state.edges
     state.edges[eid]["valid_from"] = "2025-01-01T00:00:00Z"
     apply_declared_freshness(state, "2026-08-20T00:00:00Z", hard_downgrade_days=30)

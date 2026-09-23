@@ -1,13 +1,11 @@
-"""Provenance stamps for ``graph_edge.v1`` (``discovered_via``).
+"""Retired map-edge provenance helpers.
 
-Not an eligibility check — ``edge_catalog`` / ``ci_qualify`` decide WRITE vs DROP.
-This module only builds the audit block when an edge is written or refreshed:
+Motadata-aligned ``graph_edge.v1`` stores Snowflake ``evidence_event_id`` instead
+of a nested ``discovered_via`` block. GraphWriter no longer calls this module.
 
-* ``authoritative`` — inventory / agent / k8s owns the fact
-* ``declared`` — CMDB / catalog / bootstrap asserted it
-* ``corroborating`` — inferred from weaker telemetry (e.g. traces)
-
-E5 maintain later *uses* ``evidence_type`` when decaying edges.
+Kept for unit tests that still exercise the old evidence_type heuristic and for
+any caller that needs to classify a telemetry bind string into
+authoritative / declared / corroborating for *non-map* audit.
 """
 
 from __future__ import annotations
@@ -25,7 +23,7 @@ def build_discovered_via(
     signal_fields: list[str] | None = None,
     endpoint_binding: str | None = None,
 ) -> dict[str, Any]:
-    """Build the nested ``discovered_via`` object required on map edges."""
+    """Build a legacy ``discovered_via`` object (not written to Motadata edges)."""
     if evidence_type not in {"authoritative", "declared", "corroborating"}:
         raise ValueError(f"bad evidence_type {evidence_type!r}")
     block: dict[str, Any] = {
@@ -47,6 +45,13 @@ def evidence_for_source(telemetry_source: str) -> str:
     src = telemetry_source.lower()
     if any(k in src for k in ("inventory", "cgroup", "kubernetes", "agent")):
         return "authoritative"
-    if any(k in src for k in ("catalog", "cmdb", "terraform", "helm")):
+    if any(k in src for k in ("catalog", "cmdb", "terraform", "helm", "bootstrap")):
         return "declared"
     return "corroborating"
+
+
+def origin_for_source(telemetry_source: str) -> str:
+    """Map bind source to Motadata-era maintain origin: declared | stream."""
+    if evidence_for_source(telemetry_source) == "declared":
+        return "declared"
+    return "stream"

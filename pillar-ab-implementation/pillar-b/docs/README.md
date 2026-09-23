@@ -9,6 +9,8 @@ One page should have **one job**. Contract / Q&A / product HTML are **not** copi
 | What this package is + how to run it | [`../README.md`](../README.md) |
 | **Team demo / walkthrough** | [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) |
 | **Session Q&A** (why / how we decided) | [`PILLAR_B_POC_CHAT_QNA.md`](./PILLAR_B_POC_CHAT_QNA.md) |
+| **Interleaved fact-kind scenario** (checkout story + sample JSON) | [`INTERLEAVED_FACT_KIND_SCENARIO.md`](./INTERLEAVED_FACT_KIND_SCENARIO.md) |
+| **Stream → graph demo** (split UI) | [pillar-b-stream-graph-demo.html](../../../docs/fabric/pillar-b-stream-graph-demo.html) ([`:8765`](http://127.0.0.1:8765/pillar-b-stream-graph-demo.html)) |
 | **Two use cases (build/maintain vs walk)** + layer navigator | [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) ([`:8765`](http://127.0.0.1:8765/pillar-b-poc-hub.html)) |
 | Build/maintain + walk eval | [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md) |
 | Stub harnesses (optional): CaseSeed…VerdictCard | [`MAP_P2_CASE_PATH.md`](./MAP_P2_CASE_PATH.md) · [`MAP_P3_DIAGNOSE_CLOSE.md`](./MAP_P3_DIAGNOSE_CLOSE.md) |
@@ -26,13 +28,16 @@ Suggested order: **package README → TEAM_WALKTHROUGH → PILLAR_B_POC_CHAT_QNA
 | Page | Purpose |
 |------|---------|
 | [`README.md`](./README.md) | This map |
-| [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) | Team demo: fact_kind, admit, I/O, run |
+| [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) | Team demo: fact_kind, admit, identity/validity, I/O, run |
 | [`PILLAR_B_POC_CHAT_QNA.md`](./PILLAR_B_POC_CHAT_QNA.md) | Working-chat Q&A — production stream, admit, interleaved kinds |
+| [`INTERLEAVED_FACT_KIND_SCENARIO.md`](./INTERLEAVED_FACT_KIND_SCENARIO.md) | Checkout incident tape — mixed fact kinds + sample JSON + relation-named WRITEs |
+| [`../../../docs/fabric/pillar-b-stream-graph-demo.html`](../../../docs/fabric/pillar-b-stream-graph-demo.html) | Interactive stream → graph demo (Back / Forward) |
 | [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md) | Core eval: build/maintain + walk |
 | [`MAP_P2_CASE_PATH.md`](./MAP_P2_CASE_PATH.md) | Optional stub harness (CaseSeed…LeafClaim) |
 | [`MAP_P3_DIAGNOSE_CLOSE.md`](./MAP_P3_DIAGNOSE_CLOSE.md) | Optional stub harness (EvidenceBundle…VerdictCard) |
 | [`Codebase-go-through.md`](./Codebase-go-through.md) | Code tour + runtime spine |
 | `runtime-spine.png` / `.svg` | Spine diagram asset |
+| `fact-kind-fanout.png` / `.svg` | Post-E2 stream fan-out by `fact_kind` (TEAM_WALKTHROUGH §3) |
 | `pillar-b-callgraph.png` / `.svg` / `.dot` | Use case 1: build+maintain call graph |
 | `pillar-b-walk-callgraph.png` / `.svg` / `.dot` | Use case 2: walk-through call graph |
 | `pillar-b-callgraph-auto.png` | Optional auto `code2flow` dump (write path; noisier) |

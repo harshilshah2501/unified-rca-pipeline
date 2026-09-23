@@ -2,31 +2,46 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://observeops.local/schemas/graph_node_v1.schema.json",
   "title": "graph_node.v1",
+  "description": "Motadata-aligned configuration-item vertex on map/. Tenant lives on snapshot/Dest path, not on the node. CI-only types — alert/incident/metric/trace/change/ticket are never vertices.",
   "type": "object",
   "required": [
     "schema_version",
-    "tenant",
-    "ci_id",
-    "ci_type",
-    "ci_name",
-    "identity_status"
+    "entity_id",
+    "type",
+    "name",
+    "metadata",
+    "last_seen",
+    "version"
   ],
   "properties": {
     "schema_version": { "const": "graph_node.v1" },
-    "tenant": { "type": "string", "minLength": 1 },
-    "ci_id": { "type": "string", "minLength": 1 },
-    "ci_type": { "type": "string", "minLength": 1 },
-    "ci_name": { "type": "string" },
-    "ci_class": { "type": "string" },
-    "tier": { "type": "string" },
-    "instance_scope": { "enum": ["single", "multi-instance"] },
-    "scope_parent": { "type": ["string", "null"] },
-    "identity_status": { "enum": ["resolved", "unattributed", "synthesized"] },
-    "monitored_via": { "type": "array", "items": { "type": "string" } },
-    "aliases": { "type": "array", "items": { "type": "string" } },
-    "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+    "entity_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical CI id within the Dest tenant. Same string as ingest ci_id / sketch entity_id after bind."
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Motadata-style lowercase CI type (service, host, …). Non-CI Motadata names are rejected at admit."
+    },
+    "name": { "type": "string" },
+    "metadata": {
+      "type": "string",
+      "description": "JSON object encoded as a string (tags, origin, aliases, …)."
+    },
+    "last_seen": {
+      "type": "string",
+      "minLength": 1,
+      "description": "ISO-8601 timestamp refreshed on every upsert."
+    },
     "valid_from": { "type": ["string", "null"] },
-    "valid_to": { "type": ["string", "null"] }
+    "valid_to": { "type": ["string", "null"] },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Monotonic UInt32-style version per entity_id (latest-wins)."
+    }
   },
   "additionalProperties": true
 }

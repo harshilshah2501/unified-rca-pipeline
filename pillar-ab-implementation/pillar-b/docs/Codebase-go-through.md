@@ -143,7 +143,7 @@ Owns `GraphState` (`nodes`, `edges`, `rejects`).
 
 - **`load_estate_bootstrap_state`** — reads `topology.bootstrap.json`, qualifies CI types, emits declared edges with provenance `topology.bootstrap`.
 - **`apply_topo_stream`** — the E3 heart: for each line, choose NOOP / WRITE / DROP / phased skip. (“Admit” = that per-line triage — [terminology](./MAP_P1_FABRIC_EVAL.md#terminology-do-not-blur).)
-- **`_make_node` / `_make_edge`** — after admit, shape `graph_node.v1` / `graph_edge.v1` objects (same helpers for bootstrap and stream; callers pass different provenance / `valid_from`).
+- **`_make_node` / `_make_edge`** — after admit, shape Motadata `graph_node.v1` / `graph_edge.v1` (`entity_id`, `type`, `metadata` JSON string, Snowflake `edge_id` / `evidence_event_id`, `source_id` / `target_id` / `edge_type`). Upsert edges by `(source_id, edge_type, target_id)`.
 
 ```python
 # apply_topo_stream outline:
@@ -169,7 +169,7 @@ Fifteen Motadata relation names. `classify_relation` returns:
 
 ### `provenance.py` — how an edge claims it was discovered
 
-Builds `discovered_via` blocks: `authoritative` / `declared` / `corroborating`, plus confidence and telemetry source. Bootstrap edges are `declared` + `topology.bootstrap`. Stream bind sources (inventory, catalog, apm, …) map to evidence types via `evidence_for_source`. E5 uses evidence type when decaying corroborating or declared edges.
+Retired from the map write path. Motadata edges store Snowflake `evidence_event_id` instead of nested `discovered_via`. Module kept for unit tests of the old evidence_type heuristic and optional non-map audit. E5 maintain now keys off `origin` (`declared` vs `stream`), `valid_to`, and node `last_seen` / `version`.
 
 ### `snapshot.py` — publish contract for `map/`
 
@@ -369,7 +369,7 @@ Rough layering: **CLI/tests → `GraphWriter` → builder/catalog/qualify/proven
 | `rejects` | DROP tape: `(record, reason_code)` pairs from this run |
 | `apply_topo_stream` | Per-line admit loop (NOOP / WRITE / DROP / phased skip) |
 | `load_estate_bootstrap_state` | Bootstrap load returning a bare `GraphState` (builder-level) |
-| `_make_node` / `_make_edge` | Shape `graph_node.v1` / `graph_edge.v1` after admit (bootstrap + stream) |
+| `_make_node` / `_make_edge` | Shape Motadata `graph_node.v1` / `graph_edge.v1` after admit (bootstrap + stream); edge upsert by logical key |
 | `classify_relation` | Relation name → emit / skip / reject |
 | `may_emit_vertex` | CI type allowed on map? else DROP |
 | `build_snapshot` / `publish_snapshot` | Assemble validated snapshot / write Dest keys |

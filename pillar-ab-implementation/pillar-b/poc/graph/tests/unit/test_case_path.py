@@ -141,11 +141,11 @@ def test_i2_confidence_bearing_can_block_database_path():
     """Hard-downgrade every edge into payments-db → no Database path under filter."""
     state = load_estate_bootstrap_state(SAMPLE_ESTATE / "topology.bootstrap.json")
     for e in state.edges.values():
-        if e["dst_ci_id"] == "payments-db":
+        if e["target_id"] == "payments-db":
             e["valid_from"] = "2025-01-01T00:00:00Z"
     apply_declared_freshness(state, "2026-08-20T00:00:00Z", hard_downgrade_days=30)
     for e in state.edges.values():
-        if e["dst_ci_id"] == "payments-db":
+        if e["target_id"] == "payments-db":
             assert e["maintain_status"] == MAINTAIN_HARD_DOWNGRADED
     snap = build_snapshot(state)
     seed = curate_storm(

@@ -32,10 +32,10 @@ Interface: `Dest.put(room, key, bytes)` / `Dest.get(room, key)`.
 Logical keys do not change when the profile changes:
 
 - Sketch: `(tenant, entity_id, metric_id, window, season_key, window_start)`
-- Node: `(tenant, ci_id)`
-- Edge: `(tenant, edge_id)`
+- Node: `(Dest tenant, entity_id)` — tenant from path / snapshot envelope only
+- Edge: upsert `(source_id, edge_type, target_id)`; Motadata snowflake `edge_id`
 - Snapshot: `(tenant, version)` packaged; PoC read convenience key = `graph_snapshot.json`
-- Change fact: `(tenant, change_id)` linked by `ci_id` + `occurred_at`
+- Change fact: `(tenant, change_id)` linked by ingest `ci_id` + `occurred_at`
 
 ## Independence
 

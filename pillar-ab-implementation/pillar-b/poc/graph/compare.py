@@ -1,7 +1,7 @@
 """Compare GraphWriter actual snapshot to case expected spine (stable keys only).
 
-Full node/edge objects carry provenance and display fields that may grow; SAMPLE_IO
-goldens assert on ``ci_id`` / ``ci_type`` / ``edge_id`` / relation endpoints instead.
+Full node/edge objects carry snowflake ids and maintain marks that may grow;
+SAMPLE_IO goldens assert on Motadata identity fields instead.
 Tests only — not a product read API.
 """
 
@@ -11,29 +11,27 @@ from typing import Any
 
 
 def snapshot_spine(snapshot: dict[str, Any]) -> dict[str, Any]:
-    """Reduce graph_snapshot.v1 to comparable node/edge identity fields."""
+    """Reduce graph_snapshot.v1 to comparable Motadata identity fields."""
     nodes = sorted(
         [
             {
-                "ci_id": n["ci_id"],
-                "ci_type": n["ci_type"],
-                "identity_status": n["identity_status"],
+                "entity_id": n["entity_id"],
+                "type": n["type"],
             }
             for n in snapshot["nodes"]
         ],
-        key=lambda row: row["ci_id"],
+        key=lambda row: row["entity_id"],
     )
     edges = sorted(
         [
             {
-                "edge_id": e["edge_id"],
-                "src_ci_id": e["src_ci_id"],
-                "relation": e["relation"],
-                "dst_ci_id": e["dst_ci_id"],
+                "source_id": e["source_id"],
+                "edge_type": e["edge_type"],
+                "target_id": e["target_id"],
             }
             for e in snapshot["edges"]
         ],
-        key=lambda row: row["edge_id"],
+        key=lambda row: (row["source_id"], row["edge_type"], row["target_id"]),
     )
     return {
         "tenant": snapshot["tenant"],

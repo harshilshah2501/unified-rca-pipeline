@@ -16,6 +16,7 @@
 | [`MAP_P2_CASE_PATH.md`](./MAP_P2_CASE_PATH.md) · [`MAP_P3_DIAGNOSE_CLOSE.md`](./MAP_P3_DIAGNOSE_CLOSE.md) | Optional stub harnesses (not core mission) |
 | [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md) | Every `fact_kind` with examples |
 | [`../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md`](../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md) | Logs → `event`; spoken vs wire |
+| [`../../../docs/observeops/LLD-E4-Stores.md`](../../../docs/observeops/LLD-E4-Stores.md) | Motadata `history/` = metrics sketches; dual-path E4 |
 | [`../../contracts/MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md) | Dest `map/` write/read |
 | [`../../contracts/GRAPH_QNA.md`](../../contracts/GRAPH_QNA.md) | Broader fabric contract Q&A (E1–E5) |
 
@@ -37,7 +38,8 @@
 12. [Tests vs the two use cases](#12-tests-vs-the-two-use-cases)
 13. [Docs hub, canvases, naming hygiene, package layout](#13-docs-hub-canvases-naming-hygiene-package-layout)
 14. [Editor / IDE notes from the same chat](#14-editor--ide-notes-from-the-same-chat)
-15. [Chronological topic index](#15-chronological-topic-index)
+15. [Consumers of `event` / `anomaly` / `trace_span` (Triage + Diagnose)](#15-consumers-of-event--anomaly--trace_span-triage--diagnose)
+16. [Chronological topic index](#16-chronological-topic-index)
 
 ---
 
@@ -395,6 +397,8 @@ Spine on every line: `schema_version`, `ts`, `tenant`, `ci_id`, `ci_type`, `fact
 
 Also in [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) §3.1 and [`E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md).
 
+**How** those three are consumed in Triage / Diagnose, and whether they land in Motadata sketch `history/`: **§15 (Q50–Q52)**.
+
 ---
 
 ## 8. Admit triage: NOOP / WRITE / DROP / phased skip
@@ -551,23 +555,27 @@ This PoC simulates the second kind of line in `stream.resolved.jsonl`. It does *
 
 ### Q36. What does a realistic mixed production tape look like?
 
-**A.** Checkout incident around `03:30` — inventory/catalog already know some edges; APM sees peers; Detect fires latency. One shared post-Identity stream; writers filter.
+**A.** Full worked story (timeline, relation-named WRITEs, SketchWriter NOOP on every topo line, sample JSON for each step):
+
+→ [`INTERLEAVED_FACT_KIND_SCENARIO.md`](./INTERLEAVED_FACT_KIND_SCENARIO.md)
+
+Short index of that tape:
 
 ```text
-03:29:50  topo_update       runs_on            JVM → host           → GraphWriter WRITE
-03:30:00  metric_sample     latency 92ms                            → SketchWriter
-03:30:05  metric_sample     error_rate                              → SketchWriter
-03:30:08  topo_update       part_of            api → bs-checkout    → GraphWriter WRITE
-03:30:08  topo_update       depends_on         api → payments-db    → GraphWriter WRITE  (catalog)
-03:30:10  trace_span        POST /checkout     peer=payments-db     → A/B NOOP
-03:30:11  event             log.error                               → A/B NOOP
-03:30:12  metric_sample     latency 980ms                           → SketchWriter
-03:30:15  anomaly           latency high                            → Detect (A/B NOOP)
-03:30:20  topo_update       communicates_with  api → payments-db    → GraphWriter WRITE  (APM emitter)
-03:30:22  topo_update       runs_on            api → host           → GraphWriter WRITE
+03:29:50  topo_update       runs_on            JVM → host              GraphWriter WRITE · SketchWriter NOOP
+03:30:00  metric_sample     latency 92ms                               SketchWriter admit · GraphWriter NOOP
+03:30:05  metric_sample     error_rate                                 SketchWriter admit · GraphWriter NOOP
+03:30:08  topo_update       part_of            api → bs-checkout       GraphWriter WRITE · SketchWriter NOOP
+03:30:08  topo_update       depends_on         api → payments-db       GraphWriter WRITE · SketchWriter NOOP
+03:30:10  trace_span        POST /checkout     peer=payments-db        A/B NOOP (emitter may watch)
+03:30:11  event             log.error                                  A/B NOOP
+03:30:12  metric_sample     latency 980ms                              SketchWriter admit · GraphWriter NOOP
+03:30:15  anomaly           latency high                               Detect · A/B NOOP
+03:30:20  topo_update       communicates_with  api → payments-db       GraphWriter WRITE · SketchWriter NOOP
+03:30:22  topo_update       runs_on            api → host              GraphWriter WRITE · SketchWriter NOOP
 ```
 
-Catalog `depends_on` and APM `communicates_with` can both exist with different provenance. Full JSON for each step was walked in chat; shapes also live in `expected/ingest.example.json` and Case A `stream.resolved.jsonl`.
+Always state **`relation` + endpoints** on a WRITE. Catalog `depends_on` and APM `communicates_with` can both exist with different provenance. Wave-1 glossary: [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) §4.
 
 ---
 
@@ -706,7 +714,108 @@ These are **not** Motadata product locks, but they were part of the same working
 
 ---
 
-## 15. Chronological topic index
+## 15. Consumers of `event` / `anomaly` / `trace_span` (Triage + Diagnose)
+
+**Context (2026-09-23):** Operator asked who consumes `event`, `anomaly`, and `trace_span` — clarifying that the question is **not** whether SketchWriter / GraphWriter admit them. Follow-up: won’t those kinds be stored in E4 “evidence history” because Triage + Diagnose use them?
+
+**Normative companions:** [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) §3 · [`../../../docs/INGEST_DATA_FORMAT.md`](../../../docs/INGEST_DATA_FORMAT.md) §2 · [`../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md`](../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md) · [`../../../docs/observeops/LLD-E4-Stores.md`](../../../docs/observeops/LLD-E4-Stores.md) §0 · [`../../../docs/fabric/SIMULATION_THREAD.md`](../../../docs/fabric/SIMULATION_THREAD.md)
+
+### Q50. Who consumes `event`, `anomaly`, and `trace_span` — and **how**? (Not “do A/B writers skip them?”)
+
+**A.** Pillar A SketchWriter and Pillar B GraphWriter **skip** these three kinds (NOOP). That is true but **not** the answer to this question. The router label points at **later ObserveOps stages**. How each is used:
+
+#### `anomaly`
+
+| | |
+|--|--|
+| **Who** | **E6 Detect** · **E7 Curate** |
+| **How** | The wire line is already a *pre-marked* crossing (`name`, `value`, `threshold`, `severity`). Detect turns it into a **`Signal`** (same *role* as Door C firing from sketches, but the fire arrived already stamped on the wire). Curate merges Signals into a **`CaseSeed`**. An `anomaly` line is **not** a root-cause claim by itself. |
+| **Film lock** | [`SIMULATION_THREAD.md`](../../../docs/fabric/SIMULATION_THREAD.md): “A wire `anomaly` line also becomes a Signal.” |
+
+#### `event` (includes logs — there is no separate `log` fact kind)
+
+| | |
+|--|--|
+| **Who** | **E4** evidence lane · **E10 Identify** |
+| **How** | Persisted / cited as a discrete occurrence (`name` like `log.error`, often `value: 1.0`, rich `labels`). Identify later **cites** matching events into an **`EvidenceBundle`** for the leaf CI (corroboration: “here is the error log near the leaf”). An `event` is **not** a second Detect engine and **not** a GraphWriter edge. |
+| **Why “E4” in the consumer table** | Means the **Stores / evidence consumer path** for discrete occurrences — see Q51 for what Motadata `history/` actually writes today. |
+
+#### `trace_span`
+
+| | |
+|--|--|
+| **Who** | **E9 Localize** · **E10 Identify** |
+| **How** | Localize uses span timing / peer labels (and may **read** `map/`) toward a **`LeafClaim`**. Identify attaches span/trace evidence to the **`EvidenceBundle`** (path, duration, `trace_id`). Spans do **not** become graph edges inside GraphWriter; an upstream adapter may emit a separate **`topo_update`** if peers imply topology (see §9). |
+
+```text
+anomaly     →  E6 Signal  →  E7 CaseSeed
+event       →  evidence store path  →  E10 cite in EvidenceBundle
+trace_span  →  E9 Localize (LeafClaim)  →  E10 cite in EvidenceBundle
+                 (span bodies live in a trace/APM store; see Q51)
+```
+
+**Join key** across Triage / Diagnose remains **`tenant` + `ci_id` (+ time window)** with the case **WorkingSet** — same post-E2 wire, different consumers.
+
+**Fields that matter (kind-specific), from the TEAM_WALKTHROUGH consumer table:**
+
+| Fact kind | Kind-specific fields |
+|-----------|----------------------|
+| `anomaly` | `name`, `value`, `threshold`, `severity` |
+| `event` | `name` (event / **log** type), `value` (often `1.0`), `labels` |
+| `trace_span` | `name` (operation), `value` = duration ms; `labels` (`trace_id`, `span_id`, `peer.service`, …) |
+
+Spine on every line still includes `schema_version`, `ts`, `tenant`, `ci_id`, `ci_type`, `fact_kind`, plus `identity` after E2.
+
+### Q51. Won’t `anomaly` and `trace_span` (and `event`) be stored in E4 “evidence history” because Triage + Diagnose use them?
+
+**A.** **Partially yes on intent; no on Motadata’s current `history/` room.**
+
+**Operator instinct (correct for Triage + Diagnose):** Identify / Localize / Curate need those facts **available later** — you cannot only “see them once on the live stream” and expect E10 to cite them. Something queryable must retain them (or a pointer to them).
+
+**Nuance — Motadata E4 today ≠ “all MELTS evidence in one sketch store.”** From [`LLD-E4-Stores.md`](../../../docs/observeops/LLD-E4-Stores.md) §0:
+
+| Path | What it persists | Modalities |
+|------|------------------|------------|
+| **Motadata Pillar A (E4)** | `sketch.v1` rows under Dest **`history/`** | **Metrics-only** (`metric_sample`). Detect door C and WorkingSet joins read digests / baselines. |
+| **Bakeoff Lean / Federated** | UC bundles / structural + speed stores | **Multi-modality** reference (events, anomalies, …) — not the Motadata A/B freeze room layout |
+
+Explicit LLD lock:
+
+- Do **not** equate “E4 Stores” with “all MELTS in one sketch.”
+- Logs (`event`) and traces (`trace_span`) still matter for Identify on bakeoff / reference paths; they **silent-skip** at Pillar A SketchWriter (GRAPH_QNA G31).
+- Future Motadata log / trace / anomaly history would be **other history row types or sibling stores**, **not** an expansion of `sketch.v1`.
+
+So TEAM_WALKTHROUGH’s phrase **“E4 evidence”** for `event` means the **Stores / evidence consumer lane**, **not** “this line is written into Motadata `history/sketches.jsonl` today.”
+
+#### How each modality is supposed to stay available for Triage + Diagnose
+
+| Kind | Persist / surface (intent) | How Triage–Diagnose uses it |
+|------|----------------------------|-----------------------------|
+| **`anomaly`** | Often becomes an E6 **`Signal`** (and/or an anomaly index such as bakeoff `A-ANOM`); **not** a `sketch.v1` row | E7 Curate → **CaseSeed**; later cited as “why we opened the case” |
+| **`event`** (logs) | **Evidence store** path (consumer table: E4 evidence · E10). Motadata PoC does **not** yet write these into sketch `history/` | E10 Identify **cites** into **`EvidenceBundle`** |
+| **`trace_span`** | **Trace / APM store** with its **own retention**. A sketch may keep only an optional **`trace_id` exemplar** as a *pointer* into that store ([`sketch-exemplars-visual.html`](../../../docs/fabric/sketch-exemplars-visual.html)) | E9 / E10 **look up** the span by id — they do **not** read span bodies from metric `history/` |
+
+**Short verdict captured in chat:**
+
+1. Yes — for Identify / Localize you need anomaly / event / span evidence **stored somewhere queryable**.  
+2. No — that somewhere is **not** Motadata’s current E4 sketch `history/`.  
+3. Calling `event` “E4 evidence” names the **consumer lane**, not “lands in `sketch.v1` today.”  
+4. Motadata A/B freeze layout: **`history/` = sketches**, **`map/` = graph**, traces / logs / anomalies live on **sibling evidence surfaces** (or CaseSeed / Signal objects on the case path). Bakeoff Lean is the multi-modality UC-bundle picture.
+
+### Q52. How does this relate to Pillar A/B admit and the interleaved demo?
+
+**A.** Unchanged admit rules:
+
+| Writer | Admits | Skips (NOOP) |
+|--------|--------|--------------|
+| SketchWriter (A) | `metric_sample` | `topo_update`, `event`, `trace_span`, `anomaly`, … |
+| GraphWriter (B) | `topo_update` | `metric_sample`, `event`, `trace_span`, `anomaly`, … |
+
+The [stream → graph demo](../../../docs/fabric/pillar-b-stream-graph-demo.html) shows A/B NOOP for those three kinds on purpose. Downstream Detect / Diagnose consumption is **out of Pillar B map mission** (P2/P3 stub harnesses optional). Topology implied by spans / logs still requires a **separate `topo_update`** emitter (§9) — GraphWriter never invents that line from an `event` or `trace_span`.
+
+---
+
+## 16. Chronological topic index
 
 Use this to verify coverage against the chat. Numbers are approximate order in the recovered session.
 
@@ -748,6 +857,8 @@ Use this to verify coverage against the chat. Numbers are approximate order in t
 | 34 | Estate rename + fact_kind nomenclature stance | §3 · §5 · §7 |
 | 35 | Production topo from other kinds + interleaved JSON scenario | §9 · §10 |
 | 36 | This Q&A document | (this file) |
+| 37 | Who consumes `event` / `anomaly` / `trace_span` and **how** (not A/B NOOP) | §15 |
+| 38 | Do anomaly / span land in E4 “evidence history” for Triage + Diagnose? | §15 |
 
 ---
 
@@ -757,3 +868,4 @@ Use this to verify coverage against the chat. Numbers are approximate order in t
 |------|------|
 | 2026-09-22 | Initial session Q&A (shorter) |
 | 2026-09-22 | **Expanded to comprehensive capture** — restore/Identity context, increments/films, call graphs, full I/O inventory, rename radius + `telemetry_kind` rejection, hub/canvas hygiene, walk test bands, interleaved stream, chronological index |
+| 2026-09-23 | **§15** — who consumes `event` / `anomaly` / `trace_span` and **how**; E4 sketch `history/` vs sibling evidence stores for Triage + Diagnose (Q50–Q52) |

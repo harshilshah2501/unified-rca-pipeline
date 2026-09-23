@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fusion SaaS · SKG Edge Cross-Validation · Motadata</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Geist+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Motadata coral, pulled from brand SVG */
+  --coral:        #f17463;
+  --coral-deep:   #c95644;
+  --coral-soft:   #fdf0ed;
+  --coral-line:   #f5cec6;
+
+  /* Ink scale */
+  --ink:          #1a1a1f;
+  --ink-2:        #3a3a42;
+  --ink-3:        #56575e;
+  --ink-4:        #7a7b82;
+  --ink-5:        #a1a2a9;
+  --ink-6:        #d1d2d7;
+
+  /* Surfaces */
+  --line:         #ececef;
+  --line-soft:    #f4f4f6;
+  --paper:        #ffffff;
+  --paper-2:      #fafbfc;
+  --paper-3:      #f5f6f8;
+
+  /* Card system */
+  --card-bg:      #ffffff;
+  --card-border:  1px solid var(--line);
+  --card-radius:  12px;
+  --card-pad-x:   1.8rem;
+  --card-pad-y:   1.7rem;
+
+  /* Layout */
+  --w:            980px;
+  --gutter:       2rem;
+
+  /* Legacy token aliases — inline styles in the body still reference these */
+  --muted:        var(--ink-4);
+  --muted2:       var(--ink-5);
+  --text:         var(--ink);
+  --border:       var(--line);
+  --bg:           var(--paper);
+  --bg2:          var(--paper-2);
+  --bg3:          var(--paper-3);
+
+  /* Platform identity — differentiated by ink weight, not hue.
+     Fusion SaaS is the only thing that gets coral. */
+  --oneops:       var(--coral-deep);
+  --oneops-l:     var(--coral-soft);
+  --snow:         var(--ink-2);
+  --snow-l:       var(--paper-3);
+  --bmc:          var(--ink-3);
+  --bmc-l:        var(--paper-3);
+  --ucm:          var(--ink-4);
+  --ucm-l:        var(--paper-3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink-2);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 400;
+  line-height: 1.72;
+  font-size: 16.5px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern', 'ss01';
+  overflow-x: hidden;
+}
+::selection { background: var(--coral-soft); color: var(--coral-deep); }
+
+h1, h2, h3, h4 {
+  font-family: 'Fraunces', Georgia, serif;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+p { color: var(--ink-2); line-height: 1.75; }
+em { font-style: italic; color: var(--ink); }
+strong { font-weight: 600; color: var(--ink); }
+code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.86em;
+  color: var(--coral-deep);
+  background: var(--coral-soft);
+  padding: 0.08em 0.4em;
+  border-radius: 4px;
+  font-weight: 500;
+}
+a { color: var(--coral-deep); }
+
+/* ===== NAV ===== */
+nav.topnav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--line);
+  height: 60px; display: flex; align-items: center;
+  padding: 0 var(--gutter); gap: 1.6rem;
+}
+.nav-logo svg { height: 20px; width: auto; display: block; }
+.nav-logo svg path:not([fill]) { fill: var(--ink); }
+.nav-links {
+  display: flex; list-style: none; flex: 1; justify-content: flex-end;
+  gap: 0.15rem; overflow-x: auto; scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  display: block; padding: 0.45rem 0.8rem;
+  color: var(--ink-3); text-decoration: none;
+  font-size: 0.82rem; font-weight: 400; white-space: nowrap;
+  border-radius: 6px; transition: color 0.2s, background 0.2s;
+}
+.nav-links a:hover { color: var(--ink); background: var(--line-soft); }
+.nav-meta {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; color: var(--ink-5);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  font-weight: 500; white-space: nowrap;
+}
+
+/* ===== HERO ===== */
+.hero {
+  padding: 10rem var(--gutter) 4.5rem;
+  max-width: calc(var(--w) + var(--gutter) * 2);
+  margin: 0 auto;
+}
+.hero .eyebrow {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.72rem; color: var(--coral);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  font-weight: 500; margin-bottom: 2rem;
+}
+.hero h1 {
+  font-size: clamp(2.5rem, 5vw, 3.7rem);
+  line-height: 1.05; letter-spacing: -0.035em;
+  font-weight: 500; margin-bottom: 2rem;
+}
+.hero h1 .accent, .hero h1 em {
+  color: var(--coral); font-style: italic; font-weight: 400;
+}
+.hero .subtitle {
+  font-size: 1.1rem; color: var(--ink-3);
+  line-height: 1.65; font-weight: 400;
+  max-width: 720px; margin-bottom: 3.5rem;
+}
+.hero-meta {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 2.5rem; padding-top: 3rem; border-top: 1px solid var(--line);
+}
+.hero-meta div { display: flex; flex-direction: column; gap: 0.5rem; }
+.hero-meta .label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; color: var(--ink-5);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.hero-meta .val { font-size: 0.92rem; color: var(--ink); font-weight: 500; }
+
+/* ===== SCORECARD ===== */
+.scorecard {
+  background: var(--paper-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 3rem var(--gutter);
+}
+.scorecard-grid {
+  max-width: calc(var(--w) + var(--gutter) * 2);
+  margin: 0 auto;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.scorecard-grid .sc {
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  padding: 1.5rem 1.6rem;
+}
+.scorecard-grid .sc .h {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.11em;
+  text-transform: uppercase; color: var(--ink-4);
+  font-weight: 500; margin-bottom: 0.85rem;
+}
+.scorecard-grid .sc .big {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 2.1rem; font-weight: 500;
+  letter-spacing: -0.03em; color: var(--ink);
+  line-height: 1; margin-bottom: 0.85rem;
+}
+.scorecard-grid .sc .label-small {
+  font-size: 0.85rem; color: var(--ink-4); line-height: 1.6;
+}
+/* Fusion SaaS is the only card that carries the brand colour */
+.scorecard-grid .sc.oneops {
+  background: var(--coral-soft);
+  border-color: var(--coral-line);
+}
+.scorecard-grid .sc.oneops .h  { color: var(--coral-deep); }
+.scorecard-grid .sc.oneops .big { color: var(--coral-deep); }
+.scorecard-grid .sc.snow .h,
+.scorecard-grid .sc.bmc .h,
+.scorecard-grid .sc.ucm .h { color: var(--ink-4); }
+
+/* ===== SECTION ===== */
+section.block {
+  padding: 4.5rem var(--gutter);
+  max-width: calc(var(--w) + var(--gutter) * 2);
+  margin: 0 auto;
+  border-top: 1px solid var(--line);
+}
+.sec-num {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.72rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--coral);
+  margin-bottom: 1.3rem; font-weight: 500;
+}
+.sec-title {
+  font-size: clamp(1.7rem, 3vw, 2.25rem);
+  line-height: 1.16; letter-spacing: -0.022em;
+  margin-bottom: 1.6rem; font-weight: 500;
+}
+.sec-title .accent, .sec-title em { color: var(--coral); font-style: italic; }
+.sec-lede {
+  font-size: 1.06rem; color: var(--ink-2);
+  line-height: 1.72; margin-bottom: 1.8rem; max-width: 760px;
+}
+.sub, h3.sub {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.28rem; font-weight: 600;
+  letter-spacing: -0.012em; color: var(--ink);
+  margin-top: 2.8rem; margin-bottom: 1rem;
+}
+.subsub {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 0.11em;
+  text-transform: uppercase; color: var(--ink-4);
+  font-weight: 500; margin: 2rem 0 0.8rem;
+}
+p.dim, .dim { color: var(--ink-4); font-size: 0.92rem; line-height: 1.7; }
+
+/* ===== CALLOUT / KEY INSIGHT ===== */
+.callout {
+  background: var(--paper-2); border: 1px solid var(--line);
+  border-left: 3px solid var(--ink-4);
+  border-radius: var(--card-radius);
+  padding: 1.4rem 1.6rem; margin: 1.8rem 0;
+}
+.callout .tag {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink-3);
+  font-weight: 500; margin-bottom: 0.5rem; display: block;
+}
+.callout p { margin: 0; font-size: 0.95rem; color: var(--ink-2); line-height: 1.7; }
+.callout p + p { margin-top: 0.7rem; }
+.callout-good { border-left-color: var(--coral); }
+.callout-good .tag { color: var(--coral); }
+.callout-warn { border-left-color: var(--coral-deep); }
+.callout-warn .tag { color: var(--coral-deep); }
+
+.key-insight {
+  background: var(--paper-2); border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  padding: 2.1rem 2rem; margin: 2.8rem 0;
+}
+.key-insight .label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--coral);
+  font-weight: 500; margin-bottom: 0.9rem; display: block;
+}
+.key-insight .text {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.18rem, 2.2vw, 1.48rem);
+  line-height: 1.44; letter-spacing: -0.012em;
+  color: var(--ink); font-weight: 400;
+}
+.key-insight .text em, .key-insight .text .accent {
+  color: var(--coral); font-style: italic;
+}
+
+/* ===== PILLS ===== */
+.pill {
+  display: inline-block;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.04em;
+  padding: 0.22rem 0.58rem; border-radius: 5px;
+  font-weight: 500; white-space: nowrap;
+  border: 1px solid var(--line); background: var(--paper-3); color: var(--ink-3);
+}
+.pill-store   { background: var(--ink);        border-color: var(--ink);        color: #fff; }
+.pill-compute { background: var(--coral);      border-color: var(--coral);      color: #fff; }
+.pill-cascade { background: var(--coral-soft); border-color: var(--coral-line); color: var(--coral-deep); }
+.pill-detach  { background: var(--paper-3);    border-color: var(--ink-6);      color: var(--ink-3); }
+.pill-indep   { background: var(--paper-2);    border-color: var(--line);       color: var(--ink-4); }
+.pill-yes     { background: var(--ink);        border-color: var(--ink);        color: #fff; }
+.pill-no      { background: transparent;       border-color: var(--ink-6);      color: var(--ink-5); }
+.pill-1n, .pill-nm { background: var(--paper-3); border-color: var(--line);     color: var(--ink-3); }
+.pill-oneops  { background: var(--coral-soft); border-color: var(--coral-line); color: var(--coral-deep); }
+.pill-snow, .pill-bmc, .pill-ucm {
+  background: var(--paper-3); border-color: var(--ink-6); color: var(--ink-3);
+}
+.pill-win     { background: var(--coral);      border-color: var(--coral);      color: #fff; }
+.pill-gap     { background: transparent;       border-color: var(--coral-deep); color: var(--coral-deep); }
+.pill-rec     { background: var(--ink);        border-color: var(--ink);        color: #fff; }
+
+/* ===== VERDICT BADGES =====
+   Encoded by fill weight rather than hue:
+   EXACT = solid ink · SPLIT = solid coral · PARTIAL = soft coral · NONE = hollow */
+.verdict {
+  display: inline-block;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.6rem; letter-spacing: 0.09em;
+  text-transform: uppercase; font-weight: 600;
+  padding: 0.16rem 0.5rem; border-radius: 4px;
+  border: 1px solid transparent; vertical-align: middle;
+  margin-left: 0.35rem; white-space: nowrap;
+}
+.verdict-exact   { background: var(--ink);        color: #fff;              border-color: var(--ink); }
+.verdict-split   { background: var(--coral);      color: #fff;              border-color: var(--coral); }
+.verdict-partial { background: var(--coral-soft); color: var(--coral-deep); border-color: var(--coral-line); }
+.verdict-none    { background: transparent;       color: var(--ink-5);      border-color: var(--ink-6); }
+
+/* ===== CROSS-VALIDATION CARD ===== */
+.cc-card {
+  background: var(--card-bg); border: var(--card-border);
+  border-radius: var(--card-radius); overflow: hidden;
+  margin: 1.4rem 0; scroll-margin-top: 80px;
+}
+.cc-head {
+  padding: 1.4rem var(--card-pad-x);
+  border-bottom: 1px solid var(--line);
+  background: var(--paper-2);
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;
+}
+.cc-head .num {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--coral);
+  font-weight: 500; margin-bottom: 0.45rem;
+}
+.cc-head h3 {
+  font-family: 'Geist Mono', monospace;
+  font-size: 1.3rem; font-weight: 600;
+  color: var(--ink); letter-spacing: -0.01em; line-height: 1.2;
+}
+.cc-head .verbs {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.76rem; color: var(--ink-4); margin-top: 0.4rem;
+}
+.cc-head .right {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+  justify-content: flex-end; flex-shrink: 0;
+}
+.cc-body { padding: var(--card-pad-y) var(--card-pad-x); }
+.cc-meaning {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.06rem; line-height: 1.55;
+  color: var(--ink); font-weight: 400;
+  padding-bottom: 1.3rem; margin-bottom: 1.4rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+.cc-finding {
+  margin-top: 1.5rem; padding: 1.2rem 1.3rem;
+  background: var(--coral-soft); border: 1px solid var(--coral-line);
+  border-radius: 8px;
+  font-size: 0.94rem; color: var(--ink-2); line-height: 1.68;
+}
+.cc-finding .h {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.64rem; letter-spacing: 0.11em;
+  text-transform: uppercase; color: var(--coral-deep);
+  font-weight: 600; margin-bottom: 0.45rem; display: block;
+}
+
+/* ===== THREE-PLATFORM COMPARISON GRID ===== */
+.cmp-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem; margin: 1.4rem 0 0;
+}
+.cmp-cell {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--ink-6);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+}
+.cmp-cell.snow { border-top-color: var(--ink-2); }
+.cmp-cell.bmc  { border-top-color: var(--ink-4); }
+.cmp-cell.ucm  { border-top-color: var(--ink-5); }
+.cmp-cell .h {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.64rem; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--ink-3);
+  font-weight: 600; margin-bottom: 0.7rem;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 0.3rem;
+}
+.cmp-cell.snow .h, .cmp-cell.bmc .h, .cmp-cell.ucm .h { color: var(--ink-3); }
+.cmp-cell .types {
+  display: flex; flex-wrap: wrap; gap: 0.32rem; margin-bottom: 0.7rem;
+}
+.cmp-cell .types .t {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem; padding: 0.2rem 0.45rem;
+  background: var(--card-bg); border: 1px solid var(--line);
+  border-radius: 4px; color: var(--ink-2); font-weight: 500;
+}
+.cmp-cell.snow .types .t,
+.cmp-cell.bmc  .types .t,
+.cmp-cell.ucm  .types .t { color: var(--ink-2); }
+.cmp-cell .note { font-size: 0.86rem; color: var(--ink-3); line-height: 1.62; }
+
+/* ===== MASTER MATRIX ===== */
+.matrix-wrap {
+  margin: 2rem 0; overflow-x: auto;
+  background: var(--card-bg); border: var(--card-border);
+  border-radius: var(--card-radius);
+}
+.matrix { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.matrix th, .matrix td {
+  text-align: left; padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top; color: var(--ink-2); line-height: 1.6;
+}
+.matrix thead th {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.64rem; letter-spacing: 0.08em;
+  text-transform: uppercase; font-weight: 600;
+  color: var(--ink); background: var(--paper-2);
+  border-bottom: 1px solid var(--ink-6);
+}
+.matrix thead th.oneops { color: var(--coral-deep); background: var(--coral-soft); }
+.matrix thead th.snow, .matrix thead th.bmc, .matrix thead th.ucm { color: var(--ink-3); }
+.matrix tbody tr:last-child td { border-bottom: none; }
+.matrix td.oneops-cell {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 600; color: var(--coral-deep);
+  background: var(--coral-soft); font-size: 0.85rem;
+}
+.matrix td.match-strong  { background: var(--paper-3); }
+.matrix td.match-partial { background: var(--paper-2); }
+.matrix td.match-none    { background: transparent; color: var(--ink-4); }
+
+/* ===== CATALOG TABLES ===== */
+.cat-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.87rem; margin: 1.5rem 0;
+  background: var(--card-bg); border: var(--card-border);
+  border-radius: var(--card-radius); overflow: hidden;
+}
+.cat-table th, .cat-table td {
+  text-align: left; padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top; color: var(--ink-2); line-height: 1.6;
+}
+.cat-table thead th {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.64rem; letter-spacing: 0.08em;
+  text-transform: uppercase; font-weight: 600;
+  color: var(--ink); background: var(--paper-2);
+  border-bottom: 1px solid var(--ink-6);
+}
+.cat-table tbody tr:last-child td { border-bottom: none; }
+.cat-table .name {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 500; font-size: 0.82rem; color: var(--ink);
+}
+.cat-table.snow .name, .cat-table.bmc .name, .cat-table.ucm .name { color: var(--ink); }
+
+/* ===== OVERVIEW TABLE ===== */
+.overview-table {
+  width: 100%; border-collapse: collapse; font-size: 0.88rem;
+  background: var(--card-bg); border: var(--card-border);
+  border-radius: var(--card-radius); overflow: hidden; margin: 1.6rem 0;
+}
+.overview-table th, .overview-table td {
+  text-align: left; padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top; color: var(--ink-2); line-height: 1.6;
+}
+.overview-table thead th {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.64rem; letter-spacing: 0.08em;
+  text-transform: uppercase; font-weight: 600;
+  color: var(--ink); background: var(--paper-2);
+  border-bottom: 1px solid var(--ink-6);
+}
+.overview-table tbody tr:last-child td { border-bottom: none; }
+
+/* ===== GAPS & WINS ===== */
+.gaps-grid { margin: 1.8rem 0; }
+.gap-card {
+  background: var(--card-bg); border: 1px solid var(--line);
+  border-left: 3px solid var(--ink-5);
+  border-radius: var(--card-radius);
+  padding: 1.5rem 1.7rem; margin-bottom: 0.9rem;
+}
+.gap-card .tag {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.64rem; letter-spacing: 0.11em;
+  text-transform: uppercase; font-weight: 600;
+  color: var(--ink-4); margin-bottom: 0.6rem; display: block;
+}
+.gap-card h4 {
+  font-size: 1.1rem; font-weight: 600;
+  letter-spacing: -0.01em; margin-bottom: 0.7rem;
+}
+.gap-card p { font-size: 0.94rem; color: var(--ink-2); line-height: 1.7; }
+.gap-card p + p { margin-top: 0.7rem; }
+.gap-card .impl {
+  margin-top: 1rem; padding-top: 0.9rem;
+  border-top: 1px solid var(--line-soft);
+  font-size: 0.9rem; color: var(--ink-3);
+}
+/* wins carry the brand colour; gaps are stated in ink */
+.gap-card.win { border-left-color: var(--coral); background: var(--coral-soft); border-color: var(--coral-line); }
+.gap-card.win .tag { color: var(--coral-deep); }
+.gap-card.gap { border-left-color: var(--ink-3); }
+.gap-card.gap .tag { color: var(--ink-3); }
+
+/* ===== RECOMMENDATION CARDS ===== */
+.rec-card {
+  background: var(--card-bg); border: 1px solid var(--line);
+  border-left: 3px solid var(--ink-5);
+  border-radius: var(--card-radius);
+  padding: 1.5rem 1.7rem; margin-bottom: 0.9rem;
+}
+.rec-card .head {
+  display: flex; align-items: baseline; gap: 1rem;
+  margin-bottom: 1rem; flex-wrap: wrap;
+}
+.rec-card .num {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.11em;
+  text-transform: uppercase; font-weight: 600;
+  color: var(--ink-4); padding: 0.24rem 0.55rem;
+  background: var(--paper-3); border: 1px solid var(--line);
+  border-radius: 5px; flex-shrink: 0;
+}
+.rec-card h4 {
+  font-size: 1.1rem; font-weight: 600;
+  letter-spacing: -0.01em; line-height: 1.35;
+}
+.rec-card .why, .rec-card .what {
+  font-size: 0.94rem; color: var(--ink-2); line-height: 1.7;
+  padding: 0.7rem 0; border-top: 1px solid var(--line-soft);
+}
+.rec-card .label-inline {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.11em;
+  text-transform: uppercase; font-weight: 600;
+  color: var(--coral); margin-right: 0.7rem;
+}
+/* priority encoded by border weight and marker fill */
+.rec-card.r-critical { border-left-color: var(--coral-deep); border-left-width: 4px; }
+.rec-card.r-critical .num { background: var(--coral-deep); border-color: var(--coral-deep); color: #fff; }
+.rec-card.r-strong { border-left-color: var(--coral); }
+.rec-card.r-strong .num { background: var(--coral-soft); border-color: var(--coral-line); color: var(--coral-deep); }
+.rec-card.r-consider { border-left-color: var(--ink-5); }
+.rec-card.r-consider .num { background: var(--paper-3); border-color: var(--line); color: var(--ink-4); }
+
+/* ===== FOOTER ===== */
+footer.foot {
+  border-top: 1px solid var(--line);
+  padding: 5rem var(--gutter) 4rem;
+  margin-top: 4rem; text-align: center;
+  background: var(--paper-2);
+}
+footer.foot .foot-icon { display: flex; justify-content: center; margin-bottom: 2rem; }
+footer.foot .foot-icon svg { width: 32px; height: 32px; }
+footer.foot .foot-icon svg path:not([fill]) { fill: var(--ink); }
+footer.foot .fbrand {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 500;
+  color: var(--ink-3); margin-bottom: 1.5rem;
+}
+footer.foot .fnote {
+  font-size: 0.88rem; color: var(--ink-4);
+  max-width: 640px; margin: 0 auto; line-height: 1.65;
+}
+footer.foot .fmeta {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.65rem; color: var(--ink-5);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-top: 1.5rem;
+}
+
+/* ===== FADE-IN ===== */
+.fade-in { opacity: 0; transform: translateY(12px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.fade-in.visible { opacity: 1; transform: none; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .cmp-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 800px) {
+  :root { --gutter: 1.4rem; --card-pad-x: 1.4rem; --card-pad-y: 1.4rem; }
+  body { font-size: 16px; }
+  .hero { padding: 7rem var(--gutter) 3.5rem; }
+  section.block { padding: 3.5rem var(--gutter); }
+  .scorecard { padding: 2.2rem var(--gutter); }
+  .scorecard-grid { grid-template-columns: 1fr; }
+  .cc-head { flex-direction: column; }
+  .cc-head .right { justify-content: flex-start; }
+  .matrix, .cat-table, .overview-table { font-size: 0.78rem; }
+  .matrix th, .matrix td,
+  .cat-table th, .cat-table td,
+  .overview-table th, .overview-table td { padding: 0.55rem 0.7rem; }
+  nav.topnav { padding: 0 1rem; gap: 1rem; }
+  .nav-meta { display: none; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <div class="nav-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 82.04" aria-label="Motadata">
+        <g>
+          <path d="M91.04,47.42v33.35h-12.92v-32.31c0-9.11-4.15-14.19-11.88-14.19-8.54,0-14.19,6-14.19,14.88v31.62h-12.92v-32.31c0-9.11-4.27-14.19-12-14.19-8.42,0-14.19,6-14.19,14.88v31.62H0V23.77h11.54l.12,6.69c4.15-5.31,9.69-7.85,16.85-7.85,8.08,0,14.88,3.81,18.46,10.04,4.5-6.69,11.42-10.04,20.31-10.04,14.65,0,23.77,9.35,23.77,24.81Z"/>
+          <path d="M170.33,23.77v-14.88l12.81-1.38v16.27h16.38v10.96h-16.38v26.42c0,5.77,2.65,9,7.96,9,2.31,0,4.96-.69,7.15-1.73l3.58,10.38c-4.38,1.96-8.08,2.77-12.81,2.77-11.77,0-18.69-6.81-18.69-20.42v-26.42"/>
+          <path d="M265.84,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM252.92,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M335.97,0v80.77h-11.54l-.12-7.61c-4.38,5.54-12,8.88-21,8.88-16.15,0-28.04-11.77-28.04-29.77s11.88-29.77,28.04-29.77c8.19,0,15.23,2.77,19.73,7.38V0h12.92ZM323.05,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M406.1,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM393.18,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M416.49,23.77v-14.88l12.81-1.38v16.27h16.38v10.96h-16.38v26.42c0,5.77,2.65,9,7.96,9,2.31,0,4.96-.69,7.15-1.73l3.58,10.38c-4.38,1.96-8.08,2.77-12.81,2.77-11.77,0-18.69-6.81-18.69-20.42v-26.42"/>
+          <path d="M512,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM499.08,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M135.26,47.31v-24.39c12.47,2.09,22.31,11.93,24.39,24.39h-24.39Z" fill="#f17463"/>
+          <path d="M160.06,52.92c-.33,16.14-13.54,29.13-29.76,29.13s-29.77-13.33-29.77-29.77c0-1.69.14-3.36.41-4.96,2.32-13.87,14.26-24.49,28.72-24.8v12.32c-7.59.28-13.95,5.45-16.01,12.47-.46,1.56-.72,3.23-.72,4.96,0,9.63,7.78,17.44,17.37,17.44,1.72,0,3.38-.24,4.96-.72,6.97-2.08,12.12-8.46,12.39-16.08h12.41Z"/>
+        </g>
+      </svg>
+    </div>
+  <ul class="nav-links">
+    <li><a href="#summary">Summary</a></li>
+    <li><a href="#methodology">Methodology</a></li>
+    <li><a href="#matrix">Master Matrix</a></li>
+    <li><a href="#per-edge">Per-Edge</a></li>
+    <li><a href="#catalogs">Platform Catalogs</a></li>
+    <li><a href="#gaps">Gaps &amp; Wins</a></li>
+    <li><a href="#recommendations">v0.2 Recommendations</a></li>
+  </ul>
+  <div class="nav-meta">Fusion SaaS · Cross-Validation v0.1</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero fade-in visible">
+  <div class="eyebrow">Motadata Fusion SaaS · Service-Centric Knowledge Graph</div>
+  <h1>Fusion SaaS SKG edges, <span class="accent">cross-validated</span> against the three reference platforms.</h1>
+  <p class="subtitle">Mapping each of Fusion SaaS's eleven stored and four computed edge types against ServiceNow's cmdb_rel_type vocabulary, BMC Helix CDM's BMC_BaseRelationship subclass hierarchy, and OpenText UCMDB's UDM relationship CITs. The goal is not to compress Fusion SaaS to match the incumbents, but to prove every concept they ship has a home in our vocabulary — and to surface where our design wins and where v0.2 should harden.</p>
+  <div class="hero-meta">
+    <div><span class="label">Document</span><span class="val">SKG Edge Cross-Validation</span></div>
+    <div><span class="label">Compares against</span><span class="val">ServiceNow · BMC Helix · UCMDB</span></div>
+    <div><span class="label">Status</span><span class="val">Validation pass · pre-v0.2</span></div>
+    <div><span class="label">Last reviewed</span><span class="val">2026-05-25</span></div>
+  </div>
+</section>
+
+<!-- SCORECARD -->
+<div class="scorecard">
+  <div class="scorecard-grid">
+    <div class="sc oneops">
+      <div class="h">Fusion SaaS SKG</div>
+      <div class="big">11&nbsp;+&nbsp;4</div>
+      <div class="label-small">Stored edges plus computed traversals. Small, opinionated, evidence-bearing.</div>
+    </div>
+    <div class="sc snow">
+      <div class="h">ServiceNow</div>
+      <div class="big">~53</div>
+      <div class="label-small">Active <code style="background:transparent;color:inherit;padding:0">cmdb_rel_type</code> records in baseline CSDM. Many overlap semantically.</div>
+    </div>
+    <div class="sc bmc">
+      <div class="h">BMC Helix CDM</div>
+      <div class="big">20</div>
+      <div class="label-small">Concrete subclasses of <code style="background:transparent;color:inherit;padding:0">BMC_BaseRelationship</code> in BMC.CORE namespace.</div>
+    </div>
+    <div class="sc ucm">
+      <div class="h">UCMDB UDM</div>
+      <div class="big">~25 + 2c</div>
+      <div class="label-small">Concrete subtypes of <code style="background:transparent;color:inherit;padding:0">managed_relationship</code>, plus two calculated (Directly, Potentially).</div>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<section class="block" id="summary">
+  <div class="sec-num">§ 01 · Executive summary</div>
+  <h2 class="sec-title">Coverage is complete. The edge count gap is a feature, not a defect.</h2>
+  <p class="sec-lede">Every concept the three incumbent platforms model is reachable from Fusion SaaS's eleven stored edges plus the metamodel — either directly via an edge type, or via the <code>attributes</code> property bag, or via a computed-edge traversal. The three platforms ship between two and five times as many relationship types because they collapse <em>semantics</em>, <em>evidence</em>, and <em>computation</em> into the type itself.</p>
+
+  <div class="key-insight">
+    <span class="label">The thesis, validated</span>
+    <p class="text">Fusion SaaS's 11 stored edges absorb everything ServiceNow's 53 types, BMC's 20 subclasses, and UCMDB's 25 CITs assert — because we separated three concerns the incumbents have left fused: <em>relationship semantics</em> (the edge type), <em>evidence about the assertion</em> (sources + confidence on the metamodel), and <em>operational truth</em> (computed at query time, not stored).</p>
+  </div>
+
+  <h3 class="sub">What the comparison revealed, in three lines</h3>
+  <ul>
+    <li><strong>Coverage:</strong> 11/11 Fusion SaaS stored edges have at least two direct conceptual analogues across the three platforms. No Fusion SaaS edge is an invention without precedent.</li>
+    <li><strong>Compression ratio:</strong> ServiceNow's 53 types collapse into our 11 with ~4.8× compression. The bulk of SNOW's "extra" types are direction-flip duplicates (<code>Hosts::Hosted on</code> and <code>Hosted by::Hosts</code> both exist), payload-overloading (<code>DR provided by</code>, <code>Backup provided by</code>), or domain-specific narrowing (<code>Cools::Cooled by</code>) we handle via <code>attributes</code>.</li>
+    <li><strong>Differentiation:</strong> Three Fusion SaaS capabilities have no native analogue in any of the three: evidence-source as a first-class edge property, separation of stored from computed truth via traversal patterns, and triplet validation enforced at write-time API rather than as cleanup rules.</li>
+  </ul>
+
+  <h3 class="sub">Confidence in each platform's catalog</h3>
+  <table class="overview-table">
+    <thead><tr><th>Platform</th><th>Source</th><th>Confidence</th><th>Caveats</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>ServiceNow</strong></td>
+        <td><code>cmdb_rel_type</code> table (active baseline records), corroborated against BMC's sync prep doc and community lists</td>
+        <td>High on the ~30 most-referenced types; medium on the long tail</td>
+        <td>The exact count (~53) varies by release. Some records are direction-flip duplicates that double the count without adding semantics.</td>
+      </tr>
+      <tr>
+        <td><strong>BMC Helix CDM</strong></td>
+        <td>Official CDM class hierarchy under <code>BMC_BaseRelationship</code> in the BMC.CORE namespace (v23.3 documented; stable across recent versions)</td>
+        <td>High</td>
+        <td>BMC_Impact is auto-maintained by CMDB 7.6.03+ rather than written by integrations. Some classes (<code>BMC_FederatedKeyLink</code>) are integration-plumbing, not modeling.</td>
+      </tr>
+      <tr>
+        <td><strong>UCMDB UDM</strong></td>
+        <td>OpenText UCMDB 11.0 Class Model Reference, Content Pack 26.00; calculated relationship docs</td>
+        <td>High on the core managed_relationship subtypes; the long tail of CP-specific extensions varies</td>
+        <td>Some types (Backbone, Talk, Membership) are network-discovery-specific. The two calculated relationships (Impacted By Directly / Potentially) are not stored.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- METHODOLOGY -->
+<section class="block" id="methodology">
+  <div class="sec-num">§ 02 · Methodology</div>
+  <h2 class="sec-title">How a match was scored.</h2>
+  <p class="sec-lede">Comparing CMDB relationship vocabularies is treacherous: a name match can hide a semantic divergence (ServiceNow's <code>Depends on</code> is broader than Fusion SaaS's), and a name divergence can hide a semantic exact match (UCMDB <code>composition</code> and our <code>composedOf</code>). The matching ladder used in this document.</p>
+
+  <table class="overview-table">
+    <thead><tr><th>Verdict</th><th>Visual</th><th>Definition</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Exact</strong></td>
+        <td><span class="verdict verdict-exact">EXACT</span></td>
+        <td>Same lifecycle behavior, same impact propagation, same identity contribution. The two concepts are <em>functionally interchangeable</em> — only the name differs. Example: Fusion SaaS <code>composedOf</code> ↔ UCMDB <code>composition</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Partial</strong></td>
+        <td><span class="verdict verdict-partial">PARTIAL</span></td>
+        <td>Concept matches on two of the three dimensions (lifecycle, impact, identity). Example: SNOW <code>Hosted on</code> covers our <code>runsOn</code> use case but is also used for physical-housing scenarios that Fusion SaaS splits into <code>locatedIn</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Split</strong></td>
+        <td><span class="verdict verdict-split">SPLIT</span></td>
+        <td>The incumbent's single edge type maps to two or more Fusion SaaS edges — and we believe the split is correct because the use cases have distinct lifecycle or impact behavior. Example: SNOW <code>Depends on</code> covers Fusion SaaS <code>dependsOn</code> + part of <code>communicatesWith</code> + sometimes <code>realizes</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>None</strong></td>
+        <td><span class="verdict verdict-none">NONE</span></td>
+        <td>The platform has no edge type that even partially represents the Fusion SaaS concept. This is rare and is called out as a defensible Fusion SaaS differentiator.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">Scope of comparison</h3>
+  <ul>
+    <li><strong>In scope:</strong> stored relationship type definitions, default semantics, lifecycle behavior (cascade / detach / independent), identity participation, impact propagation, evidence sources platforms <em>typically</em> produce these edges from.</li>
+    <li><strong>Out of scope:</strong> CI class hierarchies (a different document), TQL / IRE / pattern-matching engines, UI behavior of dependency views, discovery probe inventories.</li>
+    <li><strong>Caveat:</strong> ServiceNow allows admins to add custom <code>cmdb_rel_type</code> records freely. The 53-count is the baseline, not a ceiling. Real production instances often hit 70-100.</li>
+  </ul>
+</section>
+
+<!-- MASTER MATRIX -->
+<section class="block" id="matrix">
+  <div class="sec-num">§ 03 · The master matrix</div>
+  <h2 class="sec-title">All fifteen Fusion SaaS edges, mapped across all three platforms.</h2>
+  <p class="sec-lede">This is the single page that answers: "for any Fusion SaaS edge, what does ServiceNow / BMC / UCMDB call the same thing?" Read horizontally for the conceptual lineage of each Fusion SaaS edge.</p>
+
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th class="oneops" style="width: 13%">Fusion SaaS SKG edge</th>
+          <th style="width: 8%">Class</th>
+          <th class="snow" style="width: 26%">ServiceNow (cmdb_rel_type)</th>
+          <th class="bmc" style="width: 26%">BMC Helix CDM (BMC.CORE)</th>
+          <th class="ucm" style="width: 27%">UCMDB UDM (managed_relationship)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="oneops-cell">composedOf</td>
+          <td><span class="pill pill-store">stored</span></td>
+          <td><strong>Contains::Contained by</strong> (for tightly-bound parts) <span class="verdict verdict-partial">PARTIAL</span><br><span style="color:var(--muted);font-size:0.78rem">SNOW does not distinguish lifecycle-bound parts from logical containers; both use Contains.</span></td>
+          <td><strong>BMC_Component</strong>, <strong>BMC_HostedSystemComponents</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">BMC_Component is the textbook part-of relation; HostedSystemComponents is the specialization for system→hardware-component.</span></td>
+          <td><strong>composition</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">Same semantics: "part cannot exist without container" — deleting container deletes parts. Used for node→cpu/disk/memory.</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">contains</td>
+          <td><span class="pill pill-store">stored</span></td>
+          <td><strong>Contains::Contained by</strong>, <strong>In Rack::Rack Contains</strong>, <strong>Datacenter::Houses</strong> <span class="verdict verdict-split">SPLIT</span><br><span style="color:var(--muted);font-size:0.78rem">SNOW conflates logical and structural containment into the same Contains type.</span></td>
+          <td><strong>BMC_MemberOfCollection</strong> (loose), <strong>BMC_HostedAccessPoint</strong> (specialized), <strong>BMC_InSegment</strong>, <strong>BMC_InIPSubnet</strong> <span class="verdict verdict-partial">PARTIAL</span><br><span style="color:var(--muted);font-size:0.78rem">Spread across multiple specialized subclasses; no single direct equivalent.</span></td>
+          <td><strong>containment</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">UCMDB explicitly distinguishes containment (logical) from composition (lifecycle-bound). One-to-one mapping with our split.</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">runsOn</td>
+          <td><span class="pill pill-store">stored</span></td>
+          <td><strong>Runs on::Runs</strong>, <strong>Hosted on::Hosts</strong>, <strong>Virtualized by::Virtualizes</strong> <span class="verdict verdict-split">SPLIT</span><br><span style="color:var(--muted);font-size:0.78rem">SNOW splits the same concept by hardware/software/virtualization context — three rel types, one Fusion SaaS edge.</span></td>
+          <td><strong>BMC_HostedSystemComponents</strong>, <strong>BMC_Hosted</strong>, <strong>BMC_HostedService</strong> <span class="verdict verdict-split">SPLIT</span><br><span style="color:var(--muted);font-size:0.78rem">BMC also splits by what is hosted — service vs. component vs. software server.</span></td>
+          <td><strong>usage</strong>, <strong>execution_environment</strong>, <strong>deployed</strong> <span class="verdict verdict-partial">PARTIAL</span><br><span style="color:var(--muted);font-size:0.78rem">UCMDB <code>usage</code> is the default for non-monitoring CIs; specific runtime hosting uses <code>execution_environment</code>.</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">dependsOn</td>
+          <td><span class="pill pill-store">stored</span></td>
+          <td><strong>Depends on::Used by</strong>, <strong>Used by::Depends on</strong> (inverse-duplicate), <strong>Uses::Used by</strong>, <strong>Consumes</strong> <span class="verdict verdict-split">SPLIT</span><br><span style="color:var(--muted);font-size:0.78rem">SNOW's most overloaded type — used for everything from infra dependency to identity to monitoring.</span></td>
+          <td><strong>BMC_Dependency</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">"If CI A depends on CI B, then A is Destination, B is Source." Direct semantic match.</span></td>
+          <td><strong>dependency</strong>, <strong>client_server</strong>, <strong>db_link</strong>, <strong>usage</strong> (when used between services) <span class="verdict verdict-split">SPLIT</span><br><span style="color:var(--muted);font-size:0.78rem">UCMDB has a generic dependency plus protocol-specific narrowings (client_server, db_link).</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">communicatesWith</td>
+          <td><span class="pill pill-store">stored</span></td>
+          <td><strong>Connects to::Connected by</strong>, <strong>Sends data to::Receives data from</strong>, <strong>Exchanges data with::Exchanges data with</strong> <span class="verdict verdict-split">SPLIT</span><br><span style="color:var(--muted);font-size:0.78rem">SNOW splits directional ("Sends data to") from symmetric ("Exchanges data with"). Fusion SaaS unifies via the edge attributes <code>protocol</code> and <code>directional</code>.</span></td>
+          <td><strong>BMC_HostedAccessPoint</strong> + observed traffic (no first-class equivalent) <span class="verdict verdict-none">NONE</span><br><span style="color:var(--muted);font-size:0.78rem">BMC discovery infers dependency from traffic but does not store the raw observation separately.</span></td>
+          <td><strong>talk</strong>, <strong>communication</strong>, <strong>connection</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">UCMDB's <code>talk</code> CIT was designed exactly for observed traffic between hosts — direct semantic match.</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">realizes</td>
+          <td><span class="pill pill-store">stored</span></td>
+          <td><strong>Realized by::Realizes</strong>, <strong>Provided by::Provides</strong>, <strong>Implemented by::Implements</strong> (CSDM Service Spine) <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">The CSDM "Business → App Service → Application → Infrastructure" backbone runs on this concept.</span></td>
+          <td><strong>BMC_ServiceRealizedByOffering</strong>, <strong>BMC_OfferingMeasuredBy</strong> <span class="verdict verdict-partial">PARTIAL</span><br><span style="color:var(--muted);font-size:0.78rem">BMC limits realizes-style edges to service-to-offering. Broader concrete-to-abstract realization uses BMC_Dependency.</span></td>
+          <td><strong>realization</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">UCMDB has a dedicated <code>realization</code> CIT for service-spine modeling.</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">memberOf</td>
+          <td><span class="pill pill-store">stored</span></td>
+          <td><strong>Members::Member of</strong>, <strong>Member of::Members</strong>, <strong>Cluster of::Cluster</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">Standard for cluster nodes, group membership, application-service membership.</span></td>
+          <td><strong>BMC_MemberOfCollection</strong>, <strong>BMC_IPSubnetsInCollection</strong>, <strong>BMC_LNsInCollection</strong>, <strong>BMC_SegmentsInCollection</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">BMC has the most aggressively specialized membership types — one per CI domain.</span></td>
+          <td><strong>membership</strong>, <strong>aggregation</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">UCMDB's <code>membership</code> is the cluster / group / load-balancer-pool edge.</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">manages</td>
+          <td><span class="pill pill-store">stored</span></td>
+          <td><strong>Managed by::Manages</strong>, <strong>Managed by group::Manages group</strong>, <strong>Monitored by::Monitors</strong> <span class="verdict verdict-split">SPLIT</span><br><span style="color:var(--muted);font-size:0.78rem">SNOW splits human/group ownership from technical management. Fusion SaaS puts the human-ownership half in <code>ownedBy</code>.</span></td>
+          <td><strong>BMC_HostedService</strong> (for management software), no first-class "manages" edge <span class="verdict verdict-partial">PARTIAL</span><br><span style="color:var(--muted);font-size:0.78rem">BMC implies management via hosting hierarchy. No direct semantic equivalent.</span></td>
+          <td><strong>monitored_by</strong>, <strong>control_relationship</strong> <span class="verdict verdict-partial">PARTIAL</span><br><span style="color:var(--muted);font-size:0.78rem">UCMDB's <code>monitored_by</code> is the canonical case; <code>control_relationship</code> covers configuration management plane.</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">ownedBy</td>
+          <td><span class="pill pill-store">stored</span></td>
+          <td><strong>Owned by::Owns</strong>, <strong>Owns::Owned by</strong>, <strong>Managed by::Manages</strong> (when human) <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">Used for human ownership, business-unit accountability, cost-center attribution.</span></td>
+          <td>No first-class equivalent; modeled via reference fields on the CI itself (Owner, SupportGroup attributes) <span class="verdict verdict-none">NONE</span><br><span style="color:var(--muted);font-size:0.78rem">BMC treats human ownership as a CI attribute, not a relationship.</span></td>
+          <td><strong>ownership</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">Direct conceptual match: human-or-team accountability for a CI.</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">locatedIn</td>
+          <td><span class="pill pill-store">stored</span></td>
+          <td><strong>Located in::Houses</strong>, <strong>Datacenter::Houses</strong>, <strong>Rack::In Rack</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">SNOW splits by physical class (Datacenter, Rack, Site) — Fusion SaaS unifies via the source/target class triplet.</span></td>
+          <td><strong>BMC_ElementLocation</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">Single dedicated location edge — cleaner than SNOW's per-class variants.</span></td>
+          <td><strong>location</strong>, <strong>located</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">Same semantics.</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">succeedsLifecycleOf</td>
+          <td><span class="pill pill-store">stored</span></td>
+          <td><strong>Upgrade of::Upgraded by</strong>, <strong>DR provided by::Provides DR for</strong>, <strong>Migrated from::Migrated to</strong> <span class="verdict verdict-partial">PARTIAL</span><br><span style="color:var(--muted);font-size:0.78rem">SNOW splits version-genealogy from DR-pairing. Fusion SaaS unifies under one edge with a <code>relation_subtype</code> attribute.</span></td>
+          <td><strong>BMC_Genealogy</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">Direct conceptual match for "the new version succeeds the old."</span></td>
+          <td>No first-class equivalent; modeled via attributes on the CI <span class="verdict verdict-none">NONE</span><br><span style="color:var(--muted);font-size:0.78rem">UCMDB tracks version history at the CI attribute level rather than as a relationship.</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">impactedBy</td>
+          <td><span class="pill pill-compute">computed</span></td>
+          <td><strong>"Impacted services" related list</strong> — derived from cmdb_rel_ci traversal, not a stored edge type <span class="verdict verdict-exact">EXACT (architecturally)</span><br><span style="color:var(--muted);font-size:0.78rem">SNOW <em>also</em> computes impact rather than storing it. We agree on this architecturally.</span></td>
+          <td><strong>BMC_Impact</strong> (auto-maintained by CMDB 7.6.03+) <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">BMC moved from storing BMC_Impact to auto-maintaining it — converging on our approach.</span></td>
+          <td><strong>Impacted By (Directly)</strong>, <strong>Impacted By (Potentially)</strong> <span class="verdict verdict-exact">EXACT</span><br><span style="color:var(--muted);font-size:0.78rem">UCMDB has the cleanest separation: two calculated relationship subtypes, never stored. This is the model Fusion SaaS mirrors.</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">reaches</td>
+          <td><span class="pill pill-compute">computed</span></td>
+          <td>None — SNOW does not compute network reachability as a first-class concept <span class="verdict verdict-none">NONE</span></td>
+          <td>None — would be computed by BMC Helix Operations Management at the network-monitoring layer, not by the CMDB <span class="verdict verdict-none">NONE</span></td>
+          <td>None as a first-class calculated relationship; can be expressed as a TQL query <span class="verdict verdict-none">NONE</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">sharesFailureDomain</td>
+          <td><span class="pill pill-compute">computed</span></td>
+          <td>None as a stored/computed type; can be derived via custom scripts <span class="verdict verdict-none">NONE</span></td>
+          <td>None — no equivalent concept <span class="verdict verdict-none">NONE</span></td>
+          <td>None as a first-class CIT; would be a derived TQL view <span class="verdict verdict-none">NONE</span></td>
+        </tr>
+        <tr>
+          <td class="oneops-cell">criticalPath</td>
+          <td><span class="pill pill-compute">computed</span></td>
+          <td>Indirectly through "Business Service" rollup queries, but not a typed relationship <span class="verdict verdict-none">NONE</span></td>
+          <td>Indirectly via BMC_Impact + service mapping; not a typed concept <span class="verdict verdict-none">NONE</span></td>
+          <td>Indirectly via TQL on the realization + dependency graph <span class="verdict verdict-none">NONE</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <span class="tag">Reading the matrix</span>
+    <p>Every stored Fusion SaaS edge has at least <strong>one EXACT match</strong> across the three platforms. The four computed edges have no first-class analogue in any of them — which is precisely Fusion SaaS's design wedge.</p>
+  </div>
+</section>
+
+<!-- PER-EDGE DEEP DIVE -->
+<section class="block" id="per-edge">
+  <div class="sec-num">§ 04 · Per-edge deep dive</div>
+  <h2 class="sec-title">For each Fusion SaaS edge — the conceptual lineage and the finding.</h2>
+  <p class="sec-lede">For each of the fifteen edges, this section spells out exactly what each platform calls the equivalent concept, where the semantics drift, and what we should do about it (if anything).</p>
+
+  <!-- 01 composedOf -->
+  <div class="cc-card" id="cc-composedof">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 01 · Composition</div>
+        <h3>composedOf</h3>
+        <div class="verbs">A composedOf B &nbsp;/&nbsp; B partOf A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-cascade">cascade</span>
+        <span class="pill pill-1n">1:N</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">B is a structural part of A; B has no meaningful existence outside A.</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-partial">PARTIAL</span></div>
+          <div class="types">
+            <span class="t">Contains::Contained by</span>
+          </div>
+          <div class="note">SNOW does not distinguish lifecycle-bound parts (CPU inside a server) from logical containment (server inside a rack). Both use <code>Contains</code>. This is a known modeling weakness — cascade-delete behavior must be inferred from the CI class pair, not from the edge type.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">BMC_Component</span>
+            <span class="t">BMC_HostedSystemComponents</span>
+          </div>
+          <div class="note"><code>BMC_Component</code> is the textbook part-of relation. <code>BMC_HostedSystemComponents</code> is the canonical specialization for a system→hardware-component (CPU, disk, NIC).</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">composition</span>
+          </div>
+          <div class="note">Direct semantic match. UCMDB explicitly documents: "deleting such relationship also removes part CI." Used for node→cpu/disk/memory composition.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        Fusion SaaS's <code>composedOf</code> is the cleaner version of UCMDB's <code>composition</code> — same semantics, same lifecycle. It is strictly better than ServiceNow's overloaded <code>Contains</code>, which forces consumers to infer cascade behavior from CI-class context. No schema change needed.
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 contains -->
+  <div class="cc-card" id="cc-contains">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 02 · Containment</div>
+        <h3>contains</h3>
+        <div class="verbs">A contains B &nbsp;/&nbsp; B containedIn A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-detach">detach</span>
+        <span class="pill pill-1n">1:N</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">B is logically located inside A but has independent existence; B can be reassigned to another container without ceasing to exist.</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-split">SPLIT</span></div>
+          <div class="types">
+            <span class="t">Contains::Contained by</span>
+            <span class="t">In Rack::Rack Contains</span>
+            <span class="t">Datacenter::Houses</span>
+          </div>
+          <div class="note">SNOW conflates logical containment with structural composition (see <code>composedOf</code>). Several physical-class variants (In Rack, Datacenter::Houses) exist but are direction-flip duplicates of Contains.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-partial">PARTIAL</span></div>
+          <div class="types">
+            <span class="t">BMC_MemberOfCollection</span>
+            <span class="t">BMC_InSegment</span>
+            <span class="t">BMC_InIPSubnet</span>
+          </div>
+          <div class="note">BMC spreads "containment" semantics across multiple specialized subclasses: <code>BMC_InIPSubnet</code> for IP-in-subnet, <code>BMC_InSegment</code> for network-segment membership. No single direct equivalent.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">containment</span>
+          </div>
+          <div class="note">UCMDB explicitly distinguishes <code>containment</code> from <code>composition</code> — the part has independent identity, can be reassigned. One-to-one mapping with our split.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        UCMDB validates our composedOf/contains split as a real distinction worth making. ServiceNow's flat <code>Contains</code> is the antipattern we explicitly avoided. BMC's specialization-per-domain approach (InIPSubnet, InSegment) is something we handle via the source/target class triplet — same expressiveness, smaller vocabulary.
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 runsOn -->
+  <div class="cc-card" id="cc-runson">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 03 · Runtime hosting</div>
+        <h3>runsOn</h3>
+        <div class="verbs">A runsOn B &nbsp;/&nbsp; B runs A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-detach">detach</span>
+        <span class="pill pill-yes">identity</span>
+        <span class="pill pill-1n">N:1</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">A is a runtime instance whose execution is hosted by B's runtime substrate; A's identity is partly defined by where it runs.</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-split">SPLIT</span></div>
+          <div class="types">
+            <span class="t">Runs on::Runs</span>
+            <span class="t">Hosted on::Hosts</span>
+            <span class="t">Virtualized by::Virtualizes</span>
+            <span class="t">Hosts::Hosted on</span>
+          </div>
+          <div class="note">SNOW community has documented confusion about which of these to use when — the docs themselves contradict each other on whether DB-on-server is "Runs on" or "Hosted on." Direction-flip duplicates (Hosts::Hosted on AND Hosted by::Hosts) make this worse.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-split">SPLIT</span></div>
+          <div class="types">
+            <span class="t">BMC_HostedSystemComponents</span>
+            <span class="t">BMC_Hosted</span>
+            <span class="t">BMC_HostedService</span>
+          </div>
+          <div class="note">BMC splits by what is hosted: <code>HostedService</code> for service-on-system, <code>HostedSystemComponents</code> for hardware-on-system, generic <code>BMC_Hosted</code> for software-on-system. Conceptually clean but vocabulary-heavy.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-partial">PARTIAL</span></div>
+          <div class="types">
+            <span class="t">execution_environment</span>
+            <span class="t">deployed</span>
+            <span class="t">usage</span>
+          </div>
+          <div class="note">UCMDB's <code>execution_environment</code> CIT is the closest direct match; <code>deployed</code> is used for application-on-system; <code>usage</code> is the default for non-monitoring CIs when no more specific type applies.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        All three platforms split runtime-hosting into multiple types and the documentation around <em>which</em> to use is famously confusing (ServiceNow community has years of threads on this). Fusion SaaS's single <code>runsOn</code> edge with triplet-validated source/target classes (Process→OS, OS→VM, VM→Hypervisor, Container→K8sNode) is the cleaner model — the class pair encodes what the platforms encode in the edge type.
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 dependsOn -->
+  <div class="cc-card" id="cc-dependson">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 04 · Operational dependency</div>
+        <h3>dependsOn</h3>
+        <div class="verbs">A dependsOn B &nbsp;/&nbsp; B usedBy A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent</span>
+        <span class="pill pill-yes">impact</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">A requires B's function to operate correctly; if B is degraded or unavailable, A is degraded or unavailable.</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-split">SPLIT</span></div>
+          <div class="types">
+            <span class="t">Depends on::Used by</span>
+            <span class="t">Used by::Depends on</span>
+            <span class="t">Uses::Used by</span>
+            <span class="t">Consumes::Consumed by</span>
+          </div>
+          <div class="note">The community has a multi-year unresolved thread on whether "Depends on" and "Consumes" mean the same thing. Direction-flip duplicates (both <code>Depends on::Used by</code> and <code>Used by::Depends on</code> exist in baseline) inflate the count without adding semantics.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">BMC_Dependency</span>
+          </div>
+          <div class="note">Single dependency type with explicit direction semantics: "If A depends on B, then A is Destination, B is Source." Clean. Maps to <code>CIM_Dependency</code> upstream.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-split">SPLIT</span></div>
+          <div class="types">
+            <span class="t">dependency</span>
+            <span class="t">client_server</span>
+            <span class="t">db_link</span>
+          </div>
+          <div class="note">Generic <code>dependency</code> plus protocol-specific narrowings: <code>client_server</code> for client-server protocols, <code>db_link</code> for database links. The narrowings carry protocol-specific attributes we handle via our <code>attributes</code> bag.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        BMC's <code>BMC_Dependency</code> is the cleanest equivalent in the industry. Our <code>dependsOn</code> matches it 1:1. UCMDB's protocol-specific narrowings are something we can absorb via attributes (<code>protocol</code>, <code>port</code>) on the edge — we don't need <code>db_link</code> as a separate edge type. The strategically important finding here: ServiceNow's overloading of <code>Depends on</code> for everything is one of the documented sources of CMDB drift, and our cleaner separation (dependsOn vs. communicatesWith vs. realizes) is defensible.
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 communicatesWith -->
+  <div class="cc-card" id="cc-communicates">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 05 · Observed communication</div>
+        <h3>communicatesWith</h3>
+        <div class="verbs">A communicatesWith B</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">A and B were observed exchanging traffic. This is an evidence claim, not yet a promoted dependency.</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-split">SPLIT</span></div>
+          <div class="types">
+            <span class="t">Connects to::Connected by</span>
+            <span class="t">Sends data to::Receives data from</span>
+            <span class="t">Exchanges data with::Exchanges data with</span>
+            <span class="t">Talks to</span>
+          </div>
+          <div class="note">SNOW splits directional ("Sends data to") from symmetric ("Exchanges data with") and physical-connection ("Connects to") into separate types. We unify these via the <code>directional</code> and <code>protocol</code> attributes on a single edge.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-none">NONE</span></div>
+          <div class="types">
+            <span class="t">BMC_HostedAccessPoint</span> (indirect)
+          </div>
+          <div class="note">BMC Discovery infers dependency from traffic but does <em>not</em> store the raw observation separately. The observation collapses into <code>BMC_Dependency</code> at sync time. The intermediate "we saw traffic but haven't yet promoted to dependency" state is invisible.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">talk</span>
+            <span class="t">communication</span>
+          </div>
+          <div class="note">UCMDB's <code>talk</code> CIT was designed exactly for observed traffic between hosts — distinct from a promoted dependency. Direct conceptual match.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        This is one of Fusion SaaS's strongest semantic wins. BMC simply doesn't model observed-but-unpromoted traffic; the inference collapses into dependency at sync. UCMDB's <code>talk</code> is the closest analogue and validates that the distinction is worth making. By keeping <code>communicatesWith</code> distinct from <code>dependsOn</code> — and tracking the evidence/confidence on each — we can show operators which dependencies are inferred from traffic vs. asserted by IaC or human authorship. This is the foundation for the "promote to dependency" workflow.
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 realizes -->
+  <div class="cc-card" id="cc-realizes">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 06 · Concrete-to-abstract realization</div>
+        <h3>realizes</h3>
+        <div class="verbs">A realizes B &nbsp;/&nbsp; B realizedBy A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">A is the concrete implementation that fulfills the abstract role B (Application realizes ApplicationService realizes BusinessService realizes BusinessCapability).</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">Realized by::Realizes</span>
+            <span class="t">Provided by::Provides</span>
+            <span class="t">Implemented by::Implements</span>
+          </div>
+          <div class="note">The CSDM "Service Spine" — Business Application → Application Service → Application → Infrastructure — is built on these types. This is ServiceNow's most architecturally-important edge concept.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-partial">PARTIAL</span></div>
+          <div class="types">
+            <span class="t">BMC_ServiceRealizedByOffering</span>
+            <span class="t">BMC_OfferingMeasuredBy</span>
+          </div>
+          <div class="note">BMC ships a dedicated realize edge but limits it to the Service→ServiceOffering link. Broader concrete-to-abstract realization (Application→ApplicationService) tends to go through <code>BMC_Dependency</code>, blurring the distinction.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">realization</span>
+          </div>
+          <div class="note">Direct match. UCMDB uses <code>realization</code> for the service-spine: BusinessService realizedBy InfrastructureService realizedBy RunningSoftware.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        ServiceNow and UCMDB both validate that <code>realizes</code> is its own first-class edge concept — distinct from dependency. BMC's narrower scoping is the weaker model. Our <code>realizes</code> aligns with the dominant pattern. This is the edge that powers <code>criticalPath</code> (computed): traversing from Business Capability down through realize-chains to concrete infrastructure.
+      </div>
+    </div>
+  </div>
+
+  <!-- 07 memberOf -->
+  <div class="cc-card" id="cc-memberof">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 07 · Logical grouping</div>
+        <h3>memberOf</h3>
+        <div class="verbs">A memberOf B &nbsp;/&nbsp; B hasMember A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-detach">detach</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">A is one of several entities that together constitute the group, cluster, or pool B; A retains its own identity and can move between groups.</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">Members::Member of</span>
+            <span class="t">Member of::Members</span>
+            <span class="t">Cluster of::Cluster</span>
+          </div>
+          <div class="note">Used heavily for cluster nodes, application-service groupings, dynamic CI groups. Direction-flip duplicate exists. SNOW also has a parallel "cluster nodes" class-based approach used by Discovery — two ways to model the same thing, which causes data-quality drift.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">BMC_MemberOfCollection</span>
+            <span class="t">BMC_IPSubnetsInCollection</span>
+            <span class="t">BMC_LNsInCollection</span>
+            <span class="t">BMC_SegmentsInCollection</span>
+          </div>
+          <div class="note">BMC has the most aggressively specialized membership types — one per CI domain. <code>BMC_MemberOfCollection</code> is the abstract; the rest are CI-class-narrowed subclasses. We absorb the narrowings via the triplet rules.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">membership</span>
+            <span class="t">aggregation</span>
+          </div>
+          <div class="note">UCMDB's <code>membership</code> is the cluster / group / load-balancer-pool edge. <code>aggregation</code> exists as a separate (UML-inspired) abstract type.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        All three platforms have a direct equivalent. The interesting note is BMC's per-domain specialization (separate <code>BMC_IPSubnetsInCollection</code>, <code>BMC_LNsInCollection</code>, etc.) — this is the "specialize the edge type per CI class" antipattern Fusion SaaS explicitly rejects. We get the same constraint via triplet validation without the vocabulary bloat.
+      </div>
+    </div>
+  </div>
+
+  <!-- 08 manages -->
+  <div class="cc-card" id="cc-manages">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 08 · Control-plane management</div>
+        <h3>manages</h3>
+        <div class="verbs">A manages B &nbsp;/&nbsp; B managedBy A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">A is a software or service that has read/write control over B's configuration or lifecycle (vCenter manages ESX host, K8s control plane manages pods, Active Directory manages domain-joined nodes).</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-split">SPLIT</span></div>
+          <div class="types">
+            <span class="t">Managed by::Manages</span>
+            <span class="t">Managed by group::Manages group</span>
+            <span class="t">Monitored by::Monitors</span>
+            <span class="t">Administered by</span>
+          </div>
+          <div class="note">SNOW conflates technical control-plane management with human/group ownership ("Managed by group"). Community has documented confusion here. Fusion SaaS splits these: <code>manages</code> is technical, <code>ownedBy</code> is human.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-partial">PARTIAL</span></div>
+          <div class="types">
+            <span class="t">BMC_HostedService</span> (when management software hosted)
+          </div>
+          <div class="note">BMC has no first-class "manages" relationship. Management software is modeled as a service hosted on a system, with the managed-to-manager link inferred via dependency. Architecturally weaker than our approach.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-partial">PARTIAL</span></div>
+          <div class="types">
+            <span class="t">monitored_by</span>
+            <span class="t">control_relationship</span>
+          </div>
+          <div class="note"><code>monitored_by</code> is the canonical observability-related case; <code>control_relationship</code> covers configuration management plane control. Closest direct equivalent.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        Fusion SaaS's split of technical-management from human-ownership is correct and is one of the documented sources of confusion in ServiceNow ("Managed by Group" vs. "Owned by" — see the unresolved Nov 2025 community thread). BMC's absence of a first-class manages edge is a real gap in their model. We're aligned with UCMDB's stronger split.
+      </div>
+    </div>
+  </div>
+
+  <!-- 09 ownedBy -->
+  <div class="cc-card" id="cc-ownedby">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 09 · Governance accountability</div>
+        <h3>ownedBy</h3>
+        <div class="verbs">A ownedBy B &nbsp;/&nbsp; B owns A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent</span>
+        <span class="pill pill-1n">N:1</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">A is the entity (team, person, business unit, cost center) accountable for B's operation, cost, and lifecycle decisions.</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">Owned by::Owns</span>
+            <span class="t">Owns::Owned by</span>
+            <span class="t">Managed by::Manages</span> (when human)
+          </div>
+          <div class="note">Used for human ownership, business-unit accountability, cost-center attribution. The same problem as <code>manages</code>: SNOW conflates human ownership with technical management when "Managed by" is used for a person/group.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-none">NONE</span></div>
+          <div class="types"></div>
+          <div class="note">BMC treats human ownership as a CI <em>attribute</em> (Owner, SupportGroup fields on <code>BMC_BaseElement</code>), not as a relationship to a Person CI. This is a deliberate modeling choice — but means BMC cannot model the "team owns N CIs" inverse query as cleanly.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">ownership</span>
+          </div>
+          <div class="note">Direct conceptual match: human-or-team accountability for a CI, modeled as a relationship rather than an attribute.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        BMC's choice to model ownership as an attribute rather than a relationship is a legitimate alternative — but it makes the "team accountability dashboard" use case much harder. UCMDB and ServiceNow agree with us that ownership is a relationship, and our split from <code>manages</code> resolves the conflation that plagues SNOW.
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 locatedIn -->
+  <div class="cc-card" id="cc-locatedin">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 10 · Placement</div>
+        <h3>locatedIn</h3>
+        <div class="verbs">A locatedIn B &nbsp;/&nbsp; B houses A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent</span>
+        <span class="pill pill-1n">N:1</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">A is physically or logically placed in B (server in rack, rack in datacenter, datacenter in region, region in cloud, namespace in cluster).</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">Located in::Houses</span>
+            <span class="t">Datacenter::Houses</span>
+            <span class="t">In Rack::Rack Contains</span>
+          </div>
+          <div class="note">SNOW splits by physical class — separate types for Datacenter, Rack, Site. Fusion SaaS unifies via the source/target class triplet.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">BMC_ElementLocation</span>
+          </div>
+          <div class="note">Single dedicated location edge — the cleanest of the three. Maps to <code>BMC_BaseElement</code> ↔ <code>BMC_Location</code>.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">location</span>
+            <span class="t">located</span>
+          </div>
+          <div class="note">Same semantics as BMC and Fusion SaaS.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        Three direct matches. BMC's approach (one edge type) is what we mirror; SNOW's per-physical-class split is what we explicitly avoid. No schema change needed.
+      </div>
+    </div>
+  </div>
+
+  <!-- 11 succeedsLifecycleOf -->
+  <div class="cc-card" id="cc-succeeds">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 11 · Version genealogy</div>
+        <h3>succeedsLifecycleOf</h3>
+        <div class="verbs">A succeedsLifecycleOf B &nbsp;/&nbsp; B succeededBy A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent</span>
+        <span class="pill pill-1n">N:1</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">A is the next-version, replacement, or DR-pair of B; B may continue to exist but A is the operational successor.</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-partial">PARTIAL</span></div>
+          <div class="types">
+            <span class="t">Upgrade of::Upgraded by</span>
+            <span class="t">DR provided by::Provides DR for</span>
+            <span class="t">Migrated from::Migrated to</span>
+            <span class="t">Backup provided by::Provides backup for</span>
+          </div>
+          <div class="note">SNOW splits version-genealogy from DR-pairing from backup-pairing into separate edge types. Fusion SaaS unifies under one edge with a <code>relation_subtype</code> attribute (version | dr | backup | migration).</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">BMC_Genealogy</span>
+          </div>
+          <div class="note">Direct conceptual match for "this version succeeds that version." DR-pairing and backup-pairing are handled separately in BMC via <code>BMC_Dependency</code>.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-none">NONE</span></div>
+          <div class="types"></div>
+          <div class="note">UCMDB tracks version history at the CI attribute level (version, build) rather than as a relationship between CI instances. This is a real modeling gap — UCMDB cannot answer "which version replaced which" as a graph traversal.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        BMC validates the concept as a first-class edge. UCMDB's absence of this edge is a documented limitation that surfaces in CI-history reporting. ServiceNow splits the use cases into separate edges; we keep them unified via a subtype attribute, which is a defensible choice but worth revisiting in v0.2 (see Recommendation R4).
+      </div>
+    </div>
+  </div>
+
+  <!-- 12 impactedBy -->
+  <div class="cc-card" id="cc-impactedby">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 12 · Blast radius (computed)</div>
+        <h3>impactedBy</h3>
+        <div class="verbs">A impactedBy B &nbsp;/&nbsp; B impacts A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-compute">computed</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">If the status of B degrades, A's status will degrade — computed by traversing impact-bearing edges (dependsOn, runsOn, composedOf, realizes).</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-exact">EXACT (architecturally)</span></div>
+          <div class="types">
+            <span class="t">"Impacted Services" view</span>
+          </div>
+          <div class="note">SNOW also <em>computes</em> impact via cmdb_rel_ci traversal rather than storing impact as a separate edge type. The traversal logic lives in business rules and the BSM map renderer.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">BMC_Impact</span> (auto-maintained)
+          </div>
+          <div class="note">BMC moved from <em>storing</em> BMC_Impact (CMDB 7.5) to <em>auto-maintaining</em> it (CMDB 7.6.03+). They converged on our approach: impact is derived from other relationships, not asserted independently.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-exact">EXACT</span></div>
+          <div class="types">
+            <span class="t">Impacted By (Directly)</span>
+            <span class="t">Impacted By (Potentially)</span>
+          </div>
+          <div class="note">UCMDB has the cleanest version: an explicit "calculated relationship" type with two subtypes for full-vs-potential dependency. This is the architecture Fusion SaaS mirrors.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        All three platforms converge on the same architectural conclusion: impact must be computed, not stored. UCMDB's explicit "Impacted By (Directly)" / "Impacted By (Potentially)" split is something we should consider absorbing — see Recommendation R2.
+      </div>
+    </div>
+  </div>
+
+  <!-- 13 reaches -->
+  <div class="cc-card" id="cc-reaches">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 13 · Network reachability (computed)</div>
+        <h3>reaches</h3>
+        <div class="verbs">A reaches B &nbsp;/&nbsp; B reachableFrom A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-compute">computed</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">A can communicate with B over the network given current routing, firewall, and segment configuration.</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-none">NONE</span></div>
+          <div class="types"></div>
+          <div class="note">SNOW does not compute network reachability as a first-class concept. Reachability is delegated to ITOM Visibility / Discovery probes; the CMDB stores the artifacts (interfaces, routes) but does not surface reach as a queryable view.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-none">NONE</span></div>
+          <div class="types"></div>
+          <div class="note">Computed by BMC Helix Operations Management at the network-monitoring layer, not by the CDM. CDM stores ports, IP addresses, subnets — reach is not modeled.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-none">NONE</span></div>
+          <div class="types"></div>
+          <div class="note">No first-class calculated relationship. Can be expressed as a TQL query over <code>communication</code> + <code>InIPSubnet</code> + <code>backbone</code>, but is not pre-packaged.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        Fusion SaaS's <code>reaches</code> as a computed edge is a real differentiator. The fact that none of the three incumbents surface it as a first-class concept is opportunity, not validation gap — operators want to ask "can my LB reach my DB" as a graph query, not by running a tcpdump.
+      </div>
+    </div>
+  </div>
+
+  <!-- 14 sharesFailureDomain -->
+  <div class="cc-card" id="cc-failuredomain">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 14 · Co-failure detection (computed)</div>
+        <h3>sharesFailureDomain</h3>
+        <div class="verbs">A sharesFailureDomain B (symmetric)</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-compute">computed</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">A and B both depend on a common upstream point of failure (same hypervisor, same rack, same availability zone, same upstream switch).</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-none">NONE</span></div>
+          <div class="types"></div>
+          <div class="note">No stored or computed type. Can be derived via custom scripts against the impact graph, but not a first-class concept.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-none">NONE</span></div>
+          <div class="types"></div>
+          <div class="note">No equivalent concept in CDM.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-none">NONE</span></div>
+          <div class="types"></div>
+          <div class="note">No first-class CIT. Would be a derived TQL view, not a packaged calculated relationship.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        Another Fusion SaaS-only concept. The reason this matters: shared failure domain is what operators actually <em>care about</em> for redundancy planning ("are my two replicas on different hypervisors?"). Modeling it as a first-class computed edge — with the failure-domain key as a property — gives operators a direct query, not a multi-step graph traversal.
+      </div>
+    </div>
+  </div>
+
+  <!-- 15 criticalPath -->
+  <div class="cc-card" id="cc-criticalpath">
+    <div class="cc-head">
+      <div>
+        <div class="num">Edge 15 · Business-to-infra criticality (computed)</div>
+        <h3>criticalPath</h3>
+        <div class="verbs">A criticalPath B &nbsp;/&nbsp; B underpins A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-compute">computed</span>
+        <span class="pill pill-1n">1:N</span>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-meaning">From business concept A (BusinessCapability, BusinessApplication), B is one of the concrete infrastructure CIs whose failure would degrade A.</div>
+
+      <div class="cmp-grid">
+        <div class="cmp-cell snow">
+          <div class="h">ServiceNow <span class="verdict verdict-none">NONE</span></div>
+          <div class="types"></div>
+          <div class="note">Indirectly accessible through "Business Service" rollup queries and the impact tree, but not surfaced as a typed relationship operators can query.</div>
+        </div>
+        <div class="cmp-cell bmc">
+          <div class="h">BMC Helix CDM <span class="verdict verdict-none">NONE</span></div>
+          <div class="types"></div>
+          <div class="note">Indirectly via BMC_Impact + service mapping; not a typed concept.</div>
+        </div>
+        <div class="cmp-cell ucm">
+          <div class="h">UCMDB UDM <span class="verdict verdict-none">NONE</span></div>
+          <div class="types"></div>
+          <div class="note">Can be expressed as a TQL on the realization + dependency graph; not pre-packaged.</div>
+        </div>
+      </div>
+
+      <div class="cc-finding">
+        <div class="h">Finding</div>
+        Fusion SaaS's fourth computed edge is the executive-reporting wedge: every CMDB has the data to answer "what infrastructure underpins our payment capability?" but none of them ships it as a queryable edge. Modeling it as a computed type (over <code>realizes</code> → <code>dependsOn</code> → <code>runsOn</code>) makes it a first-class operation rather than a custom script.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLATFORM CATALOGS -->
+<section class="block" id="catalogs">
+  <div class="sec-num">§ 05 · Platform catalogs · the reference lists</div>
+  <h2 class="sec-title">For the record — what each platform actually ships.</h2>
+  <p class="sec-lede">For traceability, these are the complete (or near-complete) relationship vocabularies of the three reference platforms, each mapped back to its Fusion SaaS equivalent. This is the "show me the receipts" section.</p>
+
+  <!-- SNOW -->
+  <h3 class="sub">ServiceNow · <code>cmdb_rel_type</code> baseline (~53 active types)</h3>
+  <p class="dim" style="font-size:0.9rem">Compiled from the cmdb_rel_type table baseline records, BMC's ServiceNow sync prep doc (which enumerates the types it depends on), and ServiceNow Community lists. Direction-flip duplicates are marked <em>(↔ dup)</em>. The list reflects baseline CSDM as documented through Zurich; admin extensions and custom types are not included.</p>
+
+  <table class="cat-table snow">
+    <thead>
+      <tr>
+        <th style="width:32%">ServiceNow rel type</th>
+        <th style="width:38%">Conceptual use</th>
+        <th style="width:30%">Fusion SaaS equivalent</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="name">Contains::Contained by</td><td>Structural part-of (overloaded — see Contained by::Contains for the flip)</td><td><code>composedOf</code> + <code>contains</code></td></tr>
+      <tr><td class="name">Contained by::Contains <em>(↔ dup)</em></td><td>Direction-flip duplicate</td><td><code>composedOf</code> + <code>contains</code></td></tr>
+      <tr><td class="name">Depends on::Used by</td><td>Generic operational dependency</td><td><code>dependsOn</code></td></tr>
+      <tr><td class="name">Used by::Depends on <em>(↔ dup)</em></td><td>Direction-flip duplicate</td><td><code>dependsOn</code></td></tr>
+      <tr><td class="name">Uses::Used by</td><td>Functional usage (often collapsed with Depends on)</td><td><code>dependsOn</code></td></tr>
+      <tr><td class="name">Consumes::Consumed by</td><td>Data or capacity consumption</td><td><code>dependsOn</code> (attribute: consumption)</td></tr>
+      <tr><td class="name">Runs on::Runs</td><td>Software runtime on hardware/OS</td><td><code>runsOn</code></td></tr>
+      <tr><td class="name">Hosted on::Hosts</td><td>Software hosted on system (semantic overlap with Runs on)</td><td><code>runsOn</code></td></tr>
+      <tr><td class="name">Hosts::Hosted on <em>(↔ dup)</em></td><td>Direction-flip duplicate</td><td><code>runsOn</code></td></tr>
+      <tr><td class="name">Virtualized by::Virtualizes</td><td>VM → Hypervisor</td><td><code>runsOn</code></td></tr>
+      <tr><td class="name">Realized by::Realizes</td><td>Concrete realizes abstract (CSDM Service Spine)</td><td><code>realizes</code></td></tr>
+      <tr><td class="name">Provided by::Provides</td><td>Offering / service provision</td><td><code>realizes</code></td></tr>
+      <tr><td class="name">Implemented by::Implements</td><td>Implementation of an abstract role</td><td><code>realizes</code></td></tr>
+      <tr><td class="name">Connects to::Connected by</td><td>Network or physical connection</td><td><code>communicatesWith</code> (attr: physical=true)</td></tr>
+      <tr><td class="name">Sends data to::Receives data from</td><td>Directional data flow</td><td><code>communicatesWith</code> (attr: directional)</td></tr>
+      <tr><td class="name">Receives data from::Sends data to <em>(↔ dup)</em></td><td>Direction-flip duplicate</td><td><code>communicatesWith</code></td></tr>
+      <tr><td class="name">Exchanges data with::Exchanges data with</td><td>Symmetric data exchange</td><td><code>communicatesWith</code> (attr: symmetric)</td></tr>
+      <tr><td class="name">Talks to::Talks to</td><td>Service-to-service communication</td><td><code>communicatesWith</code></td></tr>
+      <tr><td class="name">Members::Member of</td><td>Cluster/group membership</td><td><code>memberOf</code></td></tr>
+      <tr><td class="name">Member of::Members <em>(↔ dup)</em></td><td>Direction-flip duplicate</td><td><code>memberOf</code></td></tr>
+      <tr><td class="name">Cluster of::Cluster</td><td>Cluster aggregation</td><td><code>memberOf</code></td></tr>
+      <tr><td class="name">Pool of::Pool</td><td>Load balancer pool aggregation</td><td><code>memberOf</code></td></tr>
+      <tr><td class="name">Managed by::Manages</td><td>Technical or human management (overloaded)</td><td><code>manages</code> or <code>ownedBy</code></td></tr>
+      <tr><td class="name">Manages::Managed by <em>(↔ dup)</em></td><td>Direction-flip duplicate</td><td><code>manages</code> / <code>ownedBy</code></td></tr>
+      <tr><td class="name">Managed by group::Manages group</td><td>Group-level human ownership</td><td><code>ownedBy</code></td></tr>
+      <tr><td class="name">Owned by::Owns</td><td>Human/team ownership</td><td><code>ownedBy</code></td></tr>
+      <tr><td class="name">Owns::Owned by <em>(↔ dup)</em></td><td>Direction-flip duplicate</td><td><code>ownedBy</code></td></tr>
+      <tr><td class="name">Administered by::Administers</td><td>Administrative responsibility (subset of manages)</td><td><code>manages</code> or <code>ownedBy</code></td></tr>
+      <tr><td class="name">Monitored by::Monitors</td><td>Observability instrumentation</td><td><code>manages</code> (attr: type=monitoring)</td></tr>
+      <tr><td class="name">Located in::Houses</td><td>Physical/logical placement</td><td><code>locatedIn</code></td></tr>
+      <tr><td class="name">Datacenter::Houses</td><td>Datacenter contains rack/asset</td><td><code>locatedIn</code></td></tr>
+      <tr><td class="name">In Rack::Rack Contains</td><td>Asset in rack</td><td><code>locatedIn</code></td></tr>
+      <tr><td class="name">Upgrade of::Upgraded by</td><td>Version genealogy</td><td><code>succeedsLifecycleOf</code> (attr: subtype=version)</td></tr>
+      <tr><td class="name">DR provided by::Provides DR for</td><td>Disaster recovery pairing</td><td><code>succeedsLifecycleOf</code> (attr: subtype=dr)</td></tr>
+      <tr><td class="name">Backup provided by::Provides backup for</td><td>Backup pairing</td><td><code>succeedsLifecycleOf</code> (attr: subtype=backup)</td></tr>
+      <tr><td class="name">Migrated from::Migrated to</td><td>Migration history</td><td><code>succeedsLifecycleOf</code> (attr: subtype=migration)</td></tr>
+      <tr><td class="name">Replicates::Replicated by</td><td>Data replication</td><td><code>communicatesWith</code> (attr: replication)</td></tr>
+      <tr><td class="name">Synced from::Synced to</td><td>Synchronization pairing</td><td><code>communicatesWith</code> (attr: sync)</td></tr>
+      <tr><td class="name">Authenticates::Authenticated by</td><td>Identity/auth relationship</td><td><code>dependsOn</code> (attr: subtype=auth)</td></tr>
+      <tr><td class="name">Cools::Cooled by</td><td>HVAC cooling assignment</td><td><code>dependsOn</code> (attr: type=cooling) — niche</td></tr>
+      <tr><td class="name">Powers::Powered by</td><td>Power source assignment</td><td><code>dependsOn</code> (attr: type=power)</td></tr>
+      <tr><td class="name">Routes via::Routed by</td><td>Network routing</td><td><code>communicatesWith</code> (attr: routed)</td></tr>
+      <tr><td class="name">Aliases::Aliased by</td><td>Alternate identifier</td><td>handled via CI attributes, not edge</td></tr>
+      <tr><td class="name">Aligned with::Aligned to</td><td>Strategic alignment (governance)</td><td><code>memberOf</code> (governance group)</td></tr>
+      <tr><td class="name">Allocated from::Allocated to</td><td>Resource allocation (DB tables, capacity)</td><td><code>composedOf</code> or <code>contains</code> depending on lifecycle</td></tr>
+      <tr><td class="name">Instantiates::Instantiated by</td><td>Template-to-instance (e.g., ESX→VM)</td><td><code>runsOn</code> or <code>composedOf</code> by case</td></tr>
+      <tr><td class="name">Registered on::Has registered</td><td>Registration relationship (vCenter, K8s)</td><td><code>memberOf</code> or <code>managedBy</code></td></tr>
+      <tr><td class="name">Provided by::Provides <em>(↔ dup)</em></td><td>Service offering provision</td><td><code>realizes</code></td></tr>
+      <tr><td class="name">Provides::Provided by <em>(↔ dup)</em></td><td>Direction-flip duplicate</td><td><code>realizes</code></td></tr>
+      <tr><td class="name">Provided By::Provides (camelcase dup)</td><td>Datastore-Disk relationship variant</td><td><code>composedOf</code></td></tr>
+      <tr><td class="name">References::Referenced by</td><td>Loose reference link</td><td><code>dependsOn</code> (weak)</td></tr>
+      <tr><td class="name">Sourced from::Source for</td><td>Data sourcing</td><td><code>communicatesWith</code> (attr: source)</td></tr>
+      <tr><td class="name">Stored on::Stores</td><td>Storage assignment</td><td><code>dependsOn</code> (attr: storage)</td></tr>
+      <tr><td class="name">Supports::Supported by</td><td>Generic support relationship</td><td><code>dependsOn</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <span class="tag">Compression observation</span>
+    <p>Of the 53 baseline ServiceNow types, approximately <strong>13 are direction-flip duplicates</strong> (marked <em>(↔ dup)</em>), <strong>6-8 are payload-overloading variants</strong> (Cools::Cooled by, Powers::Powered by, Authenticates::Authenticated by — niche types that we handle via the <code>attributes</code> bag on <code>dependsOn</code>), and <strong>~8 more are domain-specific narrowings</strong> we capture via the source/target class triplet. The "53 → 11" ratio is real, but ~25 of SNOW's 53 don't add semantic value over the other ~28.</p>
+  </div>
+
+  <!-- BMC -->
+  <h3 class="sub">BMC Helix CDM · concrete subclasses of <code>BMC_BaseRelationship</code></h3>
+  <p class="dim" style="font-size:0.9rem">From BMC's official CDM class hierarchy in the BMC.CORE namespace (v23.3). <code>BMC_BaseRelationship</code> is abstract (top of the inheritance tree, modeled on DMTF CIM). Each subclass represents a typed relationship.</p>
+
+  <table class="cat-table bmc">
+    <thead>
+      <tr>
+        <th style="width:30%">BMC CDM class</th>
+        <th style="width:40%">Documented purpose</th>
+        <th style="width:30%">Fusion SaaS equivalent</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="name">BMC_Component</td><td>Generic part-of relationship between two CIs</td><td><code>composedOf</code></td></tr>
+      <tr><td class="name">BMC_ContractComponent</td><td>Contract line item to an infrastructure element</td><td>handled via attribute on the contract CI</td></tr>
+      <tr><td class="name">BMC_Dependency</td><td>"If A depends on B, A is Destination, B is Source" (maps to CIM_Dependency)</td><td><code>dependsOn</code></td></tr>
+      <tr><td class="name">BMC_ElementLocation</td><td>Element placed in a location</td><td><code>locatedIn</code></td></tr>
+      <tr><td class="name">BMC_FederatedKeyLink</td><td>Reconciliation plumbing — links federated keys</td><td>not modeled (integration concern)</td></tr>
+      <tr><td class="name">BMC_Genealogy</td><td>Version succession between CIs</td><td><code>succeedsLifecycleOf</code></td></tr>
+      <tr><td class="name">BMC_HostedAccessPoint</td><td>System hosts an access point (IP, MAC, port)</td><td><code>composedOf</code> or <code>contains</code> depending on lifecycle</td></tr>
+      <tr><td class="name">BMC_HostedService</td><td>Service hosted on a system</td><td><code>runsOn</code></td></tr>
+      <tr><td class="name">BMC_HostedSystemComponents</td><td>System hosts a hardware component (CPU, NIC)</td><td><code>composedOf</code></td></tr>
+      <tr><td class="name">BMC_Impact</td><td>Computed impact propagation (auto-maintained since CMDB 7.6.03)</td><td><code>impactedBy</code> (computed)</td></tr>
+      <tr><td class="name">BMC_InIPSubnet</td><td>IP address in IP subnet</td><td><code>contains</code> (via triplet)</td></tr>
+      <tr><td class="name">BMC_InSegment</td><td>Element in a network segment</td><td><code>contains</code> (via triplet)</td></tr>
+      <tr><td class="name">BMC_IPSubnetsInCollection</td><td>Subnet aggregated into a collection</td><td><code>memberOf</code></td></tr>
+      <tr><td class="name">BMC_LNsInCollection</td><td>Logical networks in collection</td><td><code>memberOf</code></td></tr>
+      <tr><td class="name">BMC_MemberOfCollection</td><td>Generic collection membership</td><td><code>memberOf</code></td></tr>
+      <tr><td class="name">BMC_OfferingMeasuredBy</td><td>Service offering linked to its KPI/measurement</td><td><code>realizes</code> (governance variant)</td></tr>
+      <tr><td class="name">BMC_SegmentsInCollection</td><td>Segments aggregated into a collection</td><td><code>memberOf</code></td></tr>
+      <tr><td class="name">BMC_ServiceRealizedByOffering</td><td>Service realized by a specific offering</td><td><code>realizes</code></td></tr>
+      <tr><td class="name">BMC_SettingsOf</td><td>Configuration settings of an element</td><td><code>composedOf</code> (settings are part-of)</td></tr>
+      <tr><td class="name">BMC_Hosted</td><td>Generic hosting (less common, specialized in subclasses)</td><td><code>runsOn</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-good">
+    <span class="tag">BMC observation</span>
+    <p>BMC's vocabulary is the closest to Fusion SaaS's in spirit: ~20 typed relationships, each with a clear semantic, anchored to DMTF CIM. The interesting design tension: BMC <em>specializes</em> per-CI-class (separate <code>BMC_IPSubnetsInCollection</code>, <code>BMC_LNsInCollection</code>, <code>BMC_SegmentsInCollection</code> rather than a single <code>memberOf</code>). Fusion SaaS achieves the same constraint via the triplet system without the vocabulary explosion.</p>
+  </div>
+
+  <!-- UCMDB -->
+  <h3 class="sub">UCMDB UDM · core <code>managed_relationship</code> subtypes</h3>
+  <p class="dim" style="font-size:0.9rem">From OpenText UCMDB 11.0 Class Model Reference / Content Pack 26.00. The root abstract is <code>managed_relationship</code>; everything inherits from it. Calculated relationships sit in a separate hierarchy.</p>
+
+  <table class="cat-table ucm">
+    <thead>
+      <tr>
+        <th style="width:30%">UCMDB CIT</th>
+        <th style="width:40%">Documented purpose</th>
+        <th style="width:30%">Fusion SaaS equivalent</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="name">composition</td><td>Strong part-of; deletes propagate to parts</td><td><code>composedOf</code></td></tr>
+      <tr><td class="name">containment</td><td>Logical containment; parts have independent identity</td><td><code>contains</code></td></tr>
+      <tr><td class="name">aggregation</td><td>UML-inspired abstract collection</td><td><code>memberOf</code></td></tr>
+      <tr><td class="name">membership</td><td>Cluster/group/pool membership</td><td><code>memberOf</code></td></tr>
+      <tr><td class="name">dependency</td><td>Generic operational dependency</td><td><code>dependsOn</code></td></tr>
+      <tr><td class="name">client_server</td><td>Client-server protocol relationship</td><td><code>dependsOn</code> (attr: protocol)</td></tr>
+      <tr><td class="name">db_link</td><td>Database-to-database link</td><td><code>dependsOn</code> (attr: db_link)</td></tr>
+      <tr><td class="name">usage</td><td>Default for non-monitoring CIs (very broad)</td><td><code>dependsOn</code> or <code>runsOn</code> by case</td></tr>
+      <tr><td class="name">execution_environment</td><td>Runtime hosting (closest direct match)</td><td><code>runsOn</code></td></tr>
+      <tr><td class="name">deployed</td><td>Software deployed onto a host</td><td><code>runsOn</code></td></tr>
+      <tr><td class="name">realization</td><td>Concrete realizes abstract (service spine)</td><td><code>realizes</code></td></tr>
+      <tr><td class="name">talk</td><td>Observed traffic between hosts</td><td><code>communicatesWith</code></td></tr>
+      <tr><td class="name">communication</td><td>Generic communication channel</td><td><code>communicatesWith</code></td></tr>
+      <tr><td class="name">connection</td><td>Network connection</td><td><code>communicatesWith</code> (attr: physical)</td></tr>
+      <tr><td class="name">backbone</td><td>Network backbone link (between switches)</td><td><code>communicatesWith</code> (attr: backbone)</td></tr>
+      <tr><td class="name">layer2_connection</td><td>L2 network adjacency</td><td><code>communicatesWith</code> (attr: layer=2)</td></tr>
+      <tr><td class="name">location</td><td>CI located in a location CI</td><td><code>locatedIn</code></td></tr>
+      <tr><td class="name">located</td><td>Variant of location</td><td><code>locatedIn</code></td></tr>
+      <tr><td class="name">ownership</td><td>Person/team accountability for a CI</td><td><code>ownedBy</code></td></tr>
+      <tr><td class="name">monitored_by</td><td>Observability instrumentation</td><td><code>manages</code> (attr: type=monitoring)</td></tr>
+      <tr><td class="name">control_relationship</td><td>Configuration management control plane</td><td><code>manages</code></td></tr>
+      <tr><td class="name">monitor_run</td><td>A monitor's specific instance on a target</td><td><code>manages</code> (instance-level)</td></tr>
+      <tr><td class="name">cluster_member</td><td>Member of a high-availability cluster</td><td><code>memberOf</code></td></tr>
+      <tr><td class="name">consumer_provider</td><td>Service consumer to provider</td><td><code>dependsOn</code> or <code>realizes</code> by direction</td></tr>
+      <tr><td class="name">applicable</td><td>Patch or update applicable to a system</td><td>handled via attribute on patch CI</td></tr>
+    </tbody>
+  </table>
+
+  <h4 class="subsub">UCMDB calculated relationships (the architectural model we mirror)</h4>
+  <table class="cat-table ucm">
+    <thead>
+      <tr>
+        <th style="width:30%">UCMDB calculated rel</th>
+        <th style="width:40%">Definition</th>
+        <th style="width:30%">Fusion SaaS equivalent</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="name">Impacted By (Directly)</td><td>Complete dependency: B's failure directly degrades A</td><td><code>impactedBy</code> (high confidence)</td></tr>
+      <tr><td class="name">Impacted By (Potentially)</td><td>Potential dependency: B's failure may degrade A under some conditions</td><td><code>impactedBy</code> (lower confidence subset)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-good">
+    <span class="tag">UCMDB observation</span>
+    <p>UCMDB is the platform Fusion SaaS's architecture is closest to: same separation of stored ground-truth from calculated impact, similar size of stored vocabulary (~25 vs. our 11), explicit hierarchy with <code>managed_relationship</code> as the abstract root. The differences worth noting: UCMDB exposes protocol-specific narrowings (<code>client_server</code>, <code>db_link</code>, <code>backbone</code>, <code>layer2_connection</code>) as edge types; we absorb these into <code>attributes</code>. UCMDB does not have a first-class succession/genealogy edge — that is one place our model is richer.</p>
+  </div>
+</section>
+
+<!-- GAPS & WINS -->
+<section class="block" id="gaps">
+  <div class="sec-num">§ 06 · Gaps and wins</div>
+  <h2 class="sec-title">What we have that they don't, and where our model needs to harden.</h2>
+  <p class="sec-lede">After mapping all 53 + 20 + 25 incumbent concepts into Fusion SaaS, three things they do that we don't (yet) emerged as worth attention — and four things we do that none of them do emerged as defensible differentiators.</p>
+
+  <h3 class="sub">Fusion SaaS wins — capabilities none of the incumbents have natively</h3>
+  <div class="gaps-grid">
+    <div class="gap-card win">
+      <span class="tag">Win 01 · Evidence as first-class</span>
+      <h4>Every edge carries its evidence source and confidence</h4>
+      <p>None of ServiceNow, BMC, or UCMDB models <code>evidenceSource</code> + <code>confidence</code> + <code>lastObserved</code> + <code>ttl</code> as standard fields on every relationship instance. They track discovery source on the CI but not on the edge. This is the foundation for Fusion SaaS's AI-native maintenance loop — and the reason we can age out stale edges automatically.</p>
+      <p class="impl">Implication: when a customer asks "what dependencies are we asserting that no probe has confirmed in the last 90 days?", we can answer in one query. None of the incumbents can.</p>
+    </div>
+    <div class="gap-card win">
+      <span class="tag">Win 02 · communicatesWith ≠ dependsOn</span>
+      <h4>Observed traffic stays distinct from asserted dependency</h4>
+      <p>Only UCMDB's <code>talk</code> CIT comes close to our <code>communicatesWith</code> as a distinct edge type. BMC collapses observed traffic into <code>BMC_Dependency</code> at sync time, losing the observation→assertion provenance. ServiceNow has overlapping types (<code>Sends data to</code>, <code>Connects to</code>, <code>Talks to</code>) but no clear semantic separation from dependency.</p>
+      <p class="impl">Implication: we can power a "promote to dependency" workflow with explicit human review, and we can show operators which dependencies are inferred-only vs. asserted-and-confirmed.</p>
+    </div>
+    <div class="gap-card win">
+      <span class="tag">Win 03 · Computed traversals beyond impact</span>
+      <h4>reaches, sharesFailureDomain, criticalPath as first-class computed edges</h4>
+      <p>All three platforms compute (or auto-maintain) impact as a derived concept — we agree there. None of them surfaces <code>reaches</code> (network reachability), <code>sharesFailureDomain</code> (redundancy planning), or <code>criticalPath</code> (business-to-infra) as queryable edge types. These are typically delegated to network monitoring or ad-hoc TQL scripts.</p>
+      <p class="impl">Implication: operators ask these questions constantly ("can my LB reach my DB?", "are my two replicas in the same blast zone?", "what runs my payment capability?"). Packaging them as first-class computed edges turns ad-hoc scripts into one-line queries.</p>
+    </div>
+    <div class="gap-card win">
+      <span class="tag">Win 04 · Triplet validation at write-time</span>
+      <h4>Schema-enforced correctness, not after-the-fact cleanup</h4>
+      <p>ServiceNow allows any rel type between any two CIs at write-time; rules are advisory ("suggested relationships") and admins routinely add custom edges. BMC enforces some validity at the IRE/identification level but only for identity-contributing edges. UCMDB has hierarchical type rules but they are not strictly enforced at API write-time.</p>
+      <p class="impl">Implication: Fusion SaaS's triplet allowlist (config-driven, PR-reviewed) is the answer to the "CMDB drift" problem that Gartner attributes to the ~80% failure rate. Edges that violate triplets are rejected, not flagged for cleanup later.</p>
+    </div>
+  </div>
+
+  <h3 class="sub">Gaps — capabilities incumbents have that v0.2 should consider</h3>
+  <div class="gaps-grid">
+    <div class="gap-card gap">
+      <span class="tag">Gap 01 · Impact directness</span>
+      <h4>UCMDB splits "Directly" from "Potentially" impacted</h4>
+      <p>UCMDB's calculated <code>Impacted By</code> has two subtypes that surface as different query results. Our <code>impactedBy</code> currently returns a flat set. For high-stakes incidents, "definitely affected" vs. "might be affected" is an operational distinction worth preserving.</p>
+      <p class="impl">Implication: see Recommendation R2 — extend <code>impactedBy</code> to surface a directness/confidence dimension in its results.</p>
+    </div>
+    <div class="gap-card gap">
+      <span class="tag">Gap 02 · Federated identity link</span>
+      <h4>BMC ships BMC_FederatedKeyLink for cross-CMDB reconciliation</h4>
+      <p>BMC models the cross-instance identity-correlation as its own edge type (<code>BMC_FederatedKeyLink</code>). Our metamodel handles this via <code>evidenceSource = identity_correlation</code>, but we don't currently store the cross-instance key relationship itself. For multi-CMDB scenarios (very large enterprises that have not yet consolidated), this is a real gap.</p>
+      <p class="impl">Implication: see Recommendation R5 — consider whether identity-correlation across federated sources warrants a separate edge type or stays as evidence metadata.</p>
+    </div>
+    <div class="gap-card gap">
+      <span class="tag">Gap 03 · Contract/financial linkage</span>
+      <h4>BMC ships BMC_ContractComponent linking contracts to infrastructure</h4>
+      <p>BMC and ServiceNow both model the contract-to-infrastructure link explicitly (BMC via <code>BMC_ContractComponent</code>, SNOW via the contract module + cmdb_rel_ci). Fusion SaaS's <code>ownedBy</code> + <code>memberOf</code> + attributes covers governance ownership but does not cleanly capture the contract→infrastructure binding needed for cost attribution and license compliance.</p>
+      <p class="impl">Implication: see Recommendation R6 — evaluate whether ITAM use cases (contract → CI binding) need a contract-specific edge in v0.2.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RECOMMENDATIONS -->
+<section class="block" id="recommendations">
+  <div class="sec-num">§ 07 · Recommendations for v0.2</div>
+  <h2 class="sec-title">Six proposed schema changes, with explicit defensibility.</h2>
+  <p class="sec-lede">Cross-validation surfaced six candidate changes — none of them invalidates the v0.1 design. Each is scored by whether it adds new semantics (R1, R5, R6), refines existing semantics (R2, R3), or hardens the metamodel (R4). All are proposed as v0.2 deltas, not v1.0-blocking issues.</p>
+
+  <div class="rec-card r-strong">
+    <div class="head"><div class="num">R · 01</div><h4>Add an explicit <code>traffic</code> evidence source to the metamodel enum</h4></div>
+    <div class="why"><span class="label-inline">Why</span>The current metamodel lists <code>traffic</code> as an evidence source for <code>communicatesWith</code>, but doesn't distinguish observed-once from sustained-traffic. UCMDB's <code>talk</code> CIT carries observation frequency as a property.</div>
+    <div class="what"><span class="label-inline">What</span>Add an <code>observation_frequency</code> attribute to <code>communicatesWith</code> with values <code>one_shot · intermittent · sustained · continuous</code>. This makes confidence scoring more accurate and lets us age out one-shot observations faster than sustained ones.</div>
+  </div>
+
+  <div class="rec-card r-critical">
+    <div class="head"><div class="num">R · 02</div><h4>Split <code>impactedBy</code> output by directness, mirroring UCMDB</h4></div>
+    <div class="why"><span class="label-inline">Why</span>UCMDB's "Directly" vs. "Potentially" split is the cleanest operational distinction in the industry. Our current flat <code>impactedBy</code> returns a single set, which conflates "this WILL fail" with "this MIGHT fail."</div>
+    <div class="what"><span class="label-inline">What</span>Without adding a new edge type, the <code>impactedBy</code> computed traversal should return results in two buckets: <code>directly</code> (path traverses only impact-bearing edges with confidence ≥ 0.85) and <code>potentially</code> (path includes at least one inferred or low-confidence edge). The metamodel stays the same; only the computed-edge resolver changes.</div>
+  </div>
+
+  <div class="rec-card r-strong">
+    <div class="head"><div class="num">R · 03</div><h4>Tighten <code>dependsOn</code> validation triplets to reject overuse</h4></div>
+    <div class="why"><span class="label-inline">Why</span>ServiceNow's <code>Depends on</code> is famously overloaded — used for everything from infra to identity to monitoring. Without strict triplet rules, our <code>dependsOn</code> drifts into the same antipattern. The community-documented drift in SNOW is the cautionary tale.</div>
+    <div class="what"><span class="label-inline">What</span>Publish an opinionated triplet rule set for <code>dependsOn</code> with explicit "do not use for" guidance: do not use for runtime hosting (use <code>runsOn</code>), do not use for observed communication without promotion (use <code>communicatesWith</code>), do not use for service-spine realization (use <code>realizes</code>). Triplets reject violations at the API boundary.</div>
+  </div>
+
+  <div class="rec-card r-consider">
+    <div class="head"><div class="num">R · 04</div><h4>Decide: keep <code>succeedsLifecycleOf</code> unified or split it</h4></div>
+    <div class="why"><span class="label-inline">Why</span>SNOW splits version-succession, DR-pairing, backup-pairing, and migration into four separate edge types. BMC keeps them unified under <code>BMC_Genealogy</code>. We currently keep them unified with a <code>relation_subtype</code> attribute. Worth one decision-log entry to confirm.</div>
+    <div class="what"><span class="label-inline">What</span>Two options: <strong>(a)</strong> keep unified and rely on the <code>relation_subtype</code> attribute (current direction — minimizes vocabulary growth), or <strong>(b)</strong> split into <code>succeedsVersionOf</code>, <code>drPairOf</code>, and <code>backupPairOf</code> as separate edges (matches SNOW, more queryable). Recommend (a) with a sharper subtype enum: <code>version | dr | backup | migration | rollback</code>.</div>
+  </div>
+
+  <div class="rec-card r-consider">
+    <div class="head"><div class="num">R · 05</div><h4>Add an explicit <code>identity_correlated_with</code> stored edge (or keep as metadata)</h4></div>
+    <div class="why"><span class="label-inline">Why</span>BMC's <code>BMC_FederatedKeyLink</code> exists because cross-CMDB reconciliation is a real workflow in large enterprises. Our metamodel handles identity-correlation as evidence metadata, but doesn't store the correlation itself as a graph object.</div>
+    <div class="what"><span class="label-inline">What</span>Open question for the team: do we need a 12th stored edge <code>identity_correlated_with</code> for cross-source federation, or does <code>evidenceSource = identity_correlation</code> on existing edges cover the use case? Recommendation: stay with metadata for v0.2; revisit if federated-CMDB customers raise it.</div>
+  </div>
+
+  <div class="rec-card r-consider">
+    <div class="head"><div class="num">R · 06</div><h4>Decide whether ITAM contract-to-CI binding needs its own edge</h4></div>
+    <div class="why"><span class="label-inline">Why</span>BMC's <code>BMC_ContractComponent</code> and ServiceNow's contract module both explicitly model contract-to-infrastructure binding. Fusion SaaS's ITAM module will need this. Currently we'd model it as <code>composedOf</code> (contract composedOf line items) + <code>ownedBy</code> (line item ownedBy infrastructure CI) — workable but indirect.</div>
+    <div class="what"><span class="label-inline">What</span>Defer to ITAM module design. If a contract→CI query is core to the cost-attribution use case, consider a 12th stored edge <code>covers</code> (Contract covers CI). For v0.2 of the SKG spec, document as a known forward consideration without adding to the catalog.</div>
+  </div>
+
+  <h3 class="sub">What is NOT recommended for v0.2</h3>
+  <ul>
+    <li><strong>Do not add direction-flip duplicates.</strong> The 13 direction-flip duplicates in SNOW's baseline (e.g., both <code>Depends on::Used by</code> AND <code>Used by::Depends on</code>) are a documented source of operator error. Our forward/reverse verb convention in the metamodel is correct.</li>
+    <li><strong>Do not add protocol-specific narrowings as new edge types.</strong> UCMDB's <code>client_server</code>, <code>db_link</code>, <code>backbone</code>, <code>layer2_connection</code> are absorbed into <code>communicatesWith</code> + <code>dependsOn</code> via the <code>attributes</code> bag. Adding them as separate types would inflate vocabulary without semantic gain.</li>
+    <li><strong>Do not add per-CI-class membership variants.</strong> BMC's <code>BMC_IPSubnetsInCollection</code>, <code>BMC_LNsInCollection</code>, <code>BMC_SegmentsInCollection</code> are exactly the vocabulary explosion we explicitly avoided. The triplet system covers this constraint cleanly.</li>
+    <li><strong>Do not store <code>impactedBy</code> as a materialized edge.</strong> BMC moved away from this between CMDB 7.5 and 7.6.03 because keeping a stored impact graph in sync with ground truth is impossible at scale. We were right to design it as computed.</li>
+  </ul>
+
+  <div class="key-insight">
+    <span class="label">Bottom line</span>
+    <p class="text">No v0.1 design choice is invalidated by this cross-validation. Six refinements are worth surfacing to the decision log; all are scoped as v0.2 deltas. Most importantly, the four computed edges — which carry our biggest differentiation claims — pass the comparison cleanly: no incumbent ships them as first-class concepts, but two of the three are <em>architecturally converging</em> on the same model (UCMDB calculated relationships; BMC's auto-maintained impact).</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="foot-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-label="Motadata">
+        <g>
+          <path d="M291.6,220.35V45.51c89.35,14.97,159.88,85.5,174.85,174.85h-174.85Z" fill="#f17463"/>
+          <path d="M469.33,260.55c-2.39,115.7-97.04,208.78-213.29,208.78S42.67,373.76,42.67,255.95c0-12.13,1.01-24.08,2.94-35.56C62.24,120.96,147.8,44.87,251.45,42.67v88.31c-54.4,2.02-99.98,39.06-114.78,89.41-3.31,11.21-5.14,23.16-5.14,35.56,0,69.01,55.78,124.98,124.52,124.98,12.31,0,24.26-1.75,35.56-5.15,49.99-14.89,86.84-60.65,88.77-115.24h88.95Z"/>
+        </g>
+      </svg>
+    </div>
+  <div class="fbrand">Motadata · Fusion SaaS</div>
+  <div class="fnote">This cross-validation document evaluates the Fusion SaaS SKG edge specification (v0.1 · 2026-05-20) against the official relationship models of ServiceNow CMDB (cmdb_rel_type baseline through Zurich), BMC Helix CDM (v23.3, BMC.CORE namespace), and OpenText UCMDB UDM (Content Pack 26.00 on UCMDB 11.0). Source platform catalogs are based on publicly documented hierarchies. The thesis: Fusion SaaS's smaller vocabulary loses no expressiveness because the three concerns the incumbents fuse — semantics, evidence, and computation — have been separated cleanly in our metamodel.</div>
+  <div class="fmeta">SKG Edge Cross-Validation · v0.1 · Internal Product Document · 2026-05-25</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.05, rootMargin: '0px 0px -30px 0px' });
+document.querySelectorAll('section.block').forEach(el => {
+  el.classList.add('fade-in');
+  observer.observe(el);
+});
+</script>
+
+</body>
+</html>

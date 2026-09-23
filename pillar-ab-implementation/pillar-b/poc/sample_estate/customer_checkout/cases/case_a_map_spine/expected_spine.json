@@ -8,61 +8,51 @@
   "version": "1",
   "nodes": [
     {
-      "ci_id": "app-runtime-jvm",
-      "ci_type": "Runtime",
-      "identity_status": "resolved"
+      "entity_id": "app-runtime-jvm",
+      "type": "process"
     },
     {
-      "ci_id": "bs-checkout",
-      "ci_type": "BusinessService",
-      "identity_status": "resolved"
+      "entity_id": "bs-checkout",
+      "type": "business_service"
     },
     {
-      "ci_id": "checkout-api",
-      "ci_type": "Service",
-      "identity_status": "resolved"
+      "entity_id": "checkout-api",
+      "type": "service"
     },
     {
-      "ci_id": "linux-server-app-01",
-      "ci_type": "Host",
-      "identity_status": "resolved"
+      "entity_id": "linux-server-app-01",
+      "type": "host"
     },
     {
-      "ci_id": "payments-db",
-      "ci_type": "Database",
-      "identity_status": "resolved"
+      "entity_id": "payments-db",
+      "type": "db"
     }
   ],
   "edges": [
     {
-      "edge_id": "e_app-runtime-jvm_runs_on_linux-server-app-01",
-      "src_ci_id": "app-runtime-jvm",
-      "relation": "runs_on",
-      "dst_ci_id": "linux-server-app-01"
+      "source_id": "app-runtime-jvm",
+      "edge_type": "RUNS_ON",
+      "target_id": "linux-server-app-01"
     },
     {
-      "edge_id": "e_checkout-api_communicates_with_payments-db",
-      "src_ci_id": "checkout-api",
-      "relation": "communicates_with",
-      "dst_ci_id": "payments-db"
+      "source_id": "checkout-api",
+      "edge_type": "COMMUNICATES_WITH",
+      "target_id": "payments-db"
     },
     {
-      "edge_id": "e_checkout-api_depends_on_payments-db",
-      "src_ci_id": "checkout-api",
-      "relation": "depends_on",
-      "dst_ci_id": "payments-db"
+      "source_id": "checkout-api",
+      "edge_type": "DEPENDS_ON",
+      "target_id": "payments-db"
     },
     {
-      "edge_id": "e_checkout-api_part_of_bs-checkout",
-      "src_ci_id": "checkout-api",
-      "relation": "part_of",
-      "dst_ci_id": "bs-checkout"
+      "source_id": "checkout-api",
+      "edge_type": "PART_OF",
+      "target_id": "bs-checkout"
     },
     {
-      "edge_id": "e_checkout-api_runs_on_linux-server-app-01",
-      "src_ci_id": "checkout-api",
-      "relation": "runs_on",
-      "dst_ci_id": "linux-server-app-01"
+      "source_id": "checkout-api",
+      "edge_type": "RUNS_ON",
+      "target_id": "linux-server-app-01"
     }
   ],
   "rejects": []

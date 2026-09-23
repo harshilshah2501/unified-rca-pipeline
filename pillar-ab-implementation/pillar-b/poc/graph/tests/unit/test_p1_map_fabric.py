@@ -20,8 +20,8 @@ from graph.maintain import (
     confidence_bearing_edges,
 )
 from graph.neighbors import neighbor_ids
-from graph.provenance import build_discovered_via
 from graph.snapshot import load_snapshot
+from graph.tests.unit.edge_fixtures import motadata_edge
 
 # ---------------------------------------------------------------------------
 # E1 Collect boundary — Pillar B simulates post-E2; Collect rejects ≠ DROPs
@@ -148,7 +148,7 @@ def test_e3_write_wave1_case_a():
     writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
     assert writer.rejects == []
     snap = writer.publish_map(MemoryDest())
-    assert any(e["relation"] == "depends_on" for e in snap["edges"])
+    assert any(e["edge_type"] == "DEPENDS_ON" for e in snap["edges"])
     assert "payments-db" in neighbor_ids(snap, "checkout-api")
 
 
@@ -164,7 +164,7 @@ def test_e3_drop_case_b_reject_codes():
         "unknown_relation",
     }
     snap = writer.publish_map(MemoryDest())
-    present = {n["ci_id"] for n in snap["nodes"]}
+    present = {n["entity_id"] for n in snap["nodes"]}
     assert "alert-1" not in present
     assert "chg-1" not in present
 
@@ -193,7 +193,7 @@ def test_e3_phased_map_noop_catalog_not_wave1():
     )
     assert writer.rejects == []
     assert len(writer.state.edges) == e0
-    assert not any(e["relation"] == "mounts" for e in writer.state.edges.values())
+    assert not any(e["edge_type"] == "MOUNTS" for e in writer.state.edges.values())
     assert len(writer.state.nodes) == n0
 
 
@@ -213,9 +213,8 @@ def test_e3_bootstrap_provenance_not_caseseed():
     writer = GraphWriter()
     writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
     for edge in writer.state.edges.values():
-        dv = edge["discovered_via"]
-        assert dv["evidence_type"] == "declared"
-        assert dv["telemetry_source"] == "topology.bootstrap"
+        assert edge["origin"] == "declared"
+        assert edge.get("telemetry_source") == "topology.bootstrap"
 
 
 # ---------------------------------------------------------------------------
@@ -287,7 +286,7 @@ def test_e5_declared_soft_and_hard_with_fixture_clock():
         if e.get("maintain_status") == MAINTAIN_HARD_DOWNGRADED
     ]
     assert hard_edges
-    assert all(e["discovered_via"]["confidence"] == "n/a" for e in hard_edges)
+    assert all(e.get("origin") == "declared" for e in hard_edges)
     bearing = confidence_bearing_edges(writer.state)
     assert all(e.get("maintain_status") != MAINTAIN_HARD_DOWNGRADED for e in bearing)
     # Soft/hard mark — do not delete declared edges from the published map.
@@ -298,17 +297,13 @@ def test_e5_maintain_does_not_create_edges():
     from graph.graph_builder import GraphState
 
     state = GraphState()
-    state.edges["e_decl"] = {
-        "schema_version": "graph_edge.v1",
-        "tenant": "default",
-        "edge_id": "e_decl",
-        "src_ci_id": "a",
-        "dst_ci_id": "b",
-        "relation": "depends_on",
-        "discovered_via": build_discovered_via("declared"),
-        "valid_from": "2026-01-01T00:00:00Z",
-        "valid_to": None,
-    }
+    state.edges["e_decl"] = motadata_edge(
+        source_id="a",
+        target_id="b",
+        edge_id=99,
+        valid_from="2026-01-01T00:00:00Z",
+        origin="declared",
+    )
     before = set(state.edges.keys())
     apply_declared_freshness(state, "2026-03-01T00:00:00Z")
     assert set(state.edges.keys()) == before
@@ -321,7 +316,7 @@ def test_e5_version_bump_reflush_still_walkable():
     dest = MemoryDest()
     before = writer.publish_map(dest, version="1")
     for edge in writer.state.edges.values():
-        if edge.get("discovered_via", {}).get("telemetry_source") == "apm":
+        if edge.get("telemetry_source") == "apm":
             edge["valid_to"] = "2026-08-20T03:00:00Z"
             break
     stats = writer.maintain_map("2026-08-20T04:00:00Z")
