@@ -6,6 +6,8 @@
 **Build order:** **Federated pipeline first (F1)**, then **Lean bundle writer (L0)** from the **same** normalized stream  
 **Related:** [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) §3.4 · [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · HLD v1.1 [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §11.1 · [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) (Normalize) · spoken **fact kind** notes: [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md)
 
+> **Pillar A/B writer fan-out (2026-09-23):** Motadata GraphWriter / SketchWriter target wire is now **`writer_stream.v1`** (optional blocks, **no `fact_kind`**) with per-writer regulators — see [`../pillar-ab-implementation/contracts/WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md). This page remains the corpus / Collect normalization contract for `ingest.v1` fixtures until that migration lands everywhere.
+
 ---
 
 ## 1. One canonical format (target)

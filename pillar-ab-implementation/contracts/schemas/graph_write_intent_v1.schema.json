@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observeops.local/schemas/graph_write_intent_v1.schema.json",
+  "title": "graph_write_intent.v1",
+  "description": "Output of GraphRegulator: the projected topology write GraphWriter consumes. Built only when writer_stream.v1.topology has relation+src_ci_id+dst_ci_id and identity.status=resolved. Relation is Fusion camelCase; Dest graph_edge.v1 Motadata SCREAMING_SNAKE mapping is RELATION_MAPPING.md (follow-on at publish).",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tenant",
+    "ts",
+    "relation",
+    "src_ci_id",
+    "dst_ci_id",
+    "identity",
+    "evidenceSource"
+  ],
+  "properties": {
+    "schema_version": { "const": "graph_write_intent.v1" },
+    "tenant": { "type": "string", "minLength": 1 },
+    "ts": { "type": "string", "minLength": 1 },
+    "relation": {
+      "type": "string",
+      "enum": [
+        "composedOf",
+        "contains",
+        "runsOn",
+        "dependsOn",
+        "communicatesWith",
+        "realizes",
+        "memberOf",
+        "manages",
+        "ownedBy",
+        "locatedIn",
+        "succeedsLifecycleOf"
+      ]
+    },
+    "src_ci_id": { "type": "string", "minLength": 1 },
+    "dst_ci_id": { "type": "string", "minLength": 1 },
+    "src_ci_type": { "type": "string" },
+    "dst_ci_type": { "type": "string" },
+    "identity": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "const": "resolved" },
+        "bind_source": { "type": "string" },
+        "aliases": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "evidenceSource": {
+      "type": "string",
+      "enum": [
+        "agent",
+        "api",
+        "discovery",
+        "iac",
+        "identity_correlation",
+        "service_mapping_session",
+        "traffic",
+        "log_inference",
+        "ai_inferred",
+        "manual"
+      ]
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "lastObserved": { "type": "string" },
+    "ttl": { "type": ["string", "null"] },
+    "lifecycleSubtype": {
+      "type": "string",
+      "enum": ["version", "dr", "backup", "migration", "rollback"]
+    },
+    "attributes": { "type": "object", "additionalProperties": true },
+    "source_stream_ref": {
+      "type": "string",
+      "description": "Optional correlator back to the writer_stream.v1 line (id, offset, hash)."
+    }
+  },
+  "additionalProperties": false
+}

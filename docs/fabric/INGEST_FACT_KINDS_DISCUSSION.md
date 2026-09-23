@@ -1,6 +1,6 @@
 # Ingest fact kinds — discussion notes (team)
 
-**Status:** Wire key on `ingest.v1` is **`fact_kind`**.  
+**Status:** Wire key on legacy `ingest.v1` is **`fact_kind`**. Pillar A/B writer fan-out is superseding that router enum with `writer_stream.v1` presence predicates ([`WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md)).  
 **Spoken name:** **fact kind** (or **line kind**) — a router label for who should care about the line, not “Detect signal” and not MELTS letter codes.
 
 **Normative contracts:** [`INGEST_DATA_FORMAT.md`](../INGEST_DATA_FORMAT.md) §2 · [`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md) · schema [`ingest_v1.schema.json`](../../pillar-ab-implementation/contracts/schemas/ingest_v1.schema.json).  

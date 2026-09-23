@@ -143,11 +143,15 @@
   <div class="band">
     <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md">
       <strong>Team walkthrough</strong>
-      <span>Demo script · admit · fact kinds · run</span>
+      <span>Demo script · admit · run · writer_stream note</span>
+    </a>
+    <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">
+      <strong>Writer regulator</strong>
+      <span>writer_stream.v1 · no fact_kind · intents</span>
     </a>
     <a href="/pillar-ab-implementation/pillar-b/docs/PILLAR_B_POC_CHAT_QNA.md">
       <strong>Session Q&amp;A</strong>
-      <span>Wire · fact kinds · production topo · interleaved stream</span>
+      <span>Wire · fact kinds · writer_stream supersession</span>
     </a>
     <a href="/pillar-ab-implementation/pillar-b/docs/INTERLEAVED_FACT_KIND_SCENARIO.md">
       <strong>Interleaved scenario</strong>
@@ -155,7 +159,7 @@
     </a>
     <a href="/pillar-b-stream-graph-demo.html">
       <strong>Stream → graph demo</strong>
-      <span>Split UI · Back/Forward · map grows on WRITE only</span>
+      <span>Legacy fact_kind tape · map grows on WRITE</span>
     </a>
     <a href="/pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md">
       <strong>MAP_P1 fabric eval</strong>
@@ -209,7 +213,7 @@
       <tr><th>Concern</th><th>Stance in this PoC</th></tr>
     </thead>
     <tbody>
-      <tr><td>E1 Collect / E2 Identity</td><td>Assumed done — fixtures look like post-E2 <code>ingest.v1</code></td></tr>
+      <tr><td>E1 Collect / E2 Identity</td><td>Assumed done — lab fixtures still look like post-E2 <code>ingest.v1</code>; target writer wire is <code>writer_stream.v1</code></td></tr>
       <tr><td>Pillar A sketches / <code>history/</code></td><td>Out of package; optional <code>sketch_provider</code> hook only</td></tr>
       <tr><td>Detect Signal storm</td><td>Stub JSON under <code>cases/stub_case_path/</code></td></tr>
       <tr><td>CaseSeed / WorkingSet / LeafClaim</td><td>Thin drivers that call walk APIs — not a second product</td></tr>

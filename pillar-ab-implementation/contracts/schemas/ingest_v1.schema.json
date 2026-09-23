@@ -2,7 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://observeops.local/schemas/ingest_v1.schema.json",
   "title": "ingest.v1",
-  "description": "Identified ingest line consumed by Pillar A/B writers. Subset of fields writers care about.",
+  "deprecated": true,
+  "description": "DEPRECATED — superseded by writer_stream.v1 (no fact_kind; optional topology/metric/event/span/anomaly blocks). See WRITER_REGULATOR.md. Kept for lab fixtures and the stream→graph demo until migrated. Identified ingest line historically consumed by Pillar A/B writers via fact_kind routing.",
   "type": "object",
   "required": ["schema_version", "ts", "tenant", "ci_id", "fact_kind"],
   "properties": {
@@ -13,7 +14,8 @@
     "ci_type": { "type": "string" },
     "fact_kind": {
       "type": "string",
-      "enum": ["metric_sample", "anomaly", "event", "trace_span", "topo_update"]
+      "enum": ["metric_sample", "anomaly", "event", "trace_span", "topo_update"],
+      "description": "Legacy router enum. Do not stamp on new writer_stream.v1 lines."
     },
     "name": { "type": "string" },
     "metric_id": { "type": "string" },

@@ -2,7 +2,9 @@
 
 **Audience:** teammates seeing this package for the first time (demo or review).  
 **Package:** Motadata ObserveOps **Pillar B** — knowledge graph / topology writer and walk APIs under Dest room `map/`.  
-**Sibling (not this demo):** Pillar A sketch writer → `history/` (same post-Identity stream, different `fact_kind`).
+**Sibling (not this demo):** Pillar A sketch writer → `history/` (same post-Identity stream; SketchRegulator projects metric blocks).
+
+**Wire supersession (2026-09-23):** New writer fan-out uses **`writer_stream.v1`** (optional `topology` / `metric` / … blocks, **no `fact_kind`**) plus per-writer regulators → `graph_write_intent.v1` / `sketch_admit_intent.v1`. See [`../../contracts/WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md). Lab tapes and the stream→graph demo still show legacy `ingest.v1` + `fact_kind` until migrated.
 
 If you only open one page before the meeting, make it **this file**. Framing + layers on the hub: [`pillar-b-poc-hub.html`](../../../docs/fabric/pillar-b-poc-hub.html) ([`:8765/pillar-b-poc-hub.html`](http://127.0.0.1:8765/pillar-b-poc-hub.html)). Optional Cursor panel: Command Palette → **Open Canvas** → `pillar-b-poc-navigator`.
 
@@ -23,8 +25,8 @@ If you only open one page before the meeting, make it **this file**. Framing + l
 
 ## 2. Fifteen-minute demo script
 
-1. **Spine story** — After Identity, Motadata fans out: Topology (Pillar B) ∥ Stores (Pillar A). Both read `ingest.v1`; B admits only `topo_update`. Identity / validity / provenance: §5.  
-2. **Stream → graph demo** — open [`pillar-b-stream-graph-demo.html`](http://127.0.0.1:8765/pillar-b-stream-graph-demo.html); step Forward/Back through the interleaved tape (left = current line, right = `map/`).  
+1. **Spine story** — After Identity, Motadata fans out: Topology (Pillar B) ∥ Stores (Pillar A). Target wire is `writer_stream.v1` (regulators, no `fact_kind`); lab demo still shows legacy `ingest.v1` admit. Identity / validity / provenance: §5.  
+2. **Stream → graph demo** — open [`pillar-b-stream-graph-demo.html`](http://127.0.0.1:8765/pillar-b-stream-graph-demo.html); step Forward/Back through the interleaved tape (left = current line, right = `map/`). Note the banner: demo tape is still `fact_kind` teaching until migrated.  
 3. **Show sample tape** — `poc/sample_estate/customer_checkout/stream.resolved.jsonl` (WRITE) and `stream.reject.jsonl` (NOOP + DROP).  
 4. **Run** — from `pillar-b/poc`: `make install && make test-all` (optional `make publish-map` → `out/default/map/`).  
 5. **Open published map** — `graph_snapshot.json` + `nodes.jsonl` + `edges.jsonl` (note Motadata `entity_id` / `edge_type` / Snowflake `edge_id`; tenant on the snapshot envelope only).
@@ -40,13 +42,16 @@ If you only open one page before the meeting, make it **this file**. Framing + l
 
 | Layer | What it is |
 |-------|------------|
-| **`ingest.v1`** | **Schema / wire contract** — required fields + `fact_kind` enum ([`INGEST_DATA_FORMAT.md`](../../../docs/INGEST_DATA_FORMAT.md), schema `ingest_v1.schema.json`) |
-| **Production stream** | Continuous post-E2 feed of those lines (bus product choice — NATS optional; HLD does not lock the brand) |
+| **`writer_stream.v1` (current)** | Common post-E2 stream — **no `fact_kind`**; optional blocks; regulators infer ([`WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md), [`writer_stream_v1.schema.json`](../../contracts/schemas/writer_stream_v1.schema.json)) |
+| **`ingest.v1` (legacy)** | Deprecated wire with required `fact_kind` — still used by lab JSONL + stream→graph demo until migrated |
+| **Production stream** | Continuous post-E2 feed (bus product choice — NATS optional; HLD does not lock the brand) |
 | **This PoC’s stand-in** | Files under `poc/sample_estate/customer_checkout/` — especially `stream.resolved.jsonl` (Case A WRITE) and `stream.reject.jsonl` (Case B DROP/NOOP) |
 
 Estate layout and every file’s job: [`../poc/sample_estate/customer_checkout/README.md`](../poc/sample_estate/customer_checkout/README.md).
 
-### Where the five `fact_kind` values came from
+### Where the five `fact_kind` values came from (legacy lab wire)
+
+> **Superseded for new writer work.** Regulators now key on optional blocks on `writer_stream.v1` ([`WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md)). Keep reading this subsection to understand why the **lab demo / fixtures** still use `fact_kind`.
 
 They are **not** Motadata inventing five random labels. They come from freezing **one JSONL wire** that must feed both:
 

@@ -270,6 +270,13 @@
 <div class="wrap article sg-demo">
   <p class="eyebrow">Pillar B PoC · demo</p>
   <h1>Stream → knowledge graph</h1>
+  <p class="lead" style="border-left:3px solid var(--accent);padding-left:.75rem;margin-bottom:.85rem">
+    <strong>Legacy teaching tape.</strong> Contract of record is now
+    <code>writer_stream.v1</code> (optional <code>topology</code> / <code>metric</code> blocks, <strong>no</strong>
+    <code>fact_kind</code>) with per-writer regulators → intents — see
+    <a href="../pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a>.
+    This page still steps the older <code>ingest.v1</code> + <code>fact_kind</code> estate tape until fixtures migrate.
+  </p>
   <p class="lead">
     Step through estate <strong>bootstrap</strong> (CI nodes), then the interleaved <code>ingest.v1</code> tape.
     Left: the current action (bootstrap payload, or one flat wire JSON with keys marked common vs
@@ -280,7 +287,7 @@
   <ul class="sg-rules">
     <li><strong>Bootstrap</strong> — known CIs (vertices) before the stream</li>
     <li><strong>One wire</strong> after Identity</li>
-    <li><strong>Writers filter</strong> by <code>fact_kind</code></li>
+    <li><strong>Writers filter</strong> by <code>fact_kind</code> <em>(legacy demo)</em> → target: presence predicates</li>
     <li><strong>Each WRITE</strong> adds one <code>relation</code> edge</li>
     <li><strong>Span ≠ edge</strong> until a separate topo emitter</li>
   </ul>

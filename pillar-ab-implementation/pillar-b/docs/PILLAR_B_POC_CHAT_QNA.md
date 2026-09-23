@@ -14,8 +14,9 @@
 | [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) | Framing, layers, canvas → `:8765` doors |
 | [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md) | What “done” means for build/walk |
 | [`MAP_P2_CASE_PATH.md`](./MAP_P2_CASE_PATH.md) · [`MAP_P3_DIAGNOSE_CLOSE.md`](./MAP_P3_DIAGNOSE_CLOSE.md) | Optional stub harnesses (not core mission) |
-| [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md) | Every `fact_kind` with examples |
-| [`../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md`](../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md) | Logs → `event`; spoken vs wire |
+| [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md) | Every `fact_kind` with examples (legacy lab wire) |
+| [`../../contracts/WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md) | **Current** post-E2 writer fan-out — `writer_stream.v1`, no `fact_kind` |
+| [`../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md`](../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md) | Logs → `event`; spoken vs wire (legacy) |
 | [`../../../docs/observeops/LLD-E4-Stores.md`](../../../docs/observeops/LLD-E4-Stores.md) | Motadata `history/` = metrics sketches; dual-path E4 |
 | [`../../contracts/MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md) | Dest `map/` write/read |
 | [`../../contracts/GRAPH_QNA.md`](../../contracts/GRAPH_QNA.md) | Broader fabric contract Q&A (E1–E5) |
@@ -30,7 +31,7 @@
 4. [Call graphs (build vs walk)](#4-call-graphs-build-vs-walk)
 5. [Wire contract, production stream, and sample estate](#5-wire-contract-production-stream-and-sample-estate)
 6. [GraphWriter input/output contracts and all JSON/JSONL files](#6-graphwriter-inputoutput-contracts-and-all-jsonjsonl-files)
-7. [Fact kinds (`fact_kind`) — origin, rename, logs, nomenclature](#7-fact-kinds-fact_kind--origin-rename-logs-nomenclature)
+7. [Fact kinds (`fact_kind`) — origin, rename, logs, nomenclature](#7-fact-kinds-fact_kind--origin-rename-logs-nomenclature) (legacy; see §16)
 8. [Admit triage: NOOP / WRITE / DROP / phased skip](#8-admit-triage-noop--write--drop--phased-skip)
 9. [Production: other kinds that imply topology](#9-production-other-kinds-that-imply-topology)
 10. [Interleaved multi-kind stream (worked example)](#10-interleaved-multi-kind-stream-worked-example)
@@ -39,7 +40,8 @@
 13. [Docs hub, canvases, naming hygiene, package layout](#13-docs-hub-canvases-naming-hygiene-package-layout)
 14. [Editor / IDE notes from the same chat](#14-editor--ide-notes-from-the-same-chat)
 15. [Consumers of `event` / `anomaly` / `trace_span` (Triage + Diagnose)](#15-consumers-of-event--anomaly--trace_span-triage--diagnose)
-16. [Chronological topic index](#16-chronological-topic-index)
+16. [Writer stream supersession (no `fact_kind`)](#16-writer-stream-supersession-no-fact_kind)
+17. [Chronological topic index](#17-chronological-topic-index)
 
 ---
 
@@ -815,7 +817,33 @@ The [stream → graph demo](../../../docs/fabric/pillar-b-stream-graph-demo.html
 
 ---
 
-## 16. Chronological topic index
+## 16. Writer stream supersession (no `fact_kind`)
+
+### Q53. What replaced `ingest.v1` + `fact_kind` for writer fan-out?
+
+**A.** Locked 2026-09-23 — **superseding**, not a parallel draft:
+
+| Lock | Decision |
+|------|----------|
+| Common wire | One post-E2 JSON stream: **`writer_stream.v1`** |
+| Router enum | **No `fact_kind`** — writers infer from optional blocks present |
+| Shape | Explicit optional blocks: `topology`, `metric`, `event`, `span`, `anomaly` |
+| Regulators | Per-writer orchestrator projects an intent (`graph_write_intent.v1` / `sketch_admit_intent.v1`) |
+| Graph admit | `topology.relation` + `src_ci_id` + `dst_ci_id` **and** `identity.status = resolved` (MUST) |
+| Dual line | One object may carry both `topology` and `metric` — **both regulators fire** |
+| Vocabulary | Fusion **eleven** camelCase on the wire + [`RELATION_MAPPING.md`](../../contracts/RELATION_MAPPING.md) → Motadata Dest fifteen |
+| Deliverable | Wire + intents now; Dest `graph_*.v1` Fusion refresh is follow-on |
+| Lab / demo | Still teach legacy `fact_kind` until fixtures migrate |
+
+Normative: [`WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md) · schemas under [`../../contracts/schemas/`](../../contracts/schemas/).
+
+### Q54. Does this break today’s PoC GraphWriter?
+
+**A.** Not yet at runtime. Code and JSONL still admit on `fact_kind == topo_update`. Contracts mark `ingest.v1` **deprecated**; TEAM_WALKTHROUGH and the stream→graph demo call out the supersession so docs do not fight the new wire. Fixture + writer code migration is the next implementation step; Dest Motadata SCREAMING_SNAKE edges stay until Dest schemas are refreshed.
+
+---
+
+## 17. Chronological topic index
 
 Use this to verify coverage against the chat. Numbers are approximate order in the recovered session.
 
@@ -859,6 +887,7 @@ Use this to verify coverage against the chat. Numbers are approximate order in t
 | 36 | This Q&A document | (this file) |
 | 37 | Who consumes `event` / `anomaly` / `trace_span` and **how** (not A/B NOOP) | §15 |
 | 38 | Do anomaly / span land in E4 “evidence history” for Triage + Diagnose? | §15 |
+| 39 | `writer_stream.v1` supersedes `fact_kind`; regulators + intents; Fusion camelCase map | §16 |
 
 ---
 
@@ -869,3 +898,4 @@ Use this to verify coverage against the chat. Numbers are approximate order in t
 | 2026-09-22 | Initial session Q&A (shorter) |
 | 2026-09-22 | **Expanded to comprehensive capture** — restore/Identity context, increments/films, call graphs, full I/O inventory, rename radius + `telemetry_kind` rejection, hub/canvas hygiene, walk test bands, interleaved stream, chronological index |
 | 2026-09-23 | **§15** — who consumes `event` / `anomaly` / `trace_span` and **how**; E4 sketch `history/` vs sibling evidence stores for Triage + Diagnose (Q50–Q52) |
+| 2026-09-23 | **§16** — `writer_stream.v1` / regulator / intent supersession of `fact_kind` (Q53–Q54); chronological renumbered to §17 |
