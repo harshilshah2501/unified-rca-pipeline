@@ -34,6 +34,7 @@ REQUIRED = frozenset(
         "writer_stream_v1.schema.json",
         "graph_write_intent_v1.schema.json",
         "sketch_admit_intent_v1.schema.json",
+        "map_snapshot_manifest_v1.schema.json",
     }
 )
 

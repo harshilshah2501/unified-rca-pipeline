@@ -71,10 +71,12 @@ Suggested order: **package README → TEAM_WALKTHROUGH → PILLAR_B_POC_CHAT_QNA
 
 | Doc | Why |
 |-----|-----|
-| [`../../contracts/MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md) | What lands under `map/` |
+| [`../../contracts/MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md) | What lands under `map/` — PoC `files.v1` + Motadata `vortex_s3.v1` (document map at top) |
+| [`../../contracts/GATE_B_DEST_PROFILE.md`](../../contracts/GATE_B_DEST_PROFILE.md) | Dest profile (`files.v1` vs `vortex_s3.v1`) |
 | [`../../contracts/IDENTIFIED_STREAM_REJECT.md`](../../contracts/IDENTIFIED_STREAM_REJECT.md) | DROP reason codes |
 | [`../../contracts/EDGE_TRIPLET_ALLOWLIST.md`](../../contracts/EDGE_TRIPLET_ALLOWLIST.md) | Legal `(src, relation, dst)` pairs |
-| [`../../contracts/GATE_B_DEST_PROFILE.md`](../../contracts/GATE_B_DEST_PROFILE.md) | Dest profile |
+| [`vortex_engineering_mystery_revised_v2.pdf`](./vortex_engineering_mystery_revised_v2.pdf) | Owner Vortex columnar notes (DType · Array · Layout · VTXF) |
 | [`../../contracts/GRAPH_QNA.md`](../../contracts/GRAPH_QNA.md) | Fabric Q&A |
+| Hub visuals | [Vortex+S3](http://127.0.0.1:8765/vortex-s3-interaction.html) · [formats](http://127.0.0.1:8765/storage-formats-vortex-parquet-lance.html) · [Pillar B PoC hub § Dest](http://127.0.0.1:8765/pillar-b-poc-hub.html#dest-vortex-s3) |
 | [`../../../docs/observeops/LLD-E3-Topology.md`](../../../docs/observeops/LLD-E3-Topology.md) | Topology LLD |
 | [`../../../docs/observeops/LLD-E5-Maintain.md`](../../../docs/observeops/LLD-E5-Maintain.md) | Maintain Design stub |

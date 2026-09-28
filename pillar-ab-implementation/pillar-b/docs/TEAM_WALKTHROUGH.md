@@ -53,7 +53,7 @@ Estate layout and every file’s job: [`../poc/sample_estate/customer_checkout/R
 
 **Target (new writer work):** [`WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md) — `writer_stream.v1` optional blocks; GraphRegulator / SketchRegulator; **no `fact_kind`**.
 
-**Lab PoC today:** fixtures and the stream→graph demo still use deprecated `ingest.v1` with `fact_kind`. GraphWriter admits `topo_update`; SketchWriter admits `metric_sample`; other kinds NOOP. Logs land as `event` on that legacy enum ([`INGEST_DATA_FORMAT.md`](../../../docs/INGEST_DATA_FORMAT.md) §5). Cheat sheet for lab lines: [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md).
+**Lab PoC today:** fixtures and the stream→graph demo still use deprecated `ingest.v1` with `fact_kind`. GraphWriter admits `topo_update`; SketchWriter admits `metric_sample`; other kinds NOOP. Target wire: presence blocks on `writer_stream.v1` ([`WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md)). Cheat sheet: [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md#writer-stream-presence-cheat-sheet).
 
 ```text
                 writer_stream.v1   (target — no fact_kind)

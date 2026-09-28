@@ -11,13 +11,16 @@ Shared wire and Dest schemas for Motadata ObserveOps Pillar A (sketches → `his
 | [`schemas/sketch_admit_intent_v1.schema.json`](./schemas/sketch_admit_intent_v1.schema.json) | SketchRegulator → SketchWriter |
 | [`WRITER_REGULATOR.md`](./WRITER_REGULATOR.md) | Presence predicates, dual-fire rules, supersession notes |
 | [`RELATION_MAPPING.md`](./RELATION_MAPPING.md) | Fusion camelCase eleven ↔ Motadata Dest fifteen |
-| [`EDGE_TRIPLET_ALLOWLIST.md`](./EDGE_TRIPLET_ALLOWLIST.md) | Wave-1 legal `(src_type, relation, dst_type)` + why invalid |
+| [`EDGE_TRIPLET_ALLOWLIST.md`](./EDGE_TRIPLET_ALLOWLIST.md) | Legal `(src_type, relation, dst_type)` for all fifteen Motadata relations |
+| [`MAP_WRITE_READ_RECORD.md`](./MAP_WRITE_READ_RECORD.md) | `map/` Dest keys: PoC `files.v1` + Motadata `vortex_s3.v1` (Vortex memory, S3 chunks, Rust action items) |
+| [`GATE_B_DEST_PROFILE.md`](./GATE_B_DEST_PROFILE.md) | Dest profile switch (`files.v1` vs `vortex_s3.v1`) |
 
 ## Legacy / Dest (still in use)
 
 | Artifact | Role |
 |----------|------|
 | [`schemas/ingest_v1.schema.json`](./schemas/ingest_v1.schema.json) | **Deprecated** for writer routing — lab fixtures + stream→graph demo until migrated |
-| `graph_node` / `graph_edge` / `graph_snapshot` | Dest `map/` publish shapes (Motadata SCREAMING_SNAKE edges) — Fusion Dest refresh is follow-on |
+| `graph_node` / `graph_edge` / `graph_snapshot` | Dest `map/` row shapes (Motadata SCREAMING_SNAKE edges) |
+| [`schemas/map_snapshot_manifest_v1.schema.json`](./schemas/map_snapshot_manifest_v1.schema.json) | Cold snapshot chunk index for `vortex_s3.v1` |
 
 Schemas live only here. Package trees (`pillar-a|b/integration`) must **not** mirror this folder — validators load this path directly.

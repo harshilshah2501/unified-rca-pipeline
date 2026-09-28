@@ -18,6 +18,34 @@ def test_runs_on_service_to_service_illegal():
     assert reason == rc.ILLEGAL_EDGE_TRIPLET
 
 
+def test_runs_on_host_as_source_illegal():
+    """Substrate cannot runs_on a guest (host → service/pod/…)."""
+    for dst in ("service", "pod", "process", "container"):
+        action, reason = check_edge_triplet("runs_on", "host", dst)
+        assert action == "reject", dst
+        assert reason == rc.ILLEGAL_EDGE_TRIPLET
+
+
+def test_hosted_on_host_to_process_illegal():
+    action, reason = check_edge_triplet("hosted_on", "host", "process")
+    assert action == "reject"
+    assert reason == rc.ILLEGAL_EDGE_TRIPLET
+
+
+def test_hosted_on_host_to_service_or_pod_illegal():
+    for dst in ("service", "pod", "container"):
+        action, reason = check_edge_triplet("hosted_on", "host", dst)
+        assert action == "reject", dst
+        assert reason == rc.ILLEGAL_EDGE_TRIPLET
+
+
+def test_part_of_same_type_illegal():
+    for t in ("host", "service", "pod", "process", "db"):
+        action, reason = check_edge_triplet("part_of", t, t)
+        assert action == "reject", t
+        assert reason == rc.ILLEGAL_EDGE_TRIPLET
+
+
 def test_depends_on_service_to_host_illegal_use_runs_on():
     action, reason = check_edge_triplet("depends_on", "service", "host")
     assert action == "reject"

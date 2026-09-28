@@ -20,23 +20,27 @@ Interface: `Dest.put(room, key, bytes)` / `Dest.get(room, key)`.
 
 `room` is `map` or `history`. Writers never write edges into sketch rows.
 
-**Normative map write/read detail:** [`MAP_WRITE_READ_RECORD.md`](./MAP_WRITE_READ_RECORD.md) (JSON encoding, keys, Vortex/S3 later).
+**Normative map write/read detail:** [`MAP_WRITE_READ_RECORD.md`](./MAP_WRITE_READ_RECORD.md) — PoC `files.v1` (§3); Motadata **`vortex_s3.v1`** (§6): columnar `.vortex` parts (VTXF postscript + layout metadata), ObserveOps snapshot manifest, read caches, Rust action items. Walkthrough notes: [`pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf`](../pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf).
 
-## Later profiles (not implemented in this PoC)
+## Motadata profile: `vortex_s3.v1` (design; not wired in PoC)
 
-| Profile | Encoding | When |
-|---------|----------|------|
-| Vortex | Same JSON fields, columnar / protobuf later | After Signed field tables |
-| S3 | Same objects, partitioned keys | Cold archive of the same rooms |
+| Tier | Job |
+|------|-----|
+| Hot | Vortex Arrays (columnar, often still encoded) + application adjacency for walks |
+| Cold | Immutable `.vortex` files on S3; each file has its own layout metadata + postscript; ObserveOps `manifest.json` + `latest.json` index the snapshot |
 
-Logical keys do not change when the profile changes:
+Same logical keys as above. Pointer: `map/<tenant>/latest.json` → snapshot `version`.
+
+**Footers:** Vortex writer owns per-file metadata/postscript; ObserveOps owns snapshot `manifest.json`. Details: [`MAP_WRITE_READ_RECORD.md`](./MAP_WRITE_READ_RECORD.md) §6.4.
+
+## Logical keys (stable across profiles)
 
 - Sketch: `(tenant, entity_id, metric_id, window, season_key, window_start)`
 - Node: `(Dest tenant, entity_id)` — tenant from path / snapshot envelope only
 - Edge: upsert `(source_id, edge_type, target_id)`; Motadata snowflake `edge_id`
-- Snapshot: `(tenant, version)` packaged; PoC read convenience key = `graph_snapshot.json`
+- Snapshot: `(tenant, version)` packaged; PoC read convenience key = `graph_snapshot.json`; Motadata cold pointer = `latest.json`
 - Change fact: `(tenant, change_id)` linked by ingest `ci_id` + `occurred_at`
 
 ## Independence
 
-Pillar A and Pillar B share this dest interface via `ab_shared.dest`. Neither pillar imports the other. A Vortex adapter would implement the same `Dest` protocol.
+Pillar A and Pillar B share this dest interface via `ab_shared.dest`. Neither pillar imports the other. A Vortex / S3 adapter implements the same `Dest` protocol.

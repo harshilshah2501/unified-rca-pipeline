@@ -859,7 +859,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   <div class="ioChain">
     <a href="/docs/INGEST_DATA_FORMAT.md"><span class="ioLbl">I/O-1</span>Ingest data format</a>
     <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md"><span class="ioLbl">I/O-2</span>Post-E2 fixtures</a>
-    <a href="/docs/MAP_WRITE_READ_RECORD.md"><span class="ioLbl">I/O-3</span>Map write/read (Pillar B)</a>
+    <a href="/docs/MAP_WRITE_READ_RECORD.md"><span class="ioLbl">I/O-3</span>Map write/read · vortex_s3</a>
     <a href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md"><span class="ioLbl">I/O-4</span>Pillar A deep dive</a>
   </div>
 
@@ -876,6 +876,8 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     <a href="/pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md"><strong>Codebase go-through</strong><span>Module tour + spine</span></a>
     <a href="/pillar-ab-implementation/pillar-b/docs/README.md"><strong>Pillar B doc map</strong><span>Reading order in package</span></a>
     <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md"><strong>Writer regulator</strong><span>writer_stream.v1 · no fact_kind</span></a>
+    <a href="/docs/MAP_WRITE_READ_RECORD.md"><strong>Map write/read</strong><span>files.v1 + vortex_s3.v1</span></a>
+    <a href="/pillar-b-poc-hub.html#dest-vortex-s3"><strong>Dest Vortex+S3</strong><span>Hub band · contracts</span></a>
     <a href="#graphwriter"><strong>GraphWriter tab</strong><span>Hub visual · NOOP/WRITE/DROP</span></a>
   </div>
   <p style="margin:.35rem 0 0;font-size:.85rem;color:var(--muted);">
@@ -955,15 +957,32 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
       <h3>Graph + sketch contract</h3>
       <p>CI catalog, fifteen edges, <code>sketch.v1</code> row shape — what the room must sign.</p>
     </a>
+    <a class="card" href="/docs/MAP_WRITE_READ_RECORD.md">
+      <div class="k kickoff">I/O-3</div>
+      <h3>Map write/read record</h3>
+      <p>PoC <code>files.v1</code> + Motadata <code>vortex_s3.v1</code>: columnar <code>.vortex</code>, footers, caches, Rust action items.</p>
+    </a>
     <a class="card" href="/vortex-s3-interaction.html">
       <div class="k compare">Dest temperature</div>
       <h3>Vortex + S3 interaction</h3>
       <p>Rooms vs temperature; query layer → WorkingSet; same schema, different role.</p>
     </a>
+    <a class="card" href="/storage-formats-vortex-parquet-lance.html">
+      <div class="k compare">Encodings</div>
+      <h3>Vortex · Parquet · Lance</h3>
+      <p>Columnar product vs file formats on S3 — companion to Vortex+S3.</p>
+    </a>
+    <a class="card" href="/pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md">
+      <div class="k kickoff">Dest profile</div>
+      <h3>Gate B dest profile</h3>
+      <p><code>files.v1</code> lab vs <code>vortex_s3.v1</code> Motadata layout.</p>
+    </a>
   </div>
   <p class="note" style="margin-top:.75rem;">
     More Tier 2: <a href="/map-history-storage-animation.html">room animation</a> ·
     <a href="/fabric/SIMULATION_THREAD.md">simulation locks</a> ·
+    <a href="/pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md">edge triplet allowlist</a> ·
+    <a href="/pillar-ab-implementation/pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf">Vortex engineering notes (PDF)</a> ·
     <a href="/hld-archive.html">full archive</a> (searchable, tier tags).
   </p>
 
@@ -2187,7 +2206,7 @@ make install &amp;&amp; make flush
     (flat hub URL <a href="/graphwriter-io-walkthrough.html"><code>/graphwriter-io-walkthrough.html</code></a>).
     Package docs: <a href="/pillar-ab-implementation/pillar-b/docs/README.md">pillar-b/docs/</a>.
     Sample I/O: <a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/SAMPLE_IO.md">SAMPLE_IO.md</a> ·
-    Post-E2 router: <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md">E2_INPUT_FIXTURES.md</a> ·
+    Post-E2 input: <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md#writer-stream-presence-cheat-sheet">E2_INPUT_FIXTURES.md</a> ·
     Contracts: <a href="/docs/MAP_WRITE_READ_RECORD.md">MAP_WRITE_READ_RECORD.md</a> ·
     Team demo: <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md">TEAM_WALKTHROUGH.md</a>.
   </p>

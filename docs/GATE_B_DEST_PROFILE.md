@@ -1,0 +1,1 @@
+../pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md

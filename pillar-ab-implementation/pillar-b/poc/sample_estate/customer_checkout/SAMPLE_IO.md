@@ -6,7 +6,7 @@
 
 **P1 entry:** deep fabric eval guide linked above. Case A/B below remain **E3 acceptance** spines — not the full P1 matrix.
 
-**Router (post-E2):** GraphWriter admits only `topo_update`. Other `fact_kind` values (`metric_sample`, `event`, `trace_span`, `anomaly`, …) are **NOOP** (silent skip) — see [`../../../../E2_INPUT_FIXTURES.md`](../../../../E2_INPUT_FIXTURES.md). Hub framing: [Our HLD · GraphWriter · Admit](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter) (NOOP / WRITE / DROP).
+**Router (post-E2):** Target — GraphRegulator admits when a `topology` block is present ([`WRITER_REGULATOR.md`](../../../../contracts/WRITER_REGULATOR.md)). Lab GraphWriter still admits `fact_kind=topo_update`; other legacy kinds are **NOOP** — see [`E2_INPUT_FIXTURES.md`](../../../../E2_INPUT_FIXTURES.md#writer-stream-presence-cheat-sheet). Hub framing: [Our HLD · GraphWriter · Admit](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter) (NOOP / WRITE / DROP).
 
 **How comparison works:** Full `graph_node.v1` / `graph_edge.v1` objects carry provenance and display fields that can grow without changing the estate map. Tests therefore compare a **spine**:
 

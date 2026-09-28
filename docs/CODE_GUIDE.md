@@ -151,7 +151,7 @@ PYTHONPATH=lean-pipeline:. .venv/bin/python ingestion-poc/builders/n45_chain.py
 |------|----------------|
 | `contracts/` | **Source of truth** — schemas, `GRAPH_QNA`, `MAP_WRITE_READ_RECORD`, Gate B dest profile |
 | `contracts/schemas/` | `ingest_v1`, `sketch.v1`, graph node/edge / snapshot JSON schemas |
-| `E2_INPUT_FIXTURES.md` | Legacy lab JSONL + `fact_kind` until writer_stream migration |
+| `E2_INPUT_FIXTURES.md` | Post-E2 input — target `writer_stream.v1` presence cheat sheet; lab `ingest.v1` until migration |
 | `contracts/WRITER_REGULATOR.md` | Target Motadata writer fan-out (no `fact_kind`) |
 | `pillar-a/poc/` | Sketch / percentile writer PoC (`history/` keys; `files.v1` dest) |
 | `pillar-b/poc/` | Graph materializer PoC (`map/` keys; `topo_update` + seed topology) |

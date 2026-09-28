@@ -79,11 +79,15 @@ Direction is **Motadata Dest arrow** (`graph_edge.v1`). Fusion camelCase twins (
 
 ### 4.1 `runs_on` — guest executes on substrate
 
+Source is the **guest**; target is the **machine**. Never `host`/`node` as source.
+
 | Source | Target |
 |--------|--------|
 | `process`, `service`, `pod`, `container`, `db`, `queue` | `host`, `node` |
 
 ### 4.2 `hosted_on` — guest / VM on hypervisor family
+
+Source sits on a host; target is always `host`. Never host→process/service/pod.
 
 | Source | Target |
 |--------|--------|
@@ -120,6 +124,8 @@ Do **not** auto-promote to `depends_on`.
 Stricter than `communicates_with` (no process/pod/db/queue as fabric adjacency ends).
 
 ### 4.7 `part_of` — Motadata child → parent
+
+Composition is **always different types**: child is a finer grain than parent. Same-type `part_of` (e.g. `host`→`host`, `service`→`service`) is **illegal** — peers use `clustered_with` or `communicates_with`, not composition.
 
 | Source (child) | Target (parent) |
 |----------------|-----------------|
@@ -193,13 +199,37 @@ Prefer `member_of` shared parent when the product has a real group CI.
 
 ---
 
-## 5. Why some pairings are invalid (teaching table)
+## 5. Semantic invalidity (direction + grain)
+
+The allowlist is not only “known types.” It encodes **who may be the arrow head**. Flipping guest/substrate or composing same grain is `illegal_edge_triplet`.
+
+### 5.1 Hosting — guest → substrate only
+
+`runs_on` / `hosted_on` mean the **source runs or sits on** the destination.
+
+| Illegal claim | Why |
+|---------------|-----|
+| `host` `runs_on` `service` | Substrate cannot run on a guest |
+| `host` `runs_on` `pod` / `process` / `container` | Same — wrong direction |
+| `host` `hosted_on` `process` | Host is not hosted on a process |
+| `host` `hosted_on` `service` / `pod` | Same — wrong direction |
+| `service` `runs_on` `service` | Destination must be `host` / `node` |
+
+Legal shapes: `service|process|pod|…` → `host|node` for `runs_on`; guest/`host` → `host` for `hosted_on` (VM on hypervisor).
+
+### 5.2 `part_of` — child → parent, different types
+
+| Illegal claim | Why |
+|---------------|-----|
+| `host` `part_of` `host` | Same type is not composition |
+| `service` `part_of` `service` | Same — use `clustered_with` / `communicates_with` for peers |
+| `business_service` `part_of` `service` | Wrong Motadata arrow (parent→child) |
+
+### 5.3 Teaching table (other common mistakes)
 
 | Claimed edge | Example | Reject | Why |
 |--------------|---------|--------|-----|
-| `runs_on` | `service` → `service` | `illegal_edge_triplet` | Hosting is guest→substrate |
 | `depends_on` / `uses` | `service` → `host` | `illegal_edge_triplet` | Hosting — use `runs_on` / `hosted_on` |
-| `part_of` | `business_service` → `service` | `illegal_edge_triplet` | Wrong Motadata direction |
 | `member_of` | `pod` → `node` | `illegal_edge_triplet` | Use `runs_on` |
 | `mounts` | `service` → `service` | `illegal_edge_triplet` | Mount target must be `volume` |
 | `clustered_with` | `service` → `db` | `illegal_edge_triplet` | Peers must be same tier type |

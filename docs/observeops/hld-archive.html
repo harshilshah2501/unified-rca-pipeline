@@ -73,22 +73,22 @@
       <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Contract</span><h3>Writer regulator</h3></div>
       <p>Target Motadata writer fan-out — <code>writer_stream.v1</code>, presence predicates, <strong>no <code>fact_kind</code></strong>.</p>
     </a>
-    <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md#fact_kind-cheat-sheet" data-keywords="tier2 io-2 fact_kind metric_sample topo_update anomaly event trace_span cheat sheet legacy">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-2</span><h3>Lab fact_kind cheat sheet</h3></div>
-      <p>Legacy <code>ingest.v1</code> enum with JSON examples — lab fixtures until writer_stream migration.</p>
-      <div class="also">Section inside <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md">Post-E2 ingest fixtures</a>.</div>
+    <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md#writer-stream-presence-cheat-sheet" data-keywords="tier2 io-2 writer_stream topology metric presence predicate no fact_kind cheat sheet">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">I/O-2</span><h3>Writer-stream presence cheat sheet</h3></div>
+      <p>Post-E2 routing by optional blocks (<code>topology</code> / <code>metric</code> / …) — no <code>fact_kind</code>. Legacy lab map on the same page.</p>
+      <div class="also">Section inside <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md">Post-E2 writer input fixtures</a>. Old <code>#fact_kind-cheat-sheet</code> anchors land here.</div>
     </a>
-    <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md" data-keywords="tier2 io-2 post-e2 fixtures metric_sample topo_update lab jsonl resolved">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-2</span><h3>Post-E2 ingest fixtures</h3></div>
-      <p>Lab JSONL paths — what Pillar A and B consume today (<code>metric_sample</code> vs <code>topo_update</code>, resolved-only).</p>
+    <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md" data-keywords="tier2 io-2 post-e2 fixtures writer_stream metric topology lab jsonl resolved ingest.v1 legacy">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-2</span><h3>Post-E2 writer input fixtures</h3></div>
+      <p>Full fixture map — target <code>writer_stream.v1</code> + lab <code>ingest.v1</code> paths for Pillar A/B.</p>
     </a>
     <a class="archive-row" href="/pillar-ab-implementation/README.md" data-keywords="tier1 band b pillar a b implementation code slice">
       <div class="row-top"><span class="tag tier1">Tier 1 · entry</span><h3>Pillar A + B implementation</h3></div>
       <p>Code layout, contracts SoT, unit tests — open before I/O-3 / I/O-4 when validating flush output.</p>
     </a>
-    <a class="archive-row" href="/docs/MAP_WRITE_READ_RECORD.md" data-keywords="tier2 io-3 map graph_snapshot nodes.jsonl edges.jsonl pillar b output">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-3</span><h3>Map write/read record</h3></div>
-      <p>Pillar B <code>map/</code> output — <code>graph_snapshot.json</code>, jsonl keys, <code>files.v1</code> PoC profile.</p>
+    <a class="archive-row" href="/docs/MAP_WRITE_READ_RECORD.md" data-keywords="tier2 io-3 map graph_snapshot vortex_s3 files.v1 nodes edges footer manifest pillar b output columnar">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">I/O-3</span><h3>Map write/read record</h3></div>
+      <p>PoC <code>files.v1</code> + Motadata <code>vortex_s3.v1</code> (columnar <code>.vortex</code>, VTXF postscript, ObserveOps manifest, caches, Rust). Document map at top of file.</p>
     </a>
     <a class="archive-row" href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md" data-keywords="tier2 io-4 history sketch.v1 pillar a output tdigest">
       <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-4</span><h3>Pillar A percentiles deep dive</h3></div>
@@ -166,11 +166,23 @@
     </a>
     <a class="archive-row" href="/vortex-s3-interaction.html" data-keywords="vortex s3 temperature rooms block interaction">
       <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Visual</span><h3>Vortex + S3 interaction</h3></div>
-      <p>Rooms vs temperature; retrieval → WorkingSet.</p>
+      <p>Rooms vs temperature; retrieval → WorkingSet. Companion to MAP_WRITE_READ_RECORD §6.</p>
     </a>
     <a class="archive-row" href="/storage-formats-vortex-parquet-lance.html" data-keywords="vortex parquet lance columnar s3 encoding format learning animated">
       <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Learning</span><h3>Vortex · Parquet · Lance formats</h3></div>
       <p>Product vs file formats on S3 — animated tabs; companion to Vortex+S3 page.</p>
+    </a>
+    <a class="archive-row" href="/pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md" data-keywords="gate b dest files.v1 vortex_s3 map history profile">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Contract</span><h3>Gate B dest profile</h3></div>
+      <p><code>files.v1</code> lab vs Motadata <code>vortex_s3.v1</code> (columnar map persist).</p>
+    </a>
+    <a class="archive-row" href="/pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md" data-keywords="edge triplet allowlist fifteen relations admit illegal_edge_triplet">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Contract</span><h3>Edge triplet allowlist</h3></div>
+      <p>Legal <code>(src_type, relation, dst_type)</code> for all fifteen Motadata relations.</p>
+    </a>
+    <a class="archive-row" href="/pillar-ab-implementation/pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf" data-keywords="vortex engineering mystery columnar dtype array layout vtxf parquet notes">
+      <div class="row-top"><span class="tag">Notes</span><h3>Vortex engineering mystery (PDF)</h3></div>
+      <p>Owner walkthrough — DType · Array · Encoding · Layout · VTXF footer.</p>
     </a>
     <a class="archive-row" href="/sketch-exemplars-visual.html" data-keywords="tier2 visual exemplars sketch metric_sample trace_id e4 red opentelemetry duration">
       <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Visual</span><h3>Exemplars &amp; RED metrics guide</h3></div>

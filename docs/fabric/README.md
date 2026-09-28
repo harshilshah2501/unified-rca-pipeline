@@ -20,15 +20,19 @@ Compatibility symlinks at `docs/<filename>` keep `:8765` URLs working.
 | 2d | [`pillar-b-poc-hub.html`](./pillar-b-poc-hub.html) | **Pillar B PoC hub** — navigator framing + all PoC canvases → hub doors · [`:8765`](http://127.0.0.1:8765/pillar-b-poc-hub.html) |
 | 3 | [`map-history-storage-blocks.html`](./map-history-storage-blocks.html) | Rooms, R/W, no sync; join at WorkingSet |
 | 4 | [`map-history-storage-animation.html`](./map-history-storage-animation.html) | Animated write → rooms → read-join |
-| 5 | [`vortex-s3-interaction.html`](./vortex-s3-interaction.html) | Rooms vs temperature (Vortex + S3) |
-| 5b | [`storage-formats-vortex-parquet-lance.html`](./storage-formats-vortex-parquet-lance.html) | **Vortex vs Parquet vs Lance** — animated learning |
+| 5 | [`vortex-s3-interaction.html`](./vortex-s3-interaction.html) | Rooms vs temperature (Vortex + S3) · [`:8765`](http://127.0.0.1:8765/vortex-s3-interaction.html) |
+| 5b | [`storage-formats-vortex-parquet-lance.html`](./storage-formats-vortex-parquet-lance.html) | **Vortex vs Parquet vs Lance** — animated learning · [`:8765`](http://127.0.0.1:8765/storage-formats-vortex-parquet-lance.html) |
 | 6 | [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html) | **RED + exemplars** — OTel vs ObserveOps; optional exemplars on sketch rows |
 
 ## Markdown deep dives
 
 | Doc | Topic |
 |-----|--------|
-| [`../pillar-ab-implementation/contracts/WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md) | Motadata writer fan-out — `writer_stream.v1` · no `fact_kind` |
+| [`../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | **Map write/read SoT** — PoC `files.v1` + Motadata `vortex_s3.v1` (columnar `.vortex`, footers, caches, Rust) · hub [`/docs/MAP_WRITE_READ_RECORD.md`](http://127.0.0.1:8765/docs/MAP_WRITE_READ_RECORD.md) · **document map** at top of that file |
+| [`../../pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md`](../../pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md) | Dest profiles: `files.v1` vs `vortex_s3.v1` |
+| [`../../pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md`](../../pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md) | Admit `(src, relation, dst)` before persist |
+| [`../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md) | Motadata writer fan-out — `writer_stream.v1` · no `fact_kind` |
+| [`../../pillar-ab-implementation/pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf`](../../pillar-ab-implementation/pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf) | Owner Vortex columnar walkthrough notes (DType · Array · Layout · VTXF) |
 | [`../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | **Pillar B PoC demo** — team walkthrough (hub: [Pillar B PoC hub](./pillar-b-poc-hub.html) · [Our HLD #pillar-b-poc](../observeops/observeops-pipeline-hld.html#pillar-b-poc)) |
 | [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](./PILLAR_A_PERCENTILES_DEEP_DIVE.md) | Inputs → `sketch.v1` / S3 / Vortex |
 | [`red-metrics-and-exemplars.md`](./red-metrics-and-exemplars.md) | Redirect → [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html) §RED |

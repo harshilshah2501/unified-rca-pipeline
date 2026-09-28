@@ -1,82 +1,170 @@
-# Post-E2 ingest fixtures — what Pillar A and Pillar B consume (lab)
+# Post-E2 writer input fixtures — what Pillar A and Pillar B consume
 
 **Audience:** Anyone wiring lab tests, replay scripts, or hand-off samples for the Pillar A sketch writer or the Pillar B graph writer.  
-**Scope:** The **legacy `ingest.v1`** JSON lines that look like **E2 Identity output** — what the PoC still runs until fixtures migrate to `writer_stream.v1`.
+**Scope:** What the stream looks like **after E2 Identity** — `identity` already stamped.
 
-**Status:** Lab fixture map for deprecated `ingest.v1` + `fact_kind`. **Target writer fan-out:** [`contracts/WRITER_REGULATOR.md`](./contracts/WRITER_REGULATOR.md) (no `fact_kind`). The pillar PoC **does not implement E1 Collect or E2 Identity**; fixtures simulate post-E2 traffic with `identity.status: resolved` already stamped. That stub is **not** the same as `identity.status: synthesized`, which both pillars **reject**.
+**Status:** **Target wire** is [`writer_stream.v1`](./contracts/schemas/writer_stream_v1.schema.json) with **no `fact_kind`** — regulators fire on **optional blocks** ([`WRITER_REGULATOR.md`](./contracts/WRITER_REGULATOR.md)). Lab JSONL under `sample_estate/` may still use deprecated `ingest.v1` until fixtures migrate; PoC GraphWriter/SketchWriter code still filters that legacy shape. The pillar PoC **does not implement E1 Collect or E2 Identity**; fixtures simulate post-E2 traffic with `identity.status: resolved`. That stub is **not** the same as `identity.status: synthesized`, which both pillars **reject**.
 
-**Doc tier:** Tier 2 implementer I/O (**I/O-2** in [`docs/observeops/OUR_HLD_TIER1.md`](../docs/observeops/OUR_HLD_TIER1.md)). Upstream wire spec: [`docs/INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FORMAT.md) (**I/O-1**). Pillar B output: [`contracts/MAP_WRITE_READ_RECORD.md`](./contracts/MAP_WRITE_READ_RECORD.md) (**I/O-3**).
-
----
-
-## One wire format, two writer filters (lab)
-
-After **E2 Identity (Normalize)**, every admitted **lab** line is still **`ingest.v1`**. E2 adds an **`identity`** object on the same object — not a second on-wire format.
-
-**Pillar A (E4 sketch writer)** and **Pillar B (E3 graph writer)** currently filter the **same stream shape** by **`fact_kind`** (legacy). Target regulators use optional blocks instead — see WRITER_REGULATOR.
-
-| `fact_kind` (lab) | Pillar A | Pillar B | Other primary consumers (not A/B) |
-|----------------|----------|----------|-----------------------------------|
-| `metric_sample` | Admit → `sketch.v1` | Silent skip | **E6 Detect** · Lean/Federated structural |
-| `topo_update` | Silent skip | Admit → `graph_edge.v1` | **E3 Topology** only |
-| `anomaly`, `event`, `trace_span`, … | Skip | Skip | **E6–E10** · reference engines — see cheat sheet |
-
-Join key after bind: **`tenant` + `ci_id`** on ingest ≡ **`entity_id`** on sketches ≡ graph node id on `map/`.
-
-Normative schema (deprecated): [`contracts/schemas/ingest_v1.schema.json`](./contracts/schemas/ingest_v1.schema.json).  
-Reject reasons when identity or catalog checks fail: [`contracts/IDENTIFIED_STREAM_REJECT.md`](./contracts/IDENTIFIED_STREAM_REJECT.md).  
-Full E2 contract (production): [`docs/observeops/LLD-E2-Identity.md`](../docs/observeops/LLD-E2-Identity.md).  
-Ingest envelope overview: [`docs/INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FORMAT.md) §2.
+**Doc tier:** Tier 2 implementer I/O (**I/O-2** in [`docs/observeops/OUR_HLD_TIER1.md`](../docs/observeops/OUR_HLD_TIER1.md)). Upstream wire: [`docs/INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FORMAT.md) (**I/O-1**). Pillar B output: [`contracts/MAP_WRITE_READ_RECORD.md`](./contracts/MAP_WRITE_READ_RECORD.md) (**I/O-3**).
 
 ---
 
-## `fact_kind` cheat sheet (lab enum until migrate)
+## One wire format, two regulators (target)
 
-Every admitted **`ingest.v1`** line carries **`fact_kind`** as a snake_case string. It routes the row — like declaring what *kind* of fact the line is. It is **not** a separate object and **not** MELTS or RED on the wire (RED metrics arrive as many **`metric_sample`** lines).
+After **E2 Identity**, every admitted Motadata writer line is **`writer_stream.v1`**. There is **no router enum**. GraphRegulator and SketchRegulator each look for **presence of optional blocks**.
 
-**Schema enum (writers + PoC):** [`contracts/schemas/ingest_v1.schema.json`](./contracts/schemas/ingest_v1.schema.json)
+| Stream shape | SketchRegulator (Pillar A) | GraphRegulator (Pillar B) | Other primary consumers |
+|--------------|----------------------------|---------------------------|-------------------------|
+| `metric` block present | Admit → `sketch_admit_intent` → `sketch.v1` | NOOP (unless `topology` also present) | **E6 Detect** · Lean/Federated structural |
+| `topology` block present (`relation` + `src_ci_id` + `dst_ci_id`) | NOOP (unless `metric` also present) | Admit → `graph_write_intent` → `graph_edge.v1` | **E3 Topology** only |
+| `anomaly` / `event` / `span` only | NOOP | NOOP | **E6–E10** · reference engines — see [presence cheat sheet](#writer-stream-presence-cheat-sheet) |
+| Both `topology` and `metric` | **Both fire** | **Both fire** | Dual-write on one line is allowed |
+
+Join key after bind: **`tenant` + CI id** on the stream ≡ **`entity_id`** on sketches ≡ graph node id on `map/` (`ci.ci_id` on `writer_stream.v1`; lab `ingest.v1` still says top-level `ci_id`).
+
+Normative schemas: [`writer_stream_v1.schema.json`](./contracts/schemas/writer_stream_v1.schema.json) (target) · [`ingest_v1.schema.json`](./contracts/schemas/ingest_v1.schema.json) (deprecated lab).  
+Reject reasons: [`IDENTIFIED_STREAM_REJECT.md`](./contracts/IDENTIFIED_STREAM_REJECT.md).  
+Full E2 contract: [`LLD-E2-Identity.md`](../docs/observeops/LLD-E2-Identity.md).  
+Ingest envelope overview: [`INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FORMAT.md) §2.
+
+---
+
+## Writer-stream presence cheat sheet {#writer-stream-presence-cheat-sheet}
+
+<a id="fact_kind-cheat-sheet"></a>
+
+> **Hub note:** Older links to `#fact_kind-cheat-sheet` land here. **`fact_kind` is retired** for Motadata writer fan-out. Routing is **presence of optional blocks** on `writer_stream.v1`. Lab-only `ingest.v1` mapping is in [Legacy lab `ingest.v1`](#legacy-lab-ingestv1) below.
+
+Every admitted **`writer_stream.v1`** line carries an envelope (`schema_version`, `ts`, `tenant`, `identity`) plus **zero or more** optional blocks. Regulators do **not** read a router string.
+
+**Schema:** [`contracts/schemas/writer_stream_v1.schema.json`](./contracts/schemas/writer_stream_v1.schema.json) · **rules:** [`WRITER_REGULATOR.md`](./contracts/WRITER_REGULATOR.md)
 
 ```text
-metric_sample | anomaly | event | trace_span | topo_update
+Optional blocks:  topology | metric | anomaly | event | span
 ```
 
-**Reserved (do not emit):** `change_event`, `cmdb_sync`, `ticket` — see [Reserved classes](#reserved-fact_kind-values) below.
+### Who consumes each block
 
-### Who consumes each class
+| Block present | Primary ObserveOps consumer(s) | Pillar A / B |
+|---------------|--------------------------------|--------------|
+| `metric` | **E4 Stores** (sketch history) · **E6 Detect** | **SketchRegulator admits** · GraphRegulator NOOP unless `topology` also present |
+| `topology` | **E3 Topology** (`map/`) | SketchRegulator NOOP unless `metric` also present · **GraphRegulator admits** |
+| `anomaly` | **E6 Detect** · **E7 Curate** | Both regulators **NOOP** |
+| `event` | **E4 Stores** (evidence) · **E10 Identify** | Both regulators **NOOP** |
+| `span` | **E9 Localize** · **E10 Identify** · future topology emitters | Both regulators **NOOP** — never invent edges from peer labels alone |
 
-`fact_kind` is the **router label** on the shared `ingest.v1` stream. After E2 Identity, different pipeline stages (and reference engines) subscribe to different classes. Pillar A and Pillar B are only two consumers on the Motadata fabric path.
+**Spine on every line:** `schema_version`, `ts`, `tenant`, `identity`. Subject CI usually under `ci` (`ci_id`, `ci_type`). Topology endpoints live under `topology.*` — not invented from `span` / `metric` labels ([WRITER_REGULATOR](./contracts/WRITER_REGULATOR.md) §2).
 
-| `fact_kind` | Primary ObserveOps consumer(s) | Reference / PoC implementation | Pillar A / B PoC |
-|----------------|--------------------------------|--------------------------------|------------------|
-| `metric_sample` | **E4 Stores** (sketch history) · **E6 Detect** (evaluate samples vs baseline / threshold) | Pillar A `SketchWriter` · `ingestion-poc/detect/threshold_detect.py` (recomputes from samples; ignores pre-baked `anomaly`) · Lean + Federated **structural** tier · Federated `metric_slice.jsonl` | **Pillar A admits** · Pillar B skips |
-| `topo_update` | **E3 Topology** (graph edges on `map/`) | Pillar B `GraphWriter` · corpus `topology.json` (primary seed in lab) · `topo_updates.jsonl` audit fan-out · Lean **A-TOPO** refresh | Pillar A skips · **Pillar B admits** |
-| `anomaly` | **E6 Detect** · **E7 Curate** (when signal already marked) | ObserveOps replay may pre-tag crossings · Lean **A-ANOM** · Federated structural + **speed** tier · shared Detect may **ignore** these when recomputing from `metric_sample` | Both pillars **skip** |
-| `event` | **E4 Stores** (evidence history) · **E10 Identify** (log / event corroboration) | Lean **A-EVT** bundle writer · Federated structural + speed tier | Both pillars **skip** |
-| `trace_span` | **E9 Localize** · **E10 Identify** (error leaf / self-time evidence) | Federated **Nezha / speed tier** (required — `tg:` / `pc:` pattern keys) · structural tier · future adapters may emit `topo_update` (not in Pillar B PoC today) | Both pillars **skip** |
+### Field cheat (by block)
 
-Normative stage map (E1 view): [`docs/observeops/LLD-E1-Collect.md`](../docs/observeops/LLD-E1-Collect.md) §2.1. Fabric writer filter rules: [`contracts/GRAPH_QNA.md`](./contracts/GRAPH_QNA.md) G31.
+| Block | Key fields |
+|-------|------------|
+| `metric` | `name`, `value`; optional labels / `trace_id` for exemplars |
+| `topology` | `relation` (Fusion camelCase), `src_ci_id`, `dst_ci_id`; optional types / evidence |
+| `anomaly` | `name`, `value`, `threshold`, `severity` |
+| `event` | `name`, `value` (often `1.0`) |
+| `span` | `name`, duration `value`; labels for trace / peers |
 
-**Spine on every line:** `schema_version`, `ts`, `tenant`, `ci_id`, `ci_type`, `fact_kind`. After E2 add **`identity`**. Unknown `fact_kind` → **E1 Collect** reject / dead-letter (do not guess).
+### Target examples (`writer_stream.v1`)
 
-### Field cheat (by class)
+**1 · Metric (SketchRegulator)**
 
-| `fact_kind` | `name` usually means | Key fields beyond spine |
-|----------------|----------------------|-------------------------|
-| `metric_sample` | Metric name | `value`; optional `labels.trace_id` for exemplars |
-| `topo_update` | Often omitted | `relation`, `src_ci_id`, `dst_ci_id` |
+```json
+{
+  "schema_version": "writer_stream.v1",
+  "ts": "2026-08-20T03:30:12Z",
+  "tenant": "default",
+  "ci": { "ci_id": "checkout-api", "ci_type": "Service" },
+  "metric": {
+    "name": "request.latency_ms",
+    "value": 92.1,
+    "labels": { "source": "lab-node", "trace_id": "abc123" }
+  },
+  "identity": { "status": "resolved", "bind_source": "topology_lookup" }
+}
+```
+
+**2 · Topology (GraphRegulator)**
+
+```json
+{
+  "schema_version": "writer_stream.v1",
+  "ts": "2026-08-20T03:30:00Z",
+  "tenant": "default",
+  "ci": { "ci_id": "checkout-api", "ci_type": "Service" },
+  "topology": {
+    "relation": "communicatesWith",
+    "src_ci_id": "checkout-api",
+    "dst_ci_id": "payments-db",
+    "src_ci_type": "Service",
+    "dst_ci_type": "Database",
+    "evidenceSource": "discovery"
+  },
+  "identity": { "status": "resolved", "bind_source": "apm" }
+}
+```
+
+Fusion camelCase → Motadata SCREAMING_SNAKE at Dest: [`RELATION_MAPPING.md`](./contracts/RELATION_MAPPING.md). Endpoint pairing: [`EDGE_TRIPLET_ALLOWLIST.md`](./contracts/EDGE_TRIPLET_ALLOWLIST.md).
+
+**3 · Dual-fire (both blocks on one line)** — both regulators admit.
+
+**4 · Span / event / anomaly only** — A/B writers NOOP; other stages may consume (see table above). Do **not** invent `topology` from `span.labels["peer.service"]` inside GraphWriter.
+
+### Mixed stream (product intent)
+
+```text
+metric      →  SketchRegulator  →  history/
+topology    →  GraphRegulator   →  map/
+metric+topo →  both             →  history/ + map/
+```
+
+Lab mixed tape (still legacy `ingest.v1` until migrated): [`integration/sample_estate/customer_checkout/stream.resolved.jsonl`](./integration/sample_estate/customer_checkout/stream.resolved.jsonl).
+
+### Reserved / future concerns (not writer blocks today)
+
+Do **not** invent ad-hoc router strings. Future change / CMDB / ticket payloads join by `tenant` + CI id via ServiceOps — not as Alert vertices on `map/`.
+
+| Concern | Intended consumer | Purpose |
+|---------|-------------------|---------|
+| Change feed | **E5 Maintain** · ServiceOps | Deploy / change correlation |
+| CMDB sync | **E2 Identity** enrichment | Discovery overlay — same `ci_id` namespace |
+| Ticket | **E11 Package** egress | ITSM record on shared keys |
+
+---
+
+## Legacy lab `ingest.v1` {#legacy-lab-ingestv1}
+
+> **Deprecated for Motadata writer fan-out.** PoC code and `sample_estate` JSONL may still stamp **`fact_kind`**. Treat the table below as a **migration map** to presence blocks — not the target contract.
+
+| Legacy `fact_kind` | Target `writer_stream.v1` block | Lab Pillar A | Lab Pillar B |
+|--------------------|---------------------------------|--------------|--------------|
+| `metric_sample` | `metric` | Admit | NOOP |
+| `topo_update` | `topology` | NOOP | Admit |
+| `anomaly` | `anomaly` | NOOP | NOOP |
+| `event` | `event` | NOOP | NOOP |
+| `trace_span` | `span` | NOOP | NOOP |
+
+**Schema enum (lab only):** [`ingest_v1.schema.json`](./contracts/schemas/ingest_v1.schema.json) — `metric_sample | anomaly | event | trace_span | topo_update`.
+
+### Legacy field cheat
+
+| Legacy `fact_kind` | `name` usually means | Key fields beyond spine |
+|--------------------|----------------------|-------------------------|
+| `metric_sample` | Metric name | `value`; optional `labels.trace_id` |
+| `topo_update` | Often omitted | `relation`, `src_ci_id`, `dst_ci_id` (snake_case Motadata names on lab wire) |
 | `anomaly` | Monitor / metric that crossed | `value`, `threshold`, `severity` |
 | `event` | Event / log type | `value` (often `1.0`) |
-| `trace_span` | Span operation / route | `value` = duration (ms); `labels` for trace ids / peers |
+| `trace_span` | Span operation / route | `value` = duration (ms); peer labels |
 
-Sample tape with multiple classes: [`ingestion-poc/vector/samples/ingest.v1.example.jsonl`](../ingestion-poc/vector/samples/ingest.v1.example.jsonl).
+Sample tape: [`ingestion-poc/vector/samples/ingest.v1.example.jsonl`](../ingestion-poc/vector/samples/ingest.v1.example.jsonl).
 
-### 1 · `metric_sample`
+### Legacy examples (PoC fixtures still look like this)
 
-**Typical emitters:** Prometheus scrape, OTLP metrics, ObserveOps corpus metric replay, Motadata numeric export.
+#### 1 · `metric_sample`
 
-**Consumers:** **E4 Stores** → Pillar A aggregates into `sketch.v1` in `history/` · **E6 Detect** reads sketch baselines or live samples · Lean/Federated structural sinks for evaluation engines (not the Motadata pillar path).
+**Typical emitters:** Prometheus scrape, OTLP metrics, ObserveOps corpus metric replay.
 
-One numeric measurement after bind. Pillar A lab input.
+**Lab consumers:** Pillar A SketchWriter · **E6 Detect** · Lean/Federated structural.
 
 ```json
 {
@@ -95,13 +183,11 @@ One numeric measurement after bind. Pillar A lab input.
 
 Lab wave-1 metric names: `request.latency_ms`, `cpu.utilization_pct`. E4 aggregates many lines into one `sketch.v1` row — the line is not the sketch.
 
-### 2 · `topo_update`
+#### 2 · `topo_update`
 
-**Typical emitters:** Topology crawler audit fan-out, service-catalog sync, future discovery adapters (inventory / APM → explicit edge).
+**Typical emitters:** Topology crawler, catalog sync, discovery adapters.
 
-**Consumers:** **E3 Topology only** → Pillar B `GraphWriter` → `graph_edge.v1` on `map/`. E1 Collect and E4 sketch writer **do not** act on these lines ([`LLD-E1-Collect.md`](../docs/observeops/LLD-E1-Collect.md) §4).
-
-One explicit relationship. Pillar B lab input.
+**Lab consumers:** Pillar B GraphWriter only.
 
 ```json
 {
@@ -118,15 +204,9 @@ One explicit relationship. Pillar B lab input.
 }
 ```
 
-PoC does **not** derive `relation` from `trace_span` — upstream must emit `topo_update` (or use seed topology).
+PoC does **not** derive `relation` from `trace_span` — upstream must emit topology (legacy `topo_update` or target `topology` block).
 
-### 3 · `anomaly`
-
-**Typical emitters:** Replay converter pre-tags threshold crossings; optional Vector transform detect (live path often defers to E6).
-
-**Consumers:** **E6 Detect** · **E7 Curate** · Lean **A-ANOM** · Federated speed/structural tiers. Shared `threshold_detect.py` may **skip** pre-baked `anomaly` rows when recomputing from `metric_sample`. **Not** consumed by Pillar A/B writers.
-
-Pre-marked threshold crossing.
+#### 3 · `anomaly`
 
 ```json
 {
@@ -145,13 +225,7 @@ Pre-marked threshold crossing.
 }
 ```
 
-### 4 · `event`
-
-**Typical emitters:** Log lines, SNMP traps, structured syslog, Motadata alert/export events.
-
-**Consumers:** **E4 Stores** (evidence retention) · **E10 Identify** (corroboration — e.g. log patterns vs fault signatures) · Lean **A-EVT** · Federated structural + speed tier. **Not** Pillar A/B PoC writers.
-
-Discrete log / SNMP / alert-style occurrence.
+#### 4 · `event`
 
 ```json
 {
@@ -168,13 +242,7 @@ Discrete log / SNMP / alert-style occurrence.
 }
 ```
 
-### 5 · `trace_span`
-
-**Typical emitters:** OTLP/Jaeger/Zipkin replay, Datadog-style APM span export.
-
-**Consumers:** **E9 Localize** · **E10 Identify** (deepest error leaf, self-time) · Federated **Nezha / speed tier** (required for call-graph keys). Peer labels (`peer.service`, etc.) are **inputs to future** `topo_update` emitters — Pillar B PoC does **not** consume spans directly.
-
-One span with duration.
+#### 5 · `trace_span`
 
 ```json
 {
@@ -196,33 +264,16 @@ One span with duration.
 }
 ```
 
-### Mixed JSONL (integration lab)
-
-One file may interleave classes; each pillar filters by `fact_kind`:
+### Mixed JSONL (lab today)
 
 ```text
-metric_sample  →  SketchWriter  →  history/
 metric_sample  →  SketchWriter  →  history/
 topo_update    →  GraphWriter   →  map/
 ```
 
 Fixture: [`integration/sample_estate/customer_checkout/stream.resolved.jsonl`](./integration/sample_estate/customer_checkout/stream.resolved.jsonl).
 
-### Reserved `fact_kind` values
-
-Do **not** emit in the current pass. E1 rejects unknown classes.
-
-| Class | Intended future consumer | Purpose |
-|-------|--------------------------|---------|
-| `change_event` | **E5 Maintain** · ServiceOps change correlation | Deploy / change feed |
-| `cmdb_sync` | **E2 Identity** enrichment · optional CMDB overlay | Discovery snapshot or delta — same `ci_id` namespace |
-| `ticket` | **E11 Package** egress · ServiceOps join | ITSM / incident record on shared `tenant` + `ci_id` |
-
-See [`docs/INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FORMAT.md) §2.1 · [`docs/observeops/LLD-E1-Collect.md`](../docs/observeops/LLD-E1-Collect.md) §2.2.
-
----
-
-Pretty-printed reference (same file in all three fixture trees):
+Pretty-printed legacy reference (same file in all three fixture trees):
 
 | Copy |
 |------|
@@ -251,9 +302,9 @@ Pretty-printed reference (same file in all three fixture trees):
 
 ---
 
-## Side by side — one metric line and one topology line
+## Side by side — lab fixtures still on `ingest.v1`
 
-Both lines are valid post-E2 **`ingest.v1`** records. Pass both in one JSONL file for integration tests; each pillar keeps only its class.
+Both lines are valid post-E2 **legacy** records. Pass both in one JSONL for integration tests; each pillar keeps only its class. Target equivalents use `metric` / `topology` blocks — [presence cheat sheet](#writer-stream-presence-cheat-sheet).
 
 ### Pillar A — `metric_sample` (sketch input)
 
@@ -303,11 +354,11 @@ From [`pillar-b/poc/sample_estate/customer_checkout/stream.resolved.jsonl`](./pi
 }
 ```
 
-**Writer expects:** `relation`, `src_ci_id`, `dst_ci_id`, `identity.status` = `resolved`; wave-1 relation names (`runs_on`, `depends_on`, `communicates_with`, `part_of`, `hosted_on` in the lab).  
+**Writer expects:** `relation`, `src_ci_id`, `dst_ci_id`, `identity.status` = `resolved`; Motadata catalog relation (fifteen names; pairing via [`EDGE_TRIPLET_ALLOWLIST.md`](./contracts/EDGE_TRIPLET_ALLOWLIST.md)).  
 **Output room:** `map/` → `graph_edge.v1` inside `GraphSnapshot`.  
 **Also load:** [`pillar-b/poc/sample_estate/customer_checkout/topology.bootstrap.json`](./pillar-b/poc/sample_estate/customer_checkout/topology.bootstrap.json) for declared bootstrap nodes and edges before streaming updates.
 
-Pillar B **does not infer** `relation` from spans inside the PoC — the relationship must already be explicit on the `topo_update` line (or in seed topology). Upstream adapters or future E3 derivation produce those lines.
+Pillar B **does not infer** edges from spans inside the PoC — the relationship must already be explicit (`topology` block on target wire, or legacy `topo_update` / seed topology).
 
 ---
 
@@ -316,7 +367,7 @@ Pillar B **does not infer** `relation` from spans inside the PoC — the relatio
 ```text
 pillar-ab-implementation/
 ├── pillar-a/poc/sample_estate/customer_checkout/
-│   ├── expected/ingest.example.json     ← all five fact_kind examples (pretty)
+│   ├── expected/ingest.example.json     ← legacy five-class examples (pretty)
 │   ├── stream.metrics.resolved.jsonl    ← Pillar A happy path (metric only)
 │   ├── stream.resolved.jsonl            ← same as metrics file (alias)
 │   └── stream.reject.jsonl              ← negative cases for A gate
@@ -368,15 +419,16 @@ Lab happy-path fixtures use **`resolved` only**. Negative tapes in `stream.rejec
 ## Real pipeline vs lab stub
 
 ```text
-PRODUCTION (not built inside pillar-a/ or pillar-b/ packages):
-  E1 Collect  →  E2 Identity  →  post-E2 ingest.v1 JSONL (+ identity overlay)
-                                      ├─ metric_sample  →  Pillar A  →  history/
-                                      └─ topo_update    →  Pillar B  →  map/
+TARGET (Motadata writer fan-out):
+  E1 Collect  →  E2 Identity  →  writer_stream.v1 (+ identity)
+                                      ├─ metric block     →  SketchRegulator  →  history/
+                                      └─ topology block   →  GraphRegulator   →  map/
+                                      (both blocks on one line → both fire)
 
-LAB PoC (what exists today):
+LAB PoC (what exists today until fixtures migrate):
   sample_estate/customer_checkout/stream.*.jsonl   ← hand-authored as if E2 already ran
-       ├─ metric lines  →  SketchWriter
-       └─ topo lines    →  GraphWriter (+ topology.bootstrap.json)
+       ├─ fact_kind=metric_sample  →  SketchWriter
+       └─ fact_kind=topo_update    →  GraphWriter (+ topology.bootstrap.json)
 ```
 
 Shared stub code both pillars import: `poc/ab_shared/identity_gate.py` (`ResolvedOnlyGate`), `ingest_source.py` (`JsonlIngestSource`).
@@ -401,7 +453,8 @@ To feed pillar writers from replay, add an E2-normalize step (or hand-stamp `ide
 | Doc | Topic |
 |-----|--------|
 | [`docs/observeops/OUR_HLD_TIER1.md`](../docs/observeops/OUR_HLD_TIER1.md) | Tier 1 vs Tier 2; implementer I/O chain I/O-1 … I/O-4 |
-| [`docs/INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FORMAT.md) | E1 envelope, delivery options, identity overlay (**I/O-1**); links here for `fact_kind` examples |
+| [`docs/INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FORMAT.md) | E1 envelope (**I/O-1**); links here for post-E2 examples |
+| [`contracts/WRITER_REGULATOR.md`](./contracts/WRITER_REGULATOR.md) | Target fan-out — presence predicates, no `fact_kind` |
 | [`contracts/MAP_WRITE_READ_RECORD.md`](./contracts/MAP_WRITE_READ_RECORD.md) | Pillar B `map/` output keys after GraphWriter flush (**I/O-3**) |
 | [`docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | Pillar A `history/` sketch output (**I/O-4**) |
 | [`scope/MOTADATA_3PILLARS_MERGED_SCOPE.md`](./scope/MOTADATA_3PILLARS_MERGED_SCOPE.md) §B5–B6 | What we expect from E1 and E2 |

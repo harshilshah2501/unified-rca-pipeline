@@ -151,9 +151,17 @@ def check_edge_triplet(
     """Return (action, reason).
 
     action is ``ok`` or ``reject``. reason is a reject_codes constant when reject.
+
+    Semantic rejects (same code ``illegal_edge_triplet``) include flipped hosting
+    (e.g. host ``runs_on`` service) and same-type ``part_of`` — see
+    ``EDGE_TRIPLET_ALLOWLIST.md`` §5.
     """
     if not src_storage_type or not dst_storage_type:
         return "reject", rc.MISSING_ENDPOINT_TYPE
+    rel = normalize_relation(relation)
+    # Composition is child→parent across different grains — never same type.
+    if rel == "part_of" and src_storage_type == dst_storage_type:
+        return "reject", rc.ILLEGAL_EDGE_TRIPLET
     pairs = _pairs_for(relation)
     if pairs is None:
         return "reject", rc.ILLEGAL_EDGE_TRIPLET

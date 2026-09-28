@@ -26,7 +26,7 @@ Real articles live in topic folders. Flat names at `docs/<file>` are **compatibi
 | Fabric Q&A (E1–E5) | [`pillar-ab-implementation/contracts/GRAPH_QNA.md`](../pillar-ab-implementation/contracts/GRAPH_QNA.md) (`docs/GRAPH_QNA.md` is a symlink) |
 | Node/edge samples | [`pillar-ab-implementation/contracts/GRAPH_NODE_EDGE_SAMPLES.md`](../pillar-ab-implementation/contracts/GRAPH_NODE_EDGE_SAMPLES.md) |
 | JSON schemas | [`pillar-ab-implementation/contracts/schemas/`](../pillar-ab-implementation/contracts/schemas/) — **edit here only**. Do **not** keep package mirrors under `pillar-a|b/integration/contracts/schemas/`. Validators load this SoT path; `make check-schemas` / `scripts/check_schema_mirrors.py` fails if a mirror directory reappears. |
-| Gate B / reject / map write prose | [`pillar-ab-implementation/contracts/`](../pillar-ab-implementation/contracts/) — link from packages; do not symlink-mirror prose under `*/contracts/` |
+| Gate B / reject / map write prose | [`pillar-ab-implementation/contracts/`](../pillar-ab-implementation/contracts/) — link from packages; do not symlink-mirror prose under `*/contracts/`. Hub flat URLs: `docs/MAP_WRITE_READ_RECORD.md`, `docs/GATE_B_DEST_PROFILE.md` (symlinks to contracts SoT). |
 | Motadata kickoff scope | [`pillar-ab-implementation/scope/`](../pillar-ab-implementation/scope/) |
 | Pillar A deep dive + fabric HTML | [`docs/fabric/`](./fabric/) |
 | ObserveOps HLD / LLDs | [`docs/observeops/`](./observeops/) |

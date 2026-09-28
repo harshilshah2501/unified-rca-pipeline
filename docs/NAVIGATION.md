@@ -83,12 +83,18 @@ Always-on fabric (E1–E5) → Pillar A∥B contracts → Detect onward → Refe
 | [`pillar-b/docs/Codebase-go-through.md`](../pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md) | Module tour of GraphWriter + walk |
 | [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) | Sit-down lock list — CI catalog, fifteen edges, `sketch.v1` |
 | [`GRAPH_QNA.md`](./GRAPH_QNA.md) | Fabric Q&A with table of contents |
-| [`MAP_WRITE_READ_RECORD.md`](../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | Pillar B map write/read JSON |
+| [`MAP_WRITE_READ_RECORD.md`](../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | **Map I/O SoT** — PoC `files.v1` + Motadata `vortex_s3.v1` (columnar `.vortex`, footers, Rust); document map at top |
+| [`GATE_B_DEST_PROFILE.md`](../pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md) | Dest profiles (`files.v1` vs `vortex_s3.v1`) · hub [`/docs/GATE_B_DEST_PROFILE.md`](http://127.0.0.1:8765/docs/GATE_B_DEST_PROFILE.md) |
+| [`EDGE_TRIPLET_ALLOWLIST.md`](../pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md) | Admit pairing before persist |
+| [`fabric/vortex-s3-interaction.html`](./fabric/vortex-s3-interaction.html) | Rooms vs temperature · WorkingSet |
+| [`fabric/storage-formats-vortex-parquet-lance.html`](./fabric/storage-formats-vortex-parquet-lance.html) | Vortex vs Parquet vs Lance |
+| [`fabric/map-history-storage-blocks.html`](./fabric/map-history-storage-blocks.html) | `map/` ∥ `history/` rooms |
+| [`pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf`](../pillar-ab-implementation/pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf) | Owner Vortex columnar walkthrough notes |
 | [`../pillar-ab-implementation/contracts/WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md) | Writer fan-out — `writer_stream.v1`, no `fact_kind` |
 | [`fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](./fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | Pillar A deep dive |
 | [`fabric/end-to-end-algorithm-walkthrough.md`](./fabric/end-to-end-algorithm-walkthrough.md) | Admit → Detect door C |
 
-Hub doors: [Pillar B PoC hub](./fabric/pillar-b-poc-hub.html) · [Our HLD → Pillar B PoC](./observeops/observeops-pipeline-hld.html#pillar-b-poc) · [Archive → Pillar B PoC](./observeops/hld-archive.html#pillar-b-poc).
+Hub doors: [Pillar B PoC hub](./fabric/pillar-b-poc-hub.html) · [Dest Vortex+S3 band](./fabric/pillar-b-poc-hub.html#dest-vortex-s3) · [Our HLD → Fabric](./observeops/observeops-pipeline-hld.html#fabric) · [Our HLD → Pillar B PoC](./observeops/observeops-pipeline-hld.html#pillar-b-poc) · [Archive → Fabric](./observeops/hld-archive.html#fabric).
 
 **Motadata teaching** (also on archive):
 

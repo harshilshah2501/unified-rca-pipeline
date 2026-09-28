@@ -68,7 +68,7 @@ Lab-only notes: [`poc/README.md`](./poc/README.md).
 
 All fifteen Motadata relation names may emit; pairing: [`../contracts/EDGE_TRIPLET_ALLOWLIST.md`](../contracts/EDGE_TRIPLET_ALLOWLIST.md).
 
-Vortex / S3: same logical records later; PoC dest is **`files.v1`** only.
+Vortex + S3 (`vortex_s3.v1`): columnar `.vortex` + ObserveOps manifest — [`../contracts/MAP_WRITE_READ_RECORD.md`](../contracts/MAP_WRITE_READ_RECORD.md) §6 (metadata/footer in §6.4; Rust action items). PoC dest remains **`files.v1`**. Notes: [`docs/vortex_engineering_mystery_revised_v2.pdf`](./docs/vortex_engineering_mystery_revised_v2.pdf).
 
 ---
 

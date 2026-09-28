@@ -82,7 +82,7 @@ E1 does **not** emit `identity.*`. That overlay is E2 ([`LLD-E2-Identity.md`](./
 
 ### 2.1 `fact_kind` values admitted now
 
-E1 only **admits** these classes. After E2 Identity, Motadata fabric writers filter by class (see [`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md) cheat sheet · [`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G31). GraphWriter admit actions (NOOP / WRITE / DROP) live in E3 / Pillar B — not in Collect.
+E1 only **admits** Collect classes. After E2 Identity, Motadata fabric **writers** filter by optional blocks on `writer_stream.v1` (no `fact_kind`) — see [`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md#writer-stream-presence-cheat-sheet) · [`WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md) · [`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G31. GraphWriter admit actions (NOOP / WRITE / DROP) live in E3 / Pillar B — not in Collect.
 
 | Class | Emitted by | Motadata fabric consumer (after E2) | Other / bakeoff consumers |
 |---|---|---|---|

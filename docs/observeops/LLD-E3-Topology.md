@@ -186,7 +186,7 @@ For Motadata unified fabric, E3 Topology is implemented by the Pillar B GraphWri
 
 | | |
 |--|--|
-| **IN** | Optional `topology.bootstrap.json` + post-E2 `ingest.v1` with `fact_kind=topo_update` and `identity.status=resolved` ([`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md)) |
+| **IN** | Optional `topology.bootstrap.json` + post-E2 stream with topology claim (`writer_stream.v1` `topology` block, or lab `ingest.v1` `topo_update`) and `identity.status=resolved` ([`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md) · [`WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md)) |
 | **OUT** | `graph_snapshot.v1` + `nodes.jsonl` / `edges.jsonl` via Gate B Dest (`map/…`) — [`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) |
 | **Admit** | **NOOP** — wrong `fact_kind` (`metric_sample`, `event`, `trace_span`, `anomaly`, …) · **WRITE** — wave-1 emit · **DROP** — unresolved/synthesized identity, never-CI types, unknown relation · phased map-NOOP — catalog relation not yet wave-1 ([`pillar-b/README.md`](../../pillar-ab-implementation/pillar-b/README.md)) |
 | **Wave-1 emit** | `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of` |

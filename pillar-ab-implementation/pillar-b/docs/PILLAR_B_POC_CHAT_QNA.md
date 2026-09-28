@@ -315,7 +315,7 @@ Flow: **memory `GraphState` → `publish_map` → JSON on Dest.** Do not use obs
 
 **A.** On deprecated `ingest.v1`, `fact_kind` was the Collect-stamped router label (`metric_sample` | `topo_update` | `anomaly` | `event` | `trace_span`). GraphWriter admits only `topo_update`; SketchWriter admits only `metric_sample`; logs land as `event` ([`INGEST_DATA_FORMAT.md`](../../../docs/INGEST_DATA_FORMAT.md) §5). The field was renamed from `signal_class` in a hard cut (session history). **Target wire does not stamp it** — regulators infer from optional blocks.
 
-Lab enum cheat sheet: [`E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md). How `event` / `anomaly` / `trace_span` are consumed later: **§15**.
+Lab enum cheat sheet (legacy) and target presence predicates: [`E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md#writer-stream-presence-cheat-sheet). How `event` / `anomaly` / `span` are consumed later: **§15**.
 
 ---
 

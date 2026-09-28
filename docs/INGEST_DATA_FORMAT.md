@@ -67,7 +67,7 @@ All sources should land as **`ingest.v1` JSONL** — one JSON object per line, t
 
 ## 2. `fact_kind` values (fact kinds)
 
-Wire field name on the **legacy Collect / corpus** line is **`fact_kind`** (router label). Full JSON examples and Pillar A/B lab routing: [`pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md#fact_kind-cheat-sheet) (**I/O-2**). Motadata **writer** fan-out target (no `fact_kind`): [`WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md).
+Wire field name on the **legacy Collect / corpus** line was **`fact_kind`** (router label). Motadata **writer** fan-out target has **no `fact_kind`** — presence of optional blocks on `writer_stream.v1`: [`WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md). Post-E2 cheat sheet (presence predicates; legacy map under the same page): [`E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md#writer-stream-presence-cheat-sheet) (**I/O-2**). Old `#fact_kind-cheat-sheet` anchors redirect to that section.
 
 | Fact kind (`fact_kind`) | Federated use | Lean use | Primary consumer (ObserveOps) | Kind-specific fields |
 |----------------------------|---------------|----------|-------------------------------|----------------------|
