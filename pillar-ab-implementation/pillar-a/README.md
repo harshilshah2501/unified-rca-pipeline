@@ -48,16 +48,9 @@ Wave-1 metrics: `request.latency_ms`, `cpu.utilization_pct`. Windows: `1m` + `5m
 pillar-a/
 ├── README.md                 ← you are here
 ├── HANDOFF.md                ← scope, locked leanings, open work
-├── contracts/
-│   ├── schemas/                 ← symlinks → ../../../contracts/schemas/ (SoT)
-│   │   ├── ingest_v1.schema.json
-│   │   └── sketch_v1.schema.json
-│   ├── MAP_WRITE_READ_RECORD.md ← symlink → ../../contracts/ (SoT)
-│   ├── IDENTIFIED_STREAM_REJECT.md ← symlink → SoT
-│   └── GATE_B_DEST_PROFILE.md   ← symlink → SoT (history/ room for sketches)
 ├── docs/
 │   ├── PILLAR_A_PERCENTILES_DEEP_DIVE.md   ← start here (inputs → process → artifacts)
-│   ├── GRAPH_QNA.md                        ← fabric Q&A (E1–E5)
+│   ├── GRAPH_QNA.md                        ← fabric Q&A (E1–E5); prefer slice SoT in monorepo
 │   ├── GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md
 │   ├── end-to-end-algorithm-walkthrough.md
 │   └── sketch-exemplars-visual.html
@@ -72,6 +65,7 @@ pillar-a/
     └── requirements.txt
 ```
 
+**Contracts (monorepo):** JSON schemas and Gate B / reject / map-write prose live only at [`../contracts/`](../contracts/). `poc/ab_shared/schema.py` loads `../contracts/schemas/` directly. When building a handoff zip, **copy** the schemas you need into the archive — do not reintroduce package-local symlink mirrors.
 ---
 
 ## What Pillar A owns

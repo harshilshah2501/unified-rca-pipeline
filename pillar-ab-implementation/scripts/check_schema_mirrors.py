@@ -1,118 +1,81 @@
 #!/usr/bin/env python3
-"""Ensure package schema mirrors resolve to contracts/schemas/ (SoT).
+"""Ensure JSON schemas live only under contracts/schemas/ (SoT).
 
-Policy (F03): edit JSON schemas only under pillar-ab-implementation/contracts/schemas/.
-Package trees under pillar-a|b/integration/contracts/schemas/ must be symlinks to SoT
-(or, for zip handoffs that materialize files, byte-identical to SoT).
+Policy: edit schemas only in pillar-ab-implementation/contracts/schemas/.
+Do **not** keep package mirrors under pillar-a|b/integration/contracts/schemas/
+(symlink or copy). Validators load the SoT path directly.
 
-Exit 0 on success; 1 on drift / missing / unexpected real-file mismatch.
+Exit 0 on success; 1 if SoT is broken or a forbidden mirror directory exists.
 """
 from __future__ import annotations
 
-import hashlib
+import json
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOT = ROOT / "contracts" / "schemas"
 
-# Package mirror dirs → expected schema basenames (owner subsets).
-MIRRORS: dict[Path, frozenset[str]] = {
-    ROOT / "pillar-a" / "contracts" / "schemas": frozenset(
-        {"ingest_v1.schema.json", "sketch_v1.schema.json"}
-    ),
-    ROOT / "pillar-b" / "contracts" / "schemas": frozenset(
-        {
-            "ingest_v1.schema.json",
-            "graph_node_v1.schema.json",
-            "graph_edge_v1.schema.json",
-            "graph_snapshot_v1.schema.json",
-            "change_fact_v1.schema.json",
-        }
-    ),
-    ROOT / "integration" / "contracts" / "schemas": frozenset(
-        {
-            "ingest_v1.schema.json",
-            "sketch_v1.schema.json",
-            "graph_node_v1.schema.json",
-            "graph_edge_v1.schema.json",
-            "graph_snapshot_v1.schema.json",
-            "change_fact_v1.schema.json",
-        }
-    ),
-}
+FORBIDDEN_MIRRORS = (
+    ROOT / "pillar-a" / "contracts" / "schemas",
+    ROOT / "pillar-b" / "contracts" / "schemas",
+    ROOT / "integration" / "contracts" / "schemas",
+)
 
-
-def _md5(path: Path) -> str:
-    return hashlib.md5(path.read_bytes()).hexdigest()
+# Minimum set the PoC validators expect today.
+REQUIRED = frozenset(
+    {
+        "ingest_v1.schema.json",
+        "sketch_v1.schema.json",
+        "graph_node_v1.schema.json",
+        "graph_edge_v1.schema.json",
+        "graph_snapshot_v1.schema.json",
+        "change_fact_v1.schema.json",
+        "writer_stream_v1.schema.json",
+        "graph_write_intent_v1.schema.json",
+        "sketch_admit_intent_v1.schema.json",
+    }
+)
 
 
 def main() -> int:
+    errors: list[str] = []
+
     if not SOT.is_dir():
         print(f"FAIL: SoT missing: {SOT}", file=sys.stderr)
         return 1
 
-    sot_files = {p.name: p for p in SOT.glob("*.schema.json")}
-    errors: list[str] = []
+    present = {p.name for p in SOT.glob("*.schema.json")}
+    missing = sorted(REQUIRED - present)
+    if missing:
+        errors.append(f"SoT missing schemas: {missing}")
 
-    for mirror_dir, expected in MIRRORS.items():
-        if not mirror_dir.is_dir():
-            errors.append(f"missing mirror dir: {mirror_dir.relative_to(ROOT)}")
-            continue
+    for name in sorted(present & REQUIRED):
+        path = SOT / name
+        try:
+            json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            errors.append(f"{path.relative_to(ROOT)}: {exc}")
 
-        present = {p.name for p in mirror_dir.glob("*.schema.json")}
-        extra = present - expected
-        missing = expected - present
-        if extra:
+    for mirror in FORBIDDEN_MIRRORS:
+        if mirror.exists():
             errors.append(
-                f"{mirror_dir.relative_to(ROOT)}: unexpected {sorted(extra)}"
+                f"forbidden package schema mirror (remove it): "
+                f"{mirror.relative_to(ROOT)}"
             )
-        if missing:
-            errors.append(
-                f"{mirror_dir.relative_to(ROOT)}: missing {sorted(missing)}"
-            )
-
-        for name in sorted(present & expected):
-            path = mirror_dir / name
-            sot = sot_files.get(name)
-            if sot is None:
-                errors.append(f"{path.relative_to(ROOT)}: no SoT peer {name}")
-                continue
-
-            if path.is_symlink():
-                resolved = path.resolve()
-                if resolved != sot.resolve():
-                    errors.append(
-                        f"{path.relative_to(ROOT)}: symlink → {resolved} "
-                        f"(want {sot.resolve()})"
-                    )
-                continue
-
-            # Materialized copy (handoff zip): allow only if bytes match SoT.
-            if _md5(path) != _md5(sot):
-                errors.append(
-                    f"{path.relative_to(ROOT)}: real file drifted from SoT "
-                    f"(replace with symlink to ../../../contracts/schemas/{name})"
-                )
-            else:
-                print(
-                    f"WARN: {path.relative_to(ROOT)} is a real file "
-                    f"(ok if handoff zip; prefer symlink in monorepo)",
-                    file=sys.stderr,
-                )
 
     if errors:
-        print("Schema mirror check FAILED:", file=sys.stderr)
+        print("Schema check FAILED:", file=sys.stderr)
         for e in errors:
             print(f"  - {e}", file=sys.stderr)
         print(
-            "Edit only contracts/schemas/; re-link package mirrors "
+            "Edit only contracts/schemas/; do not add package mirrors "
             "(see scripts/check_schema_mirrors.py).",
             file=sys.stderr,
         )
         return 1
 
-    print(f"OK: {len(MIRRORS)} package schema mirrors match SoT ({SOT})")
+    print(f"OK: SoT schemas parse ({SOT}); no package mirrors")
     return 0
 
 

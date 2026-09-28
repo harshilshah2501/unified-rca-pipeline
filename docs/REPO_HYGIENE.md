@@ -25,8 +25,8 @@ Real articles live in topic folders. Flat names at `docs/<file>` are **compatibi
 | Graph + sketch sit-down brief | [`pillar-ab-implementation/contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](../pillar-ab-implementation/contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) (`docs/` is a symlink) |
 | Fabric Q&A (E1–E5) | [`pillar-ab-implementation/contracts/GRAPH_QNA.md`](../pillar-ab-implementation/contracts/GRAPH_QNA.md) (`docs/GRAPH_QNA.md` is a symlink) |
 | Node/edge samples | [`pillar-ab-implementation/contracts/GRAPH_NODE_EDGE_SAMPLES.md`](../pillar-ab-implementation/contracts/GRAPH_NODE_EDGE_SAMPLES.md) |
-| JSON schemas | [`pillar-ab-implementation/contracts/schemas/`](../pillar-ab-implementation/contracts/schemas/) — **edit here only**. Package trees (`pillar-a|b/integration/contracts/schemas/`) are **symlinks** to this SoT; `make check-schemas` / `scripts/check_schema_mirrors.py` enforces it. |
-| Gate B / reject / map write prose | [`pillar-ab-implementation/contracts/`](../pillar-ab-implementation/contracts/) — package `*/contracts/*.md` are **symlinks** to SoT (same rule as schemas) |
+| JSON schemas | [`pillar-ab-implementation/contracts/schemas/`](../pillar-ab-implementation/contracts/schemas/) — **edit here only**. Do **not** keep package mirrors under `pillar-a|b/integration/contracts/schemas/`. Validators load this SoT path; `make check-schemas` / `scripts/check_schema_mirrors.py` fails if a mirror directory reappears. |
+| Gate B / reject / map write prose | [`pillar-ab-implementation/contracts/`](../pillar-ab-implementation/contracts/) — link from packages; do not symlink-mirror prose under `*/contracts/` |
 | Motadata kickoff scope | [`pillar-ab-implementation/scope/`](../pillar-ab-implementation/scope/) |
 | Pillar A deep dive + fabric HTML | [`docs/fabric/`](./fabric/) |
 | ObserveOps HLD / LLDs | [`docs/observeops/`](./observeops/) |
@@ -45,12 +45,10 @@ Owner-package `docs/` folders are **symlinks** into the paths above — do not r
 
 ## Handoff zip policy
 
-1. Build from `pillar-a/` (or `pillar-b/`) **after** docs are symlink-clean.  
+1. Build from `pillar-a/` (or `pillar-b/`) **after** docs are clean.  
 2. Exclude `.venv/`, `__pycache__/`, `*.pyc`, local `poc/out/`.  
 3. Name with date: `pillar-a-handoff-YYYY-MM-DD.zip`.  
-4. Zip should resolve teaching docs **and JSON schemas** via package symlinks (or include the linked files when archiving — `zip -y` keeps symlinks; prefer including content with `zip -r` following links / `rsync -L` for teammate machines without the monorepo). Materialized schema files in a handoff must stay **byte-identical** to SoT (`scripts/check_schema_mirrors.py` accepts that case with a warning).
-
-**Preferred teammate zip:** follow symlinks so the archive is self-contained (`zip -r --symlinks` off / use `rsync -L` into a staging dir, then zip).
+4. **Copy** needed JSON schemas from [`pillar-ab-implementation/contracts/schemas/`](../pillar-ab-implementation/contracts/schemas/) into the archive (or stage with `rsync -L` / explicit `cp`). Do not rely on package-local schema mirrors — those are forbidden in the monorepo.
 
 ## Local bulk (not day-to-day Motadata edit)
 

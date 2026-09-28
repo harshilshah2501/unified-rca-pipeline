@@ -28,7 +28,7 @@ Compatibility symlinks at `docs/<filename>` keep `:8765` URLs working.
 
 | Doc | Topic |
 |-----|--------|
-| [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./INGEST_FACT_KINDS_DISCUSSION.md) | **Team notes** — `fact_kind` wire key · **logs → `event`** · bind vs provenance |
+| [`../pillar-ab-implementation/contracts/WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md) | Motadata writer fan-out — `writer_stream.v1` · no `fact_kind` |
 | [`../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | **Pillar B PoC demo** — team walkthrough (hub: [Pillar B PoC hub](./pillar-b-poc-hub.html) · [Our HLD #pillar-b-poc](../observeops/observeops-pipeline-hld.html#pillar-b-poc)) |
 | [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](./PILLAR_A_PERCENTILES_DEEP_DIVE.md) | Inputs → `sketch.v1` / S3 / Vortex |
 | [`red-metrics-and-exemplars.md`](./red-metrics-and-exemplars.md) | Redirect → [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html) §RED |

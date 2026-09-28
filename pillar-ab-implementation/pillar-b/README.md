@@ -80,13 +80,12 @@ Vortex / S3: same logical records later; PoC dest is **`files.v1`** only.
 pillar-b/
 ├── README.md
 ├── docs/                     ← PoC guides only (see docs/README.md)
-├── contracts/schemas/        ← symlinks → ../contracts/schemas/ (SoT; required by tests)
 ├── reference/canvases/       ← Cursor canvas copies (hub door: pillar-b-poc-hub.html)
 ├── archived-docs/            ← OPTIONAL product HTML library (not PoC SoT)
 └── poc/                      ← code, sample estate, tests
 ```
 
-Normative map write/read, reject codes, Gate B dest, and fabric Q&A live under the **slice** tree [`../contracts/`](../contracts/) — not duplicated here.
+JSON schemas and map write/read prose live only under the **slice** tree [`../contracts/`](../contracts/) — validators load that path; do not add a package-local `contracts/` mirror.
 
 ---
 

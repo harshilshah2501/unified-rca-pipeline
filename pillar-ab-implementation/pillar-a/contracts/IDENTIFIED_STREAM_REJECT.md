@@ -1,1 +1,0 @@
-../../contracts/IDENTIFIED_STREAM_REJECT.md

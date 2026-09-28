@@ -14,9 +14,8 @@
 | [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) | Framing, layers, canvas → `:8765` doors |
 | [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md) | What “done” means for build/walk |
 | [`MAP_P2_CASE_PATH.md`](./MAP_P2_CASE_PATH.md) · [`MAP_P3_DIAGNOSE_CLOSE.md`](./MAP_P3_DIAGNOSE_CLOSE.md) | Optional stub harnesses (not core mission) |
-| [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md) | Every `fact_kind` with examples (legacy lab wire) |
 | [`../../contracts/WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md) | **Current** post-E2 writer fan-out — `writer_stream.v1`, no `fact_kind` |
-| [`../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md`](../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md) | Logs → `event`; spoken vs wire (legacy) |
+| [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md) | Legacy lab `ingest.v1` / `fact_kind` examples |
 | [`../../../docs/observeops/LLD-E4-Stores.md`](../../../docs/observeops/LLD-E4-Stores.md) | Motadata `history/` = metrics sketches; dual-path E4 |
 | [`../../contracts/MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md) | Dest `map/` write/read |
 | [`../../contracts/GRAPH_QNA.md`](../../contracts/GRAPH_QNA.md) | Broader fabric contract Q&A (E1–E5) |
@@ -31,7 +30,7 @@
 4. [Call graphs (build vs walk)](#4-call-graphs-build-vs-walk)
 5. [Wire contract, production stream, and sample estate](#5-wire-contract-production-stream-and-sample-estate)
 6. [GraphWriter input/output contracts and all JSON/JSONL files](#6-graphwriter-inputoutput-contracts-and-all-jsonjsonl-files)
-7. [Fact kinds (`fact_kind`) — origin, rename, logs, nomenclature](#7-fact-kinds-fact_kind--origin-rename-logs-nomenclature) (legacy; see §16)
+7. [Lab `fact_kind` (legacy) vs writer_stream](#7-lab-fact_kind-legacy-vs-writer_stream)
 8. [Admit triage: NOOP / WRITE / DROP / phased skip](#8-admit-triage-noop--write--drop--phased-skip)
 9. [Production: other kinds that imply topology](#9-production-other-kinds-that-imply-topology)
 10. [Interleaved multi-kind stream (worked example)](#10-interleaved-multi-kind-stream-worked-example)
@@ -190,7 +189,7 @@ Walk graph covers `load_snapshot` → `get_*` / `neighbors` / `reachable_ci_ids`
 
 | What you open | Path |
 |---------------|------|
-| Schema | `pillar-b/contracts/schemas/ingest_v1.schema.json` (symlink → slice `contracts/schemas/`) |
+| Schema | Slice `contracts/schemas/ingest_v1.schema.json` (validators load this path; no package mirror) |
 | Normative prose | [`docs/INGEST_DATA_FORMAT.md`](../../../docs/INGEST_DATA_FORMAT.md) |
 | Lab GraphWriter input | `…/customer_checkout/stream.resolved.jsonl` · `stream.reject.jsonl` |
 | One-of-each examples | `…/expected/ingest.example.json` (all five kinds) |
@@ -246,7 +245,7 @@ customer_checkout/
 
 ### Q21. What is the JSON contract for GraphWriter input and output?
 
-**A.** Normative SoT: [`MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md). Schemas under slice `contracts/schemas/` (symlinked from `pillar-b/contracts/schemas/`).
+**A.** Normative SoT: [`MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md). Schemas under slice `contracts/schemas/` only (no `pillar-b/contracts/` mirror).
 
 #### Input (two shapes)
 
@@ -308,98 +307,15 @@ Flow: **memory `GraphState` → `publish_map` → JSON on Dest.** Do not use obs
 
 ---
 
-## 7. Fact kinds (`fact_kind`) — origin, rename, logs, nomenclature
+## 7. Lab `fact_kind` (legacy) vs writer_stream
 
-### Q25. What is `fact_kind`? Why did we rename from `signal_class`?
+> **Superseded for new writer work** by [`WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md) (`writer_stream.v1`, no router enum). Lab fixtures and GraphWriter/SketchWriter code still filter `fact_kind` until migration — see also **§16**.
 
-**A.** On every `ingest.v1` line, `fact_kind` is the **router label**: what kind of fact the line is and which consumers should care. Spoken: **fact kind** or **line kind**.
+### Q25–Q32 (collapsed). What was `fact_kind`, and what remains true for the lab?
 
-`signal_class` confused people with Detect **Signal** and MELTS letter codes. Mid-session stance moved from “speak fact kind, rename wire later” → operator: *“go ahead with `fact_kind`… thorough… no stale `signal_class`.”* Hard cut applied across live tree (schema, code, fixtures, datasets, docs). **`_archive/` skipped.** Live hits of `signal_class` after cut: **0**.
+**A.** On deprecated `ingest.v1`, `fact_kind` was the Collect-stamped router label (`metric_sample` | `topo_update` | `anomaly` | `event` | `trace_span`). GraphWriter admits only `topo_update`; SketchWriter admits only `metric_sample`; logs land as `event` ([`INGEST_DATA_FORMAT.md`](../../../docs/INGEST_DATA_FORMAT.md) §5). The field was renamed from `signal_class` in a hard cut (session history). **Target wire does not stamp it** — regulators infer from optional blocks.
 
-### Q26. Change radius of `signal_class` → `fact_kind`?
-
-**A.** (Sized before the cut; then executed as hard cut.)
-
-| Layer | Size | What moves |
-|-------|------|------------|
-| Contract SoT | Small, blocking | `ingest_v1.schema.json`, `INGEST_DATA_FORMAT.md`, `E2_INPUT_FIXTURES.md`, HLD/LLD wording |
-| Runtime readers | Small (~15 `.py`) | Pillar B `graph_builder.py`; Pillar A `metric_admit.py`; ingestion-poc adapters / replay / detect / lean / federated |
-| Pillar A/B lab fixtures + unit tests | Small | `stream.*.jsonl`, `ingest.example.json`, key assertions |
-| Docs / hub HTML / canvases | Medium | Mechanical replace + glossary |
-| `datasets/ingest_samples/` | **Large** | Tens of thousands of JSONL lines (biggest churn) |
-| `_archive/` | Skip | Leave frozen |
-
-**Not in radius:** `map/` edge schemas, `discovered_via`, GraphSnapshot — they never used this field name.
-
-Practical options discussed: **hard cut** (chosen) vs **compat window** (emit `fact_kind`, accept either briefly). Pillar-B-only rename was rejected — wire is shared.
-
-### Q27. What about `telemetry_kind` as the key name?
-
-**A.** **Weaker than `fact_kind`.** The field routes shared-stream consumers; it is not “telemetry modality.”
-
-| Value | Feels like telemetry? |
-|-------|------------------------|
-| `metric_sample`, `trace_span`, `event` (incl. logs) | Yes |
-| `anomaly` | Borderline (Detect output) |
-| `topo_update` | **No** — topology / catalog edge fact |
-| Reserved `change_event`, `cmdb_sync`, `ticket` | **No** — ServiceOps / CMDB |
-
-Also collides with fabric “telemetry,” edge `telemetry_source`, TelemetryEnvelope talk — trading Detect-Signal confusion for MELTS-telemetry confusion.
-
-### Q28. How did we come up with the five values?
-
-**A.** One JSONL wire must feed both ObserveOps stages and bakeoff / Lean / Federated engines. Collect normalizes raw sources into a **closed enum**; writers filter. Values:
-
-```text
-metric_sample | topo_update | anomaly | event | trace_span
-```
-
-Reserved (do not emit this pass): `change_event`, `cmdb_sync`, `ticket`. Normative: `INGEST_DATA_FORMAT.md` §2. Mid-session audit fixed consistency gaps between that doc, the schema, and E2 fixtures.
-
-### Q29. Where do logs go? There is no `log` fact kind.
-
-**A.** **Logs land as `event`.** Collect maps app/syslog/JSONL logs (and SNMP/alert-style fires) to `fact_kind: "event"`. GraphWriter NOOPs those lines. Discussion captured in [`INGEST_FACT_KINDS_DISCUSSION.md`](../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md) and linked from hub / NAVIGATION / Our HLD Overview (added after operator asked where it appeared on `#overview`).
-
-### Q30. Do the five values need matching nomenclature?
-
-**A.** **No for this PoC.** They name **consumer jobs**, not one linguistic pattern (`*_sample` everywhere).
-
-| Value | Rough shape | Why |
-|-------|-------------|-----|
-| `metric_sample` | modality + unit | One numeric sample for Stores / Detect |
-| `topo_update` | domain + action | Edge assertion for Topology |
-| `trace_span` | modality + unit | One span for Localize / Identify |
-| `event` | bare noun | Discrete occurrence (incl. **logs**) |
-| `anomaly` | bare noun | Pre-marked Detect crossing |
-
-Forcing a uniform scheme would be another enum change, separate from the key rename already done.
-
-### Q31. Who stamps `fact_kind`? Does GraphWriter decide it?
-
-**A.** **GraphWriter does not decide it.**
-
-| Stage | Job |
-|-------|-----|
-| **E1 Collect / source adapters** | Normalize raw inputs; stamp `fact_kind`. Unknown → Collect dead-letter, **not** a guess |
-| **E2 Identity** | Stamps `identity.*` / `ci_id`; does **not** reclassify the line’s kind |
-| **E3 Topology (GraphWriter)** | Reads the kind. Admits only `topo_update` |
-| **E4 Stores (SketchWriter)** | Admits `metric_sample` (and related store paths) |
-
-### Q32. Consumer + fields table
-
-Spine on every line: `schema_version`, `ts`, `tenant`, `ci_id`, `ci_type`, `fact_kind`, plus `identity` after E2.
-
-| Fact kind | Primary consumers | Pillar A / B | Kind-specific fields |
-|-----------|-------------------|--------------|----------------------|
-| `metric_sample` | E4 Stores · E6 Detect | A **admits** · B NOOP | `name`, `value`; optional `labels` (e.g. `trace_id`) |
-| `topo_update` | E3 Topology | A NOOP · B **admits** | `relation`, `src_ci_id`, `dst_ci_id` |
-| `anomaly` | E6 Detect · E7 Curate | Both skip | `name`, `value`, `threshold`, `severity` |
-| `event` | E4 evidence · E10 Identify | Both skip | `name`, `value`, `labels` (**logs here**) |
-| `trace_span` | E9 Localize · E10 Identify | Both skip | `name`, duration `value`, peer/trace labels |
-
-Also in [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) §3.1 and [`E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md).
-
-**How** those three are consumed in Triage / Diagnose, and whether they land in Motadata sketch `history/`: **§15 (Q50–Q52)**.
+Lab enum cheat sheet: [`E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md). How `event` / `anomaly` / `trace_span` are consumed later: **§15**.
 
 ---
 
@@ -559,7 +475,7 @@ This PoC simulates the second kind of line in `stream.resolved.jsonl`. It does *
 
 **A.** Full worked story (timeline, relation-named WRITEs, SketchWriter NOOP on every topo line, sample JSON for each step):
 
-→ [`INTERLEAVED_FACT_KIND_SCENARIO.md`](./INTERLEAVED_FACT_KIND_SCENARIO.md)
+→ [Stream → graph demo](../../../docs/fabric/pillar-b-stream-graph-demo.html) (legacy interleaved tape)
 
 Short index of that tape:
 
@@ -720,7 +636,7 @@ These are **not** Motadata product locks, but they were part of the same working
 
 **Context (2026-09-23):** Operator asked who consumes `event`, `anomaly`, and `trace_span` — clarifying that the question is **not** whether SketchWriter / GraphWriter admit them. Follow-up: won’t those kinds be stored in E4 “evidence history” because Triage + Diagnose use them?
 
-**Normative companions:** [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) §3 · [`../../../docs/INGEST_DATA_FORMAT.md`](../../../docs/INGEST_DATA_FORMAT.md) §2 · [`../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md`](../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md) · [`../../../docs/observeops/LLD-E4-Stores.md`](../../../docs/observeops/LLD-E4-Stores.md) §0 · [`../../../docs/fabric/SIMULATION_THREAD.md`](../../../docs/fabric/SIMULATION_THREAD.md)
+**Normative companions:** [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) §3 · [`../../contracts/WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md) · [`../../../docs/INGEST_DATA_FORMAT.md`](../../../docs/INGEST_DATA_FORMAT.md) §2 · [`../../../docs/observeops/LLD-E4-Stores.md`](../../../docs/observeops/LLD-E4-Stores.md) §0 · [`../../../docs/fabric/SIMULATION_THREAD.md`](../../../docs/fabric/SIMULATION_THREAD.md)
 
 ### Q50. Who consumes `event`, `anomaly`, and `trace_span` — and **how**? (Not “do A/B writers skip them?”)
 
@@ -899,3 +815,4 @@ Use this to verify coverage against the chat. Numbers are approximate order in t
 | 2026-09-22 | **Expanded to comprehensive capture** — restore/Identity context, increments/films, call graphs, full I/O inventory, rename radius + `telemetry_kind` rejection, hub/canvas hygiene, walk test bands, interleaved stream, chronological index |
 | 2026-09-23 | **§15** — who consumes `event` / `anomaly` / `trace_span` and **how**; E4 sketch `history/` vs sibling evidence stores for Triage + Diagnose (Q50–Q52) |
 | 2026-09-23 | **§16** — `writer_stream.v1` / regulator / intent supersession of `fact_kind` (Q53–Q54); chronological renumbered to §17 |
+| 2026-09-23 | Removed redundant fact_kind teaching pages (discussion notes, interleaved MD, fan-out art); §7 collapsed to legacy pointer |

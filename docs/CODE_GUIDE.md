@@ -78,9 +78,11 @@ Design docs live under `docs/`. Runtime Motadata writers live under `pillar-ab-i
 ```
 Sources                 Front door              After Identity (E2)
 ─────────               ──────────              ───────────────────
-Motadata dumps     ──►  ingest.v1 JSONL   ──►  fact_kind fan-out
+Motadata dumps     ──►  ingest.v1 JSONL   ──►  lab: fact_kind filter (legacy)
 ObserveOps replay  ──►  (ingestion-poc)        ├── metric_sample → Pillar A → history/ (sketch.v1)
 Lab fixtures       ──►                         └── topo_update   → Pillar B → map/     (graph_*)
+                                                          │
+Target fan-out     ──►  writer_stream.v1       regulators (no fact_kind) — WRITER_REGULATOR.md
                                                           │
                                                           ▼
                                               dest profile (PoC: files.v1 under poc/out/)
@@ -149,7 +151,8 @@ PYTHONPATH=lean-pipeline:. .venv/bin/python ingestion-poc/builders/n45_chain.py
 |------|----------------|
 | `contracts/` | **Source of truth** — schemas, `GRAPH_QNA`, `MAP_WRITE_READ_RECORD`, Gate B dest profile |
 | `contracts/schemas/` | `ingest_v1`, `sketch.v1`, graph node/edge / snapshot JSON schemas |
-| `E2_INPUT_FIXTURES.md` | What writers consume after E2 (lab JSONL paths + `fact_kind`) |
+| `E2_INPUT_FIXTURES.md` | Legacy lab JSONL + `fact_kind` until writer_stream migration |
+| `contracts/WRITER_REGULATOR.md` | Target Motadata writer fan-out (no `fact_kind`) |
 | `pillar-a/poc/` | Sketch / percentile writer PoC (`history/` keys; `files.v1` dest) |
 | `pillar-b/poc/` | Graph materializer PoC (`map/` keys; `topo_update` + seed topology) |
 | `integration/` | Optional **read-join** harness after both unit suites are green (not an A∪B merge) |

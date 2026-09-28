@@ -36,8 +36,8 @@ PoC-wide, objective-oriented docs live here. Pipeline-specific docs stay under
 | [`GLOSSARY.md`](./GLOSSARY.md) | Disambiguates **tier** namespaces, corpus names, and verifiability vs main-path % |
 | [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) | **Ingestion design** — Vector shared fabric; RCA-ready artifacts for Lean vs Federated |
 | [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) | Ingestion PoC milestones, hardware, weekly checklist |
-| [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) | `ingest.v1` contract + ObserveOps/Motadata converters |
-| [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md) | Team notes: fact kinds · **logs are `event`** · wire key `fact_kind` |
+| [`INGEST_DATA_FORMAT.md`](./INGEST_DATA_FORMAT.md) | `ingest.v1` Collect/corpus contract + converters |
+| [`../pillar-ab-implementation/contracts/WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md) | Motadata writer fan-out — `writer_stream.v1` (no `fact_kind`) |
 | [`pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md`](../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | **Pillar B PoC** team demo (hub: [Pillar B PoC hub](./fabric/pillar-b-poc-hub.html) · [Our HLD](./observeops/observeops-pipeline-hld.html#pillar-b-poc)) |
 | [`PIPELINE_PARITY.md`](./PIPELINE_PARITY.md) | Fair Lean vs Federated compare (shared detect) |
 | [`observeops-pipeline-hld.html`](./observeops-pipeline-hld.html) | **Our HLD hub** — reading paths · [#fabric](observeops/observeops-pipeline-hld.html#fabric) · [Pipeline HLD](./observeops/OBSERVEOPS_PIPELINE_HLD.md) · [Fusion](./observeops/observeops-fusion-guide.html) · [archive](./observeops/hld-archive.html) |

@@ -53,7 +53,7 @@ Subsystem plans: Cursor `pillar_a_subsystem_plan` · `pillar_b_subsystem_plan`.
 
 | Check | Location |
 |-------|----------|
-| Schemas (SoT) | `contracts/schemas/*.schema.json` — package mirrors are **symlinks**; `make check-schemas` |
+| Schemas (SoT) | `contracts/schemas/*.schema.json` — no package mirrors; `make check-schemas` |
 | Reject list | `contracts/IDENTIFIED_STREAM_REJECT.md` |
 | Gate B profile | `contracts/GATE_B_DEST_PROFILE.md` |
 | Map write/read (JSON) | `contracts/MAP_WRITE_READ_RECORD.md` + `schemas/graph_snapshot_v1.schema.json` |

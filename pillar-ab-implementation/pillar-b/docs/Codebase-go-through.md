@@ -63,7 +63,6 @@ Noisier auto dump (write path only, optional): [`pillar-b-callgraph-auto.png`](.
 pillar-b/
 ├── README.md                 ← package front door (I/O + admit)
 ├── docs/                     ← PoC guides only (this page, MAP_P1, doc map)
-├── contracts/schemas/        ← schema symlinks → slice SoT (required by tests)
 ├── archived-docs/            ← OPTIONAL product HTML (not PoC SoT)
 └── poc/                      ← runnable code + sample estate + tests
     ├── ab_shared/            ← gate, dest, ingest, schema helpers
@@ -72,6 +71,7 @@ pillar-b/
     └── out/                  ← FileDest after make publish-map
 ```
 
+JSON schemas live only under slice [`../../contracts/schemas/`](../../contracts/schemas/) — `ab_shared.schema` loads that path.
 Do not confuse with:
 
 - **`pillar-a/`** — sketches into `history/` (E4). GraphWriter NOOPs those lines.
@@ -106,7 +106,7 @@ GraphWriter never opens paths itself; snapshot publish always goes through Dest.
 
 ### `schema.py` — shape checks before publish
 
-Loads mirrored JSON Schema from `pillar-b/contracts/schemas/` and validates nodes, edges, and `graph_snapshot.v1` on flush. Failed validation is a hard fail in tests — the PoC does not ship half-shaped map files.
+Loads JSON Schema from slice `contracts/schemas/` and validates nodes, edges, and `graph_snapshot.v1` on flush. Failed validation is a hard fail in tests — the PoC does not ship half-shaped map files.
 
 ### `reject_codes.py` — stable DROP strings
 

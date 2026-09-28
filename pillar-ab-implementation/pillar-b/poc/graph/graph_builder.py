@@ -5,7 +5,8 @@
 * ``load_estate_bootstrap_state`` — optional declared seed (lab JSON / future CMDB sync)
 * ``apply_topo_stream`` — per-line NOOP / WRITE / DROP / phased skip
 
-CI type eligibility → ``ci_qualify``; relation names → ``edge_catalog``.
+CI type eligibility → ``ci_qualify``; relation names → ``edge_catalog``;
+endpoint pairing → ``edge_triplets`` (``EDGE_TRIPLET_ALLOWLIST.md``).
 Node/edge shapes are Motadata-aligned (no tenant / discovered_via on rows).
 Edge upsert identity is ``(source_id, edge_type, target_id)``; ``edge_id`` is a
 snowflake allocated once per logical key.
@@ -22,7 +23,27 @@ from ab_shared.identity_gate import ResolvedOnlyGate
 from ab_shared.ingest_source import IngestSource
 from graph.ci_qualify import may_emit_vertex, to_storage_type
 from graph.edge_catalog import classify_relation, to_edge_type
+from graph.edge_triplets import check_edge_triplet, storage_type_or_none
 from graph.snowflake import next_snowflake
+
+# Motadata storage → ingest PascalCase for first-time node upsert when only map type is known.
+_STORAGE_TO_INGEST = {
+    "service": "Service",
+    "host": "Host",
+    "process": "Runtime",
+    "db": "Database",
+    "business_service": "BusinessService",
+    "queue": "Queue",
+    "pod": "Pod",
+    "container": "Container",
+    "endpoint": "Endpoint",
+    "node": "Node",
+    "namespace": "Namespace",
+    "volume": "Volume",
+    "network": "Network",
+    "k8s_deployment": "Deployment",
+    "customer": "Customer",
+}
 
 
 def logical_edge_key(source_id: str, edge_type: str, target_id: str) -> str:
@@ -55,6 +76,18 @@ class GraphState:
     nodes: dict[str, dict[str, Any]] = field(default_factory=dict)
     edges: dict[str, dict[str, Any]] = field(default_factory=dict)
     rejects: list[tuple[dict, str]] = field(default_factory=list)
+
+
+def _resolve_endpoint_storage_type(
+    state: GraphState,
+    ci_id: str,
+    declared_ci_type: str | None,
+) -> str | None:
+    """Prefer type already on the map; else map declared ingest type. Never invent Service."""
+    existing = state.nodes.get(ci_id)
+    if existing and existing.get("type"):
+        return str(existing["type"])
+    return storage_type_or_none(declared_ci_type)
 
 
 def _make_node(
@@ -203,6 +236,12 @@ def load_estate_bootstrap_state(path_or_dict: Any, tenant: str = "default") -> G
         src, dst = e["from"], e["to"]
         if src not in state.nodes or dst not in state.nodes:
             continue
+        src_type = state.nodes[src].get("type")
+        dst_type = state.nodes[dst].get("type")
+        trip, trip_reason = check_edge_triplet(e["relation"], src_type, dst_type)
+        if trip != "ok":
+            state.rejects.append((e, trip_reason or "illegal_edge_triplet"))
+            continue
         _upsert_edge(
             state,
             source_id=src,
@@ -222,6 +261,7 @@ def apply_topo_stream(state: GraphState, source: IngestSource, gate: ResolvedOnl
       - fact_kind != topo_update → NOOP (silent continue; metric/event/trace/anomaly)
       - gate or catalog fail → DROP (append rejects)
       - classify_relation skip → phased map-NOOP
+      - illegal / missing endpoint types → DROP (triplet allowlist)
       - classify_relation emit → WRITE (upsert nodes + edge)
     """
     gate = gate or ResolvedOnlyGate()
@@ -250,15 +290,27 @@ def apply_topo_stream(state: GraphState, source: IngestSource, gate: ResolvedOnl
         dst = rec.get("dst_ci_id")
         if not dst:
             continue
+        src_declared = rec.get("src_ci_type") or ci_type
+        dst_declared = rec.get("dst_ci_type")  # no Service default — see EDGE_TRIPLET_ALLOWLIST
+        src_storage = _resolve_endpoint_storage_type(state, src, src_declared)
+        dst_storage = _resolve_endpoint_storage_type(state, dst, dst_declared)
+        trip, trip_reason = check_edge_triplet(relation, src_storage, dst_storage)
+        if trip != "ok":
+            state.rejects.append((rec, trip_reason or "illegal_edge_triplet"))
+            continue
         ts = rec.get("ts") or _now_iso()
-        for cid, ctype, cname in (
-            (src, ci_type, src),
-            (dst, rec.get("dst_ci_type", "Service"), dst),
+        src_emit = src_declared
+        dst_emit = dst_declared or _STORAGE_TO_INGEST.get(str(dst_storage), "")
+        for cid, emit_type, cname in (
+            (src, src_emit, src),
+            (dst, dst_emit, dst),
         ):
-            ok2, _reason2 = may_emit_vertex(ctype)
+            if not emit_type:
+                continue
+            ok2, _reason2 = may_emit_vertex(emit_type)
             if not ok2:
                 continue
-            _upsert_node(state, {"id": cid, "type": ctype, "name": cname}, last_seen=ts)
+            _upsert_node(state, {"id": cid, "type": emit_type, "name": cname}, last_seen=ts)
         bind = rec.get("identity", {}).get("bind_source", "topo_update")
         _upsert_edge(
             state,

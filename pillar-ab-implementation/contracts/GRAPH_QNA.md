@@ -4,6 +4,8 @@
 
 **Status:** Living Q&A for the graph/sketch contract (E1–E5 always-on fabric).
 
+> **Motadata writer fan-out (2026-09-23):** Target wire is [`WRITER_REGULATOR.md`](./WRITER_REGULATOR.md) (`writer_stream.v1`, presence predicates, **no `fact_kind`**). Answers below that still mention `fact_kind` describe the **legacy lab / Collect corpus** path until fixtures migrate — not the new GraphWriter/SketchWriter contracts.
+
 **Parent brief (lock list + schemas):** [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md)
 
 **Locked catches to protect while reading:**

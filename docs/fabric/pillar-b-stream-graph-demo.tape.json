@@ -1,8 +1,8 @@
 {
   "_comment": "Demo tape: B0 = estate bootstrap of CI nodes only (pre-stream). Edges appear gradually on each stream topo_update WRITE (Forward), in sync with the left panel. line.common \u222a line.specific = flat ingest.v1. Use _comment for humans \u2014 strict JSON has no //.",
-  "title": "Interleaved fact_kind replay \u2014 customer checkout",
-  "description": "Pillar B stream|graph demo: B0 loads estate CI nodes; then interleaved ingest.v1. Each topo_update WRITE adds/upserts one edge on map/; other kinds NOOP or Sketch admit.",
-  "source": "pillar-ab-implementation/pillar-b/docs/INTERLEAVED_FACT_KIND_SCENARIO.md",
+  "title": "Interleaved stream replay \u2014 customer checkout",
+  "description": "Pillar B stream|graph demo: B0 loads estate CI nodes; then interleaved legacy ingest.v1. Each topo_update WRITE adds/upserts one edge on map/; other kinds NOOP or Sketch admit. Target wire: writer_stream.v1 (WRITER_REGULATOR.md).",
+  "source": "docs/fabric/pillar-b-stream-graph-demo.tape.json (legacy ingest.v1 teaching tape)",
   "field_guide": {
     "common": [
       "schema_version",

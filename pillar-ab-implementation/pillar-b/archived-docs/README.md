@@ -4,7 +4,7 @@
 
 **What this folder is:** Motadata leadership HTML briefs about the **Service-Centric Knowledge Graph** (configuration-item catalog + relationship vocabulary) and how that model compares to enterprise CMDB incumbents (ServiceNow, BMC Helix, OpenText UCMDB). Also Edge Delta → Motadata comparator notes.
 
-**What this folder is not:** The live Pillar B **implementation source of truth**. Wire shapes, PoC dest keys, and the locked sit-down enum live under the **slice** [`../../contracts/`](../../contracts/). Lab code and fixtures live under [`../poc/`](../poc/). Package `contracts/` holds **schema symlinks only**.
+**What this folder is not:** The live Pillar B **implementation source of truth**. Wire shapes, PoC dest keys, and the locked sit-down enum live under the **slice** [`../../contracts/`](../../contracts/). Lab code and fixtures live under [`../poc/`](../poc/).
 
 **How to open the HTML:** Prefer a small local server (pages are large and interactive):
 

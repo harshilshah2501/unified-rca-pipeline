@@ -49,144 +49,40 @@ If you only open one page before the meeting, make it **this file**. Framing + l
 
 Estate layout and every file’s job: [`../poc/sample_estate/customer_checkout/README.md`](../poc/sample_estate/customer_checkout/README.md).
 
-### Where the five `fact_kind` values came from (legacy lab wire)
+### Lab vs target wire (short)
 
-> **Superseded for new writer work.** Regulators now key on optional blocks on `writer_stream.v1` ([`WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md)). Keep reading this subsection to understand why the **lab demo / fixtures** still use `fact_kind`.
+**Target (new writer work):** [`WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md) — `writer_stream.v1` optional blocks; GraphRegulator / SketchRegulator; **no `fact_kind`**.
 
-They are **not** Motadata inventing five random labels. They come from freezing **one JSONL wire** that must feed both:
-
-1. **ObserveOps stages** after Collect (Topology, Stores, Detect, Localize, Identify, …), and  
-2. **Bakeoff / Lean / Federated** engines that already thought in metrics, anomalies, events, spans, and topology refresh.
-
-So Collect normalizes raw MELTS-ish sources into a **closed enum of line kinds**. Writers then filter by that enum instead of each parsing every modality. Reserved names (`change_event`, `cmdb_sync`, `ticket`) exist so ServiceOps/CMDB can join later without colliding. Normative list: [`docs/INGEST_DATA_FORMAT.md`](../../../docs/INGEST_DATA_FORMAT.md) §2 · cheat sheet: [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md).
-
-**Spoken name:** the JSON field is `fact_kind`. In team talk, say **fact kind** (or **line kind**) — “what kind of fact this line is / which consumers should care.” It is a **router label**, not “an anomaly signal” and not MELTS letter codes.
-
-**One shared wire format after E2:** every line is still `ingest.v1`. Identity adds an `identity` object; it does **not** invent a second schema. Writers **filter by fact kind (`fact_kind`)**. Collect/adapters stamp it; GraphWriter does not guess it.
+**Lab PoC today:** fixtures and the stream→graph demo still use deprecated `ingest.v1` with `fact_kind`. GraphWriter admits `topo_update`; SketchWriter admits `metric_sample`; other kinds NOOP. Logs land as `event` on that legacy enum ([`INGEST_DATA_FORMAT.md`](../../../docs/INGEST_DATA_FORMAT.md) §5). Cheat sheet for lab lines: [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md).
 
 ```text
-                    post-E2 ingest.v1 stream
-                              │
-          ┌───────────────────┼───────────────────┐
-          ▼                   ▼                   ▼
-   metric_sample         topo_update         event · anomaly · trace_span
-   (measurement)         (edge fact)         (discrete / span lines)
-          │                   │                   │
-          ▼                   ▼                   ▼
-   SketchWriter (A)     GraphWriter (B)      both pillars skip
-   → history/ sketch    → map/ snapshot      (other stages later)
+                writer_stream.v1   (target — no fact_kind)
+                         │
+         ┌───────────────┼───────────────┐
+         ▼               ▼               ▼
+  GraphRegulator   SketchRegulator   (other sinks later)
 ```
 
-The five **values** are not one naming grammar (`*_sample` vs bare nouns). They are **router labels** frozen so ObserveOps stages and bakeoff engines share one wire — see §3.4.
-
-### 3.1 Consumer + fields table (every fact kind)
-
-Spine on **every** line: `schema_version`, `ts`, `tenant`, `ci_id`, `ci_type`, `fact_kind`, plus `identity` after E2.
-
-| Fact kind (`fact_kind`) | Who consumes it | Pillar A / B | Fields that matter for this kind |
-|----------------------------|-----------------|--------------|----------------------------------|
-| `metric_sample` | **E4 Stores** (sketches) · **E6 Detect** | A **admits** · B NOOP | `name` (metric id), `value`; optional `labels` (e.g. `trace_id` for exemplars) |
-| `topo_update` | **E3 Topology** only | A NOOP · B **admits** | `relation`, `src_ci_id`, `dst_ci_id`; optional `dst_ci_type`; `name` often omitted |
-| `anomaly` | **E6 Detect** · **E7 Curate** | Both skip | `name`, `value`, `threshold`, `severity` |
-| `event` | **E4** evidence · **E10 Identify** | Both skip | `name` (event/**log** type), `value` (often `1.0`), `labels` — **logs land here; there is no separate `log` fact kind** |
-| `trace_span` | **E9 Localize** · **E10 Identify** | Both skip | `name` (operation), `value` = duration ms; `labels` (`trace_id`, `span_id`, `peer.service`, …) |
-
-Reserved (do not emit this pass): `change_event`, `cmdb_sync`, `ticket` — future ServiceOps / CMDB / change feeds.
-
-### 3.2 Node bind vs edge provenance (preview)
-
-Three different questions — do not collapse them:
+### Node bind vs edge provenance (preview)
 
 | Concern | Lives on | Field | Meaning |
 |---------|----------|-------|---------|
-| **How did this CI get its id?** | Ingest line | `identity` (esp. `bind_source`) | Which binder/look-up attached `ci_id` (admit-time; not stored on Motadata node) |
-| **How was this relationship proved?** | Edge | `evidence_event_id` (+ optional PoC `origin` / `telemetry_source`) | Snowflake of the proving event; E5 uses `valid_to` / `origin`, not `discovered_via` |
-| **How long is the edge believed?** | Edge | `valid_from` / `valid_to` | Validity window for E5 Maintain |
+| **How did this CI get its id?** | Ingest / stream line | `identity` (esp. `bind_source`) | Which binder attached `ci_id` |
+| **How was this relationship proved?** | Edge | `evidence_event_id` (+ optional PoC provenance) | Proving event; E5 uses validity, not `discovered_via` on Motadata Dest |
+| **How long is the edge believed?** | Edge | `valid_from` / `valid_to` (lab) or Fusion `ttl` / `lastObserved` (intent) | Validity for Maintain |
 
-Full Identity field list, validity rules, and `bind_source` → Maintain implications: **§5**.
+Full Identity / validity: **§5**.
 
-### 3.3 Sample estate folders (Case A/B vs stubs)
+### Sample estate folders (Case A/B vs stubs)
 
 | Folder under `cases/` | Meaning |
 |-----------------------|---------|
 | `case_a_map_spine/` | **PoC core** — golden map spine after `stream.resolved.jsonl` |
-| `case_b_rejects/` | **PoC core** — golden DROP codes from `stream.reject.jsonl` (`expected_rejects.json`) |
-| `stub_case_path/` | Optional Detect→Localize harness (storm + CaseSeed spine) — not map build |
-| `stub_diagnose_close/` | Optional Identify/Package harness (verdict spine) — not map build |
+| `case_b_rejects/` | **PoC core** — golden DROP codes from `stream.reject.jsonl` |
+| `stub_case_path/` | Optional Detect→Localize harness — not map build |
+| `stub_diagnose_close/` | Optional Identify/Package harness — not map build |
 
 Full tree: [`customer_checkout/README.md`](../poc/sample_estate/customer_checkout/README.md).
-
-### 3.4 Do the five `fact_kind` values need matching nomenclature?
-
-**No — not for this PoC.** Keep the locked enum values. They are intentionally mixed because they name **consumer jobs**, not a single linguistic pattern:
-
-| Value | Rough shape | Why it looks that way |
-|-------|-------------|------------------------|
-| `metric_sample` | modality + unit | One numeric sample for Stores / Detect |
-| `topo_update` | domain + action | Edge assertion for Topology |
-| `trace_span` | modality + unit | One span for Localize / Identify |
-| `event` | bare noun | Discrete occurrence (incl. **logs**) — shared evidence path |
-| `anomaly` | bare noun | Pre-marked Detect crossing |
-
-Forcing a uniform scheme (e.g. every value `*_fact` or `*_sample`) would rename the wire enum again and buy little for routers. If leadership later wants stricter names, that is another I/O-1 enum change — separate from the wire **key** rename to `fact_kind` (already done).
-
-### Example — SketchWriter admits (`metric_sample`)
-
-```json
-{
-  "schema_version": "ingest.v1",
-  "ts": "2026-08-20T03:30:12Z",
-  "tenant": "default",
-  "ci_id": "checkout-api",
-  "ci_type": "Service",
-  "fact_kind": "metric_sample",
-  "name": "request.latency_ms",
-  "value": 92.1,
-  "identity": { "status": "resolved", "bind_source": "topology_lookup" }
-}
-```
-
-GraphWriter: NOOP. SketchWriter: folds into windowed history.
-
-### Example — GraphWriter admits (`topo_update` → WRITE)
-
-```json
-{
-  "schema_version": "ingest.v1",
-  "ts": "2026-08-20T03:30:00Z",
-  "tenant": "default",
-  "ci_id": "checkout-api",
-  "ci_type": "Service",
-  "fact_kind": "topo_update",
-  "relation": "runs_on",
-  "src_ci_id": "checkout-api",
-  "dst_ci_id": "linux-server-app-01",
-  "identity": { "status": "resolved", "bind_source": "topology_lookup" }
-}
-```
-
-SketchWriter: NOOP. GraphWriter: upsert nodes + edge in memory; `publish_map` flushes Dest.
-
-### Example — both skip (`trace_span`)
-
-```json
-{
-  "schema_version": "ingest.v1",
-  "ts": "2026-08-20T03:30:00Z",
-  "tenant": "default",
-  "ci_id": "checkout-api",
-  "ci_type": "Service",
-  "fact_kind": "trace_span",
-  "name": "POST /checkout",
-  "value": 210.0,
-  "identity": { "status": "resolved", "bind_source": "apm" }
-}
-```
-
-A future adapter may turn peer labels into a **new** `topo_update` line; this PoC does not derive edges from spans inside GraphWriter.
-
-Full cheat sheet: [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md).  
-Discussion (logs → `event`, spoken **fact kind**): [`../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md`](../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md).
 
 ---
 
@@ -197,11 +93,11 @@ Discussion (logs → `event`, spoken **fact kind**): [`../../../docs/fabric/INGE
 | Hub action | When | Effect |
 |------------|------|--------|
 | **NOOP** | Fact kind (`fact_kind`) ≠ `topo_update` | Silent skip; no reject |
-| **DROP** | Unresolved/synthesized identity, never-CI type (`Alert`…), unknown `relation` | Append reject reason; map unchanged |
-| **WRITE** | Resolved + allowed CI type + wave-1 relation (`runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of`) | Upsert node(s) + edge in `GraphState` |
+| **DROP** | Unresolved/synthesized identity, never-CI type (`Alert`…), unknown `relation`, **illegal endpoint pairing**, or **missing endpoint type** | Append reject reason; map unchanged |
+| **WRITE** | Resolved + allowed CI type + wave-1 relation + allowlisted `(src_type, relation, dst_type)` | Upsert node(s) + edge in `GraphState` |
 | Phased skip | Relation in fifteen-name catalog but not wave-1 (e.g. `mounts`) | No write, usually not a DROP |
 
-Code: `poc/graph/graph_builder.py` → `apply_topo_stream`. Lab tapes: `stream.resolved.jsonl` / `stream.reject.jsonl`.
+Code: `poc/graph/graph_builder.py` → `apply_topo_stream`. Triplet rules: [`../../contracts/EDGE_TRIPLET_ALLOWLIST.md`](../../contracts/EDGE_TRIPLET_ALLOWLIST.md). Lab tapes: `stream.resolved.jsonl` / `stream.reject.jsonl`.
 
 ### Wave-1 relations (always name the type on a WRITE)
 
@@ -277,7 +173,7 @@ Strength order: authoritative > declared > corroborating. See [`GRAPH_QNA.md`](.
 | `valid_from` | When Topology started believing this edge |
 | `valid_to` | When belief ends (`null` = open-ended until Maintain changes it) |
 
-Schema: [`graph_edge_v1.schema.json`](../contracts/schemas/graph_edge_v1.schema.json). Contract note: [`GRAPH_QNA.md`](../../contracts/GRAPH_QNA.md) G9.
+Schema: [`graph_edge_v1.schema.json`](../../contracts/schemas/graph_edge_v1.schema.json). Contract note: [`GRAPH_QNA.md`](../../contracts/GRAPH_QNA.md) G9.
 
 **This PoC:** GraphWriter sets `valid_from` from the ingest line’s `ts` and leaves `valid_to` null on WRITE. **E5 Maintain** (`maintain.py`) later:
 
@@ -365,14 +261,13 @@ make publish-map    # optional: write out/default/map/
 | Next | Why |
 |------|-----|
 | [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) | Framing · layers · call sequences · canvas → hub map |
-| [`PILLAR_B_POC_CHAT_QNA.md`](./PILLAR_B_POC_CHAT_QNA.md) | Session Q&A — stream vs files, fact kinds, production topo emitters |
-| [`INTERLEAVED_FACT_KIND_SCENARIO.md`](./INTERLEAVED_FACT_KIND_SCENARIO.md) | Mixed fact-kind checkout story with sample JSON and relation-named WRITEs |
-| [Stream → graph demo](../../../docs/fabric/pillar-b-stream-graph-demo.html) | Split UI replay — stream left, `map/` grows on WRITE ([`:8765`](http://127.0.0.1:8765/pillar-b-stream-graph-demo.html)) |
+| [`PILLAR_B_POC_CHAT_QNA.md`](./PILLAR_B_POC_CHAT_QNA.md) | Session Q&A — stream, admit, writer_stream supersession |
+| [`../../contracts/WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md) | Current post-E2 writer fan-out (no `fact_kind`) |
+| [Stream → graph demo](../../../docs/fabric/pillar-b-stream-graph-demo.html) | Legacy `ingest.v1` tape · `map/` grows on WRITE ([`:8765`](http://127.0.0.1:8765/pillar-b-stream-graph-demo.html)) |
 | [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md) | What “done” means for build/walk |
 | [`Codebase-go-through.md`](./Codebase-go-through.md) | File-by-file code tour |
 | [`../poc/sample_estate/customer_checkout/SAMPLE_IO.md`](../poc/sample_estate/customer_checkout/SAMPLE_IO.md) | Case A/B goldens |
-| [`INGEST_FACT_KINDS_DISCUSSION.md`](../../../docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md) | Fact kinds discussion (logs → `event`) |
-| [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md) | Every `fact_kind` with examples |
+| [`../../E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md) | Legacy lab `ingest.v1` / `fact_kind` examples |
 | [`../../contracts/MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md) | Dest keys and snapshot schema |
 | [Our HLD → GraphWriter](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter) | Hub visual for NOOP / WRITE / DROP |
 

@@ -4,7 +4,7 @@
 **Tier:** Tier 2 implementer I/O (**I/O-1**) — see [`observeops/OUR_HLD_TIER1.md`](./observeops/OUR_HLD_TIER1.md). Pillar lab fixtures: [`../pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md) (**I/O-2**).
 **Machine schema (JSON Schema):** [`../pillar-ab-implementation/contracts/schemas/ingest_v1.schema.json`](../pillar-ab-implementation/contracts/schemas/ingest_v1.schema.json) — validators use this file; keep prose below aligned with it.
 **Build order:** **Federated pipeline first (F1)**, then **Lean bundle writer (L0)** from the **same** normalized stream  
-**Related:** [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) §3.4 · [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · HLD v1.1 [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §11.1 · [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) (Normalize) · spoken **fact kind** notes: [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md)
+**Related:** [`INGESTION_PIPELINE_VECTOR.md`](./INGESTION_PIPELINE_VECTOR.md) §3.4 · [`INGESTION_POC_PLAN.md`](./INGESTION_POC_PLAN.md) · HLD v1.1 [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §11.1 · [`LLD-E1-Collect.md`](./LLD-E1-Collect.md) · [`LLD-E2-Identity.md`](./LLD-E2-Identity.md) (Normalize) · Motadata writer fan-out: [`../pillar-ab-implementation/contracts/WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md)
 
 > **Pillar A/B writer fan-out (2026-09-23):** Motadata GraphWriter / SketchWriter target wire is now **`writer_stream.v1`** (optional blocks, **no `fact_kind`**) with per-writer regulators — see [`../pillar-ab-implementation/contracts/WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md). This page remains the corpus / Collect normalization contract for `ingest.v1` fixtures until that migration lands everywhere.
 
@@ -67,7 +67,7 @@ All sources should land as **`ingest.v1` JSONL** — one JSON object per line, t
 
 ## 2. `fact_kind` values (fact kinds)
 
-Wire field name is **`fact_kind`** (router label for who should care about the line). Full JSON examples and Pillar A/B routing: [`pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md#fact_kind-cheat-sheet) (**I/O-2**). Discussion (logs → `event`): [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md).
+Wire field name on the **legacy Collect / corpus** line is **`fact_kind`** (router label). Full JSON examples and Pillar A/B lab routing: [`pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../pillar-ab-implementation/E2_INPUT_FIXTURES.md#fact_kind-cheat-sheet) (**I/O-2**). Motadata **writer** fan-out target (no `fact_kind`): [`WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md).
 
 | Fact kind (`fact_kind`) | Federated use | Lean use | Primary consumer (ObserveOps) | Kind-specific fields |
 |----------------------------|---------------|----------|-------------------------------|----------------------|
@@ -170,7 +170,7 @@ datasets/ingest_samples/<suite>/<incident_id>/
 | **Syslog RFC5424** | Yes | Vector syslog source |
 | Plain text files | OK with parser | Need stable service/host field for CI bind |
 
-Maps to `fact_kind: "event"` (**fact kind** `event`). There is **no** separate `log` value in the five-kind enum — see [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md) §2.
+Maps to `fact_kind: "event"` on the **legacy** `ingest.v1` enum (**fact kind** `event`). There is **no** separate `log` value — see §2 above. On `writer_stream.v1`, logs land in the optional `event` block ([`WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md)).
 
 ---
 

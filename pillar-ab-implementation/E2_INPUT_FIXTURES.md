@@ -1,21 +1,21 @@
-# Post-E2 ingest fixtures — what Pillar A and Pillar B consume
+# Post-E2 ingest fixtures — what Pillar A and Pillar B consume (lab)
 
 **Audience:** Anyone wiring lab tests, replay scripts, or hand-off samples for the Pillar A sketch writer or the Pillar B graph writer.  
-**Scope:** The **`ingest.v1`** JSON lines that look like **E2 Identity output** — the stream both pillars read after Collect and Identity have already run upstream.
+**Scope:** The **legacy `ingest.v1`** JSON lines that look like **E2 Identity output** — what the PoC still runs until fixtures migrate to `writer_stream.v1`.
 
-**Status:** The pillar PoC **does not implement E1 Collect or E2 Identity**. Lab fixtures **simulate** post-E2 traffic by shipping lines with `identity.status: resolved` already stamped. That stub is what people often call “synthesized input” in lab conversation — it is **not** the same as `identity.status: synthesized`, which real E2 may emit on lookup-table misses and which both pillars **reject**.
+**Status:** Lab fixture map for deprecated `ingest.v1` + `fact_kind`. **Target writer fan-out:** [`contracts/WRITER_REGULATOR.md`](./contracts/WRITER_REGULATOR.md) (no `fact_kind`). The pillar PoC **does not implement E1 Collect or E2 Identity**; fixtures simulate post-E2 traffic with `identity.status: resolved` already stamped. That stub is **not** the same as `identity.status: synthesized`, which both pillars **reject**.
 
 **Doc tier:** Tier 2 implementer I/O (**I/O-2** in [`docs/observeops/OUR_HLD_TIER1.md`](../docs/observeops/OUR_HLD_TIER1.md)). Upstream wire spec: [`docs/INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FORMAT.md) (**I/O-1**). Pillar B output: [`contracts/MAP_WRITE_READ_RECORD.md`](./contracts/MAP_WRITE_READ_RECORD.md) (**I/O-3**).
 
 ---
 
-## One wire format, two writer filters
+## One wire format, two writer filters (lab)
 
-After **E2 Identity (Normalize)**, every admitted line is still **`ingest.v1`**. E2 adds an **`identity`** object on the same object — not a second on-wire format.
+After **E2 Identity (Normalize)**, every admitted **lab** line is still **`ingest.v1`**. E2 adds an **`identity`** object on the same object — not a second on-wire format.
 
-**Pillar A (E4 sketch writer)** and **Pillar B (E3 graph writer)** read the **same stream shape**. They differ only by **`fact_kind`** (two consumers on the fabric path — full consumer map in [`fact_kind` cheat sheet](#fact_kind-cheat-sheet)):
+**Pillar A (E4 sketch writer)** and **Pillar B (E3 graph writer)** currently filter the **same stream shape** by **`fact_kind`** (legacy). Target regulators use optional blocks instead — see WRITER_REGULATOR.
 
-| `fact_kind` | Pillar A | Pillar B | Other primary consumers (not A/B) |
+| `fact_kind` (lab) | Pillar A | Pillar B | Other primary consumers (not A/B) |
 |----------------|----------|----------|-----------------------------------|
 | `metric_sample` | Admit → `sketch.v1` | Silent skip | **E6 Detect** · Lean/Federated structural |
 | `topo_update` | Silent skip | Admit → `graph_edge.v1` | **E3 Topology** only |
@@ -23,14 +23,14 @@ After **E2 Identity (Normalize)**, every admitted line is still **`ingest.v1`**.
 
 Join key after bind: **`tenant` + `ci_id`** on ingest ≡ **`entity_id`** on sketches ≡ graph node id on `map/`.
 
-Normative schema: [`contracts/schemas/ingest_v1.schema.json`](./contracts/schemas/ingest_v1.schema.json).  
+Normative schema (deprecated): [`contracts/schemas/ingest_v1.schema.json`](./contracts/schemas/ingest_v1.schema.json).  
 Reject reasons when identity or catalog checks fail: [`contracts/IDENTIFIED_STREAM_REJECT.md`](./contracts/IDENTIFIED_STREAM_REJECT.md).  
 Full E2 contract (production): [`docs/observeops/LLD-E2-Identity.md`](../docs/observeops/LLD-E2-Identity.md).  
 Ingest envelope overview: [`docs/INGEST_DATA_FORMAT.md`](../docs/INGEST_DATA_FORMAT.md) §2.
 
 ---
 
-## `fact_kind` cheat sheet
+## `fact_kind` cheat sheet (lab enum until migrate)
 
 Every admitted **`ingest.v1`** line carries **`fact_kind`** as a snake_case string. It routes the row — like declaring what *kind* of fact the line is. It is **not** a separate object and **not** MELTS or RED on the wire (RED metrics arrive as many **`metric_sample`** lines).
 

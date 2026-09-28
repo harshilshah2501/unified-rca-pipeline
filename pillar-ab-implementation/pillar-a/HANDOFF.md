@@ -69,5 +69,5 @@
 | Pillar B | `pillar-ab-implementation/pillar-b/` |
 | Join | `pillar-ab-implementation/integration/` |
 | Canonical brief | `pillar-ab-implementation/contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md` |
-| Fabric Q&A | `docs/GRAPH_QNA.md` (also under this package `docs/` via symlink) |
+| Fabric Q&A | Slice `pillar-ab-implementation/contracts/GRAPH_QNA.md` (package `docs/GRAPH_QNA.md` may still point there for the zip) |
 | Repo hygiene | `docs/REPO_HYGIENE.md` |

@@ -67,16 +67,15 @@
 
     <a class="archive-row" href="/docs/INGEST_DATA_FORMAT.md" data-keywords="tier2 io-1 ingest.v1 e1 e2 envelope fact_kind corpus delivery identity overlay">
       <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-1</span><h3>Ingest data format</h3></div>
-      <p>E1 <code>ingest.v1</code> envelope, <code>fact_kind</code> enum, corpus folder layout, E2 identity overlay. Upstream of pillar writers.</p>
+      <p>E1 <code>ingest.v1</code> envelope, legacy <code>fact_kind</code> enum, corpus folder layout, E2 identity overlay. Upstream of pillar writers.</p>
     </a>
-    <a class="archive-row" href="/docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md" data-keywords="tier2 discussion fact kind fact_kind logs event bind_source provenance team notes">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Discussion</span><h3>Ingest fact kinds (team notes)</h3></div>
-      <p>Wire key <code>fact_kind</code>; <strong>logs → <code>event</code></strong> (no separate log kind); bind vs edge provenance.</p>
-      <div class="also">Also on Our HLD Overview → <a href="/observeops-pipeline-hld.html#implementer-io">Implementer I/O</a>.</div>
+    <a class="archive-row" href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md" data-keywords="tier2 writer_stream regulator graph sketch no fact_kind">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag">Contract</span><h3>Writer regulator</h3></div>
+      <p>Target Motadata writer fan-out — <code>writer_stream.v1</code>, presence predicates, <strong>no <code>fact_kind</code></strong>.</p>
     </a>
-    <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md#fact_kind-cheat-sheet" data-keywords="tier2 io-2 fact_kind metric_sample topo_update anomaly event trace_span cheat sheet">
-      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-2</span><h3>fact_kind cheat sheet</h3></div>
-      <p>All five admitted classes with JSON examples — <strong>consumers per class</strong>, Pillar A/B routing, mixed JSONL.</p>
+    <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md#fact_kind-cheat-sheet" data-keywords="tier2 io-2 fact_kind metric_sample topo_update anomaly event trace_span cheat sheet legacy">
+      <div class="row-top"><span class="tag tier2">Tier 2</span><span class="tag io">I/O-2</span><h3>Lab fact_kind cheat sheet</h3></div>
+      <p>Legacy <code>ingest.v1</code> enum with JSON examples — lab fixtures until writer_stream migration.</p>
       <div class="also">Section inside <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md">Post-E2 ingest fixtures</a>.</div>
     </a>
     <a class="archive-row" href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md" data-keywords="tier2 io-2 post-e2 fixtures metric_sample topo_update lab jsonl resolved">
@@ -131,9 +130,9 @@
       <div class="row-top"><span class="tag">Hub</span><h3>GraphWriter I/O (Our HLD)</h3></div>
       <p>Interactive who / pipeline / admit / lab walkthrough on the HLD hub.</p>
     </a>
-    <a class="archive-row" href="/docs/fabric/INGEST_FACT_KINDS_DISCUSSION.md" data-keywords="fact kind fact_kind logs event discussion">
-      <div class="row-top"><span class="tag">Discussion</span><h3>Ingest fact kinds</h3></div>
-      <p>Logs → <code>event</code>; spoken fact kind vs wire <code>fact_kind</code>. Also under Implementer I/O.</p>
+    <a class="archive-row" href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md" data-keywords="writer_stream regulator fact_kind">
+      <div class="row-top"><span class="tag">Contract</span><h3>Writer regulator</h3></div>
+      <p><code>writer_stream.v1</code> — no <code>fact_kind</code>; GraphRegulator / SketchRegulator.</p>
     </a>
   </section>
 

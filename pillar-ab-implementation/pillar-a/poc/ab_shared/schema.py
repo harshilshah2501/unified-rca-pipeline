@@ -1,3 +1,9 @@
+"""JSON Schema validation against slice SoT ``contracts/schemas/``.
+
+Edit schemas only under ``pillar-ab-implementation/contracts/schemas/`` —
+no package mirrors.
+"""
+
 from __future__ import annotations
 
 import json
@@ -6,8 +12,8 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
-# pillar-a/poc/ab_shared → pillar-a/contracts/schemas
-CONTRACTS = Path(__file__).resolve().parents[2] / "contracts" / "schemas"
+# pillar-a/poc/ab_shared → pillar-ab-implementation/contracts/schemas
+CONTRACTS = Path(__file__).resolve().parents[3] / "contracts" / "schemas"
 
 
 @lru_cache

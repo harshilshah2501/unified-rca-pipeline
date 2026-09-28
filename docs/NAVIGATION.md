@@ -76,7 +76,7 @@ Always-on fabric (E1–E5) → Pillar A∥B contracts → Detect onward → Refe
 |----------|-----|
 | [`pillar-ab-implementation/`](../pillar-ab-implementation/README.md) | Code slice — pillar-a / pillar-b / integration |
 | [`pillar-b/docs/TEAM_WALKTHROUGH.md`](../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | **Pillar B PoC** — demo script, admit, run |
-| [`pillar-b/docs/PILLAR_B_POC_CHAT_QNA.md`](../pillar-ab-implementation/pillar-b/docs/PILLAR_B_POC_CHAT_QNA.md) | **Pillar B session Q&A** — stream, fact kinds, production topo emitters |
+| [`pillar-b/docs/PILLAR_B_POC_CHAT_QNA.md`](../pillar-ab-implementation/pillar-b/docs/PILLAR_B_POC_CHAT_QNA.md) | **Pillar B session Q&A** — stream, admit, writer_stream supersession |
 | [`fabric/pillar-b-poc-hub.html`](./fabric/pillar-b-poc-hub.html) | **Pillar B PoC hub** — canvases → `:8765` doors ([`:8765/pillar-b-poc-hub.html`](http://127.0.0.1:8765/pillar-b-poc-hub.html)) |
 | [`pillar-b/docs/README.md`](../pillar-ab-implementation/pillar-b/docs/README.md) | Pillar B package doc map (reading order) |
 | [`pillar-b/docs/MAP_P1_FABRIC_EVAL.md`](../pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md) | Build/maintain + walk eval criteria |
@@ -84,7 +84,7 @@ Always-on fabric (E1–E5) → Pillar A∥B contracts → Detect onward → Refe
 | [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) | Sit-down lock list — CI catalog, fifteen edges, `sketch.v1` |
 | [`GRAPH_QNA.md`](./GRAPH_QNA.md) | Fabric Q&A with table of contents |
 | [`MAP_WRITE_READ_RECORD.md`](../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | Pillar B map write/read JSON |
-| [`fabric/INGEST_FACT_KINDS_DISCUSSION.md`](./fabric/INGEST_FACT_KINDS_DISCUSSION.md) | Fact kind discussion — logs → `event`; wire key `fact_kind` |
+| [`../pillar-ab-implementation/contracts/WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md) | Writer fan-out — `writer_stream.v1`, no `fact_kind` |
 | [`fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](./fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | Pillar A deep dive |
 | [`fabric/end-to-end-algorithm-walkthrough.md`](./fabric/end-to-end-algorithm-walkthrough.md) | Admit → Detect door C |
 

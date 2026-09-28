@@ -1,8 +1,8 @@
-"""JSON Schema validation against ``pillar-b/contracts/schemas`` mirrors.
+"""JSON Schema validation against slice SoT ``contracts/schemas/``.
 
 ``publish_map`` / ``build_snapshot`` call ``validate`` so Dest never receives
-half-shaped map objects. Schemas symlink to the slice SoT under
-``pillar-ab-implementation/contracts/schemas/``.
+half-shaped map objects. Edit schemas only under
+``pillar-ab-implementation/contracts/schemas/`` — no package mirrors.
 """
 
 from __future__ import annotations
@@ -13,8 +13,8 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
-# pillar-b/poc/ab_shared → pillar-b/contracts/schemas
-CONTRACTS = Path(__file__).resolve().parents[2] / "contracts" / "schemas"
+# pillar-b/poc/ab_shared → pillar-ab-implementation/contracts/schemas
+CONTRACTS = Path(__file__).resolve().parents[3] / "contracts" / "schemas"
 
 
 @lru_cache

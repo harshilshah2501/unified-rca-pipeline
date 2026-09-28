@@ -16,6 +16,8 @@ def test_reject_catalog_lists_all_codes():
         "never_ci_vertex",
         "unknown_relation",
         "unknown_metric_id",
+        "missing_endpoint_type",
+        "illegal_edge_triplet",
     }
 
 

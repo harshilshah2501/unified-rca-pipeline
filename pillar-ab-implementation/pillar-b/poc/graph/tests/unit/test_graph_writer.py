@@ -59,6 +59,7 @@ def test_graph_writer_silent_skip_non_topo():
                     "relation": "depends_on",
                     "src_ci_id": "checkout-api",
                     "dst_ci_id": "payments-db",
+                    "dst_ci_type": "Database",
                     "identity": {"status": "resolved"},
                 },
             ]
