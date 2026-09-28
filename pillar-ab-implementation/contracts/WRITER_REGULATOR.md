@@ -72,7 +72,7 @@ Copy / normalize:
 
 Dest publish still maps camelCase → Motadata `graph_edge.v1` SCREAMING_SNAKE via [`RELATION_MAPPING.md`](./RELATION_MAPPING.md) until Dest schemas are refreshed.
 
-**Endpoint pairing:** GraphWriter (and GraphRegulator when wired) hard-rejects illegal `(src_type, relation, dst_type)` triplets — [`EDGE_TRIPLET_ALLOWLIST.md`](./EDGE_TRIPLET_ALLOWLIST.md).
+**Endpoint pairing:** GraphWriter hard-rejects illegal `(src_type, relation, dst_type)` triplets. Full admit order (complete claim → resolved → CI on map → edge quality): [`EDGE_TRIPLET_ALLOWLIST.md`](./EDGE_TRIPLET_ALLOWLIST.md) §2.
 
 ---
 

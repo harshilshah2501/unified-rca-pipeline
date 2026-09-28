@@ -1,6 +1,6 @@
 # Edge triplet allowlist — wave-1 write contract
 
-**Status:** Locked for Motadata Pillar B GraphWriter (2026-09-28).  
+**Status:** Locked for Motadata Pillar B GraphWriter (2026-09-28; admit wording clarified 2026-09-28).  
 **Priority:** First-class write gate alongside identity and relation catalog.  
 **Companion:** [`WRITER_REGULATOR.md`](./WRITER_REGULATOR.md) · [`RELATION_MAPPING.md`](./RELATION_MAPPING.md) · [`IDENTIFIED_STREAM_REJECT.md`](./IDENTIFIED_STREAM_REJECT.md)  
 **North star:** Fusion / OneOps full `(sourceClass, edge, targetClass)` matrix under `pillar-b/reference/` (Task 06) — not fully enumerated here yet.
@@ -22,33 +22,67 @@ A write is legal only when `(src_storage_type, relation, dst_storage_type)` is o
 
 ---
 
-## 2. When the check runs
+## 2. Admit order (four checks — not six overlapping steps)
 
-After GraphWriter has:
+GraphWriter only writes a **topology claim**: two endpoint ids + one relation. Target wire: optional `topology` block on `writer_stream.v1` (no `fact_kind`). Lab still uses flat `topo_update` lines until migrated — same checks.
 
-1. `fact_kind == topo_update` (lab) or GraphRegulator admitted a topology block (target wire),
-2. `identity.status == resolved`,
-3. both endpoints are CI-eligible (`may_emit_vertex`),
-4. `relation` is wave-1 **emit** (not unknown, not phased skip),
+| # | Check | Question | Pass | Fail |
+|---|--------|----------|------|------|
+| **1** | Complete claim | Are `src_ci_id`, `dst_ci_id`, and `relation` all present? | Continue | GraphWriter **NOOP** (not an edge write) |
+| **2** | Resolved | Is `identity.status = resolved`? | Continue | **DROP** `identity_unresolved` / `identity_synthesized` |
+| **3** | CI on the map | May each endpoint be a **configuration-item** vertex (not Alert / Metric / ticket / …)? | Continue | **DROP** `never_ci_vertex` |
+| **4** | Edge quality | Known wave-1 relation + both Motadata types known + pair on this allowlist? | **WRITE** | See §2.2 |
 
-then resolve types and check the triplet **before** upserting the edge.
+Flush later still validates Dest JSON Schema shapes (nodes / edges / snapshot). That is publish hygiene, not admit triage.
 
-**Type resolution order** (per endpoint):
+### 2.1 Why check 3 is not the same as check 2
+
+| Check | Owns | Meaning |
+|-------|------|---------|
+| **Resolved (2)** | Identity / bind | “Do we have a joinable subject `(tenant, ci_id)`?” |
+| **CI on the map (3)** | Topology catalog | “Is this *kind of thing* allowed as a vertex on `map/` at all?” |
+
+Resolved does **not** prove both edge endpoints are configuration items. Identity stamps bind quality on the **line subject**. A claim can still be:
+
+- subject `checkout-api` with `identity.status = resolved` → check 2 passes  
+- `dst_ci_id = alert-1`, `dst_ci_type = Alert` → check 3 **DROP**s
+
+If Identity later **locks** “never resolve non-CI classes” **and** “never name a non-CI as topo src/dst,” check 3 becomes defense-in-depth. Until that contract exists end-to-end, GraphWriter keeps `never_ci_vertex`.
+
+### 2.2 Check 4 — edge quality (one gate, three sub-questions)
+
+| Sub-check | Question | Fail |
+|-----------|----------|------|
+| Relation we write | Name in Motadata catalog and wave-1 emit? | Unknown → **DROP** `unknown_relation`. Catalog but not wave-1 (e.g. `mounts`) → **phased skip** (no reject). |
+| Types known | Motadata class for src and dst? | **DROP** `missing_endpoint_type` |
+| Pairing legal | `(src_type, relation, dst_type)` on §4? | **DROP** `illegal_edge_triplet` |
+
+**Type resolution** (per endpoint), in order:
 
 1. Existing map node’s Motadata `type` if the CI is already on `GraphState`, else  
-2. Stream field (`ci_type` / `src_ci_type` / `dst_ci_type`) mapped with `to_storage_type`, else  
-3. **`missing_endpoint_type`** — DROP; do not default the destination to `Service`.
+2. Stream field (`ci_type` / `src_ci_type` / `dst_ci_type`) via `to_storage_type`, else  
+3. Missing — **do not** default destination to `Service`.
+
+Types answer **which class sits at each end** so pairing can run — not a second identity check.
+
+### 2.3 Example
+
+Claim: `checkout-api` (Service) `depends_on` `payments-db` (Database), identity resolved.
+
+1. Complete → yes · 2. Resolved → yes · 3. Both CIs → yes · 4. `depends_on` emit, types `service`+`db`, pair allowlisted → **WRITE**.
+
+Illegal: same services but `depends_on` a Host → checks 1–3 pass; check 4 pairing fails → **DROP** `illegal_edge_triplet` (hosting is `runs_on`).
 
 ---
 
-## 3. Reject codes
+## 3. Reject codes (this contract)
 
 | Code | When |
 |------|------|
-| `missing_endpoint_type` | Source or destination storage type cannot be resolved |
+| `missing_endpoint_type` | Source or destination Motadata storage type cannot be resolved |
 | `illegal_edge_triplet` | Both types known, but `(src, relation, dst)` is not on the allowlist |
 
-Existing codes unchanged: `identity_*`, `never_ci_vertex`, `unknown_relation`.
+Also used on the same admit path (defined in [`IDENTIFIED_STREAM_REJECT.md`](./IDENTIFIED_STREAM_REJECT.md)): `identity_*`, `never_ci_vertex`, `unknown_relation`.
 
 ---
 

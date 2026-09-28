@@ -92,12 +92,12 @@ Full tree: [`customer_checkout/README.md`](../poc/sample_estate/customer_checkou
 
 | Hub action | When | Effect |
 |------------|------|--------|
-| **NOOP** | Fact kind (`fact_kind`) ≠ `topo_update` | Silent skip; no reject |
-| **DROP** | Unresolved/synthesized identity, never-CI type (`Alert`…), unknown `relation`, **illegal endpoint pairing**, or **missing endpoint type** | Append reject reason; map unchanged |
-| **WRITE** | Resolved + allowed CI type + wave-1 relation + allowlisted `(src_type, relation, dst_type)` | Upsert node(s) + edge in `GraphState` |
+| **NOOP** | No complete topology claim (lab: `fact_kind` ≠ `topo_update`) | Silent skip; no reject |
+| **DROP** | Fail resolved / CI-on-map / known relation / types / allowlisted pair — see [`EDGE_TRIPLET_ALLOWLIST.md`](../../contracts/EDGE_TRIPLET_ALLOWLIST.md) §2 | Append reject reason; map unchanged |
+| **WRITE** | All four admit checks pass | Upsert node(s) + edge in `GraphState` |
 | Phased skip | Relation in fifteen-name catalog but not wave-1 (e.g. `mounts`) | No write, usually not a DROP |
 
-Code: `poc/graph/graph_builder.py` → `apply_topo_stream`. Triplet rules: [`../../contracts/EDGE_TRIPLET_ALLOWLIST.md`](../../contracts/EDGE_TRIPLET_ALLOWLIST.md). Lab tapes: `stream.resolved.jsonl` / `stream.reject.jsonl`.
+Code: `poc/graph/graph_builder.py` → `apply_topo_stream`. Lab tapes: `stream.resolved.jsonl` / `stream.reject.jsonl`.
 
 ### Wave-1 relations (always name the type on a WRITE)
 
