@@ -113,7 +113,7 @@ def test_e2_telemetry_key_index_is_design_stub_documented():
 
 
 # ---------------------------------------------------------------------------
-# E3 Topology — NOOP / WRITE / DROP / phased / idempotency
+# E3 Topology — NOOP / WRITE / DROP / idempotency
 # ---------------------------------------------------------------------------
 
 
@@ -169,10 +169,40 @@ def test_e3_drop_case_b_reject_codes():
     assert "chg-1" not in present
 
 
-def test_e3_phased_map_noop_catalog_not_wave1():
+def test_e3_write_mounts_catalog_relation():
+    """All fifteen relations may emit; mounts host→volume WRITEs (not phased skip)."""
     writer = GraphWriter()
     writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
-    n0, e0 = len(writer.state.nodes), len(writer.state.edges)
+    e0 = len(writer.state.edges)
+    writer.write_topo_stream(
+        ListIngestSource(
+            [
+                {
+                    "schema_version": "ingest.v1",
+                    "ts": "2026-08-20T03:30:00Z",
+                    "tenant": "default",
+                    "ci_id": "linux-server-app-01",
+                    "ci_type": "Host",
+                    "fact_kind": "topo_update",
+                    "relation": "mounts",
+                    "src_ci_id": "linux-server-app-01",
+                    "dst_ci_id": "vol-app-data-01",
+                    "dst_ci_type": "Volume",
+                    "identity": {"status": "resolved"},
+                }
+            ]
+        )
+    )
+    assert writer.rejects == []
+    assert len(writer.state.edges) == e0 + 1
+    assert any(e["edge_type"] == "MOUNTS" for e in writer.state.edges.values())
+    assert "vol-app-data-01" in writer.state.nodes
+
+
+def test_e3_drop_illegal_mounts_service_to_host():
+    writer = GraphWriter()
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    e0 = len(writer.state.edges)
     writer.write_topo_stream(
         ListIngestSource(
             [
@@ -191,10 +221,9 @@ def test_e3_phased_map_noop_catalog_not_wave1():
             ]
         )
     )
-    assert writer.rejects == []
+    assert any(r == "illegal_edge_triplet" for _, r in writer.rejects)
     assert len(writer.state.edges) == e0
     assert not any(e["edge_type"] == "MOUNTS" for e in writer.state.edges.values())
-    assert len(writer.state.nodes) == n0
 
 
 def test_e3_upsert_idempotency_replay():

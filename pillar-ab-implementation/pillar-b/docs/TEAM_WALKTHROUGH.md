@@ -94,14 +94,13 @@ Full tree: [`customer_checkout/README.md`](../poc/sample_estate/customer_checkou
 |------------|------|--------|
 | **NOOP** | No complete topology claim (lab: `fact_kind` ≠ `topo_update`) | Silent skip; no reject |
 | **DROP** | Fail resolved / CI-on-map / known relation / types / allowlisted pair — see [`EDGE_TRIPLET_ALLOWLIST.md`](../../contracts/EDGE_TRIPLET_ALLOWLIST.md) §2 | Append reject reason; map unchanged |
-| **WRITE** | All four admit checks pass | Upsert node(s) + edge in `GraphState` |
-| Phased skip | Relation in fifteen-name catalog but not wave-1 (e.g. `mounts`) | No write, usually not a DROP |
+| **WRITE** | All four admit checks pass (any of the fifteen Motadata relations) | Upsert node(s) + edge in `GraphState` |
 
 Code: `poc/graph/graph_builder.py` → `apply_topo_stream`. Lab tapes: `stream.resolved.jsonl` / `stream.reject.jsonl`.
 
-### Wave-1 relations (always name the type on a WRITE)
+### Relation types on a WRITE
 
-An edge is not “A → B” alone. The wire field **`relation`** is the typed link. Lab wave-1 allowlist (schema still has fifteen names):
+An edge is not “A → B” alone. The wire field **`relation`** is the typed link. Motadata catalog has **fifteen** names; pairing rules for each are in [`EDGE_TRIPLET_ALLOWLIST.md`](../../contracts/EDGE_TRIPLET_ALLOWLIST.md). Lab Case A uses:
 
 | `relation` | Plain meaning | Case A example |
 |------------|---------------|----------------|
@@ -111,7 +110,7 @@ An edge is not “A → B” alone. The wire field **`relation`** is the typed l
 | `part_of` | A is a **child / component** of parent B (composition) | `checkout-api` --`part_of`→ `bs-checkout` (business service) |
 | `communicates_with` | A **calls / talks to** B (observed traffic) | `checkout-api` --`communicates_with`→ `payments-db` (APM) |
 
-**Admit reminder:** every `topo_update` line is **SketchWriter NOOP** (wrong kind for sketches) and **GraphWriter** triage (WRITE / DROP / phased skip). Never omit `relation` when describing a WRITE.
+**Admit reminder:** every `topo_update` line is **SketchWriter NOOP** (wrong kind for sketches) and **GraphWriter** triage (WRITE / DROP). Never omit `relation` when describing a WRITE.
 
 Full fifteen-name catalog: [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](../../contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) §4.2.
 

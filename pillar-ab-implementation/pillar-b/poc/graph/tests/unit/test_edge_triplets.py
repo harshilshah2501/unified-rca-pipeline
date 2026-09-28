@@ -1,4 +1,4 @@
-"""Wave-1 edge triplet allowlist checks."""
+"""Edge triplet allowlist checks — Motadata fifteen-relation catalog."""
 
 from ab_shared import reject_codes as rc
 from ab_shared.dest import MemoryDest
@@ -78,6 +78,43 @@ def test_writer_drops_illegal_triplet_without_writing_edge():
         and e["target_id"] == "linux-server-app-01"
     ]
     assert not bad
+
+
+def test_mounts_host_to_volume_ok():
+    assert check_edge_triplet("mounts", "host", "volume") == ("ok", None)
+
+
+def test_mounts_service_to_service_illegal():
+    action, reason = check_edge_triplet("mounts", "service", "service")
+    assert action == "reject"
+    assert reason == rc.ILLEGAL_EDGE_TRIPLET
+
+
+def test_member_of_pod_to_namespace_ok():
+    assert check_edge_triplet("member_of", "pod", "namespace") == ("ok", None)
+
+
+def test_member_of_pod_to_node_illegal():
+    action, reason = check_edge_triplet("member_of", "pod", "node")
+    assert action == "reject"
+    assert reason == rc.ILLEGAL_EDGE_TRIPLET
+
+
+def test_clustered_with_same_tier_ok():
+    assert check_edge_triplet("clustered_with", "service", "service") == ("ok", None)
+
+
+def test_clustered_with_cross_tier_illegal():
+    action, reason = check_edge_triplet("clustered_with", "service", "db")
+    assert action == "reject"
+    assert reason == rc.ILLEGAL_EDGE_TRIPLET
+
+
+def test_uses_same_pairs_as_depends_on():
+    assert check_edge_triplet("uses", "service", "db") == ("ok", None)
+    action, reason = check_edge_triplet("uses", "service", "host")
+    assert action == "reject"
+    assert reason == rc.ILLEGAL_EDGE_TRIPLET
 
 
 def test_writer_drops_when_dst_type_unknown_and_not_on_map():

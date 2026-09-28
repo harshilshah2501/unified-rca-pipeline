@@ -26,7 +26,7 @@ make test-all
 | **CaseSeed** | P2 · E7 Curate tip for Scope | Does **not** write `map/` |
 | **Admit** | Per-line decision a writer makes when an `ingest.v1` record arrives: what to do with *this* line | Not “admission control” / authn; not Collect wire validation; not “the line was accepted into Motadata” |
 
-**Admit (GraphWriter sense), in one sentence:** for each stream line, GraphWriter chooses **NOOP**, **WRITE**, or **DROP** (plus phased skip) — that choice *is* “admit.” Hub tab name “Admit” means this outcome table, not a separate product stage.
+**Admit (GraphWriter sense), in one sentence:** for each stream line, GraphWriter chooses **NOOP**, **WRITE**, or **DROP** — that choice *is* “admit.” Hub tab name “Admit” means this outcome table, not a separate product stage.
 
 Spine for E3: **optional estate bootstrap + `topo_update` → nodes/edges + provenance → `GraphSnapshot` publish**.
 
@@ -38,7 +38,7 @@ Spine for E3: **optional estate bootstrap + `topo_update` → nodes/edges + prov
 |-------|-----------------|-----------|------------|
 | **E1 Collect** | **None** — wire admit only; does not write or read `map/` | Fixture lines carry `schema_version=ingest.v1` + known `fact_kind` spine; GraphWriter never “Collect-rejects” | Live Collect Done elsewhere; Pillar B **simulates** post-E2 |
 | **E2 Identity** | **Gate into writers** — `ResolvedOnlyGate`; Design: read `telemetry_key_index` | Unresolved / synthesized `topo_update` → **DROP** (reject tape); never silent map write | Full LUT + unresolved→discovery feedback = Design |
-| **E3 Topology** | **Sole `map/` writer** | NOOP / WRITE / DROP / phased skip / upsert idempotency (below) | Live continuous discovery = Design; PoC = bootstrap + stream upsert |
+| **E3 Topology** | **Sole `map/` writer** | NOOP / WRITE / DROP / upsert idempotency (below) | Live continuous discovery = Design; PoC = bootstrap + stream upsert |
 | **E4 Stores** | **Orthogonal** — Pillar A `history/` sketches | Mixed tape leaves map spine unchanged for metric/event/trace/anomaly | Log/trace history ≠ `sketch.v1` |
 | **E5 Maintain** | **Validity on existing edges** — does not create edges | Expire `valid_to`; stale corroborating; declared soft 7d / hard 30d (Design-numeric, fixture clock) | Full discovery re-derive = Design |
 
@@ -74,9 +74,8 @@ Aligned with hub Admit language and [`../README.md`](../README.md):
 | Outcome | When | Effect |
 |---------|------|--------|
 | **NOOP** | `fact_kind` ≠ `topo_update` | No state change, no reject row |
-| **WRITE** | Resolved identity + CI vertex + wave-1 relation emit | Upsert node(s) + edge → flush `map/` |
-| **DROP** | Unresolved/synthesized identity; never-CI type; unknown relation | Append `writer.rejects`; map unchanged |
-| **Phased map-NOOP** | Catalog relation not in wave-1 (e.g. `mounts`) | No write; usually not a DROP |
+| **WRITE** | Resolved identity + CI vertex + catalog relation + allowlisted type pair | Upsert node(s) + edge → flush `map/` |
+| **DROP** | Unresolved/synthesized identity; never-CI type; unknown relation; missing endpoint type; illegal triplet | Append `writer.rejects`; map unchanged |
 | **Upsert idempotency** | Same resolved `topo_update` replayed | Same `edge_id` replace key; no duplicate edges |
 
 Wave-1 emit set: `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of`.

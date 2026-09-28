@@ -77,7 +77,7 @@ const PARTNER_ROWS = [
     partner: "ci_qualify + edge_catalog",
     role: "Catalog checks inside GraphWriter",
     exchange:
-      "May this ci_type be a vertex? Is relation in the fifteen-name catalog (or wave-1 skip)?",
+      "May this ci_type be a vertex? Is relation in the fifteen-name catalog? Is (src_type, relation, dst_type) allowlisted?",
   },
   {
     partner: "Dest / FileDest (Gate B)",
@@ -207,12 +207,12 @@ const ADMIT_ROWS = [
     tone: "danger" as const,
   },
   {
-    case: "Catalog but not wave-1",
+    case: "Illegal type pair",
     signal: "topo_update",
     identity: "resolved",
-    relation: "owned_by (example)",
-    outcome: "Phased skip (legal enum, emitter not ready)",
-    tone: "warning" as const,
+    relation: "mounts Service→Host",
+    outcome: "Reject · illegal_edge_triplet",
+    tone: "danger" as const,
   },
 ];
 

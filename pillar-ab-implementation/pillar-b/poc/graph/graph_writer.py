@@ -43,7 +43,7 @@ class GraphWriter:
         return self.state.rejects
 
     def write_topo_stream(self, source: IngestSource) -> None:
-        """Admit-triage ``topo_update`` lines into GraphState (NOOP / WRITE / DROP / phased).
+        """Admit-triage ``topo_update`` lines into GraphState (NOOP / WRITE / DROP).
 
         Does not publish to Dest — call ``publish_map`` next. Only upserts in-memory GraphState.
         """

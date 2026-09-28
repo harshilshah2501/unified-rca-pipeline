@@ -31,7 +31,7 @@
 5. [Wire contract, production stream, and sample estate](#5-wire-contract-production-stream-and-sample-estate)
 6. [GraphWriter input/output contracts and all JSON/JSONL files](#6-graphwriter-inputoutput-contracts-and-all-jsonjsonl-files)
 7. [Lab `fact_kind` (legacy) vs writer_stream](#7-lab-fact_kind-legacy-vs-writer_stream)
-8. [Admit triage: NOOP / WRITE / DROP / phased skip](#8-admit-triage-noop--write--drop--phased-skip)
+8. [Admit triage: NOOP / WRITE / DROP](#8-admit-triage-noop--write--drop)
 9. [Production: other kinds that imply topology](#9-production-other-kinds-that-imply-topology)
 10. [Interleaved multi-kind stream (worked example)](#10-interleaved-multi-kind-stream-worked-example)
 11. [Nodes, edges, bind, provenance, packaged map](#11-nodes-edges-bind-provenance-packaged-map)
@@ -319,7 +319,7 @@ Lab enum cheat sheet: [`E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md). How 
 
 ---
 
-## 8. Admit triage: NOOP / WRITE / DROP / phased skip
+## 8. Admit triage: NOOP / WRITE / DROP
 
 ### Q33. What three admit outcomes does `apply_topo_stream` handle?
 
@@ -328,10 +328,10 @@ Lab enum cheat sheet: [`E2_INPUT_FIXTURES.md`](../../E2_INPUT_FIXTURES.md). How 
 | Hub action | When | Effect |
 |------------|------|--------|
 | **NOOP** | `fact_kind` ≠ `topo_update` | Silent skip; **no** reject row |
-| **DROP** | Topo line but gate fails (unresolved/synthesized identity, never-CI type, unknown relation, …) | Append `(rec, reason)`; map unchanged |
-| **WRITE** | Resolved + allowed CI type + wave-1 relation | Upsert node(s) + edge in `GraphState` |
+| **DROP** | Topo line but gate fails (unresolved/synthesized identity, never-CI type, unknown relation, missing endpoint type, illegal triplet, …) | Append `(rec, reason)`; map unchanged |
+| **WRITE** | Resolved + allowed CI type + catalog relation + allowlisted type pair | Upsert node(s) + edge in `GraphState` |
 
-**Phased skip (quieter fourth):** relation is in the fifteen-name catalog but **not wave-1 yet** (e.g. `mounts`) — no write; usually not a DROP. Feels like NOOP but only after the line already passed as `topo_update`.
+All fifteen Motadata relations may emit; pairing: [`EDGE_TRIPLET_ALLOWLIST.md`](../../contracts/EDGE_TRIPLET_ALLOWLIST.md).
 
 Unknown / reserved `fact_kind` on the wire is a **Collect** concern. GraphWriter treats non-`topo_update` as **NOOP**, not DROP.
 
@@ -529,7 +529,7 @@ Bootstrap provenance must **not** be confused with Detect CaseSeed (tested: `tes
 | Concern | What tests prove | Where |
 |---------|------------------|-------|
 | Bootstrap | Starting estate loads; never-CI dropped; bootstrap provenance ≠ CaseSeed | `test_builder_snapshot`, `test_e3_bootstrap_provenance_not_caseseed` |
-| Stream admit | NOOP / WRITE / DROP / phased skip / upsert replay | `test_p1_map_fabric` E3 + `test_graph_writer` + `test_sample_io` Case A/B |
+| Stream admit | NOOP / WRITE / DROP / upsert replay | `test_p1_map_fabric` E3 + `test_graph_writer` + `test_sample_io` Case A/B |
 | Identity gate | Unresolved/synthesized never silent-write | E2 block in `test_p1_map_fabric` |
 | Policy helpers | Fifteen relations, CI qualify, provenance | `test_edge_catalog`, `test_ci_qualify`, `test_provenance` |
 | Publish | Valid `graph_snapshot.v1` to Dest | `test_snapshot_schema_and_dest`, graph writer flush tests |
@@ -775,7 +775,7 @@ Use this to verify coverage against the chat. Numbers are approximate order in t
 | 8 | Increments 2–3 as stubs; MAP_P2 / MAP_P3 | §3 |
 | 9 | Two-use-case framing; remove `POC_TWO_USE_CASES.md` | §2 |
 | 10 | Happy path → dual call sequences on navigator | §2 |
-| 11 | Admit NOOP/WRITE/DROP (+ phased skip) with examples | §8 |
+| 11 | Admit NOOP/WRITE/DROP with examples | §8 |
 | 12 | Who stamps line kind; telemetry may imply topo via emitters | §7 · §9 |
 | 13 | Where `stream.*.jsonl` lives | §5 |
 | 14 | Full GraphWriter I/O + file inventory | §6 |

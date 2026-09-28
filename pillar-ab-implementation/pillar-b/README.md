@@ -48,9 +48,8 @@ Lab-only notes: [`poc/README.md`](./poc/README.md).
 | **Stage** | E3 Topology (parallel to E4 sketch writer) |
 | **Room** | `map/` |
 | **Input** | `ingest.v1` with `fact_kind=topo_update` (and optional estate bootstrap), `identity.status=resolved` |
-| **Rejects (DROP)** | unresolved / synthesized identity; never-CI types; unknown `relation` |
+| **Rejects (DROP)** | unresolved / synthesized identity; never-CI types; unknown `relation`; missing endpoint type; illegal triplet |
 | **Silent skip (NOOP)** | Non-topo lines: `metric_sample`, `event`, `trace_span`, `anomaly`, … |
-| **Phased map-NOOP** | Relation in the fifteen-name catalog but not wave-1 (e.g. `mounts`) — no write, usually not a DROP |
 | **Output (WRITE → flush)** | `Dest.put("map", …)` → `graph_snapshot.json`, `nodes.jsonl`, `edges.jsonl` |
 | **Logical keys** | Node `(tenant, ci_id)` · Edge `(tenant, edge_id)` · Snapshot `(tenant, version)` |
 | **Encoding** | UTF-8 **JSON** / JSON Lines — [`../contracts/MAP_WRITE_READ_RECORD.md`](../contracts/MAP_WRITE_READ_RECORD.md) (slice SoT) |
@@ -59,16 +58,15 @@ Lab-only notes: [`poc/README.md`](./poc/README.md).
 
 ### Admit actions (hub language ↔ code)
 
-**What “admit” means:** GraphWriter’s **per-line triage** of an incoming `ingest.v1` record — choose NOOP / WRITE / DROP (or phased skip). Not authentication, Collect schema validation, or a named E-stage. Fuller terminology: [`docs/MAP_P1_FABRIC_EVAL.md`](./docs/MAP_P1_FABRIC_EVAL.md).
+**What “admit” means:** GraphWriter’s **per-line triage** of an incoming `ingest.v1` record — choose NOOP / WRITE / DROP. Not authentication, Collect schema validation, or a named E-stage. Fuller terminology: [`docs/MAP_P1_FABRIC_EVAL.md`](./docs/MAP_P1_FABRIC_EVAL.md).
 
 | Hub action | Code path | Effect |
 |------------|-----------|--------|
 | **NOOP** | `fact_kind != "topo_update"` → `continue` | No state change, no reject |
-| **WRITE** | gate + `may_emit_vertex` + `classify_relation` → `emit` | Upsert node(s) + edge in `GraphState` |
-| **DROP** | gate fail / never-CI / `unknown_relation` | Append `writer.rejects`; map unchanged |
-| Phased NOOP | `classify_relation` → `skip` | Catalog relation, not wave-1 yet |
+| **WRITE** | gate + `may_emit_vertex` + `classify_relation` emit + triplet allowlist → `emit` | Upsert node(s) + edge in `GraphState` |
+| **DROP** | gate fail / never-CI / `unknown_relation` / `missing_endpoint_type` / `illegal_edge_triplet` | Append `writer.rejects`; map unchanged |
 
-Wave-1 emit set: `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of`.
+All fifteen Motadata relation names may emit; pairing: [`../contracts/EDGE_TRIPLET_ALLOWLIST.md`](../contracts/EDGE_TRIPLET_ALLOWLIST.md).
 
 Vortex / S3: same logical records later; PoC dest is **`files.v1`** only.
 

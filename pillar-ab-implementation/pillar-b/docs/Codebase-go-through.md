@@ -142,14 +142,14 @@ Rejects are exposed as `writer.rejects` (list of `(record, reason)`).
 Owns `GraphState` (`nodes`, `edges`, `rejects`).
 
 - **`load_estate_bootstrap_state`** — reads `topology.bootstrap.json`, qualifies CI types, emits declared edges with provenance `topology.bootstrap`.
-- **`apply_topo_stream`** — the E3 heart: for each line, choose NOOP / WRITE / DROP / phased skip. (“Admit” = that per-line triage — [terminology](./MAP_P1_FABRIC_EVAL.md#terminology-do-not-blur).)
+- **`apply_topo_stream`** — the E3 heart: for each line, choose NOOP / WRITE / DROP. (“Admit” = that per-line triage — [terminology](./MAP_P1_FABRIC_EVAL.md#terminology-do-not-blur).)
 - **`_make_node` / `_make_edge`** — after admit, shape Motadata `graph_node.v1` / `graph_edge.v1` (`entity_id`, `type`, `metadata` JSON string, Snowflake `edge_id` / `evidence_event_id`, `source_id` / `target_id` / `edge_type`). Upsert edges by `(source_id, edge_type, target_id)`.
 
 ```python
 # apply_topo_stream outline:
 # fact_kind != topo_update → NOOP
 # gate / never-CI / unknown relation → DROP
-# classify_relation skip → phased map-NOOP
+# classify_relation reject → DROP; triplet allowlist → WRITE or DROP
 # classify_relation emit → WRITE via _make_node (endpoints) + _make_edge
 ```
 
@@ -159,14 +159,14 @@ Outcome table (NOOP / WRITE / DROP) lives in the [package README](../README.md#a
 
 Configuration-item (CI) allow/deny. Alert, Change, Incident, tickets, and similar **never-CI** types return DROP (`never_ci_vertex`). Wave-1 service/host/runtime/database types may emit. Prevents case objects from becoming estate nodes.
 
-### `edge_catalog.py` — relation names and wave-1 phasing
+### `edge_catalog.py` — fifteen Motadata relation names
 
 Fifteen Motadata relation names. `classify_relation` returns:
 
-- **emit** — wave-1 WRITE (`runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of`).
-- **skip** — in catalog but not wave-1 yet (e.g. `mounts`) → phased map-NOOP, usually not a DROP.
+- **emit** — name is one of the fifteen → continue to triplet allowlist.
 - **reject** — unknown name → DROP `unknown_relation`.
 
+Pairing for every catalog name: [`EDGE_TRIPLET_ALLOWLIST.md`](../../contracts/EDGE_TRIPLET_ALLOWLIST.md) / `edge_triplets.py`. There is no wave-wise emit skip.
 ### `provenance.py` — how an edge claims it was discovered
 
 Retired from the map write path. Motadata edges store Snowflake `evidence_event_id` instead of nested `discovered_via`. Module kept for unit tests of the old evidence_type heuristic and optional non-map audit. E5 maintain now keys off `origin` (`declared` vs `stream`), `valid_to`, and node `last_seen` / `version`.
@@ -223,7 +223,7 @@ Wires bootstrap + resolved stream + `FileDest` (+ optional maintain). Invoked by
 | Artifact | Meaning |
 |----------|---------|
 | `topology.bootstrap.json` | Estate bootstrap (declared starting map) — **not** CaseSeed |
-| `stream.resolved.jsonl` | Case A — five wave-1 `topo_update` WRITEs |
+| `stream.resolved.jsonl` | Case A — five catalog `topo_update` WRITEs |
 | `stream.reject.jsonl` | Case B — DROP mix + metric/event/trace/anomaly NOOPs |
 | `cases/case_a_map_spine/` · `cases/case_b_rejects/` | Golden spines / reject expectations (PoC core) |
 | `cases/stub_case_path/` · `cases/stub_diagnose_close/` | Optional Detect→Package harness fixtures (not map mission) |
@@ -367,7 +367,7 @@ Rough layering: **CLI/tests → `GraphWriter` → builder/catalog/qualify/proven
 | `publish_map` | **Validate** GraphState + **write** `graph_snapshot.v1` / nodes / edges to Dest `map/` |
 | `maintain_map` | E5 pass: expire / stale-corroborating / declared soft·hard marks — **no new edges** |
 | `rejects` | DROP tape: `(record, reason_code)` pairs from this run |
-| `apply_topo_stream` | Per-line admit loop (NOOP / WRITE / DROP / phased skip) |
+| `apply_topo_stream` | Per-line admit loop (NOOP / WRITE / DROP) |
 | `load_estate_bootstrap_state` | Bootstrap load returning a bare `GraphState` (builder-level) |
 | `_make_node` / `_make_edge` | Shape Motadata `graph_node.v1` / `graph_edge.v1` after admit (bootstrap + stream); edge upsert by logical key |
 | `classify_relation` | Relation name → emit / skip / reject |

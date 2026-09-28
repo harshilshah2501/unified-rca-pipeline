@@ -264,7 +264,7 @@ Snowflake ids below are illustrative PoC numbers. Upsert identity remains `(sour
 | `clustered_with` | `CLUSTERED_WITH` |
 | `communicates_with` | `COMMUNICATES_WITH` |
 
-Wave-1 writers may emit only `RUNS_ON`, `HOSTED_ON`, `DEPENDS_ON`, `COMMUNICATES_WITH`, `PART_OF`; other catalog names are phased skip (map unchanged, not DROP).
+Wave-1 writers historically started with `RUNS_ON`, `HOSTED_ON`, `DEPENDS_ON`, `COMMUNICATES_WITH`, `PART_OF`. **Current GraphWriter admit:** all fifteen Motadata names may emit; illegal pairs DROP via [`EDGE_TRIPLET_ALLOWLIST.md`](./EDGE_TRIPLET_ALLOWLIST.md) (no phased skip for “not wave-1 relation”).
 
 ---
 

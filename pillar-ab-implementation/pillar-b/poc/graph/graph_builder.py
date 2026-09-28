@@ -3,7 +3,7 @@
 ``GraphWriter`` owns the public verbs; this module mutates ``GraphState``:
 
 * ``load_estate_bootstrap_state`` — optional declared seed (lab JSON / future CMDB sync)
-* ``apply_topo_stream`` — per-line NOOP / WRITE / DROP / phased skip
+* ``apply_topo_stream`` — per-line NOOP / WRITE / DROP
 
 CI type eligibility → ``ci_qualify``; relation names → ``edge_catalog``;
 endpoint pairing → ``edge_triplets`` (``EDGE_TRIPLET_ALLOWLIST.md``).
@@ -231,8 +231,6 @@ def load_estate_bootstrap_state(path_or_dict: Any, tenant: str = "default") -> G
         if action == "reject":
             state.rejects.append((e, reason or "unknown_relation"))
             continue
-        if action == "skip":
-            continue
         src, dst = e["from"], e["to"]
         if src not in state.nodes or dst not in state.nodes:
             continue
@@ -260,7 +258,7 @@ def apply_topo_stream(state: GraphState, source: IngestSource, gate: ResolvedOnl
     Admit mapping (hub walkthrough NOOP / WRITE / DROP):
       - fact_kind != topo_update → NOOP (silent continue; metric/event/trace/anomaly)
       - gate or catalog fail → DROP (append rejects)
-      - classify_relation skip → phased map-NOOP
+      - classify_relation reject → DROP
       - illegal / missing endpoint types → DROP (triplet allowlist)
       - classify_relation emit → WRITE (upsert nodes + edge)
     """
@@ -283,8 +281,6 @@ def apply_topo_stream(state: GraphState, source: IngestSource, gate: ResolvedOnl
         action, reason = classify_relation(relation)
         if action == "reject":
             state.rejects.append((rec, reason or "unknown_relation"))
-            continue
-        if action == "skip":
             continue
         src = rec.get("src_ci_id") or rec["ci_id"]
         dst = rec.get("dst_ci_id")

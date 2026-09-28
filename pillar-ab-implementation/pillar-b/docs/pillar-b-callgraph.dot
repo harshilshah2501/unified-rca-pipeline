@@ -84,7 +84,7 @@ digraph pillar_b_write_path {
     ];
     apply [
       fillcolor="#E8D9B8"
-      label=<<B>apply_topo_stream()</B><BR/><FONT POINT-SIZE="9">Per-line NOOP / WRITE / DROP / phased skip</FONT>>
+      label=<<B>apply_topo_stream()</B><BR/><FONT POINT-SIZE="9">Per-line NOOP / WRITE / DROP</FONT>>
     ];
   }
 
@@ -106,7 +106,7 @@ digraph pillar_b_write_path {
     ];
     catalog [
       fillcolor="#C8E6C9"
-      label=<<B>classify_relation()</B><BR/><FONT POINT-SIZE="9">Relation → emit / skip / reject (wave-1)</FONT>>
+      label=<<B>classify_relation()</B><BR/><FONT POINT-SIZE="9">Relation → emit / reject (fifteen catalog)</FONT>>
     ];
     proven [
       fillcolor="#C8E6C9"
@@ -185,7 +185,7 @@ digraph pillar_b_write_path {
   apply -> helpers      [label="same helpers after admit"];
   apply -> gate         [style=dashed label="identity gate first on stream"];
   helpers -> qualify    [label="CI type allowed?"];
-  helpers -> catalog    [label="relation wave-1?"];
+  helpers -> catalog    [label="relation catalog?"];
   helpers -> proven     [label="attach discovered_via"];
   helpers -> make_n     [label="build node object"];
   helpers -> make_e     [label="build edge object"];

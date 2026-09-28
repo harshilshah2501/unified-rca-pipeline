@@ -3,11 +3,13 @@
 Ingest still uses snake_case ``relation`` (fifteen-name catalog).
 Stored ``graph_edge.v1`` uses Motadata SCREAMING_SNAKE ``edge_type``.
 
-``classify_relation`` decides emit / skip / reject for an ingest ``relation``:
+``classify_relation`` decides emit / reject for an ingest ``relation``:
 
-* **emit** — in the fifteen-name catalog *and* wave-1 → WRITE
-* **skip** — in catalog but not wave-1 yet → phased map-NOOP (no DROP)
+* **emit** — in the fifteen-name catalog → proceed to triplet allowlist
 * **reject** — unknown relation → DROP (``unknown_relation``)
+
+Pairing legality for every catalog name: ``edge_triplets`` /
+``contracts/EDGE_TRIPLET_ALLOWLIST.md`` (no wave-wise emit split).
 """
 
 from __future__ import annotations
@@ -34,9 +36,8 @@ ALL_RELATIONS = frozenset(
     }
 )
 
-WAVE1_RELATIONS = frozenset(
-    {"runs_on", "hosted_on", "depends_on", "communicates_with", "part_of"}
-)
+# Kept as an alias for older tests/docs that imported WAVE1_RELATIONS.
+WAVE1_RELATIONS = ALL_RELATIONS
 
 _INGEST_TO_EDGE_TYPE = {r: r.upper() for r in ALL_RELATIONS}
 _EDGE_TYPE_TO_INGEST = {v: k for k, v in _INGEST_TO_EDGE_TYPE.items()}
@@ -78,10 +79,8 @@ def normalize_relation(name: str) -> str:
 
 
 def classify_relation(relation: str) -> tuple[str, str | None]:
-    """Return (action, reason). action in emit | skip | reject."""
+    """Return (action, reason). action in emit | reject."""
     ingest = normalize_relation(relation)
     if ingest not in ALL_RELATIONS:
         return "reject", rc.UNKNOWN_RELATION
-    if ingest not in WAVE1_RELATIONS:
-        return "skip", None
     return "emit", None
