@@ -1,32 +1,32 @@
 # Map write / read record
 
-**Status:** Normative for Pillar B `map/` — PoC encoding `files.v1`; Motadata-shaped dest design `vortex_s3.v1` (§6).  
-**Tier:** Tier 2 implementer I/O (**I/O-3**) — see [`docs/observeops/OUR_HLD_TIER1.md`](../../docs/observeops/OUR_HLD_TIER1.md). Pillar writer **input**: [`../E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md) (**I/O-2**).
-**Room:** `map/` (Pillar B / ObserveOps E3 Topology).  
-**Encoding (PoC):** UTF-8 **JSON** (pretty document or JSON Lines).  
-**Not in this PoC yet:** Live Motadata Vortex cluster, protobuf codecs, or production S3 APIs — layout and APIs are specified in §6 for implementers (including Rust).
+- **Status:** Normative for Pillar B `map/`.
+- **PoC encoding:** `files.v1` (UTF-8 JSON / JSON Lines).
+- **Motadata dest design:** `vortex_s3.v1` (this file §6).
+- **Tier:** Tier 2 implementer I/O (**I/O-3**) — [`docs/observeops/OUR_HLD_TIER1.md`](../../docs/observeops/OUR_HLD_TIER1.md).
+- **Writer input:** [`../E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md) (**I/O-2**).
+- **Room:** `map/` (Pillar B / ObserveOps E3 Topology).
+- **Not in this PoC yet:** live Motadata Vortex cluster, protobuf codecs, or production S3 APIs (layout and APIs are still specified in §6 for implementers, including Rust).
 
-Vortex (in-memory graph) and S3 (immutable cold objects) are encodings of the **same logical fields and keys**. Changing the physical product must not invent a second node/edge schema.
+**Same schema rule:** Vortex (in-memory / hot Arrays) and S3 (immutable cold objects) encode the **same** logical fields and keys. Do not invent a second node/edge schema when changing the physical product.
 
-Companion: [`GATE_B_DEST_PROFILE.md`](./GATE_B_DEST_PROFILE.md) · schemas under [`schemas/`](./schemas/) · samples [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md).
+**Companion docs**
 
-### Document map (Vortex + S3 knowledge-graph I/O)
+- [`../pillar-b/docs/MAP_VORTEX_S3_POC_PRIMER.md`](../pillar-b/docs/MAP_VORTEX_S3_POC_PRIMER.md) — start here for exploration
+- [`MAP_HOT_COLD_LIFECYCLE.md`](./MAP_HOT_COLD_LIFECYCLE.md) — hot vs cold; admit gates; removal
+- [`MAP_VORTEX_COLUMNAR_SCHEMA.md`](./MAP_VORTEX_COLUMNAR_SCHEMA.md) — locked columns
+- [`schemas/`](./schemas/) — JSON Schemas
+- [`GRAPH_NODE_EDGE_SAMPLES.md`](./GRAPH_NODE_EDGE_SAMPLES.md) — sample rows
 
-Read in this order when implementing or reviewing `map/` on Motadata `vortex_s3.v1`:
+Dest profile (`files.v1` vs `vortex_s3.v1`): this file §3 + §6 (former Gate B page is a stub).
 
-| Order | Doc | Hub URL / path | Job |
-|-------|-----|----------------|-----|
-| 1 | **This file** §3 + **§6** | [`/docs/MAP_WRITE_READ_RECORD.md`](http://127.0.0.1:8765/docs/MAP_WRITE_READ_RECORD.md) | Normative write/read: PoC `files.v1` + Motadata columnar `.vortex`, footers, caches, Rust actions |
-| 2 | [`GATE_B_DEST_PROFILE.md`](./GATE_B_DEST_PROFILE.md) | [`/pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md`](http://127.0.0.1:8765/pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md) | Dest profile switch (`files.v1` vs `vortex_s3.v1`) |
-| 3 | [`vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html) | [`/vortex-s3-interaction.html`](http://127.0.0.1:8765/vortex-s3-interaction.html) | Rooms vs temperature; query layer → WorkingSet |
-| 4 | [`storage-formats-vortex-parquet-lance.html`](../../docs/fabric/storage-formats-vortex-parquet-lance.html) | [`/storage-formats-vortex-parquet-lance.html`](http://127.0.0.1:8765/storage-formats-vortex-parquet-lance.html) | Vortex vs Parquet vs Lance encodings |
-| 5 | [`map-history-storage-blocks.html`](../../docs/fabric/map-history-storage-blocks.html) | [`/map-history-storage-blocks.html`](http://127.0.0.1:8765/map-history-storage-blocks.html) | `map/` ∥ `history/` rooms (content axis) |
-| 6 | [`EDGE_TRIPLET_ALLOWLIST.md`](./EDGE_TRIPLET_ALLOWLIST.md) | contracts path | Admit pairing before persist |
-| 7 | [`schemas/`](./schemas/) (`graph_node` / `graph_edge` / `map_snapshot_manifest`) | contracts/schemas | Logical + snapshot-footer schemas |
-| 8 | [`vortex_engineering_mystery_revised_v2.pdf`](../pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf) | pillar-b/docs | Owner Vortex columnar walkthrough notes |
-| 9 | [`GRAPH_QNA.md`](./GRAPH_QNA.md) G15–G19, G40 | [`/docs/GRAPH_QNA.md`](http://127.0.0.1:8765/docs/GRAPH_QNA.md) | FAQ: rooms ≠ temperature; hybrid spine |
+### Document map
 
-Hub doors that must list this set: [docs index §4](../../docs/index.html) · [Fabric README](../../docs/fabric/README.md) · [Our HLD → Fabric](http://127.0.0.1:8765/observeops-pipeline-hld.html#fabric) · [Pillar B PoC hub](http://127.0.0.1:8765/pillar-b-poc-hub.html) · [hld-archive → Fabric](http://127.0.0.1:8765/hld-archive.html#fabric).
+Short path: **primer → lifecycle → this file §6 → columnar schema → `map-vortex/`**.
+
+| Hub doors |
+|-----------|
+| [docs index §4](../../docs/index.html) · [Fabric README](../../docs/fabric/README.md) · [Pillar B PoC hub](http://127.0.0.1:8765/pillar-b-poc-hub.html) |
 
 ---
 
@@ -34,9 +34,10 @@ Hub doors that must list this set: [docs index §4](../../docs/index.html) · [F
 
 | Artifact | Schema id | Shape |
 |----------|-----------|--------|
-| Configuration-item vertex | `graph_node.v1` | One JSON object (Motadata columns; **no `tenant`**) |
-| Typed relationship | `graph_edge.v1` | One JSON object (Motadata columns; **no `tenant`**, no `discovered_via`) |
-| Packaged estate map | `graph_snapshot.v1` | One JSON object: `tenant`, `version`, `nodes[]`, `edges[]` |
+| Configuration-item vertex | `graph_node.v1` | One JSON object (Motadata columns; **no `tenant`**) → columnar table **`map_nodes`** |
+| Typed relationship | `graph_edge.v1` | One JSON object (Motadata columns; **no `tenant`**, no `discovered_via`) → columnar table **`map_edges`** |
+| Packaged estate map | `graph_snapshot.v1` | One JSON object: `tenant`, `version`, `nodes[]`, `edges[]` — **not** a columnar Vortex table (PoC envelope) |
+| Cold snapshot index | `map_snapshot_manifest.v1` | Lists `.vortex` part keys for one version — **not** a columnar table |
 
 Logical identity keys (stable across dest profiles):
 
@@ -101,8 +102,11 @@ Implemented by `publish_snapshot` / `load_snapshot` in `pillar-b/poc/graph/snaps
       "entity_id": "checkout-api",
       "type": "service",
       "name": "checkout-api",
-      "metadata": "{\"env\":\"rca-lab\"}",
-      "last_seen": "2026-08-20T03:30:00Z",
+      "env": "rca-lab",
+      "region": null,
+      "owner": null,
+      "namespace": null,
+      "last_seen": 1787196600000,
       "valid_from": null,
       "valid_to": null,
       "version": 1
@@ -115,7 +119,7 @@ Implemented by `publish_snapshot` / `load_snapshot` in `pillar-b/poc/graph/snaps
       "source_id": "checkout-api",
       "target_id": "linux-server-app-01",
       "edge_type": "RUNS_ON",
-      "valid_from": "2026-08-20T03:30:00Z",
+      "valid_from": 1787196600000,
       "valid_to": null,
       "evidence_event_id": 7146828800000101
     }
@@ -135,36 +139,60 @@ Field name is **`version`** (string) on the snapshot. Do not use `snapshot_id`. 
 |--------------------|------------------------|
 | `ci_id` | node `entity_id` |
 | `ci_type` (PascalCase) | node `type` (lowercase) |
-| labels / tags | node `metadata` (JSON string) |
+| labels / tags | node `env` / `region` / `owner` / `namespace` (`attr_catalog.v1`) |
 | `src_ci_id` / `dst_ci_id` | `source_id` / `target_id` |
 | `relation` (snake_case) | `edge_type` (SCREAMING_SNAKE) |
 | (none) | `edge_id` + `evidence_event_id` snowflakes |
 | (none) | node `last_seen` + bump `version` on upsert |
 
-Edge upsert: look up `(source_id, edge_type, target_id)`; reuse snowflake `edge_id` or allocate once.
+Edge upsert: look up `(source_id, edge_type, target_id)`; reuse snowflake `edge_id` or allocate once. Same endpoints may hold **multiple** edges only when `edge_type` differs — see [`MAP_HOT_COLD_LIFECYCLE.md`](./MAP_HOT_COLD_LIFECYCLE.md) §4.
+
+---
+
+## 5.1 Hot mutate vs cold publish (summary)
+
+Full teaching page: [`MAP_HOT_COLD_LIFECYCLE.md`](./MAP_HOT_COLD_LIFECYCLE.md).
+
+| Concern | Lock |
+|---------|------|
+| `upsert_topo` / `write_topo_stream` | Mutate **hot** Arrays + adjacency only — no new cold `.vortex` per line |
+| `publish_map` | New immutable cold parts + ObserveOps manifest + `latest` |
+| `maintain_map` | Validity / freshness on clocks (`valid_from` / `valid_to`, stale policy) — **not** explicit admin delete |
+| Explicit retire / remove | Separate verb; node retire **cascades** close of incident active edges; then publish |
+| `graph_snapshot.v1` | Packaged PoC read unit — not a third columnar table |
 
 ---
 
 ## 6. Motadata dest: Vortex columnar + S3 (immutable `.vortex` objects)
 
-**Profile name:** `vortex_s3.v1` (design locked; not implemented in the Python PoC — PoC stays `files.v1`).  
-**Vortex meaning here:** the **compressed columnar** stack (DType · Array · Encoding · Layout · `.vortex` / VTXF files) — see walkthrough notes [`pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf`](../pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf) and [docs.vortex.dev/concepts](https://docs.vortex.dev/concepts/).  
-**Visual companion (rooms vs temperature):** [`docs/fabric/vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html).
+- **Profile name:** `vortex_s3.v1` (design locked; not wired in the Python PoC — PoC stays `files.v1`).
+- **Vortex meaning here:** the compressed columnar stack (DType · Array · Encoding · Layout · `.vortex` / VTXF).
+- **Owner notes:** [`pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf`](../pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf)
+- **Upstream concepts:** [docs.vortex.dev/concepts](https://docs.vortex.dev/concepts/)
+- **Visual companion:** [`docs/fabric/vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html) (rooms vs temperature)
 
-Rooms (`map/` vs `history/`) are **content**. S3 holds durable `.vortex` objects; process memory holds Vortex **Arrays** plus an optional **adjacency index** built for walks. Same logical row kinds (`graph_node.v1`, `graph_edge.v1`). Do not invent a second node/edge schema.
+**Axes (do not confuse)**
 
-**Case rule (from the Vortex walkthrough):** prune early → retrieve selectively → compute compactly → materialize late.
+- **Rooms** (`map/` vs `history/`) are **content**.
+- **S3** holds durable `.vortex` objects (cold).
+- **Process memory** holds Vortex **Arrays** plus an optional **adjacency index** for walks (hot).
+- Same logical row kinds: `graph_node.v1`, `graph_edge.v1`. Do not invent a second node/edge schema.
+
+**Case rule (Vortex walkthrough):** prune early → retrieve selectively → compute compactly → materialize late.
 
 ### 6.1 What we store — columns (hybrid spine)
 
-Two columnar tables (Struct layout = one physical column stream per spine field):
+Two columnar tables (Struct layout = one physical column stream per spine field).
 
-| Table | Spine columns (strict) | Flexible |
-|-------|------------------------|----------|
-| **Nodes** | `entity_id`, `type`, `name`, `last_seen`, `valid_from`, `valid_to`, `version` | `metadata` — **one** JSON/map column (tags, aliases, …); not one column per tag |
-| **Edges** | `edge_id`, `source_id`, `target_id`, `edge_type`, `valid_from`, `valid_to`, `evidence_event_id` | extras only if promoted later |
+- **Normative columns + Arrow / Vortex dtypes:** [`MAP_VORTEX_COLUMNAR_SCHEMA.md`](./MAP_VORTEX_COLUMNAR_SCHEMA.md)
+- **Implementation:** Rust crate [`pillar-b/map-vortex/`](../pillar-b/map-vortex/) (`map_vortex`)
 
-Tenant is on Dest path / snapshot pointer, not on every row. Alert / Incident / Metric / ticket / Change-as-CI never appear as node rows.
+| Table | Spine columns (strict) | Promoted / flexible |
+|-------|------------------------|---------------------|
+| **Nodes** (`map_nodes`) | `entity_id`, `type`, `name`, `last_seen` (**UInt64** epoch ms), `valid_from` / `valid_to` (**UInt64** epoch ms), `version` | Closed **`attr_catalog.v1`** columns: `env`, `region`, `owner`, `namespace` (nullable Utf8). **No** JSON `metadata` bag on cold Vortex |
+| **Edges** (`map_edges`) | `edge_id`, `source_id`, `target_id`, `edge_type`, `valid_from` / `valid_to` (**UInt64**), `evidence_event_id` | extras only if a later catalog promotes them |
+
+Wire / `files.v1` lab JSON uses the **same flat fields** (epoch-ms integers + promoted tags). Stream `ts` may still be ISO on ingest lines; GraphWriter converts before upsert ([`MAP_VORTEX_COLUMNAR_SCHEMA.md`](./MAP_VORTEX_COLUMNAR_SCHEMA.md) §4).
 
 ### 6.2 Roles
 
@@ -181,13 +209,13 @@ Default Vortex layout strategy (walkthrough): **Struct → Zoned → Chunked →
 
 | Layer | Job for our map tables |
 |-------|-------------------------|
-| **Struct** | Separate spine columns (`entity_id` vs `metadata`, `source_id` vs `edge_type`, …) so walks project only needed columns |
-| **Zoned** | Per-zone statistics for predicate pruning (e.g. skip zones that cannot contain `edge_type = RUNS_ON`) |
+| **Struct** | Separate spine columns (`entity_id` vs `env`, `source_id` vs `edge_type`, …) so walks project only needed columns |
+| **Zoned** | Per-zone statistics for predicate pruning (e.g. skip zones that cannot contain `edge_type = RUNS_ON` or `last_seen` outside a window) |
 | **Chunked** | Manageable pieces (~2 MB uncompressed default in Vortex docs) — access granularity |
-| **Compressor / Encoding** | Dictionary / bit-pack / … on repetitive columns (`type`, `edge_type`, …) while keeping Arrays computable |
+| **Compressor / Encoding** | Dictionary / bit-pack / … on repetitive columns (`type`, `edge_type`, `env`, …) while keeping Arrays computable |
 | **Flat + segments** | Serialized array chunks as data segments |
 
-A walk that only needs `(source_id, target_id, edge_type)` should **not** pull `metadata` or `evidence_event_id` until materialization needs them.
+A walk that only needs `(source_id, target_id, edge_type)` should **not** pull promoted tags or `evidence_event_id` until materialization needs them.
 
 ### 6.4 Metadata / footer — two levels (do not confuse)
 
@@ -253,8 +281,10 @@ Lab may still use JSONL parts; production Motadata path targets `.vortex` with t
 
 ### 6.5 End-to-end write
 
-1. **Admit** (complete claim → resolved → CI on map → catalog + triplet). [`EDGE_TRIPLET_ALLOWLIST.md`](./EDGE_TRIPLET_ALLOWLIST.md).
-2. **Mutate hot** — upsert into node/edge Arrays (or staging batches) + refresh adjacency. No S3 call.
+Lifecycle detail: [`MAP_HOT_COLD_LIFECYCLE.md`](./MAP_HOT_COLD_LIFECYCLE.md).
+
+1. **Admit** (complete claim → resolved → CI on map → catalog + triplet). [`EDGE_TRIPLET_ALLOWLIST.md`](./EDGE_TRIPLET_ALLOWLIST.md). Outcome: NOOP / WRITE / DROP.
+2. **Mutate hot** — under WRITE: new node+edge, new edge only, or refresh existing upsert key; under maintain / explicit retire: validity or cascade close. Upsert into node/edge Arrays + refresh adjacency. **No S3 / cold `.vortex` call.**
 3. **Persist (`publish_map`)** — new `version`; build Arrow/columnar tables for nodes and edges; Vortex write each part (segments + layout metadata + postscript); PUT `manifest.json`; PUT `latest.json`; invalidate version-keyed memos.
 4. Never patch an old `.vortex` or an old manifest. Next checkpoint = new version.
 
@@ -275,7 +305,9 @@ Dest.list_keys(room) → list[str]
 
 | API | Behavior |
 |-----|----------|
-| `upsert_topo` | Admit + mutate hot Arrays / adjacency |
+| `upsert_topo` / `write_topo_stream` | Admit + mutate **hot** Arrays / adjacency (not a cold `.vortex` PUT) |
+| `maintain_map(as_of)` | Validity / freshness (expire `valid_to`, stale policy, declared marks) — not explicit admin delete |
+| Explicit retire / remove *(product lock; wire TBD)* | Close edge or node; node retire cascades incident active edges; then publish |
 | `publish_map(tenant) → version` | New `.vortex` parts + ObserveOps manifest + `latest` |
 | `load_map(tenant, version?)` | Manifest-driven rebuild from S3 |
 | `neighbors` / walks | Hot adjacency after load |
@@ -294,31 +326,38 @@ Rules: S3 is not a diagnose cache; WorkingSet stays capped; prefer invalidate-on
 
 ### 6.9 Schema — required (especially for Rust)
 
-Logical JSON Schemas under [`schemas/`](./schemas/) are the ObserveOps source of truth. Vortex **DTypes** in file metadata must match those spine fields.
+Logical JSON Schemas under [`schemas/`](./schemas/) and Vortex **physical DTypes** share the flat lock in [`MAP_VORTEX_COLUMNAR_SCHEMA.md`](./MAP_VORTEX_COLUMNAR_SCHEMA.md) (UInt64 clocks + promoted tags).
 
 | Schema | Job |
 |--------|-----|
 | `graph_node.v1` / `graph_edge.v1` | Logical row / column set |
 | `map_snapshot_manifest.v1` | ObserveOps snapshot footer across `.vortex` parts |
-| `graph_snapshot.v1` | Optional packaged view (PoC single JSON) |
+| `graph_snapshot.v1` | Optional packaged PoC view (envelope — **not** a columnar table) |
 | `ingest.v1` / `writer_stream.v1` | Admit input |
 | Vortex file DType / Layout | Physical; owned by Vortex writer — must encode the same spine |
 
 ### 6.10 Rust implementation action items
 
-1. **Schemas → types** — `serde` (or codegen) for node/edge/manifest; CI validate against JSON Schema.
-2. **`Dest` trait** — FileDest + S3Dest (`put`/`get`/`list_keys`).
-3. **Hot store** — columnar Arrays (Vortex/Arrow) + adjacency index for walks.
-4. **Admit** — identity, CI qualify, fifteen relations, triplet allowlist.
-5. **Publish** — build tables → Vortex write parts (library owns file footer) → our `manifest.json` → `latest.json`; test incomplete publish (no manifest ⇒ invisible).
-6. **Load** — open via postscript/layout; project spine columns; rebuild adjacency; do not decode `metadata` until needed.
-7. **WorkingSet + cache policy** — version-keyed invalidation.
-8. **Integration tests** — round-trip walk; illegal triplet DROP without persist.
+Crate start: [`pillar-b/map-vortex/`](../pillar-b/map-vortex/) — see [`IMPLEMENTATION.md`](../pillar-b/map-vortex/IMPLEMENTATION.md) for phase status.
+
+1. **Schemas → types** — `serde` for node/edge/manifest (done); CI validate against JSON Schema (remaining).
+2. **`Dest` trait** — FileDest + S3Dest (`put`/`get`/`list_keys`) — Phase D.
+3. **Hot store** — `HotMap` upsert done; columnar Arrays + adjacency for walks — Phase C.
+4. **Admit** — identity, CI qualify, fifteen relations, triplet allowlist — **done** (`admit`, `ci_qualify`).
+5. **Publish** — parts → `manifest.json` → `latest.json` — **done**; incomplete-publish test — remaining.
+6. **Load** — open Vortex → Arrow batches — **done**; project spine on load + adjacency rebuild — Phase C.
+7. **WorkingSet + cache policy** — version-keyed invalidation — Phase D/E.
+8. **Integration tests** — publish/load + admit/hot P1-shaped — **partial**; full estate + retire cascade — remaining.
 9. **Defer** — Motadata cluster wiring; treat [docs.vortex.dev](https://docs.vortex.dev/) as authoritative for API/layout defaults as versions evolve.
+10. **Explicit retire wire** — writer-stream or Dest admin path separate from `maintain_map` (product lock in lifecycle doc §5).
 
 ### 6.11 Lab note
 
-PoC `files.v1` (JSON / JSONL) still proves logical records. `vortex_s3.v1` targets `.vortex` parts + ObserveOps manifest; optional dual-folder stub may mimic without Motadata S3.
+- PoC `files.v1` (JSON / JSONL under `pillar-b/poc/`) still proves logical admit / GraphWriter records.
+- Column layout for Motadata parts: [`MAP_VORTEX_COLUMNAR_SCHEMA.md`](./MAP_VORTEX_COLUMNAR_SCHEMA.md).
+- Rust builders + Vortex write: [`pillar-b/map-vortex/`](../pillar-b/map-vortex/).
+- Hot vs cold lifecycle: [`MAP_HOT_COLD_LIFECYCLE.md`](./MAP_HOT_COLD_LIFECYCLE.md).
+- `vortex_s3.v1` targets `.vortex` parts + ObserveOps manifest.
 
 ---
 
@@ -338,4 +377,6 @@ PoC `files.v1` (JSON / JSONL) still proves logical records. `vortex_s3.v1` targe
 4. Cold checkpoint validates `map_snapshot_manifest_v1.schema.json` when using `vortex_s3.v1` layout.  
 5. `load_snapshot(dest)` / `load_map` round-trips publish.  
 6. No Alert / Incident / ticket / Change-as-CI / metric / trace vertices on the snapshot.  
-7. Neighbor walks use `source_id` / `target_id` against Vortex (or PoC in-memory state), not per-hop S3.
+8. Neighbor walks use `source_id` / `target_id` against Vortex (or PoC in-memory state), not per-hop S3.  
+9. Hot upsert never writes cold `.vortex`; only `publish_map` does.  
+10. Node retire closes all active incident edges before / with the same hot mutation that removes the node from the live walk surface.

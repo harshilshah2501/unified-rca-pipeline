@@ -6,17 +6,22 @@ Runs on existing edges only (expire, drop stale stream edges, declared soft/hard
 Does not invent new topology. After maintain, callers typically ``publish_map``
 again so Dest reflects the marks.
 
-Uses Motadata ``valid_to`` / node ``last_seen`` + ``version`` — not
+Uses Motadata ``valid_to`` / node ``last_seen`` + ``version`` (epoch ms) — not
 ``discovered_via.evidence_type`` tiers. Declared vs stream is the PoC
 ``origin`` additional property set at write time.
+
+``map/`` is the **present** topology surface. Maintain refreshes validity on that
+present map; it does not append a history/ sketch room or keep an event log of
+past estates (cold snapshot versions are checkpoints of present state, not Pillar A history).
 """
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from typing import Any
 
 from graph.graph_builder import GraphState
+from graph.timeutil import epoch_ms_to_datetime, to_epoch_ms
 
 DECLARED_SOFT_STALE_DAYS = 7
 DECLARED_HARD_DOWNGRADE_DAYS = 30
@@ -25,23 +30,16 @@ MAINTAIN_SOFT_STALE = "soft_stale"
 MAINTAIN_HARD_DOWNGRADED = "hard_downgraded"
 
 
-def _parse_ts(ts: str) -> datetime:
-    if ts.endswith("Z"):
-        return datetime.fromisoformat(ts.replace("Z", "+00:00"))
-    return datetime.fromisoformat(ts)
-
-
-def _as_of_dt(as_of: str) -> datetime:
-    return _parse_ts(as_of).astimezone(timezone.utc)
-
-
-def expire_edges(state: GraphState, as_of: str) -> int:
+def expire_edges(state: GraphState, as_of: str | int) -> int:
     """Drop edges whose valid_to is set and <= as_of. Returns count removed."""
+    as_of_ms = to_epoch_ms(as_of)
     removed = 0
     doomed: list[str] = []
     for eid, edge in state.edges.items():
         valid_to = edge.get("valid_to")
-        if valid_to and valid_to <= as_of:
+        if valid_to is None:
+            continue
+        if to_epoch_ms(valid_to) <= as_of_ms:
             doomed.append(eid)
     for eid in doomed:
         del state.edges[eid]
@@ -51,23 +49,24 @@ def expire_edges(state: GraphState, as_of: str) -> int:
 
 def drop_stale_stream_edges(
     state: GraphState,
-    as_of: str,
+    as_of: str | int,
     *,
     max_age_seconds: int = 3600,
 ) -> int:
     """Drop stream-origin edges older than max_age relative to as_of (no valid_to)."""
-    cutoff = _parse_ts(as_of) - timedelta(seconds=max_age_seconds)
+    as_of_ms = to_epoch_ms(as_of)
+    cutoff_ms = as_of_ms - (max_age_seconds * 1000)
     removed = 0
     doomed: list[str] = []
     for eid, edge in state.edges.items():
-        if edge.get("valid_to"):
+        if edge.get("valid_to") is not None:
             continue
         if edge.get("origin") != "stream":
             continue
         valid_from = edge.get("valid_from")
-        if not valid_from:
+        if valid_from is None:
             continue
-        if _parse_ts(valid_from) <= cutoff:
+        if to_epoch_ms(valid_from) <= cutoff_ms:
             doomed.append(eid)
     for eid in doomed:
         del state.edges[eid]
@@ -78,18 +77,19 @@ def drop_stale_stream_edges(
 # Back-compat alias for callers / tests that still use the old name
 def drop_stale_corroborating(
     state: GraphState,
-    as_of: str,
+    as_of: str | int,
     *,
     max_age_seconds: int = 3600,
 ) -> int:
     return drop_stale_stream_edges(state, as_of, max_age_seconds=max_age_seconds)
 
 
-def touch_nodes(state: GraphState, as_of: str) -> int:
+def touch_nodes(state: GraphState, as_of: str | int) -> int:
     """Refresh ``last_seen`` and bump ``version`` on every node (Motadata maintain)."""
+    as_of_ms = to_epoch_ms(as_of)
     touched = 0
     for node in state.nodes.values():
-        node["last_seen"] = as_of
+        node["last_seen"] = as_of_ms
         node["version"] = int(node.get("version") or 1) + 1
         touched += 1
     return touched
@@ -97,7 +97,7 @@ def touch_nodes(state: GraphState, as_of: str) -> int:
 
 def apply_declared_freshness(
     state: GraphState,
-    as_of: str,
+    as_of: str | int,
     *,
     soft_stale_days: int = DECLARED_SOFT_STALE_DAYS,
     hard_downgrade_days: int = DECLARED_HARD_DOWNGRADE_DAYS,
@@ -111,18 +111,18 @@ def apply_declared_freshness(
     Age clock starts from ``valid_from`` when set, else leaves the edge untouched.
     Edges with an explicit ``valid_to`` are handled by ``expire_edges``, not here.
     """
-    now = _as_of_dt(as_of)
+    now = epoch_ms_to_datetime(to_epoch_ms(as_of))
     soft_count = 0
     hard_count = 0
     for edge in state.edges.values():
-        if edge.get("valid_to"):
+        if edge.get("valid_to") is not None:
             continue
         if edge.get("origin") != "declared":
             continue
         valid_from = edge.get("valid_from")
-        if not valid_from:
+        if valid_from is None:
             continue
-        age = now - _parse_ts(valid_from).astimezone(timezone.utc)
+        age = now - epoch_ms_to_datetime(to_epoch_ms(valid_from))
         if age >= timedelta(days=hard_downgrade_days):
             edge["maintain_status"] = MAINTAIN_HARD_DOWNGRADED
             hard_count += 1
@@ -145,7 +145,7 @@ def confidence_bearing_edges(state: GraphState) -> list[dict[str, Any]]:
 
 def maintain_graph_validity(
     state: GraphState,
-    as_of: str,
+    as_of: str | int,
     *,
     corroborating_max_age_seconds: int = 3600,
     soft_stale_days: int = DECLARED_SOFT_STALE_DAYS,

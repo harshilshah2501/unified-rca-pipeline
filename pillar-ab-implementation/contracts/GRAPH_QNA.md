@@ -381,6 +381,26 @@ So “query layer” is **not** a third room and **not** a second Identity bind.
 
 Visual: [`vortex-s3-interaction.html`](../../docs/fabric/vortex-s3-interaction.html).
 
+### G41. Is `graph_snapshot.v1` a columnar Vortex table?
+
+**A. No.** Only **`map_nodes`** and **`map_edges`** are columnar tables. `graph_snapshot.v1` is a **packaged envelope** (`tenant` + `version` + full node/edge object arrays) used as the PoC read unit. On Motadata cold dest, the generation index is `map_snapshot_manifest.v1` + `latest.json`, not a third Vortex table.
+
+Teaching: [`MAP_HOT_COLD_LIFECYCLE.md`](./MAP_HOT_COLD_LIFECYCLE.md) §1 · columns [`MAP_VORTEX_COLUMNAR_SCHEMA.md`](./MAP_VORTEX_COLUMNAR_SCHEMA.md).
+
+### G42. Does `upsert_topo` / `write_topo_stream` write `.vortex` files?
+
+**A. Hot yes, cold no.** Stream upserts mutate in-process Vortex/Arrow **Arrays** and adjacency. They do **not** PUT a new immutable `.vortex` object per line. Cold parts appear only on **`publish_map`** (new version + manifest + `latest`).
+
+### G43. Can two edges share the same pair of nodes?
+
+**A. Yes if `edge_type` differs; no if the typed arc is the same.** Upsert key is `(source_id, edge_type, target_id)`. Example: `DEPENDS_ON` and `COMMUNICATES_WITH` between the same ends are two rows; a second `DEPENDS_ON` **refreshes** the first (`edge_id` reused).
+
+### G44. Is removal only `maintain_map`?
+
+**A. Two levels.** (1) **`maintain_map`** — automatic validity / freshness on `valid_from` / `valid_to` and stale policy (E5-shaped). (2) **Explicit retire / remove** — intentional close (separate verb); retiring a **node** must close all **active incident edges**. Neither patches old cold `.vortex` files; next `publish_map` writes a new version.
+
+Full lock: [`MAP_HOT_COLD_LIFECYCLE.md`](./MAP_HOT_COLD_LIFECYCLE.md) §5.
+
 ---
 
 ## 7. Sketch row shape — windows, digest, buckets, baseline, Detect

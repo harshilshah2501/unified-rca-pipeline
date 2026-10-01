@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pillar B — stream → knowledge graph demo</title>
-<meta name="description" content="Split UI: incoming ingest.v1 stream on the left, gradual GraphWriter map upserts on the right. Only topo_update WRITE lines grow the graph." />
+<meta name="description" content="Split UI: post-E2 ingest tape on the left, GraphWriter map upserts on the right — mirrors pillar-b/poc/graph admit (NOOP / WRITE / DROP)." />
 <link rel="stylesheet" href="/urca-docs.css" />
 <script src="/theme-init.js"></script>
 <style>
   .sg-demo {
-    /* Edges — discovered_via.evidence_type (muted, distinct; not neon) */
-    --ev-auth: #4a9b78;
+    /* Edges — PoC origin (declared vs stream); not discovered_via */
+    --ev-stream: #4a9b78;
     --ev-decl: #7d8fb0;
-    --ev-corr: #c4a35a;
-    /* Nodes — ci_type (keep Database away from declared blue) */
+    --ev-drop: #c46a6a;
+    /* Nodes — ingest ci_type colors (storage type shown as subtitle) */
     --ci-bs: #9a5b3c;
     --ci-bs-soft: rgba(154, 91, 60, 0.14);
     --ci-service: #0f766e;
@@ -256,10 +256,10 @@
   .sg-swatch.line {
     width: 18px; height: 3px; border-radius: 2px; border: none;
   }
-  .sg-swatch.line.auth { background: var(--ev-auth); }
+  .sg-swatch.line.auth { background: var(--ev-stream); }
   .sg-swatch.line.decl { background: var(--ev-decl); }
   .sg-swatch.line.corr {
-    background: repeating-linear-gradient(90deg, var(--ev-corr) 0 4px, transparent 4px 7px);
+    background: var(--ev-drop);
     height: 3px;
   }
   .sg-foot { margin-top: 1.1rem; font-size: .82rem; color: var(--muted); }
@@ -268,28 +268,34 @@
 </head>
 <body class="urca-doc article">
 <div class="wrap article sg-demo">
-  <p class="eyebrow">Pillar B PoC · demo</p>
+  <p class="eyebrow">Pillar B PoC · GraphWriter timeline</p>
   <h1>Stream → knowledge graph</h1>
   <p class="lead" style="border-left:3px solid var(--accent);padding-left:.75rem;margin-bottom:.85rem">
-    <strong>Legacy teaching tape.</strong> Contract of record is now
-    <code>writer_stream.v1</code> (optional <code>topology</code> / <code>metric</code> blocks, <strong>no</strong>
-    <code>fact_kind</code>) with per-writer regulators → intents — see
-    <a href="../pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a>.
-    This page still steps the older <code>ingest.v1</code> + <code>fact_kind</code> estate tape until fixtures migrate.
+    <strong>Aligned to PoC code.</strong> Each Forward step mirrors
+    <code>GraphWriter.load_estate_bootstrap</code> then
+    <code>apply_topo_stream</code> in
+    <a href="/pillar-ab-implementation/pillar-b/poc/graph/graph_builder.py"><code>graph_builder.py</code></a>
+    (admit: complete claim → resolved → CI vertex → relation catalog +
+    <a href="/pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md">triplet allowlist</a>).
+    Motadata columnar twin: Rust <a href="/pillar-ab-implementation/pillar-b/map-vortex/"><code>map_vortex</code></a>
+    <code>HotMap::apply_topo_line</code>. Lab wire is still <code>ingest.v1</code> + <code>fact_kind</code>;
+    target is <code>writer_stream.v1</code> —
+    <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a>.
   </p>
   <p class="lead">
-    Step through estate <strong>bootstrap</strong> (CI nodes), then the interleaved <code>ingest.v1</code> tape.
-    Left: the current action (bootstrap payload, or one flat wire JSON with keys marked common vs
-    <code>fact_kind</code>-specific). Right: <strong>map/</strong> — nodes from bootstrap, then
-    <strong>one edge per</strong> stream <code>topo_update</code> WRITE as you Forward (in sync with the left panel).
-    Metrics, spans, events, and anomalies show as NOOPs (or SketchWriter admits).
+    Left: bootstrap payload or one ingest line. Right: <strong>map/</strong> —
+    Motadata CI nodes from bootstrap, then <strong>one edge per WRITE</strong>
+    (<code>edge_type</code> SCREAMING, <code>origin</code> stream|declared).
+    <strong>DROP</strong> shows reject codes without mutating the graph.
+    Metrics / spans / events / anomalies are GraphWriter <strong>NOOP</strong>
+    (Sketch may ADMIT metrics).
   </p>
   <ul class="sg-rules">
-    <li><strong>Bootstrap</strong> — known CIs (vertices) before the stream</li>
-    <li><strong>One wire</strong> after Identity</li>
-    <li><strong>Writers filter</strong> by <code>fact_kind</code> <em>(legacy demo)</em> → target: presence predicates</li>
-    <li><strong>Each WRITE</strong> adds one <code>relation</code> edge</li>
-    <li><strong>Span ≠ edge</strong> until a separate topo emitter</li>
+    <li><strong>B0</strong> — <code>load_estate_bootstrap</code> (vertices)</li>
+    <li><strong>WRITE</strong> — upsert <code>(source_id, edge_type, target_id)</code></li>
+    <li><strong>DROP</strong> — e.g. <code>illegal_edge_triplet</code></li>
+    <li><strong>NOOP</strong> — non-topo fact_kind</li>
+    <li><strong>No</strong> <code>discovered_via</code> on edges</li>
   </ul>
 
   <div class="sg-bar" role="toolbar" aria-label="Step controls">
@@ -316,48 +322,45 @@
       <div class="sg-graph-wrap">
         <svg id="graph-svg" viewBox="0 0 560 450" role="img" aria-label="Customer checkout knowledge graph" preserveAspectRatio="xMidYMid meet">
           <defs>
-            <marker id="arr-auth" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <marker id="arr-stream" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0 0 L10 5 L0 10 z" fill="#4a9b78"/>
             </marker>
             <marker id="arr-decl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0 0 L10 5 L0 10 z" fill="#7d8fb0"/>
             </marker>
-            <marker id="arr-corr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0 0 L10 5 L0 10 z" fill="#c4a35a"/>
-            </marker>
           </defs>
           <g id="edges"></g>
           <g id="nodes"></g>
         </svg>
-        <div class="sg-edge-list" id="edge-list">No edges yet. · edge color = <code>discovered_via.evidence_type</code></div>
+        <div class="sg-edge-list" id="edge-list">No edges yet. · edge label = Motadata <code>edge_type</code> · color = <code>origin</code></div>
       </div>
     </section>
   </div>
 
   <div class="sg-legend" aria-label="Color legend">
     <div class="row">
-      <div class="row-title">Nodes · <code>ci_type</code></div>
+      <div class="row-title">Nodes · ingest <code>ci_type</code> → storage</div>
       <div class="group">
-        <span><i class="sg-swatch node" style="border-color:var(--ci-bs); background:var(--ci-bs-soft)"></i> BusinessService</span>
-        <span><i class="sg-swatch node" style="border-color:var(--ci-service); background:var(--ci-service-soft)"></i> Service</span>
-        <span><i class="sg-swatch node" style="border-color:var(--ci-runtime); background:var(--ci-runtime-soft)"></i> Runtime</span>
-        <span><i class="sg-swatch node" style="border-color:var(--ci-db); background:var(--ci-db-soft)"></i> Database</span>
-        <span><i class="sg-swatch node" style="border-color:var(--ci-host); background:var(--ci-host-soft)"></i> Host</span>
+        <span><i class="sg-swatch node" style="border-color:var(--ci-bs); background:var(--ci-bs-soft)"></i> BusinessService → business_service</span>
+        <span><i class="sg-swatch node" style="border-color:var(--ci-service); background:var(--ci-service-soft)"></i> Service → service</span>
+        <span><i class="sg-swatch node" style="border-color:var(--ci-runtime); background:var(--ci-runtime-soft)"></i> Runtime → process</span>
+        <span><i class="sg-swatch node" style="border-color:var(--ci-db); background:var(--ci-db-soft)"></i> Database → db</span>
+        <span><i class="sg-swatch node" style="border-color:var(--ci-host); background:var(--ci-host-soft)"></i> Host → host</span>
       </div>
     </div>
     <div class="row">
-      <div class="row-title">Edges · <code>discovered_via</code></div>
+      <div class="row-title">Edges · Motadata <code>edge_type</code> + <code>origin</code></div>
       <div class="group">
-        <span><i class="sg-swatch line auth"></i> authoritative</span>
-        <span><i class="sg-swatch line decl"></i> declared</span>
-        <span><i class="sg-swatch line corr"></i> corroborating (dashed)</span>
+        <span><i class="sg-swatch line auth"></i> origin=stream</span>
+        <span><i class="sg-swatch line decl"></i> origin=declared</span>
       </div>
     </div>
     <div class="row">
-      <div class="row-title">Stream · admit</div>
+      <div class="row-title">Stream · GraphWriter admit</div>
       <div class="group">
-      <span><i class="sg-swatch" style="background:var(--ev-decl)"></i> Bootstrap (nodes)</span>
-      <span><i class="sg-swatch" style="background:var(--fk-topo)"></i> Graph WRITE (+edge)</span>
+      <span><i class="sg-swatch" style="background:var(--ev-decl)"></i> Bootstrap</span>
+      <span><i class="sg-swatch" style="background:var(--fk-topo)"></i> WRITE</span>
+      <span><i class="sg-swatch" style="background:var(--ev-drop)"></i> DROP</span>
       <span><i class="sg-swatch" style="background:var(--fk-metric)"></i> Sketch ADMIT</span>
       <span><i class="sg-swatch" style="background:var(--muted)"></i> NOOP</span>
       </div>
@@ -365,14 +368,18 @@
   </div>
 
   <p class="sg-foot">
-    Scenario: legacy interleaved tape in
+    PoC path:
+    <a href="/pillar-ab-implementation/pillar-b/poc/graph/graph_builder.py"><code>graph_builder.py</code></a>
+    · Triplet
+    <a href="/pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md">EDGE_TRIPLET_ALLOWLIST</a>
+    · Tape
     <a href="/pillar-b-stream-graph-demo.tape.json"><code>pillar-b-stream-graph-demo.tape.json</code></a>
-    · target wire:
-    <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a>
-    · Walkthrough <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md">TEAM_WALKTHROUGH.md</a>
-    · Hub <a href="/pillar-b-poc-hub.html">Pillar B PoC hub</a>
-    · Tape <a href="/pillar-b-stream-graph-demo.tape.json"><code>pillar-b-stream-graph-demo.tape.json</code></a>
-    · Estate <a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/topology.bootstrap.json"><code>topology.bootstrap.json</code></a>
+    · Estate
+    <a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/topology.bootstrap.json"><code>topology.bootstrap.json</code></a>
+    · Hub
+    <a href="/pillar-b-poc-hub.html">Pillar B PoC hub</a>
+    · Vortex primer
+    <a href="/docs/MAP_VORTEX_S3_POC_PRIMER.md">MAP_VORTEX_S3_POC_PRIMER</a>
   </p>
 </div>
 
@@ -404,11 +411,10 @@
     Database: { stroke: "#4c6a9a", fill: "rgba(76,106,154,0.16)", text: "#4c6a9a" },
     Host: { stroke: "#57534e", fill: "rgba(87,83,78,0.16)", text: "#57534e" }
   };
-  /* Edge stroke = discovered_via.evidence_type (same muted tokens as legend). */
-  const EV_PALETTE = {
-    authoritative: { color: "#4a9b78", marker: "arr-auth", cls: "auth", dash: "" },
-    declared: { color: "#7d8fb0", marker: "arr-decl", cls: "decl", dash: "" },
-    corroborating: { color: "#c4a35a", marker: "arr-corr", cls: "corr", dash: "5 3.5" }
+  /* Edge stroke = PoC origin (stream | declared). Label = Motadata edge_type. */
+  const ORIGIN_PALETTE = {
+    stream: { color: "#4a9b78", marker: "arr-stream", cls: "auth", dash: "" },
+    declared: { color: "#7d8fb0", marker: "arr-decl", cls: "decl", dash: "" }
   };
 
   function fkClass(kind) {
@@ -424,8 +430,8 @@
     "schema_version", "ts", "tenant", "ci_id", "ci_type", "fact_kind", "identity"
   ];
   const SPECIFIC_KEYS = [
-    "relation", "src_ci_id", "dst_ci_id", "name", "value", "labels",
-    "threshold", "severity", "metric_id"
+    "relation", "src_ci_id", "dst_ci_id", "src_ci_type", "dst_ci_type",
+    "name", "value", "labels", "threshold", "severity", "metric_id"
   ];
 
   function admitChip(step) {
@@ -433,6 +439,12 @@
       return { cls: "admit-bootstrap", text: "Estate bootstrap" };
     }
     if (step.graph === "WRITE") return { cls: "admit-write", text: "Graph WRITE" };
+    if (step.graph === "DROP") {
+      return {
+        cls: "admit-noop",
+        text: "Graph DROP" + (step.reject_code ? " · " + step.reject_code : "")
+      };
+    }
     if (step.sketch === "ADMIT") return { cls: "admit-admit", text: "Sketch ADMIT" };
     return { cls: "admit-noop", text: "NOOP" };
   }
@@ -491,9 +503,9 @@
     const estate = step.estate || {};
     const preview = {
       api: estate.api,
+      poc_module: estate.poc_module,
       source: estate.source,
-      provenance: estate.provenance,
-      evidence_default: estate.evidence_default,
+      origin: estate.origin,
       nodes: estate.nodes,
       edges: estate.edges
     };
@@ -541,6 +553,11 @@
       '<div class="headline">' + step.id + " · " + step.headline + "</div>" +
       '<div class="caption">' + step.caption + "</div>" +
       (step._comment ? '<div class="note">' + escapeHtml(step._comment) + "</div>" : "") +
+      (step.graph === "DROP" && step.reject_code
+        ? '<div class="note"><strong>reject_code:</strong> <code>' +
+          escapeHtml(step.reject_code) +
+          "</code> — map unchanged (PoC <code>state.rejects</code>)</div>"
+        : "") +
       '<div class="sg-json-mark" aria-hidden="true">' +
       '<span><i class="dot common"></i> common (every ingest.v1)</span>' +
       '<span><i class="dot specific"></i> specific (this fact_kind)</span>' +
@@ -571,24 +588,38 @@
         n.label + "</text>" +
         '<text x="' + (n.x + NODE_W / 2) + '" y="' + (n.y + 34) +
         '" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="' + pal.stroke + '" opacity="0.85">' +
-        n.ci_type + "</text>";
+        (n.storage_type || n.ci_type) + "</text>";
       nodesG.appendChild(g);
     });
   }
 
   function edgeKey(e) {
-    return e.relation + "|" + e.src + "|" + e.dst;
+    const et = e.edge_type || String(e.relation || "").toUpperCase();
+    return et + "|" + e.src + "|" + e.dst;
   }
 
   /** Parallel edges sharing src→dst: index + count for offset/curve/label stagger. */
   function parallelInfo(e) {
     const siblings = Array.from(edges.values())
       .filter(function (x) { return x.src === e.src && x.dst === e.dst; })
-      .sort(function (a, b) { return a.relation.localeCompare(b.relation); });
-    const i = Math.max(0, siblings.findIndex(function (x) { return x.relation === e.relation; }));
+      .sort(function (a, b) {
+        const ae = a.edge_type || a.relation;
+        const be = b.edge_type || b.relation;
+        return String(ae).localeCompare(String(be));
+      });
+    const key = edgeKey(e);
+    const i = Math.max(0, siblings.findIndex(function (x) { return edgeKey(x) === key; }));
     const n = Math.max(1, siblings.length);
     const mid = (n - 1) / 2;
     return { i: i, n: n, slot: i - mid };
+  }
+
+  function edgeLabel(e) {
+    return e.edge_type || String(e.relation || "").toUpperCase();
+  }
+
+  function edgeOrigin(e) {
+    return e.origin || "stream";
   }
 
   function drawEdge(e, pulse) {
@@ -610,16 +641,16 @@
     const y2 = b.y - uy * pad;
     const cx = (x1 + x2) / 2 + px * bow;
     const cy = (y1 + y2) / 2 + py * bow;
-    // Quadratic midpoint (t=0.5) for label anchor; stagger t slightly per sibling
     const t = info.n > 1 ? 0.38 + info.i * (0.24 / Math.max(1, info.n - 1)) : 0.5;
     const omt = 1 - t;
     const lx = omt * omt * x1 + 2 * omt * t * cx + t * t * x2;
     const ly = omt * omt * y1 + 2 * omt * t * cy + t * t * y2;
-    const pal = EV_PALETTE[e.evidence] || EV_PALETTE.corroborating;
+    const pal = ORIGIN_PALETTE[edgeOrigin(e)] || ORIGIN_PALETTE.stream;
+    const label = edgeLabel(e);
     const pathD = info.n > 1
       ? ("M" + x1 + " " + y1 + " Q" + cx + " " + cy + " " + x2 + " " + y2)
       : ("M" + x1 + " " + y1 + " L" + x2 + " " + y2);
-    const lw = Math.max(100, e.relation.length * 6.8 + 22);
+    const lw = Math.max(108, label.length * 7.2 + 22);
     const html =
       '<path d="' + pathD +
       '" fill="none" stroke="' + pal.color + '" stroke-width="2" stroke-linecap="round"' +
@@ -627,9 +658,9 @@
       ' marker-end="url(#' + pal.marker + ')"/>' +
       '<rect class="edge-lbl-bg" x="' + (lx - lw / 2) + '" y="' + (ly - 18) + '" width="' + lw + '" height="28" rx="4"/>' +
       '<text x="' + lx + '" y="' + (ly - 4) + '" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" font-weight="600" fill="' + pal.color + '">' +
-      e.relation + "</text>" +
+      label + "</text>" +
       '<text x="' + lx + '" y="' + (ly + 9) + '" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="' + pal.color + '" opacity="0.9">' +
-      e.evidence + "</text>";
+      "origin=" + edgeOrigin(e) + "</text>";
     if (!g) {
       g = document.createElementNS("http://www.w3.org/2000/svg", "g");
       g.setAttribute("id", eid);
@@ -671,21 +702,22 @@
       const nodesLit = liveNodes.size;
       if (nodesLit) {
         edgeList.innerHTML =
-          "No edges yet — Forward stream <code>topo_update</code> WRITEs to grow map/.";
+          "No edges yet — Forward a <code>topo_update</code> WRITE (or see DROP leave map unchanged).";
         graphStatus.textContent = "bootstrapped · " + nodesLit + " node(s) · 0 edges";
       } else {
-        edgeList.innerHTML = "No edges yet. · edge color = <code>discovered_via.evidence_type</code>";
+        edgeList.innerHTML =
+          "No edges yet. · label = Motadata <code>edge_type</code> · color = <code>origin</code>";
         graphStatus.textContent = "empty — waiting for bootstrap";
       }
       return;
     }
     const lines = Array.from(edges.values()).map((e) => {
-      const pal = EV_PALETTE[e.evidence] || EV_PALETTE.corroborating;
+      const pal = ORIGIN_PALETTE[edgeOrigin(e)] || ORIGIN_PALETTE.stream;
       return (
         '<div class="el"><code>' + e.src + "</code>" +
-        '<span class="rel ' + pal.cls + '">' + e.relation + "</span>" +
+        '<span class="rel ' + pal.cls + '">' + edgeLabel(e) + "</span>" +
         "<code>" + e.dst + "</code>" +
-        '<span class="rel ' + pal.cls + '" title="discovered_via.evidence_type">' + e.evidence + "</span></div>"
+        '<span class="rel ' + pal.cls + '" title="PoC origin">' + edgeOrigin(e) + "</span></div>"
       );
     });
     edgeList.innerHTML = lines.join("");

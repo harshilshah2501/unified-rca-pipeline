@@ -90,7 +90,7 @@ E1 Collect envelope          E2 Identity overlay           Pillar writers       
 |-------|------|----------------|-------|--------------|
 | **I/O-1** | **Ingest data format** | [`../INGEST_DATA_FORMAT.md`](../INGEST_DATA_FORMAT.md) | E1 (+ §2.2 E2 overlay) | `ingest.v1` envelope, `fact_kind` enum, corpus folder layout, identity overlay spec. For **data owners and converter authors** — wider than the lab fixtures. |
 | **I/O-2** | **Post-E2 writer input fixtures** | [`../../pillar-ab-implementation/E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md) | After E2 (lab stub) | **What Pillar A and B read** — target `writer_stream.v1` presence predicates ([cheat sheet](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md#writer-stream-presence-cheat-sheet)); lab JSONL may still use deprecated `ingest.v1` until migrated. |
-| **I/O-3** | **Map write/read record** | [`../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | E3 output (`map/`) | Pillar B **output** keys — `graph_snapshot.json`, `nodes.jsonl`, `edges.jsonl`, logical keys, `files.v1` PoC profile. Hub mirror: [`docs/MAP_WRITE_READ_RECORD.md`](../MAP_WRITE_READ_RECORD.md) when present. |
+| **I/O-3** | **Map write/read record** | [`../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) · lifecycle [`MAP_HOT_COLD_LIFECYCLE.md`](../../pillar-ab-implementation/contracts/MAP_HOT_COLD_LIFECYCLE.md) | E3 output (`map/`) | Pillar B **output** keys — `graph_snapshot.json`, `nodes.jsonl`, `edges.jsonl`, logical keys, `files.v1` PoC profile; Motadata hot/cold + two columnar tables. Hub mirrors: [`docs/MAP_WRITE_READ_RECORD.md`](../MAP_WRITE_READ_RECORD.md), [`docs/MAP_HOT_COLD_LIFECYCLE.md`](../MAP_HOT_COLD_LIFECYCLE.md). |
 | **I/O-4** | **Pillar A deep dive** (history output) | [`../fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md) | E4 output (`history/`) | Pillar A **output** — `sketch.v1` row shape, windows, Vortex/S3 temperature. Pair with I/O-3 for both rooms. |
 
 **Pillar B PoC demo pack (after I/O-2):** [`pillar-b-poc-hub.html`](../fabric/pillar-b-poc-hub.html) → [`TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) → [`MAP_P1_FABRIC_EVAL.md`](../../pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md) → [`Codebase-go-through.md`](../../pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md). Hub: [`observeops-pipeline-hld.html#pillar-b-poc`](./observeops-pipeline-hld.html#pillar-b-poc).
@@ -103,7 +103,7 @@ E1 Collect envelope          E2 Identity overlay           Pillar writers       
 |----------|-----------|----------|
 | Full E1 field list + corpus delivery options | **INGEST_DATA_FORMAT** | E2 fixtures alone |
 | Lab JSONL paths for `make flush` / unit tests | **E2_INPUT_FIXTURES** | INGEST_DATA_FORMAT §3 delivery (broader) |
-| What GraphWriter writes to `map/` | **MAP_WRITE_READ_RECORD** | GRAPH_QNA (rules, not file keys) |
+| What GraphWriter writes to `map/` | **MAP_WRITE_READ_RECORD** + **MAP_HOT_COLD_LIFECYCLE** | GRAPH_QNA G41–G44 |
 | Why `map/` ≠ `history/` | **GRAPH_QNA** (Tier 1 #4) | MAP_WRITE_READ_RECORD alone |
 
 ---

@@ -1,9 +1,15 @@
 # Edge triplet allowlist — Motadata fifteen-relation write contract
 
-**Status:** Locked for Motadata Pillar B GraphWriter (2026-09-28; full fifteen catalog 2026-09-28).  
-**Priority:** First-class write gate alongside identity and relation catalog.  
-**Companion:** [`WRITER_REGULATOR.md`](./WRITER_REGULATOR.md) · [`RELATION_MAPPING.md`](./RELATION_MAPPING.md) · [`IDENTIFIED_STREAM_REJECT.md`](./IDENTIFIED_STREAM_REJECT.md)  
-**North star:** Fusion / OneOps class matrix under `pillar-b/reference/` (Task 06) for richer grain later.
+- **Status:** Locked for Motadata Pillar B GraphWriter (2026-09-28; full fifteen catalog).
+- **Priority:** First-class write gate alongside identity and relation catalog.
+- **North star:** Fusion / OneOps class matrix under `pillar-b/reference/` (Task 06) for richer grain later.
+
+**Companions**
+
+- [`WRITER_REGULATOR.md`](./WRITER_REGULATOR.md)
+- [`RELATION_MAPPING.md`](./RELATION_MAPPING.md)
+- [`IDENTIFIED_STREAM_REJECT.md`](./IDENTIFIED_STREAM_REJECT.md)
+- [`GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md`](./GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md) §2–§3 — which Motadata names may be configuration-item **nodes**
 
 ---
 
@@ -17,7 +23,7 @@
 | Missing / unknown endpoint type | **DROP edge** (`missing_endpoint_type`) — do not invent `Service` |
 | Fusion-only edges (`contains`, `realizes`, `manages`, …) | Not Motadata Dest names — out of this table until Dest enum grows ([`RELATION_MAPPING.md`](./RELATION_MAPPING.md)) |
 
-A write is legal only when `(src_storage_type, relation, dst_storage_type)` is on the allowlist below. Unknown triplets are not “fixed on walk.”
+**Prerequisite — valid nodes before valid edges.** A triplet has three parties: source type, relation, destination type. The write is legal only when **all three** are valid: both endpoints are Motadata configuration-item node types (closed enum in the discussion brief §3.3 — not Alert / Metric / ticket / …), the relation is one of the fifteen catalog names, **and** `(src_storage_type, relation, dst_storage_type)` is on the allowlist below. An edge cannot be “fixed on walk” from unknown or non-CI ends. This page owns pairing (§4); the brief owns the node catalog.
 
 **Fifteen ingest names:** `depends_on`, `runs_on`, `mounts`, `connects_to`, `backs`, `uses`, `hosted_on`, `member_of`, `part_of`, `routes_through`, `authenticates_via`, `monitored_by`, `backed_up_by`, `clustered_with`, `communicates_with`.
 

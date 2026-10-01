@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://observeops.local/schemas/graph_edge_v1.schema.json",
   "title": "graph_edge.v1",
-  "description": "Motadata-aligned typed relationship on map/. Tenant lives on snapshot/Dest path. Upsert identity is (source_id, edge_type, target_id); edge_id is a snowflake for the row.",
+  "description": "Motadata-aligned typed relationship on map/ (flat wire = Vortex physical). Tenant lives on snapshot/Dest path. Upsert identity is (source_id, edge_type, target_id); edge_id is a snowflake for the row. Clocks are epoch ms integers.",
   "type": "object",
   "required": [
     "schema_version",
@@ -27,7 +27,7 @@
     "target_id": {
       "type": "string",
       "minLength": 1,
-      "description": "entity_id of the target node."
+      "description": "entity_id of the destination node."
     },
     "edge_type": {
       "type": "string",
@@ -49,8 +49,16 @@
         "COMMUNICATES_WITH"
       ]
     },
-    "valid_from": { "type": ["string", "null"] },
-    "valid_to": { "type": ["string", "null"] },
+    "valid_from": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Unix epoch milliseconds UTC; null = open start."
+    },
+    "valid_to": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Unix epoch milliseconds UTC; null = open end."
+    },
     "evidence_event_id": {
       "type": "integer",
       "minimum": 0,

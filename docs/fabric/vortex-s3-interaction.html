@@ -59,25 +59,29 @@
 <div class="wrap article">
   <div class="eyebrow">ObserveOps · E1–E5 fabric · Motadata-shaped dest</div>
   <h1>Vortex + S3 — block interaction diagram</h1>
-  <p class="lead">
-    Shows <strong style="color:var(--text)">two fan-outs</strong> and <strong style="color:var(--text)">two axes</strong> that must not be collapsed:
-    (1) <strong style="color:var(--text)">stream fan-out after Identity</strong> → Pillar B <code>map/</code> ∥ Pillar A <code>history/</code>;
-    (2) <strong style="color:var(--text)">destination fan-out</strong> → which lake product receives those rooms (Vortex+S3 is one option; lab uses <code>files.v1</code>).
-    Prefer room names <code>map/</code> and <code>history/</code> — not “Room 1 / Room 2.”
-    Vortex’s <strong style="color:var(--text)">query layer</strong> is the only diagnose query surface for this dest; it builds a bounded <code>WorkingSet</code> for Retrieval.
-    See <a href="#same-schema-different-role">same schema vs different role</a>,
-    <a href="/storage-formats-vortex-parquet-lance.html">Vortex · Parquet · Lance formats learning</a>, and
-    <a href="#three-patterns">animated views of the three Vortex↔S3 interaction patterns</a> below.
-    Related: <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a>
-    · <a href="/e1-e5-pipeline-architecture.html">E1–E5 architecture</a>
-    · <a href="/docs/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md">contract brief</a>
-    · <a href="/docs/MAP_WRITE_READ_RECORD.md"><strong>map write/read</strong> (normative · vortex_s3.v1 §6)</a>
-    · <a href="/pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md">Gate B dest</a>
-    · <a href="/storage-formats-vortex-parquet-lance.html">Vortex · Parquet · Lance</a>
-    · <a href="/pillar-ab-implementation/pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf">owner Vortex notes (PDF)</a>.
-    Hub URL: <a href="/vortex-s3-interaction.html"><code>http://127.0.0.1:8765/vortex-s3-interaction.html</code></a>
-    (flat path — not <code>/fabric/…</code>).
-  </p>
+  <p class="lead">Shows two fan-outs and two axes that must not be collapsed. Prefer room names <code>map/</code> and <code>history/</code> — not “Room 1 / Room 2.”</p>
+  <ul>
+    <li><strong>Stream fan-out after Identity</strong> → Pillar B <code>map/</code> ∥ Pillar A <code>history/</code></li>
+    <li><strong>Destination fan-out</strong> → which lake product receives those rooms (Vortex+S3 is one option; lab uses <code>files.v1</code>)</li>
+    <li>Vortex’s <strong>query layer</strong> is the only diagnose query surface for this dest; it builds a bounded <code>WorkingSet</code> for Retrieval</li>
+  </ul>
+  <p><strong>On this page</strong></p>
+  <ul>
+    <li><a href="#same-schema-different-role">Same schema vs different role</a></li>
+    <li><a href="#three-patterns">Three Vortex↔S3 interaction patterns</a> (animated)</li>
+    <li><a href="/storage-formats-vortex-parquet-lance.html">Vortex · Parquet · Lance formats learning</a></li>
+  </ul>
+  <p><strong>Related docs</strong></p>
+  <ul>
+    <li><a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a></li>
+    <li><a href="/e1-e5-pipeline-architecture.html">E1–E5 architecture</a></li>
+    <li><a href="/docs/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md">Contract brief</a></li>
+    <li><a href="/docs/MAP_WRITE_READ_RECORD.md"><strong>Map write/read</strong></a> (normative · <code>vortex_s3.v1</code> §6)</li>
+    <li><a href="/docs/MAP_HOT_COLD_LIFECYCLE.md">Hot / cold lifecycle</a></li>
+    <li><a href="/pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md">Gate B dest</a></li>
+    <li><a href="/pillar-ab-implementation/pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf">Owner Vortex notes (PDF)</a></li>
+  </ul>
+  <p>Hub URL: <a href="/vortex-s3-interaction.html"><code>http://127.0.0.1:8765/vortex-s3-interaction.html</code></a> (flat path — not <code>/fabric/…</code>).</p>
 
   <h2>Two fan-outs (do not confuse)</h2>
   <div class="wwh two">
@@ -122,7 +126,7 @@
     <tbody>
       <tr>
         <th scope="row">Logical contract</th>
-        <td colspan="2">Same — must not invent a second node/edge/sketch schema. See <a href="/docs/MAP_WRITE_READ_RECORD.md">map write/read</a> §6 (columnar <code>.vortex</code>, ObserveOps manifest footer).</td>
+        <td colspan="2">Same — must not invent a second node/edge/sketch schema. See <a href="/docs/MAP_WRITE_READ_RECORD.md">map write/read</a> §6 (columnar <code>.vortex</code>, ObserveOps manifest footer). Only <code>map_nodes</code> / <code>map_edges</code> are columnar; <code>graph_snapshot</code> is an envelope. Hot upsert vs cold publish: <a href="/docs/MAP_HOT_COLD_LIFECYCLE.md">lifecycle</a>.</td>
       </tr>
       <tr>
         <th scope="row">Rooms</th>
@@ -167,8 +171,11 @@
   <p class="note">
   <strong style="color:var(--text)">Not two symmetric products.</strong>
   The three interaction patterns below (spill, federated read-back, immutable archive) describe how one destination profile uses both tiers together — not “the same box with different retention.”
-  Contract Q&amp;A: <a href="/docs/GRAPH_QNA.md#g17">GRAPH_QNA G17</a> (both jobs required) · <a href="/docs/GRAPH_QNA.md#g40">G40</a> (query layer vs rooms).
   </p>
+  <ul>
+    <li>Contract Q&amp;A: <a href="/docs/GRAPH_QNA.md#g17">GRAPH_QNA G17</a> (both jobs required)</li>
+    <li><a href="/docs/GRAPH_QNA.md#g40">G40</a> (query layer vs rooms)</li>
+  </ul>
 
   <h2>Full interaction diagram</h2>
   <div class="dia" role="img" aria-label="Two fan-outs into map and history rooms inside Vortex, query layer to WorkingSet, S3 cold spill">
@@ -283,11 +290,14 @@
   </div>
 
   <h2 id="three-patterns">Three interaction patterns</h2>
-  <p class="note" style="margin-bottom:.8rem;">
+  <p class="note" style="margin-bottom:.5rem;">
     Use the tabs below for full-width animated views of how <strong style="color:var(--text)">Vortex (hot)</strong> and <strong style="color:var(--text)">S3 (cold)</strong> interact after writers land rows in <code>map/</code> and <code>history/</code>.
-    <strong style="color:var(--text)">Retrieval</strong> (E8 Scope) queries through the Vortex query layer — never S3 directly. RCA phases start at <strong style="color:var(--text)">E9 Localize</strong> (E6 is Detect, upstream).
-    Deep links: <a href="#pattern-1">pattern 1</a> · <a href="#pattern-2">pattern 2</a> · <a href="#pattern-3">pattern 3</a>.
   </p>
+  <ul>
+    <li><strong>Retrieval</strong> (E8 Scope) queries through the Vortex query layer — never S3 directly.</li>
+    <li>RCA phases start at <strong>E9 Localize</strong> (E6 is Detect, upstream).</li>
+    <li>Deep links: <a href="#pattern-1">pattern 1</a>, <a href="#pattern-2">pattern 2</a>, <a href="#pattern-3">pattern 3</a>.</li>
+  </ul>
 
   <div class="pattern-tabs" id="pattern-tabs">
     <div class="pattern-tablist" role="tablist" aria-label="Vortex and S3 interaction patterns">
@@ -469,9 +479,12 @@
   <strong style="color:var(--text)">Key rule:</strong>
   Identity bind first → stream fan-out into <code>map/</code> ∥ <code>history/</code> → dest profile (Vortex+S3 or files) → Vortex query layer → <code>WorkingSet</code>.
   Rooms = content. Vortex / S3 = temperature <em>and</em> role (query engine vs object store) — same logical records, different architecture.
-  <a href="#same-schema-different-role">Same schema · different role</a> ·
-  <a href="/storage-formats-vortex-parquet-lance.html">Parquet vs Lance encodings</a>.
   </p>
+  <ul>
+    <li><a href="#same-schema-different-role">Same schema · different role</a></li>
+    <li><a href="/storage-formats-vortex-parquet-lance.html">Parquet vs Lance encodings</a></li>
+    <li><a href="/docs/MAP_HOT_COLD_LIFECYCLE.md">Hot / cold lifecycle</a></li>
+  </ul>
 </div>
 <script>
 (function () {

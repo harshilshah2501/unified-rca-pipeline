@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from typing import Any
 
 from ab_shared.identity_gate import ResolvedOnlyGate
@@ -25,6 +24,7 @@ from graph.ci_qualify import may_emit_vertex, to_storage_type
 from graph.edge_catalog import classify_relation, to_edge_type
 from graph.edge_triplets import check_edge_triplet, storage_type_or_none
 from graph.snowflake import next_snowflake
+from graph.timeutil import now_epoch_ms, to_epoch_ms
 
 # Motadata storage → ingest PascalCase for first-time node upsert when only map type is known.
 _STORAGE_TO_INGEST = {
@@ -45,21 +45,13 @@ _STORAGE_TO_INGEST = {
     "customer": "Customer",
 }
 
+# Lab bootstrap clock — 2026-08-20T00:00:00Z
+_BOOTSTRAP_MS = 1_787_184_000_000
+
 
 def logical_edge_key(source_id: str, edge_type: str, target_id: str) -> str:
     """Stable GraphState dict key — not the Motadata snowflake ``edge_id``."""
     return f"{source_id}|{edge_type}|{target_id}"
-
-
-def _now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def _metadata_json(extra: dict[str, Any] | None = None) -> str:
-    base: dict[str, Any] = {"env": "rca-lab"}
-    if extra:
-        base.update(extra)
-    return json.dumps(base, separators=(",", ":"), sort_keys=True)
 
 
 @dataclass
@@ -93,33 +85,40 @@ def _resolve_endpoint_storage_type(
 def _make_node(
     n: dict,
     *,
-    last_seen: str | None = None,
+    last_seen: int | str | None = None,
     version: int = 1,
-    valid_from: str | None = None,
-    metadata_extra: dict[str, Any] | None = None,
+    valid_from: int | str | None = None,
+    env: str | None = "rca-lab",
+    region: str | None = None,
+    owner: str | None = None,
+    namespace: str | None = None,
 ) -> dict[str, Any]:
     """Build a Motadata ``graph_node.v1`` dict; raises if CI type is never allowed."""
     ci_type = n["type"]
     ok, reason = may_emit_vertex(ci_type)
     if not ok:
         raise ValueError(reason)
-    seen = last_seen or _now_iso()
+    seen = to_epoch_ms(last_seen) if last_seen is not None else now_epoch_ms()
+    vf = to_epoch_ms(valid_from) if valid_from is not None else None
     return {
         "schema_version": "graph_node.v1",
         "entity_id": n["id"],
         "type": to_storage_type(ci_type),
         "name": n.get("name", n["id"]),
-        "metadata": _metadata_json(metadata_extra),
+        "env": env,
+        "region": region,
+        "owner": owner,
+        "namespace": namespace,
         "last_seen": seen,
-        "valid_from": valid_from,
+        "valid_from": vf,
         "valid_to": None,
         "version": version,
     }
 
 
-def _upsert_node(state: GraphState, n: dict, *, last_seen: str | None = None) -> None:
+def _upsert_node(state: GraphState, n: dict, *, last_seen: int | str | None = None) -> None:
     eid = n["id"]
-    seen = last_seen or _now_iso()
+    seen = to_epoch_ms(last_seen) if last_seen is not None else now_epoch_ms()
     if eid in state.nodes:
         prev = state.nodes[eid]
         prev["last_seen"] = seen
@@ -139,7 +138,7 @@ def _make_edge(
     edge_type: str,
     edge_id: int,
     evidence_event_id: int,
-    valid_from: str | None,
+    valid_from: int | str | None,
     origin: str,
     telemetry_source: str | None = None,
 ) -> dict[str, Any]:
@@ -149,13 +148,14 @@ def _make_edge(
     not Motadata table columns — used so E5 can distinguish declared vs stream edges
     without ``discovered_via``.
     """
+    vf = to_epoch_ms(valid_from) if valid_from is not None else None
     row: dict[str, Any] = {
         "schema_version": "graph_edge.v1",
         "edge_id": edge_id,
         "source_id": source_id,
         "target_id": target_id,
         "edge_type": edge_type,
-        "valid_from": valid_from,
+        "valid_from": vf,
         "valid_to": None,
         "evidence_event_id": evidence_event_id,
         "origin": origin,
@@ -171,7 +171,7 @@ def _upsert_edge(
     source_id: str,
     target_id: str,
     relation: str,
-    valid_from: str | None,
+    valid_from: int | str | None,
     origin: str,
     telemetry_source: str | None = None,
     evidence_event_id: int | None = None,
@@ -179,9 +179,10 @@ def _upsert_edge(
     edge_type = to_edge_type(relation)
     key = logical_edge_key(source_id, edge_type, target_id)
     ev_id = evidence_event_id if evidence_event_id is not None else next_snowflake()
+    vf = to_epoch_ms(valid_from) if valid_from is not None else None
     if key in state.edges:
         prev = state.edges[key]
-        prev["valid_from"] = valid_from
+        prev["valid_from"] = vf
         prev["evidence_event_id"] = ev_id
         prev["origin"] = origin
         if telemetry_source:
@@ -194,7 +195,7 @@ def _upsert_edge(
         edge_type=edge_type,
         edge_id=next_snowflake(),
         evidence_event_id=ev_id,
-        valid_from=valid_from,
+        valid_from=vf,
         origin=origin,
         telemetry_source=telemetry_source,
     )
@@ -214,7 +215,7 @@ def load_estate_bootstrap_state(path_or_dict: Any, tenant: str = "default") -> G
     else:
         data = path_or_dict
     state = GraphState(tenant=tenant)
-    bootstrap_seen = "2026-08-20T00:00:00Z"
+    bootstrap_seen = _BOOTSTRAP_MS
     for n in data.get("nodes", []):
         ok, reason = may_emit_vertex(n["type"])
         if not ok:
@@ -294,7 +295,7 @@ def apply_topo_stream(state: GraphState, source: IngestSource, gate: ResolvedOnl
         if trip != "ok":
             state.rejects.append((rec, trip_reason or "illegal_edge_triplet"))
             continue
-        ts = rec.get("ts") or _now_iso()
+        ts = to_epoch_ms(rec.get("ts")) if rec.get("ts") is not None else now_epoch_ms()
         src_emit = src_declared
         dst_emit = dst_declared or _STORAGE_TO_INGEST.get(str(dst_storage), "")
         for cid, emit_type, cname in (

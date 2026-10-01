@@ -2,14 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://observeops.local/schemas/graph_node_v1.schema.json",
   "title": "graph_node.v1",
-  "description": "Motadata-aligned configuration-item vertex on map/. Tenant lives on snapshot/Dest path, not on the node. CI-only types — alert/incident/metric/trace/change/ticket are never vertices.",
+  "description": "Motadata-aligned configuration-item vertex on map/ (flat wire = Vortex physical). Tenant lives on snapshot/Dest path, not on the node. CI-only types — alert/incident/metric/trace/change/ticket are never vertices. No nested metadata JSON bag.",
   "type": "object",
   "required": [
     "schema_version",
     "entity_id",
     "type",
     "name",
-    "metadata",
     "last_seen",
     "version"
   ],
@@ -26,17 +25,37 @@
       "description": "Motadata-style lowercase CI type (service, host, …). Non-CI Motadata names are rejected at admit."
     },
     "name": { "type": "string" },
-    "metadata": {
-      "type": "string",
-      "description": "JSON object encoded as a string (tags, origin, aliases, …)."
+    "env": {
+      "type": ["string", "null"],
+      "description": "Promoted tag attr_catalog.v1 — deploy environment."
+    },
+    "region": {
+      "type": ["string", "null"],
+      "description": "Promoted tag attr_catalog.v1 — cloud/geo region."
+    },
+    "owner": {
+      "type": ["string", "null"],
+      "description": "Promoted tag attr_catalog.v1 — owning team/service."
+    },
+    "namespace": {
+      "type": ["string", "null"],
+      "description": "Promoted tag attr_catalog.v1 — K8s/logical namespace."
     },
     "last_seen": {
-      "type": "string",
-      "minLength": 1,
-      "description": "ISO-8601 timestamp refreshed on every upsert."
+      "type": "integer",
+      "minimum": 0,
+      "description": "Unix epoch milliseconds UTC; refreshed on every upsert."
     },
-    "valid_from": { "type": ["string", "null"] },
-    "valid_to": { "type": ["string", "null"] },
+    "valid_from": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Unix epoch milliseconds UTC; null = open start."
+    },
+    "valid_to": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Unix epoch milliseconds UTC; null = open end."
+    },
     "version": {
       "type": "integer",
       "minimum": 1,

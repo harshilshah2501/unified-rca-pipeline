@@ -24,17 +24,25 @@ Compatibility symlinks at `docs/<filename>` keep `:8765` URLs working.
 | 5b | [`storage-formats-vortex-parquet-lance.html`](./storage-formats-vortex-parquet-lance.html) | **Vortex vs Parquet vs Lance** — animated learning · [`:8765`](http://127.0.0.1:8765/storage-formats-vortex-parquet-lance.html) |
 | 6 | [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html) | **RED + exemplars** — OTel vs ObserveOps; optional exemplars on sketch rows |
 
-## Markdown deep dives
+## Markdown deep dives (map / Vortex)
 
 | Doc | Topic |
 |-----|--------|
-| [`../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | **Map write/read SoT** — PoC `files.v1` + Motadata `vortex_s3.v1` (columnar `.vortex`, footers, caches, Rust) · hub [`/docs/MAP_WRITE_READ_RECORD.md`](http://127.0.0.1:8765/docs/MAP_WRITE_READ_RECORD.md) · **document map** at top of that file |
-| [`../../pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md`](../../pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md) | Dest profiles: `files.v1` vs `vortex_s3.v1` |
-| [`../../pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md`](../../pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md) | Admit `(src, relation, dst)` before persist |
-| [`../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md) | Motadata writer fan-out — `writer_stream.v1` · no `fact_kind` |
-| [`../../pillar-ab-implementation/pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf`](../../pillar-ab-implementation/pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf) | Owner Vortex columnar walkthrough notes (DType · Array · Layout · VTXF) |
-| [`../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | **Pillar B PoC demo** — team walkthrough (hub: [Pillar B PoC hub](./pillar-b-poc-hub.html) · [Our HLD #pillar-b-poc](../observeops/observeops-pipeline-hld.html#pillar-b-poc)) |
+| [`../../pillar-ab-implementation/pillar-b/docs/MAP_VORTEX_S3_POC_PRIMER.md`](../../pillar-ab-implementation/pillar-b/docs/MAP_VORTEX_S3_POC_PRIMER.md) | Primer · hub [`/docs/MAP_VORTEX_S3_POC_PRIMER.md`](http://127.0.0.1:8765/docs/MAP_VORTEX_S3_POC_PRIMER.md) |
+| [`../../pillar-ab-implementation/pillar-b/docs/MAP_ARROW_VORTEX_PIPELINE.md`](../../pillar-ab-implementation/pillar-b/docs/MAP_ARROW_VORTEX_PIPELINE.md) | API companion · hub [`/docs/MAP_ARROW_VORTEX_PIPELINE.md`](http://127.0.0.1:8765/docs/MAP_ARROW_VORTEX_PIPELINE.md) |
+| [`map-arrow-vortex-pipeline.html`](./map-arrow-vortex-pipeline.html) | **JSON → Arrow → Vortex → S3** visual · hot vs cold · [`:8765`](http://127.0.0.1:8765/map-arrow-vortex-pipeline.html) |
+| [`../../pillar-ab-implementation/contracts/MAP_HOT_COLD_LIFECYCLE.md`](../../pillar-ab-implementation/contracts/MAP_HOT_COLD_LIFECYCLE.md) | Hot / cold lifecycle · hub [`/docs/MAP_HOT_COLD_LIFECYCLE.md`](http://127.0.0.1:8765/docs/MAP_HOT_COLD_LIFECYCLE.md) |
+| [`../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | Normative write/read · hub [`/docs/MAP_WRITE_READ_RECORD.md`](http://127.0.0.1:8765/docs/MAP_WRITE_READ_RECORD.md) |
+| [`../../pillar-ab-implementation/contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md`](../../pillar-ab-implementation/contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md) | Locked columns · Rust [`map-vortex/`](../../pillar-ab-implementation/pillar-b/map-vortex/) |
+| [`../../pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md`](../../pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md) | Admit pairing |
+| [`pillar-b-stream-graph-demo.html`](./pillar-b-stream-graph-demo.html) | PoC GraphWriter timeline demo |
+| [`../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | Team walkthrough · [Pillar B PoC hub](./pillar-b-poc-hub.html) |
+
+Optional visuals: [`vortex-s3-interaction.html`](./vortex-s3-interaction.html) · [`storage-formats-vortex-parquet-lance.html`](./storage-formats-vortex-parquet-lance.html). Gate B / IMPLEMENTATION pages are stubs → see the primer.
+
+## Other fabric markdown
+
+| Doc | Topic |
+|-----|--------|
+| [`../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md) | `writer_stream.v1` · no `fact_kind` |
 | [`PILLAR_A_PERCENTILES_DEEP_DIVE.md`](./PILLAR_A_PERCENTILES_DEEP_DIVE.md) | Inputs → `sketch.v1` / S3 / Vortex |
-| [`red-metrics-and-exemplars.md`](./red-metrics-and-exemplars.md) | Redirect → [`sketch-exemplars-visual.html`](./sketch-exemplars-visual.html) §RED |
-| [`end-to-end-algorithm-walkthrough.md`](./end-to-end-algorithm-walkthrough.md) | Admit → window → Detect door C |
-| [`Sketches_Merging_RawData_QnA.pdf`](./Sketches_Merging_RawData_QnA.pdf) | Owner exercise — answers in GRAPH_QNA G33–G37 |

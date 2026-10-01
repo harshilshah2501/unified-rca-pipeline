@@ -1,0 +1,1 @@
+../pillar-ab-implementation/pillar-b/docs/MAP_ARROW_VORTEX_PIPELINE.md

@@ -68,7 +68,7 @@ Lab-only notes: [`poc/README.md`](./poc/README.md).
 
 All fifteen Motadata relation names may emit; pairing: [`../contracts/EDGE_TRIPLET_ALLOWLIST.md`](../contracts/EDGE_TRIPLET_ALLOWLIST.md).
 
-Vortex + S3 (`vortex_s3.v1`): columnar `.vortex` + ObserveOps manifest — [`../contracts/MAP_WRITE_READ_RECORD.md`](../contracts/MAP_WRITE_READ_RECORD.md) §6 (metadata/footer in §6.4; Rust action items). PoC dest remains **`files.v1`**. Notes: [`docs/vortex_engineering_mystery_revised_v2.pdf`](./docs/vortex_engineering_mystery_revised_v2.pdf).
+Vortex + S3 (`vortex_s3.v1`): **start** [`docs/MAP_VORTEX_S3_POC_PRIMER.md`](./docs/MAP_VORTEX_S3_POC_PRIMER.md) — then normative [`../contracts/MAP_WRITE_READ_RECORD.md`](../contracts/MAP_WRITE_READ_RECORD.md) §6, columns [`../contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md`](../contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md), **Rust** [`map-vortex/`](./map-vortex/), lifecycle [`../contracts/MAP_HOT_COLD_LIFECYCLE.md`](../contracts/MAP_HOT_COLD_LIFECYCLE.md). PoC dest remains **`files.v1`**. PDF: [`docs/vortex_engineering_mystery_revised_v2.pdf`](./docs/vortex_engineering_mystery_revised_v2.pdf).
 
 ---
 
@@ -99,7 +99,9 @@ P1 proofs: `poc/graph/tests/unit/test_p1_map_fabric.py`.
 ## Related
 
 - Post-E2 signal router: [`../E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md)  
-- Map write/read (SoT): [`../contracts/MAP_WRITE_READ_RECORD.md`](../contracts/MAP_WRITE_READ_RECORD.md)  
+- Map write/read (SoT): [`../contracts/MAP_WRITE_READ_RECORD.md`](../contracts/MAP_WRITE_READ_RECORD.md)
+- Map hot / cold lifecycle: [`../contracts/MAP_HOT_COLD_LIFECYCLE.md`](../contracts/MAP_HOT_COLD_LIFECYCLE.md)
+- Map Vortex columns (Rust): [`../contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md`](../contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md) · [`map-vortex/`](./map-vortex/)  
 - Fabric Q&A (SoT): [`../contracts/GRAPH_QNA.md`](../contracts/GRAPH_QNA.md)  
 - Reject codes (SoT): [`../contracts/IDENTIFIED_STREAM_REJECT.md`](../contracts/IDENTIFIED_STREAM_REJECT.md)  
 - Optional product briefs: [`archived-docs/README.md`](./archived-docs/README.md)

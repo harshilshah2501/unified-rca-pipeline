@@ -1,82 +1,39 @@
 # Pillar B docs — map and reading rules
 
-One page should have **one job**. Contract / Q&A / product HTML are **not** copied into this folder — link the slice SoT or `archived-docs/` instead.
+**Canonical Vortex / map entry:** [`MAP_VORTEX_S3_POC_PRIMER.md`](./MAP_VORTEX_S3_POC_PRIMER.md).
 
-## Start here
+One page should have **one job**. Do not fork contracts under this folder.
+
+## Start here (required)
 
 | If you want… | Open |
 |--------------|------|
-| What this package is + how to run it | [`../README.md`](../README.md) |
-| **Team demo / walkthrough** | [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) |
-| **Session Q&A** (why / how we decided) | [`PILLAR_B_POC_CHAT_QNA.md`](./PILLAR_B_POC_CHAT_QNA.md) |
-| **Writer regulator** (current wire) | [`../../contracts/WRITER_REGULATOR.md`](../../contracts/WRITER_REGULATOR.md) |
-| **Stream → graph demo** (split UI, legacy tape) | [pillar-b-stream-graph-demo.html](../../../docs/fabric/pillar-b-stream-graph-demo.html) ([`:8765`](http://127.0.0.1:8765/pillar-b-stream-graph-demo.html)) |
-| **Two use cases (build/maintain vs walk)** + layer navigator | [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) ([`:8765`](http://127.0.0.1:8765/pillar-b-poc-hub.html)) |
+| Run the Python PoC | [`../README.md`](../README.md) |
+| Team walkthrough | [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) |
+| Stream → graph timeline (PoC-aligned) | [pillar-b-stream-graph-demo.html](../../../docs/fabric/pillar-b-stream-graph-demo.html) |
+| Code tour | [`Codebase-go-through.md`](./Codebase-go-through.md) |
 | Build/maintain + walk eval | [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md) |
-| Stub harnesses (optional): CaseSeed…VerdictCard | [`MAP_P2_CASE_PATH.md`](./MAP_P2_CASE_PATH.md) · [`MAP_P3_DIAGNOSE_CLOSE.md`](./MAP_P3_DIAGNOSE_CLOSE.md) |
-| How the **code** is wired | [`Codebase-go-through.md`](./Codebase-go-through.md) |
-| Who calls APIs / file roles / method glossary | [`Codebase-go-through.md` § Clarifications](./Codebase-go-through.md#clarifications) |
-| Case A/B expected vs actual | [`../poc/sample_estate/customer_checkout/SAMPLE_IO.md`](../poc/sample_estate/customer_checkout/SAMPLE_IO.md) |
-| Hub visual (NOOP / WRITE / DROP) | [Our HLD → GraphWriter](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter) |
+| Vortex + S3 map PoC | [`MAP_VORTEX_S3_POC_PRIMER.md`](./MAP_VORTEX_S3_POC_PRIMER.md) |
+| Rows → Arrow → Vortex (APIs) | [`MAP_ARROW_VORTEX_PIPELINE.md`](./MAP_ARROW_VORTEX_PIPELINE.md) |
+| JSON → Arrow → Vortex → S3 (visual) | [map-arrow-vortex-pipeline.html](../../../docs/fabric/map-arrow-vortex-pipeline.html) |
+| Framing hub | [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) |
 
-Suggested order: **package README → TEAM_WALKTHROUGH → PILLAR_B_POC_CHAT_QNA (as needed) → Pillar B PoC hub → MAP_P1 → Codebase-go-through → SAMPLE_IO → `make test-all`**.
+Suggested order: **package README → TEAM_WALKTHROUGH → stream demo → Codebase-go-through → MAP_P1 → `make test-all`**. Vortex work: **primer → Arrow/Vortex pipeline → lifecycle → write/read §6**.
 
----
+## Optional
 
-## What belongs in `docs/` (this folder)
+| Page | Why optional |
+|------|----------------|
+| [`MAP_P2_CASE_PATH.md`](./MAP_P2_CASE_PATH.md) · [`MAP_P3_DIAGNOSE_CLOSE.md`](./MAP_P3_DIAGNOSE_CLOSE.md) | Stub harnesses beyond map fabric |
+| [`PILLAR_B_POC_CHAT_QNA.md`](./PILLAR_B_POC_CHAT_QNA.md) | Session Q&A log — not SoT |
+| [`vortex_engineering_mystery_revised_v2.pdf`](./vortex_engineering_mystery_revised_v2.pdf) | Owner background notes |
+| Call-graph PNG/SVG assets | Diagrams for hub |
 
-| Page | Purpose |
-|------|---------|
-| [`README.md`](./README.md) | This map |
-| [`TEAM_WALKTHROUGH.md`](./TEAM_WALKTHROUGH.md) | Team demo: admit, identity/validity, I/O, run |
-| [`PILLAR_B_POC_CHAT_QNA.md`](./PILLAR_B_POC_CHAT_QNA.md) | Working-chat Q&A — stream, admit, writer_stream |
-| [`../../../docs/fabric/pillar-b-stream-graph-demo.html`](../../../docs/fabric/pillar-b-stream-graph-demo.html) | Interactive stream → graph demo (legacy tape) |
-| [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md) | Core eval: build/maintain + walk |
-| [`MAP_P2_CASE_PATH.md`](./MAP_P2_CASE_PATH.md) | Optional stub harness (CaseSeed…LeafClaim) |
-| [`MAP_P3_DIAGNOSE_CLOSE.md`](./MAP_P3_DIAGNOSE_CLOSE.md) | Optional stub harness (EvidenceBundle…VerdictCard) |
-| [`Codebase-go-through.md`](./Codebase-go-through.md) | Code tour + runtime spine |
-| `runtime-spine.png` / `.svg` | Spine diagram asset |
-| `pillar-b-callgraph.png` / `.svg` / `.dot` | Use case 1: build+maintain call graph |
-| `pillar-b-walk-callgraph.png` / `.svg` / `.dot` | Use case 2: walk-through call graph |
-| `pillar-b-callgraph-auto.png` | Optional auto `code2flow` dump (write path; noisier) |
+## Elsewhere
 
-**Framing (two use cases + stubs)** lives on the [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) (and optionally the Cursor navigator canvas).
-
-**Removed on purpose:** symlinks to `GRAPH_*`, `MAP_WRITE_READ_RECORD`, and the old GraphWriter HTML stub — use slice contracts and the hub URL above.
-
----
-
-## Elsewhere in the package
-
-| Path | Purpose | Required for PoC? |
-|------|---------|-------------------|
-| [`../poc/`](../poc/) | Code, sample estate, tests | **Yes** |
-| [`../../../docs/fabric/pillar-b-poc-hub.html`](../../../docs/fabric/pillar-b-poc-hub.html) | Hub door for framing + canvas → `:8765` mappings | **Yes** for framing |
-| [`../reference/canvases/`](../reference/canvases/) | Cursor canvas copies (Open Canvas) | Optional interactive panel beside chat |
-| [`../../contracts/`](../../contracts/) | Slice SoT: schemas, map write/read, reject codes, GRAPH_QNA, samples | **Yes** (read/link; do not fork or mirror under this package) |
-| [`../archived-docs/`](../archived-docs/) | Motadata OneOps / Fusion product HTML + ED comparator notes | **No** — optional library; not wire SoT |
-
----
-
-## Redundancy rules
-
-- **Admit NOOP/WRITE/DROP** — package [`../README.md`](../README.md) + [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md). Elsewhere: one-line + link.
-- **Estate bootstrap ≠ CaseSeed** — MAP_P1 terminology. Elsewhere: one sentence + link.
-- **Runtime spine** — [`Codebase-go-through.md`](./Codebase-go-through.md) only.
-- **Do not** re-mirror slice `contracts/` under `pillar-b/` (no schemas folder, no prose copies/symlinks).
-
----
-
-## Slice contracts you’ll open often
-
-| Doc | Why |
-|-----|-----|
-| [`../../contracts/MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md) | What lands under `map/` — PoC `files.v1` + Motadata `vortex_s3.v1` (document map at top) |
-| [`../../contracts/GATE_B_DEST_PROFILE.md`](../../contracts/GATE_B_DEST_PROFILE.md) | Dest profile (`files.v1` vs `vortex_s3.v1`) |
-| [`../../contracts/IDENTIFIED_STREAM_REJECT.md`](../../contracts/IDENTIFIED_STREAM_REJECT.md) | DROP reason codes |
-| [`../../contracts/EDGE_TRIPLET_ALLOWLIST.md`](../../contracts/EDGE_TRIPLET_ALLOWLIST.md) | Legal `(src, relation, dst)` pairs |
-| [`vortex_engineering_mystery_revised_v2.pdf`](./vortex_engineering_mystery_revised_v2.pdf) | Owner Vortex columnar notes (DType · Array · Layout · VTXF) |
-| [`../../contracts/GRAPH_QNA.md`](../../contracts/GRAPH_QNA.md) | Fabric Q&A |
-| Hub visuals | [Vortex+S3](http://127.0.0.1:8765/vortex-s3-interaction.html) · [formats](http://127.0.0.1:8765/storage-formats-vortex-parquet-lance.html) · [Pillar B PoC hub § Dest](http://127.0.0.1:8765/pillar-b-poc-hub.html#dest-vortex-s3) |
-| [`../../../docs/observeops/LLD-E3-Topology.md`](../../../docs/observeops/LLD-E3-Topology.md) | Topology LLD |
-| [`../../../docs/observeops/LLD-E5-Maintain.md`](../../../docs/observeops/LLD-E5-Maintain.md) | Maintain Design stub |
+| Path | Role |
+|------|------|
+| [`../poc/`](../poc/) | Code + sample estate |
+| [`../../contracts/`](../../contracts/) | Wire + map SoT (start from primer for Vortex) |
+| [`../map-vortex/`](../map-vortex/) | Rust Motadata columnar crate |
+| [`../archived-docs/`](../archived-docs/) | Product HTML library — not wire SoT |

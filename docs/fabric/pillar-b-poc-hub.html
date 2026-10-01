@@ -155,7 +155,7 @@
     </a>
     <a href="/pillar-b-stream-graph-demo.html">
       <strong>Stream → graph demo</strong>
-      <span>Legacy ingest.v1 tape · map grows on WRITE</span>
+      <span>PoC GraphWriter timeline · admit NOOP/WRITE/DROP</span>
     </a>
     <a href="/pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md">
       <strong>MAP_P1 fabric eval</strong>
@@ -176,34 +176,52 @@
   </div>
 
   <h2 id="dest-vortex-s3">Dest: knowledge graph → Vortex + S3</h2>
-  <p class="canvas-note">
-    Normative I/O for Motadata <code>vortex_s3.v1</code> (columnar <code>.vortex</code> parts, ObserveOps manifest footer, read caches).
-    Full reading order: <a href="/docs/MAP_WRITE_READ_RECORD.md">MAP_WRITE_READ_RECORD.md</a> document map.
-  </p>
+  <ul class="canvas-note" style="list-style:disc;padding-left:1.25rem;line-height:1.55;">
+    <li>Normative I/O for Motadata <code>vortex_s3.v1</code> (columnar <code>.vortex</code> parts, ObserveOps manifest footer, read caches).</li>
+    <li><strong>Only two columnar tables:</strong> <code>map_nodes</code>, <code>map_edges</code>.</li>
+    <li><code>graph_snapshot</code> is a package envelope, not a Vortex table.</li>
+    <li>Hot upsert mutates in-memory Arrays; cold <code>.vortex</code> files appear only on <code>publish_map</code>.</li>
+    <li>Removal has two levels: <code>maintain_map</code> (validity clocks) vs explicit retire (cascade incident edges).</li>
+    <li>Primer: <a href="/docs/MAP_VORTEX_S3_POC_PRIMER.md">MAP_VORTEX_S3_POC_PRIMER.md</a>.</li>
+    <li>Rows → Arrow → Vortex APIs: <a href="/docs/MAP_ARROW_VORTEX_PIPELINE.md">MAP_ARROW_VORTEX_PIPELINE.md</a>.</li>
+    <li>Normative: <a href="/docs/MAP_WRITE_READ_RECORD.md">MAP_WRITE_READ_RECORD.md</a> · lifecycle <a href="/docs/MAP_HOT_COLD_LIFECYCLE.md">MAP_HOT_COLD_LIFECYCLE.md</a>.</li>
+  </ul>
   <div class="band">
+    <a href="/docs/MAP_VORTEX_S3_POC_PRIMER.md">
+      <strong>Vortex + S3 PoC primer</strong>
+      <span>Orientation · lab · map_vortex</span>
+    </a>
+    <a href="/docs/MAP_ARROW_VORTEX_PIPELINE.md">
+      <strong>Rows → Arrow → Vortex</strong>
+      <span>API companion · flat lock</span>
+    </a>
+    <a href="/map-arrow-vortex-pipeline.html">
+      <strong>JSON → Arrow → Vortex → S3</strong>
+      <span>Visual · hot vs cold</span>
+    </a>
     <a href="/docs/MAP_WRITE_READ_RECORD.md">
       <strong>Map write/read record</strong>
-      <span>I/O-3 · files.v1 + vortex_s3.v1 · §6 footers · Rust</span>
+      <span>Normative files.v1 + vortex_s3.v1</span>
     </a>
-    <a href="/pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md">
-      <strong>Gate B dest profile</strong>
-      <span>files.v1 vs vortex_s3.v1</span>
+    <a href="/docs/MAP_HOT_COLD_LIFECYCLE.md">
+      <strong>Hot / cold lifecycle</strong>
+      <span>Admit · mutate · publish · removal</span>
     </a>
-    <a href="/vortex-s3-interaction.html">
-      <strong>Vortex + S3 interaction</strong>
-      <span>Rooms vs temperature · WorkingSet</span>
+    <a href="/pillar-ab-implementation/contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md">
+      <strong>Columnar schema</strong>
+      <span>map_nodes + map_edges</span>
     </a>
-    <a href="/storage-formats-vortex-parquet-lance.html">
-      <strong>Vortex · Parquet · Lance</strong>
-      <span>Columnar encodings on S3</span>
+    <a href="/pillar-ab-implementation/pillar-b/map-vortex/">
+      <strong>map_vortex (Rust)</strong>
+      <span>cargo test · demo CLI</span>
     </a>
     <a href="/pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md">
       <strong>Edge triplet allowlist</strong>
-      <span>Admit pairing before persist</span>
+      <span>Admit pairing</span>
     </a>
-    <a href="/pillar-ab-implementation/pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf">
-      <strong>Vortex engineering notes</strong>
-      <span>PDF · DType · Array · Layout · VTXF</span>
+    <a href="/vortex-s3-interaction.html">
+      <strong>Vortex + S3 visual</strong>
+      <span>Optional · rooms vs temperature</span>
     </a>
   </div>
 

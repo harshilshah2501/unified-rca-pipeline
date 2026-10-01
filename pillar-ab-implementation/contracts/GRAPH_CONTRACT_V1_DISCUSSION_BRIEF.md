@@ -29,9 +29,9 @@ These are the decisions the sit-down is for. They are written in ordinary langua
 |---|------------------|------------------|
 | 1 | **Primary identity** | Within a Dest tenant, every topology node and every sketch row joins on the **same string**: ingest `ci_id` → map `entity_id` ≡ sketch `entity_id`. Tenant lives on the snapshot / Dest path, **not** on Motadata node/edge rows. |
 | 2 | **Configuration-item type catalog** | Use the **richer type set** in §3 — Motadata storage uses lowercase (`service`, `host`, `db`, …); ingest may still say PascalCase. Keep types as a **versioned closed enum**. Non-CI Motadata names never become vertices. |
-| 3 | **Node metadata** | Adopt Motadata columns in §3.4 (`entity_id`, `type`, `name`, `metadata` JSON string, `last_seen`, `version`, validity). |
+| 3 | **Node metadata** | Flat Motadata columns: spine + `attr_catalog.v1` tags + epoch-ms clocks — **no** JSON `metadata` bag ([`MAP_VORTEX_COLUMNAR_SCHEMA.md`](./MAP_VORTEX_COLUMNAR_SCHEMA.md)). |
 | 4 | **Edge type catalog** | Lock **all fifteen** relations in §4.2; storage enum is Motadata SCREAMING_SNAKE (`DEPENDS_ON`, …); ingest still uses snake_case. |
-| 5 | **Edge metadata and audit** | Motadata columns: Snowflake `edge_id` + `evidence_event_id`, `source_id` / `target_id`, `edge_type`, `valid_from` / `valid_to`. Upsert key is `(source_id, edge_type, target_id)`. **No** stored `discovered_via`. |
+| 5 | **Edge metadata and audit** | Motadata columns: Snowflake `edge_id` + `evidence_event_id`, `source_id` / `target_id`, `edge_type`, `valid_from` / `valid_to` as **UInt64** epoch ms on Vortex. Upsert key is `(source_id, edge_type, target_id)`. **No** stored `discovered_via`. |
 | 6 | **Exchange format** | Share **JSON examples** now; generate `.proto` / DDL only **after** Signed and when Vortex needs encoding. |
 | 7 | **Sketch row shape** | One **`sketch.v1`** row holds T-Digest + buckets + seasonal baseline together (§5). |
 
@@ -202,18 +202,18 @@ Machine-required fields are listed in [`schemas/graph_node_v1.schema.json`](./sc
 | `entity_id` | `linux-server-app-01` | Stable id within Dest tenant. Same string as sketch `entity_id`. |
 | `type` | `host` | Motadata lowercase closed enum. |
 | `name` | `app-01` | Human display name. Not the join key. |
-| `metadata` | `"{\"env\":\"rca-lab\"}"` | JSON object as a **string**. |
-| `last_seen` | `2026-08-20T03:30:00Z` | Refreshed on every upsert. |
+| `env` / `region` / `owner` / `namespace` | `rca-lab` / null / … | Closed promoted tags (`attr_catalog.v1`). |
+| `last_seen` | `1787196600000` | Unix epoch **ms** UTC; refreshed on upsert. |
 | `version` | `1` | Monotonic integer per `entity_id`. |
-| `valid_from` / `valid_to` | `null` / `null` | When this vertex was believed true. |
+| `valid_from` / `valid_to` | `null` / `null` | Epoch ms or null. |
 
-**Optional extras** live inside the `metadata` JSON string (aliases, scope_parent, monitored_via, …) or as schema `additionalProperties`. Do **not** invent a second primary key beside `entity_id`.
+**No nested `metadata` JSON bag** on wire or Vortex. Display-only extras that are not in `attr_catalog.v1` are out of band until a later catalog version. Normative physical table: [`MAP_VORTEX_COLUMNAR_SCHEMA.md`](./MAP_VORTEX_COLUMNAR_SCHEMA.md).
 
 **What this JSON is not:** Alert, Incident, ticket, Metric, Trace, LogPattern, and Change-as-configuration-item do not get a `graph_node.v1`. Those hitch the walk as facts or evidence; they are not vertices.
 
 **Writer rule:** GraphSnapshot vertices only from ingest lines with `identity.status = resolved`. Status is admit-time only.
 
-**Hybrid, not one rigid row shape for every type:** Host, Pod, and Database share the Motadata spine above. Type-specific extras stay in `metadata`. The machine schema allows that on purpose (`additionalProperties: true`). Full hybrid rule for Vortex: §6.1.
+**Hybrid, not one rigid row shape for every type:** Host, Pod, and Database share the Motadata spine above. Filterable attrs must be promoted into the Vortex/`attr_catalog` columns. Full physical rule: [`MAP_VORTEX_COLUMNAR_SCHEMA.md`](./MAP_VORTEX_COLUMNAR_SCHEMA.md) + §6.1 in the write/read record.
 
 ### 3.5 Node JSON examples
 
@@ -225,8 +225,11 @@ One illustrative Host sample remains here for the sit-down one-pager. **Full sam
   "entity_id": "linux-server-app-01",
   "type": "host",
   "name": "app-01",
-  "metadata": "{\"aliases\":[\"app-01.lab.local\"],\"env\":\"rca-lab\"}",
-  "last_seen": "2026-08-20T03:30:00Z",
+  "env": "rca-lab",
+  "region": null,
+  "owner": null,
+  "namespace": null,
+  "last_seen": 1787196600000,
   "valid_from": null,
   "valid_to": null,
   "version": 1
@@ -300,7 +303,7 @@ Machine-required fields: [`schemas/graph_edge_v1.schema.json`](./schemas/graph_e
 | `target_id` | `linux-server-app-01` | Destination vertex `entity_id` |
 | `edge_type` | `RUNS_ON` | Motadata SCREAMING_SNAKE enum (§4.2) |
 | `evidence_event_id` | `7146828800000102` | Snowflake of the proving ingest/event row |
-| `valid_from` / `valid_to` | timestamps or `null` | When this relationship was believed true |
+| `valid_from` / `valid_to` | epoch ms or `null` | When this relationship was believed true |
 
 **Upsert identity:** `(source_id, edge_type, target_id)` — not the snowflake. On refresh, reuse `edge_id` and update `valid_from` / `evidence_event_id`.
 
@@ -319,7 +322,7 @@ Ingest still carries `identity.bind_source`. GraphWriter may copy it to optional
   "source_id": "app-runtime-jvm",
   "target_id": "linux-server-app-01",
   "edge_type": "RUNS_ON",
-  "valid_from": "2026-08-20T00:00:00Z",
+  "valid_from": 1787184000000,
   "valid_to": null,
   "evidence_event_id": 7146828800000102
 }

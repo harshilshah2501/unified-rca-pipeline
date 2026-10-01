@@ -16,6 +16,21 @@ from typing import Any
 from ab_shared.dest import Dest
 from ab_shared.schema import validate
 from graph.graph_builder import GraphState
+from graph.timeutil import to_epoch_ms
+
+_CLOCK_KEYS = ("last_seen", "valid_from", "valid_to")
+
+
+def _normalize_clocks(row: dict[str, Any]) -> None:
+    """Coerce ISO strings (legacy tests / CLI) to epoch-ms integers before schema validate."""
+    for key in _CLOCK_KEYS:
+        if key not in row:
+            continue
+        val = row[key]
+        if val is None:
+            continue
+        if isinstance(val, str):
+            row[key] = to_epoch_ms(val)
 
 
 def build_snapshot(state: GraphState, *, version: str = "1") -> dict[str, Any]:
@@ -23,8 +38,10 @@ def build_snapshot(state: GraphState, *, version: str = "1") -> dict[str, Any]:
     nodes = list(state.nodes.values())
     edges = list(state.edges.values())
     for n in nodes:
+        _normalize_clocks(n)
         validate("graph_node_v1.schema.json", n)
     for e in edges:
+        _normalize_clocks(e)
         validate("graph_edge_v1.schema.json", e)
     snapshot = {
         "schema_version": "graph_snapshot.v1",

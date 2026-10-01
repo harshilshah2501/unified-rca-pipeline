@@ -12,8 +12,9 @@ Shared wire and Dest schemas for Motadata ObserveOps Pillar A (sketches → `his
 | [`WRITER_REGULATOR.md`](./WRITER_REGULATOR.md) | Presence predicates, dual-fire rules, supersession notes |
 | [`RELATION_MAPPING.md`](./RELATION_MAPPING.md) | Fusion camelCase eleven ↔ Motadata Dest fifteen |
 | [`EDGE_TRIPLET_ALLOWLIST.md`](./EDGE_TRIPLET_ALLOWLIST.md) | Legal `(src_type, relation, dst_type)` for all fifteen Motadata relations |
-| [`MAP_WRITE_READ_RECORD.md`](./MAP_WRITE_READ_RECORD.md) | `map/` Dest keys: PoC `files.v1` + Motadata `vortex_s3.v1` (Vortex memory, S3 chunks, Rust action items) |
-| [`GATE_B_DEST_PROFILE.md`](./GATE_B_DEST_PROFILE.md) | Dest profile switch (`files.v1` vs `vortex_s3.v1`) |
+| [`../pillar-b/docs/MAP_VORTEX_S3_POC_PRIMER.md`](../pillar-b/docs/MAP_VORTEX_S3_POC_PRIMER.md) | Teaching entry — Vortex + S3 PoC |
+| [`MAP_WRITE_READ_RECORD.md`](./MAP_WRITE_READ_RECORD.md) | Normative `map/` Dest keys (`files.v1` + `vortex_s3.v1`) |
+| [`GATE_B_DEST_PROFILE.md`](./GATE_B_DEST_PROFILE.md) | Stub → MAP_WRITE_READ / primer |
 
 ## Legacy / Dest (still in use)
 

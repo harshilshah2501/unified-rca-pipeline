@@ -642,7 +642,13 @@ class Handler(SimpleHTTPRequestHandler):
 
 def main() -> int:
     os.chdir(DASH)
-    httpd = ThreadingHTTPServer((HOST, PORT), Handler)
+    try:
+        httpd = ThreadingHTTPServer((HOST, PORT), Handler)
+    except OSError as exc:
+        # Single-instance guard: second process exits cleanly if :PORT is taken.
+        print(f"PoC console bind failed on {HOST}:{PORT}: {exc}", file=sys.stderr)
+        print("Another dashboard instance is likely already running.", file=sys.stderr)
+        return 1
     print(f"PoC console http://{HOST}:{PORT}/  (repo={REPO})")
     if TOKEN:
         print("POC_DASHBOARD_TOKEN is set — send X-PoC-Token header")

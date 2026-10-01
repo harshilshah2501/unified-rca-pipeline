@@ -20,7 +20,9 @@ OpenObserve peer / Option B metrics are **out of scope** for this PoC console (D
 
 ## Serve (control plane)
 
-**systemd (preferred — starts on boot):**
+**Cursor (this machine):** opening the Unified-RCA workspace runs a `workspaceOpen` hook that calls `./start-poc-dash.sh start`. That script uses a flock + pidfile so only one dashboard listens on **8765**. Manual controls from repo root: `./start-poc-dash.sh start|status|stop`.
+
+**systemd (preferred when available — starts on boot):**
 
 ```bash
 sudo cp benchmarking/dashboard/deploy/unified-rca-dashboard.service \
@@ -34,8 +36,9 @@ sudo systemctl restart unified-rca-dashboard.service   # after code updates
 **Ad-hoc:**
 
 ```bash
-# From repo root — binds 127.0.0.1:8765
-.venv/bin/python benchmarking/dashboard/server.py
+# From repo root — same singleton helper (preferred over raw python)
+./start-poc-dash.sh start
+# or: .venv/bin/python benchmarking/dashboard/server.py
 # open http://127.0.0.1:8765/
 ```
 

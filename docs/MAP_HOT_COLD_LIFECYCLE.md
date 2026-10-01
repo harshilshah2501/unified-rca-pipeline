@@ -1,0 +1,1 @@
+../pillar-ab-implementation/contracts/MAP_HOT_COLD_LIFECYCLE.md
