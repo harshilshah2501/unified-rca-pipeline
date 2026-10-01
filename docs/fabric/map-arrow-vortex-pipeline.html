@@ -38,16 +38,18 @@
 .dia{margin:1.25rem 0;border:1px solid var(--stroke);border-radius:12px;background:#10161d;padding:1rem .65rem;overflow:hidden;}
 .dia svg{display:block;width:100%;height:auto;max-height:300px;}
 
-/* One step visible at a time — no stacked scroll through five tall cards */
-.steps{
-  margin:1.25rem 0 1.5rem;
-  border:1px solid var(--stroke);border-radius:12px;
-  background:var(--bg-elev);padding:1.1rem 1.2rem;
-  overflow:hidden;min-width:0;
-  box-shadow:0 0 0 1px rgba(123,168,245,.12);
+/* All five steps visible; pills / animation only highlight the active card */
+.steps{display:flex;flex-direction:column;gap:12px;margin:1.25rem 0 1.5rem;min-width:0;}
+.steps article{
+  border:1px solid var(--stroke);border-radius:12px;padding:1.05rem 1.15rem;
+  background:var(--bg-elev);min-width:0;overflow:hidden;
+  box-sizing:border-box;
+  transition:border-color .25s,box-shadow .25s;
 }
-.steps article{display:none;min-width:0;overflow:hidden;}
-.steps article.is-lit{display:block;}
+.steps article.is-lit{
+  border-color:#7ba8f5;
+  box-shadow:0 0 0 1px rgba(123,168,245,.25),inset 0 0 22px rgba(123,168,245,.06);
+}
 .steps .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:.45rem .75rem;margin-bottom:.4rem;}
 .steps .n{font-family:var(--mono);font-size:.88rem;color:#e8d19d;letter-spacing:.06em;}
 .steps h3{margin:0;font-size:1.2rem;color:var(--text);}
@@ -153,7 +155,7 @@
 
   <p><strong>On this page</strong></p>
   <ul>
-    <li><a href="#pipeline">Five steps (click pills · one panel)</a></li>
+    <li><a href="#pipeline">Five steps (pills highlight · all cards shown)</a></li>
     <li><a href="#hot-cold">How hot and cold are kept</a></li>
     <li><a href="#example">Tiny estate example</a></li>
     <li><a href="#why-arrow">Why Arrow sits in the middle</a></li>
@@ -167,9 +169,8 @@
     <a href="/vortex-s3-interaction.html">Vortex + S3 rooms</a>
   </p>
 
-  <h2 id="pipeline">Five steps · one panel</h2>
-  <p class="legend" style="margin-bottom:.75rem">Click a stage pill above — preview stays in the frame below (no nested scrollbars).</p>
-  <p class="legend" style="margin-bottom:.75rem">Each card shows paths under <code>pillar-ab-implementation/</code> (or demo Dest). Stage highlight opens related details.</p>
+  <h2 id="pipeline">Five steps + file previews</h2>
+  <p class="legend" style="margin-bottom:.75rem">All five cards stay on the page. Click a stage pill (or watch the highlight) to light the matching card — code stays inside each frame (no nested scrollbars).</p>
   <div class="dia" role="img" aria-label="Animated pipeline from JSON stream to S3">
     <svg viewBox="0 0 960 320" xmlns="http://www.w3.org/2000/svg" id="pipe-svg">
       <rect width="960" height="320" fill="#10161d"/>

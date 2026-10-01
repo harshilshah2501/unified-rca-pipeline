@@ -44,7 +44,7 @@
     font-family: var(--font-body); background: var(--bg); color: var(--ink);
     padding: 40px 24px 72px; min-height: 100vh; font-size: 16.5px; line-height: 1.55;
   }
-  .wrap { max-width: 1480px; margin: 0 auto; }
+  .wrap { max-width: 1680px; margin: 0 auto; }
   .eyebrow {
     font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--faint); margin-bottom: 8px;
@@ -103,16 +103,111 @@
     .brief { grid-template-columns: 1fr 1fr; }
     .brief > div:nth-child(1) { grid-column: 1 / -1; }
   }
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+    gap: 14px;
+    align-items: start;
+    margin-bottom: 8px;
+  }
+  @media (max-width: 1100px) {
+    .split { grid-template-columns: 1fr; }
+  }
   .stage {
     position: relative; background: var(--surface); border: 1px solid var(--line);
     border-radius: 10px; padding: 24px 12px 14px; overflow: auto;
+    min-height: 0; max-height: min(78vh, 920px); z-index: 1;
   }
   .stage-label {
     position: absolute; top: 10px; left: 16px;
     font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--faint);
   }
-  svg.anim { width: 100%; min-width: 1180px; height: auto; display: block; margin-top: 6px; }
+  svg.anim { width: 100%; min-width: 0; height: auto; display: block; margin-top: 6px; }
+  svg.anim text, svg.anim .actor, svg.anim .chip, svg.anim .wlab, svg.anim .packet {
+    pointer-events: none;
+  }
+  .box.clickable { cursor: pointer; pointer-events: all; }
+  .box.selected {
+    stroke-width: 2.4 !important; stroke-dasharray: none !important;
+    filter: drop-shadow(0 0 0.5px var(--accent));
+  }
+  .box.map.selected { stroke: var(--map) !important; }
+  .box.hist.selected { stroke: var(--hist) !important; }
+  .box.detect.selected { stroke: var(--warn) !important; }
+  .box.seed.selected { stroke: var(--seed) !important; }
+  .detail {
+    position: sticky; top: 12px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 22px 16px 16px; overflow: auto;
+    min-height: 420px; max-height: min(78vh, 920px);
+    display: flex; flex-direction: column; gap: 12px; z-index: 2;
+  }
+  .detail-label {
+    position: absolute; top: 10px; left: 16px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--faint);
+  }
+  .detail-empty {
+    margin-top: 28px; color: var(--muted); font-size: 15px; line-height: 1.55;
+  }
+  .detail-empty strong { color: var(--ink); font-weight: 600; }
+  .detail-head { margin-top: 18px; }
+  .detail-head .eyebrow {
+    margin-bottom: 4px; color: var(--faint);
+  }
+  .detail-head h2 {
+    font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600;
+    letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 6px;
+  }
+  .detail-head p { color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+  .detail-meta {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .detail-meta > div {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 7px;
+    padding: 10px 12px;
+  }
+  .detail-meta .k {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 4px;
+  }
+  .detail-meta .v { font-size: 13.5px; color: var(--ink); line-height: 1.4; }
+  .detail-flow {
+    border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+    padding: 10px 8px 8px; overflow: auto;
+  }
+  .detail-flow svg { width: 100%; min-width: 280px; height: auto; display: block; }
+  .detail-steps { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .detail-steps li {
+    display: grid; grid-template-columns: 28px 1fr; gap: 10px;
+    align-items: start; padding: 8px 10px; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--bg);
+  }
+  .detail-steps .n {
+    font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+    color: var(--accent); padding-top: 2px;
+  }
+  .detail-steps .t { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .detail-steps .d { font-size: 13px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .detail-steps li.live-step {
+    border-color: var(--accent); background: var(--accent-soft);
+  }
+  .detail-foot {
+    margin-top: auto; font-size: 12.5px; color: var(--faint); line-height: 1.45;
+  }
+  .detail-foot code {
+    font-family: var(--font-mono); font-size: 0.92em;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 0.08em 0.3em; border-radius: 3px;
+  }
+  .detail-close {
+    position: absolute; top: 8px; right: 10px;
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    background: transparent; border: 1px solid var(--line); border-radius: 6px;
+    padding: 4px 9px; cursor: pointer; font-family: var(--font-body);
+  }
+  .detail-close:hover { color: var(--ink); border-color: var(--accent); }
   .zone-label { font-size: 14px; font-weight: 650; fill: var(--ink); }
   .zone-sub { font-size: 12px; fill: var(--muted); }
   .box { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
@@ -213,8 +308,9 @@
   <p class="lead">
     Two zones only: <strong>Ingestion</strong> (Edge devices · Node · optional Collector) and
     <strong>SaaS platform</strong> (processing: Ingest API → <code>map/</code> ∥ <code>history/</code> → Maintain → Detect → case path).
-    Every arrow is labeled with the contract that crosses it (<code>ingest.v1</code>, <code>GraphSnapshot</code>, <code>sketch.v1</code>, <code>Signal</code>, <code>CaseSeed</code>, <code>WorkingSet</code>, <code>LeafClaim</code>, …).
-    Labels brighten when that beat is live. Identify / Package stay drawn, not fully played.
+    Left pane is the end-to-end film. <strong>Click any processing block</strong> (for example E3 Pillar B or E4 Pillar A)
+    to open that block’s low-level admit / write flow on the right.
+    Every arrow is labeled with the contract that crosses it.
     <a href="./SIMULATION_THREAD.md">Thread locks</a> ·
     <a href="../INGEST_DATA_FORMAT.md">ingest fact kinds</a> ·
     <a href="../observeops/observeops-pipeline-hld.html#fabric">Our HLD · Fabric</a>.
@@ -248,8 +344,9 @@
     </div>
   </div>
 
+  <div class="split">
   <div class="stage">
-    <span class="stage-label">Two zones · Ingestion | SaaS processing · labeled contracts on every wire</span>
+    <span class="stage-label">End-to-end · click a block for detail →</span>
     <svg class="anim" viewBox="0 0 1480 980" xmlns="http://www.w3.org/2000/svg" role="img"
          aria-label="Two zones: Ingestion (Edge, Node, Collector) and SaaS processing. Wires labeled with contracts.">
       <defs>
@@ -501,10 +598,26 @@
       <span><i class="sw" style="border-color:var(--hist);background:var(--hist-soft)"></i> history/ · sketch.v1</span>
       <span><i class="sw" style="border-color:var(--warn);background:var(--warn-soft)"></i> Signal</span>
       <span><i class="sw" style="border-color:var(--seed);background:var(--seed-soft)"></i> CaseSeed</span>
+      <span>Click a box → low-level flow on the right</span>
     </div>
   </div>
+
+  <aside class="detail" id="detailPane" aria-live="polite">
+    <span class="detail-label">Block processing</span>
+    <button type="button" class="detail-close" id="detailClose" hidden>Clear</button>
+    <div id="detailBody">
+      <p class="detail-empty">
+        <strong>Select a block</strong> on the left film — for example
+        <strong>E3 · Pillar B</strong> (<code>map/</code>) or <strong>E4 · Pillar A</strong> (<code>history/</code>) —
+        to see how that stage admits input, decides WRITE / DROP / NOOP, and what it publishes.
+      </p>
+    </div>
+  </aside>
+  </div>
+
   <p class="hint">
     Wire chips name the handoff object. Ingest fans out to both rooms; E5 Maintain warms both.
+    Block detail on the right matches Motadata-aligned map rows (<code>entity_id</code>, <code>edge_type</code>) and sketch <code>entity_id</code> join.
     Locks: <a href="./SIMULATION_THREAD.md">SIMULATION_THREAD.md</a>.
   </p>
 </div>
@@ -829,6 +942,360 @@
       await wait(LOOP_GAP, gen);
     }
   }
+
+  /* —— Right pane: per-block low-level processing —— */
+  const BLOCKS = {
+    nE1: {
+      kicker: "E1 · Collect",
+      title: "Admit the envelope",
+      blurb: "Node Collect turns vendor streams into ingest.v1 rows. No CI bind and no Dest write yet.",
+      inn: "Raw MELT / SNMP / APM payloads from Edge.",
+      out: "TelemetryEnvelope shaped as ingest.v1 (fact_kind + spine fields).",
+      accent: "var(--accent)",
+      steps: [
+        { t: "Receive stream", d: "Host, service, and network devices emit metrics, logs-as-events, spans, SNMP." },
+        { t: "Wrap as ingest.v1", d: "Stamp schema_version, ts, tenant placeholder, fact_kind — still unbound." },
+        { t: "Hand to Identity", d: "Same line continues to E2. Collect does not resolve ci_id." }
+      ],
+      flow: ["raw MELT", "ingest.v1", "→ E2"]
+    },
+    nE2: {
+      kicker: "E2 · Identity",
+      title: "Normalize = bind tenant + ci_id",
+      blurb: "Identity overlays identity.status / bind_source. This is not E10 Identify (evidence packaging).",
+      inn: "Admitted ingest.v1 from Collect.",
+      out: "Same contract with identity overlay; Door A stays unfired in this film.",
+      accent: "var(--accent)",
+      steps: [
+        { t: "Look up / bind", d: "LUT-style binders attach a stable ci_id inside the tenant." },
+        { t: "Stamp identity", d: "status=resolved|unresolved|synthesized; bind_source for audit." },
+        { t: "Forward to SaaS", d: "Identified stream crosses TLS to Ingest API — still one line, two later writers." }
+      ],
+      flow: ["ingest.v1", "identity.*", "→ SaaS"]
+    },
+    nIng: {
+      kicker: "Ingest API · SaaS hub",
+      title: "Fan-out, not merge",
+      blurb: "One ingest hub. Every identified line is offered to Pillar B and Pillar A; each writer decides alone.",
+      inn: "Identified ingest.v1 (Node direct and/or Collector).",
+      out: "Same stream to map/ writer and history/ writer in parallel.",
+      accent: "var(--accent)",
+      steps: [
+        { t: "Accept doors", d: "Node path and optional Collector path land on one hub." },
+        { t: "Fan-out", d: "Offer the line to E3 GraphWriter and E4 SketchWriter together." },
+        { t: "No sync", d: "Rooms never copy each other; join happens later at Scope." }
+      ],
+      flow: ["ingest.v1", "∥ fan-out", "E3 + E4"]
+    },
+    nMap: {
+      kicker: "E3 · Pillar B · Topology",
+      title: "GraphWriter → map/",
+      blurb: "Only topo_update lines that pass identity + CI qualify + wave-1 relation become Motadata-aligned nodes and edges.",
+      inn: "ingest.v1 with fact_kind=topo_update, identity.status=resolved, relation + endpoints.",
+      out: "graph_snapshot.v1 under Dest map/ — nodes with entity_id / type; edges with source_id, edge_type, snowflake edge_id.",
+      accent: "var(--map)",
+      steps: [
+        { t: "NOOP other kinds", d: "metric_sample, event, anomaly, trace_span — GraphWriter continues without write." },
+        { t: "ResolvedOnlyGate", d: "DROP if identity unresolved or synthesized." },
+        { t: "CI qualify", d: "Admit Motadata CI types only (service, host, db, …). Reject alert/incident/metric/trace/change." },
+        { t: "Relation catalog", d: "snake_case relation → SCREAMING_SNAKE edge_type. Unknown → DROP; not wave-1 → phased skip." },
+        { t: "Upsert GraphState", d: "Node key=entity_id (last_seen, version++). Edge key=(source_id, edge_type, target_id); reuse snowflake edge_id." },
+        { t: "publish_map", d: "Validate schemas; write graph_snapshot.json + nodes/edges JSONL. Tenant on path/envelope only." }
+      ],
+      flow: ["topo_update", "gate+catalog", "entity_id", "map/"]
+    },
+    nHist: {
+      kicker: "E4 · Pillar A · Sketches",
+      title: "SketchWriter → history/",
+      blurb: "Metric lines become sketch.v1 digests. Topology lines are SketchWriter NOOP — they belong to Pillar B.",
+      inn: "ingest.v1 with fact_kind=metric_sample (and related history inputs), identity resolved.",
+      out: "sketch.v1 rows in history/ keyed by entity_id ≡ ingest ci_id after bind.",
+      accent: "var(--hist)",
+      steps: [
+        { t: "NOOP topo_update", d: "Topology is Pillar B’s job; SketchWriter does not invent edges." },
+        { t: "ResolvedOnlyGate", d: "Same hard door as GraphWriter — unresolved lines never land in history/." },
+        { t: "Map fields", d: "ci_id → entity_id; name → metric_id; value into T-Digest + buckets." },
+        { t: "Seasonal baseline", d: "Maintain later warms baselines; Detect Door C reads sketch p95 vs baseline." },
+        { t: "Publish history/", d: "Append / flush sketch rows. No GraphSnapshot here." }
+      ],
+      flow: ["metric_sample", "T-Digest", "entity_id", "history/"]
+    },
+    nE5: {
+      kicker: "E5 · Maintain · shared",
+      title: "Warm both rooms",
+      blurb: "Shared policy over map/ and history/. Does not create edges and does not merge rooms.",
+      inn: "Already-published map/ and history/.",
+      out: "Map: valid_to / last_seen / version. History: seasonal baselines refreshed.",
+      accent: "var(--accent)",
+      steps: [
+        { t: "Map validity", d: "Expire edges past valid_to; drop stale stream-origin edges; mark declared soft/hard." },
+        { t: "Touch nodes", d: "Optional last_seen refresh and version bump (Motadata maintain)." },
+        { t: "History baselines", d: "Keep sketch seasonal baselines warm for Door C." },
+        { t: "Re-publish", d: "Callers publish_map again so Dest reflects marks — still two rooms." }
+      ],
+      flow: ["map/ + history/", "validity ∥ baselines", "re-publish"]
+    },
+    nCap: {
+      kicker: "Capture · fact_kind enum",
+      title: "Five kinds on the wire",
+      blurb: "Exactly five fact_kind values. Logs use event (example name log.error) — not a sixth kind.",
+      inn: "Identified lines already typed.",
+      out: "Correct enum routing into rooms / Detect / evidence.",
+      accent: "var(--evt)",
+      steps: [
+        { t: "metric_sample", d: "→ history/ sketches." },
+        { t: "topo_update", d: "→ map/ GraphWriter." },
+        { t: "anomaly", d: "Signal path; skips pillar writers." },
+        { t: "event", d: "Evidence (including logs). Correlate / Identify cite." },
+        { t: "trace_span", d: "Localize / Identify context — not a map vertex." }
+      ],
+      flow: ["5 kinds", "route", "rooms / Detect"]
+    },
+    nDet: {
+      kicker: "E6 · Detect · Door C",
+      title: "Signal storm",
+      blurb: "Door C reads sketch p95 vs baseline; anomaly adds a Signal; events correlate. No root cause yet.",
+      inn: "Warm sketches + anomaly/event lines.",
+      out: "Signal(s) — noisy by design.",
+      accent: "var(--warn)",
+      steps: [
+        { t: "Door C read", d: "Compare sketch p95 to seasonal baseline." },
+        { t: "Anomaly Signal", d: "Wire anomaly becomes another Signal in the storm." },
+        { t: "Event correlate", d: "event (e.g. log.error) attaches as evidence — not a second engine." }
+      ],
+      flow: ["sketch read", "Signals", "→ Curate"]
+    },
+    nCur: {
+      kicker: "E7 · Curate",
+      title: "One CaseSeed",
+      blurb: "Collapse the Signal storm into a single case tip for Scope.",
+      inn: "Signal storm.",
+      out: "CaseSeed (checkout teaching path).",
+      accent: "var(--seed)",
+      steps: [
+        { t: "Group Signals", d: "Same incident window / tip CI." },
+        { t: "Emit CaseSeed", d: "Default policy: one seed." },
+        { t: "Hand to Scope", d: "Does not walk the map yet." }
+      ],
+      flow: ["Signals", "CaseSeed", "→ Scope"]
+    },
+    nScope: {
+      kicker: "E8 · Scope",
+      title: "WorkingSet read-join",
+      blurb: "First join of the two writers: neighbors from map/, sketches from history/.",
+      inn: "CaseSeed + published map/ + history/.",
+      out: "WorkingSet (suspects, paths, sketch refs).",
+      accent: "var(--accent)",
+      steps: [
+        { t: "Walk map/", d: "neighbors / reachable from seed_ci_id → entity_id." },
+        { t: "Attach history/", d: "Sketches for the same entity ids in the window." },
+        { t: "Budget evidence", d: "Hops, CI count, confidence-bearing filter." }
+      ],
+      flow: ["CaseSeed", "map/ ∥ history/", "WorkingSet"]
+    },
+    nLoc: {
+      kicker: "E9 · Localize",
+      title: "LeafClaim",
+      blurb: "Pick where to look next — teaching walk prefers deepest Database/Host leaf.",
+      inn: "WorkingSet.",
+      out: "LeafClaim (e.g. payments-db). Identify cite optional; Package muted.",
+      accent: "var(--map)",
+      steps: [
+        { t: "Prefer deep leaf", d: "Database path, else Host, else seed." },
+        { t: "Emit LeafClaim", d: "claim_ci_id + path_from_seed + rationale." },
+        { t: "Optional cite", d: "Identify may cite log.error next — not fully played here." }
+      ],
+      flow: ["WorkingSet", "LeafClaim", "→ Identify*"]
+    },
+    nId: {
+      kicker: "E10 · Identify · drawn",
+      title: "EvidenceBundle (light)",
+      blurb: "Shown for teaching; full Identify → Package film is deferred.",
+      inn: "LeafClaim + evidence budget.",
+      out: "EvidenceBundle (metrics, logs-as-events, traces, topology cites).",
+      accent: "var(--evt)",
+      steps: [
+        { t: "Gather cites", d: "History + map facts around the leaf." },
+        { t: "Bundle", d: "EvidenceBundle for Package." },
+        { t: "Not VerdictCard", d: "Package stays muted on this film." }
+      ],
+      flow: ["LeafClaim", "cites", "EvidenceBundle"]
+    },
+    nAgg: {
+      kicker: "Collector · aggregate",
+      title: "Optional hop",
+      blurb: "Collector may aggregate / dedup Node traffic. It does not replace Identity.",
+      inn: "ingest.v1 from Node.",
+      out: "Still ingest.v1 toward SaaS.",
+      accent: "var(--col)",
+      steps: [
+        { t: "Receive from Node", d: "Already identified (or pending bind policy)." },
+        { t: "Aggregate / dedup", d: "Volume control — not CI resolve." },
+        { t: "Forward to SaaS", d: "Same Ingest API hub." }
+      ],
+      flow: ["Node", "agg", "SaaS"]
+    },
+    nDirect: {
+      kicker: "Collector · direct",
+      title: "No Node hop",
+      blurb: "SNMP / flows / APM can enter Collector without passing the Node agent first.",
+      inn: "Vendor direct streams.",
+      out: "ingest.v1 into SaaS (Identity still required before rooms).",
+      accent: "var(--col)",
+      steps: [
+        { t: "Direct collect", d: "SNMP, flows, APM agents." },
+        { t: "Shape ingest.v1", d: "Same contract as Node path." },
+        { t: "SaaS door", d: "Still only two doors into the hub." }
+      ],
+      flow: ["SNMP/APM", "ingest.v1", "SaaS"]
+    },
+    nDoorA: {
+      kicker: "Door A · Node",
+      title: "Not fired in this film",
+      blurb: "Door A can fire on-Node detects. This teaching loop keeps Door C as the primary Detect story.",
+      inn: "—",
+      out: "—",
+      accent: "var(--warn)",
+      steps: [
+        { t: "Visible only", d: "Drawn so the estate knows Door A exists." },
+        { t: "Film choice", d: "Door C (platform on sketches) carries the storm." }
+      ],
+      flow: ["idle", "Door C primary"]
+    },
+    nPkg: {
+      kicker: "E11 · Package · muted",
+      title: "VerdictCard later",
+      blurb: "Operator handoff packaging is drawn but not played in this loop.",
+      inn: "EvidenceBundle (when Identify runs).",
+      out: "VerdictCard / ServiceOps handoff.",
+      accent: "var(--faint)",
+      steps: [
+        { t: "Deferred beat", d: "Pillar B Increment 3 covers the code path." },
+        { t: "Not this film", d: "Localize LeafClaim is the end of the played story." }
+      ],
+      flow: ["EvidenceBundle", "VerdictCard*"]
+    },
+    devVm: {
+      kicker: "Edge · Host",
+      title: "Estate source",
+      blurb: "guest-os-vm-app-01 emits CPU and logs — not SaaS processing.",
+      inn: "OS / agent sensors.",
+      out: "Raw MELT toward Collect.",
+      accent: "var(--accent)",
+      steps: [{ t: "Emit", d: "Host metrics and log events leave the guest." }],
+      flow: ["Host", "raw", "E1"]
+    },
+    devApi: {
+      kicker: "Edge · Service",
+      title: "Estate source",
+      blurb: "checkout-api emits p95, 5xx, and spans.",
+      inn: "APM / service metrics.",
+      out: "Raw MELT toward Collect.",
+      accent: "var(--accent)",
+      steps: [{ t: "Emit", d: "Service RED signals and spans." }],
+      flow: ["Service", "raw", "E1"]
+    },
+    devSw: {
+      kicker: "Edge · Network",
+      title: "Estate source",
+      blurb: "switch-core-01 can go Collector-direct (SNMP / flows).",
+      inn: "Network devices.",
+      out: "SNMP / flows toward Collector or Node.",
+      accent: "var(--warn)",
+      steps: [{ t: "Emit", d: "Often Collector-direct in this film." }],
+      flow: ["Network", "SNMP", "Collector"]
+    }
+  };
+
+  const clickableIds = Object.keys(BLOCKS);
+  let selectedBlock = null;
+  let detailStepTimer = null;
+
+  function flowSvg(labels, color) {
+    const w = 420, h = 56, n = labels.length;
+    const gap = w / Math.max(n, 1);
+    let nodes = "";
+    let wires = "";
+    labels.forEach((lab, i) => {
+      const x = gap * i + gap / 2;
+      const bw = Math.min(100, gap - 10);
+      nodes += '<rect x="'+(x-bw/2)+'" y="12" width="'+bw+'" height="32" rx="6" fill="var(--surface)" stroke="'+color+'" stroke-width="1.4"/>';
+      nodes += '<text x="'+x+'" y="32" text-anchor="middle" font-size="10" font-family="var(--font-mono)" fill="var(--ink)">'+lab+'</text>';
+      if (i < n - 1) {
+        const x2 = gap * (i + 1) + gap / 2 - bw / 2;
+        wires += '<path d="M '+(x+bw/2+2)+' 28 L '+(x2-2)+' 28" stroke="'+color+'" stroke-width="1.5" fill="none" opacity="0.7"/>';
+      }
+    });
+    return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+wires+nodes+'</svg>';
+  }
+
+  function renderDetail(id) {
+    const body = el("detailBody");
+    const closeBtn = el("detailClose");
+    if (!id || !BLOCKS[id]) {
+      selectedBlock = null;
+      closeBtn.hidden = true;
+      clickableIds.forEach(bid => { const n = el(bid); if (n) n.classList.remove("selected"); });
+      body.innerHTML = '<p class="detail-empty"><strong>Select a block</strong> on the left film — for example <strong>E3 · Pillar B</strong> (<code>map/</code>) or <strong>E4 · Pillar A</strong> (<code>history/</code>) — to see how that stage admits input, decides WRITE / DROP / NOOP, and what it publishes.</p>';
+      if (detailStepTimer) { clearInterval(detailStepTimer); detailStepTimer = null; }
+      return;
+    }
+    const b = BLOCKS[id];
+    selectedBlock = id;
+    closeBtn.hidden = false;
+    clickableIds.forEach(bid => {
+      const n = el(bid);
+      if (n) n.classList.toggle("selected", bid === id);
+    });
+    const steps = b.steps.map((s, i) =>
+      '<li data-step="'+i+'"><span class="n">'+(i+1)+'</span><div><div class="t">'+s.t+'</div><div class="d">'+s.d+'</div></div></li>'
+    ).join("");
+    body.innerHTML =
+      '<div class="detail-head">' +
+        '<div class="eyebrow">'+b.kicker+'</div>' +
+        '<h2>'+b.title+'</h2>' +
+        '<p>'+b.blurb+'</p>' +
+      '</div>' +
+      '<div class="detail-meta">' +
+        '<div><div class="k">In</div><div class="v">'+b.inn+'</div></div>' +
+        '<div><div class="k">Out</div><div class="v">'+b.out+'</div></div>' +
+      '</div>' +
+      '<div class="detail-flow">'+flowSvg(b.flow, b.accent)+'</div>' +
+      '<ol class="detail-steps">'+steps+'</ol>' +
+      '<p class="detail-foot">Film on the left keeps looping. Detail steps on the right pulse so you can read the block in isolation.</p>';
+
+    if (detailStepTimer) clearInterval(detailStepTimer);
+    let step = 0;
+    const items = body.querySelectorAll(".detail-steps li");
+    const pulse = () => {
+      items.forEach((li, i) => li.classList.toggle("live-step", i === step));
+      step = (step + 1) % Math.max(items.length, 1);
+    };
+    pulse();
+    detailStepTimer = setInterval(pulse, 1600);
+  }
+
+  function setupBlockClicks() {
+    clickableIds.forEach(id => {
+      const node = el(id);
+      if (!node) return;
+      node.classList.add("clickable");
+      node.setAttribute("tabindex", "0");
+      node.setAttribute("role", "button");
+      node.setAttribute("aria-label", "Open block detail: " + (BLOCKS[id].kicker || id));
+      const open = (ev) => {
+        if (ev) ev.stopPropagation();
+        renderDetail(id);
+      };
+      node.addEventListener("click", open);
+      node.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(ev); }
+      });
+    });
+    el("detailClose").addEventListener("click", () => renderDetail(null));
+  }
+
+  setupBlockClicks();
   loop(generation);
 })();
 </script>

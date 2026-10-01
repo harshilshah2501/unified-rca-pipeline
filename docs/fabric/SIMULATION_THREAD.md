@@ -10,6 +10,7 @@ Former separate case and capture URLs redirect to the same page.
 
 1. **Two zones only.** Zone 1 = **Ingestion** (Edge devices · Node · optional Collector). Zone 2 = **SaaS platform · processing** (Ingest API → rooms → Maintain → Detect → triage → localize).
 2. **Every handoff is labeled** on the wire with the contract that crosses it (`raw MELT`, `ingest.v1`, `GraphSnapshot`, `sketch.v1`, `Signal`, `CaseSeed`, `WorkingSet`, `LeafClaim`, `event cite`, …). Labels brighten when that beat is live.
+3. **Split screen.** Left pane = end-to-end film. Clicking a processing block opens that block’s low-level admit / write flow on the right (especially E3 Pillar B GraphWriter and E4 Pillar A SketchWriter). The film keeps looping; detail is independent.
 
 ## Architecture locks (confirmed)
 
