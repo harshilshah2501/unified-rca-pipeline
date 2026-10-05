@@ -34,6 +34,7 @@ Compatibility symlinks at `docs/<filename>` keep `:8765` URLs working.
 | [`../../pillar-ab-implementation/contracts/MAP_HOT_COLD_LIFECYCLE.md`](../../pillar-ab-implementation/contracts/MAP_HOT_COLD_LIFECYCLE.md) | Hot / cold lifecycle · hub [`/docs/MAP_HOT_COLD_LIFECYCLE.md`](http://127.0.0.1:8765/docs/MAP_HOT_COLD_LIFECYCLE.md) |
 | [`../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) | Normative write/read · hub [`/docs/MAP_WRITE_READ_RECORD.md`](http://127.0.0.1:8765/docs/MAP_WRITE_READ_RECORD.md) |
 | [`../../pillar-ab-implementation/contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md`](../../pillar-ab-implementation/contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md) | Locked columns · Rust [`map-vortex/`](../../pillar-ab-implementation/pillar-b/map-vortex/) |
+| [`../../pillar-ab-implementation/contracts/MAP_SCOPE_WALK_POLICY.md`](../../pillar-ab-implementation/contracts/MAP_SCOPE_WALK_POLICY.md) | E8 Scope walk policy — seed neighborhood, detect-class relations, Localize handoff |
 | [`../../pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md`](../../pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md) | Admit pairing |
 | [`pillar-b-stream-graph-demo.html`](./pillar-b-stream-graph-demo.html) | PoC GraphWriter timeline demo |
 | [`../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md`](../../pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md) | Team walkthrough · [Pillar B PoC hub](./pillar-b-poc-hub.html) |

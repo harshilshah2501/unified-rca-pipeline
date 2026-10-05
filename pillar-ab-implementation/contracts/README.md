@@ -15,6 +15,7 @@ Shared wire and Dest schemas for Motadata ObserveOps Pillar A (sketches → `his
 | [`../pillar-b/docs/MAP_VORTEX_S3_POC_PRIMER.md`](../pillar-b/docs/MAP_VORTEX_S3_POC_PRIMER.md) | Teaching entry — Vortex + S3 PoC |
 | [`MAP_WRITE_READ_RECORD.md`](./MAP_WRITE_READ_RECORD.md) | Normative `map/` Dest keys (`files.v1` + `vortex_s3.v1`) |
 | [`MAP_WRITER_VORTEX_COHESION.md`](./MAP_WRITER_VORTEX_COHESION.md) | Locked: separate writers, shared Vortex Dest; GraphWriter verbs; walk brief later |
+| [`MAP_SCOPE_WALK_POLICY.md`](./MAP_SCOPE_WALK_POLICY.md) | E8 Scope map walk policy — hops, relations by detect class, confidence filter, WorkingSet bounds |
 | [`GATE_B_DEST_PROFILE.md`](./GATE_B_DEST_PROFILE.md) | Stub → MAP_WRITE_READ / primer |
 
 ## Legacy / Dest (still in use)

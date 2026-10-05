@@ -41,7 +41,7 @@ Signal storm ──curate_storm──► CaseSeed ──build_working_set──�
 | Stage | Module | Proof |
 |-------|--------|-------|
 | E7 Curate | [`../poc/graph/case_path/curate.py`](../poc/graph/case_path/curate.py) | One seed from storm; prefer tip CI; merge rationale |
-| E8 Scope | [`../poc/graph/case_path/scope.py`](../poc/graph/case_path/scope.py) | Reachable CIs, edges, paths to Host/Database; optional sketch hook |
+| E8 Scope | [`../poc/graph/case_path/scope.py`](../poc/graph/case_path/scope.py) + [`walk_profiles.py`](../poc/graph/case_path/walk_profiles.py) | Reachable CIs, edges, paths to Host/Database; detect-class relation filter; optional sketch hook |
 | E9 Localize | [`../poc/graph/case_path/localize.py`](../poc/graph/case_path/localize.py) | Deepest Database leaf (teaching); Host fallback; prefer_ci lab override |
 
 ---
@@ -60,11 +60,13 @@ Signal storm ──curate_storm──► CaseSeed ──build_working_set──�
 | WorkingSet includes | checkout-api, payments-db, linux-server-app-01, bs-checkout |
 | LeafClaim | `payments-db` path `[checkout-api, payments-db]` |
 | Confidence filter | Hard-downgrade all edges into payments-db → no Database path → Host fallback |
+| ERROR profile | Fixture with `MONITORED_BY` collector → WorkingSet keeps `payments-db`, drops `otel-collector` |
 
 ---
 
 ## Related
 
+- Scope walk policy (product brief): [`../../contracts/MAP_SCOPE_WALK_POLICY.md`](../../contracts/MAP_SCOPE_WALK_POLICY.md)  
 - Part A/B walk: [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md)  
 - Code tour: [`Codebase-go-through.md`](./Codebase-go-through.md)  
 - Integration sketch join: [`../../integration/README.md`](../../integration/README.md)  

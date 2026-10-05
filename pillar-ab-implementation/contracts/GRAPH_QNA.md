@@ -531,6 +531,8 @@ E10 Identify      → corroborate with more sketches on walked CIs
 
 Visual read-path table: [`map-history-storage-blocks.html`](../../docs/fabric/map-history-storage-blocks.html).
 
+Normative Scope walk knobs (hops, detect-class relation profiles, confidence filter): [`MAP_SCOPE_WALK_POLICY.md`](./MAP_SCOPE_WALK_POLICY.md).
+
 **Lab-shaped example.** After flush, `history/sketches.jsonl` may contain:
 
 - `checkout-api` · `request.latency_ms` · p95 well above seasonal expected → **fires**

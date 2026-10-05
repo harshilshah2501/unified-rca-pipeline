@@ -12,6 +12,7 @@ from graph.case_path.localize import LeafClaim, localize_leaf
 from graph.case_path.package import VerdictCard, package_verdict
 from graph.case_path.scope import WorkingSet, build_working_set
 from graph.case_path.signal import Signal
+from graph.case_path.walk_profiles import WalkProfile, resolve_walk_profile
 
 __all__ = [
     "Signal",
@@ -20,10 +21,12 @@ __all__ = [
     "LeafClaim",
     "EvidenceBundle",
     "VerdictCard",
+    "WalkProfile",
     "load_signal_storm",
     "curate_storm",
     "build_working_set",
     "localize_leaf",
     "build_evidence_bundle",
     "package_verdict",
+    "resolve_walk_profile",
 ]

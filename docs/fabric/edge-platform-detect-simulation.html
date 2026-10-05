@@ -616,9 +616,10 @@
   </div>
 
   <p class="hint">
-    Wire chips name the handoff object. Ingest fans out to both rooms; E5 Maintain warms both.
+    Wire chips name the handoff object. After E2, the hub fans out <code>writer_stream.v1</code>; regulators admit by optional-block presence (not <code>fact_kind</code>). E5 Maintain warms both rooms.
     Block detail on the right matches Motadata-aligned map rows (<code>entity_id</code>, <code>edge_type</code>) and sketch <code>entity_id</code> join.
-    Locks: <a href="./SIMULATION_THREAD.md">SIMULATION_THREAD.md</a>.
+    Locks: <a href="./SIMULATION_THREAD.md">SIMULATION_THREAD.md</a> ·
+    <a href="../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a>.
   </p>
 </div>
 
@@ -681,11 +682,11 @@
     },
     {
       title: "Capture",
-      kicker: "Beat 7 of 11 · fact kinds",
-      lede: "Five fact_kind values only: metric_sample, topo_update, anomaly, event, trace_span.",
-      where: "SaaS capture strip. Metrics → sketches; topo_update → map/; anomaly skips pillars; event (logs too) is evidence; trace_span for Localize/Identify.",
-      io: "Out: correct enum on the wire. Example event.name is log.error — that is a name, not a sixth kind.",
-      not: "No log or error fact_kind. sketch p95 vs baseline is a Door C read, not a fact_kind.",
+      kicker: "Beat 7 of 11 · stream blocks",
+      lede: "Optional blocks on writer_stream.v1: metric, topology, anomaly, event, span — no fact_kind.",
+      where: "SaaS capture strip. metric → SketchRegulator; topology → GraphRegulator; anomaly/event/span stay for Detect / evidence.",
+      io: "Out: presence of blocks. One line may carry metric and topology together — both regulators can fire.",
+      not: "No fact_kind enum. Logs ride the event block (example name log.error). Sketch p95 vs baseline is a Door C read.",
       live: ["nCap", "nHist", "nMap", "nIng"]
     },
     {
@@ -947,78 +948,78 @@
   const BLOCKS = {
     nE1: {
       kicker: "E1 · Collect",
-      title: "Admit the envelope",
-      blurb: "Node Collect turns vendor streams into ingest.v1 rows. No CI bind and no Dest write yet.",
+      title: "Admit the stream row",
+      blurb: "Node Collect shapes vendor streams into a common row. No CI bind, no Dest write, and no fact_kind stamp.",
       inn: "Raw MELT / SNMP / APM payloads from Edge.",
-      out: "TelemetryEnvelope shaped as ingest.v1 (fact_kind + spine fields).",
+      out: "Stream spine (ts, tenant placeholder) plus optional metric / topology / event / span / anomaly blocks.",
       accent: "var(--accent)",
       steps: [
         { t: "Receive stream", d: "Host, service, and network devices emit metrics, logs-as-events, spans, SNMP." },
-        { t: "Wrap as ingest.v1", d: "Stamp schema_version, ts, tenant placeholder, fact_kind — still unbound." },
+        { t: "Shape the row", d: "Adapters put optional blocks on the line — there is no router enum." },
         { t: "Hand to Identity", d: "Same line continues to E2. Collect does not resolve ci_id." }
       ],
-      flow: ["raw MELT", "ingest.v1", "→ E2"]
+      flow: ["raw MELT", "stream row", "→ E2"]
     },
     nE2: {
       kicker: "E2 · Identity",
       title: "Normalize = bind tenant + ci_id",
-      blurb: "Identity overlays identity.status / bind_source. This is not E10 Identify (evidence packaging).",
-      inn: "Admitted ingest.v1 from Collect.",
-      out: "Same contract with identity overlay; Door A stays unfired in this film.",
+      blurb: "Identity overlays identity.status / bind_source onto writer_stream.v1. Not E10 Identify.",
+      inn: "Admitted stream row from Collect.",
+      out: "writer_stream.v1 with identity overlay; Door A stays unfired in this film.",
       accent: "var(--accent)",
       steps: [
         { t: "Look up / bind", d: "LUT-style binders attach a stable ci_id inside the tenant." },
         { t: "Stamp identity", d: "status=resolved|unresolved|synthesized; bind_source for audit." },
-        { t: "Forward to SaaS", d: "Identified stream crosses TLS to Ingest API — still one line, two later writers." }
+        { t: "Forward to SaaS", d: "Identified writer_stream crosses TLS to Ingest API — one stream, two regulators later." }
       ],
-      flow: ["ingest.v1", "identity.*", "→ SaaS"]
+      flow: ["stream row", "identity.*", "writer_stream"]
     },
     nIng: {
       kicker: "Ingest API · SaaS hub",
       title: "Fan-out, not merge",
-      blurb: "One ingest hub. Every identified line is offered to Pillar B and Pillar A; each writer decides alone.",
-      inn: "Identified ingest.v1 (Node direct and/or Collector).",
-      out: "Same stream to map/ writer and history/ writer in parallel.",
+      blurb: "One hub offers every identified writer_stream.v1 line to GraphRegulator and SketchRegulator. Each decides alone by presence.",
+      inn: "Identified writer_stream.v1 (Node direct and/or Collector).",
+      out: "Same stream to both regulators in parallel — no fact_kind split.",
       accent: "var(--accent)",
       steps: [
         { t: "Accept doors", d: "Node path and optional Collector path land on one hub." },
-        { t: "Fan-out", d: "Offer the line to E3 GraphWriter and E4 SketchWriter together." },
+        { t: "Fan-out", d: "Offer the line to GraphRegulator and SketchRegulator together." },
         { t: "No sync", d: "Rooms never copy each other; join happens later at Scope." }
       ],
-      flow: ["ingest.v1", "∥ fan-out", "E3 + E4"]
+      flow: ["writer_stream", "∥ fan-out", "regulators"]
     },
     nMap: {
       kicker: "E3 · Pillar B · Topology",
-      title: "GraphWriter → map/",
-      blurb: "Only topo_update lines that pass identity + CI qualify + wave-1 relation become Motadata-aligned nodes and edges.",
-      inn: "ingest.v1 with fact_kind=topo_update, identity.status=resolved, relation + endpoints.",
+      title: "GraphRegulator → GraphWriter → map/",
+      blurb: "Admit when identity is resolved and a topology triple is present. No fact_kind filter.",
+      inn: "writer_stream.v1 with topology.relation + src_ci_id + dst_ci_id; identity.status=resolved.",
       out: "graph_snapshot.v1 under Dest map/ — nodes with entity_id / type; edges with source_id, edge_type, snowflake edge_id.",
       accent: "var(--map)",
       steps: [
-        { t: "NOOP other kinds", d: "metric_sample, event, anomaly, trace_span — GraphWriter continues without write." },
-        { t: "ResolvedOnlyGate", d: "DROP if identity unresolved or synthesized." },
-        { t: "CI qualify", d: "Admit Motadata CI types only (service, host, db, …). Reject alert/incident/metric/trace/change." },
-        { t: "Relation catalog", d: "snake_case relation → SCREAMING_SNAKE edge_type. Unknown → DROP; not wave-1 → phased skip." },
+        { t: "NOOP without topology", d: "metric / event / anomaly / span only — GraphRegulator does not care." },
+        { t: "Resolved identity", d: "NOOP if identity unresolved or synthesized." },
+        { t: "CI on map", d: "Admit Motadata CI types only (service, host, db, …). Reject alert/incident/metric/trace/change." },
+        { t: "Relation + triplet", d: "Canonical camelCase relation → Motadata SCREAMING_SNAKE edge_type; illegal endpoint pairs reject." },
         { t: "Upsert GraphState", d: "Node key=entity_id (last_seen, version++). Edge key=(source_id, edge_type, target_id); reuse snowflake edge_id." },
-        { t: "publish_map", d: "Validate schemas; write graph_snapshot.json + nodes/edges JSONL. Tenant on path/envelope only." }
+        { t: "publish_map", d: "Checkpoint hot → Dest (files.v1 lab or vortex_s3.v1). Tenant on path/envelope only." }
       ],
-      flow: ["topo_update", "gate+catalog", "entity_id", "map/"]
+      flow: ["topology block", "intent", "entity_id", "map/"]
     },
     nHist: {
       kicker: "E4 · Pillar A · Sketches",
-      title: "SketchWriter → history/",
-      blurb: "Metric lines become sketch.v1 digests. Topology lines are SketchWriter NOOP — they belong to Pillar B.",
-      inn: "ingest.v1 with fact_kind=metric_sample (and related history inputs), identity resolved.",
-      out: "sketch.v1 rows in history/ keyed by entity_id ≡ ingest ci_id after bind.",
+      title: "SketchRegulator → SketchWriter → history/",
+      blurb: "Admit when a metric block is present. Topology alone is SketchRegulator NOOP.",
+      inn: "writer_stream.v1 with metric.value + metric_id/name; subject CI bound.",
+      out: "sketch.v1 rows in history/ keyed by entity_id ≡ ci_id after bind.",
       accent: "var(--hist)",
       steps: [
-        { t: "NOOP topo_update", d: "Topology is Pillar B’s job; SketchWriter does not invent edges." },
-        { t: "ResolvedOnlyGate", d: "Same hard door as GraphWriter — unresolved lines never land in history/." },
-        { t: "Map fields", d: "ci_id → entity_id; name → metric_id; value into T-Digest + buckets." },
+        { t: "NOOP without metric", d: "Topology is Pillar B’s job; SketchRegulator does not invent edges." },
+        { t: "Presence predicate", d: "Need numeric value and metric_id or name." },
+        { t: "Map fields", d: "ci_id → entity_id; metric_id; value into T-Digest + buckets." },
         { t: "Seasonal baseline", d: "Maintain later warms baselines; Detect Door C reads sketch p95 vs baseline." },
         { t: "Publish history/", d: "Append / flush sketch rows. No GraphSnapshot here." }
       ],
-      flow: ["metric_sample", "T-Digest", "entity_id", "history/"]
+      flow: ["metric block", "intent", "entity_id", "history/"]
     },
     nE5: {
       kicker: "E5 · Maintain · shared",
@@ -1036,32 +1037,32 @@
       flow: ["map/ + history/", "validity ∥ baselines", "re-publish"]
     },
     nCap: {
-      kicker: "Capture · fact_kind enum",
-      title: "Five kinds on the wire",
-      blurb: "Exactly five fact_kind values. Logs use event (example name log.error) — not a sixth kind.",
-      inn: "Identified lines already typed.",
-      out: "Correct enum routing into rooms / Detect / evidence.",
+      kicker: "Capture · writer_stream blocks",
+      title: "Optional blocks — no fact_kind",
+      blurb: "writer_stream.v1 carries optional metric, topology, anomaly, event, span. Regulators infer care from presence.",
+      inn: "Identified lines already carrying whatever blocks adapters emitted.",
+      out: "Correct block presence for GraphRegulator / SketchRegulator / Detect evidence.",
       accent: "var(--evt)",
       steps: [
-        { t: "metric_sample", d: "→ history/ sketches." },
-        { t: "topo_update", d: "→ map/ GraphWriter." },
-        { t: "anomaly", d: "Signal path; skips pillar writers." },
-        { t: "event", d: "Evidence (including logs). Correlate / Identify cite." },
-        { t: "trace_span", d: "Localize / Identify context — not a map vertex." }
+        { t: "metric", d: "→ SketchRegulator → history/ sketches." },
+        { t: "topology", d: "→ GraphRegulator → map/ GraphWriter." },
+        { t: "anomaly", d: "Detect Signal path — neither pillar writer admits in this pass." },
+        { t: "event", d: "Evidence (including logs). Correlate / Identify cite — not a sixth router kind." },
+        { t: "span", d: "Localize / Identify context — not a map vertex via GraphWriter." }
       ],
-      flow: ["5 kinds", "route", "rooms / Detect"]
+      flow: ["blocks", "presence", "regulators"]
     },
     nDet: {
       kicker: "E6 · Detect · Door C",
       title: "Signal storm",
       blurb: "Door C reads sketch p95 vs baseline; anomaly adds a Signal; events correlate. No root cause yet.",
-      inn: "Warm sketches + anomaly/event lines.",
+      inn: "Warm sketches + anomaly / event blocks.",
       out: "Signal(s) — noisy by design.",
       accent: "var(--warn)",
       steps: [
         { t: "Door C read", d: "Compare sketch p95 to seasonal baseline." },
-        { t: "Anomaly Signal", d: "Wire anomaly becomes another Signal in the storm." },
-        { t: "Event correlate", d: "event (e.g. log.error) attaches as evidence — not a second engine." }
+        { t: "Anomaly Signal", d: "anomaly block becomes another Signal in the storm." },
+        { t: "Event correlate", d: "event block (e.g. log.error) attaches as evidence — not a second engine." }
       ],
       flow: ["sketch read", "Signals", "→ Curate"]
     },
@@ -1124,9 +1125,9 @@
     nAgg: {
       kicker: "Collector · aggregate",
       title: "Optional hop",
-      blurb: "Collector may aggregate / dedup Node traffic. It does not replace Identity.",
-      inn: "ingest.v1 from Node.",
-      out: "Still ingest.v1 toward SaaS.",
+      blurb: "Collector may aggregate / dedup Node traffic. It does not replace Identity and does not stamp fact_kind.",
+      inn: "Stream rows from Node.",
+      out: "Still writer_stream.v1 toward SaaS.",
       accent: "var(--col)",
       steps: [
         { t: "Receive from Node", d: "Already identified (or pending bind policy)." },
@@ -1140,14 +1141,14 @@
       title: "No Node hop",
       blurb: "SNMP / flows / APM can enter Collector without passing the Node agent first.",
       inn: "Vendor direct streams.",
-      out: "ingest.v1 into SaaS (Identity still required before rooms).",
+      out: "writer_stream.v1 into SaaS (Identity still required before rooms).",
       accent: "var(--col)",
       steps: [
         { t: "Direct collect", d: "SNMP, flows, APM agents." },
-        { t: "Shape ingest.v1", d: "Same contract as Node path." },
+        { t: "Shape stream row", d: "Optional blocks — same contract as Node path." },
         { t: "SaaS door", d: "Still only two doors into the hub." }
       ],
-      flow: ["SNMP/APM", "ingest.v1", "SaaS"]
+      flow: ["SNMP/APM", "writer_stream", "SaaS"]
     },
     nDoorA: {
       kicker: "Door A · Node",

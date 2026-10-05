@@ -8,10 +8,12 @@ from ab_shared.dest import MemoryDest
 from ab_shared.ingest_source import JsonlIngestSource
 from ab_shared.paths import SAMPLE_ESTATE
 from graph.case_path import (
+    CaseSeed,
     build_working_set,
     curate_storm,
     load_signal_storm,
     localize_leaf,
+    resolve_walk_profile,
 )
 from graph.graph_writer import GraphWriter
 from graph.maintain import MAINTAIN_HARD_DOWNGRADED, apply_declared_freshness
@@ -158,3 +160,88 @@ def test_i2_confidence_bearing_can_block_database_path():
     # Falls back to deepest Host (runs_on still bearing)
     assert claim.claim_ci_type == "Host"
     assert claim.claim_ci_id == "linux-server-app-01"
+
+
+def _error_vs_monitor_snap() -> dict:
+    """Minimal fixture: app depends_on + monitored_by collector on the same seed."""
+    return {
+        "version": "1",
+        "nodes": [
+            {"entity_id": "checkout-api", "type": "service", "name": "checkout-api"},
+            {"entity_id": "payments-db", "type": "db", "name": "payments-db"},
+            {
+                "entity_id": "otel-collector",
+                "type": "service",
+                "name": "otel-collector",
+            },
+        ],
+        "edges": [
+            {
+                "edge_id": "e-depends",
+                "source_id": "checkout-api",
+                "target_id": "payments-db",
+                "edge_type": "DEPENDS_ON",
+            },
+            {
+                "edge_id": "e-monitor",
+                "source_id": "checkout-api",
+                "target_id": "otel-collector",
+                "edge_type": "MONITORED_BY",
+            },
+        ],
+    }
+
+
+def test_error_profile_excludes_monitored_by_from_working_set():
+    """ERROR Scope profile must not pull monitor collectors into the WorkingSet."""
+    snap = _error_vs_monitor_snap()
+    seed = CaseSeed(
+        case_id="case-error-profile",
+        tenant="default",
+        seed_ci_id="checkout-api",
+        seed_ci_type="Service",
+        detect_class="ERROR",
+        first_down_ts="2026-03-20T09:00:00Z",
+        merged_signal_ids=("sig-1",),
+        merge_rationale="fixture",
+    )
+    profile = resolve_walk_profile("ERROR")
+    assert "monitored_by" not in profile.relations
+    assert "depends_on" in profile.relations
+
+    ws = build_working_set(snap, seed)
+    assert ws.walk_profile == "error_availability"
+    assert "monitored_by" not in ws.relations
+    assert "payments-db" in ws.ci_ids
+    assert "otel-collector" not in ws.ci_ids
+    assert "otel-collector" not in ws.neighbor_ids
+    edge_types = {e["edge_type"] for e in ws.edges}
+    assert "DEPENDS_ON" in edge_types
+    assert "MONITORED_BY" not in edge_types
+    assert any(p[-1] == "payments-db" for p in ws.paths_to_databases)
+
+
+def test_monitoring_profile_includes_monitored_by():
+    """MONITORING_UNAVAILABLE Scope profile keeps the collector edge."""
+    snap = _error_vs_monitor_snap()
+    seed = CaseSeed(
+        case_id="case-mon-profile",
+        tenant="default",
+        seed_ci_id="checkout-api",
+        seed_ci_type="Service",
+        detect_class="MONITORING_UNAVAILABLE",
+        first_down_ts="2026-03-20T09:00:00Z",
+        merged_signal_ids=("sig-1",),
+        merge_rationale="fixture",
+    )
+    ws = build_working_set(snap, seed)
+    assert ws.walk_profile == "monitoring_unavailable"
+    assert "monitored_by" in ws.relations
+    assert "otel-collector" in ws.ci_ids
+    assert any(e["edge_type"] == "MONITORED_BY" for e in ws.edges)
+
+
+def test_anomaly_profile_defaults_to_one_hop():
+    profile = resolve_walk_profile("ANOMALY")
+    assert profile.hops == 1
+    assert profile.relations == frozenset({"depends_on", "runs_on"})

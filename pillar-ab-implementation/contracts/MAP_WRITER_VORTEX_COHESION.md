@@ -9,7 +9,7 @@
 2. **Two writers stay separate:** GraphWriter (E3 Topology → `map/`) and SketchWriter (E4 Stores → `history/`). Join is at **read** by Dest `tenant` + `entity_id`. Do not merge admit into one writer.
 3. **`files.v1` (JSON / JSONL) is lab / debug**, not Motadata cold SoT. Same logical rows; optional twin (like debug `.arrow`), not a second schema.
 4. **GraphWriter product verbs stay stable** while cold backend moves to Vortex. Language of the hot orchestrator (Python PoC vs Rust) is **not** locked by this note.
-5. **Walks always use a loaded present map** (hot-shaped rows / in-memory tables). Never open Vortex per neighbor. A dedicated write/walk interaction brief for Diagnose / Scope is **deferred**.
+5. **Walks always use a loaded present map** (hot-shaped rows / in-memory tables). Never open Vortex per neighbor. **E8 Scope walk policy** is in [`MAP_SCOPE_WALK_POLICY.md`](./MAP_SCOPE_WALK_POLICY.md). A dedicated Retrieval **walk API** brief for Diagnose is still open.
 
 ## 2. GraphWriter verb inventory (stable names)
 
