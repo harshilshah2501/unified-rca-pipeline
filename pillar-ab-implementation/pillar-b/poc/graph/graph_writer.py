@@ -51,12 +51,22 @@ class GraphWriter:
             self.state = GraphState(tenant=self.tenant)
         apply_topo_stream(self.state, source, self.gate)
 
-    def publish_map(self, dest: Dest, *, version: str = "1") -> dict[str, Any]:
-        """Validate GraphState and publish ``graph_snapshot.v1`` (+ nodes/edges JSONL) to Dest ``map/``."""
+    def publish_map(
+        self,
+        dest: Dest,
+        *,
+        version: str = "1",
+        profile: str | None = None,
+    ) -> dict[str, Any]:
+        """Validate GraphState and cold-publish present ``map/``.
+
+        ``profile``: ``files.v1`` (default / MemoryDest) or ``vortex_s3.v1`` (FileDest Motadata SoT).
+        Override default with env ``POC_MAP_DEST_PROFILE``.
+        """
         if self.state is None:
             self.state = GraphState(tenant=self.tenant)
         snapshot = build_snapshot(self.state, version=version)
-        publish_snapshot(dest, snapshot)
+        publish_snapshot(dest, snapshot, profile=profile)
         return snapshot
 
     def maintain_map(

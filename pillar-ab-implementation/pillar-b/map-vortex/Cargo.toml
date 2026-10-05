@@ -10,6 +10,10 @@ publish = false
 name = "map_vortex_demo"
 path = "src/bin/map_vortex_demo.rs"
 
+[[bin]]
+name = "map_vortex_cold"
+path = "src/bin/map_vortex_cold.rs"
+
 [dependencies]
 anyhow = "1.0.104"
 arrow = { version = "59.3.0", features = ["ipc", "json"] }

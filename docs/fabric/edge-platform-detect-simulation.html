@@ -488,13 +488,13 @@
 
       <rect class="box evt" id="nCap" x="768" y="318" width="680" height="92" rx="6"/>
       <g class="actor" transform="translate(776, 326)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-bolt" class="ico warn" x="2" y="2" width="20" height="20"/></g>
-      <text class="tag" x="808" y="340">Capture · five fact_kind values (enum)</text>
-      <text class="mono" id="capMet" x="780" y="364" opacity="0.35">metric_sample</text>
-      <text class="mono" id="capTopo" x="920" y="364" opacity="0.35">topo_update</text>
-      <text class="mono" id="capAno" x="1045" y="364" opacity="0.35">anomaly</text>
-      <text class="mono" id="capEvt" x="1145" y="364" opacity="0.35">event</text>
-      <text class="mono" id="capSpan" x="1225" y="364" opacity="0.35">trace_span</text>
-      <text class="sub" x="780" y="386">No log or error kind — logs use fact_kind event</text>
+      <text class="tag" x="808" y="340">Capture · writer_stream.v1 blocks (no fact_kind)</text>
+      <text class="mono" id="capMet" x="780" y="364" opacity="0.35">metric</text>
+      <text class="mono" id="capTopo" x="880" y="364" opacity="0.35">topology</text>
+      <text class="mono" id="capAno" x="1000" y="364" opacity="0.35">anomaly</text>
+      <text class="mono" id="capEvt" x="1110" y="364" opacity="0.35">event</text>
+      <text class="mono" id="capSpan" x="1210" y="364" opacity="0.35">span</text>
+      <text class="sub" x="780" y="386">Regulators key on which optional blocks are present</text>
       <text class="chip evt" id="evtNameChip" x="780" y="400">event.name example: log.error</text>
 
       <rect class="box detect" id="nDet" x="768" y="428" width="680" height="96" rx="6"/>
@@ -559,10 +559,10 @@
 
       <!-- wire labels -->
       <g class="wlab" data-for="wDevE1"><rect class="wlab-bg" x="228" y="186" width="58" height="16" rx="3"/><text class="wlab-t" x="257" y="194" text-anchor="middle">raw MELT</text></g>
-      <g class="wlab" data-for="wE1E2"><rect class="wlab-bg" x="372" y="250" width="62" height="16" rx="3"/><text class="wlab-t" x="403" y="258" text-anchor="middle">ingest.v1</text></g>
-      <g class="wlab" data-for="wNodeSaas"><rect class="wlab-bg" x="560" y="128" width="120" height="16" rx="3"/><text class="wlab-t" x="620" y="136" text-anchor="middle">ingest.v1 · identified</text></g>
-      <g class="wlab" data-for="wNodeCol"><rect class="wlab-bg" x="468" y="248" width="62" height="16" rx="3"/><text class="wlab-t" x="499" y="256" text-anchor="middle">ingest.v1</text></g>
-      <g class="wlab" data-for="wColSaas"><rect class="wlab-bg" x="700" y="168" width="62" height="16" rx="3"/><text class="wlab-t" x="731" y="176" text-anchor="middle">ingest.v1</text></g>
+      <g class="wlab" data-for="wE1E2"><rect class="wlab-bg" x="368" y="250" width="88" height="16" rx="3"/><text class="wlab-t" x="412" y="258" text-anchor="middle">stream row</text></g>
+      <g class="wlab" data-for="wNodeSaas"><rect class="wlab-bg" x="548" y="128" width="148" height="16" rx="3"/><text class="wlab-t" x="622" y="136" text-anchor="middle">writer_stream.v1</text></g>
+      <g class="wlab" data-for="wNodeCol"><rect class="wlab-bg" x="458" y="248" width="88" height="16" rx="3"/><text class="wlab-t" x="502" y="256" text-anchor="middle">stream row</text></g>
+      <g class="wlab" data-for="wColSaas"><rect class="wlab-bg" x="686" y="168" width="100" height="16" rx="3"/><text class="wlab-t" x="736" y="176" text-anchor="middle">writer_stream</text></g>
       <g class="wlab" data-for="wNetCol"><rect class="wlab-bg" x="300" y="372" width="78" height="16" rx="3"/><text class="wlab-t" x="339" y="380" text-anchor="middle">SNMP / flows</text></g>
       <g class="wlab" data-for="wIngMap"><rect class="wlab-bg" x="980" y="128" width="96" height="16" rx="3"/><text class="wlab-t" x="1028" y="136" text-anchor="middle">→ GraphSnapshot</text></g>
       <g class="wlab" data-for="wIngHist"><rect class="wlab-bg" x="980" y="218" width="88" height="16" rx="3"/><text class="wlab-t" x="1024" y="226" text-anchor="middle">→ sketch.v1</text></g>
@@ -637,10 +637,10 @@
     {
       title: "Collect",
       kicker: "Beat 2 of 11 · E1",
-      lede: "Node admits wire-format records as ingest.v1 envelopes.",
+      lede: "Node admits wire-format stream rows — no router enum, no Dest write yet.",
       where: "Ingestion zone · Node agent. Collector stays idle until a packet uses it.",
-      io: "In: vendor streams. Out: TelemetryEnvelope / ingest.v1.",
-      not: "E1 does not resolve ci_id or write map/ / history/.",
+      io: "In: vendor streams. Out: common stream spine (ts, tenant placeholder, optional blocks).",
+      not: "E1 does not resolve ci_id, does not stamp fact_kind, and does not write map/ / history/.",
       live: ["nE1"]
     },
     {
@@ -648,7 +648,7 @@
       kicker: "Beat 3 of 11 · E2",
       lede: "Normalize is Identity: stamp tenant + ci_id so later rooms can meet.",
       where: "Ingestion zone · Node. Door A is visible and not fired in this film.",
-      io: "In: admitted envelope. Out: identity overlay on the same contract.",
+      io: "In: admitted stream row. Out: writer_stream.v1 with identity overlay (still no fact_kind).",
       not: "Not E10 Identify. Fan-out happens after SaaS ingest, not on the Node.",
       live: ["nE2"]
     },
@@ -664,10 +664,10 @@
     {
       title: "Fan-out",
       kicker: "Beat 5 of 11 · E3 ∥ E4",
-      lede: "Ingest API fans out to both rooms in parallel. They never copy each other.",
-      where: "Pillar B Topology → map/. Pillar A sketches → history/. Same stream, two writers.",
-      io: "In: identified records. Out: GraphSnapshot and sketch.v1 keyed by the same ci_id.",
-      not: "No sync job. E5 has not run yet. This is not Detect.",
+      lede: "Ingest API fans out writer_stream.v1 to both regulators. Rooms never copy each other.",
+      where: "GraphRegulator → map/. SketchRegulator → history/. Same stream; presence predicates decide care.",
+      io: "In: identified writer_stream.v1. Out: GraphSnapshot and sketch.v1 keyed by the same entity_id.",
+      not: "No fact_kind router. No sync job. E5 has not run yet. This is not Detect.",
       live: ["nIng", "nMap", "nHist"]
     },
     {

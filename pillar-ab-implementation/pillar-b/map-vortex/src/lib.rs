@@ -14,6 +14,7 @@ pub mod load;
 pub mod manifest;
 pub mod publish;
 pub mod schema;
+pub mod snapshot_json;
 pub mod tables;
 pub mod types;
 pub mod write;
@@ -36,6 +37,7 @@ pub use schema::{
     ATTR_CATALOG_VERSION, EDGE_COLUMNS, EDGE_WALK_COLUMNS, NODE_COLUMNS, NODE_WALK_COLUMNS,
     map_edges_schema, map_nodes_schema,
 };
+pub use snapshot_json::{GraphSnapshotJson, edges_from_batch, loaded_map_to_snapshot, nodes_from_batch};
 pub use tables::{edges_record_batch, nodes_record_batch, project_batch};
 pub use types::{GraphEdge, GraphNode};
 pub use write::{MaterializedParts, materialize_snapshot_parts, write_arrow_ipc, write_vortex};

@@ -1,8 +1,8 @@
 """Destination protocol for logical rooms (``map/`` · ``history/``).
 
-GraphWriter publishes via ``Dest.put("map", …)``. Scope/Diagnose read via ``get``.
-PoC uses ``FileDest`` / ``MemoryDest`` (Gate B ``files.v1``). Product later plugs
-Vortex/S3 adapters with the same put/get keys — not a second schema.
+GraphWriter publishes via ``Dest.put("map", …)`` for ``files.v1`` lab keys, or
+via the map-room filesystem path for ``vortex_s3.v1`` (see ``graph.cold_vortex``).
+Scope/Diagnose read a loaded snapshot — not Vortex per hop.
 """
 
 from __future__ import annotations
