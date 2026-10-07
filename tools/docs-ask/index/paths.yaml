@@ -1,0 +1,53 @@
+# Paths to include in the Unified-RCA documentation search index.
+# Relative to repository root. Symlinks (docs -> knowledge) are skipped at crawl time.
+
+# Explicit allowlist keeps the deployable index small enough for Cloudflare assets.
+include_files:
+  - knowledge/DOCUMENTATION_SEARCH.md
+  - knowledge/REPO_AUDIT.md
+  - knowledge/INGEST_DATA_FORMAT.md
+  - knowledge/NAVIGATION.md
+  - knowledge/CODE_GUIDE.md
+  - knowledge/observeops/OUR_HLD_TIER1.md
+  - knowledge/observeops/OBSERVEOPS_PIPELINE_HLD.md
+  - knowledge/observeops/LLD-E1-Collect.md
+  - knowledge/observeops/LLD-E2-Identity.md
+  - knowledge/observeops/LLD-E3-Topology.md
+  - knowledge/observeops/LLD-E4-Stores.md
+  - knowledge/observeops/LLD-E5-Maintain.md
+  - knowledge/observeops/observeops-pipeline-hld.html
+  - knowledge/fabric/README.md
+  - knowledge/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md
+  - knowledge/motadata/MOTADATA_3PILLARS_VS_SHIFT_LEFT.md
+  - knowledge/motadata/MOTADATA_3PILLARS_STUDY_QNA.md
+  - product/contracts/WRITER_REGULATOR.md
+  - product/contracts/GRAPH_QNA.md
+  - product/contracts/MAP_WRITE_READ_RECORD.md
+  - product/contracts/EDGE_TRIPLET_ALLOWLIST.md
+  - product/contracts/GATE_B_DEST_PROFILE.md
+  - product/E2_INPUT_FIXTURES.md
+  - product/IMPLEMENTATION_PLAN.md
+  - product/README.md
+  - product/scope/MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md
+  - product/pillar-b/docs/TEAM_WALKTHROUGH.md
+  - product/pillar-b/README.md
+  - product/pillar-a/README.md
+
+include_globs: []
+
+exclude_globs:
+  - "**/node_modules/**"
+  - "**/.venv/**"
+  - "**/__pycache__/**"
+  - "**/archive/**"
+  - "**/_archive/**"
+
+github:
+  owner: harshilshah2501
+  repo: unified-rca-pipeline
+  branch: chore/pillar-b-graphwriter-api-rename
+
+chunking:
+  max_chars: 1600
+  overlap_chars: 120
+  max_text_chars: 1400

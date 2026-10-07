@@ -1,0 +1,10 @@
+node_modules/
+.wrangler/
+.dev.vars
+public/docs-index.json
+
+# Generated / local deploy artifacts
+public/docs-index.json
+public/docs-index.json.gz
+src/worker.embedded.js
+src/_mcp_*.js
