@@ -626,6 +626,12 @@
 <div class="wrap">
   <p class="eyebrow">ObserveOps · E1–E11 · data contracts</p>
   <h1>Data <span>shape journey</span></h1>
+  <p class="lead" style="border-left:3px solid var(--accent-a);padding-left:.75rem;margin-bottom:.85rem">
+    <strong>Bridge teaching.</strong> Steps below use Collect <code>ingest.v1</code> + <code>fact_kind</code> (corpus / lab).
+    Motadata GraphWriter / SketchWriter SoT after E2 is <code>writer_stream.v1</code> with optional blocks
+    (no <code>fact_kind</code>) — see
+    <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a>.
+  </p>
   <p class="lead">How telemetry changes <strong>name</strong>, <strong>form</strong>, and <strong>structure</strong> across two deployment zones: <strong>Edge devices</strong> (customer infra) and <strong>Platform</strong> (SaaS E1–E11). We follow <strong>one latency measurement</strong> (<span class="val" style="font-family:var(--font-mono);font-size:12px;color:var(--accent-a)">842 ms</span> on <code style="font-size:12px">checkout-api</code>) from raw agent output through <code>metric_sample</code> lines to a flushed <code>sketch.v1</code> row.</p>
   <p class="links">Hub: <a href="/observeops-pipeline-hld.html">Our HLD</a> ·
     <a href="/observeops-pipeline-hld.html#fabric">Fabric section</a> ·

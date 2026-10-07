@@ -27,7 +27,10 @@ pre{overflow-x:auto;padding:1rem;background:var(--bg-elev);border:1px solid var(
   <h1>3 pillars work — what we need, what we emit, what we write</h1>
   <p class="lead">
     This workstream is <strong style="color:var(--text)">E3–E5</strong> (graph, sketches, maintain).
-    E1 and E2 are upstream: we consume <code>ingest.v1</code> plus <code>identity</code>; we do not implement Collect or Identity here.
+    E1 and E2 are upstream: we consume post-E2 identity; we do not implement Collect or Identity here.
+    Motadata writer SoT is <code>writer_stream.v1</code> (optional blocks, no <code>fact_kind</code>) —
+    <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a>.
+    Lab fixtures may still show legacy <code>ingest.v1</code> + <code>fact_kind</code> below.
     Slice home: <a href="/pillar-ab-implementation/README.md">pillar-ab-implementation/</a>.
     Canonical markdown: <a href="/pillar-ab-implementation/scope/MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md">MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md</a>.
     Merged PDF (Gaps + Explained + this page):
@@ -39,6 +42,7 @@ pre{overflow-x:auto;padding:1rem;background:var(--bg-elev);border:1px solid var(
     Pillar A (sketches) and Pillar B (CI graph) write in P1.
     Pillar C (ReAct) is out of this block.
     P2 has no Motadata pillar.
+    Writer fan-out: presence of <code>metric</code> / <code>topology</code> blocks — not a Collect <code>fact_kind</code> router.
   </div>
   <nav class="toc">
     <a href="#answers">1 Answers before start</a>
@@ -93,7 +97,7 @@ pre{overflow-x:auto;padding:1rem;background:var(--bg-elev);border:1px solid var(
   <h2 id="e1">3. What we expect from E1 (not our build)</h2>
   <p>E1 admits telemetry. It does not bind, detect, or merge. Contract: <a href="/docs/LLD-E1-Collect.md">LLD-E1</a>.</p>
   <p>Send metrics, logs/events, optional traces, topology cues. Do not send tickets or CMDB this pass.</p>
-  <p>E1 emits <strong style="color:var(--text)">UTF-8 JSONL</strong>, one object per line, <code>schema_version: "ingest.v1"</code>.</p>
+  <p>Collect bridge (corpus / lab) emits <strong style="color:var(--text)">UTF-8 JSONL</strong> as <code>ingest.v1</code>. After E2, Motadata writers prefer <code>writer_stream.v1</code> blocks (see regulator link above).</p>
 <pre>{
   "schema_version": "ingest.v1",
   "ts": "2026-08-19T12:00:00Z",
@@ -105,7 +109,7 @@ pre{overflow-x:auto;padding:1rem;background:var(--bg-elev);border:1px solid var(
   "value": 1450.0,
   "labels": { "source": "lab-node" }
 }</pre>
-  <p>Admitted <code>fact_kind</code>: metric_sample, anomaly, event, trace_span, topo_update. Reserved (do not emit): change_event, cmdb_sync, ticket.</p>
+  <p>Legacy Collect <code>fact_kind</code> (bridge): metric_sample, anomaly, event, trace_span, topo_update. Reserved (do not emit): change_event, cmdb_sync, ticket. Motadata writers admit by optional-block presence, not this enum.</p>
   <p>Preferred lab folder: <code>datasets/ingest_samples/&lt;suite&gt;/&lt;incident_id&gt;/stream.jsonl</code> + <code>topology.json</code> + optional <code>ground_truth.json</code>.</p>
 
   <h2 id="e2">4. What we expect from E2 (not our build)</h2>

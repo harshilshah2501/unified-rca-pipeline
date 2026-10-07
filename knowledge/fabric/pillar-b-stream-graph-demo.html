@@ -24,7 +24,7 @@
     --ci-db-soft: rgba(76, 106, 154, 0.16);
     --ci-host: #57534e;
     --ci-host-soft: rgba(87, 83, 78, 0.16);
-    /* Stream card — fact_kind admit (not map colors) */
+    /* Stream card — legacy lab fact_kind admit styling (not map colors) */
     --fk-topo: #3d8a6a;
     --fk-metric: #5b8fb8;
     --fk-span: #8b7bb8;
@@ -278,12 +278,14 @@
     (admit: complete claim → resolved → CI vertex → relation catalog +
     <a href="/pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md">triplet allowlist</a>).
     Motadata columnar twin: Rust <a href="/pillar-ab-implementation/pillar-b/map-vortex/"><code>map_vortex</code></a>
-    <code>HotMap::apply_topo_line</code>. Lab wire is still <code>ingest.v1</code> + <code>fact_kind</code>;
-    target is <code>writer_stream.v1</code> —
-    <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a>.
+    <code>HotMap::apply_topo_line</code>.
+    <strong>SoT:</strong> <code>writer_stream.v1</code> admits by <code>topology</code> block presence
+    (<a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a>).
+    <strong>This demo tape</strong> is still legacy <code>ingest.v1</code> + <code>fact_kind=topo_update</code>
+    (GraphWriter dual-admits both until fixtures migrate).
   </p>
   <p class="lead">
-    Left: bootstrap payload or one ingest line. Right: <strong>map/</strong> —
+    Left: bootstrap payload or one stream line. Right: <strong>map/</strong> —
     Motadata CI nodes from bootstrap, then <strong>one edge per WRITE</strong>
     (<code>edge_type</code> SCREAMING, <code>origin</code> stream|declared).
     <strong>DROP</strong> shows reject codes without mutating the graph.
@@ -294,7 +296,7 @@
     <li><strong>B0</strong> — <code>load_estate_bootstrap</code> (vertices)</li>
     <li><strong>WRITE</strong> — upsert <code>(source_id, edge_type, target_id)</code></li>
     <li><strong>DROP</strong> — e.g. <code>illegal_edge_triplet</code></li>
-    <li><strong>NOOP</strong> — non-topo fact_kind</li>
+    <li><strong>NOOP</strong> — no topology claim (lab: non-<code>topo_update</code>)</li>
     <li><strong>No</strong> <code>discovered_via</code> on edges</li>
   </ul>
 
@@ -427,7 +429,7 @@
   }
 
   const COMMON_KEYS = [
-    "schema_version", "ts", "tenant", "ci_id", "ci_type", "fact_kind", "identity"
+    "schema_version", "ts", "tenant", "ci_id", "ci_type", "fact_kind" /* legacy lab */, "identity"
   ];
   const SPECIFIC_KEYS = [
     "relation", "src_ci_id", "dst_ci_id", "src_ci_type", "dst_ci_type",
@@ -541,7 +543,7 @@
     }
     const admit = admitChip(step);
     const flat = flattenLine(step.line);
-    const kind = flat.fact_kind || "event";
+    const kind = flat.fact_kind /* legacy lab tape */ || "event";
     streamEl.innerHTML =
       '<article class="sg-card kind-' + kind + '">' +
       '<div class="row1">' +
@@ -560,7 +562,7 @@
         : "") +
       '<div class="sg-json-mark" aria-hidden="true">' +
       '<span><i class="dot common"></i> common (every ingest.v1)</span>' +
-      '<span><i class="dot specific"></i> specific (this fact_kind)</span>' +
+      '<span><i class="dot specific"></i> specific (legacy lab fact_kind)</span>' +
       "</div>" +
       '<pre class="sg-json">' + markedJsonHtml(flat) + "</pre>" +
       "</article>";

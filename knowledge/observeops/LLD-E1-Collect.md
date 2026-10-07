@@ -6,6 +6,8 @@
 **Parent:** [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) §8 (E1 Collect contract), §5 (crosswalk: E1 is part of the 5-stage "Ingest" phase), §11.1 (identity namespace — E1 carries keys, does not resolve them)
 **Gate checklist (per HLD §18):** stage ID/purpose referenced ✓ · concrete schema/API defined ✓ (§2–§3) · acceptance test from corpus/lab replay ✓ (§7) · evidence-maturity tag stated ✓ (§6, §7)
 
+> **Bridge vs Motadata writer SoT:** This LLD owns **Collect** admission as `ingest.v1` (corpus / ingestion-poc). After E2, Motadata GraphWriter / SketchWriter target wire is **`writer_stream.v1`** — optional blocks, **no `fact_kind` router** — see [`WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md). Do not treat Collect `fact_kind` as the Motadata writer fan-out contract.
+
 ---
 
 ## 1. Purpose and boundary (from HLD §8)

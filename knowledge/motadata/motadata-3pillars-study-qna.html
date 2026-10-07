@@ -190,7 +190,9 @@ li{margin:.35rem 0;}
   <p>
     Our HLD is stricter: E9/E11 only <code>identity.status = resolved</code>.
     D-E2-1: synthesized or unresolved is not a ticket.
-    Change and ticket are reserved <code>fact_kind</code> values, not Collect this pass.
+    Change and ticket are reserved Collect <code>fact_kind</code> values on the <code>ingest.v1</code> bridge, not Collect this pass.
+    Motadata writers fan out on <code>writer_stream.v1</code> presence predicates
+    (<a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR</a>), not that enum.
   </p>
 
   <h2 id="edges">5. Motadata edges — four jobs</h2>

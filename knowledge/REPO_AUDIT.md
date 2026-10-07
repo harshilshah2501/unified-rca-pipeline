@@ -22,7 +22,7 @@ The tree mixes four eras of work:
 3. **Evaluation history** — `lean-pipeline/`, `federated-pipeline/`, bakeoff results — keep runnable, demote in navigation.
 4. **Local bulk** — gitignored Motadata JSONL (~4G), Nezha trees (~3G), Rust `map-vortex/target` (~5G). Not in git; inflate `du` only.
 
-**Consistency drift (measured at audit):** ~54 files still mention `fact_kind`; ~69 mention `ingest.v1`. Treat `ingest.v1` as the **ObserveOps / ingestion-poc bridge**; Motadata writers use `writer_stream.v1`.
+**Consistency (Phase C3, 2026-10-07):** Motadata teaching pages (Our HLD GraphWriter, fabric hub/demo/detect, LLDs E1–E4 banners) teach **`writer_stream.v1` presence predicates**. Remaining `fact_kind` hits are Collect/corpus bridge (`INGEST_DATA_FORMAT`, LLD-E1 enum, lab JSONL) or explicit legacy notes. Guard: [`../scripts/check_doc_drift.sh`](../scripts/check_doc_drift.sh).
 
 ## Worksheet sign-off (W1–W12)
 
@@ -74,3 +74,4 @@ python3 scripts/repo_inventory.py --hub-write
 |------|------|
 | 2026-10-07 | Initial Phase A + E0 inventory and hub crawl |
 | 2026-10-07 | Phase E2 slim `docs.html`; agent-tasks → archive; C1 park; C2 zones (`knowledge`/`product`/`eval`/`reference`/`archive`) + root shims |
+| 2026-10-07 | Phase C3: GraphWriter dual-admit (`topology` block or lab `topo_update`); HLD/LLD/fabric/Motadata scope off live `fact_kind` router; drift guard widened |

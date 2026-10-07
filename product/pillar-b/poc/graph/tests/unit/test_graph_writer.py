@@ -70,6 +70,47 @@ def test_graph_writer_silent_skip_non_topo():
     assert any(e["edge_type"] == "DEPENDS_ON" for e in snapshot["edges"])
 
 
+def test_graph_writer_admits_writer_stream_topology_block():
+    """Motadata SoT: presence of topology block — no fact_kind required."""
+    writer = GraphWriter()
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(
+        ListIngestSource(
+            [
+                {
+                    "schema_version": "writer_stream.v1",
+                    "ts": "2026-08-20T03:30:00Z",
+                    "tenant": "default",
+                    "identity": {"status": "resolved", "bind_source": "discovery"},
+                    "ci": {"ci_id": "checkout-api", "ci_type": "Service"},
+                    "metric": {"name": "request.latency_ms", "value": 42.0},
+                },
+                {
+                    "schema_version": "writer_stream.v1",
+                    "ts": "2026-08-20T03:31:00Z",
+                    "tenant": "default",
+                    "identity": {"status": "resolved", "bind_source": "discovery"},
+                    "topology": {
+                        "relation": "runsOn",
+                        "src_ci_id": "checkout-api",
+                        "dst_ci_id": "linux-server-app-01",
+                        "src_ci_type": "Service",
+                        "dst_ci_type": "Host",
+                    },
+                },
+            ]
+        )
+    )
+    assert not writer.rejects
+    snapshot = writer.publish_map(MemoryDest())
+    assert any(
+        e["edge_type"] == "RUNS_ON"
+        and e["source_id"] == "checkout-api"
+        and e["target_id"] == "linux-server-app-01"
+        for e in snapshot["edges"]
+    )
+
+
 def test_graph_writer_case_b_rejects():
     writer = GraphWriter()
     writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")

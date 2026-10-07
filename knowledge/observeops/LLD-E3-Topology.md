@@ -8,6 +8,8 @@
 **Schema source (target map shape):** [`OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) — node/edge/identity/index/fault-signature model + per-edge provenance. Worked example: [`observeops-ci-graph.html`](./observeops-ci-graph.html) (authored illustration, not live E3 output).
 **Gate checklist (per HLD §18):** stage ID/purpose referenced ✓ · concrete schema/API defined ✓ (§2–§3 bakeoff · §10 Motadata) · acceptance test from corpus/lab replay ✓ (§7 bakeoff · §10 PoC) · evidence-maturity tag stated ✓
 
+> **Motadata writer SoT:** GraphRegulator admits when a **`topology` block** is present on `writer_stream.v1` (no `fact_kind`) — [`WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md). Lab JSONL may still use legacy `ingest.v1` + `fact_kind=topo_update` (Pillar B dual-admit). Bakeoff corpus `topology.json` (§2) is a separate load path.
+
 ---
 
 ## 0. Dual path — Motadata map vs bakeoff load
@@ -18,7 +20,7 @@ Do not treat these as one schema. E3 is the **sole writer of the topology / `map
 |---|---|---|
 | [Pipeline HLD](./OBSERVEOPS_PIPELINE_HLD.md) | E3 purpose, I/O object (`GraphSnapshot`), ADR D1 | Per-edge provenance field tables |
 | [Operational-graph chapter](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) | **Target** node/edge/identity/signature shape (`evidence_type`, `refresh`, `confidence`, fault signatures) | Bakeoff runtime format |
-| **This LLD — Motadata path (§10)** | Pillar B GraphWriter: `topo_update` + optional bootstrap → `graph_snapshot.v1` under Dest `map/`; NOOP / WRITE / DROP; wave-1 relations | Continuous live discovery crawler (Design) |
+| **This LLD — Motadata path (§10)** | Pillar B GraphWriter: `writer_stream.v1` `topology` block (or lab `topo_update`) + optional bootstrap → `graph_snapshot.v1` under Dest `map/`; NOOP / WRITE / DROP; wave-1 relations | Continuous live discovery crawler (Design) |
 | **This LLD — bakeoff path (§2–§3)** | What Lean and Federated **load today**: corpus `topology.json` + `InvocationGraph` / `RelationshipGraph` | Motadata Dest keys / `graph_*.v1` |
 | [Fusion](./observeops-fusion-guide.html) | Clickable walk of the pipeline (and the map) | The written spec |
 
@@ -44,7 +46,7 @@ After E2 Identity, Motadata fabric **fans out in parallel**: E3 Topology ∥ E4 
 
 ## 2. Input schema — bakeoff `topology.json`
 
-This is the **implemented corpus shape** — what bakeoff and lab runs actually load. It does **not** yet carry operational-graph chapter fields (`evidence_type`, `refresh`, `confidence`, nested `rca.fault_signatures`). Those live on the authored CI illustration, not here. Motadata stream shape is `ingest.v1` + `topo_update` (§10), not this JSON file.
+This is the **implemented corpus shape** — what bakeoff and lab runs actually load. It does **not** yet carry operational-graph chapter fields (`evidence_type`, `refresh`, `confidence`, nested `rca.fault_signatures`). Those live on the authored CI illustration, not here. Motadata stream shape is `writer_stream.v1` + `topology` block (§10; lab may still use `ingest.v1` + `topo_update`), not this JSON file.
 
 Same shape across both engines and the whole ObserveOps corpus:
 
@@ -188,7 +190,7 @@ For Motadata unified fabric, E3 Topology is implemented by the Pillar B GraphWri
 |--|--|
 | **IN** | Optional `topology.bootstrap.json` + post-E2 stream with topology claim (`writer_stream.v1` `topology` block, or lab `ingest.v1` `topo_update`) and `identity.status=resolved` ([`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md) · [`WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md)) |
 | **OUT** | `graph_snapshot.v1` + `nodes.jsonl` / `edges.jsonl` via Gate B Dest (`map/…`) — [`MAP_WRITE_READ_RECORD.md`](../../pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md) |
-| **Admit** | **NOOP** — wrong `fact_kind` (`metric_sample`, `event`, `trace_span`, `anomaly`, …) · **WRITE** — wave-1 emit · **DROP** — unresolved/synthesized identity, never-CI types, unknown relation · phased map-NOOP — catalog relation not yet wave-1 ([`pillar-b/README.md`](../../pillar-ab-implementation/pillar-b/README.md)) |
+| **Admit** | **NOOP** — no topology claim (no `topology` block / not legacy `topo_update`; metric/event/span/anomaly-only lines) · **WRITE** — wave-1 emit · **DROP** — unresolved/synthesized identity, never-CI types, unknown relation · phased map-NOOP — catalog relation not yet wave-1 ([`pillar-b/README.md`](../../pillar-ab-implementation/pillar-b/README.md)) |
 | **Wave-1 emit** | `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of` |
 | **E5 stub** | [`maintain.py`](../../pillar-ab-implementation/pillar-b/poc/graph/maintain.py) `maintain_graph_validity` — expire `valid_to`, drop stale corroborating; does **not** create edges ([`LLD-E5-Maintain.md`](./LLD-E5-Maintain.md)) |
 

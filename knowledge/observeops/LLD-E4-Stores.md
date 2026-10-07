@@ -7,11 +7,13 @@
 **Related:** Motadata Pillar A [`pillar-a/`](../../pillar-ab-implementation/pillar-a/) · [`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) · [`E2_INPUT_FIXTURES.md`](../../pillar-ab-implementation/E2_INPUT_FIXTURES.md)
 **Gate checklist (per HLD §18):** stage ID/purpose referenced ✓ · concrete schema/API defined ✓ (§1 Motadata · §2 bakeoff) · acceptance test ✓ (§5 bakeoff · §8 PoC) · evidence-maturity tag stated ✓
 
+> **Motadata writer SoT:** SketchRegulator admits when a **`metric` block** is present on `writer_stream.v1` (no `fact_kind`) — [`WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md). Lab fixtures may still use legacy `ingest.v1` + `fact_kind=metric_sample`. Bakeoff UC JSON (§2) is a separate evidence path.
+
 ---
 
 ## 0. Dual path — Motadata history vs bakeoff evidence stores
 
-E4 is part of always-on fabric. After E2, Motadata runs **E4 Stores ∥ E3 Topology** (same stream, different `fact_kind` filters). Rooms stay independent: `history/` never syncs continuously into `map/` ([`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G16).
+E4 is part of always-on fabric. After E2, Motadata runs **E4 Stores ∥ E3 Topology** (same `writer_stream.v1`, different presence predicates: `metric` vs `topology`). Rooms stay independent: `history/` never syncs continuously into `map/` ([`GRAPH_QNA.md`](../../pillar-ab-implementation/contracts/GRAPH_QNA.md) G16).
 
 | Path | What E4 means | Primary artifact |
 |------|----------------|------------------|
@@ -26,7 +28,7 @@ Do not equate “E4 Stores” with “all MELTS in one sketch.” Logs (`event`)
 
 E4 Stores persists queryable evidence over time under the shared identity E2 established, so E6 Detect and E10 Identify have historical evidence to reason over (and E9 has an advisory dotted dependency on it per HLD §9's contract diagram, same as E3).
 
-**Motadata fabric job (Pillar A):** admit `metric_sample` with resolved identity → aggregate into windowed `sketch.v1` (T-Digest + buckets + seasonal baseline). Sketches do **not** carry edges (`src_ci_id` / `dst_ci_id` / `relation` forbidden).
+**Motadata fabric job (Pillar A):** admit lines with a `metric` block (lab: `fact_kind=metric_sample`) and resolved identity → aggregate into windowed `sketch.v1` (T-Digest + buckets + seasonal baseline). Sketches do **not** carry edges (`src_ci_id` / `dst_ci_id` / `relation` forbidden).
 
 **Trigger:** continuous writes.
 **Inputs:** `IdentifiedRecord` (E2's output).
@@ -181,8 +183,8 @@ The Motadata Pillar A PoC under [`pillar-ab-implementation/pillar-a/poc/sketch/`
 
 | | |
 |--|--|
-| **Admits** | `metric_sample` + `identity.status=resolved` |
-| **Silent skip** | `topo_update`, `event`, `trace_span`, `anomaly`, … |
+| **Admits** | `metric` block present (lab: `metric_sample`) + `identity.status=resolved` |
+| **Silent skip** | topology-only / event / span / anomaly lines (no metric claim) |
 | **Must not** | Emit edges; write into `map/` |
 | **Join** | `entity_id` ≡ graph `ci_id` at read time (E8 Scope / integration harness) |
 

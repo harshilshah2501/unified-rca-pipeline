@@ -1348,11 +1348,11 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
           <div class="stack">
             <div class="node">resolved identity?</div>
             <div class="varr">↓</div>
-            <div class="node">correct fact_kind?</div>
+            <div class="node">topology / metric block present?</div>
             <div class="varr">↓</div>
             <div class="node ok">WRITE · or NOOP · or DROP</div>
           </div>
-          GraphWriter takes <code>topo_update</code>; SketchWriter takes <code>metric_sample</code>. Wrong class → silent NOOP. Reject → DROP with reason — rooms stay clean.
+          Regulators key on optional blocks on <code>writer_stream.v1</code> (no <code>fact_kind</code>): GraphWriter needs <code>topology</code>; SketchWriter needs <code>metric</code>. Wrong shape → silent NOOP. Reject → DROP with reason — rooms stay clean.
         </div>
       </div>
       <div class="mech c">
@@ -1677,8 +1677,11 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     Framing hub:
     <a href="/pillar-b-poc-hub.html">pillar-b-poc-hub.html</a>.
     Case-path stubs under <code>case_path/</code> are optional harnesses, not the PoC mission.
-    Input: post-E2 <code>ingest.v1</code> with <code>fact_kind=topo_update</code> (plus optional estate bootstrap — not E7 CaseSeed).
-    Output: Gate B <code>files.v1</code> under <code>map/</code>.
+    Input: Motadata SoT is post-E2 <code>writer_stream.v1</code> with a <code>topology</code> block
+    (<a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR</a>).
+    Lab fixtures may still use legacy <code>ingest.v1</code> + <code>fact_kind=topo_update</code> until migrated.
+    Plus optional estate bootstrap — not E7 CaseSeed.
+    Output: Dest <code>files.v1</code> / <code>vortex_s3.v1</code> under <code>map/</code>.
     OneOps / Fusion HTML briefs under <code>archived-docs/</code> are catalog material only — they are not GraphWriter callers.
     Part of <a href="#overview">Our HLD</a> · Topology writer under <code>pillar-ab-implementation/pillar-b/poc</code>.
   </p>
@@ -1716,13 +1719,13 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
           </tr>
           <tr>
             <td>E2 Identity (upstream)</td>
-            <td>Stamps identity on ingest.v1</td>
+            <td>Stamps identity on the shared stream</td>
             <td>GraphWriter only admits <code>identity.status = resolved</code>. Unresolved / synthesized lines become rejects.</td>
           </tr>
           <tr>
-            <td>Shared ingest stream</td>
+            <td>Shared writer stream</td>
             <td>Same wire as Pillar A</td>
-            <td>JSONL of <code>ingest.v1</code>. GraphWriter filters <code>fact_kind = topo_update</code>; <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> are silent NOOP.</td>
+            <td>JSONL of <code>writer_stream.v1</code> (SoT). GraphRegulator admits when a <code>topology</code> block is present; lines with only <code>metric</code> / <code>event</code> / <code>span</code> / <code>anomaly</code> are silent NOOP. Legacy lab JSONL may still carry <code>fact_kind=topo_update</code>.</td>
           </tr>
           <tr>
             <td>topology.bootstrap.json (lab)</td>
@@ -1842,21 +1845,23 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     </div>
     <div class="grid-2">
       <div class="card">
-        <div class="card-h">Input · one ingest.v1 line</div>
+        <div class="card-h">Input · one writer_stream.v1 line (Motadata SoT)</div>
         <div class="card-b">
 <pre class="code">{
-  "schema_version": "ingest.v1",
+  "schema_version": "writer_stream.v1",
   "ts": "2026-08-20T03:30:00Z",
   "tenant": "default",
-  "ci_id": "checkout-api",
-  "ci_type": "Service",
-  "fact_kind": "topo_update",
-  "relation": "runs_on",
-  "src_ci_id": "checkout-api",
-  "dst_ci_id": "linux-server-app-01",
   "identity": {
     "status": "resolved",
     "bind_source": "topology_lookup"
+  },
+  "ci": { "ci_id": "checkout-api", "ci_type": "Service" },
+  "topology": {
+    "relation": "runsOn",
+    "src_ci_id": "checkout-api",
+    "dst_ci_id": "linux-server-app-01",
+    "src_ci_type": "Service",
+    "dst_ci_type": "Host"
   }
 }</pre>
         </div>
@@ -1888,10 +1893,10 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
           <tr><th>Check</th><th>This line</th><th>Result</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>fact_kind</code></td><td><code>topo_update</code></td><td>Not skipped</td></tr>
+          <tr><td><code>topology</code> block</td><td>present (<code>runsOn</code>)</td><td>GraphRegulator admits</td></tr>
           <tr><td><code>identity.status</code></td><td><code>resolved</code></td><td>Gate admits</td></tr>
           <tr><td><code>ci_type</code></td><td><code>Service</code></td><td>May emit vertex</td></tr>
-          <tr><td><code>relation</code></td><td><code>runs_on</code></td><td>Wave-1 catalog · upsert edge</td></tr>
+          <tr><td><code>relation</code></td><td><code>runsOn</code> → <code>RUNS_ON</code></td><td>Catalog · upsert edge</td></tr>
           <tr><td>Endpoints</td><td>checkout-api → linux-server-app-01</td><td>Ensure both nodes exist</td></tr>
           <tr><td><code>edge_id</code></td><td><code>e_checkout-api_runs_on_linux-server-app-01</code></td><td>Stable replace key</td></tr>
         </tbody>
@@ -1906,7 +1911,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
       <p class="blurb">Three output actions · NOOP · WRITE · DROP</p>
     </div>
     <p class="lead" style="margin-bottom:0.85rem">
-      Every <code>ingest.v1</code> line ends in one of three GraphWriter actions.
+      Every post-E2 stream line ends in one of three GraphWriter actions.
       <strong style="color:var(--text)">NOOP</strong> (silent skip) ignores the line;
       <strong style="color:var(--text)">WRITE</strong> (admit) mutates <code>GraphState</code>;
       <strong style="color:var(--text)">DROP</strong> (reject) records a shared reason code and leaves the map unchanged.
@@ -1926,19 +1931,19 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
 
         <!-- Start -->
         <rect x="310" y="40" width="240" height="44" rx="8" fill="#1a2838" stroke="#7ba8f5" stroke-width="1.5"/>
-        <text x="430" y="58" text-anchor="middle" fill="#9bb8f5" font-size="11" font-weight="600">① ingest.v1 line</text>
+        <text x="430" y="58" text-anchor="middle" fill="#9bb8f5" font-size="11" font-weight="600">① writer_stream.v1 line</text>
         <text x="430" y="74" text-anchor="middle" fill="#8a96a4" font-size="10">post-E2 stream (shared with Pillar A)</text>
 
         <line x1="430" y1="84" x2="430" y2="108" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
 
         <!-- Decision 1 -->
         <rect x="280" y="112" width="300" height="52" rx="8" fill="#171d25" stroke="#2a3441"/>
-        <text x="430" y="132" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">② fact_kind = topo_update ?</text>
-        <text x="430" y="150" text-anchor="middle" fill="#8a96a4" font-size="10">Router: is this Topology’s job?</text>
+        <text x="430" y="132" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">② topology block present?</text>
+        <text x="430" y="150" text-anchor="middle" fill="#8a96a4" font-size="10">Presence predicate — no fact_kind router</text>
 
         <!-- NO branch → NOOP -->
         <path d="M280,138 L120,138 L120,210" fill="none" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
-        <text x="175" y="128" fill="#8a96a4" font-size="10" font-family="IBM Plex Mono, monospace">no · metric/event/trace/…</text>
+        <text x="175" y="128" fill="#8a96a4" font-size="10" font-family="IBM Plex Mono, monospace">no · metric/event/span/…</text>
 
         <rect x="30" y="214" width="180" height="78" rx="8" fill="#1c2430" stroke="#8a96a4" stroke-width="1.5"/>
         <text x="120" y="236" text-anchor="middle" fill="#b8c4d0" font-size="11" font-weight="700" font-family="IBM Plex Mono, monospace">A · NOOP</text>
@@ -1987,7 +1992,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     <div class="admit-legend" aria-label="Action legend">
       <div>
         <div class="tag noop">A · NOOP</div>
-        <p><strong style="color:var(--text)">Silent skip.</strong> Wrong <code>fact_kind</code> for GraphWriter. No state change, no reject code. Examples: <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> (Pillar A sketches are metrics-only; logs/traces are not <code>sketch.v1</code>).</p>
+        <p><strong style="color:var(--text)">Silent skip.</strong> No <code>topology</code> block for GraphWriter (and not a legacy lab <code>fact_kind=topo_update</code>). No state change, no reject code. Examples: <code>metric</code>-only, <code>event</code>, <code>span</code>, <code>anomaly</code> (Pillar A sketches are metrics-only; logs/traces are not <code>sketch.v1</code>).</p>
       </div>
       <div>
         <div class="tag write">B · WRITE</div>
@@ -2003,53 +2008,53 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Case</th><th>fact_kind</th><th>identity</th><th>relation</th><th>Action</th><th>Outcome</th></tr>
+          <tr><th>Case</th><th>Stream shape</th><th>identity</th><th>relation</th><th>Action</th><th>Outcome</th></tr>
         </thead>
         <tbody>
           <tr class="tone-success">
-            <td>Happy topo</td><td><code>topo_update</code></td><td><code>resolved</code></td><td><code>runs_on</code></td>
+            <td>Happy topo</td><td><code>topology</code> present</td><td><code>resolved</code></td><td><code>runsOn</code></td>
             <td><strong>B · WRITE</strong></td>
             <td>Admit → upsert node(s) + edge</td>
           </tr>
           <tr>
-            <td>Metric on same stream</td><td><code>metric_sample</code></td><td><code>resolved</code></td><td>—</td>
+            <td>Metric on same stream</td><td><code>metric</code> only</td><td><code>resolved</code></td><td>—</td>
             <td><strong>A · NOOP</strong></td>
             <td>Silent skip (Pillar A sketch writer)</td>
           </tr>
           <tr>
-            <td>Log / event on same stream</td><td><code>event</code></td><td><code>resolved</code></td><td>—</td>
+            <td>Log / event on same stream</td><td><code>event</code> only</td><td><code>resolved</code></td><td>—</td>
             <td><strong>A · NOOP</strong></td>
             <td>Silent skip (not map; not <code>sketch.v1</code>)</td>
           </tr>
           <tr>
-            <td>Trace span on same stream</td><td><code>trace_span</code></td><td><code>resolved</code></td><td>—</td>
+            <td>Span on same stream</td><td><code>span</code> only</td><td><code>resolved</code></td><td>—</td>
             <td><strong>A · NOOP</strong></td>
             <td>Silent skip (E9/E10 evidence path)</td>
           </tr>
           <tr class="tone-danger">
-            <td>Unresolved identity</td><td><code>topo_update</code></td><td><code>unattributed</code></td><td><code>runs_on</code></td>
+            <td>Unresolved identity</td><td><code>topology</code> present</td><td><code>unattributed</code></td><td><code>runsOn</code></td>
             <td><strong>C · DROP</strong></td>
             <td>Reject · identity_unresolved</td>
           </tr>
           <tr class="tone-danger">
-            <td>Synthesized identity</td><td><code>topo_update</code></td><td><code>synthesized</code></td><td><code>runs_on</code></td>
+            <td>Synthesized identity</td><td><code>topology</code> present</td><td><code>synthesized</code></td><td><code>runsOn</code></td>
             <td><strong>C · DROP</strong></td>
             <td>Reject · identity_synthesized</td>
           </tr>
           <tr class="tone-danger">
-            <td>Never-CI type</td><td><code>topo_update</code></td><td><code>resolved</code></td><td><code>runs_on</code></td>
+            <td>Never-CI type</td><td><code>topology</code> present</td><td><code>resolved</code></td><td><code>runsOn</code></td>
             <td><strong>C · DROP</strong></td>
             <td>Reject · never_ci_vertex (Alert/Incident/…)</td>
           </tr>
           <tr class="tone-danger">
-            <td>Unknown relation</td><td><code>topo_update</code></td><td><code>resolved</code></td><td><code>CORRELATED_WITH</code></td>
+            <td>Unknown relation</td><td><code>topology</code> present</td><td><code>resolved</code></td><td><code>CORRELATED_WITH</code></td>
             <td><strong>C · DROP</strong></td>
             <td>Reject · unknown_relation</td>
           </tr>
           <tr class="tone-warning">
-            <td>Catalog but not wave-1</td><td><code>topo_update</code></td><td><code>resolved</code></td><td><code>mounts</code> (example)</td>
-            <td><strong>A · NOOP</strong>*</td>
-            <td>Phased skip (legal enum, emitter not ready)</td>
+            <td>Unknown / deferred relation</td><td><code>topology</code> present</td><td><code>resolved</code></td><td><code>mounts</code> (Motadata-only example)</td>
+            <td><strong>A · NOOP</strong> or DROP*</td>
+            <td>Phased skip until Dest emit is ready</td>
           </tr>
         </tbody>
       </table>

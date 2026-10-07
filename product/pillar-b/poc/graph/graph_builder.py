@@ -253,39 +253,78 @@ def load_estate_bootstrap_state(path_or_dict: Any, tenant: str = "default") -> G
     return state
 
 
+def _is_topology_job(rec: dict[str, Any]) -> bool:
+    """True when GraphWriter / GraphRegulator should consider this line.
+
+    Motadata SoT: ``writer_stream.v1`` with a present ``topology`` block
+    (see contracts/WRITER_REGULATOR.md). Lab fixtures may still use legacy
+    ``ingest.v1`` with ``fact_kind=topo_update``.
+    """
+    topo = rec.get("topology")
+    if isinstance(topo, dict) and topo.get("relation") and topo.get("src_ci_id") and topo.get("dst_ci_id"):
+        return True
+    return rec.get("fact_kind") == "topo_update"
+
+
+def _flatten_topology_fields(rec: dict[str, Any]) -> dict[str, Any]:
+    """Project writer_stream ``topology`` (+ optional ``ci``) onto flat keys GraphWriter already uses."""
+    out = dict(rec)
+    topo = rec.get("topology")
+    if isinstance(topo, dict):
+        for key in (
+            "relation",
+            "src_ci_id",
+            "dst_ci_id",
+            "src_ci_type",
+            "dst_ci_type",
+        ):
+            if topo.get(key) is not None and out.get(key) is None:
+                out[key] = topo[key]
+    ci = rec.get("ci")
+    if isinstance(ci, dict):
+        if out.get("ci_id") is None and ci.get("ci_id"):
+            out["ci_id"] = ci["ci_id"]
+        if out.get("ci_type") is None and ci.get("ci_type"):
+            out["ci_type"] = ci["ci_type"]
+    if out.get("ci_id") is None:
+        out["ci_id"] = out.get("src_ci_id")
+    return out
+
+
 def apply_topo_stream(state: GraphState, source: IngestSource, gate: ResolvedOnlyGate | None = None) -> GraphState:
-    """Apply post-E2 ingest lines that are Topology's job.
+    """Apply post-E2 stream lines that are Topology's job.
 
     Admit mapping (hub walkthrough NOOP / WRITE / DROP):
-      - fact_kind != topo_update → NOOP (silent continue; metric/event/trace/anomaly)
+      - no topology job (no ``topology`` block and not legacy ``fact_kind=topo_update``) → NOOP
       - gate or catalog fail → DROP (append rejects)
       - classify_relation reject → DROP
       - illegal / missing endpoint types → DROP (triplet allowlist)
       - classify_relation emit → WRITE (upsert nodes + edge)
     """
     gate = gate or ResolvedOnlyGate()
-    for rec in source.records():
-        if rec.get("fact_kind") != "topo_update":
+    for raw in source.records():
+        if not _is_topology_job(raw):
             continue
+        rec = _flatten_topology_fields(raw)
         result = gate.admit(rec)
         if not result.accepted:
-            state.rejects.append((rec, result.reason or "identity_unresolved"))
+            state.rejects.append((raw, result.reason or "identity_unresolved"))
             continue
-        ci_type = rec.get("ci_type", "Service")
+        ci_type = rec.get("ci_type") or rec.get("src_ci_type") or "Service"
         ok, reason = may_emit_vertex(ci_type)
         if not ok:
-            state.rejects.append((rec, reason or "never_ci_vertex"))
+            state.rejects.append((raw, reason or "never_ci_vertex"))
             continue
         relation = rec.get("relation")
         if not relation:
             continue
         action, reason = classify_relation(relation)
         if action == "reject":
-            state.rejects.append((rec, reason or "unknown_relation"))
+            state.rejects.append((raw, reason or "unknown_relation"))
             continue
-        src = rec.get("src_ci_id") or rec["ci_id"]
+        src = rec.get("src_ci_id") or rec.get("ci_id")
         dst = rec.get("dst_ci_id")
-        if not dst:
+        if not src or not dst:
             continue
         src_declared = rec.get("src_ci_type") or ci_type
         dst_declared = rec.get("dst_ci_type")  # no Service default — see EDGE_TRIPLET_ALLOWLIST
@@ -293,7 +332,7 @@ def apply_topo_stream(state: GraphState, source: IngestSource, gate: ResolvedOnl
         dst_storage = _resolve_endpoint_storage_type(state, dst, dst_declared)
         trip, trip_reason = check_edge_triplet(relation, src_storage, dst_storage)
         if trip != "ok":
-            state.rejects.append((rec, trip_reason or "illegal_edge_triplet"))
+            state.rejects.append((raw, trip_reason or "illegal_edge_triplet"))
             continue
         ts = to_epoch_ms(rec.get("ts")) if rec.get("ts") is not None else now_epoch_ms()
         src_emit = src_declared
@@ -308,7 +347,7 @@ def apply_topo_stream(state: GraphState, source: IngestSource, gate: ResolvedOnl
             if not ok2:
                 continue
             _upsert_node(state, {"id": cid, "type": emit_type, "name": cname}, last_seen=ts)
-        bind = rec.get("identity", {}).get("bind_source", "topo_update")
+        bind = rec.get("identity", {}).get("bind_source", "topology")
         _upsert_edge(
             state,
             source_id=src,

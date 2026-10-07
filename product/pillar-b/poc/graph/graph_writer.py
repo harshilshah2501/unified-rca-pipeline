@@ -3,7 +3,11 @@
 ``GraphWriter`` is the only library surface other code should call to mutate and
 publish ``map/``. In the PoC, ``cli_publish_map`` (and unit tests) call it; in
 product intent a Topology writer service would call the same verbs on a
-continuous ``topo_update`` stream.
+continuous post-E2 stream.
+
+Admit (dual): Motadata SoT is ``writer_stream.v1`` with a ``topology`` block
+(presence predicate — no ``fact_kind``). Lab fixtures may still send legacy
+``ingest.v1`` with ``fact_kind=topo_update``. See ``WRITER_REGULATOR.md``.
 
 Internal modules (builder, catalog, qualify, snapshot, maintain) are for this
 class and focused unit tests — not for Diagnose.
@@ -43,8 +47,9 @@ class GraphWriter:
         return self.state.rejects
 
     def write_topo_stream(self, source: IngestSource) -> None:
-        """Admit-triage ``topo_update`` lines into GraphState (NOOP / WRITE / DROP).
+        """Admit-triage topology claims into GraphState (NOOP / WRITE / DROP).
 
+        Accepts ``writer_stream.v1`` ``topology`` blocks or legacy ``fact_kind=topo_update``.
         Does not publish to Dest — call ``publish_map`` next. Only upserts in-memory GraphState.
         """
         if self.state is None:

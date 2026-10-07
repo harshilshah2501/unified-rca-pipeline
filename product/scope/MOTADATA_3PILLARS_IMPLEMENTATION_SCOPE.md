@@ -12,6 +12,8 @@
 
 This work maps the Motadata PDF onto ObserveOps. It does **not** rebuild Motadata’s product. **This workstream is E3–E5** (Pillar B graph, Pillar A sketches in E4, E5 refresh). E1 Collect and E2 Identity are **already specified** (LLDs Done). We do **not** implement them here; we **consume** their output in a fixed format. Pillar C (ReAct) is **out of this block**. P2 has no Motadata pillar.
 
+> **Writer SoT:** Motadata GraphWriter / SketchWriter admit by optional-block presence on **`writer_stream.v1`** (no `fact_kind`) — [`../contracts/WRITER_REGULATOR.md`](../contracts/WRITER_REGULATOR.md). Sections below that still show Collect `ingest.v1` + `fact_kind` are the **upstream bridge** (corpus / lab), not the Motadata writer router.
+
 ---
 
 ## 1. Answers we need before commencing

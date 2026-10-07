@@ -92,7 +92,7 @@ Full tree: [`customer_checkout/README.md`](../poc/sample_estate/customer_checkou
 
 | Hub action | When | Effect |
 |------------|------|--------|
-| **NOOP** | No complete topology claim (lab: `fact_kind` ≠ `topo_update`) | Silent skip; no reject |
+| **NOOP** | No topology claim (SoT: no `topology` block; lab: `fact_kind` ≠ `topo_update`) | Silent skip; no reject |
 | **DROP** | Fail resolved / CI-on-map / known relation / types / allowlisted pair — see [`EDGE_TRIPLET_ALLOWLIST.md`](../../contracts/EDGE_TRIPLET_ALLOWLIST.md) §2 | Append reject reason; map unchanged |
 | **WRITE** | All four admit checks pass (any of the fifteen Motadata relations) | Upsert node(s) + edge in `GraphState` |
 

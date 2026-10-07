@@ -42,15 +42,24 @@ WAVE1_RELATIONS = ALL_RELATIONS
 _INGEST_TO_EDGE_TYPE = {r: r.upper() for r in ALL_RELATIONS}
 _EDGE_TYPE_TO_INGEST = {v: k for k, v in _INGEST_TO_EDGE_TYPE.items()}
 
+# Fusion / writer_stream.v1 camelCase → Motadata ingest snake (RELATION_MAPPING.md §3).
+_FUSION_TO_INGEST = {
+    "dependsOn": "depends_on",
+    "runsOn": "runs_on",
+    "communicatesWith": "communicates_with",
+    "memberOf": "member_of",
+    "composedOf": "part_of",  # Dest arrow may flip at publish; PoC stores Motadata part_of
+}
+
 ALL_EDGE_TYPES = frozenset(_INGEST_TO_EDGE_TYPE.values())
 
 
 def to_edge_type(relation: str) -> str:
-    """Map ingest ``relation`` (snake_case) or Motadata name to storage ``edge_type``."""
-    key = (relation or "").strip()
+    """Map ingest ``relation`` (snake_case), Fusion camelCase, or Motadata name to storage ``edge_type``."""
+    key = normalize_relation(relation or "")
     if key in _INGEST_TO_EDGE_TYPE:
         return _INGEST_TO_EDGE_TYPE[key]
-    upper = key.upper()
+    upper = (relation or "").strip().upper()
     if upper in _EDGE_TYPE_TO_INGEST:
         return upper
     raise ValueError(f"unknown relation {relation!r}")
@@ -68,10 +77,12 @@ def from_edge_type(edge_type: str) -> str:
 
 
 def normalize_relation(name: str) -> str:
-    """Return ingest snake_case for classify / filters."""
+    """Return ingest snake_case for classify / filters (Fusion camelCase accepted)."""
     key = (name or "").strip()
     if key in ALL_RELATIONS:
         return key
+    if key in _FUSION_TO_INGEST:
+        return _FUSION_TO_INGEST[key]
     upper = key.upper()
     if upper in _EDGE_TYPE_TO_INGEST:
         return _EDGE_TYPE_TO_INGEST[upper]

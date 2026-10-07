@@ -8,6 +8,8 @@
 
 This document **is** the Normalize LLD. Do not look for a separate `LLD-Normalize.md`.
 
+> **Bridge vs Motadata writer SoT:** E2 stamps `identity.*` on the shared stream. Corpus / lab converters still overlay `ingest.v1`. Motadata writer microservices then admit by **optional-block presence** on `writer_stream.v1` (no `fact_kind`) — [`WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md). Pillar A/B PoC labs may still feed legacy `ingest.v1` + `fact_kind` until fixtures migrate (dual-admit in GraphWriter).
+
 ---
 
 ## 1. Purpose and boundary (from HLD §8)
