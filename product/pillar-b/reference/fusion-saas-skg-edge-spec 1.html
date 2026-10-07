@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fusion SaaS · SKG Edge Specification · Motadata</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Geist+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Motadata coral, pulled from brand SVG */
+  --coral:        #f17463;
+  --coral-deep:   #c95644;
+  --coral-soft:   #fdf0ed;
+
+  /* Ink scale */
+  --ink:          #1a1a1f;
+  --ink-2:        #3a3a42;
+  --ink-3:        #56575e;
+  --ink-4:        #7a7b82;
+  --ink-5:        #a1a2a9;
+  --ink-6:        #d1d2d7;
+
+  /* Surfaces */
+  --line:         #ececef;
+  --line-soft:    #f4f4f6;
+  --paper:        #ffffff;
+  --paper-2:      #fafbfc;
+  --paper-3:      #f5f6f8;
+
+  /* Card system */
+  --card-bg:      #ffffff;
+  --card-border:  1px solid var(--line);
+  --card-radius:  12px;
+  --card-pad-x:   1.9rem;
+  --card-pad-y:   1.8rem;
+
+  /* Layout */
+  --w:            860px;
+  --w-wide:       1040px;
+  --gutter:       2rem;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink-2);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 400;
+  line-height: 1.75;
+  font-size: 16.5px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern', 'ss01';
+  overflow-x: hidden;
+}
+::selection { background: var(--coral-soft); color: var(--coral-deep); }
+
+h1, h2, h3, h4 {
+  font-family: 'Fraunces', Georgia, serif;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+p { color: var(--ink-2); line-height: 1.78; }
+em { font-style: italic; color: var(--ink); }
+strong { font-weight: 600; color: var(--ink); }
+code, .mono {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.86em;
+  color: var(--coral-deep);
+  background: var(--coral-soft);
+  padding: 0.08em 0.4em;
+  border-radius: 4px;
+  font-weight: 500;
+}
+a { color: var(--coral-deep); }
+
+/* ===== NAV ===== */
+nav.topnav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--line);
+  height: 60px;
+  display: flex; align-items: center;
+  padding: 0 var(--gutter); gap: 1.6rem;
+}
+.nav-logo svg { height: 20px; width: auto; display: block; }
+.nav-logo svg path:not([fill]) { fill: var(--ink); }
+.nav-links {
+  display: flex; list-style: none; flex: 1; justify-content: flex-end;
+  gap: 0.15rem; overflow-x: auto; scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  display: block; padding: 0.45rem 0.8rem;
+  color: var(--ink-3); text-decoration: none;
+  font-size: 0.82rem; font-weight: 400; white-space: nowrap;
+  border-radius: 6px; transition: color 0.2s, background 0.2s;
+}
+.nav-links a:hover { color: var(--ink); background: var(--line-soft); }
+.nav-meta {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; color: var(--ink-5);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  font-weight: 500; white-space: nowrap;
+}
+
+/* ===== HERO ===== */
+.hero {
+  padding: 10rem var(--gutter) 5rem;
+  max-width: calc(var(--w) + var(--gutter) * 2);
+  margin: 0 auto;
+}
+.hero .eyebrow {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.72rem; color: var(--coral);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  font-weight: 500; margin-bottom: 2rem;
+}
+.hero h1 {
+  font-size: clamp(2.6rem, 5.2vw, 3.9rem);
+  line-height: 1.03; letter-spacing: -0.035em;
+  font-weight: 500; margin-bottom: 2rem;
+}
+.hero h1 .accent, .hero h1 em {
+  color: var(--coral); font-style: italic; font-weight: 400;
+}
+.hero .subtitle {
+  font-size: 1.14rem; color: var(--ink-3);
+  line-height: 1.6; font-weight: 400;
+  max-width: 660px; margin-bottom: 4rem;
+}
+.hero-meta {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 2.5rem; padding-top: 3rem; border-top: 1px solid var(--line);
+}
+.hero-meta div { display: flex; flex-direction: column; gap: 0.5rem; }
+.hero-meta .label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; color: var(--ink-5);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.hero-meta .val { font-size: 0.92rem; color: var(--ink); font-weight: 500; }
+
+/* ===== SECTION ===== */
+section.block {
+  padding: 4.5rem var(--gutter);
+  max-width: calc(var(--w) + var(--gutter) * 2);
+  margin: 0 auto;
+  border-top: 1px solid var(--line);
+}
+.sec-num {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.72rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--coral);
+  margin-bottom: 1.3rem; font-weight: 500;
+}
+h2.sec-title {
+  font-size: clamp(1.75rem, 3.1vw, 2.3rem);
+  line-height: 1.16; letter-spacing: -0.022em;
+  margin-bottom: 1.6rem; font-weight: 500;
+}
+h2.sec-title .accent, h2.sec-title em { color: var(--coral); font-style: italic; }
+.sec-lede {
+  font-size: 1.08rem; color: var(--ink-2);
+  line-height: 1.72; margin-bottom: 2rem; max-width: 720px;
+}
+h3.sub, .sub {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.3rem; font-weight: 600;
+  letter-spacing: -0.012em; color: var(--ink);
+  margin-top: 3rem; margin-bottom: 1.1rem;
+}
+p.dim { color: var(--ink-4); font-size: 0.94rem; }
+
+/* ===== CRITERIA ===== */
+.criteria {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem; margin: 2rem 0;
+}
+.criterion {
+  background: var(--card-bg); border: var(--card-border);
+  border-radius: var(--card-radius); padding: 1.5rem 1.6rem;
+}
+.criterion .n {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--coral);
+  font-weight: 500; margin-bottom: 0.55rem;
+}
+.criterion h4 {
+  font-size: 1.08rem; font-weight: 600;
+  margin-bottom: 0.45rem; letter-spacing: -0.01em;
+}
+.criterion p { font-size: 0.94rem; color: var(--ink-3); line-height: 1.68; }
+
+/* ===== CALLOUT / KEY INSIGHT ===== */
+.callout {
+  background: var(--paper-2); border: 1px solid var(--line);
+  border-left: 3px solid var(--coral);
+  border-radius: var(--card-radius);
+  padding: 1.4rem 1.6rem; margin: 2rem 0;
+}
+.callout.green  { border-left-color: var(--ink-4); }
+.callout.orange { border-left-color: var(--coral-deep); }
+.callout.yellow { border-left-color: var(--ink-5); }
+.callout .tag {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--coral);
+  font-weight: 500; margin-bottom: 0.5rem; display: block;
+}
+.callout.green .tag, .callout.yellow .tag { color: var(--ink-3); }
+.callout p { margin: 0; font-size: 0.96rem; color: var(--ink-2); line-height: 1.7; }
+
+.key-insight {
+  background: var(--paper-2); border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  padding: 2.1rem 2rem; margin: 3rem 0;
+}
+.key-insight .label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--coral);
+  font-weight: 500; margin-bottom: 0.9rem; display: block;
+}
+.key-insight .text {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.2rem, 2.3vw, 1.5rem);
+  line-height: 1.42; letter-spacing: -0.012em;
+  color: var(--ink); font-weight: 400;
+}
+.key-insight .text em, .key-insight .text .accent {
+  color: var(--coral); font-style: italic;
+}
+
+/* ===== PILL STRIP ===== */
+.pstrip {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.6rem; margin: 1.8rem 0;
+}
+.pstrip .p {
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--paper-2); padding: 0.85rem 1rem;
+}
+.pstrip .p .n {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.63rem; letter-spacing: 0.11em;
+  text-transform: uppercase; color: var(--coral);
+  font-weight: 500; margin-bottom: 0.3rem;
+}
+.pstrip .p .t {
+  font-size: 0.9rem; color: var(--ink-2);
+  line-height: 1.5; font-weight: 500;
+}
+.edge-card .ec-head .left { min-width: 0; }
+
+/* ===== PILLS ===== */
+.pill {
+  display: inline-block;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.04em;
+  padding: 0.24rem 0.6rem; border-radius: 5px;
+  font-weight: 500; white-space: nowrap;
+  border: 1px solid var(--line); background: var(--paper-3); color: var(--ink-3);
+}
+.pill-cascade { background: var(--coral-soft); border-color: #f5c8c0; color: var(--coral-deep); }
+.pill-detach  { background: var(--paper-3);   border-color: var(--ink-6);  color: var(--ink-3); }
+.pill-indep   { background: var(--paper-2);   border-color: var(--line);   color: var(--ink-4); }
+.pill-yes     { background: var(--ink);       border-color: var(--ink);    color: #fff; }
+.pill-no      { background: transparent;      border-color: var(--ink-6);  color: var(--ink-5); }
+.pill-cond    { background: var(--coral-soft);border-color: #f7d6cf;       color: var(--coral-deep); }
+.pill-store   { background: var(--ink);       border-color: var(--ink);    color: #fff; }
+.pill-compute { background: var(--coral);     border-color: var(--coral);  color: #fff; }
+.pill-1n, .pill-nm { background: var(--paper-3); border-color: var(--line); color: var(--ink-3); }
+.pill-mand   { background: var(--ink);        border-color: var(--ink);    color: #fff; }
+.pill-common { background: var(--paper-3);    border-color: var(--ink-6);  color: var(--ink-3); }
+.pill-rare   { background: transparent;       border-color: var(--ink-6);  color: var(--ink-5); }
+
+/* ===== EDGE CARD ===== */
+.edge-card {
+  background: var(--card-bg); border: var(--card-border);
+  border-radius: var(--card-radius); overflow: hidden;
+  margin: 1.4rem 0; scroll-margin-top: 80px;
+}
+.edge-card .ec-head {
+  padding: 1.5rem var(--card-pad-x);
+  border-bottom: 1px solid var(--line);
+  background: var(--paper-2);
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;
+}
+.edge-card .ec-head .num {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--coral);
+  font-weight: 500; margin-bottom: 0.5rem;
+}
+.edge-card .ec-head h3 {
+  font-family: 'Geist Mono', monospace;
+  font-size: 1.35rem; font-weight: 600;
+  color: var(--ink); letter-spacing: -0.01em; line-height: 1.2;
+}
+.edge-card .ec-head .verbs {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.78rem; color: var(--ink-4);
+  margin-top: 0.45rem;
+}
+.edge-card .ec-head .v-forward { color: var(--coral-deep); font-weight: 500; }
+.edge-card .ec-head .right {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+  justify-content: flex-end; flex-shrink: 0;
+}
+.edge-card .ec-body { padding: var(--card-pad-y) var(--card-pad-x); }
+.edge-card .meaning {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.1rem; line-height: 1.55;
+  color: var(--ink); font-weight: 400;
+  padding-bottom: 1.4rem; margin-bottom: 1.4rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+.computed-card { border-color: #f5d3cb; }
+.computed-card .ec-head { background: var(--coral-soft); border-bottom-color: #f5d3cb; }
+.computed-card .meaning { color: var(--coral-deep); }
+
+/* ===== EC GRID ===== */
+.ec-grid { margin: 1.2rem 0; }
+.ec-grid .row {
+  display: grid; grid-template-columns: 190px 1fr;
+  gap: 1.4rem; padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line-soft);
+  align-items: baseline;
+}
+.ec-grid .row:last-child { border-bottom: none; }
+.ec-grid .k {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-4); font-weight: 500;
+}
+.ec-grid .v { font-size: 0.95rem; color: var(--ink-2); line-height: 1.68; }
+
+/* ===== EC SECTION ===== */
+.ec-section { margin-top: 1.7rem; }
+.ec-section .lbl {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--coral);
+  font-weight: 500; margin-bottom: 0.7rem; display: block;
+}
+.ec-section ul { list-style: none; margin: 0; padding: 0; }
+.ec-section li {
+  font-size: 0.93rem; color: var(--ink-2); line-height: 1.6;
+  padding: 0.45rem 0 0.45rem 1.1rem;
+  border-bottom: 1px solid var(--line-soft); position: relative;
+}
+.ec-section li:last-child { border-bottom: none; }
+.ec-section li::before {
+  content: ""; position: absolute; left: 0; top: 0.95rem;
+  width: 4px; height: 4px; border-radius: 50%; background: var(--ink-6);
+}
+.ec-section .ex {
+  display: block;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.83rem; color: var(--ink-2);
+  background: var(--paper-3); border-radius: 6px;
+  padding: 0.55rem 0.8rem; margin-bottom: 0.4rem; line-height: 1.55;
+}
+.ec-section .arr { color: var(--coral-deep); font-weight: 600; }
+
+/* ===== ANTI-PATTERN ===== */
+.anti {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--coral-deep);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem; margin-bottom: 0.55rem;
+  font-size: 0.93rem; color: var(--ink-2); line-height: 1.65;
+}
+.anti .lbl {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.64rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--coral-deep);
+  font-weight: 600; margin-right: 0.5rem;
+}
+
+/* ===== TABLES ===== */
+.tbl-wrap {
+  margin: 2rem 0; overflow-x: auto;
+  background: var(--card-bg); border: var(--card-border);
+  border-radius: var(--card-radius);
+}
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.overview-table th, .overview-table td,
+.meta-table th, .meta-table td {
+  text-align: left; padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top; color: var(--ink-2);
+}
+.overview-table thead th, .meta-table thead th {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink);
+  font-weight: 600; border-bottom: 1px solid var(--ink-6);
+  background: var(--paper-2); white-space: nowrap;
+}
+.overview-table tbody tr:last-child td,
+.meta-table tbody tr:last-child td { border-bottom: none; }
+.overview-table .ename, .meta-table td:first-child {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 500; color: var(--ink); font-size: 0.88rem;
+}
+.overview-table a.jump { color: var(--coral-deep); text-decoration: none; font-weight: 500; }
+.overview-table a.jump:hover { text-decoration: underline; }
+.meta-table { margin: 1.5rem 0; }
+
+/* ===== FOOTER ===== */
+footer.foot {
+  border-top: 1px solid var(--line);
+  padding: 5rem var(--gutter) 4rem;
+  margin-top: 5rem; text-align: center;
+  background: var(--paper-2);
+}
+footer.foot .foot-icon { display: flex; justify-content: center; margin-bottom: 2rem; }
+footer.foot .foot-icon svg { width: 32px; height: 32px; }
+footer.foot .foot-icon svg path:not([fill]) { fill: var(--ink); }
+footer.foot .fbrand {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 500;
+  color: var(--ink-3); margin-bottom: 1.5rem;
+}
+footer.foot .fnote {
+  font-size: 0.88rem; color: var(--ink-4);
+  max-width: 620px; margin: 0 auto; line-height: 1.65;
+}
+footer.foot .fmeta {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.65rem; color: var(--ink-5);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-top: 1.5rem;
+}
+
+/* ===== FADE-IN ===== */
+.fade-in { opacity: 0; transform: translateY(12px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.fade-in.visible { opacity: 1; transform: none; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 800px) {
+  :root { --gutter: 1.4rem; --card-pad-x: 1.4rem; --card-pad-y: 1.4rem; }
+  body { font-size: 16px; }
+  .hero { padding: 7rem var(--gutter) 4rem; }
+  section.block { padding: 3.5rem var(--gutter); }
+  .criteria { grid-template-columns: 1fr; }
+  .ec-grid .row { grid-template-columns: 1fr; gap: 0.25rem; }
+  .edge-card .ec-head { flex-direction: column; }
+  .edge-card .ec-head .right { justify-content: flex-start; }
+  table { font-size: 0.82rem; }
+  .overview-table th, .overview-table td,
+  .meta-table th, .meta-table td { padding: 0.6rem 0.75rem; }
+  nav.topnav { padding: 0 1rem; gap: 1rem; }
+  .nav-meta { display: none; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <div class="nav-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 82.04" aria-label="Motadata">
+        <g>
+          <path d="M91.04,47.42v33.35h-12.92v-32.31c0-9.11-4.15-14.19-11.88-14.19-8.54,0-14.19,6-14.19,14.88v31.62h-12.92v-32.31c0-9.11-4.27-14.19-12-14.19-8.42,0-14.19,6-14.19,14.88v31.62H0V23.77h11.54l.12,6.69c4.15-5.31,9.69-7.85,16.85-7.85,8.08,0,14.88,3.81,18.46,10.04,4.5-6.69,11.42-10.04,20.31-10.04,14.65,0,23.77,9.35,23.77,24.81Z"/>
+          <path d="M170.33,23.77v-14.88l12.81-1.38v16.27h16.38v10.96h-16.38v26.42c0,5.77,2.65,9,7.96,9,2.31,0,4.96-.69,7.15-1.73l3.58,10.38c-4.38,1.96-8.08,2.77-12.81,2.77-11.77,0-18.69-6.81-18.69-20.42v-26.42"/>
+          <path d="M265.84,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM252.92,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M335.97,0v80.77h-11.54l-.12-7.61c-4.38,5.54-12,8.88-21,8.88-16.15,0-28.04-11.77-28.04-29.77s11.88-29.77,28.04-29.77c8.19,0,15.23,2.77,19.73,7.38V0h12.92ZM323.05,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M406.1,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM393.18,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M416.49,23.77v-14.88l12.81-1.38v16.27h16.38v10.96h-16.38v26.42c0,5.77,2.65,9,7.96,9,2.31,0,4.96-.69,7.15-1.73l3.58,10.38c-4.38,1.96-8.08,2.77-12.81,2.77-11.77,0-18.69-6.81-18.69-20.42v-26.42"/>
+          <path d="M512,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM499.08,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M135.26,47.31v-24.39c12.47,2.09,22.31,11.93,24.39,24.39h-24.39Z" fill="#f17463"/>
+          <path d="M160.06,52.92c-.33,16.14-13.54,29.13-29.76,29.13s-29.77-13.33-29.77-29.77c0-1.69.14-3.36.41-4.96,2.32-13.87,14.26-24.49,28.72-24.8v12.32c-7.59.28-13.95,5.45-16.01,12.47-.46,1.56-.72,3.23-.72,4.96,0,9.63,7.78,17.44,17.37,17.44,1.72,0,3.38-.24,4.96-.72,6.97-2.08,12.12-8.46,12.39-16.08h12.41Z"/>
+        </g>
+      </svg>
+    </div>
+  <ul class="nav-links">
+    <li><a href="#intro">Intro</a></li>
+    <li><a href="#principles">Principles</a></li>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#stored">Stored Edges</a></li>
+    <li><a href="#computed">Computed Edges</a></li>
+    <li><a href="#metamodel">Metamodel</a></li>
+    <li><a href="#validation">Validation</a></li>
+    <li><a href="#gates">Acceptance Gates</a></li>
+  </ul>
+  <div class="nav-meta">Fusion SaaS · Edge Spec v0.1</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero fade-in visible">
+  <div class="eyebrow">Motadata Fusion SaaS · Service-Centric Knowledge Graph</div>
+  <h1>The Fusion SaaS SKG <span class="accent">edge specification.</span></h1>
+  <p class="subtitle">Fifteen relationship types — eleven stored as ground truth, four computed at query time — designed to answer the four operational questions of a modern CMDB: blast radius, incident routing, change risk, and cost attribution. This document is the single technical spec all engineering work references.</p>
+  <div class="hero-meta">
+    <div><span class="label">Document</span><span class="val">SKG Edge Specification</span></div>
+    <div><span class="label">Version</span><span class="val">0.1 · Pending three-scenario validation</span></div>
+    <div><span class="label">Owner</span><span class="val">Fusion SaaS Product</span></div>
+    <div><span class="label">Last reviewed</span><span class="val">2026-05-20</span></div>
+  </div>
+</section>
+
+<!-- INTRO -->
+<section class="block" id="intro">
+  <div class="sec-num">§ 01 · Why these fifteen</div>
+  <h2 class="sec-title">A small, opinionated vocabulary — verified against twenty years of enterprise CMDB practice.</h2>
+  <p class="sec-lede">Every edge type in this spec was selected because it satisfies five criteria simultaneously. Edge types that satisfy fewer than all five did not ship. This section explains the gate.</p>
+
+  <div class="criteria">
+    <div class="criterion">
+      <div class="n">Criterion 01</div>
+      <h4>One-sentence operational meaning</h4>
+      <p>Every edge type can be defined in a single sentence describing what it asserts about the real world. If the meaning needs a paragraph, the edge is doing too much.</p>
+    </div>
+    <div class="criterion">
+      <div class="n">Criterion 02</div>
+      <h4>Cross-platform precedent</h4>
+      <p>Every edge has a direct conceptual analogue in at least two of the major enterprise CMDB models. None is invented from scratch — all are battle-tested concepts under cleaner names.</p>
+    </div>
+    <div class="criterion">
+      <div class="n">Criterion 03</div>
+      <h4>Distinct lifecycle behavior</h4>
+      <p>Every edge has a defined answer to "what happens to the target when the source is deleted" — cascade, detach, or independent. No ambiguous behavior at delete time.</p>
+    </div>
+    <div class="criterion">
+      <div class="n">Criterion 04</div>
+      <h4>Serves at least one core use case</h4>
+      <p>Every edge contributes to one or more of: blast-radius computation, incident routing, change risk, cost attribution. Edges that serve none are documentation noise.</p>
+    </div>
+    <div class="criterion">
+      <div class="n">Criterion 05</div>
+      <h4>Discoverable or governance-derived</h4>
+      <p>Every edge has a realistic evidence source — a discovery probe, agent telemetry, IaC parse, API integration, or human-authored governance record. Edges that nothing can produce are useless.</p>
+    </div>
+  </div>
+
+  <div class="key-insight">
+    <span class="label">The design philosophy</span>
+    <p class="text">Store the facts that the world can produce. Compute the truths the operators need. Eleven stored edges hold ground truth; four computed edges derive blast radius, reachability, failure domain, and criticality without ever being written to the graph.</p>
+  </div>
+</section>
+
+<!-- PRINCIPLES -->
+<section class="block" id="principles">
+  <div class="sec-num">§ 02 · The seven principles in force</div>
+  <h2 class="sec-title">What the spec commits to, by design.</h2>
+  <p class="sec-lede">These principles govern every choice in this document. If a future change would violate one of them, it requires explicit override in the decision log.</p>
+
+  <div class="pstrip">
+    <div class="p"><div class="n">P · 01</div><div class="t">Small, orthogonal edge vocabulary</div></div>
+    <div class="p"><div class="n">P · 02</div><div class="t">Ground truth stored; operational truth computed</div></div>
+    <div class="p"><div class="n">P · 03</div><div class="t">Every edge carries evidence and confidence</div></div>
+    <div class="p"><div class="n">P · 04</div><div class="t">Direction matches English ("A depends on B" → A → B)</div></div>
+    <div class="p"><div class="n">P · 05</div><div class="t">Schema enforces correctness at write time</div></div>
+    <div class="p"><div class="n">P · 06</div><div class="t">Edge types are config, not schema</div></div>
+    <div class="p"><div class="n">P · 07</div><div class="t">Opinionated default service spine, customizable by config</div></div>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section class="block" id="overview">
+  <div class="sec-num">§ 03 · The complete edge inventory</div>
+  <h2 class="sec-title">All fifteen, at a glance.</h2>
+  <p class="sec-lede">Eleven stored types form the ground truth layer. Four computed types are graph-traversal patterns evaluated at query time. Click any name to jump to its full specification.</p>
+
+  <div class="tbl-wrap">
+  <table class="overview-table">
+    <thead>
+      <tr>
+        <th>Edge</th>
+        <th>Class</th>
+        <th>Forward / Reverse verb</th>
+        <th>Lifecycle</th>
+        <th>Cardinality</th>
+        <th>Primary use</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="jump" href="#e-composedof"><span class="ename">composedOf</span></a></td>
+        <td><span class="pill pill-store">stored</span></td>
+        <td>composedOf / partOf</td>
+        <td><span class="pill pill-cascade">cascade</span></td>
+        <td><span class="pill pill-1n">1:N</span></td>
+        <td>Structural composition</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#e-contains"><span class="ename">contains</span></a></td>
+        <td><span class="pill pill-store">stored</span></td>
+        <td>contains / containedIn</td>
+        <td><span class="pill pill-detach">detach</span></td>
+        <td><span class="pill pill-1n">1:N</span></td>
+        <td>Logical containment</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#e-runson"><span class="ename">runsOn</span></a></td>
+        <td><span class="pill pill-store">stored</span></td>
+        <td>runsOn / runs</td>
+        <td><span class="pill pill-detach">detach</span></td>
+        <td><span class="pill pill-1n">N:1</span></td>
+        <td>Runtime hosting / identity</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#e-dependson"><span class="ename">dependsOn</span></a></td>
+        <td><span class="pill pill-store">stored</span></td>
+        <td>dependsOn / usedBy</td>
+        <td><span class="pill pill-indep">indep.</span></td>
+        <td><span class="pill pill-nm">N:M</span></td>
+        <td>Operational dependency</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#e-communicates"><span class="ename">communicatesWith</span></a></td>
+        <td><span class="pill pill-store">stored</span></td>
+        <td>communicatesWith / —</td>
+        <td><span class="pill pill-indep">indep.</span></td>
+        <td><span class="pill pill-nm">N:M</span></td>
+        <td>Observed traffic / evidence</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#e-realizes"><span class="ename">realizes</span></a></td>
+        <td><span class="pill pill-store">stored</span></td>
+        <td>realizes / realizedBy</td>
+        <td><span class="pill pill-indep">indep.</span></td>
+        <td><span class="pill pill-nm">N:M</span></td>
+        <td>Concrete → abstract spine</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#e-memberof"><span class="ename">memberOf</span></a></td>
+        <td><span class="pill pill-store">stored</span></td>
+        <td>memberOf / hasMember</td>
+        <td><span class="pill pill-detach">detach</span></td>
+        <td><span class="pill pill-nm">N:M</span></td>
+        <td>Logical grouping</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#e-manages"><span class="ename">manages</span></a></td>
+        <td><span class="pill pill-store">stored</span></td>
+        <td>manages / managedBy</td>
+        <td><span class="pill pill-indep">indep.</span></td>
+        <td><span class="pill pill-nm">N:M</span></td>
+        <td>Control-plane / system management</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#e-ownedby"><span class="ename">ownedBy</span></a></td>
+        <td><span class="pill pill-store">stored</span></td>
+        <td>ownedBy / owns</td>
+        <td><span class="pill pill-indep">indep.</span></td>
+        <td><span class="pill pill-1n">N:1</span></td>
+        <td>Governance accountability</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#e-locatedin"><span class="ename">locatedIn</span></a></td>
+        <td><span class="pill pill-store">stored</span></td>
+        <td>locatedIn / houses</td>
+        <td><span class="pill pill-indep">indep.</span></td>
+        <td><span class="pill pill-1n">N:1</span></td>
+        <td>Physical / logical placement</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#e-succeeds"><span class="ename">succeedsLifecycleOf</span></a></td>
+        <td><span class="pill pill-store">stored</span></td>
+        <td>succeedsLifecycleOf / succeededBy</td>
+        <td><span class="pill pill-indep">indep.</span></td>
+        <td><span class="pill pill-1n">N:1</span></td>
+        <td>Version / genealogy chain</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#c-impactedby"><span class="ename">impactedBy</span></a></td>
+        <td><span class="pill pill-compute">computed</span></td>
+        <td>impactedBy / impacts</td>
+        <td>—</td>
+        <td><span class="pill pill-nm">N:M</span></td>
+        <td>Blast radius</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#c-reaches"><span class="ename">reaches</span></a></td>
+        <td><span class="pill pill-compute">computed</span></td>
+        <td>reaches / reachableFrom</td>
+        <td>—</td>
+        <td><span class="pill pill-nm">N:M</span></td>
+        <td>Reachability</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#c-failuredomain"><span class="ename">sharesFailureDomain</span></a></td>
+        <td><span class="pill pill-compute">computed</span></td>
+        <td>sharesFailureDomain / —</td>
+        <td>—</td>
+        <td><span class="pill pill-nm">N:M</span></td>
+        <td>Co-failure detection</td>
+      </tr>
+      <tr>
+        <td><a class="jump" href="#c-criticalpath"><span class="ename">criticalPath</span></a></td>
+        <td><span class="pill pill-compute">computed</span></td>
+        <td>criticalPath / underpins</td>
+        <td>—</td>
+        <td><span class="pill pill-1n">1:N</span></td>
+        <td>Business-to-infra critical path</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- STORED EDGES -->
+<section class="block" id="stored">
+  <div class="sec-num">§ 04 · The eleven stored edges</div>
+  <h2 class="sec-title">Ground truth — what the world can produce.</h2>
+  <p class="sec-lede">These are the only edges written to the graph. Discovery probes, agents, IaC parsers, API integrations, and human governance flows all produce one or more of these. Anything outside this list is rejected at the API boundary.</p>
+
+  <!-- 01 composedOf -->
+  <div class="edge-card" id="e-composedof">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Edge 01 · Composition</div>
+        <h3>composedOf</h3>
+        <div class="verbs"><span class="v-forward">A composedOf B</span> &nbsp;/&nbsp; B partOf A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-cascade">cascade delete</span>
+        <span class="pill pill-yes">identity</span>
+        <span class="pill pill-yes">impact</span>
+        <span class="pill pill-1n">1:N</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">B is a structural part of A; B has no meaningful existence outside A and is destroyed when A is destroyed.</div>
+
+      <div class="ec-grid">
+        <div class="row"><div class="k">Lifecycle</div><div class="v">Cascading delete. When the source is removed, the target is removed automatically. No orphans.</div></div>
+        <div class="row"><div class="k">Direction</div><div class="v">Directional. Source is the whole; target is the part.</div></div>
+        <div class="row"><div class="k">Cardinality</div><div class="v">One source has many parts (1:N). Each part has exactly one composing parent.</div></div>
+        <div class="row"><div class="k">Identity-contributing</div><div class="v">Yes. The part's identity is "the part inside this specific whole."</div></div>
+        <div class="row"><div class="k">Impact-bearing</div><div class="v">Yes. Failure of the whole implies failure of the part; failure of the part may degrade the whole depending on redundancy.</div></div>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Worked examples</span>
+        <span class="ex">Server <span class="arr">composedOf</span> CPU, Disk, Memory, NIC</span>
+        <span class="ex">VM <span class="arr">composedOf</span> Process, FileSystem (per-VM)</span>
+        <span class="ex">vCenter <span class="arr">composedOf</span> Inventory Database, SSO Domain, Certificate Authority</span>
+        <span class="ex">Kubernetes Pod <span class="arr">composedOf</span> Container, Init Container, Volume Mount</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Valid source → target classes</span>
+        <ul>
+          <li>PhysicalServer → CPU, Disk, Memory, NIC, PowerSupply</li>
+          <li>VirtualMachine → Process, FileSystem (VM-local), VirtualDisk</li>
+          <li>NetworkDevice → Interface, Port, LineCard</li>
+          <li>Container → Process, MountedVolume</li>
+          <li>SoftwareInstance → InternalModule, EmbeddedDatabase, EmbeddedService</li>
+        </ul>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Typical evidence sources</span>
+        <ul>
+          <li>Agent telemetry (highest confidence — 0.95+)</li>
+          <li>Discovery probe with credentials (SNMP, WMI, SSH, API)</li>
+          <li>API integration with hypervisor or cluster control plane</li>
+          <li>IaC parsing (Terraform, CloudFormation, Helm — for declared composition)</li>
+        </ul>
+      </div>
+
+      <div class="anti">
+        <span class="lbl">Anti-pattern</span>
+        Do not use <code>composedOf</code> for relationships that survive parent deletion. A datacenter is not <code>composedOf</code> servers — servers can be relocated. Use <code>contains</code> instead. The cascading-delete behavior of <code>composedOf</code> is non-negotiable; if you don't want cascade, you don't want this edge.
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 contains -->
+  <div class="edge-card" id="e-contains">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Edge 02 · Logical containment</div>
+        <h3>contains</h3>
+        <div class="verbs"><span class="v-forward">A contains B</span> &nbsp;/&nbsp; B containedIn A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-detach">detach on delete</span>
+        <span class="pill pill-no">no identity</span>
+        <span class="pill pill-cond">cond. impact</span>
+        <span class="pill pill-1n">1:N</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A logically holds B at this moment in time, but B is an independent entity that survives A's deletion or relocation.</div>
+
+      <div class="ec-grid">
+        <div class="row"><div class="k">Lifecycle</div><div class="v">Detach on delete. When A is removed, the edge dissolves but B persists as an unattached record.</div></div>
+        <div class="row"><div class="k">Direction</div><div class="v">Directional. Source is the container; target is the contained entity.</div></div>
+        <div class="row"><div class="k">Cardinality</div><div class="v">1:N typical. A contained entity belongs to one container at a time but may move.</div></div>
+        <div class="row"><div class="k">Identity-contributing</div><div class="v">No. B's identity is independent of A.</div></div>
+        <div class="row"><div class="k">Impact-bearing</div><div class="v">Conditional. Depends on what the containment represents operationally.</div></div>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Worked examples</span>
+        <span class="ex">Node <span class="arr">contains</span> IPAddress (IP can be reassigned)</span>
+        <span class="ex">DatabaseInstance <span class="arr">contains</span> Schema (schema can be exported and moved)</span>
+        <span class="ex">Datacenter <span class="arr">contains</span> Rack, Server (assets can be relocated)</span>
+        <span class="ex">vCenter Datacenter <span class="arr">contains</span> Cluster, Distributed Switch, Datastore</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Valid source → target classes</span>
+        <ul>
+          <li>Node → IPAddress, Hostname</li>
+          <li>Datacenter / Region → Rack, AvailabilityZone, NetworkSegment</li>
+          <li>DatabaseInstance → Schema, Tablespace</li>
+          <li>NamespacedScope (K8s Namespace) → Pod, Service, ConfigMap, Secret</li>
+        </ul>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Typical evidence sources</span>
+        <ul>
+          <li>API integration (cloud provider, vCenter, K8s API)</li>
+          <li>IaC parsing</li>
+          <li>Manual placement records</li>
+        </ul>
+      </div>
+
+      <div class="anti">
+        <span class="lbl">Anti-pattern</span>
+        Do not use <code>contains</code> for lifecycle-bound parts. A server's CPU is not <code>contained</code> by the server — it is <code>composedOf</code> the server. The CPU has no business existing outside the server record.
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 runsOn -->
+  <div class="edge-card" id="e-runson">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Edge 03 · Runtime hosting</div>
+        <h3>runsOn</h3>
+        <div class="verbs"><span class="v-forward">A runsOn B</span> &nbsp;/&nbsp; B runs A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-detach">detach on host delete</span>
+        <span class="pill pill-yes">identity</span>
+        <span class="pill pill-yes">impact</span>
+        <span class="pill pill-1n">N:1</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A is a runtime instance whose execution is hosted by B's runtime substrate; A's identity is partly defined by where it runs.</div>
+
+      <div class="ec-grid">
+        <div class="row"><div class="k">Lifecycle</div><div class="v">Detach when host is deleted; the runtime instance becomes orphaned but the source record may persist for genealogy. Restart on a new host creates a new <code>runsOn</code> edge.</div></div>
+        <div class="row"><div class="k">Direction</div><div class="v">Directional. Source is the running entity; target is the host.</div></div>
+        <div class="row"><div class="k">Cardinality</div><div class="v">N:1 typical. Many runtime instances on one host; each instance on exactly one host at a time.</div></div>
+        <div class="row"><div class="k">Identity-contributing</div><div class="v">Yes. "Tomcat 9 on linux-prod-42" is identified differently from "Tomcat 9 on linux-stage-07." This is the canonical use of identity-contributing edges for reconciliation.</div></div>
+        <div class="row"><div class="k">Impact-bearing</div><div class="v">Yes. Host failure implies hosted-entity failure.</div></div>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Worked examples</span>
+        <span class="ex">Process <span class="arr">runsOn</span> OperatingSystem</span>
+        <span class="ex">OperatingSystem <span class="arr">runsOn</span> VirtualMachine</span>
+        <span class="ex">VirtualMachine <span class="arr">runsOn</span> Hypervisor</span>
+        <span class="ex">Application <span class="arr">runsOn</span> ApplicationServer</span>
+        <span class="ex">Container <span class="arr">runsOn</span> KubernetesNode</span>
+        <span class="ex">DatabaseInstance <span class="arr">runsOn</span> OperatingSystem</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Valid source → target classes (selected)</span>
+        <ul>
+          <li>Process → OperatingSystem</li>
+          <li>OperatingSystem → VirtualMachine, PhysicalServer</li>
+          <li>VirtualMachine → Hypervisor</li>
+          <li>Container → ContainerHost, KubernetesNode</li>
+          <li>Pod → KubernetesNode</li>
+          <li>Application, DatabaseInstance, MessageBroker → OperatingSystem, ApplicationServer</li>
+        </ul>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Typical evidence sources</span>
+        <ul>
+          <li>Agent telemetry on the host (highest confidence)</li>
+          <li>Discovery probe with credentials</li>
+          <li>Hypervisor / control-plane API (vCenter, K8s, cloud provider)</li>
+        </ul>
+      </div>
+
+      <div class="anti">
+        <span class="lbl">Anti-pattern</span>
+        Do not chain <code>runsOn</code> more than logically necessary. Process &rarr; OS &rarr; VM &rarr; Hypervisor is a four-hop chain that the impact computation handles correctly. Do not collapse it into "Process runsOn Hypervisor" — that loses the OS and VM as reconciliation anchors.
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 dependsOn -->
+  <div class="edge-card" id="e-dependson">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Edge 04 · Operational dependency</div>
+        <h3>dependsOn</h3>
+        <div class="verbs"><span class="v-forward">A dependsOn B</span> &nbsp;/&nbsp; B usedBy A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent lifecycle</span>
+        <span class="pill pill-no">no identity</span>
+        <span class="pill pill-yes">impact</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A requires B's function to operate correctly; if B is degraded or unavailable, A is degraded or unavailable.</div>
+
+      <div class="ec-grid">
+        <div class="row"><div class="k">Lifecycle</div><div class="v">Fully independent. Neither side cascades to the other on delete. The edge may be marked stale if either side disappears.</div></div>
+        <div class="row"><div class="k">Direction</div><div class="v">Directional, matching English. Source is the dependent; target is the provider.</div></div>
+        <div class="row"><div class="k">Cardinality</div><div class="v">N:M. A service can depend on many things; one provider can be depended on by many.</div></div>
+        <div class="row"><div class="k">Identity-contributing</div><div class="v">No. The dependent entity exists independently.</div></div>
+        <div class="row"><div class="k">Impact-bearing</div><div class="v">Yes. This is the canonical edge for blast-radius computation across hosting boundaries.</div></div>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Worked examples</span>
+        <span class="ex">Application <span class="arr">dependsOn</span> DatabaseInstance</span>
+        <span class="ex">BusinessService <span class="arr">dependsOn</span> ApplicationService</span>
+        <span class="ex">Application <span class="arr">dependsOn</span> IdentityProvider</span>
+        <span class="ex">vCenter <span class="arr">dependsOn</span> ActiveDirectoryDomain, DNSServer, NTPServer, vCenterDatabase</span>
+        <span class="ex">PaymentService <span class="arr">dependsOn</span> FraudCheckService, LedgerDatabase, MessageBroker</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Valid source → target classes</span>
+        <ul>
+          <li>Any Application, Service, BusinessService, ApplicationService → any DatabaseInstance, MessageBroker, IdentityProvider, ApplicationService, ExternalAPI</li>
+          <li>Management software (vCenter, K8s control plane, Domain Controller) → any backing data store, identity source, time source, name resolution source</li>
+        </ul>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Typical evidence sources</span>
+        <ul>
+          <li>Service mapping session (human-authored)</li>
+          <li>Traffic observation (NetFlow, eBPF, packet capture) — yields a candidate dependency that may need confirmation</li>
+          <li>Log inference (AI-derived from request logs)</li>
+          <li>Configuration parsing (connection strings, service references in manifests)</li>
+        </ul>
+      </div>
+
+      <div class="anti">
+        <span class="lbl">Anti-pattern · most common in practice</span>
+        Do not model "A talks to B" as <code>dependsOn</code> automatically. A service calling B with idempotent retries and a circuit breaker does not depend on B in the operational sense. Use <code>communicatesWith</code> for the traffic; promote to <code>dependsOn</code> only when the operational claim has been validated (typically by service mapping or runtime SLO behavior).
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 communicatesWith -->
+  <div class="edge-card" id="e-communicates">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Edge 05 · Observed communication</div>
+        <h3>communicatesWith</h3>
+        <div class="verbs"><span class="v-forward">A communicatesWith B</span> &nbsp;/&nbsp; (symmetric)</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent lifecycle</span>
+        <span class="pill pill-no">no identity</span>
+        <span class="pill pill-cond">cond. impact</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A and B have been observed exchanging data over the network; this is empirical evidence, not an operational claim.</div>
+
+      <div class="ec-grid">
+        <div class="row"><div class="k">Lifecycle</div><div class="v">Independent. Edge is refreshed by ongoing observation; goes stale and is removed if not re-observed within its TTL.</div></div>
+        <div class="row"><div class="k">Direction</div><div class="v">Typically bidirectional. May carry a "primary direction" attribute when the traffic is asymmetric (e.g., client → server).</div></div>
+        <div class="row"><div class="k">Cardinality</div><div class="v">N:M.</div></div>
+        <div class="row"><div class="k">Identity-contributing</div><div class="v">No.</div></div>
+        <div class="row"><div class="k">Impact-bearing</div><div class="v">Conditional. Only included in blast-radius computation when promoted to <code>dependsOn</code> by validation, or when explicitly requested by the query.</div></div>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Worked examples</span>
+        <span class="ex">WebFrontend <span class="arr">communicatesWith</span> AuthService (port 443, ~200 req/s)</span>
+        <span class="ex">DatabaseInstance <span class="arr">communicatesWith</span> ReplicaDatabaseInstance (port 5432, replication traffic)</span>
+        <span class="ex">vCenter <span class="arr">communicatesWith</span> ESXHost (ports 443, 902)</span>
+        <span class="ex">Server <span class="arr">communicatesWith</span> NetworkDevice (LLDP / CDP discovery)</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Edge attributes specific to this type</span>
+        <ul>
+          <li><code>protocol</code> · TCP, UDP, HTTPS, gRPC, AMQP, etc.</li>
+          <li><code>port</code> · destination port</li>
+          <li><code>volume</code> · packets/sec or bytes/sec, time-windowed</li>
+          <li><code>direction</code> · symmetric, source-to-target, or target-to-source dominant</li>
+        </ul>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Typical evidence sources</span>
+        <ul>
+          <li>Traffic observation (NetFlow, sFlow, eBPF, packet capture)</li>
+          <li>Agent telemetry (per-process socket inventory)</li>
+          <li>Service mesh telemetry (Istio, Linkerd)</li>
+          <li>Layer 2 / 3 discovery (LLDP, CDP, SNMP)</li>
+        </ul>
+      </div>
+
+      <div class="anti">
+        <span class="lbl">Anti-pattern</span>
+        Do not silently use <code>communicatesWith</code> in blast-radius queries by default. Observing traffic does not establish operational dependency. The graph engine must keep these two concepts distinct or impact computation produces false positives.
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 realizes -->
+  <div class="edge-card" id="e-realizes">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Edge 06 · Service realization</div>
+        <h3>realizes</h3>
+        <div class="verbs"><span class="v-forward">A realizes B</span> &nbsp;/&nbsp; B realizedBy A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent lifecycle</span>
+        <span class="pill pill-no">no identity</span>
+        <span class="pill pill-yes">impact</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A is a concrete entity that fulfills an abstract concept B; without A (or alternative realizers), B has no operational substance.</div>
+
+      <div class="ec-grid">
+        <div class="row"><div class="k">Lifecycle</div><div class="v">Independent. A realizer can be replaced without destroying the realized concept.</div></div>
+        <div class="row"><div class="k">Direction</div><div class="v">Directional. Source is the concrete realizer; target is the abstract concept.</div></div>
+        <div class="row"><div class="k">Cardinality</div><div class="v">N:M. Multiple realizers per concept; one realizer may serve multiple concepts.</div></div>
+        <div class="row"><div class="k">Identity-contributing</div><div class="v">No.</div></div>
+        <div class="row"><div class="k">Impact-bearing</div><div class="v">Yes. When all realizers of a business concept are degraded, the concept itself is degraded.</div></div>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Worked examples</span>
+        <span class="ex">ApplicationService <span class="arr">realizes</span> BusinessCapability</span>
+        <span class="ex">ServiceOffering <span class="arr">realizes</span> BusinessService</span>
+        <span class="ex">RunningSoftware <span class="arr">realizes</span> SoftwareProduct</span>
+        <span class="ex">PaymentMicroservice <span class="arr">realizes</span> BusinessCapability "Accept Payment"</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">The default service realization spine</span>
+        <p style="font-size:0.88rem; line-height:1.6;">Fusion SaaS ships an opinionated default chain that customers customize from:</p>
+        <span class="ex">BusinessCapability ← <span class="arr">realizes</span> ← BusinessApplication</span>
+        <span class="ex">BusinessApplication ← <span class="arr">realizes</span> ← ApplicationService</span>
+        <span class="ex">ApplicationService ← <span class="arr">realizes</span> ← TechnicalService / RunningSoftware</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Typical evidence sources</span>
+        <ul>
+          <li>Service mapping session (human-authored, primary)</li>
+          <li>Manual governance records</li>
+          <li>AI-inferred from naming conventions, repo tags, organizational data</li>
+        </ul>
+      </div>
+
+      <div class="anti">
+        <span class="lbl">Anti-pattern</span>
+        Do not confuse <code>realizes</code> with <code>composedOf</code>. A business capability is not <em>composed of</em> microservices — it is <em>realized by</em> them. The microservices can be swapped without changing the capability's identity. <code>composedOf</code> implies cascade-delete; <code>realizes</code> does not.
+      </div>
+    </div>
+  </div>
+
+  <!-- 07 memberOf -->
+  <div class="edge-card" id="e-memberof">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Edge 07 · Logical grouping</div>
+        <h3>memberOf</h3>
+        <div class="verbs"><span class="v-forward">A memberOf B</span> &nbsp;/&nbsp; B hasMember A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-detach">detach on delete</span>
+        <span class="pill pill-no">no identity</span>
+        <span class="pill pill-cond">cond. impact</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A belongs to a logical collection B; the collection groups its members but does not own or contain them in a structural sense.</div>
+
+      <div class="ec-grid">
+        <div class="row"><div class="k">Lifecycle</div><div class="v">Detach on collection delete. Members survive.</div></div>
+        <div class="row"><div class="k">Direction</div><div class="v">Directional. Source is the member; target is the collection.</div></div>
+        <div class="row"><div class="k">Cardinality</div><div class="v">N:M. A member can belong to many collections.</div></div>
+        <div class="row"><div class="k">Identity-contributing</div><div class="v">No.</div></div>
+        <div class="row"><div class="k">Impact-bearing</div><div class="v">Conditional. Cluster membership is impact-bearing (cluster outage affects members); tag-based grouping typically is not.</div></div>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Worked examples</span>
+        <span class="ex">Node <span class="arr">memberOf</span> KubernetesCluster</span>
+        <span class="ex">Server <span class="arr">memberOf</span> HAFailoverGroup</span>
+        <span class="ex">Server <span class="arr">memberOf</span> LoadBalancerPool</span>
+        <span class="ex">IPAddress <span class="arr">memberOf</span> Subnet</span>
+        <span class="ex">VM <span class="arr">memberOf</span> ResourcePool</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Typical evidence sources</span>
+        <ul>
+          <li>API integration (cluster controllers, load balancers, cloud resource groups)</li>
+          <li>Configuration parsing</li>
+          <li>Manual tagging</li>
+        </ul>
+      </div>
+
+      <div class="anti">
+        <span class="lbl">Anti-pattern</span>
+        Do not use <code>memberOf</code> for hosting relationships. A pod is not a <code>memberOf</code> its node — it <code>runsOn</code> the node. Membership implies grouping equivalence among peers; hosting implies hierarchical substrate.
+      </div>
+    </div>
+  </div>
+
+  <!-- 08 manages -->
+  <div class="edge-card" id="e-manages">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Edge 08 · Control-plane management</div>
+        <h3>manages</h3>
+        <div class="verbs"><span class="v-forward">A manages B</span> &nbsp;/&nbsp; B managedBy A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent lifecycle</span>
+        <span class="pill pill-no">no identity</span>
+        <span class="pill pill-cond">cond. impact</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A is the management plane that controls, configures, or orchestrates B's lifecycle and configuration; B can continue functioning if A is unavailable but cannot be reconfigured.</div>
+
+      <div class="ec-grid">
+        <div class="row"><div class="k">Lifecycle</div><div class="v">Independent. The managed entity is operationally autonomous.</div></div>
+        <div class="row"><div class="k">Direction</div><div class="v">Directional. Source is the manager; target is the managed.</div></div>
+        <div class="row"><div class="k">Cardinality</div><div class="v">N:M typically. One manager covers many managed entities; an entity may have backup managers.</div></div>
+        <div class="row"><div class="k">Identity-contributing</div><div class="v">No.</div></div>
+        <div class="row"><div class="k">Impact-bearing</div><div class="v">Conditional. Manager outage affects the ability to <em>change</em> the managed entity, not its current operation. Excluded from default blast-radius unless explicitly requested.</div></div>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Worked examples</span>
+        <span class="ex">vCenter <span class="arr">manages</span> ESXHost, VirtualMachine, vSphereCluster, DistributedSwitch, Datastore</span>
+        <span class="ex">KubernetesControlPlane <span class="arr">manages</span> KubernetesNode, Pod, Deployment</span>
+        <span class="ex">ConfigurationServer <span class="arr">manages</span> Server (target of Ansible / Puppet / SCCM)</span>
+        <span class="ex">DomainController <span class="arr">manages</span> DomainJoinedHost</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Typical evidence sources</span>
+        <ul>
+          <li>API integration with the management plane (vCenter API, K8s API, AD)</li>
+          <li>Configuration management system telemetry</li>
+        </ul>
+      </div>
+
+      <div class="anti">
+        <span class="lbl">Anti-pattern · the vCenter mistake</span>
+        Do not model "VM <code>dependsOn</code> vCenter." Discovery tools commonly emit this and it produces false blast-radius results — a vCenter outage falsely appears to take down every VM in the estate, when in reality the VMs continue running. Use <code>manages</code> for control-plane relationships and reserve <code>dependsOn</code> for operational dependencies.
+      </div>
+    </div>
+  </div>
+
+  <!-- 09 ownedBy -->
+  <div class="edge-card" id="e-ownedby">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Edge 09 · Governance accountability</div>
+        <h3>ownedBy</h3>
+        <div class="verbs"><span class="v-forward">A ownedBy B</span> &nbsp;/&nbsp; B owns A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent lifecycle</span>
+        <span class="pill pill-no">no identity</span>
+        <span class="pill pill-no">no impact</span>
+        <span class="pill pill-1n">N:1</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A is accountable to B for the CI's existence, cost, compliance, and lifecycle decisions; B is a person, group, or organizational unit.</div>
+
+      <div class="ec-grid">
+        <div class="row"><div class="k">Lifecycle</div><div class="v">Independent. Ownership transfers do not destroy the CI.</div></div>
+        <div class="row"><div class="k">Direction</div><div class="v">Directional. Source is the CI; target is the accountable party.</div></div>
+        <div class="row"><div class="k">Cardinality</div><div class="v">N:1. A CI has exactly one owner at a time (organizationally); the owner may have many CIs.</div></div>
+        <div class="row"><div class="k">Identity-contributing</div><div class="v">No.</div></div>
+        <div class="row"><div class="k">Impact-bearing</div><div class="v">No. Ownership is governance, not operations. Excluded from blast-radius.</div></div>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Worked examples</span>
+        <span class="ex">Application <span class="arr">ownedBy</span> User (Application Owner)</span>
+        <span class="ex">BusinessApplication <span class="arr">ownedBy</span> BusinessUnit</span>
+        <span class="ex">Database <span class="arr">ownedBy</span> CostCenter</span>
+        <span class="ex">vCenter <span class="arr">ownedBy</span> InfrastructureLeadership</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Typical evidence sources</span>
+        <ul>
+          <li>HR or directory integration</li>
+          <li>Manual governance records</li>
+          <li>Tag-based attribution from cloud accounts</li>
+        </ul>
+      </div>
+
+      <div class="anti">
+        <span class="lbl">Anti-pattern</span>
+        Do not use <code>ownedBy</code> for operational responsibility. Ownership is "who answers to the auditor"; operational responsibility is "who gets paged at 3 AM." For operational responsibility, ownership of an OnCallRotation or SupportGroup CI is typically modeled via <code>managedBy</code> at the human-group level (a future extension; treat as v0.2 candidate).
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 locatedIn -->
+  <div class="edge-card" id="e-locatedin">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Edge 10 · Placement</div>
+        <h3>locatedIn</h3>
+        <div class="verbs"><span class="v-forward">A locatedIn B</span> &nbsp;/&nbsp; B houses A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent lifecycle</span>
+        <span class="pill pill-no">no identity</span>
+        <span class="pill pill-cond">cond. impact</span>
+        <span class="pill pill-1n">N:1</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A is physically or logically placed within B; B defines a failure domain for events that affect physical or logical location.</div>
+
+      <div class="ec-grid">
+        <div class="row"><div class="k">Lifecycle</div><div class="v">Independent. Location can change (relocation, migration).</div></div>
+        <div class="row"><div class="k">Direction</div><div class="v">Directional. Source is the placed entity; target is the location.</div></div>
+        <div class="row"><div class="k">Cardinality</div><div class="v">N:1. An entity is in one location at a time.</div></div>
+        <div class="row"><div class="k">Identity-contributing</div><div class="v">No.</div></div>
+        <div class="row"><div class="k">Impact-bearing</div><div class="v">Conditional. Used by <code>sharesFailureDomain</code> computed edge for location-correlated outages (datacenter, AZ, region).</div></div>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Worked examples</span>
+        <span class="ex">Rack <span class="arr">locatedIn</span> Datacenter</span>
+        <span class="ex">VirtualMachine <span class="arr">locatedIn</span> AvailabilityZone</span>
+        <span class="ex">Service <span class="arr">locatedIn</span> CloudRegion</span>
+        <span class="ex">Datacenter <span class="arr">locatedIn</span> GeographicRegion</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Typical evidence sources</span>
+        <ul>
+          <li>Cloud provider API (region, AZ assignment)</li>
+          <li>Datacenter inventory system</li>
+          <li>Manual placement records</li>
+        </ul>
+      </div>
+
+      <div class="anti">
+        <span class="lbl">Anti-pattern</span>
+        Do not model logical groupings (a security zone, an application tier) as <code>locatedIn</code>. Use <code>memberOf</code> for logical groupings; <code>locatedIn</code> is reserved for physical or platform-defined locations that constitute genuine failure domains.
+      </div>
+    </div>
+  </div>
+
+  <!-- 11 succeedsLifecycleOf -->
+  <div class="edge-card" id="e-succeeds">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Edge 11 · Genealogy</div>
+        <h3>succeedsLifecycleOf</h3>
+        <div class="verbs"><span class="v-forward">A succeedsLifecycleOf B</span> &nbsp;/&nbsp; B succeededBy A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-indep">independent lifecycle</span>
+        <span class="pill pill-no">no identity</span>
+        <span class="pill pill-no">no impact</span>
+        <span class="pill pill-1n">N:1</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A is the successor of B in a deliberate lifecycle progression — version upgrade, replacement, migration, or sunset; both records persist for genealogy.</div>
+
+      <div class="ec-grid">
+        <div class="row"><div class="k">Lifecycle</div><div class="v">Independent.</div></div>
+        <div class="row"><div class="k">Direction</div><div class="v">Directional. Source is the successor; target is the predecessor.</div></div>
+        <div class="row"><div class="k">Cardinality</div><div class="v">N:1 typical. A successor has one direct predecessor; many predecessors may collapse into one successor (merges).</div></div>
+        <div class="row"><div class="k">Identity-contributing</div><div class="v">No.</div></div>
+        <div class="row"><div class="k">Impact-bearing</div><div class="v">No. Genealogy is historical, not operational.</div></div>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Worked examples</span>
+        <span class="ex">Application v2.0 <span class="arr">succeedsLifecycleOf</span> Application v1.5</span>
+        <span class="ex">Server (new) <span class="arr">succeedsLifecycleOf</span> Server (decommissioned)</span>
+        <span class="ex">CloudService <span class="arr">succeedsLifecycleOf</span> OnPremEquivalent</span>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Typical evidence sources</span>
+        <ul>
+          <li>Change records (manual or RFC-derived)</li>
+          <li>IaC parsing (Terraform state transitions)</li>
+          <li>Build pipeline metadata</li>
+        </ul>
+      </div>
+
+      <div class="anti">
+        <span class="lbl">Anti-pattern</span>
+        Do not model upgrades-in-place using <code>succeedsLifecycleOf</code> if no new CI was created. A patch to Server-01 is not a successor relationship — it is a CI attribute change. Reserve genealogy for deliberate replacements where both old and new CIs exist as records.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPUTED EDGES -->
+<section class="block" id="computed">
+  <div class="sec-num">§ 05 · The four computed edges</div>
+  <h2 class="sec-title">Derived at query time — the operational truths.</h2>
+  <p class="sec-lede">These edges are never written to the graph. They are graph-traversal patterns that resolve at query time over the stored edges. This separates ground truth (what is) from operational truth (what it means), and lets the operational rules evolve without rewriting data.</p>
+
+  <div class="callout green">
+    <span class="tag">Architectural commitment</span>
+    <p>The four computed edges below are the v0.1 set. Additional computed edges (security blast radius, compliance scope, change risk score) are anticipated as v0.2 candidates — they will be defined as new traversal patterns over the same eleven stored edges, never as new stored types.</p>
+  </div>
+
+  <!-- impactedBy -->
+  <div class="edge-card computed-card" id="c-impactedby">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Computed Edge 01</div>
+        <h3>impactedBy</h3>
+        <div class="verbs"><span class="v-forward">A impactedBy B</span> &nbsp;/&nbsp; B impacts A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-compute">computed</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A is impacted by B if there exists a directed path from A to B through impact-bearing edges (<code>runsOn</code>, <code>dependsOn</code>, <code>composedOf</code>, <code>realizes</code>) where each hop preserves the operational claim "if downstream fails, upstream is affected."</div>
+
+      <div class="ec-section">
+        <span class="lbl">Traversal definition</span>
+        <p style="font-size:0.9rem;">Starting from A, follow any sequence of impact-bearing stored edges in the dependent → provider direction. B is reachable in the traversal &rArr; B impacts A.</p>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Edges included by default</span>
+        <ul>
+          <li><code>dependsOn</code> · always</li>
+          <li><code>runsOn</code> · always</li>
+          <li><code>composedOf</code> · always (cascade implies impact)</li>
+          <li><code>realizes</code> · when traversing concrete → abstract</li>
+        </ul>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Edges excluded by default</span>
+        <ul>
+          <li><code>communicatesWith</code> · excluded — communication is evidence, not claim</li>
+          <li><code>manages</code> · excluded — control-plane outage does not down workloads</li>
+          <li><code>ownedBy</code>, <code>locatedIn</code>, <code>memberOf</code>, <code>contains</code>, <code>succeedsLifecycleOf</code> · excluded by default; can be requested explicitly</li>
+        </ul>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Use cases</span>
+        <ul>
+          <li>Blast radius: "if this CI fails, what else is affected?" — query <code>impactedBy</code> in the reverse direction</li>
+          <li>Change risk: "what business outcomes are at risk if I take this CI down for maintenance?"</li>
+          <li>Root cause: starting from a failing service, find the smallest set of upstream failures that could explain it</li>
+        </ul>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Configurability</span>
+        <p style="font-size:0.9rem;">Customers can define alternate impact models by overriding which edge types contribute. E.g., a security-focused customer can include <code>communicatesWith</code> for lateral-movement blast radius. The default model is documented; alternates live alongside.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- reaches -->
+  <div class="edge-card computed-card" id="c-reaches">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Computed Edge 02</div>
+        <h3>reaches</h3>
+        <div class="verbs"><span class="v-forward">A reaches B</span> &nbsp;/&nbsp; B reachableFrom A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-compute">computed</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A can reach B if there exists any path from A to B through <code>communicatesWith</code> and <code>dependsOn</code> edges — irrespective of impact propagation. This answers reachability, not dependency.</div>
+
+      <div class="ec-section">
+        <span class="lbl">Traversal definition</span>
+        <p style="font-size:0.9rem;">Transitive closure over the union of <code>communicatesWith</code> and <code>dependsOn</code>. Direction-aware: respects the directional attribute of <code>communicatesWith</code> when present.</p>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Use cases</span>
+        <ul>
+          <li>Security: lateral-movement analysis — "can a compromise of host X reach service Y?"</li>
+          <li>Network design: confirming connectivity for a planned integration</li>
+          <li>Compliance scope: which systems touch a regulated data store</li>
+        </ul>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Distinction from impactedBy</span>
+        <p style="font-size:0.9rem;">A can reach B without being impacted by B (idempotent retries, async messaging). Reachability is a superset of impact dependency. Keep them distinct in queries and visualizations.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- sharesFailureDomain -->
+  <div class="edge-card computed-card" id="c-failuredomain">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Computed Edge 03</div>
+        <h3>sharesFailureDomain</h3>
+        <div class="verbs"><span class="v-forward">A sharesFailureDomain B</span> &nbsp;/&nbsp; (symmetric)</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-compute">computed</span>
+        <span class="pill pill-nm">N:M</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">A and B share a failure domain if they have a common ancestor reachable via <code>locatedIn</code> or <code>runsOn</code> chains; failure of the common ancestor takes both down together.</div>
+
+      <div class="ec-section">
+        <span class="lbl">Traversal definition</span>
+        <p style="font-size:0.9rem;">Find the lowest common ancestor of A and B in the union of <code>locatedIn</code> and <code>runsOn</code> chains. If one exists, A and B share that ancestor as their failure domain.</p>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Use cases</span>
+        <ul>
+          <li>HA design validation: "are my primary and replica in the same rack? Same AZ?"</li>
+          <li>Maintenance window planning: which CIs share a power feed, switch, or hypervisor</li>
+          <li>Risk concentration: detecting unwitting single-points-of-failure across logically independent services</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- criticalPath -->
+  <div class="edge-card computed-card" id="c-criticalpath">
+    <div class="ec-head">
+      <div class="left">
+        <div class="num">Computed Edge 04</div>
+        <h3>criticalPath</h3>
+        <div class="verbs"><span class="v-forward">A criticalPath B</span> &nbsp;/&nbsp; B underpins A</div>
+      </div>
+      <div class="right">
+        <span class="pill pill-compute">computed</span>
+        <span class="pill pill-1n">1:N</span>
+      </div>
+    </div>
+    <div class="ec-body">
+      <div class="meaning">The critical path from a business concept A (capability, business application, business service) is the minimum set of infrastructure CIs B whose failure would degrade A — surfaced as the shortest <code>dependsOn</code> / <code>realizes</code> / <code>runsOn</code> chain.</div>
+
+      <div class="ec-section">
+        <span class="lbl">Traversal definition</span>
+        <p style="font-size:0.9rem;">Starting from A (typically a BusinessCapability or BusinessApplication), perform a shortest-path traversal over <code>realizes</code> &rarr; <code>dependsOn</code> &rarr; <code>runsOn</code> to reach concrete infrastructure CIs. Each path represents one critical-path segment.</p>
+      </div>
+
+      <div class="ec-section">
+        <span class="lbl">Use cases</span>
+        <ul>
+          <li>Executive reporting: "what infrastructure underpins our payment business capability?"</li>
+          <li>Tiered backup &amp; DR planning: which CIs are critical-path for tier-1 business services</li>
+          <li>Cost-to-business attribution: rolling infrastructure cost up to the business outcomes they enable</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METAMODEL -->
+<section class="block" id="metamodel">
+  <div class="sec-num">§ 06 · The edge metamodel</div>
+  <h2 class="sec-title">Every stored edge, regardless of type, carries this metadata.</h2>
+  <p class="sec-lede">This is the schema-level template that all relationship instances conform to. It is uniform across the eleven stored edge types so that AI reasoning, validation, and CMDB health scoring can operate on a single shape.</p>
+
+  <table class="meta-table">
+    <thead>
+      <tr><th>Field</th><th>Type</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>edgeId</td><td>UUID</td><td>Stable identifier for the edge instance</td></tr>
+      <tr><td>edgeType</td><td>enum (11)</td><td>One of the eleven canonical stored edge types</td></tr>
+      <tr><td>sourceCI</td><td>CI reference</td><td>Source of the directed edge</td></tr>
+      <tr><td>targetCI</td><td>CI reference</td><td>Target of the directed edge</td></tr>
+      <tr><td>strength</td><td>enum</td><td>mandatory · common · conditional · rare — drives CMDB health scoring</td></tr>
+      <tr><td>identityContributing</td><td>boolean</td><td>Does this edge participate in CI reconciliation?</td></tr>
+      <tr><td>impactBearing</td><td>boolean</td><td>Does this edge propagate impact in default blast-radius queries?</td></tr>
+      <tr><td>cardinalityHint</td><td>enum</td><td>1:1 · 1:N · N:1 · N:M — for validation and UI presentation</td></tr>
+      <tr><td>evidenceSource</td><td>enum</td><td>agent · discovery · api · iac · traffic · log_inference · ai_inferred · manual · identity_correlation · service_mapping_session</td></tr>
+      <tr><td>confidence</td><td>float 0..1</td><td>Probability the edge is correct, calibrated to evidence source</td></tr>
+      <tr><td>lastObserved</td><td>timestamp</td><td>Most recent confirmation by an evidence source</td></tr>
+      <tr><td>ttl</td><td>duration</td><td>Staleness threshold; edges past TTL surface in review queue</td></tr>
+      <tr><td>validationRule</td><td>rule reference</td><td>Triplet rule (source class, target class) that authorized this edge</td></tr>
+      <tr><td>attributes</td><td>object</td><td>Edge-type-specific attributes (e.g., <code>protocol</code>, <code>port</code> on <code>communicatesWith</code>)</td></tr>
+      <tr><td>createdBy</td><td>actor reference</td><td>Probe, agent, integration, or user that wrote the edge</td></tr>
+      <tr><td>createdAt</td><td>timestamp</td><td>Initial creation time</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">Confidence calibration per evidence source</h3>
+  <p>Default confidence floors. Discovery integrations may override, but anything below 0.5 should be flagged for human review before promotion to operational use.</p>
+
+  <table class="meta-table">
+    <thead><tr><th>Evidence source</th><th>Default floor</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>agent</td><td>0.95</td><td>On-host telemetry; high certainty</td></tr>
+      <tr><td>api</td><td>0.95</td><td>Authoritative API (vCenter, K8s, cloud provider)</td></tr>
+      <tr><td>discovery</td><td>0.90</td><td>Credentialed probe (SNMP, WMI, SSH)</td></tr>
+      <tr><td>iac</td><td>0.85</td><td>Declared in Terraform, CloudFormation, Helm</td></tr>
+      <tr><td>identity_correlation</td><td>0.85</td><td>Correlated via shared credentials or certs</td></tr>
+      <tr><td>service_mapping_session</td><td>0.80</td><td>Human-authored top-down service map</td></tr>
+      <tr><td>traffic</td><td>0.75</td><td>Observed traffic — high for communication, lower if promoted to dependency</td></tr>
+      <tr><td>log_inference</td><td>0.70</td><td>Parsed from request or system logs</td></tr>
+      <tr><td>ai_inferred</td><td>0.60</td><td>LLM inference; requires human confirmation for high-stakes edges</td></tr>
+      <tr><td>manual</td><td>1.00</td><td>But mandatory TTL — manual claims decay without re-confirmation</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- VALIDATION -->
+<section class="block" id="validation">
+  <div class="sec-num">§ 07 · Validation &amp; enforcement</div>
+  <h2 class="sec-title">The triplet system — schema-level correctness.</h2>
+  <p class="sec-lede">Every stored edge type has an allowlist of valid <code>(source CI class, target CI class)</code> combinations called <em>triplets</em>. Attempts to write an edge outside its triplet allowlist are rejected at the API boundary, not flagged for later cleanup. This is the central mechanism preventing the relationship-vocabulary drift that legacy CMDBs suffer.</p>
+
+  <h3 class="sub">Triplet structure</h3>
+  <p>A triplet is a tuple <code>(sourceClass, edgeType, targetClass)</code> with an optional condition. Examples for <code>runsOn</code>:</p>
+
+  <table class="meta-table">
+    <thead><tr><th>Source class</th><th>Edge type</th><th>Target class</th></tr></thead>
+    <tbody>
+      <tr><td>Process</td><td>runsOn</td><td>OperatingSystem</td></tr>
+      <tr><td>OperatingSystem</td><td>runsOn</td><td>VirtualMachine</td></tr>
+      <tr><td>OperatingSystem</td><td>runsOn</td><td>PhysicalServer</td></tr>
+      <tr><td>VirtualMachine</td><td>runsOn</td><td>Hypervisor</td></tr>
+      <tr><td>Application</td><td>runsOn</td><td>OperatingSystem</td></tr>
+      <tr><td>Application</td><td>runsOn</td><td>ApplicationServer</td></tr>
+      <tr><td>Container</td><td>runsOn</td><td>KubernetesNode</td></tr>
+      <tr><td>Container</td><td>runsOn</td><td>ContainerHost</td></tr>
+      <tr><td>DatabaseInstance</td><td>runsOn</td><td>OperatingSystem</td></tr>
+      <tr><td>Pod</td><td>runsOn</td><td>KubernetesNode</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">Triplets are config, not schema</h3>
+  <p>Triplet rules live in JSON Schema files under a versioned config directory in the Fusion SaaS repo. Adding a new valid <code>(source, edge, target)</code> combination is a pull request reviewed by Product and Engineering — not a database migration. This is what allows the catalog to keep up with new infrastructure paradigms without releasing a new database version.</p>
+
+  <h3 class="sub">Override mechanism for AI-inferred edges</h3>
+  <p>AI-inferred edges with confidence below 0.85 that would violate a triplet rule are written to a <em>quarantine</em> table, not the main graph. A human reviewer can promote them to the main graph (which either updates the triplet rules or rejects the edge). This is how the system learns new valid patterns without compromising integrity.</p>
+
+  <div class="callout">
+    <span class="tag">Health scoring</span>
+    <p>CMDB health is scored per CI based on the presence and freshness of its <em>mandatory</em> and <em>common</em> edges (as defined per edge type in §04). Missing mandatory edges score zero on health for that CI. Stale edges (past TTL) reduce confidence. Health is surfaced in the Fusion SaaS dashboard so operators see CMDB decay before it costs them.</p>
+  </div>
+</section>
+
+<!-- ACCEPTANCE GATES -->
+<section class="block" id="gates">
+  <div class="sec-num">§ 08 · Acceptance gates to v1.0</div>
+  <h2 class="sec-title">What must be true before this v0.1 becomes v1.0.</h2>
+  <p class="sec-lede">This spec ships as v0.1 — proposed, internally aligned, but not yet validated. Three explicit gates must pass before v1.0 freeze. Each gate produces a decision log entry; failures produce edge-set revisions, not workarounds.</p>
+
+  <div class="criteria">
+    <div class="criterion">
+      <div class="n">Gate 01</div>
+      <h4>Three-scenario modeling pass</h4>
+      <p>Model three real-world systems end-to-end using only the eleven stored edges: (1) full vCenter virtualization stack with external dependencies, (2) Kubernetes multi-pod app with control plane, (3) multi-tier banking application (LB &rarr; web &rarr; app &rarr; DB &rarr; cache &rarr; identity). Every relationship in each scenario must map to one of the eleven without forcing.</p>
+    </div>
+    <div class="criterion">
+      <div class="n">Gate 02</div>
+      <h4>Computed-edge correctness</h4>
+      <p>For each scenario, run all four computed edges and verify the answers match operational reality. False positives in <code>impactedBy</code> (e.g., the vCenter-outage-takes-down-VMs mistake) must not occur. False negatives must be enumerable and explainable.</p>
+    </div>
+    <div class="criterion">
+      <div class="n">Gate 03</div>
+      <h4>Discovery integration trial</h4>
+      <p>One real discovery source (agent telemetry or API integration) writes edges through the API. Triplet validation rejects at least one invalid edge during the trial. Evidence and confidence fields populate correctly. Stale-edge surfacing works through one TTL cycle.</p>
+    </div>
+  </div>
+
+  <div class="key-insight">
+    <span class="label">After v1.0 lock</span>
+    <p class="text">All future changes to this spec — adding edge types, splitting an edge type, modifying a triplet rule, changing default impact-edge inclusion — flow through the decision log. v1.0 is the contract engineering builds against; v1.1 is the next contract, never an undocumented drift from v1.0.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="foot-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-label="Motadata">
+        <g>
+          <path d="M291.6,220.35V45.51c89.35,14.97,159.88,85.5,174.85,174.85h-174.85Z" fill="#f17463"/>
+          <path d="M469.33,260.55c-2.39,115.7-97.04,208.78-213.29,208.78S42.67,373.76,42.67,255.95c0-12.13,1.01-24.08,2.94-35.56C62.24,120.96,147.8,44.87,251.45,42.67v88.31c-54.4,2.02-99.98,39.06-114.78,89.41-3.31,11.21-5.14,23.16-5.14,35.56,0,69.01,55.78,124.98,124.52,124.98,12.31,0,24.26-1.75,35.56-5.15,49.99-14.89,86.84-60.65,88.77-115.24h88.95Z"/>
+        </g>
+      </svg>
+    </div>
+  <div class="fbrand">Motadata · Fusion SaaS</div>
+  <div class="fnote">This specification draws on conceptual precedent from established enterprise CMDB models, refined through a graph-primitive, AI-native lens. Every edge type maps to a battle-tested concept in mainstream CMDB practice; the contribution here is in the orthogonality of the set, the separation of stored from computed truth, and the first-class treatment of evidence and confidence.</div>
+  <div class="fmeta">Fusion SaaS SKG Edge Specification · v0.1 · Internal Product Document</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.05, rootMargin: '0px 0px -30px 0px' });
+document.querySelectorAll('section.block').forEach(el => {
+  el.classList.add('fade-in');
+  observer.observe(el);
+});
+</script>
+
+</body>
+</html>

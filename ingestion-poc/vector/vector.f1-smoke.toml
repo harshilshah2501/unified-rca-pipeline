@@ -22,26 +22,26 @@ source = '''
 .ts = string!(.ts)
 .tenant = string(.tenant) ?? "default"
 .ci_id = string!(.ci_id)
-.signal_class = string!(.signal_class)
+.fact_kind = string!(.fact_kind)
 '''
 
 # Lean path: metrics + events + pre-marked anomalies
 [transforms.route_lean]
 type = "filter"
 inputs = ["to_ingest_v1"]
-condition = '.signal_class == "anomaly" || .signal_class == "event" || .signal_class == "metric_sample"'
+condition = '.fact_kind == "anomaly" || .fact_kind == "event" || .fact_kind == "metric_sample"'
 
 # Structural store feed (Federated Murphy / metric slice)
 [transforms.route_structural]
 type = "filter"
 inputs = ["to_ingest_v1"]
-condition = '.signal_class == "metric_sample" || .signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+condition = '.fact_kind == "metric_sample" || .fact_kind == "event" || .fact_kind == "trace_span" || .fact_kind == "anomaly"'
 
 # Speed-tier feed (Nezha-oriented: events + traces + anomalies)
 [transforms.route_speed]
 type = "filter"
 inputs = ["to_ingest_v1"]
-condition = '.signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+condition = '.fact_kind == "event" || .fact_kind == "trace_span" || .fact_kind == "anomaly"'
 
 [sinks.lean_feed]
 type = "file"

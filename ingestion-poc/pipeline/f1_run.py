@@ -89,7 +89,7 @@ def write_python_sinks(stream: Path, out_dir: Path) -> dict[str, int]:
                 continue
             row = json.loads(line)
             counts["total"] += 1
-            cls = row.get("signal_class")
+            cls = row.get("fact_kind")
             encoded = json.dumps(row, separators=(",", ":")) + "\n"
             if cls in LEAN_CLASSES:
                 lean_fh.write(encoded)

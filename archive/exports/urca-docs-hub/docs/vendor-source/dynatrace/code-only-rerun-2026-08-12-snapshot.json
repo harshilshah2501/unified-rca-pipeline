@@ -1,0 +1,872 @@
+{
+  "fetchedAt": "2026-08-12T10:21:42.148625+00:00",
+  "window": {
+    "from": "2026-08-12T09:30:00Z",
+    "to": "2026-08-12T10:30:00Z"
+  },
+  "runs": {
+    "monitoring_unavailable": {
+      "breakApprox": "2026-08-12T09:33:00Z",
+      "loadMinutes": 15,
+      "healApprox": "2026-08-12T09:48:54Z",
+      "fault": "SCENARIO_MODE=MONITORING_DARK (python code only)",
+      "httpDuringFault": "200",
+      "organicProblems": [],
+      "insight": "No Problems opened during MU window. Code-only OTEL/DT_DISABLE env in-process did not produce MONITORING_UNAVAILABLE / CUSTOM_ALERT / OSI_UNEXPECTEDLY_UNAVAILABLE."
+    },
+    "availability": {
+      "breakApprox": "2026-08-12T09:49:33Z",
+      "loadMinutes": 10,
+      "healApprox": "2026-08-12T10:00:11Z",
+      "fault": "SCENARIO_MODE=AVAILABILITY_DOWN (python process exits ~2s after boot)",
+      "httpDuringFault": "mostly 500 (caller cascade)",
+      "organicProblems": [
+        "P-260852",
+        "P-260853",
+        "P-260854"
+      ],
+      "primaryOrganic": "P-260854",
+      "insight": "Same pattern as docker-stop lab: organic Detect packages caller pain as PERFORMANCE Response time degradation; no severity AVAILABILITY on inventory without events.ingest."
+    },
+    "resource_contention": {
+      "breakApprox": "2026-08-12T10:00:30Z",
+      "loadMinutes": 15,
+      "healApprox": "2026-08-12T10:15:53Z",
+      "fault": "RESOURCE_BURN background CPU thread (python code only)",
+      "httpDuringFault": "200 fast (~28ms post-heal probe; load ok=10/10)",
+      "organicProblems": [],
+      "insight": "No RESOURCE_CONTENTION / HIGH_CPU Problem in window. Background burn kept request path fast so SERVICE_SLOWDOWN did not dominate; metrics.read 403 on this token so CPU gauges not pulled via API."
+    }
+  },
+  "problems": [
+    {
+      "displayId": "P-260854",
+      "problemId": "-8058094962590037226_1786528140000V2",
+      "title": "Response time degradation",
+      "status": "CLOSED",
+      "severityLevel": "PERFORMANCE",
+      "impactLevel": "SERVICES",
+      "startTime": "2026-08-12T09:54:00+00:00",
+      "endTime": "2026-08-12T10:04:00+00:00",
+      "rootCauseEntity": "product",
+      "affectedEntities": [
+        "frontend",
+        "product"
+      ],
+      "impactedEntities": [
+        "frontend",
+        "product"
+      ],
+      "evidenceDetails": [
+        {
+          "evidenceType": "TRANSACTIONAL",
+          "displayName": "Server response time",
+          "entity": "Mapped Instance for product",
+          "entityId": {
+            "id": "SERVICE_INSTANCE-25727B5C60652136",
+            "type": "SERVICE_INSTANCE"
+          },
+          "startTime": "2026-08-12T09:35:00+00:00",
+          "rootCauseRelevant": true
+        },
+        {
+          "evidenceType": "EVENT",
+          "displayName": "Response time degradation",
+          "entity": "product",
+          "entityId": {
+            "id": "SERVICE-EDE6C0ADA09886E7",
+            "type": "SERVICE"
+          },
+          "startTime": "2026-08-12T09:49:00+00:00",
+          "rootCauseRelevant": true
+        },
+        {
+          "evidenceType": "TRANSACTIONAL",
+          "displayName": "Client error rate increase",
+          "entity": "Requests to unmonitored hosts",
+          "entityId": {
+            "id": "SERVICE-70C56686E39D60B1",
+            "type": "SERVICE"
+          },
+          "startTime": "2026-08-12T09:35:00+00:00",
+          "rootCauseRelevant": false
+        },
+        {
+          "evidenceType": "EVENT",
+          "displayName": "Response time degradation",
+          "entity": "frontend",
+          "entityId": {
+            "id": "SERVICE-0FAD22B40DE5F562",
+            "type": "SERVICE"
+          },
+          "startTime": "2026-08-12T09:49:00+00:00",
+          "rootCauseRelevant": false
+        }
+      ],
+      "raw": {
+        "problemId": "-8058094962590037226_1786528140000V2",
+        "displayId": "P-260854",
+        "title": "Response time degradation",
+        "impactLevel": "SERVICES",
+        "severityLevel": "PERFORMANCE",
+        "status": "CLOSED",
+        "affectedEntities": [
+          {
+            "entityId": {
+              "id": "SERVICE-0FAD22B40DE5F562",
+              "type": "SERVICE"
+            },
+            "name": "frontend"
+          },
+          {
+            "entityId": {
+              "id": "SERVICE-EDE6C0ADA09886E7",
+              "type": "SERVICE"
+            },
+            "name": "product"
+          }
+        ],
+        "impactedEntities": [
+          {
+            "entityId": {
+              "id": "SERVICE-0FAD22B40DE5F562",
+              "type": "SERVICE"
+            },
+            "name": "frontend"
+          },
+          {
+            "entityId": {
+              "id": "SERVICE-EDE6C0ADA09886E7",
+              "type": "SERVICE"
+            },
+            "name": "product"
+          }
+        ],
+        "rootCauseEntity": {
+          "entityId": {
+            "id": "SERVICE-EDE6C0ADA09886E7",
+            "type": "SERVICE"
+          },
+          "name": "product"
+        },
+        "managementZones": [],
+        "entityTags": [
+          {
+            "context": "ENVIRONMENT",
+            "key": "DT_RELEASE_STAGE",
+            "value": "rca-lab",
+            "stringRepresentation": "[Environment]DT_RELEASE_STAGE:rca-lab"
+          },
+          {
+            "context": "ENVIRONMENT",
+            "key": "lab",
+            "value": "dynatrace-rca-lab",
+            "stringRepresentation": "[Environment]lab:dynatrace-rca-lab"
+          },
+          {
+            "context": "ENVIRONMENT",
+            "key": "DT_RELEASE_VERSION",
+            "value": "1.1.0-codepin",
+            "stringRepresentation": "[Environment]DT_RELEASE_VERSION:1.1.0-codepin"
+          },
+          {
+            "context": "ENVIRONMENT",
+            "key": "DT_RELEASE_PRODUCT",
+            "value": "frontend",
+            "stringRepresentation": "[Environment]DT_RELEASE_PRODUCT:frontend"
+          },
+          {
+            "context": "ENVIRONMENT",
+            "key": "DT_RELEASE_PRODUCT",
+            "value": "product",
+            "stringRepresentation": "[Environment]DT_RELEASE_PRODUCT:product"
+          }
+        ],
+        "problemFilters": [],
+        "startTime": 1786528440000,
+        "endTime": 1786529040000,
+        "evidenceDetails": {
+          "totalCount": 4,
+          "details": [
+            {
+              "evidenceType": "TRANSACTIONAL",
+              "displayName": "Server response time",
+              "entity": {
+                "entityId": {
+                  "id": "SERVICE_INSTANCE-25727B5C60652136",
+                  "type": "SERVICE_INSTANCE"
+                },
+                "name": "Mapped Instance for product"
+              },
+              "groupingEntity": {
+                "entityId": {
+                  "id": "SERVICE-EDE6C0ADA09886E7",
+                  "type": "SERVICE"
+                },
+                "name": "product"
+              },
+              "rootCauseRelevant": true,
+              "unit": "MicroSecond",
+              "valueBeforeChangePoint": 6189.765,
+              "valueAfterChangePoint": 8010855.0,
+              "startTime": 1786527300000,
+              "endTime": 1786528500000
+            },
+            {
+              "evidenceType": "EVENT",
+              "displayName": "Response time degradation",
+              "entity": {
+                "entityId": {
+                  "id": "SERVICE-EDE6C0ADA09886E7",
+                  "type": "SERVICE"
+                },
+                "name": "product"
+              },
+              "groupingEntity": null,
+              "rootCauseRelevant": true,
+              "eventId": "-8058094962590037226_1786528140000",
+              "eventType": "SERVICE_SLOWDOWN",
+              "data": {
+                "eventId": "-8058094962590037226_1786528140000",
+                "startTime": 1786528140000,
+                "endTime": 1786529040000,
+                "eventType": "SERVICE_SLOWDOWN",
+                "title": "Response time degradation",
+                "entityId": {
+                  "entityId": {
+                    "id": "SERVICE-EDE6C0ADA09886E7",
+                    "type": "SERVICE"
+                  },
+                  "name": "product"
+                },
+                "properties": [
+                  {
+                    "key": "dt.event.baseline.affected_load",
+                    "value": "19.2"
+                  },
+                  {
+                    "key": "dt.event.baseline.is_response_time_p50_abnormal",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.is_response_time_p90_abnormal",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p50",
+                    "value": "8010424.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p50_reference",
+                    "value": "0.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p90",
+                    "value": "8014927.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p90_reference",
+                    "value": "0.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.service_method",
+                    "value": "SERVICE_METHOD_GROUP-BFEF4A4FD1C1E6E4"
+                  },
+                  {
+                    "key": "dt.event.baseline.static_user_override",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.total_load",
+                    "value": "19.2"
+                  },
+                  {
+                    "key": "dt.event.description",
+                    "value": "The current response time (~8.01 s) exceeds your custom threshold (2 s) by 300.52 %.\nAll dynamic requests are slow."
+                  },
+                  {
+                    "key": "dt.event.dql_query",
+                    "value": "timeseries response_time = percentile(dt.service.request.response_time, 50),\nby: { dt.smartscape.service },\nfilter: { dt.smartscape.service == toSmartscapeId(\"SERVICE-EDE6C0ADA09886E7\") }\n| fieldsAdd metricName = \"Response time p50\" | append [ timeseries response_time = percentile(dt.service.request.response_time, 90),\nby: { dt.smartscape.service },\nfilter: { dt.smartscape.service == toSmartscapeId(\"SERVICE-EDE6C0ADA09886E7\") }\n| fieldsAdd metricName = \"Response time p90\" ]"
+                  },
+                  {
+                    "key": "dt.event.group_label",
+                    "value": "Service response time degradation"
+                  },
+                  {
+                    "key": "dt.event.impact_level",
+                    "value": "Services"
+                  },
+                  {
+                    "key": "dt.event.is_rootcause_relevant",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.timeout",
+                    "value": "0"
+                  }
+                ],
+                "status": "CLOSED",
+                "correlationId": "BC46965EAF592235",
+                "entityTags": [
+                  {
+                    "context": "ENVIRONMENT",
+                    "key": "DT_RELEASE_STAGE",
+                    "value": "rca-lab",
+                    "stringRepresentation": "[Environment]DT_RELEASE_STAGE:rca-lab"
+                  },
+                  {
+                    "context": "ENVIRONMENT",
+                    "key": "lab",
+                    "value": "dynatrace-rca-lab",
+                    "stringRepresentation": "[Environment]lab:dynatrace-rca-lab"
+                  },
+                  {
+                    "context": "ENVIRONMENT",
+                    "key": "DT_RELEASE_VERSION",
+                    "value": "1.1.0-codepin",
+                    "stringRepresentation": "[Environment]DT_RELEASE_VERSION:1.1.0-codepin"
+                  },
+                  {
+                    "context": "ENVIRONMENT",
+                    "key": "DT_RELEASE_PRODUCT",
+                    "value": "product",
+                    "stringRepresentation": "[Environment]DT_RELEASE_PRODUCT:product"
+                  }
+                ],
+                "managementZones": [],
+                "underMaintenance": false,
+                "suppressAlert": false,
+                "suppressProblem": false,
+                "frequentEvent": false
+              },
+              "startTime": 1786528140000,
+              "endTime": 1786529040000
+            },
+            {
+              "evidenceType": "TRANSACTIONAL",
+              "displayName": "Client error rate increase",
+              "entity": {
+                "entityId": {
+                  "id": "SERVICE-70C56686E39D60B1",
+                  "type": "SERVICE"
+                },
+                "name": "Requests to unmonitored hosts"
+              },
+              "groupingEntity": null,
+              "rootCauseRelevant": false,
+              "unit": "Percent",
+              "valueBeforeChangePoint": 0.0,
+              "valueAfterChangePoint": 100.0,
+              "startTime": 1786527300000,
+              "endTime": 1786528500000
+            },
+            {
+              "evidenceType": "EVENT",
+              "displayName": "Response time degradation",
+              "entity": {
+                "entityId": {
+                  "id": "SERVICE-0FAD22B40DE5F562",
+                  "type": "SERVICE"
+                },
+                "name": "frontend"
+              },
+              "groupingEntity": null,
+              "rootCauseRelevant": false,
+              "eventId": "7208404850207955007_1786528140000",
+              "eventType": "SERVICE_SLOWDOWN",
+              "data": {
+                "eventId": "7208404850207955007_1786528140000",
+                "startTime": 1786528140000,
+                "endTime": 1786529040000,
+                "eventType": "SERVICE_SLOWDOWN",
+                "title": "Response time degradation",
+                "entityId": {
+                  "entityId": {
+                    "id": "SERVICE-0FAD22B40DE5F562",
+                    "type": "SERVICE"
+                  },
+                  "name": "frontend"
+                },
+                "properties": [
+                  {
+                    "key": "dt.event.baseline.affected_load",
+                    "value": "19.2"
+                  },
+                  {
+                    "key": "dt.event.baseline.is_response_time_p50_abnormal",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.is_response_time_p90_abnormal",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p50",
+                    "value": "8015922.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p50_reference",
+                    "value": "0.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p90",
+                    "value": "8023278.5"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p90_reference",
+                    "value": "0.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.service_method",
+                    "value": "SERVICE_METHOD_GROUP-B533CB59FA8F6542"
+                  },
+                  {
+                    "key": "dt.event.baseline.static_user_override",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.total_load",
+                    "value": "19.2"
+                  },
+                  {
+                    "key": "dt.event.description",
+                    "value": "The current response time (~8.02 s) exceeds your custom threshold (2 s) by 300.8 %.\nAll dynamic requests are slow."
+                  },
+                  {
+                    "key": "dt.event.dql_query",
+                    "value": "timeseries response_time = percentile(dt.service.request.response_time, 50),\nby: { dt.smartscape.service },\nfilter: { dt.smartscape.service == toSmartscapeId(\"SERVICE-0FAD22B40DE5F562\") }\n| fieldsAdd metricName = \"Response time p50\" | append [ timeseries response_time = percentile(dt.service.request.response_time, 90),\nby: { dt.smartscape.service },\nfilter: { dt.smartscape.service == toSmartscapeId(\"SERVICE-0FAD22B40DE5F562\") }\n| fieldsAdd metricName = \"Response time p90\" ]"
+                  },
+                  {
+                    "key": "dt.event.group_label",
+                    "value": "Service response time degradation"
+                  },
+                  {
+                    "key": "dt.event.impact_level",
+                    "value": "Services"
+                  },
+                  {
+                    "key": "dt.event.is_rootcause_relevant",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.timeout",
+                    "value": "0"
+                  }
+                ],
+                "status": "CLOSED",
+                "correlationId": "73580A2C510FECFF",
+                "entityTags": [
+                  {
+                    "context": "ENVIRONMENT",
+                    "key": "DT_RELEASE_STAGE",
+                    "value": "rca-lab",
+                    "stringRepresentation": "[Environment]DT_RELEASE_STAGE:rca-lab"
+                  },
+                  {
+                    "context": "ENVIRONMENT",
+                    "key": "lab",
+                    "value": "dynatrace-rca-lab",
+                    "stringRepresentation": "[Environment]lab:dynatrace-rca-lab"
+                  },
+                  {
+                    "context": "ENVIRONMENT",
+                    "key": "DT_RELEASE_VERSION",
+                    "value": "1.1.0-codepin",
+                    "stringRepresentation": "[Environment]DT_RELEASE_VERSION:1.1.0-codepin"
+                  },
+                  {
+                    "context": "ENVIRONMENT",
+                    "key": "DT_RELEASE_PRODUCT",
+                    "value": "frontend",
+                    "stringRepresentation": "[Environment]DT_RELEASE_PRODUCT:frontend"
+                  }
+                ],
+                "managementZones": [],
+                "underMaintenance": false,
+                "suppressAlert": false,
+                "suppressProblem": false,
+                "frequentEvent": false
+              },
+              "startTime": 1786528140000,
+              "endTime": 1786529040000
+            }
+          ]
+        },
+        "impactAnalysis": {
+          "impacts": [
+            {
+              "impactType": "SERVICE",
+              "impactedEntity": {
+                "entityId": {
+                  "id": "SERVICE-0FAD22B40DE5F562",
+                  "type": "SERVICE"
+                },
+                "name": "frontend"
+              },
+              "estimatedAffectedUsers": 0,
+              "numberOfPotentiallyAffectedServiceCalls": 5595
+            }
+          ]
+        }
+      }
+    },
+    {
+      "displayId": "P-260852",
+      "problemId": "-8373652534753839775_1786528080000V2",
+      "title": "Response time degradation",
+      "status": "CLOSED",
+      "severityLevel": "PERFORMANCE",
+      "impactLevel": "SERVICES",
+      "startTime": "2026-08-12T09:53:00+00:00",
+      "endTime": "2026-08-12T10:04:00+00:00",
+      "rootCauseEntity": null,
+      "affectedEntities": [
+        "product"
+      ],
+      "impactedEntities": [
+        "product"
+      ],
+      "evidenceDetails": [
+        {
+          "evidenceType": "EVENT",
+          "displayName": "Response time degradation",
+          "entity": "product",
+          "entityId": {
+            "id": "SERVICE-AD279E75529ED3B0",
+            "type": "SERVICE"
+          },
+          "startTime": "2026-08-12T09:48:00+00:00",
+          "rootCauseRelevant": false
+        }
+      ],
+      "raw": {
+        "problemId": "-8373652534753839775_1786528080000V2",
+        "displayId": "P-260852",
+        "title": "Response time degradation",
+        "impactLevel": "SERVICES",
+        "severityLevel": "PERFORMANCE",
+        "status": "CLOSED",
+        "affectedEntities": [
+          {
+            "entityId": {
+              "id": "SERVICE-AD279E75529ED3B0",
+              "type": "SERVICE"
+            },
+            "name": "product"
+          }
+        ],
+        "impactedEntities": [
+          {
+            "entityId": {
+              "id": "SERVICE-AD279E75529ED3B0",
+              "type": "SERVICE"
+            },
+            "name": "product"
+          }
+        ],
+        "rootCauseEntity": null,
+        "managementZones": [],
+        "entityTags": [],
+        "problemFilters": [],
+        "startTime": 1786528380000,
+        "endTime": 1786529040000,
+        "evidenceDetails": {
+          "totalCount": 1,
+          "details": [
+            {
+              "evidenceType": "EVENT",
+              "displayName": "Response time degradation",
+              "entity": {
+                "entityId": {
+                  "id": "SERVICE-AD279E75529ED3B0",
+                  "type": "SERVICE"
+                },
+                "name": "product"
+              },
+              "groupingEntity": null,
+              "rootCauseRelevant": false,
+              "eventId": "-8373652534753839775_1786528080000",
+              "eventType": "SERVICE_SLOWDOWN",
+              "data": {
+                "eventId": "-8373652534753839775_1786528080000",
+                "startTime": 1786528080000,
+                "endTime": 1786529040000,
+                "eventType": "SERVICE_SLOWDOWN",
+                "title": "Response time degradation",
+                "entityId": {
+                  "entityId": {
+                    "id": "SERVICE-AD279E75529ED3B0",
+                    "type": "SERVICE"
+                  },
+                  "name": "product"
+                },
+                "properties": [
+                  {
+                    "key": "dt.event.baseline.affected_load",
+                    "value": "29.2"
+                  },
+                  {
+                    "key": "dt.event.baseline.is_response_time_p50_abnormal",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.is_response_time_p90_abnormal",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p50",
+                    "value": "8010759.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p50_reference",
+                    "value": "0.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p90",
+                    "value": "1.0785562E7"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p90_reference",
+                    "value": "0.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.service_method",
+                    "value": "SERVICE_METHOD_GROUP-AD279E75529ED3B0"
+                  },
+                  {
+                    "key": "dt.event.baseline.static_user_override",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.total_load",
+                    "value": "29.2"
+                  },
+                  {
+                    "key": "dt.event.description",
+                    "value": "The current response time (~8.01 s) exceeds your custom threshold (2 s) by 300.54 %.\nEndpoint Default Requests has a slowdown."
+                  },
+                  {
+                    "key": "dt.event.dql_query",
+                    "value": "timeseries response_time = percentile(dt.service.request.response_time, 50),\nby: { dt.smartscape.service },\nfilter: { dt.smartscape.service == toSmartscapeId(\"SERVICE-AD279E75529ED3B0\") }\n| fieldsAdd metricName = \"Response time p50\" | append [ timeseries response_time = percentile(dt.service.request.response_time, 90),\nby: { dt.smartscape.service },\nfilter: { dt.smartscape.service == toSmartscapeId(\"SERVICE-AD279E75529ED3B0\") }\n| fieldsAdd metricName = \"Response time p90\" ]"
+                  },
+                  {
+                    "key": "dt.event.group_label",
+                    "value": "Service response time degradation"
+                  },
+                  {
+                    "key": "dt.event.impact_level",
+                    "value": "Services"
+                  },
+                  {
+                    "key": "dt.event.is_rootcause_relevant",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.timeout",
+                    "value": "0"
+                  },
+                  {
+                    "key": "transaction.is_endpoint_request",
+                    "value": "true"
+                  }
+                ],
+                "status": "CLOSED",
+                "correlationId": "36D049355F2FC167",
+                "entityTags": [],
+                "managementZones": [],
+                "underMaintenance": false,
+                "suppressAlert": false,
+                "suppressProblem": false,
+                "frequentEvent": false
+              },
+              "startTime": 1786528080000,
+              "endTime": 1786529040000
+            }
+          ]
+        },
+        "impactAnalysis": {
+          "impacts": []
+        }
+      }
+    },
+    {
+      "displayId": "P-260853",
+      "problemId": "6403699357325063430_1786528080000V2",
+      "title": "Response time degradation",
+      "status": "CLOSED",
+      "severityLevel": "PERFORMANCE",
+      "impactLevel": "SERVICES",
+      "startTime": "2026-08-12T09:53:00+00:00",
+      "endTime": "2026-08-12T10:04:00+00:00",
+      "rootCauseEntity": null,
+      "affectedEntities": [
+        "frontend"
+      ],
+      "impactedEntities": [
+        "frontend"
+      ],
+      "evidenceDetails": [
+        {
+          "evidenceType": "EVENT",
+          "displayName": "Response time degradation",
+          "entity": "frontend",
+          "entityId": {
+            "id": "SERVICE-612D78ED86A2A09B",
+            "type": "SERVICE"
+          },
+          "startTime": "2026-08-12T09:48:00+00:00",
+          "rootCauseRelevant": false
+        }
+      ],
+      "raw": {
+        "problemId": "6403699357325063430_1786528080000V2",
+        "displayId": "P-260853",
+        "title": "Response time degradation",
+        "impactLevel": "SERVICES",
+        "severityLevel": "PERFORMANCE",
+        "status": "CLOSED",
+        "affectedEntities": [
+          {
+            "entityId": {
+              "id": "SERVICE-612D78ED86A2A09B",
+              "type": "SERVICE"
+            },
+            "name": "frontend"
+          }
+        ],
+        "impactedEntities": [
+          {
+            "entityId": {
+              "id": "SERVICE-612D78ED86A2A09B",
+              "type": "SERVICE"
+            },
+            "name": "frontend"
+          }
+        ],
+        "rootCauseEntity": null,
+        "managementZones": [],
+        "entityTags": [],
+        "problemFilters": [],
+        "startTime": 1786528380000,
+        "endTime": 1786529040000,
+        "evidenceDetails": {
+          "totalCount": 1,
+          "details": [
+            {
+              "evidenceType": "EVENT",
+              "displayName": "Response time degradation",
+              "entity": {
+                "entityId": {
+                  "id": "SERVICE-612D78ED86A2A09B",
+                  "type": "SERVICE"
+                },
+                "name": "frontend"
+              },
+              "groupingEntity": null,
+              "rootCauseRelevant": false,
+              "eventId": "6403699357325063430_1786528080000",
+              "eventType": "SERVICE_SLOWDOWN",
+              "data": {
+                "eventId": "6403699357325063430_1786528080000",
+                "startTime": 1786528080000,
+                "endTime": 1786529040000,
+                "eventType": "SERVICE_SLOWDOWN",
+                "title": "Response time degradation",
+                "entityId": {
+                  "entityId": {
+                    "id": "SERVICE-612D78ED86A2A09B",
+                    "type": "SERVICE"
+                  },
+                  "name": "frontend"
+                },
+                "properties": [
+                  {
+                    "key": "dt.event.baseline.affected_load",
+                    "value": "29.8"
+                  },
+                  {
+                    "key": "dt.event.baseline.is_response_time_p50_abnormal",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.is_response_time_p90_abnormal",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p50",
+                    "value": "8017023.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p50_reference",
+                    "value": "0.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p90",
+                    "value": "1.080261E7"
+                  },
+                  {
+                    "key": "dt.event.baseline.response_time_p90_reference",
+                    "value": "0.0"
+                  },
+                  {
+                    "key": "dt.event.baseline.service_method",
+                    "value": "SERVICE_METHOD_GROUP-612D78ED86A2A09B"
+                  },
+                  {
+                    "key": "dt.event.baseline.static_user_override",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.baseline.total_load",
+                    "value": "29.8"
+                  },
+                  {
+                    "key": "dt.event.description",
+                    "value": "The current response time (~8.02 s) exceeds your custom threshold (2 s) by 300.85 %.\nEndpoint Default Requests has a slowdown."
+                  },
+                  {
+                    "key": "dt.event.dql_query",
+                    "value": "timeseries response_time = percentile(dt.service.request.response_time, 50),\nby: { dt.smartscape.service },\nfilter: { dt.smartscape.service == toSmartscapeId(\"SERVICE-612D78ED86A2A09B\") }\n| fieldsAdd metricName = \"Response time p50\" | append [ timeseries response_time = percentile(dt.service.request.response_time, 90),\nby: { dt.smartscape.service },\nfilter: { dt.smartscape.service == toSmartscapeId(\"SERVICE-612D78ED86A2A09B\") }\n| fieldsAdd metricName = \"Response time p90\" ]"
+                  },
+                  {
+                    "key": "dt.event.group_label",
+                    "value": "Service response time degradation"
+                  },
+                  {
+                    "key": "dt.event.impact_level",
+                    "value": "Services"
+                  },
+                  {
+                    "key": "dt.event.is_rootcause_relevant",
+                    "value": "true"
+                  },
+                  {
+                    "key": "dt.event.timeout",
+                    "value": "0"
+                  },
+                  {
+                    "key": "transaction.is_endpoint_request",
+                    "value": "true"
+                  }
+                ],
+                "status": "CLOSED",
+                "correlationId": "4E0A6FFC3C9B5325",
+                "entityTags": [],
+                "managementZones": [],
+                "underMaintenance": false,
+                "suppressAlert": false,
+                "suppressProblem": false,
+                "frequentEvent": false
+              },
+              "startTime": 1786528080000,
+              "endTime": 1786529040000
+            }
+          ]
+        },
+        "impactAnalysis": {
+          "impacts": []
+        }
+      }
+    }
+  ]
+}

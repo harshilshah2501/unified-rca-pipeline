@@ -1,0 +1,174 @@
+{
+  "schema_version": "graph_snapshot.v1",
+  "tenant": "default",
+  "version": "2",
+  "nodes": [
+    {
+      "schema_version": "graph_node.v1",
+      "tenant": "default",
+      "ci_id": "bs-checkout",
+      "ci_type": "BusinessService",
+      "ci_name": "Customer checkout",
+      "instance_scope": "single",
+      "identity_status": "resolved",
+      "monitored_via": [],
+      "aliases": [],
+      "labels": {
+        "env": "rca-lab"
+      },
+      "valid_from": null,
+      "valid_to": null
+    },
+    {
+      "schema_version": "graph_node.v1",
+      "tenant": "default",
+      "ci_id": "checkout-api",
+      "ci_type": "Service",
+      "ci_name": "checkout-api",
+      "instance_scope": "single",
+      "identity_status": "resolved",
+      "monitored_via": [],
+      "aliases": [],
+      "labels": {
+        "env": "rca-lab"
+      },
+      "valid_from": null,
+      "valid_to": null
+    },
+    {
+      "schema_version": "graph_node.v1",
+      "tenant": "default",
+      "ci_id": "linux-server-app-01",
+      "ci_type": "Host",
+      "ci_name": "app-01",
+      "instance_scope": "single",
+      "identity_status": "resolved",
+      "monitored_via": [],
+      "aliases": [],
+      "labels": {
+        "env": "rca-lab"
+      },
+      "valid_from": null,
+      "valid_to": null
+    },
+    {
+      "schema_version": "graph_node.v1",
+      "tenant": "default",
+      "ci_id": "app-runtime-jvm",
+      "ci_type": "Runtime",
+      "ci_name": "checkout-jvm",
+      "instance_scope": "single",
+      "identity_status": "resolved",
+      "monitored_via": [],
+      "aliases": [],
+      "labels": {
+        "env": "rca-lab"
+      },
+      "valid_from": null,
+      "valid_to": null
+    },
+    {
+      "schema_version": "graph_node.v1",
+      "tenant": "default",
+      "ci_id": "payments-db",
+      "ci_type": "Database",
+      "ci_name": "payments-db",
+      "instance_scope": "single",
+      "identity_status": "resolved",
+      "monitored_via": [],
+      "aliases": [],
+      "labels": {
+        "env": "rca-lab"
+      },
+      "valid_from": null,
+      "valid_to": null
+    }
+  ],
+  "edges": [
+    {
+      "schema_version": "graph_edge.v1",
+      "tenant": "default",
+      "edge_id": "e_checkout-api_runs_on_linux-server-app-01",
+      "src_ci_id": "checkout-api",
+      "dst_ci_id": "linux-server-app-01",
+      "relation": "runs_on",
+      "discovered_via": {
+        "evidence_type": "corroborating",
+        "confidence": "medium",
+        "telemetry_source": "topology_lookup",
+        "direction_inference": "checkout-api -> linux-server-app-01",
+        "refresh": "poll 5m"
+      },
+      "valid_from": "2026-08-20T03:30:00Z",
+      "valid_to": null
+    },
+    {
+      "schema_version": "graph_edge.v1",
+      "tenant": "default",
+      "edge_id": "e_app-runtime-jvm_runs_on_linux-server-app-01",
+      "src_ci_id": "app-runtime-jvm",
+      "dst_ci_id": "linux-server-app-01",
+      "relation": "runs_on",
+      "discovered_via": {
+        "evidence_type": "authoritative",
+        "confidence": "high",
+        "telemetry_source": "inventory",
+        "direction_inference": "app-runtime-jvm -> linux-server-app-01",
+        "refresh": "poll 5m"
+      },
+      "valid_from": "2026-08-20T03:30:00Z",
+      "valid_to": null
+    },
+    {
+      "schema_version": "graph_edge.v1",
+      "tenant": "default",
+      "edge_id": "e_checkout-api_depends_on_payments-db",
+      "src_ci_id": "checkout-api",
+      "dst_ci_id": "payments-db",
+      "relation": "depends_on",
+      "discovered_via": {
+        "evidence_type": "declared",
+        "confidence": "medium",
+        "telemetry_source": "service-catalog",
+        "direction_inference": "checkout-api -> payments-db",
+        "refresh": "poll 5m"
+      },
+      "valid_from": "2026-08-20T03:30:00Z",
+      "valid_to": null
+    },
+    {
+      "schema_version": "graph_edge.v1",
+      "tenant": "default",
+      "edge_id": "e_checkout-api_part_of_bs-checkout",
+      "src_ci_id": "checkout-api",
+      "dst_ci_id": "bs-checkout",
+      "relation": "part_of",
+      "discovered_via": {
+        "evidence_type": "declared",
+        "confidence": "medium",
+        "telemetry_source": "service-catalog",
+        "direction_inference": "checkout-api -> bs-checkout",
+        "refresh": "poll 5m"
+      },
+      "valid_from": "2026-08-20T03:30:00Z",
+      "valid_to": null
+    },
+    {
+      "schema_version": "graph_edge.v1",
+      "tenant": "default",
+      "edge_id": "e_checkout-api_communicates_with_payments-db",
+      "src_ci_id": "checkout-api",
+      "dst_ci_id": "payments-db",
+      "relation": "communicates_with",
+      "discovered_via": {
+        "evidence_type": "corroborating",
+        "confidence": "medium",
+        "telemetry_source": "apm",
+        "direction_inference": "checkout-api -> payments-db",
+        "refresh": "poll 5m"
+      },
+      "valid_from": "2026-08-20T03:30:00Z",
+      "valid_to": null
+    }
+  ]
+}

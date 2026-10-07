@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Edge Delta production pipeline — native map</title>
+<style>
+* { box-sizing:border-box; } html { scroll-behavior:smooth; }
+body { margin:0; font-family:var(--font); font-size:15px; line-height:1.55; color:var(--text); }
+a { color:#7ec8b8; text-decoration:none; } a:hover { text-decoration:underline; }
+.shell { display:grid; grid-template-columns:var(--nav-w) minmax(0,1fr); max-width:calc(var(--nav-w) + var(--max) + 6rem); margin:0 auto; }
+nav.toc { position:sticky; top:0; height:100vh; overflow-y:auto; padding:1.5rem 1rem 2rem 1.25rem; border-right:1px solid var(--stroke); background:rgba(15,20,25,.9); }
+nav.toc .brand { font-size:.7rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); margin-bottom:.75rem; }
+nav.toc a { display:block; color:var(--muted); font-size:.78rem; padding:.28rem .4rem; border-radius:4px; margin-bottom:.08rem; text-decoration:none; }
+nav.toc a:hover { color:var(--text); background:var(--bg-soft); } nav.toc a.l2 { padding-left:1rem; font-size:.72rem; }
+nav.toc a.here { color:var(--text); background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent); font-weight:600; }
+main { padding:2rem 2rem 4rem; max-width:var(--max); }
+h1 { font-size:1.7rem; font-weight:700; margin:0 0 .65rem; } h2 { font-size:1.22rem; font-weight:650; margin:2.4rem 0 .85rem; padding-top:.5rem; border-top:1px solid var(--stroke); }
+h3 { font-size:1rem; font-weight:600; margin:1.4rem 0 .5rem; color:#e8eef4; }
+p { margin:.55rem 0; } .flow { font-family:var(--mono); font-size:.8rem; padding:.65rem .85rem; background:var(--bg-soft); border:1px solid var(--stroke); border-radius:var(--radius); overflow-x:auto; white-space:pre; color:#d0dbe6; margin:.75rem 0; }
+table { width:100%; border-collapse:collapse; font-size:.84rem; margin:.75rem 0 1rem; } th, td { text-align:left; vertical-align:top; padding:.45rem .55rem; border-bottom:1px solid var(--stroke); }
+th { color:var(--muted); font-weight:600; font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; }
+code { font-family:var(--mono); font-size:.86em; background:var(--bg-soft); padding:.05rem .3rem; border-radius:3px; }
+ul, ol { margin:.4rem 0 .8rem 1.2rem; } li { margin:.25rem 0; }
+hr { border:none; border-top:1px solid var(--stroke); margin:2rem 0; }
+@media (max-width:900px) { .shell { grid-template-columns:1fr; } nav.toc { position:relative; height:auto; border-right:none; border-bottom:1px solid var(--stroke); max-height:40vh; } }
+</style>
+<link rel="stylesheet" href="/urca-diagrams.css" />
+<link rel="stylesheet" href="/urca-docs.css" />
+</head><body class="vendor-ed">
+<div class="shell"><nav class="toc">
+<div class="brand">Edge Delta pipeline</div>
+<a href="/docs.html">← Docs index</a>
+<a href="#mental-model-one-page" class="l2">1. Mental model</a>
+<a href="#native-stages" class="l2">2. Native stages once</a>
+<a href="#product-io" class="l2">3. Product I/O</a>
+<a href="#stores" class="l2">4. Stores</a>
+<a href="#ai-placement" class="l2">5. AI placement and catalogs</a>
+<a href="#ai-team-overview" class="l2">5a. AI Team / Overview / Issues</a>
+<a href="#supported-scenarios" class="l2">5b. Supported scenarios</a>
+<a href="#tenant-snapshot" class="l2">6. Tenant snapshot</a>
+<a href="#unfold" class="l2">7. Unfold E1–E11</a>
+<a href="#known-unknowns" class="l2">8. Known unknowns</a>
+<a href="#takeaway" class="l2">9. Takeaway</a>
+</nav><main class="article">
+<h1 id="edge-delta-production-pipeline">Edge Delta production pipeline — native map</h1>
+<p><strong>Audience:</strong> engineers who need Edge Delta clear <strong>on Edge Delta’s own terms</strong> before comparing any other vendor.<br />
+<strong>Status:</strong> teaching / design reference — public product framing + Observed (UI) tenant snapshot.<br />
+<strong>Date:</strong> 2026-08-14</p>
+<p><strong>Hub index</strong> (same as <a href="/ed-ai-team-hub.html">ED hub</a>): <strong>01 Thesis</strong> (this page, shared fabric — no <code>?uc=</code>) → <strong>02 Breakdown</strong> (<a href="/edgedelta-subsystem-mechanisms.html">IPO canvas</a>) → <strong>03 Dual-layer</strong> (<a href="/ed-e2e-pipelines-team.html">Pipelines ∥ AI Team</a>) → <strong>04 Timeline</strong> (<a href="/ed-lab-timeline.html">14 Aug + 17 Aug</a>) · <a href="/ed-portal-walkthrough.html">Portal walkthrough</a>.</p>
+<p><strong>Honesty labels:</strong> <em>Observed (UI)</em> = this org on 2026-08-14 · <em>Public framing</em> = vendor docs · <em>Inferred</em> = our model.</p>
+<p><strong>Out of scope:</strong> Lean vs Federated, CARE / Murphy / Nezha, <code>edgedelta-rca-lab</code>, Detect-category twins, flipping HLD D5.</p>
+<hr />
+
+<div class="ud-viz" style="padding:1.2rem 1.1rem 1.3rem;">
+  <div class="ud-cap">High-level actor map · end-to-end data flow</div>
+  <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;text-align:center;margin-bottom:.9rem;">
+    <div style="padding:10px 4px;border:1px solid var(--ud-stroke);border-radius:10px;background:var(--ud-bg);">
+      <div style="font-size:1.6rem;">🌐</div>
+      <div style="font-size:.72rem;font-weight:600;color:var(--ud-faint);margin-top:2px;">Clients</div>
+      <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">HTTP, gRPC,<br>user traffic</div>
+    </div>
+    <div style="padding:10px 4px;border:1px solid var(--ud-stroke);border-radius:10px;background:var(--ud-bg);">
+      <div style="font-size:1.6rem;">📦</div>
+      <div style="font-size:.72rem;font-weight:600;color:var(--ud-faint);margin-top:2px;">Sources</div>
+      <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">Pods, VMs,<br>containers, APIs</div>
+    </div>
+    <div style="padding:10px 4px;border:1px solid rgba(126,200,184,.4);border-radius:10px;background:rgba(61,154,139,.06);">
+      <div style="font-size:1.6rem;">🔧</div>
+      <div style="font-size:.72rem;font-weight:600;color:#7ec8b8;margin-top:2px;">Node agent</div>
+      <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">Parse, enrich,<br>mask, pattern</div>
+    </div>
+    <div style="padding:10px 4px;border:1px dashed rgba(126,200,184,.4);border-radius:10px;background:rgba(61,154,139,.03);">
+      <div style="font-size:1.6rem;">🔀</div>
+      <div style="font-size:.72rem;font-weight:600;color:#7ec8b8;margin-top:2px;">Gateway</div>
+      <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">Aggregate, OTLP,<br>dedup (optional)</div>
+    </div>
+    <div style="padding:10px 4px;border:1px solid var(--ud-stroke);border-radius:10px;background:var(--ud-bg);">
+      <div style="font-size:1.6rem;">🔒</div>
+      <div style="font-size:.72rem;font-weight:600;color:var(--ud-faint);margin-top:2px;">TLS egress</div>
+      <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">Shaped stream<br>leaves cluster</div>
+    </div>
+    <div style="padding:10px 4px;border:1px solid var(--ud-stroke);border-radius:10px;background:var(--ud-bg);">
+      <div style="font-size:1.6rem;">☁️</div>
+      <div style="font-size:.72rem;font-weight:600;color:var(--ud-faint);margin-top:2px;">SaaS platform</div>
+      <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">Index, monitors,<br>explorers, MCP</div>
+    </div>
+    <div style="padding:10px 4px;border:1px solid rgba(126,200,184,.4);border-radius:10px;background:rgba(61,154,139,.06);">
+      <div style="font-size:1.6rem;">🤖</div>
+      <div style="font-size:.72rem;font-weight:600;color:#7ec8b8;margin-top:2px;">AI Team</div>
+      <div style="font-size:.65rem;color:var(--ud-muted);margin-top:2px;">OnCall, SRE,<br>threads, Issues</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;font-family:var(--ud-mono,monospace);font-size:.68rem;color:var(--ud-muted);margin-bottom:.75rem;">
+    <span style="padding:3px 6px;border-radius:4px;background:rgba(126,200,184,.1);color:#9ee0d2;">logs, metrics, events</span>
+    <span style="padding:0 4px;">→</span>
+    <span style="padding:3px 6px;border-radius:4px;background:rgba(126,200,184,.1);color:#9ee0d2;">parsed + tagged rows</span>
+    <span style="padding:0 4px;">→</span>
+    <span style="padding:3px 6px;border-radius:4px;background:rgba(126,200,184,.1);color:#9ee0d2;">aggregated stream</span>
+    <span style="padding:0 4px;">→</span>
+    <span style="padding:3px 6px;border-radius:4px;background:rgba(232,184,109,.1);color:#e8b86d;">shaped MELT over TLS</span>
+    <span style="padding:0 4px;">→</span>
+    <span style="padding:3px 6px;border-radius:4px;background:rgba(232,184,109,.1);color:#e8b86d;">indexed scopes</span>
+    <span style="padding:0 4px;">→</span>
+    <span style="padding:3px 6px;border-radius:4px;background:rgba(201,164,240,.1);color:#c9a4f0;">alerts / verdicts</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">
+    <div class="ud-panel ed" style="font-size:.82rem;">
+      <h5>⚡ Side input: Cloud ingest</h5>
+      <p>GitHub / webhook connectors bypass the cluster agent and enter SaaS directly (UC9 path).</p>
+    </div>
+    <div class="ud-panel" style="font-size:.82rem;">
+      <h5>🔔 Detect doors</h5>
+      <p>Monitors (platform) or Pipeline Triggers (edge) fire alerts that route into the AI Team.</p>
+    </div>
+    <div class="ud-panel" style="font-size:.82rem;">
+      <h5>📤 Outputs</h5>
+      <p>Threads (<code>#alerts</code>, <code>#code-issues</code>) appear first. Issue cards are separate — can stay 0.</p>
+    </div>
+  </div>
+</div>
+
+<h2 id="mental-model-one-page">1. Mental model (one page)</h2>
+<p>Edge Delta is a <strong>dual-layer</strong> product — not Smartscape∥Grail and not Metrics∥APM∥Logs.</p>
+<div class="ud-viz">
+  <div class="ud-cap">Edge Delta mental model — shape at the edge, then a standing Team</div>
+  <div class="ud-fork">
+    <span class="ud-chip ed">Sources</span>
+    <div class="ud-down">▼ Node (DaemonSet agent) · Gateway (cluster aggregator) · Cloud Pipelines (SaaS ingest)</div>
+    <div class="ud-panel ed" style="width:100%">
+      <h5>Processors (before egress)</h5>
+      <p>Parse (structure raw logs) · enrich (add k8s/service tags) · mask (redact secrets) · pattern (cluster repeats) · route (send to ED and optional destinations)</p>
+    </div>
+    <div class="ud-down">▼ fan-out (∥)</div>
+    <div class="ud-rails two">
+      <div class="ud-panel ed">
+        <h5>ED Platform index</h5>
+        <p>Logs · Metrics · Traces · Service Map</p>
+      </div>
+      <div class="ud-panel">
+        <h5>Optional 3rd-party dest</h5>
+        <p>Datadog · Splunk · S3 — Public framing. Not Observed on this tenant.</p>
+      </div>
+    </div>
+    <div class="ud-down">▼ Detect doors into the Team</div>
+    <div class="ud-flow" style="justify-content:center">
+      <span class="ud-chip">Monitors</span>
+      <span class="ud-chip soft">+</span>
+      <span class="ud-chip">Connectors</span>
+      <span class="ud-arrow">→</span>
+      <span class="ud-chip ed">OnCall AI</span>
+      <span class="ud-arrow">→</span>
+      <span class="ud-chip ed">SRE · specialists</span>
+    </div>
+    <div class="ud-down">▼</div>
+    <span class="ud-chip soft">Issues + AI Overview · health · threads · action approval</span>
+  </div>
+  <p class="ud-note">Pipelines = hygiene layer. AI Team = persistent investigation. Overview is the landing page, not the whole pipeline. <code>∥</code> = parallel egress, not fused Detect.</p>
+</div>
+<p><strong>How to read that:</strong> pipelines are the data-hygiene layer. The AI Team is a persistent investigation layer. <a href="https://app.edgedelta.com/ai/overview">AI Overview</a> is the operator landing page — not the whole pipeline.</p>
+<p>It is <strong>not</strong>:</p>
+<div class="ud-viz">
+  <div class="ud-cap">Not this shape</div>
+  <div class="ud-flow">
+    <span class="ud-chip warn">Alert fires</span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip warn">RCA wakes</span>
+    <span class="ud-arrow">→</span>
+    <span class="ud-chip warn">pull raw MELT for whole estate</span>
+  </div>
+  <p class="ud-note">Pipelines write continuously first — Detect and the Team read what is already shaped.</p>
+</div>
+<table>
+<thead><tr><th>Path</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Agent / Cloud Pipeline → <strong>processors</strong></td><td>Collect and reshape <strong>before egress</strong> (Public framing). This tenant has no named pipeline in explorers (Observed UI).</td></tr>
+<tr><td>Processors → <strong>Platform</strong> / destinations</td><td>Index for explorers; optionally fan-out (Public framing).</td></tr>
+<tr><td><strong>Monitors</strong></td><td>Event threshold · pattern anomaly · metric threshold (Observed UI types).</td></tr>
+<tr><td><strong>AI Team</strong></td><td>Specialized teammates + connectors (Observed UI).</td></tr>
+<tr><td><strong>Issues / Overview</strong></td><td>Grouped findings + health + action approval. This tenant: Issues <strong>0</strong>, health <strong>100%</strong> (Observed UI).</td></tr>
+</tbody>
+</table>
+<p><strong>Myths to drop:</strong> (1) ED is a cheaper Datadog — pipelines can sit <em>in front of</em> other destinations (Public framing); this tenant does not fan-out to Datadog (Observed: GitHub + ED MCP + ED Docs only). (2) Overview = Davis Problem list. (3) Pattern anomaly = Watchdog = Davis Event. (4) Empty Service Map means no topology SKU — this org has no pipeline write. (5) Processors = Vector — analog for E1, not a twin.</p>
+
+<h3 id="dual-layer">1.1 Dual-layer, not dual-track</h3>
+<p><strong>In one sentence:</strong> Dynatrace and Datadog <strong>centralize-then-analyze</strong>; Edge Delta <strong>shifts processing left</strong>, then runs a <strong>standing AI team</strong> on monitors + that stream.</p>
+<div class="ud-viz">
+  <div class="ud-cap">Dual-layer — two jobs, not a dual-track twin</div>
+  <div class="ud-rails two">
+    <div class="ud-panel ed">
+      <h5>Layer A · Telemetry Pipelines</h5>
+      <p>Admit, parse, enrich, mask, pattern, route. Node / Gateway / Cloud. <a href="https://docs.edgedelta.com/edge-delta-architecture/">Architecture</a>.</p>
+    </div>
+    <div class="ud-panel ed">
+      <h5>Layer B · AI Team</h5>
+      <p>Continuous teammates. Issues package recurring problems. Overview is the operator landing page.</p>
+    </div>
+  </div>
+  <p class="ud-note">Not Smartscape∥Grail (two write facets). Not Metrics∥APM∥Logs (three tagged rails). Hygiene then a standing team.</p>
+</div>
+
+<h2 id="native-stages">2. Native stages once — same 11-stage clock</h2>
+<div class="ud-viz">
+  <div class="ud-cap">Product names alias E1–E11 — they are not a second pipeline</div>
+  <div class="ud-strip">
+    <div class="ud-seg base"><span class="ud-lab">P1</span><span class="ud-val">Collect / process · Index / explore</span></div>
+    <div class="ud-seg fault"><span class="ud-lab">P2</span><span class="ud-val">Detect · Route to Team</span></div>
+    <div class="ud-seg"><span class="ud-lab">P3</span><span class="ud-val">Investigate · Package</span></div>
+  </div>
+  <p class="ud-note">Green = fabric write (E1–E5). Amber = Detect doors (E6–E8). Neutral = Team diagnose (E9–E11). Explorers are not fused Detect. Per-stage IPO + UC matrix: <a href="/edgedelta-subsystem-mechanisms.html">02 Breakdown</a>.</p>
+</div>
+<table>
+<thead><tr><th>Native step</th><th>What it is</th><th>This tenant (Observed UI)</th></tr></thead>
+<tbody>
+<tr><td><strong>1. Collect / process</strong></td><td>Pipeline agents or agentless Cloud pipelines</td><td>No pipeline names in explorer filters. <code>/pipelines</code> redirected to AI Overview. No Pipelines item in primary nav.</td></tr>
+<tr><td><strong>2. Index / explore</strong></td><td>Logs · Metrics · Traces · Service Map</td><td>Empty or erroring. Default metric query: <code>ed.pipeline.node.read_bytes</code>.</td></tr>
+<tr><td><strong>3. Detect</strong></td><td>Monitors</td><td>5 monitors; only Default Pipeline Liveness is OK.</td></tr>
+<tr><td><strong>4. Route to Team</strong></td><td>Connectors + workflows</td><td>GitHub, ED MCP, ED Docs connected. Four default workflows.</td></tr>
+<tr><td><strong>5. Investigate</strong></td><td>OnCall + specialists</td><td>Four teammate cards. OnCall not a card. No performance score yet.</td></tr>
+<tr><td><strong>6. Package</strong></td><td>Issue + Overview</td><td>Issues 0. One Resolved Workflow thread in <code>#code-issues</code>. Health 100%.</td></tr>
+</tbody>
+</table>
+<p>Explorers are <strong>not</strong> fused Detect. Monitors are the Detect objects. AI Team is a downstream consumer. Per-stage input → process → output lives on <a href="/edgedelta-subsystem-mechanisms.html">02 Breakdown</a> — this section is the once-through map, not the IPO canvas.</p>
+
+<h2 id="product-io">3. Product I/O</h2>
+<table>
+<thead><tr><th>Native object</th><th>Produced by</th><th>Consumed by</th><th>Honesty</th></tr></thead>
+<tbody>
+<tr><td>Processed telemetry</td><td>Pipeline processors</td><td>Explorers, 3rd-party dest, MCP</td><td>Public framing; not Observed as data here</td></tr>
+<tr><td>Monitor alert</td><td>Monitors</td><td>Workflows, AI Team</td><td>Observed types; only liveness OK</td></tr>
+<tr><td>Connector event</td><td>GitHub / …</td><td>Teammates</td><td>GitHub Connected; CI/PR/Push monitors No Data</td></tr>
+<tr><td>Thread</td><td>Workflow / prompt</td><td>Channels</td><td>One GitHub daily-report thread Resolved</td></tr>
+<tr><td>Issue</td><td>AI Team (≥ medium finding)</td><td>Overview health, actions</td><td><strong>0</strong> Issues Observed</td></tr>
+<tr><td>Health score</td><td>Open Issues (crit −25 / high −10 / med −4)</td><td>Overview gauge</td><td>100% with zero Issues — matches the published formula</td></tr>
+</tbody>
+</table>
+
+<h2 id="stores">4. Stores (when they update)</h2>
+<p><strong>Public framing:</strong> process locally; only reduced output leaves; Platform indexes that output. Patterns are clustered with Drain <em>on the agent</em> (Log-to-Pattern), not after a backend full-text index.</p>
+<p><strong>Observed (MCP, 17 Aug):</strong> the Platform is not one blob. MCP exposes <strong>five scopes</strong> — five query planes on SaaS behind <code>api.edgedelta.com</code>. Internal DB name is a known unknown (not Grail, not Husky).</p>
+<table>
+<thead><tr><th>Scope</th><th>What is stored</th><th>Created where</th><th>Portal</th><th>This tenant</th></tr></thead>
+<tbody>
+<tr><td><code>log</code></td><td>Processed log records (OTel resource + body)</td><td>Node tail → parse/enrich → egress</td><td>Logs Search</td><td>Stream present; <code>get_log_search</code> 500 this session</td></tr>
+<tr><td><code>metric</code></td><td>Timeseries (<code>ed.pipeline.node.read_bytes</code>, write_items, k8s events collected, …)</td><td>Agent rollup / extract-metric</td><td>Metrics Explorer</td><td>Filled from <code>pro6000-server</code></td></tr>
+<tr><td><code>trace</code></td><td>OTel spans</td><td>Node eBPF (or Gateway OTLP)</td><td>Traces · Service Map</td><td><code>checkout-api-db</code> CLIENT → <code>checkout-db</code></td></tr>
+<tr><td><code>pattern</code></td><td>Drain templates + count + sentiment + cluster <code>anomaly</code> score</td><td>Node Log-to-Pattern <em>before</em> egress</td><td>Logs → Patterns</td><td>Loud negative clusters; cluster <code>anomaly</code> = 0</td></tr>
+<tr><td><code>event</code></td><td>Discrete signals (K8s, monitor alerts, <code>pattern_anomaly</code>)</td><td>K8s input <em>or</em> a monitor evaluation</td><td>Events</td><td><code>BackOff</code> + <code>event_threshold</code> yes; <code>pattern_anomaly</code> <strong>0</strong></td></tr>
+</tbody>
+</table>
+<p><strong>Do not collapse:</strong> a pattern cluster is not an anomaly signal. Anomaly signals are Events written when a Pattern Anomaly monitor’s spike-count crosses threshold. 14 Aug explorers were empty (no pipeline write). Global Data Settings Enabled is a preference, not proof of data.</p>
+
+<h2 id="ai-placement">5. AI placement and catalogs</h2>
+<p>Two readings of “what AI does here,” in order: how the Team packages work (<strong>5a</strong>), then what catalogs they publish instead of Detect-class twins (<strong>5b</strong>). Together they feed HLD D5 (still Review) and the <a href="/ed-ai-team-hub.html#one-story">hub one-story</a>. They are not two names for the same list.</p>
+
+<h3 id="ai-team-overview">5a. AI Team / Overview / Issues</h3>
+<p><a href="https://docs.edgedelta.com/ai-overview-dashboard/">AI Overview</a> (Public framing) answers: how healthy, which problems, what the Team is doing. Observed UI matched that layout: health gauge, 7-day counts, incident timeline, Active Issues, Recent Threads, Live Ops.</p>
+<p><strong>Issue lifecycle</strong> (Public framing, no card Observed): match to an open Issue or create; close via AI-resolved / inactivity / human; recurrence opens a new linked Issue (Re-Opened).</p>
+<p><strong>Action columns</strong> (Public framing): You own these · AI actions — needs approval · AI has done so far.</p>
+<div class="ud-viz">
+  <div class="ud-cap">Third AI placement — feeds HLD D5, does not flip it</div>
+  <div class="ud-rails three">
+    <div class="ud-panel dt">
+      <h5>Dynatrace</h5>
+      <p>AI folded into <strong>Davis</strong>. Default Problem path.</p>
+    </div>
+    <div class="ud-panel dd">
+      <h5>Datadog</h5>
+      <p>Separable <strong>Watchdog</strong> + <strong>Bits</strong>. Optional surfaces on dense MTL.</p>
+    </div>
+    <div class="ud-panel ed">
+      <h5>Edge Delta</h5>
+      <p>Persistent <strong>AI Team</strong> + Issue/Overview. Actions need approval.</p>
+    </div>
+  </div>
+  <p class="ud-note">Issue ≠ Problem ≠ Bits investigation ≠ Incident. D5 stays Review.</p>
+</div>
+<table>
+<thead><tr><th>Vendor</th><th>AI geometry</th><th>Default vs optional</th></tr></thead>
+<tbody>
+<tr><td>Dynatrace</td><td>Folded into <strong>Davis</strong></td><td>Default Problem path</td></tr>
+<tr><td>Datadog</td><td>Separable <strong>Watchdog</strong> + <strong>Bits</strong></td><td>Optional surfaces on dense MTL</td></tr>
+<tr><td>Edge Delta</td><td>Persistent <strong>AI Team</strong> + Issue/Overview</td><td>Autonomous investigation; <strong>actions</strong> need approval. This tenant: Team provisioned, no Issues.</td></tr>
+</tbody>
+</table>
+<p>Do not equate Issue with Problem, Bits investigation, or Incident. This table feeds HLD <strong>D5</strong> (still Review) — it does not flip the ADR.</p>
+
+<h3 id="supported-scenarios">5b. Supported scenarios (not Detect-class twins)</h3>
+<p>Edge Delta does <strong>not</strong> publish ERROR / SLOWDOWN / AVAILABILITY. They publish three <strong>jobs</strong>: <strong>43 Packs</strong> shape → <strong>8 monitor types</strong> notice → <strong>10 use cases</strong> investigate. Those are not Node / Gateway / Team. One-story + stage map: <a href="/ed-ai-team-hub.html#one-story">ED hub</a> · <a href="/ed-supported-scenarios.html">catalogs</a>.</p>
+
+<h2 id="tenant-snapshot">6. Tenant snapshot (Timeline this pass)</h2>
+<p>Org <code>gmailcom_d4486595</code>. 14 Aug = Team provisioned, empty explorers. 17 Aug = Node lab on RTX after Pro ingest. 18 Aug = ingest 402 again; noisy-logger scaled to 0.</p>
+<p><strong>One-line:</strong> P1 wrote (patterns, BackOff events, eBPF traces). P2 fired once (UC8 Pod Crash). P3 produced threads, not Issues. UC1 never left E6 No Data. Issues <strong>0</strong>, health <strong>100%</strong>.</p>
+
+<h2 id="unfold">7. Unfold onto ObserveOps E1–E11</h2>
+<p>Same abstract I/O as the HLD. ED column is native, not a twin. Click <a href="/edgedelta-subsystem-mechanisms.html">02 Breakdown</a> for IPO + the UC reach matrix.</p>
+<table>
+<thead><tr><th>Block</th><th>Edge Delta anchor</th><th>This tenant (17–18 Aug)</th></tr></thead>
+<tbody>
+<tr><td>E1 Collect</td><td>Node / Gateway / Cloud Pipelines</td><td>RTX Node <code>kubernetes</code> + UC9 Cloud ingest. Firehose scaled 0 after 402.</td></tr>
+<tr><td>E2 Identity</td><td>OTel / OCSF + pipeline tags — not <code>entityId</code></td><td>k8s.* and service.name on ed-lab payloads.</td></tr>
+<tr><td>E3 Topology</td><td>eBPF Service Map at Node (Gateway assists OTLP)</td><td>checkout-api-db → checkout-db. No Gateway.</td></tr>
+<tr><td>E4 Stores</td><td>Five MCP scopes after TLS</td><td>Patterns loud; pattern_anomaly 0; log search 500; 402 twice.</td></tr>
+<tr><td>E5 Maintain</td><td>Coordinator, Packs, Pipeline Liveness</td><td>Coordinator Running. Liveness OK. Packs none.</td></tr>
+<tr><td>E6 Detect</td><td>Three doors; this lab = org Monitors</td><td>UC8 Event Threshold ALERT. UC1 Pattern Anomaly No Data. No Pipeline Triggers.</td></tr>
+<tr><td>E7 Curate</td><td>Issue match</td><td>Issues 0. Threads are a different object.</td></tr>
+<tr><td>E8 Scope</td><td>Working set from alert tags / workflow window</td><td>UC8: crash-loop / boom / ed-lab. UC9: GitHub 24h.</td></tr>
+<tr><td>E9 Localize</td><td>SRE / Software Engineer — not a Smartscape walk</td><td>UC8 kubectl leaf missing INVENTORY_DSN. UC9: no PRs.</td></tr>
+<tr><td>E10 Identify</td><td>Edge Delta MCP corroboration</td><td>MCP saw events / patterns / traces. kubectl when search 500.</td></tr>
+<tr><td>E11 Package</td><td>Issue card + Overview</td><td>Issues 0. Health 100%. UC8/UC9 Resolved threads.</td></tr>
+</tbody>
+</table>
+
+<h2 id="known-unknowns">8. Known unknowns</h2>
+<ul>
+<li>Exact Issue-match / ranking function (black box).</li>
+<li>Whether OnCall is a hidden teammate, a router, or both.</li>
+<li>Usage Report 0 tokens vs Plan 13 AI credits.</li>
+<li>Whether Pipeline Liveness OK is a hidden pipeline or only a control-plane heartbeat. <strong>Update (MCP):</strong> org has <code>AI-Connector-Telemetry-Pipeline</code> (<code>IngestionPipeline</code>, <code>purpose=edgedelta-ai</code>) — see <a href="/ed-supported-scenarios.html#mcp">supported scenarios §5</a>.</li>
+<li>How Service Map is built when a Node Pipeline actually runs.</li>
+<li>Getting Started says <strong>seven</strong> monitor types; the Monitors section also documents Metric Anomaly. Union used here is 8.</li>
+</ul>
+
+<h2 id="takeaway">9. Takeaway</h2>
+<p><strong>One sentence:</strong> Edge Delta <strong>shifts processing left</strong> (shape at the edge), then runs a <strong>persistent AI Team</strong> whose operator landing page is AI Overview — Issues and action approval — not a Davis Problem and not optional Bits. Dynatrace and Datadog <strong>centralize-then-analyze</strong>.</p>
+<p><strong>For ObserveOps:</strong> third teaching geometry for HLD D5 (still Review): AI as a standing team with human-in-the-loop actions, sitting on an E1-like hygiene layer.</p>
+<p><strong>Next (not this pass):</strong> deploy a pipeline and run the same FE→product→inventory fault; then derive common patterns with DT/DD.</p>
+<p><strong>Next:</strong> <a href="/edgedelta-subsystem-mechanisms.html">02 Breakdown</a> · <a href="/ed-e2e-pipelines-team.html">03 Dual-layer</a> · <a href="/ed-portal-walkthrough.html">Portal</a> · <a href="/ed-lab-timeline.html">04 Timeline</a> · markdown <a href="/docs/EDGEDELTA_PRODUCTION_PIPELINE.md">EDGEDELTA_PRODUCTION_PIPELINE.md</a>. Compare after independent reading: <a href="/comparable-pipeline-dt-dd.html">DT vs DD vs ED</a> (§0 geometry / AI / E1–E11 unfold — lab clocks stay two-vendor). D5 stays Review.</p>
+</main></div>
+<script src="/doc-nav.js" defer></script>
+<script src="/ed-use-cases.js" defer></script>
+<script src="/toc-spy.js" defer></script>
+</body></html>

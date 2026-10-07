@@ -1,0 +1,28 @@
+{
+  "schema_version": "sketch.v1",
+  "tenant": "default",
+  "entity_id": "checkout-api",
+  "entity_type": "Service",
+  "metric_id": "request.latency_ms",
+  "window": "5m",
+  "window_start": "2026-08-20T03:30:00Z",
+  "window_end": "2026-08-20T03:35:00Z",
+  "season_key": "Thu-03:00",
+  "sample_count": 23,
+  "tdigest": {
+    "compression": 100,
+    "encoding": "centroids_json",
+    "centroids": [{"m": 92.1, "w": 14}, {"m": 145.3, "w": 9}]
+  },
+  "buckets": {
+    "bucket_schema_version": "latency_v1",
+    "bounds": [0, 50, 100, 200, 500, 1000, 2000],
+    "counts": [12, 19, 5, 1, 0, 0]
+  },
+  "baseline": {
+    "baseline_version": "seasonal_v1",
+    "expected_p50": 88.0,
+    "expected_p95": 170.0,
+    "expected_p99": 320.0
+  }
+}

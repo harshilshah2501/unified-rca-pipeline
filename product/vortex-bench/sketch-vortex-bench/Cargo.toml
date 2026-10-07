@@ -1,0 +1,20 @@
+[package]
+name = "sketch_vortex_bench"
+version = "0.1.0"
+edition = "2024"
+description = "Physical Vortex layout experiment for Motadata sketch.v2 (hot spine vs cold evidence)"
+license = "Apache-2.0"
+publish = false
+
+[[bin]]
+name = "sketch_vortex_bench"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.104"
+arrow = { version = "59.3.0", features = ["ipc"] }
+clap = { version = "4.6.7", features = ["derive"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "fs"] }
+vortex = { version = "0.86.1", features = ["tokio"] }

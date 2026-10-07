@@ -28,7 +28,7 @@ instance = string(.tags.instance) ?? string(.instance) ?? "prom-unknown"
   "tenant": tenant,
   "ci_id": instance,
   "ci_type": "Host",
-  "signal_class": "metric_sample",
+  "fact_kind": "metric_sample",
   "name": name,
   "value": val,
   "threshold": null,
@@ -43,17 +43,17 @@ instance = string(.tags.instance) ?? string(.instance) ?? "prom-unknown"
 [transforms.route_lean]
 type = "filter"
 inputs = ["to_ingest_v1"]
-condition = '.signal_class == "anomaly" || .signal_class == "event" || .signal_class == "metric_sample"'
+condition = '.fact_kind == "anomaly" || .fact_kind == "event" || .fact_kind == "metric_sample"'
 
 [transforms.route_structural]
 type = "filter"
 inputs = ["to_ingest_v1"]
-condition = '.signal_class == "metric_sample" || .signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+condition = '.fact_kind == "metric_sample" || .fact_kind == "event" || .fact_kind == "trace_span" || .fact_kind == "anomaly"'
 
 [transforms.route_speed]
 type = "filter"
 inputs = ["to_ingest_v1"]
-condition = '.signal_class == "event" || .signal_class == "trace_span" || .signal_class == "anomaly"'
+condition = '.fact_kind == "event" || .fact_kind == "trace_span" || .fact_kind == "anomaly"'
 
 [sinks.lean_feed]
 type = "file"

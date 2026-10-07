@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GraphWriter — I/O walkthrough (Pillar B)</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta name="description" content="Pillar B GraphWriter partners, pipeline, example, admit rules, build steps, map/ output, and lab flush — served on the docs hub (:8765)." />
+<link rel="stylesheet" href="/urca-docs.css" />
+<script src="/theme-init.js"></script>
+<style>
+  /* Page-local chrome for the seven-step walkthrough (hub tokens from urca-docs.css). */
+  .gw-ok { --ok: #7aecc4; --warn: #f0b35a; --danger: #f07178; --info: #7ba8f5; }
+  .gw-ok .wrap { max-width: 58rem; }
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 0.35rem;
+  }
+  h1 {
+    margin: 0 0 0.5rem;
+    font-size: 1.55rem;
+    font-weight: 650;
+    line-height: 1.25;
+  }
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.15rem;
+  }
+  h3 {
+    margin: 1rem 0 0.5rem;
+    font-size: 0.95rem;
+    color: #d5dde6;
+  }
+  .lead {
+    margin: 0 0 1.25rem;
+    color: var(--muted);
+    font-size: 0.97rem;
+    max-width: 48rem;
+  }
+  .lead code, td code, .note code, li code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    color: #9bc0ff;
+  }
+  a { color: var(--accent); }
+  a:hover { color: #7ec8b8; }
+
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 1rem;
+  }
+  .tab {
+    appearance: none;
+    border: 1px solid var(--stroke);
+    background: var(--bg-soft);
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 0.82rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .tab:hover { color: var(--text); border-color: #3a4656; }
+  .tab[aria-selected="true"] {
+    color: var(--text);
+    background: var(--accent-soft);
+    border-color: rgba(61, 154, 139, 0.55);
+    font-weight: 600;
+  }
+
+  .panel-head { margin-bottom: 0.75rem; }
+  .panel-head .blurb { margin: 0; color: var(--muted); font-size: 0.9rem; }
+  .panel { display: none; }
+  .panel.is-active { display: block; }
+
+  .callout {
+    border: 1px solid var(--stroke);
+    border-left: 3px solid var(--info);
+    background: var(--bg-elev);
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .callout.info { border-left-color: var(--info); }
+  .callout.neutral { border-left-color: var(--faint); }
+  .callout.warn { border-left-color: var(--warn); }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    margin: 0 0 1rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--stroke);
+  }
+  th {
+    background: #121821;
+    color: var(--faint);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr.tone-success td:last-child { color: var(--ok); }
+  tr.tone-danger td:last-child { color: var(--danger); }
+  tr.tone-warning td:last-child { color: var(--warn); }
+  tr.tone-info { background: rgba(123, 168, 245, 0.06); }
+
+  .grid-2, .grid-3 {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0 0 1rem;
+  }
+  .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 720px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+  .card-h {
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--stroke);
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: #121821;
+  }
+  .card-b { padding: 0.75rem 0.8rem; }
+  .card-b p { margin: 0.25rem 0; color: var(--muted); font-size: 0.88rem; }
+
+  .stat {
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    background: var(--bg-elev);
+    padding: 0.75rem 0.85rem;
+  }
+  .stat .v {
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    font-weight: 650;
+    color: var(--text);
+  }
+  .stat.info .v { color: var(--info); }
+  .stat .l {
+    margin-top: 0.2rem;
+    font-size: 0.78rem;
+    color: var(--faint);
+  }
+
+  pre.code {
+    margin: 0;
+    padding: 0.75rem 0.85rem;
+    background: #0c1016;
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: #d5dde6;
+    white-space: pre;
+  }
+  .card-b pre.code { border: none; border-radius: 0; background: #0c1016; }
+
+  .dia {
+    margin: 0 0 0.75rem;
+    border: 1px solid var(--stroke);
+    border-radius: 10px;
+    background: #10161d;
+    padding: 0.75rem 0.5rem;
+    overflow-x: auto;
+  }
+  .dia svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+  .note {
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
+    color: var(--faint);
+  }
+
+  .nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--stroke);
+  }
+  .nav-row .count { color: var(--faint); font-size: 0.85rem; }
+  .btn {
+    appearance: none;
+    border: 1px solid var(--stroke);
+    background: var(--bg-soft);
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .btn:hover:not(:disabled) { color: var(--text); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.primary {
+    background: var(--accent-soft);
+    border-color: rgba(61, 154, 139, 0.55);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .meta {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--stroke);
+    font-size: 0.82rem;
+    color: var(--faint);
+  }
+  .admit-legend {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin: 0 0 1rem;
+  }
+  .admit-legend div {
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    background: var(--bg-elev);
+    padding: 0.65rem 0.75rem;
+  }
+  .admit-legend .tag {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .admit-legend .tag.noop { color: var(--faint); }
+  .admit-legend .tag.write { color: var(--ok); }
+  .admit-legend .tag.drop { color: var(--danger); }
+  .admit-legend p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  @media (max-width: 720px) {
+    .admit-legend { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body class="urca-doc article gw-ok">
+<div class="wrap article">
+  <div class="eyebrow">Pillar B · Topology · GraphWriter · docs hub</div>
+  <h1>GraphWriter — who it talks to, and a concrete example</h1>
+  <p class="lead">
+    Walkthrough for the Pillar B Topology orchestrator under
+    <code>pillar-ab-implementation/pillar-b/poc</code>.
+    Input: post-E2 <code>ingest.v1</code> with <code>fact_kind=topo_update</code> (plus optional estate bootstrap).
+    Output: Gate B <code>files.v1</code> under <code>map/</code>.
+    OneOps / Fusion HTML briefs under <code>archived-docs/</code> are catalog material only — they are not GraphWriter callers.
+    Hub URL: <a href="/graphwriter-io-walkthrough.html"><code>:8765/graphwriter-io-walkthrough.html</code></a>.
+  </p>
+
+  <div class="tabs" role="tablist" aria-label="Walkthrough steps">
+    <button type="button" class="tab" role="tab" id="tab-who" aria-controls="panel-who" data-step="who" aria-selected="true">1 · Who</button>
+    <button type="button" class="tab" role="tab" id="tab-pipeline" aria-controls="panel-pipeline" data-step="pipeline" aria-selected="false">2 · Pipeline</button>
+    <button type="button" class="tab" role="tab" id="tab-example" aria-controls="panel-example" data-step="example" aria-selected="false">3 · Example</button>
+    <button type="button" class="tab" role="tab" id="tab-admit" aria-controls="panel-admit" data-step="admit" aria-selected="false">4 · Admit</button>
+    <button type="button" class="tab" role="tab" id="tab-build" aria-controls="panel-build" data-step="build" aria-selected="false">5 · Build</button>
+    <button type="button" class="tab" role="tab" id="tab-output" aria-controls="panel-output" data-step="output" aria-selected="false">6 · Output</button>
+    <button type="button" class="tab" role="tab" id="tab-lab" aria-controls="panel-lab" data-step="lab" aria-selected="false">7 · Lab</button>
+  </div>
+
+  <!-- 1 · Who -->
+  <section class="panel is-active" id="panel-who" role="tabpanel" aria-labelledby="tab-who" data-step="who">
+    <div class="panel-head">
+      <h2>1 · Who</h2>
+      <p class="blurb">Partners GraphWriter talks to</p>
+    </div>
+    <div class="callout info">
+      GraphWriter is an orchestrator, not a network service. It is called by the lab CLI (or a future Topology worker).
+      It reads optional bootstrap + ingest, writes Dest <code>map/</code>, and optionally runs the E5 maintain stub.
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Partner</th><th>Role</th><th>What is exchanged</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>E1 Collect (upstream)</td>
+            <td>Does not talk to GraphWriter directly</td>
+            <td>Produces raw signals. Pillar B PoC never implements Collect; lab fixtures already look like post-Identity lines.</td>
+          </tr>
+          <tr>
+            <td>E2 Identity (upstream)</td>
+            <td>Stamps identity on ingest.v1</td>
+            <td>GraphWriter only admits <code>identity.status = resolved</code>. Unresolved / synthesized lines become rejects.</td>
+          </tr>
+          <tr>
+            <td>Shared ingest stream</td>
+            <td>Same wire as Pillar A</td>
+            <td>JSONL of <code>ingest.v1</code>. GraphWriter filters <code>fact_kind = topo_update</code>; <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> are silent NOOP.</td>
+          </tr>
+          <tr>
+            <td>topology.bootstrap.json (lab)</td>
+            <td>Optional bootstrap</td>
+            <td><code>load_bootstrap</code> fills GraphState with declared nodes/edges before the stream runs.</td>
+          </tr>
+          <tr>
+            <td>ResolvedOnlyGate (ab_shared)</td>
+            <td>Shared identity admit</td>
+            <td>Same gate Pillar A uses. GraphWriter does not invent a second identity policy.</td>
+          </tr>
+          <tr>
+            <td>ci_qualify + edge_catalog</td>
+            <td>Catalog checks inside GraphWriter</td>
+            <td>May this <code>ci_type</code> be a vertex? Is <code>relation</code> in the fifteen-name catalog (or wave-1 skip)?</td>
+          </tr>
+          <tr class="tone-info">
+            <td>Dest / FileDest (Gate B)</td>
+            <td>Publish target</td>
+            <td><code>flush → Dest.put("map", …)</code> → <code>graph_snapshot.json</code>, <code>nodes.jsonl</code>, <code>edges.jsonl</code> under <code>poc/out/&lt;tenant&gt;/map/</code>.</td>
+          </tr>
+          <tr>
+            <td>Pillar A SketchWriter</td>
+            <td>Sibling, not a caller</td>
+            <td>Parallel writer on the same stream. No A∪B merge. Later diagnose read-joins by <code>tenant</code> + <code>ci_id</code>.</td>
+          </tr>
+          <tr>
+            <td>Diagnose / neighbors (downstream)</td>
+            <td>Readers of map/</td>
+            <td><code>load_snapshot</code> + neighbors walk the published graph. GraphWriter does not call Diagnose.</td>
+          </tr>
+          <tr>
+            <td>E5 maintain stub</td>
+            <td>Optional after flush</td>
+            <td><code>maintain_validity</code> expires edges / drops stale corroborating; then republish a new snapshot version.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 2 · Pipeline -->
+  <section class="panel" id="panel-pipeline" role="tabpanel" aria-labelledby="tab-pipeline" data-step="pipeline" hidden>
+    <div class="panel-head">
+      <h2>2 · Pipeline</h2>
+      <p class="blurb">Where it sits after Identity</p>
+    </div>
+    <h3>Where GraphWriter sits</h3>
+    <div class="dia" role="img" aria-label="Pipeline from Collect through Identity to GraphWriter and SketchWriter">
+      <svg viewBox="0 0 920 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="gw-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a96a4"/>
+          </marker>
+        </defs>
+        <!-- rank 0 -->
+        <rect x="20" y="86" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="86" y="106" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">E1 Collect</text>
+        <text x="86" y="122" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">upstream · not in PoC</text>
+        <!-- rank 1 -->
+        <rect x="208" y="86" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="274" y="106" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">E2 Identity</text>
+        <text x="274" y="122" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">stamps identity.*</text>
+        <!-- rank 2 -->
+        <rect x="396" y="86" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="462" y="106" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">ingest.v1 stream</text>
+        <text x="462" y="122" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">shared wire</text>
+        <!-- rank 3 writers -->
+        <rect x="584" y="28" width="132" height="48" rx="4" fill="#1a2830" stroke="#3d9a8b"/>
+        <text x="650" y="48" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="600">GraphWriter</text>
+        <text x="650" y="64" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">Pillar B · E3</text>
+        <rect x="584" y="144" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="650" y="164" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">SketchWriter</text>
+        <text x="650" y="180" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">Pillar A · E4</text>
+        <!-- rank 4 dest -->
+        <rect x="772" y="28" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="838" y="48" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">map/ Dest</text>
+        <text x="838" y="64" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">snapshot · nodes · edges</text>
+        <rect x="772" y="144" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="838" y="164" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">history/ Dest</text>
+        <text x="838" y="180" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">sketches (A only)</text>
+        <!-- reader under map -->
+        <rect x="772" y="86" width="132" height="0" fill="none"/>
+        <!-- edges -->
+        <line x1="152" y1="110" x2="208" y2="110" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+        <line x1="340" y1="110" x2="396" y2="110" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+        <line x1="528" y1="100" x2="584" y2="55" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+        <line x1="528" y1="120" x2="584" y2="165" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+        <line x1="716" y1="52" x2="772" y2="52" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+        <line x1="716" y1="168" x2="772" y2="168" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+      </svg>
+    </div>
+    <p class="note">
+      GraphWriter is the only node that writes <code>map/</code>. SketchWriter is a sibling on the same stream, not an input to GraphWriter.
+      Downstream Diagnose readers call <code>load_snapshot</code> / neighbors on published map artifacts (not shown as a separate box above to keep the writer fork clear).
+    </p>
+    <div class="grid-3">
+      <div class="stat"><div class="v">E3</div><div class="l">ObserveOps stage (Topology)</div></div>
+      <div class="stat info"><div class="v">map/</div><div class="l">Only room GraphWriter writes</div></div>
+      <div class="stat"><div class="v">Parallel</div><div class="l">With Pillar A after Identity</div></div>
+    </div>
+    <p class="note">
+      Normative I/O: <code>E2_INPUT_FIXTURES.md</code> (input) · <code>MAP_WRITE_READ_RECORD.md</code> (output) ·
+      <code>IDENTIFIED_STREAM_REJECT.md</code> (drop codes).
+    </p>
+  </section>
+
+  <!-- 3 · Example -->
+  <section class="panel" id="panel-example" role="tabpanel" aria-labelledby="tab-example" data-step="example" hidden>
+    <div class="panel-head">
+      <h2>3 · Example</h2>
+      <p class="blurb">checkout-api topo line → edge</p>
+    </div>
+    <div class="callout neutral">
+      Lab fixture line from <code>pillar-b/poc/sample_estate/customer_checkout/stream.resolved.jsonl</code> —
+      Service <code>checkout-api</code> <code>runs_on</code> Host <code>linux-server-app-01</code>.
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-h">Input · one ingest.v1 line</div>
+        <div class="card-b">
+<pre class="code">{
+  "schema_version": "ingest.v1",
+  "ts": "2026-08-20T03:30:00Z",
+  "tenant": "default",
+  "ci_id": "checkout-api",
+  "ci_type": "Service",
+  "fact_kind": "topo_update",
+  "relation": "runs_on",
+  "src_ci_id": "checkout-api",
+  "dst_ci_id": "linux-server-app-01",
+  "identity": {
+    "status": "resolved",
+    "bind_source": "topology_lookup"
+  }
+}</pre>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h">Output · one graph_edge.v1</div>
+        <div class="card-b">
+<pre class="code">{
+  "schema_version": "graph_edge.v1",
+  "tenant": "default",
+  "edge_id": "e_checkout-api_runs_on_linux-server-app-01",
+  "src_ci_id": "checkout-api",
+  "dst_ci_id": "linux-server-app-01",
+  "relation": "runs_on",
+  "discovered_via": {
+    "evidence_type": "…from bind_source",
+    "telemetry_source": "topology_lookup"
+  },
+  "valid_from": "2026-08-20T03:30:00Z",
+  "valid_to": null
+}</pre>
+        </div>
+      </div>
+    </div>
+    <h3>What happens inside apply_topo_updates</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Check</th><th>This line</th><th>Result</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>fact_kind</code></td><td><code>topo_update</code></td><td>Not skipped</td></tr>
+          <tr><td><code>identity.status</code></td><td><code>resolved</code></td><td>Gate admits</td></tr>
+          <tr><td><code>ci_type</code></td><td><code>Service</code></td><td>May emit vertex</td></tr>
+          <tr><td><code>relation</code></td><td><code>runs_on</code></td><td>Wave-1 catalog · upsert edge</td></tr>
+          <tr><td>Endpoints</td><td>checkout-api → linux-server-app-01</td><td>Ensure both nodes exist</td></tr>
+          <tr><td><code>edge_id</code></td><td><code>e_checkout-api_runs_on_linux-server-app-01</code></td><td>Stable replace key</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4 · Admit -->
+  <section class="panel" id="panel-admit" role="tabpanel" aria-labelledby="tab-admit" data-step="admit" hidden>
+    <div class="panel-head">
+      <h2>4 · Admit</h2>
+      <p class="blurb">Three output actions · NOOP · WRITE · DROP</p>
+    </div>
+    <p class="lead" style="margin-bottom:0.85rem">
+      Every <code>ingest.v1</code> line ends in one of three GraphWriter actions.
+      <strong style="color:var(--text)">NOOP</strong> (silent skip) ignores the line;
+      <strong style="color:var(--text)">WRITE</strong> (admit) mutates <code>GraphState</code>;
+      <strong style="color:var(--text)">DROP</strong> (reject) records a shared reason code and leaves the map unchanged.
+    </p>
+
+    <h3>Decision diagram</h3>
+    <div class="dia" role="img" aria-label="GraphWriter three output actions: NOOP, WRITE, DROP">
+      <svg viewBox="0 0 860 420" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, system-ui, sans-serif">
+        <defs>
+          <marker id="adm-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a96a4"/>
+          </marker>
+        </defs>
+
+        <!-- Title strip -->
+        <text x="430" y="22" text-anchor="middle" fill="#e8d19d" font-size="12" font-weight="600" font-family="IBM Plex Mono, monospace">GRAPHWRITER · THREE OUTPUT ACTIONS</text>
+
+        <!-- Start -->
+        <rect x="310" y="40" width="240" height="44" rx="8" fill="#1a2838" stroke="#7ba8f5" stroke-width="1.5"/>
+        <text x="430" y="58" text-anchor="middle" fill="#9bb8f5" font-size="11" font-weight="600">① ingest.v1 line</text>
+        <text x="430" y="74" text-anchor="middle" fill="#8a96a4" font-size="10">post-E2 stream (shared with Pillar A)</text>
+
+        <line x1="430" y1="84" x2="430" y2="108" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
+
+        <!-- Decision 1 -->
+        <rect x="280" y="112" width="300" height="52" rx="8" fill="#171d25" stroke="#2a3441"/>
+        <text x="430" y="132" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">② fact_kind = topo_update ?</text>
+        <text x="430" y="150" text-anchor="middle" fill="#8a96a4" font-size="10">Router: is this Topology’s job?</text>
+
+        <!-- NO branch → NOOP -->
+        <path d="M280,138 L120,138 L120,210" fill="none" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
+        <text x="175" y="128" fill="#8a96a4" font-size="10" font-family="IBM Plex Mono, monospace">no · metric/event/trace/…</text>
+
+        <rect x="30" y="214" width="180" height="78" rx="8" fill="#1c2430" stroke="#8a96a4" stroke-width="1.5"/>
+        <text x="120" y="236" text-anchor="middle" fill="#b8c4d0" font-size="11" font-weight="700" font-family="IBM Plex Mono, monospace">A · NOOP</text>
+        <text x="120" y="254" text-anchor="middle" fill="#e8eef4" font-size="11">Silent skip</text>
+        <text x="120" y="272" text-anchor="middle" fill="#8a96a4" font-size="9">ignore · no reject record</text>
+        <text x="120" y="286" text-anchor="middle" fill="#8a96a4" font-size="9">Pillar A may consume it</text>
+
+        <!-- YES branch -->
+        <line x1="430" y1="164" x2="430" y2="198" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
+        <text x="448" y="186" fill="#7aecc4" font-size="10" font-family="IBM Plex Mono, monospace">yes</text>
+
+        <!-- Decision 2 -->
+        <rect x="250" y="202" width="360" height="58" rx="8" fill="#171d25" stroke="#2a3441"/>
+        <text x="430" y="224" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">③ Catalog checks pass?</text>
+        <text x="430" y="244" text-anchor="middle" fill="#8a96a4" font-size="10">identity resolved · may emit CI node · relation emit/wave-1</text>
+
+        <!-- FAIL → DROP -->
+        <path d="M610,231 L740,231 L740,300" fill="none" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
+        <text x="640" y="222" fill="#f07178" font-size="10" font-family="IBM Plex Mono, monospace">fail</text>
+
+        <rect x="650" y="304" width="180" height="88" rx="8" fill="#2a1a1c" stroke="#f07178" stroke-width="1.5"/>
+        <text x="740" y="326" text-anchor="middle" fill="#f07178" font-size="11" font-weight="700" font-family="IBM Plex Mono, monospace">C · DROP</text>
+        <text x="740" y="344" text-anchor="middle" fill="#e8eef4" font-size="11">Reject</text>
+        <text x="740" y="362" text-anchor="middle" fill="#8a96a4" font-size="9">no map write</text>
+        <text x="740" y="376" text-anchor="middle" fill="#8a96a4" font-size="9">reason → writer.rejects</text>
+
+        <!-- PASS → WRITE -->
+        <line x1="430" y1="260" x2="430" y2="300" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
+        <text x="448" y="284" fill="#7aecc4" font-size="10" font-family="IBM Plex Mono, monospace">pass</text>
+
+        <rect x="320" y="304" width="220" height="88" rx="8" fill="#1a2830" stroke="#7aecc4" stroke-width="1.5"/>
+        <text x="430" y="326" text-anchor="middle" fill="#7aecc4" font-size="11" font-weight="700" font-family="IBM Plex Mono, monospace">B · WRITE</text>
+        <text x="430" y="344" text-anchor="middle" fill="#e8eef4" font-size="11">Admit</text>
+        <text x="430" y="362" text-anchor="middle" fill="#8a96a4" font-size="9">upsert node(s) + edge</text>
+        <text x="430" y="376" text-anchor="middle" fill="#8a96a4" font-size="9">mutates GraphState → map/</text>
+
+        <!-- Notation: phased skip -->
+        <rect x="30" y="320" width="250" height="72" rx="8" fill="#171d25" stroke="#f0b35a" stroke-dasharray="4 3"/>
+        <text x="155" y="342" text-anchor="middle" fill="#f0b35a" font-size="10" font-weight="600" font-family="IBM Plex Mono, monospace">NOTE · phased skip</text>
+        <text x="155" y="360" text-anchor="middle" fill="#b8c4d0" font-size="9">Relation in fifteen-name catalog</text>
+        <text x="155" y="374" text-anchor="middle" fill="#b8c4d0" font-size="9">but not wave-1 (e.g. mounts)</text>
+        <text x="155" y="388" text-anchor="middle" fill="#8a96a4" font-size="9">→ treat as NOOP for map (not DROP)</text>
+      </svg>
+    </div>
+
+    <div class="admit-legend" aria-label="Action legend">
+      <div>
+        <div class="tag noop">A · NOOP</div>
+        <p><strong style="color:var(--text)">Silent skip.</strong> Wrong <code>fact_kind</code> for GraphWriter. No state change, no reject code. Examples: <code>metric_sample</code>, <code>event</code>, <code>trace_span</code>, <code>anomaly</code> (Pillar A sketches are metrics-only; logs/traces are not <code>sketch.v1</code>).</p>
+      </div>
+      <div>
+        <div class="tag write">B · WRITE</div>
+        <p><strong style="color:var(--text)">Admit.</strong> Line becomes topology work: upsert CI node(s) and typed edge in <code>GraphState</code>; later <code>flush</code> publishes <code>map/</code>.</p>
+      </div>
+      <div>
+        <div class="tag drop">C · DROP</div>
+        <p><strong style="color:var(--text)">Reject.</strong> Looked like topo work but failed a rule. Map unchanged; reason on <code>writer.rejects</code> (shared codes).</p>
+      </div>
+    </div>
+
+    <h3>Case table (same three actions)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Case</th><th>fact_kind</th><th>identity</th><th>relation</th><th>Action</th><th>Outcome</th></tr>
+        </thead>
+        <tbody>
+          <tr class="tone-success">
+            <td>Happy topo</td><td><code>topo_update</code></td><td><code>resolved</code></td><td><code>runs_on</code></td>
+            <td><strong>B · WRITE</strong></td>
+            <td>Admit → upsert node(s) + edge</td>
+          </tr>
+          <tr>
+            <td>Metric on same stream</td><td><code>metric_sample</code></td><td><code>resolved</code></td><td>—</td>
+            <td><strong>A · NOOP</strong></td>
+            <td>Silent skip (Pillar A sketch writer)</td>
+          </tr>
+          <tr>
+            <td>Log / event on same stream</td><td><code>event</code></td><td><code>resolved</code></td><td>—</td>
+            <td><strong>A · NOOP</strong></td>
+            <td>Silent skip (not map; not <code>sketch.v1</code>)</td>
+          </tr>
+          <tr>
+            <td>Trace span on same stream</td><td><code>trace_span</code></td><td><code>resolved</code></td><td>—</td>
+            <td><strong>A · NOOP</strong></td>
+            <td>Silent skip (E9/E10 evidence path)</td>
+          </tr>
+          <tr class="tone-danger">
+            <td>Unresolved identity</td><td><code>topo_update</code></td><td><code>unattributed</code></td><td><code>runs_on</code></td>
+            <td><strong>C · DROP</strong></td>
+            <td>Reject · identity_unresolved</td>
+          </tr>
+          <tr class="tone-danger">
+            <td>Synthesized identity</td><td><code>topo_update</code></td><td><code>synthesized</code></td><td><code>runs_on</code></td>
+            <td><strong>C · DROP</strong></td>
+            <td>Reject · identity_synthesized</td>
+          </tr>
+          <tr class="tone-danger">
+            <td>Never-CI type</td><td><code>topo_update</code></td><td><code>resolved</code></td><td><code>runs_on</code></td>
+            <td><strong>C · DROP</strong></td>
+            <td>Reject · never_ci_vertex (Alert/Incident/…)</td>
+          </tr>
+          <tr class="tone-danger">
+            <td>Unknown relation</td><td><code>topo_update</code></td><td><code>resolved</code></td><td><code>CORRELATED_WITH</code></td>
+            <td><strong>C · DROP</strong></td>
+            <td>Reject · unknown_relation</td>
+          </tr>
+          <tr class="tone-warning">
+            <td>Catalog but not wave-1</td><td><code>topo_update</code></td><td><code>resolved</code></td><td><code>mounts</code> (example)</td>
+            <td><strong>A · NOOP</strong>*</td>
+            <td>Phased skip (legal enum, emitter not ready)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">
+      *Phased skip is map-NOOP (no write) but is <em>not</em> silent skip: the line was Topology’s job; wave-1 simply does not emit that relation yet — and it is usually not a DROP reason.
+      Reason codes are locked in <code>contracts/IDENTIFIED_STREAM_REJECT.md</code>.
+      Wave-1 emit set today: <code>runs_on</code>, <code>hosted_on</code>, <code>depends_on</code>, <code>communicates_with</code>, <code>part_of</code>.
+    </p>
+  </section>
+
+  <!-- 5 · Build -->
+  <section class="panel" id="panel-build" role="tabpanel" aria-labelledby="tab-build" data-step="build" hidden>
+    <div class="panel-head">
+      <h2>5 · Build</h2>
+      <p class="blurb">Seed + stream → GraphState</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Order</th><th>GraphWriter API</th><th>What it does</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><code>load_bootstrap(topology.bootstrap.json)</code></td>
+            <td>Creates GraphState. Qualifies each bootstrap CI type. Declared bootstrap edges get <code>evidence_type</code> declared, <code>telemetry_source</code> topology.bootstrap.</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><code>ingest(JsonlIngestSource)</code></td>
+            <td>For each <code>topo_update</code>: identity gate → ci_qualify → classify_relation → ensure endpoint nodes → upsert edge with provenance from <code>identity.bind_source</code>.</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><code>flush(FileDest)</code></td>
+            <td><code>build_snapshot(version)</code> validates packaged <code>graph_snapshot.v1</code>, then <code>publish_snapshot</code> writes the three map keys (overwrite).</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><code>maintain_validity</code> (optional)</td>
+            <td>E5 stub: expire <code>valid_to</code> / drop stale corroborating; flush again with a new version (lab CLI <code>--maintain-validity</code>).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-h">Internal helpers (not separate services)</div>
+      <div class="card-b">
+        <p>
+          <code>graph_builder.apply_topo_updates</code> ·
+          <code>ci_qualify.may_emit_vertex</code> ·
+          <code>edge_catalog.classify_relation</code> ·
+          <code>provenance.build_discovered_via</code> ·
+          <code>snapshot.build_snapshot</code> / <code>publish_snapshot</code> ·
+          <code>maintain.maintain_graph_validity</code>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · Output -->
+  <section class="panel" id="panel-output" role="tabpanel" aria-labelledby="tab-output" data-step="output" hidden>
+    <div class="panel-head">
+      <h2>6 · Output</h2>
+      <p class="blurb">What lands under map/</p>
+    </div>
+    <h3>poc/out/&lt;tenant&gt;/map/</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Dest key</th><th>Schema</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>graph_snapshot.json</code></td>
+            <td><code>graph_snapshot.v1</code></td>
+            <td>Packaged read unit: tenant, version, nodes[], edges[]</td>
+          </tr>
+          <tr>
+            <td><code>nodes.jsonl</code></td>
+            <td><code>graph_node.v1</code> per line</td>
+            <td>Same vertices as the snapshot, one object per line for inspection</td>
+          </tr>
+          <tr>
+            <td><code>edges.jsonl</code></td>
+            <td><code>graph_edge.v1</code> per line</td>
+            <td>Same typed relations as the snapshot, one object per line</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid-3">
+      <div class="stat"><div class="v">(tenant, ci_id)</div><div class="l">Node logical key</div></div>
+      <div class="stat"><div class="v">(tenant, edge_id)</div><div class="l">Edge logical key</div></div>
+      <div class="stat"><div class="v">(tenant, version)</div><div class="l">Snapshot generation</div></div>
+    </div>
+    <div class="callout warn">
+      GraphWriter never writes <code>history/sketches.jsonl</code>. Computed blast-radius style edges from product briefs
+      are not map rows — readers derive those later.
+    </div>
+  </section>
+
+  <!-- 7 · Lab -->
+  <section class="panel" id="panel-lab" role="tabpanel" aria-labelledby="tab-lab" data-step="lab" hidden>
+    <div class="panel-head">
+      <h2>7 · Lab</h2>
+      <p class="blurb">make flush walkthrough</p>
+    </div>
+<pre class="code">cd pillar-ab-implementation/pillar-b/poc
+make install &amp;&amp; make flush
+# → poc/out/default/map/{graph_snapshot.json,nodes.jsonl,edges.jsonl}</pre>
+    <div class="grid-2" style="margin-top:1rem">
+      <div class="card">
+        <div class="card-h">Bootstrap vertices (topology.bootstrap.json)</div>
+        <div class="card-b">
+          <p>bs-checkout (BusinessService)</p>
+          <p>checkout-api (Service)</p>
+          <p>linux-server-app-01 (Host)</p>
+          <p>app-runtime-jvm (Runtime)</p>
+          <p>payments-db (Database)</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h">Relations the lab emits</div>
+        <div class="card-b" style="padding:0">
+          <div class="table-wrap" style="margin:0;border:none;border-radius:0">
+            <table>
+              <thead>
+                <tr><th>from</th><th>relation</th><th>to</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>checkout-api</td><td><code>runs_on</code></td><td>linux-server-app-01</td></tr>
+                <tr><td>app-runtime-jvm</td><td><code>runs_on</code></td><td>linux-server-app-01</td></tr>
+                <tr><td>checkout-api</td><td><code>depends_on</code></td><td>payments-db</td></tr>
+                <tr><td>checkout-api</td><td><code>part_of</code></td><td>bs-checkout</td></tr>
+                <tr><td>checkout-api</td><td><code>communicates_with</code></td><td>payments-db</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      CLI path: <code>GraphWriter.load_bootstrap</code> → <code>ingest(stream.resolved.jsonl)</code> → <code>FileDest.flush</code>.
+      Same five relations appear both in bootstrap and stream so the lab round-trips a small estate map.
+      Expected-vs-actual spines: <code>poc/sample_estate/customer_checkout/SAMPLE_IO.md</code>.
+    </p>
+  </section>
+
+  <div class="nav-row">
+    <button type="button" class="btn" id="btn-prev">Previous</button>
+    <span class="count" id="step-count">1 / 7</span>
+    <button type="button" class="btn primary" id="btn-next">Next</button>
+  </div>
+
+  <p class="meta">
+    Source of truth: <code>docs/fabric/graphwriter-io-walkthrough.html</code>
+    (flat hub URL <a href="/graphwriter-io-walkthrough.html"><code>/graphwriter-io-walkthrough.html</code></a>).
+    Package mirror: <code>pillar-b/docs/</code> symlink.
+    Sample I/O: <a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/SAMPLE_IO.md">SAMPLE_IO.md</a> ·
+    Post-E2 router: <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md">E2_INPUT_FIXTURES.md</a> ·
+    Contracts: <a href="/docs/MAP_WRITE_READ_RECORD.md">MAP_WRITE_READ_RECORD.md</a>.
+  </p>
+</div>
+
+<script>
+(function () {
+  var STEPS = ["who", "pipeline", "example", "admit", "build", "output", "lab"];
+  var idx = 0;
+
+  function show(i) {
+    if (i < 0 || i >= STEPS.length) return;
+    idx = i;
+    var step = STEPS[idx];
+    document.querySelectorAll(".tab").forEach(function (btn) {
+      var on = btn.getAttribute("data-step") === step;
+      btn.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    document.querySelectorAll(".panel").forEach(function (panel) {
+      var on = panel.getAttribute("data-step") === step;
+      panel.classList.toggle("is-active", on);
+      if (on) panel.removeAttribute("hidden");
+      else panel.setAttribute("hidden", "");
+    });
+    document.getElementById("step-count").textContent = (idx + 1) + " / " + STEPS.length;
+    document.getElementById("btn-prev").disabled = idx === 0;
+    document.getElementById("btn-next").disabled = idx === STEPS.length - 1;
+    try {
+      history.replaceState(null, "", "#" + step);
+    } catch (e) {}
+  }
+
+  document.querySelectorAll(".tab").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var step = btn.getAttribute("data-step");
+      show(STEPS.indexOf(step));
+    });
+  });
+  document.getElementById("btn-prev").addEventListener("click", function () { show(idx - 1); });
+  document.getElementById("btn-next").addEventListener("click", function () { show(idx + 1); });
+
+  var hash = (location.hash || "").replace(/^#/, "");
+  var start = STEPS.indexOf(hash);
+  show(start >= 0 ? start : 0);
+})();
+</script>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,434 @@
+{
+  "_comment": "Demo tape aligned to Pillar B PoC GraphWriter (graph_builder.apply_topo_stream). B0 = load_estate_bootstrap (nodes only so edges grow on Forward). Stream lines = lab ingest.v1 topo_update / metric / span / event / anomaly. Graph outcomes: BOOTSTRAP | WRITE | NOOP | DROP. Stored edge shows Motadata edge_type (SCREAMING) + origin (declared|stream). discovered_via is NOT stored. Target wire later: writer_stream.v1 (WRITER_REGULATOR.md).",
+  "title": "Interleaved stream replay — customer checkout (PoC GraphWriter)",
+  "description": "Mirrors pillar-b/poc/graph: load_estate_bootstrap → apply_topo_stream admit (NOOP/WRITE/DROP) → GraphState upsert. SketchWriter only for metrics. Motadata columnar twin: map-vortex HotMap (same gates).",
+  "source": "docs/fabric/pillar-b-stream-graph-demo.tape.json",
+  "poc_code": {
+    "bootstrap": "GraphWriter.load_estate_bootstrap → graph_builder.load_estate_bootstrap_state",
+    "stream": "GraphWriter.write_topo_stream → graph_builder.apply_topo_stream",
+    "admit": "ResolvedOnlyGate + may_emit_vertex + classify_relation + check_edge_triplet",
+    "upsert_key": "(source_id, edge_type, target_id)",
+    "publish": "publish_map → Dest map/ (files.v1 JSON today; vortex_s3.v1 via map_vortex)",
+    "sample_estate": "pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/topology.bootstrap.json"
+  },
+  "field_guide": {
+    "common": [
+      "schema_version",
+      "ts",
+      "tenant",
+      "ci_id",
+      "ci_type",
+      "fact_kind",
+      "identity"
+    ],
+    "by_fact_kind": {
+      "topo_update": ["relation", "src_ci_id", "dst_ci_id", "src_ci_type", "dst_ci_type"],
+      "metric_sample": ["name", "value", "labels"],
+      "trace_span": ["name", "value", "labels"],
+      "event": ["name", "value", "labels"],
+      "anomaly": ["name", "value", "threshold", "severity"]
+    }
+  },
+  "nodes": {
+    "_comment": "SVG layout. Labels = entity_id. storage_type = Motadata graph_node.v1.type after to_storage_type.",
+    "bs-checkout": {
+      "ci_type": "BusinessService",
+      "storage_type": "business_service",
+      "label": "bs-checkout",
+      "x": 206,
+      "y": 24
+    },
+    "checkout-api": {
+      "ci_type": "Service",
+      "storage_type": "service",
+      "label": "checkout-api",
+      "x": 206,
+      "y": 130
+    },
+    "app-runtime-jvm": {
+      "ci_type": "Runtime",
+      "storage_type": "process",
+      "label": "app-runtime-jvm",
+      "x": 24,
+      "y": 250
+    },
+    "payments-db": {
+      "ci_type": "Database",
+      "storage_type": "db",
+      "label": "payments-db",
+      "x": 400,
+      "y": 250
+    },
+    "linux-server-app-01": {
+      "ci_type": "Host",
+      "storage_type": "host",
+      "label": "linux-server-app-01",
+      "x": 206,
+      "y": 380
+    }
+  },
+  "steps": [
+    {
+      "id": "B0",
+      "kind": "bootstrap",
+      "_comment": "PoC: GraphWriter.load_estate_bootstrap. Lab topology.bootstrap.json also has declared edges; this demo loads nodes only so Forward shows each WRITE grow map/.",
+      "headline": "Estate bootstrap — CI nodes before the stream",
+      "sketch": "NOOP",
+      "graph": "BOOTSTRAP",
+      "caption": "load_estate_bootstrap → GraphState nodes (Motadata types) · edges arrive on stream WRITE",
+      "estate": {
+        "source": "poc/sample_estate/customer_checkout/topology.bootstrap.json",
+        "api": "GraphWriter.load_estate_bootstrap",
+        "poc_module": "graph/graph_builder.py::load_estate_bootstrap_state",
+        "origin": "declared",
+        "nodes": [
+          "bs-checkout",
+          "checkout-api",
+          "linux-server-app-01",
+          "app-runtime-jvm",
+          "payments-db"
+        ],
+        "edges": []
+      }
+    },
+    {
+      "id": "T0",
+      "_comment": "apply_topo_stream: fact_kind=topo_update, resolved, process→host runs_on → WRITE. Upsert key (app-runtime-jvm, RUNS_ON, linux-server-app-01).",
+      "headline": "Inventory places JVM on host",
+      "sketch": "NOOP",
+      "graph": "WRITE",
+      "caption": "apply_topo_stream WRITE · RUNS_ON · origin=stream · SketchWriter NOOP",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:29:50Z",
+          "tenant": "default",
+          "ci_id": "app-runtime-jvm",
+          "ci_type": "Runtime",
+          "fact_kind": "topo_update",
+          "identity": { "status": "resolved", "bind_source": "inventory" }
+        },
+        "specific": {
+          "relation": "runs_on",
+          "src_ci_id": "app-runtime-jvm",
+          "dst_ci_id": "linux-server-app-01",
+          "src_ci_type": "Runtime",
+          "dst_ci_type": "Host"
+        }
+      },
+      "edge": {
+        "relation": "runs_on",
+        "edge_type": "RUNS_ON",
+        "src": "app-runtime-jvm",
+        "dst": "linux-server-app-01",
+        "origin": "stream"
+      }
+    },
+    {
+      "id": "T1a",
+      "headline": "Steady latency sample",
+      "sketch": "ADMIT",
+      "graph": "NOOP",
+      "caption": "SketchWriter admits metric_sample · GraphWriter NOOP (fact_kind ≠ topo_update)",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:00Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "metric_sample",
+          "identity": { "status": "resolved", "bind_source": "topology_lookup" }
+        },
+        "specific": {
+          "name": "request.latency_ms",
+          "value": 92.1,
+          "labels": { "trace_id": "abc123" }
+        }
+      }
+    },
+    {
+      "id": "T1b",
+      "headline": "Error-rate sample",
+      "sketch": "ADMIT",
+      "graph": "NOOP",
+      "caption": "SketchWriter admits · GraphWriter NOOP — map unchanged",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:05Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "metric_sample",
+          "identity": { "status": "resolved", "bind_source": "topology_lookup" }
+        },
+        "specific": {
+          "name": "request.error_rate",
+          "value": 0.02
+        }
+      }
+    },
+    {
+      "id": "T2a",
+      "_comment": "service→business_service part_of is allowlist-legal (child→parent).",
+      "headline": "Catalog: API part of business service",
+      "sketch": "NOOP",
+      "graph": "WRITE",
+      "caption": "WRITE PART_OF · check_edge_triplet ok · SketchWriter NOOP",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:08Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "topo_update",
+          "identity": { "status": "resolved", "bind_source": "service-catalog" }
+        },
+        "specific": {
+          "relation": "part_of",
+          "src_ci_id": "checkout-api",
+          "dst_ci_id": "bs-checkout",
+          "src_ci_type": "Service",
+          "dst_ci_type": "BusinessService"
+        }
+      },
+      "edge": {
+        "relation": "part_of",
+        "edge_type": "PART_OF",
+        "src": "checkout-api",
+        "dst": "bs-checkout",
+        "origin": "stream"
+      }
+    },
+    {
+      "id": "T2b",
+      "headline": "Catalog: API depends on payments DB",
+      "sketch": "NOOP",
+      "graph": "WRITE",
+      "caption": "WRITE DEPENDS_ON · upsert key (checkout-api, DEPENDS_ON, payments-db)",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:08Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "topo_update",
+          "identity": { "status": "resolved", "bind_source": "service-catalog" }
+        },
+        "specific": {
+          "relation": "depends_on",
+          "src_ci_id": "checkout-api",
+          "dst_ci_id": "payments-db",
+          "src_ci_type": "Service",
+          "dst_ci_type": "Database"
+        }
+      },
+      "edge": {
+        "relation": "depends_on",
+        "edge_type": "DEPENDS_ON",
+        "src": "checkout-api",
+        "dst": "payments-db",
+        "origin": "stream"
+      }
+    },
+    {
+      "id": "T2c",
+      "_comment": "Teaching DROP: host runs_on service is illegal_edge_triplet (wrong direction). PoC appends writer.rejects; map unchanged.",
+      "headline": "Illegal hosting direction (DROP)",
+      "sketch": "NOOP",
+      "graph": "DROP",
+      "caption": "DROP illegal_edge_triplet · host cannot runs_on service · GraphState unchanged",
+      "reject_code": "illegal_edge_triplet",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:09Z",
+          "tenant": "default",
+          "ci_id": "linux-server-app-01",
+          "ci_type": "Host",
+          "fact_kind": "topo_update",
+          "identity": { "status": "resolved", "bind_source": "bad-emitter" }
+        },
+        "specific": {
+          "relation": "runs_on",
+          "src_ci_id": "linux-server-app-01",
+          "dst_ci_id": "checkout-api",
+          "src_ci_type": "Host",
+          "dst_ci_type": "Service"
+        }
+      }
+    },
+    {
+      "id": "T3",
+      "_comment": "Span peer.service is NOT an edge in PoC — WRITER_REGULATOR / GraphWriter require an explicit topology claim.",
+      "headline": "APM span with peer.service",
+      "sketch": "NOOP",
+      "graph": "NOOP",
+      "caption": "Both pillars NOOP — peer label ≠ graph_edge until a topo_update line",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:10Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "trace_span",
+          "identity": { "status": "resolved", "bind_source": "apm" }
+        },
+        "specific": {
+          "name": "POST /checkout",
+          "value": 210.0,
+          "labels": {
+            "trace_id": "abc123",
+            "span_id": "span-7",
+            "peer.service": "payments-db"
+          }
+        }
+      }
+    },
+    {
+      "id": "T4a",
+      "headline": "Error log (event)",
+      "sketch": "NOOP",
+      "graph": "NOOP",
+      "caption": "fact_kind event · GraphWriter NOOP (labels are not edges)",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:11Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "event",
+          "identity": { "status": "resolved", "bind_source": "topology_lookup" }
+        },
+        "specific": {
+          "name": "log.error",
+          "value": 1.0,
+          "labels": {
+            "level": "error",
+            "msg": "payment gateway timeout",
+            "downstream": "payments-db"
+          }
+        }
+      }
+    },
+    {
+      "id": "T4b",
+      "headline": "Latency spikes",
+      "sketch": "ADMIT",
+      "graph": "NOOP",
+      "caption": "SketchWriter admits · GraphWriter NOOP",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:12Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "metric_sample",
+          "identity": { "status": "resolved", "bind_source": "topology_lookup" }
+        },
+        "specific": {
+          "name": "request.latency_ms",
+          "value": 980.0,
+          "labels": { "trace_id": "abc123" }
+        }
+      }
+    },
+    {
+      "id": "T5",
+      "headline": "Detect anomaly",
+      "sketch": "NOOP",
+      "graph": "NOOP",
+      "caption": "Detect consumes anomaly · Pillar A/B writers NOOP",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:15Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "anomaly",
+          "identity": { "status": "resolved", "bind_source": "topology_lookup" }
+        },
+        "specific": {
+          "name": "request.latency_ms",
+          "value": 980.0,
+          "threshold": 500.0,
+          "severity": "high"
+        }
+      }
+    },
+    {
+      "id": "T6",
+      "_comment": "Second edge between same endpoints is legal when edge_type differs (DEPENDS_ON already present).",
+      "headline": "APM emitter: peers → communicates_with",
+      "sketch": "NOOP",
+      "graph": "WRITE",
+      "caption": "WRITE COMMUNICATES_WITH · multi-edge with DEPENDS_ON · SketchWriter NOOP",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:20Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "topo_update",
+          "identity": { "status": "resolved", "bind_source": "apm" }
+        },
+        "specific": {
+          "relation": "communicates_with",
+          "src_ci_id": "checkout-api",
+          "dst_ci_id": "payments-db",
+          "src_ci_type": "Service",
+          "dst_ci_type": "Database"
+        }
+      },
+      "edge": {
+        "relation": "communicates_with",
+        "edge_type": "COMMUNICATES_WITH",
+        "src": "checkout-api",
+        "dst": "payments-db",
+        "origin": "stream"
+      }
+    },
+    {
+      "id": "T7",
+      "_comment": "service→host runs_on is allowlist-legal. Completes demo spine.",
+      "headline": "Service runs on host",
+      "sketch": "NOOP",
+      "graph": "WRITE",
+      "caption": "WRITE RUNS_ON · map spine complete · ready for publish_map",
+      "line": {
+        "common": {
+          "schema_version": "ingest.v1",
+          "ts": "2026-08-20T03:30:22Z",
+          "tenant": "default",
+          "ci_id": "checkout-api",
+          "ci_type": "Service",
+          "fact_kind": "topo_update",
+          "identity": { "status": "resolved", "bind_source": "topology_lookup" }
+        },
+        "specific": {
+          "relation": "runs_on",
+          "src_ci_id": "checkout-api",
+          "dst_ci_id": "linux-server-app-01",
+          "src_ci_type": "Service",
+          "dst_ci_type": "Host"
+        }
+      },
+      "edge": {
+        "relation": "runs_on",
+        "edge_type": "RUNS_ON",
+        "src": "checkout-api",
+        "dst": "linux-server-app-01",
+        "origin": "stream"
+      }
+    }
+  ],
+  "bootstrap_source": "pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/topology.bootstrap.json"
+}

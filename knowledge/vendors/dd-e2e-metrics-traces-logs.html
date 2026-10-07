@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Datadog E2E — Metrics ∥ APM ∥ Logs journey</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+body{margin:0;font-family:var(--font);font-size:17px;line-height:1.65;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2438 0%,transparent 55%),var(--bg);}
+a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+.lead code,.note code,td code,p code,.teach code{font-family:var(--mono);font-size:.92em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#b8d4ff;}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 1.25rem;}
+.links a{font-family:var(--mono);font-size:13px;padding:7px 11px;border-radius:6px;border:1px solid var(--stroke);background:var(--bg-elev);color:var(--muted);text-decoration:none;}
+.links a:hover{color:var(--text);border-color:var(--accent);}
+.journey{border:1px solid var(--stroke);border-radius:14px;background:var(--bg-elev);padding:14px;margin-bottom:14px;}
+.journey-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px;}
+.clock{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--ok);border:1px solid rgba(95,224,176,.35);background:rgba(95,224,176,.06);border-radius:6px;padding:7px 11px;}
+.phase-pill{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;font-weight:500;padding:6px 10px;border-radius:6px;border:1px solid var(--stroke);color:var(--muted);}
+.phase-pill.fabric{color:var(--apm);border-color:rgba(155,184,245,.4);background:rgba(155,184,245,.08);}
+.phase-pill.case{color:var(--seed);border-color:rgba(224,122,122,.4);background:rgba(224,122,122,.08);}
+.controls{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px;}
+.controls button{font-family:var(--mono);font-size:13px;padding:7px 12px;border-radius:6px;border:1px solid var(--stroke);background:var(--bg-soft);color:var(--text);cursor:pointer;}
+.controls button:hover{border-color:#4a5a74;}
+.controls button.playing{color:var(--ok);border-color:rgba(95,224,176,.5);}
+canvas#cv{width:100%;height:320px;display:block;border-radius:10px;background:#0D0F14;border:1px solid var(--stroke);}
+.scrub{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.scrub input[type=range]{flex:1;accent-color:var(--ok);}
+.scrub .hint{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--muted);white-space:nowrap;}
+.stations{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.stations button{font-family:var(--mono);font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid var(--stroke);background:#0D0F14;color:var(--muted);cursor:pointer;}
+.stations button.on{color:var(--ok);border-color:rgba(95,224,176,.45);background:rgba(95,224,176,.08);}
+.dock{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin-top:14px;}
+@media (max-width:860px){.dock{grid-template-columns:1fr;}}
+.card{border:1px solid var(--stroke);border-radius:12px;background:var(--bg-elev);padding:16px 18px;}
+.card h2{margin:0 0 6px;font-size:1.2rem;font-weight:600;}
+.card .meta{font-family:var(--mono);font-size:13px;color:var(--faint);margin-bottom:10px;}
+.card .blurb{margin:0 0 14px;font-size:16px;line-height:1.6;color:var(--muted);}
+.rails{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+@media (max-width:700px){.rails{grid-template-columns:1fr;}}
+.rail-box{border:1px solid var(--stroke);border-radius:8px;padding:12px 13px;background:var(--bg-soft);}
+.rail-box.m{box-shadow:inset 3px 0 0 var(--metrics);}
+.rail-box.a{box-shadow:inset 3px 0 0 var(--apm);}
+.rail-box.l{box-shadow:inset 3px 0 0 var(--logs);}
+.rail-box .lbl{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;font-weight:600;}
+.rail-box.m .lbl{color:var(--metrics);} .rail-box.a .lbl{color:var(--apm);} .rail-box.l .lbl{color:var(--logs);}
+.rail-box p{margin:0;font-size:14.5px;line-height:1.5;color:var(--muted);}
+.rail-box.active{border-color:rgba(95,224,176,.4);background:rgba(95,224,176,.05);}
+.teach{border-left:3px solid var(--lean);padding:10px 14px;margin:0;font-size:15px;line-height:1.55;color:var(--muted);background:rgba(240,179,90,.06);}
+.teach b{color:var(--lean);}
+.legend h3{margin:0 0 12px;font-size:13px;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+.legend ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;}
+.legend li{display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:start;font-size:14.5px;line-height:1.5;color:var(--muted);}
+.legend .dot{width:10px;height:10px;border-radius:50%;margin-top:5px;}
+.legend .dot.m{background:var(--metrics);} .legend .dot.a{background:var(--apm);} .legend .dot.l{background:var(--logs);}
+.legend .dot.det{background:var(--seed);} .legend .dot.ok{background:var(--ok);}
+.note{margin:1.25rem 0 0;padding:.85rem 1rem;border-radius:8px;background:rgba(91,141,239,.14);border-left:3px solid var(--accent);color:var(--muted);font-size:1rem;}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="vendor-dd article">
+<div class="wrap article">
+  <div class="eyebrow">Datadog · end-to-end · three-rail journey</div>
+  <h1>Follow one fault across Metrics ∥ APM ∥ Logs</h1>
+  <p class="lead">
+    <strong style="color:var(--text)">This page = animated pipeline journey</strong>
+    (shared ERROR / SLOWDOWN): how Metrics ∥ APM ∥ Logs <em>write</em> at each stage,
+    joined by Unified Service Tags. Service Map is APM-derived — not a peer fabric.
+    Backend honesty: Metrics → classic timeseries store; Traces + Logs → Husky / Event Platform
+    (labeled on Breakdown stage 05 Always-on fabric).
+    Play the scrubber; switch category above to reload the journey tips.
+  </p>
+  <div class="note">
+    <strong style="color:var(--text)">Not the ERROR workbook.</strong>
+    For copy-paste queries, MCP Observed counts, Detect doors, leaf claim →
+    <a href="/dd-error-mtl-dissection.html?cat=error">MTL workbook</a>.
+    For clocks → <a href="/dd-lab-timeline-error.html?cat=error">Timeline</a>.
+    For Door IPO → <a href="/datadog-subsystem-mechanisms.html?cat=error">Breakdown</a>.
+    For mental model → <a href="/datadog-production-pipeline.html?cat=error">Thesis §3.3</a>.
+    For packaging / Hypothesis Tree → <a href="/dd-bits-error-review.html?cat=error">Bits</a>.
+  </div>
+  <div id="urca-dd-pipeline-guide" data-variant="compact"></div>
+  <div class="links">
+    <a href="/datadog-subsystem-mechanisms.html">Breakdown</a>
+    <a href="/datadog-production-pipeline.html">Thesis</a>
+    <a href="/dd-lab-timeline-error.html?cat=error">Timeline</a>
+    <a href="/dd-error-mtl-dissection.html?cat=error">MTL workbook</a>
+    <a href="/dd-bits-error-review.html?cat=error">Bits</a>
+    <a href="/dd-detect-category-hub.html">Hub</a>
+  </div>
+
+  <div class="journey">
+    <div class="journey-top">
+      <div class="clock" id="clock">healthy</div>
+      <div class="phase-pill fabric" id="phasePill">Fabric</div>
+      <div class="controls">
+        <button type="button" id="btnPrev">←</button>
+        <button type="button" id="btnPlay">▶ Play journey</button>
+        <button type="button" id="btnNext">→</button>
+      </div>
+    </div>
+    <canvas id="cv" width="1080" height="300" aria-label="Metrics APM Logs journey"></canvas>
+    <div class="scrub">
+      <input type="range" id="scrub" min="0" max="10" step="1" value="0" aria-label="Stage scrubber">
+      <span class="hint" id="scrubHint">01 Collect</span>
+    </div>
+    <div class="stations" id="stations"></div>
+  </div>
+
+  <div class="dock">
+    <div class="card">
+      <h2 id="dTitle">01 · Agent collect</h2>
+      <div class="meta" id="dMeta">stage 1 of 7</div>
+      <p class="blurb" id="dBlurb"></p>
+      <div class="rails">
+        <div class="rail-box m" id="railM"><div class="lbl">Metrics</div><p id="railMp"></p></div>
+        <div class="rail-box a" id="railA"><div class="lbl">APM</div><p id="railAp"></p></div>
+        <div class="rail-box l" id="railL"><div class="lbl">Logs</div><p id="railLp"></p></div>
+      </div>
+      <p class="teach" id="dTeach"></p>
+    </div>
+    <div class="card legend">
+      <h3>How to read</h3>
+      <ul>
+        <li><span class="dot m"></span><span>Metrics rail — rates / latency series by tags</span></li>
+        <li><span class="dot a"></span><span>APM rail — spans, peers, flamegraph</span></li>
+        <li><span class="dot l"></span><span>Logs rail — optional; often secondary in this lab</span></li>
+        <li><span class="dot det"></span><span>Detect / package — monitors, Watchdog, operator</span></li>
+        <li><span class="dot ok"></span><span>Active category: <b id="legCat">ERROR</b></span></li>
+      </ul>
+      <table>
+        <tr><th>Leaf</th><td id="legLeaf"></td></tr>
+        <tr><th>Detect</th><td id="legDetect"></td></tr>
+        <tr><th>Package</th><td id="legPkg"></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="note" id="cat-note"></div>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dd-detect-categories.js" defer></script>
+<script>
+(function () {
+  var COL = { muted:'#b0bac6', text:'#f2f5f8', m:'#7ec8b8', a:'#9bb8f5', l:'#e8b86d', ok:'#7aecc4', lean:'#F0B35A', seed:'#e07a7a', line:'#2A3140', panel:'#171B24' };
+  var idx = 0, playing = false, timer = null, lab = null, cat = null, stages = [];
+
+  function labSc() {
+    if (window.URCA_DD_CATS && typeof URCA_DD_CATS.labScenario === "function") return URCA_DD_CATS.labScenario();
+    return { id: "error", clocks: ["healthy","fault","sustained","cleared"], journey: [], detectSignal: "error_rate", leaf: "inventory", packageNote: "", mtl: {} };
+  }
+
+  function buildStages(sc) {
+    var j = sc.journey || [];
+    var clockMap = [0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 3];
+    return j.map(function (s, i) {
+      var phase = i < 5 ? "fabric" : i < 8 ? "case" : "case";
+      var phaseLabel =
+        i < 5 ? "Intake · map · stores" :
+        i < 8 ? "Monitors · Watchdog · triage · Related" :
+                "Flamegraph · tag join · Insights";
+      var ci = clockMap[i] != null ? clockMap[i] : Math.min(i, (sc.clocks || []).length - 1);
+      return {
+        key: s.key,
+        n: String(i + 1).padStart(2, "0"),
+        title: s.title,
+        phase: phase,
+        phaseLabel: phaseLabel,
+        clock: (sc.clocks && sc.clocks[ci]) || s.title,
+        m: s.m, a: s.a, l: s.l, teach: s.teach,
+        hot: i >= 5
+      };
+    });
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function draw(stage) {
+    var cv = document.getElementById("cv");
+    var ctx = cv.getContext("2d");
+    var W = cv.width, H = cv.height;
+    ctx.fillStyle = "#0D0F14";
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = COL.muted;
+    ctx.font = "13px IBM Plex Mono, monospace";
+    ctx.fillText("FE → product → inventory  ·  env:rca-lab-e3  ·  " + (cat ? cat.name : ""), 24, 28);
+
+    var rails = [
+      { name: "Metrics", color: COL.m, y: 70, text: stage.m, husky: false },
+      { name: "APM", color: COL.a, y: 145, text: stage.a, husky: true },
+      { name: "Logs", color: COL.l, y: 215, text: stage.l, husky: true }
+    ];
+    var left = 40, mid = 400, right = 780;
+
+    // Husky container behind APM + Logs rails
+    ctx.fillStyle = "rgba(240,179,90,.06)";
+    roundRect(ctx, mid - 14, 118, 228, 160, 10); ctx.fill();
+    ctx.strokeStyle = COL.lean || "#F0B35A";
+    ctx.setLineDash([5, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = COL.lean || "#F0B35A";
+    ctx.font = "10px IBM Plex Mono, monospace";
+    ctx.fillText("HUSKY · Event Platform", mid + 18, 134);
+
+    // source node
+    ctx.fillStyle = COL.panel;
+    roundRect(ctx, left, 100, 120, 90, 8); ctx.fill();
+    ctx.strokeStyle = COL.ok; ctx.stroke();
+    ctx.fillStyle = COL.ok; ctx.font = "12px IBM Plex Mono, monospace";
+    ctx.fillText("checkout", left + 28, 140);
+    ctx.fillText("signal", left + 40, 160);
+
+    rails.forEach(function (r, i) {
+      ctx.strokeStyle = r.color;
+      ctx.globalAlpha = stage.hot || i < 2 ? 0.9 : 0.55;
+      ctx.beginPath();
+      ctx.moveTo(left + 120, 145);
+      ctx.lineTo(mid, r.y + 20);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = COL.panel;
+      roundRect(ctx, mid, r.y, 200, 44, 8); ctx.fill();
+      ctx.strokeStyle = r.color; ctx.stroke();
+      ctx.fillStyle = r.color; ctx.font = "11px IBM Plex Mono, monospace";
+      ctx.fillText(r.name + (r.husky ? " · Husky" : " · store"), mid + 10, r.y + 18);
+      ctx.fillStyle = COL.text; ctx.font = "11px IBM Plex Mono, monospace";
+      var t = (r.text || "").slice(0, 30);
+      ctx.fillText(t, mid + 10, r.y + 34);
+
+      ctx.beginPath();
+      ctx.moveTo(mid + 200, r.y + 22);
+      ctx.lineTo(right, r.y + 22);
+      ctx.strokeStyle = stage.hot ? COL.seed : r.color;
+      ctx.globalAlpha = 0.7; ctx.stroke(); ctx.globalAlpha = 1;
+    });
+
+    ctx.fillStyle = COL.panel;
+    roundRect(ctx, right, 100, 220, 100, 8); ctx.fill();
+    ctx.strokeStyle = stage.hot ? COL.seed : COL.ok; ctx.stroke();
+    ctx.fillStyle = stage.hot ? COL.seed : COL.ok;
+    ctx.font = "12px IBM Plex Mono, monospace";
+    ctx.fillText(stage.hot ? "Detect / pivot" : "M store ∥ Husky", right + 28, 140);
+    ctx.fillStyle = COL.muted; ctx.font = "11px IBM Plex Mono, monospace";
+    ctx.fillText(lab.detectSignal || "", right + 24, 165);
+  }
+
+  function render() {
+    var s = stages[idx];
+    if (!s) return;
+    document.getElementById("clock").textContent = s.clock;
+    var pill = document.getElementById("phasePill");
+    pill.textContent = s.phaseLabel;
+    pill.className = "phase-pill " + s.phase;
+    document.getElementById("scrub").value = String(idx);
+    document.getElementById("scrubHint").textContent = s.n + " " + s.title;
+    document.getElementById("dTitle").textContent = s.n + " · " + s.title;
+    document.getElementById("dMeta").textContent = "stage " + (idx + 1) + " of " + stages.length + " · " + (cat ? cat.name : "");
+    document.getElementById("dBlurb").textContent = lab.leaf + " · " + (lab.cascade || "");
+    document.getElementById("railMp").textContent = s.m;
+    document.getElementById("railAp").textContent = s.a;
+    document.getElementById("railLp").textContent = s.l;
+    document.getElementById("dTeach").innerHTML = "<b>Teaching:</b> " + s.teach;
+    ["railM", "railA", "railL"].forEach(function (id) {
+      document.getElementById(id).classList.toggle("active", s.hot);
+    });
+    Array.from(document.getElementById("stations").children).forEach(function (b, i) {
+      b.className = i === idx ? "on" : "";
+    });
+    draw(s);
+  }
+
+  function go(n) {
+    idx = Math.max(0, Math.min(stages.length - 1, n));
+    render();
+  }
+
+  function ready(fn) {
+    if (window.URCA_DD_CATS) fn();
+    else setTimeout(function () { ready(fn); }, 20);
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    ready(function () {
+      var API = window.URCA_DD_CATS;
+      API.mountSwitcher({ banner: true });
+      cat = API.current();
+      lab = labSc();
+      API.persist(cat);
+      stages = buildStages(lab);
+
+      document.getElementById("legCat").textContent = cat.name;
+      document.getElementById("legLeaf").textContent = lab.leaf;
+      document.getElementById("legDetect").innerHTML = "<code>" + cat.detect + "</code>";
+      document.getElementById("legPkg").textContent = lab.packageNote;
+      var note =
+        "<b>" + cat.name + "</b> — journey tips for this category. " +
+        "Timeline: <a href=\"" + API.withCat(cat.lab, cat) + "\">Observed clocks</a>" +
+        " · Evidence: <code>" + (lab.evidence || "") + "</code>";
+      if (cat.id === "error" && cat.mtlDoc) {
+        note +=
+          " · For queries + MCP counts: <a href=\"" +
+          API.withCat(cat.mtlDoc, cat) +
+          "\">MTL workbook</a> (not this animation).";
+      }
+      document.getElementById("cat-note").innerHTML = note;
+
+      var st = document.getElementById("stations");
+      st.innerHTML = "";
+      stages.forEach(function (s, i) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = s.n + " " + s.title;
+        b.addEventListener("click", function () { go(i); stop(); });
+        st.appendChild(b);
+      });
+      document.getElementById("scrub").max = String(Math.max(0, stages.length - 1));
+      document.getElementById("scrub").addEventListener("input", function (e) {
+        stop(); go(parseInt(e.target.value, 10) || 0);
+      });
+      document.getElementById("btnPrev").onclick = function () { stop(); go(idx - 1); };
+      document.getElementById("btnNext").onclick = function () { stop(); go(idx + 1); };
+      document.getElementById("btnPlay").onclick = function () {
+        if (playing) { stop(); return; }
+        playing = true;
+        document.getElementById("btnPlay").classList.add("playing");
+        document.getElementById("btnPlay").textContent = "❚❚ Pause";
+        timer = setInterval(function () {
+          if (idx >= stages.length - 1) { stop(); return; }
+          go(idx + 1);
+        }, 2200);
+      };
+      function stop() {
+        playing = false;
+        if (timer) clearInterval(timer);
+        timer = null;
+        var bp = document.getElementById("btnPlay");
+        bp.classList.remove("playing");
+        bp.textContent = "▶ Play journey";
+      }
+      go(0);
+    });
+  });
+})();
+</script>
+</body>
+</html>

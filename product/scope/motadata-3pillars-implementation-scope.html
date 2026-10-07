@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Motadata 3 pillars — implementation scope</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+body{margin:0;font-family:var(--font);font-size:17px;line-height:1.65;color:var(--text);}
+.wrap.article{max-width:68rem;}
+h3{font-size:1.05rem;font-weight:650;margin:1.4rem 0 .5rem;}
+.note{margin:1rem 0;padding:.9rem 1.05rem;border-radius:var(--radius);background:rgba(91,141,239,.12);border-left:3px solid var(--accent);color:var(--muted);}
+.warn{border-left-color:var(--lean);background:rgba(240,179,90,.1);}
+.ok-note{border-left-color:var(--ok);background:rgba(122,236,196,.08);}
+.wrap-table{overflow-x:auto;margin:1rem 0;}
+.wrap-table table{min-width:48rem;font-size:.86rem;}
+.toc a{display:inline-block;margin:.25rem .85rem .25rem 0;}
+.toc{margin:1rem 0;padding:.85rem 1.1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
+pre,code{font-family:var(--mono);font-size:.82rem;}
+pre{overflow-x:auto;padding:1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;color:var(--muted);}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="urca-doc article">
+<div class="wrap article">
+  <div class="eyebrow">Kickoff scope · Block-2 · D5 stays Review</div>
+  <h1>3 pillars work — what we need, what we emit, what we write</h1>
+  <p class="lead">
+    This workstream is <strong style="color:var(--text)">E3–E5</strong> (graph, sketches, maintain).
+    E1 and E2 are upstream: we consume post-E2 identity; we do not implement Collect or Identity here.
+    Motadata writer SoT is <code>writer_stream.v1</code> (optional blocks, no <code>fact_kind</code>) —
+    <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a>.
+    Lab fixtures may still show legacy <code>ingest.v1</code> + <code>fact_kind</code> below.
+    Slice home: <a href="/pillar-ab-implementation/README.md">pillar-ab-implementation/</a>.
+    Canonical markdown: <a href="/pillar-ab-implementation/scope/MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md">MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md</a>.
+    Merged PDF (Gaps + Explained + this page):
+    <a href="/Motadata_3Pillars_Merged_Implementation_Guide.pdf">Motadata_3Pillars_Merged_Implementation_Guide.pdf</a>
+    · source <a href="/pillar-ab-implementation/scope/MOTADATA_3PILLARS_MERGED_SCOPE.md">MOTADATA_3PILLARS_MERGED_SCOPE.md</a>
+    · contract brief <a href="/pillar-ab-implementation/contracts/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md">GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md</a>.
+  </p>
+  <div class="note warn">
+    Pillar A (sketches) and Pillar B (CI graph) write in P1.
+    Pillar C (ReAct) is out of this block.
+    P2 has no Motadata pillar.
+    Writer fan-out: presence of <code>metric</code> / <code>topology</code> blocks — not a Collect <code>fact_kind</code> router.
+  </div>
+  <nav class="toc">
+    <a href="#answers">1 Answers before start</a>
+    <a href="#scope">2 Scope</a>
+    <a href="#e1">3 E1 inputs</a>
+    <a href="#e2">4 E2 format</a>
+    <a href="#out">5 Outputs and publish</a>
+    <a href="#docs">6 Documents</a>
+  </nav>
+
+  <h2 id="answers">1. Answers we need before commencing</h2>
+  <p>Locked items should not be re-opened. Open items need an owner before sketch/graph writers start.</p>
+  <h3>Already decided</h3>
+  <div class="wrap-table">
+  <table>
+    <tr><th>#</th><th>Question</th><th>Answer</th></tr>
+    <tr><td>L1</td><td>Second pipeline?</td><td>No. Same E1–E11.</td></tr>
+    <tr><td>L2</td><td>Where does the PDF sit?</td><td>SaaS-column requirements. Node work is ours; PDF is silent, not opposed.</td></tr>
+    <tr><td>L3</td><td>Alert/Incident/ticket on the map?</td><td>No. CIs only. Alert = E6 Signal.</td></tr>
+    <tr><td>L4</td><td>ReAct as default Package?</td><td>No. D5 stays Review.</td></tr>
+    <tr><td>L5</td><td>Curate inside the agent?</td><td>No. E7 one CaseSeed first (D3).</td></tr>
+    <tr><td>L6</td><td>ITSM / change as Collect?</td><td>No this pass.</td></tr>
+    <tr><td>L7</td><td>Vortex the only lake?</td><td>No. Gate B: one dest among others. Sketches = E4. Graph = E3.</td></tr>
+    <tr><td>L8</td><td>Sketches vs map?</td><td>Sketches = Grail-like history (E4). Map = Smartscape-like graph (E3).</td></tr>
+  </table>
+  </div>
+  <h3>Must answer before first A+B sprint</h3>
+  <div class="wrap-table">
+  <table>
+    <tr><th>#</th><th>Question</th><th>Why it blocks</th><th>Default if silent</th></tr>
+    <tr><td>Q1</td><td>Which k8s cluster and which VM emit first streams?</td><td>E1 has nothing to admit</td><td>UC replay + existing Motadata export path</td></tr>
+    <tr><td>Q2</td><td>Lab tenant string?</td><td>Join key</td><td><code>default</code></td></tr>
+    <tr><td>Q3</td><td>CI types in v1 graph? Pods with parent + validity?</td><td>E3 schema</td><td>Service + Host required; Pod optional</td></tr>
+    <tr><td>Q4</td><td>Gate A: Node-first vs Gateway?</td><td>Where Collect runs</td><td>Node-first; Gateway off</td></tr>
+    <tr><td>Q5</td><td>Gate B: dest for sketches (Vortex or not)?</td><td>E4 writer</td><td>Files or existing dest; Vortex optional</td></tr>
+    <tr><td>Q6</td><td>First metric names and windows?</td><td>Pillar A schema</td><td>PDF 1m/5m/1h/1d; start 1m+5m</td></tr>
+    <tr><td>Q7</td><td>Two Detect classes for door C?</td><td>Obj 3</td><td>ERROR + SLOWDOWN</td></tr>
+    <tr><td>Q8</td><td>Three classes for VerdictCard, Layer I off?</td><td>Obj 4</td><td>ERROR, SLOWDOWN, one host-contention flavor</td></tr>
+    <tr><td>Q9</td><td>Graph time field names?</td><td>E3/E5</td><td>valid_from/to plus provenance types</td></tr>
+    <tr><td>Q10</td><td>Seed topology: file, topo_update, or both?</td><td>E3 writer</td><td>Both; SaaS owns snapshot</td></tr>
+    <tr><td>Q11</td><td>Split Motadata admit vs bind scripts?</td><td>E1/E2 boundary</td><td>Split before calling A/B implemented</td></tr>
+    <tr><td>Q12</td><td>Publish: hub vs shared drive?</td><td>Two truths</td><td>Hub for specs; drive + 1 session for OKR</td></tr>
+    <tr><td>Q13</td><td>Murphy / cyclic MRF this block?</td><td>Scope</td><td>No. Store a graph that could be cyclic; Gibbs is later P3</td></tr>
+  </table>
+  </div>
+
+  <h2 id="scope">2. Scope</h2>
+  <p><strong style="color:var(--text)">In (this stream):</strong> consume identified ingest.v1; Pillar A sketches in E4; hybrid CI GraphSnapshot in E3; E5 refresh; door C / CaseSeed / operator VerdictCard as readers; LLD-E3/E4 Done; Gate B/C.
+    E1/E2 (Node Collect/Identity) is a sibling KR, not this build.</p>
+  <p><strong style="color:var(--text)">Out:</strong> ReAct/Layer I on; remediate; ITSM/change Collect; event vertices; Vortex mandatory; Murphy as localize engine; second HLD.</p>
+
+  <h2 id="e1">3. What we expect from E1 (not our build)</h2>
+  <p>E1 admits telemetry. It does not bind, detect, or merge. Contract: <a href="/docs/LLD-E1-Collect.md">LLD-E1</a>.</p>
+  <p>Send metrics, logs/events, optional traces, topology cues. Do not send tickets or CMDB this pass.</p>
+  <p>Collect bridge (corpus / lab) emits <strong style="color:var(--text)">UTF-8 JSONL</strong> as <code>ingest.v1</code>. After E2, Motadata writers prefer <code>writer_stream.v1</code> blocks (see regulator link above).</p>
+<pre>{
+  "schema_version": "ingest.v1",
+  "ts": "2026-08-19T12:00:00Z",
+  "tenant": "default",
+  "ci_id": "checkout-api",
+  "ci_type": "Service",
+  "fact_kind": "metric_sample",
+  "name": "request.p95_latency_ms",
+  "value": 1450.0,
+  "labels": { "source": "lab-node" }
+}</pre>
+  <p>Legacy Collect <code>fact_kind</code> (bridge): metric_sample, anomaly, event, trace_span, topo_update. Reserved (do not emit): change_event, cmdb_sync, ticket. Motadata writers admit by optional-block presence, not this enum.</p>
+  <p>Preferred lab folder: <code>datasets/ingest_samples/&lt;suite&gt;/&lt;incident_id&gt;/stream.jsonl</code> + <code>topology.json</code> + optional <code>ground_truth.json</code>.</p>
+
+  <h2 id="e2">4. What we expect from E2 (not our build)</h2>
+  <p>Not a second on-wire format. Contract: <a href="/docs/LLD-E2-Identity.md">LLD-E2</a>. Output is ingest.v1 plus:</p>
+<pre>"identity": {
+  "status": "resolved",
+  "bind_source": "topology_lookup",
+  "aliases": ["monitor-88"]
+}</pre>
+  <p>Only <code>resolved</code> may be an E9 leaf or ticket CI (D-E2-1). Pillars A and B write resolved rows only. Need a bind strategy: topology lookup or Motadata <code>ci_bind.json</code>. One identity namespace for sketches and graph.</p>
+
+  <h2 id="out">5. Output artifacts and how we publish</h2>
+  <div class="wrap-table">
+  <table>
+    <tr><th>Artifact</th><th>Format</th><th>From</th></tr>
+    <tr><td>Lab stream</td><td>ingest.v1 JSONL</td><td>E1+E2</td></tr>
+    <tr><td>GraphSnapshot</td><td>JSON: CIs, edges, provenance, valid_from/to</td><td>E3/E5</td></tr>
+    <tr><td>Sketch rows</td><td>Dest table or files: window, season_key, tdigest, buckets</td><td>E4/E5</td></tr>
+    <tr><td>Signal, CaseSeed, WorkingSet, VerdictCard</td><td>JSON</td><td>E6–E11</td></tr>
+    <tr><td>LLD-E3/E4 Done, Gates A/B/C</td><td>Markdown on the hub</td><td>Docs</td></tr>
+    <tr><td>Block-2 report + 1 session</td><td>Shared drive</td><td>OKR obj 5</td></tr>
+  </table>
+  </div>
+  <p><strong style="color:var(--text)">Publish:</strong> engineering specs and examples on <code>http://127.0.0.1:8765/</code> (no vscode://). Code and datasets in this repo. Management evidence on the shared drive with one knowledge-sharing session. Do not rewrite the leadership PDF.</p>
+
+  <h2 id="docs">6. Documents for engineering vs management</h2>
+  <h3>Engineering — write during the work</h3>
+  <ul>
+    <li>LLD-E3 Topology (CI-only graph, provenance, validity)</li>
+    <li>LLD-E4 Stores (sketch schema + get_metric_baseline, Gate B)</li>
+    <li>Gates A/B/C note</li>
+    <li>Identified-stream contract: fields E3/E4 will reject</li>
+    <li>CaseSeed + VerdictCard examples; acceptance list vs Block-2 exits</li>
+  </ul>
+  <h3>Management — short</h3>
+  <ul>
+    <li>One-pager: PDF mapped onto E1–E11; D5 not flipped</li>
+    <li>Conflict register (already study QnA §10 — do not fork a spreadsheet)</li>
+    <li>OKR evidence pack: 3 VerdictCards, Gate notes, out-of-scope list</li>
+    <li>One knowledge-sharing session (same story as the one-pager)</li>
+  </ul>
+  <p>Do not write a second HLD, a Motadata clone PRD, or an agent design in this block.</p>
+  <div class="note ok-note">
+    Build order: identity → dest land → Pillar A in parallel with Pillar B → door C → Curate/Scope → operator VerdictCard.
+  </div>
+  <h2>Related</h2>
+  <ul>
+    <li><a href="/motadata-3pillars-study-qna.html#register">Study QnA register</a></li>
+    <li><a href="/motadata-3pillars-vs-shift-left.html">Job map</a> · <a href="/motadata-3pillars-architecture.html">Explained</a></li>
+    <li><a href="/docs/LLD-E1-Collect.md">LLD-E1</a> · <a href="/docs/LLD-E2-Identity.md">LLD-E2</a></li>
+    <li><a href="/docs.html">Docs hub</a></li>
+  </ul>
+</div>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

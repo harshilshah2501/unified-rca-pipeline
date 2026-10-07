@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observeops.local/schemas/map_snapshot_manifest_v1.schema.json",
+  "title": "map_snapshot_manifest.v1",
+  "description": "Cold S3 (or files) index for one immutable map snapshot version. Lists node/edge chunk object keys under map/<tenant>/snapshots/<version>/. Not a substitute for graph_node.v1 / graph_edge.v1 row schemas.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tenant",
+    "version",
+    "node_parts",
+    "edge_parts",
+    "node_count",
+    "edge_count"
+  ],
+  "properties": {
+    "schema_version": { "const": "map_snapshot_manifest.v1" },
+    "tenant": { "type": "string", "minLength": 1 },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Snapshot generation id (ISO-8601 or monotonic string). Must match Dest path segment."
+    },
+    "created_at": {
+      "type": ["string", "null"],
+      "description": "Optional ISO-8601 publish time."
+    },
+    "node_parts": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Relative keys such as nodes/part-00000.jsonl.gz under this version prefix."
+    },
+    "edge_parts": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Relative keys such as edges/part-00000.jsonl.gz under this version prefix."
+    },
+    "node_count": { "type": "integer", "minimum": 0 },
+    "edge_count": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": true
+}

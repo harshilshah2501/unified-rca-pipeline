@@ -109,7 +109,7 @@ def synthesize(
             "tenant": "default",
             "ci_id": svc,
             "ci_type": "Service",
-            "signal_class": "metric_sample",
+            "fact_kind": "metric_sample",
             "severity": None,
             "labels": labels,
         }
@@ -163,6 +163,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Limit to 50k spans for quick runs",
     )
     args = parser.parse_args(argv)
+
+    from local_dumps import require_file
+
+    require_file(args.span_jsonl)
+
     limit = args.limit_spans
     if args.smoke and limit is None:
         limit = 50000

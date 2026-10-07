@@ -447,11 +447,12 @@ def main() -> int:
     ap.add_argument("--top", type=int, default=8)
     args = ap.parse_args()
 
+    from local_dumps import require_file
+
+    require_file(args.metrics)
+
     catalog = load_threshold_catalog(None)
     bind = load_ci_bind(None)
-    if not args.metrics.is_file():
-        print(f"missing metrics: {args.metrics}", file=sys.stderr)
-        return 1
 
     print(f"scanning {args.metrics} …", flush=True)
     agg = scan_metrics(

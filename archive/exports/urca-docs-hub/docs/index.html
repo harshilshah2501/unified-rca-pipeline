@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unified RCA — Documentation index</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="urca-doc hub-index">
+<div class="wrap hub-index">
+  <div class="eyebrow">Unified RCA · documentation hub</div>
+  <h1>Documentation index</h1>
+  <p class="lead">
+    Cold start: <a href="/observeops-pipeline-hld.html">Our HLD</a> → L0 vendor hubs → L1 compare → L3 LLDs.
+    The ladder is <strong style="color:var(--text)">document kinds</strong> (native unveil, abstract compare, our written spec, block specs) — not a second sequence.
+    Served at <code>http://127.0.0.1:8765/docs.html</code>.
+    Markdown map: <a href="/docs/NAVIGATION.md">NAVIGATION.md</a>.
+  </p>
+
+  <div class="ladder" aria-label="Documentation ladder">
+    <a class="step here" href="/docs.html">
+      <div class="lv">L0 · Vendor launchpads</div>
+      <h3>DT hub · DD hub · ED hub</h3>
+      <p>Native unveil per vendor — you pick a lens here. ED has no Detect-category twins.</p>
+    </a>
+    <a class="step" href="/comparable-pipeline-dt-dd.html#optional-pattern-lens-clock-a-after-native-reading">
+      <div class="lv">L1 · Abstract compare</div>
+      <h3>F → T → D lens</h3>
+      <p>Common flow, blocks, I/O — after reading both vendors natively.</p>
+    </a>
+    <a class="step" href="/observeops-pipeline-hld.html">
+      <div class="lv">L2 · Our HLD</div>
+      <h3>ObserveOps pipeline</h3>
+      <p>One pipeline, eleven steps. Fusion to try it; Pipeline HLD is the written spec.</p>
+    </a>
+    <a class="step" href="/docs/LLD-E1-Collect.md">
+      <div class="lv">L3 · Block LLDs</div>
+      <h3>LLD-E1…E4 landed</h3>
+      <p>Per-block specs — Collect and Identity/Normalize Done; Topology/Stores Draft; E5–E11 still only in the Pipeline HLD until each lands.</p>
+    </a>
+  </div>
+
+  <div class="note ok">
+    <strong style="color:var(--text)">Cold start:</strong>
+    <a href="/observeops-pipeline-hld.html">Our HLD</a> →
+    <a href="/dt-davis-category-hub.html">DT hub</a> →
+    <a href="/dd-detect-category-hub.html">DD hub</a> →
+    <a href="/ed-ai-team-hub.html">ED hub</a> (independent, not a third twin) →
+    <a href="/comparable-pipeline-dt-dd.html">L1 compare</a> → Motadata FR/AC.
+    <strong style="color:var(--text)">Inside Our HLD:</strong>
+    <a href="/observeops-fusion-guide.html">Fusion</a> (try a use case) →
+    <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a> (written spec) →
+    <a href="/observeops-ci-graph.html">example map</a>.
+    Operational-graph chapter only if you need how connections are recorded.
+    Terms: <a href="/urca-glossary.html">Glossary</a>.
+  </div>
+
+  <h2>0 · Our HLD (L2)</h2>
+  <p class="lead" style="margin-top:0">
+    One pipeline. <a href="/observeops-pipeline-hld.html">Our HLD</a> is the door.
+    Fusion is clickable. The Pipeline HLD is the written spec.
+    Shift-left is where work runs, not a second pipeline.
+  </p>
+  <div class="grid two">
+    <a class="card" href="/observeops-pipeline-hld.html">
+      <div class="k compare">Launchpad</div>
+      <h3>Our HLD</h3>
+      <p>Eleven steps, how to read them, then the written spec. D5 stays Review.</p>
+    </a>
+    <a class="card" href="/observeops-fusion-guide.html">
+      <div class="k compare">Start here</div>
+      <h3>Fusion</h3>
+      <p>Click a use case. See what each step takes in and puts out.</p>
+    </a>
+    <a class="card" href="/docs/OBSERVEOPS_PIPELINE_HLD.md">
+      <div class="k compare">Written spec</div>
+      <h3>Pipeline HLD</h3>
+      <p>What each step is for. Signed design choices.</p>
+    </a>
+    <a class="card" href="/observeops-ci-graph.html">
+      <div class="k compare">Example</div>
+      <h3>Linux-server map</h3>
+      <p>33 CIs / 40 edges — we drew it; live E3 does not emit it yet.</p>
+    </a>
+    <a class="card" href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md">
+      <div class="k compare">Chapter · Draft</div>
+      <h3>Operational graph</h3>
+      <p>How the map is recorded and used. Same pipeline, not a second HLD.</p>
+    </a>
+    <a class="card" href="/observeops-shift-left-architecture.html">
+      <div class="k compare">Where it runs</div>
+      <h3>Shift-processing-left</h3>
+      <p>Same eleven steps. Node / optional Gateway / our SaaS. Not a second pipeline.</p>
+    </a>
+    <a class="card" href="/motadata-3pillars-architecture.html">
+      <div class="k compare">Explained</div>
+      <h3>Motadata 3 pillars</h3>
+      <p>What / why / how for T-Digest, graph, Vortex, retrieval, ReAct — mapped onto E1–E11.</p>
+    </a>
+    <a class="card" href="/motadata-3pillars-study-qna.html">
+      <div class="k compare">Study Q&amp;A</div>
+      <h3>Letters, sketches, 3+4 merge</h3>
+      <p>Pillars ≠ doors ≠ Gates. Four topology designs. Hybrid = temporal CI graph, not Alert vertices. D5 stays Review.</p>
+    </a>
+  </div>
+  <ul class="list">
+    <li><a href="/docs/OBSERVEOPS_USE_CASES.md">8 ObserveOps Detect use cases</a><span>UC1–5 = classes · UC6–8 = RESOURCE_CONTENTION sub-signatures — not ED’s 10 Team jobs</span></li>
+    <li><a href="/observeops-pipeline-diagram.html">Standalone pipeline diagram</a><span>E1–E11 visual</span></li>
+    <li><a href="/docs/linux-server-ci-telemetry.json">CI telemetry JSON</a><span>228 keys · 125 fault signatures · authored, not live E3</span></li>
+    <li><a href="/docs/LLD-E1-Collect.md">LLD-E1 Collect</a><span>Done · ingest.v1</span></li>
+    <li><a href="/docs/LLD-E2-Identity.md">LLD-E2 Identity (Normalize)</a><span>Done · IdentifiedRecord overlay</span></li>
+    <li><a href="/docs/LLD-E3-Topology.md">LLD-E3 Topology</a><span>Draft · operational-graph chapter is the target map shape, not yet merged</span></li>
+    <li><a href="/docs/LLD-E4-Stores.md">LLD-E4 Stores</a><span>Draft</span></li>
+  </ul>
+
+  <h2>1 · Compare &amp; philosophy (L1 — after both hubs)</h2>
+  <div class="grid two">
+    <a class="card" href="/comparable-pipeline-dt-dd.html">
+      <div class="k compare">Lab · identical scenario</div>
+      <h3>Comparable pipeline — DT vs DD vs ED</h3>
+      <p>Same FE→product→inventory leaf fault (DT vs DD). §0 now includes Edge Delta geometry / AI / E1–E11 — not a third lab clock.</p>
+    </a>
+    <a class="card" href="/observability-generations-dt-dd.html">
+      <div class="k compare">Philosophy · criteria</div>
+      <h3>Observability 1.0 / 2.0 / 3.0</h3>
+      <p>Must-pass criteria. Why correlate ≠ 2.0. Why DD/DT are hybrids — neither is a clean 2.0 or 3.0 match.</p>
+    </a>
+    <a class="card" href="/federated-vs-dt-pipeline-gaps.html">
+      <div class="k compare">Gap map · build order</div>
+      <h3>Federated vs DT 5+3+3</h3>
+      <p>Crosswalk to Clock A · P0 gaps and what DT already covers.</p>
+    </a>
+  </div>
+
+  <h2>2 · Dynatrace · L0 vendor launchpad</h2>
+  <p class="lead" style="margin-top:-.25rem;margin-bottom:1rem;">
+    <strong style="color:var(--text)">01 Thesis</strong> · <strong style="color:var(--text)">02 Breakdown</strong> ·
+    <strong style="color:var(--text)">03 Dual-track</strong> · <strong style="color:var(--text)">04 Timeline</strong>
+    — same chronology as DD hub. Hub includes E-block map + ladder to L1/L2/L3.
+  </p>
+  <div class="grid">
+    <a class="card" href="/dt-davis-category-hub.html">
+      <div class="k dt l0">L0 · DT hub</div>
+      <h3>Davis event categories</h3>
+      <p>Vendor launchpad: chronology · E1–E11 anchors · category cards. Five Davis categories Observed (RC = negative Detect).</p>
+    </a>
+  </div>
+  <div class="grid two" style="margin-top:.75rem;">
+    <a class="card" href="/dt-davis-category-hub.html?cat=error">
+      <div class="k dt">ERROR · Observed</div>
+      <h3>Failure rate (P-260817)</h3>
+      <p>01–04 slots + Timeline. KeyError leaf · SERVICE_ERROR_RATE_INCREASED.</p>
+    </a>
+    <a class="card" href="/dt-davis-category-hub.html?cat=slowdown">
+      <div class="k dt">SLOWDOWN · Observed</div>
+      <h3>Response time (P-260820)</h3>
+      <p>01–04 slots + Timeline. Ledger-scan leaf · healed.</p>
+    </a>
+    <a class="card" href="/dt-cat-monitoring-unavailable-lab.html">
+      <div class="k dt">MONITORING_UNAVAILABLE · Observed</div>
+      <h3>Visibility dark (P-260826)</h3>
+      <p>Process up, telemetry off · CUSTOM_ALERT surface.</p>
+    </a>
+    <a class="card" href="/dt-cat-availability-lab.html">
+      <div class="k dt">AVAILABILITY · Observed</div>
+      <h3>Host / process down (P-260831)</h3>
+      <p>Severity card P-260831 · organic code-only cascade P-260854 PERFORMANCE.</p>
+    </a>
+    <a class="card" href="/dt-cat-resource-contention-lab.html">
+      <div class="k dt">RESOURCE_CONTENTION · Observed</div>
+      <h3>CPU burn · negative Detect</h3>
+      <p>Code-only 2026-08-12 — HTTP stayed fast; no RC Problem in-window.</p>
+    </a>
+    <a class="card" href="/federated-vs-dt-pipeline-gaps.html">
+      <div class="k compare">Gap map · build order</div>
+      <h3>Federated vs DT 5+3+3</h3>
+      <p>Crosswalk to Clock A · P0 gaps and what DT already covers.</p>
+    </a>
+  </div>
+  <ul class="list">
+    <li><a href="/dt-lab-timeline-code-level.html">ERROR lab analysis (direct)</a><span>P-260817</span></li>
+    <li><a href="/dt-lab-timeline-slowdown.html">SLOWDOWN lab analysis (direct)</a><span>P-260820</span></li>
+    <li><a href="/dt-agent-tasks.html">Agent-task archive</a><span>all five Observed</span></li>
+    <li><a href="/dynatrace-rca-lab/DYNATRACE_RCA_REFERENCE.md">Dynatrace lab reference</a><span>Stages 0–5 · Problems</span></li>
+  </ul>
+
+  <h2>2b · Motadata acceptance</h2>
+  <div class="grid two">
+    <a class="card" href="/multi-telemetry-rca-fac.html">
+      <div class="k compare">FR / AC · visual</div>
+      <h3>Multi-telemetry RCA criteria</h3>
+      <p>Six signal classes → one incident. Filterable FR-A…M, S1–S6 scenarios, NFR targets.</p>
+    </a>
+    <a class="card" href="/federated-vs-dt-pipeline-gaps.html#motadata-multi-telemetry-frac-supplementary-acceptance-bar">
+      <div class="k compare">AC ↔ architecture</div>
+      <h3>How AC relates to Federated design</h3>
+      <p>Gap map §8 — Motadata FR/AC plus Federated layers.</p>
+    </a>
+  </div>
+
+  <h2>3 · Datadog · L0 vendor launchpad</h2>
+  <p class="lead" style="margin-top:-.25rem;margin-bottom:1rem;">
+    Same L0 chronology as DT: <strong style="color:var(--text)">01–04</strong> engineering slots +
+    <strong style="color:var(--text)">Layer I</strong> (MTL · Bits). Hub includes E-block map + ladder to L1/L2/L3.
+  </p>
+  <div class="grid">
+    <a class="card" href="/dd-detect-category-hub.html">
+      <div class="k dd l0">L0 · DD hub</div>
+      <h3>Detect categories</h3>
+      <p>Vendor launchpad: chronology · E1–E11 anchors · ERROR + SLOWDOWN Observed (full depth) · 3 more local-only Timelines · MTL/Bits = Layer I only.</p>
+    </a>
+  </div>
+  <div class="grid two" style="margin-top:.75rem;">
+    <a class="card" href="/dd-detect-category-hub.html?cat=error">
+      <div class="k dd">ERROR · Observed</div>
+      <h3>Failure rate (KeyError leaf)</h3>
+      <p>env:rca-lab-e3 · Bits peer · MTL + Timeline.</p>
+    </a>
+    <a class="card" href="/dd-detect-category-hub.html?cat=slowdown">
+      <div class="k dd">SLOWDOWN · Observed</div>
+      <h3>Response time (ledger-scan)</h3>
+      <p>Write loud / Detect empty teaching trap · heal.</p>
+    </a>
+    <a class="card" href="/dd-lab-timeline-resource-contention.html">
+      <div class="k dd">RESOURCE_CONTENTION · Observed (local)</div>
+      <h3>CPU burn · HTTP stays fast</h3>
+      <p>No Datadog MCP pull yet — negative Detect is a valid outcome, not confirmed evidence.</p>
+    </a>
+    <a class="card" href="/dd-lab-timeline-availability.html">
+      <div class="k dd">AVAILABILITY · Observed (local)</div>
+      <h3>Process down · caller 502</h3>
+      <p>Code-only exit after boot; native doors recorded as TBD (no Davis twin category).</p>
+    </a>
+    <a class="card" href="/dd-lab-timeline-monitoring-unavailable.html">
+      <div class="k dd">MONITORING_UNAVAILABLE · Observed (local)</div>
+      <h3>Visibility dark · HTTP stays 200</h3>
+      <p>APM/DogStatsD gap while app stays up — no Datadog twin category expected.</p>
+    </a>
+    <a class="card" href="/datadog-production-pipeline.html">
+      <div class="k dd">Thesis</div>
+      <h3>Datadog production pipeline</h3>
+      <p>Agent → APM/Metrics/Logs · Monitors + Watchdog.</p>
+    </a>
+    <a class="card" href="/datadog-subsystem-mechanisms.html">
+      <div class="k dd">Breakdown</div>
+      <h3>Datadog subsystem mechanisms</h3>
+      <p>Lean 8 stages (01 Collect → 08 Package). Door A∥B Detect → leaf.</p>
+    </a>
+  </div>
+  <ul class="list">
+    <li><a href="/docs/agent-tasks/dd-resource-contention.md">RESOURCE_CONTENTION agent-task prompt</a><span>local · 2026-08-13</span></li>
+    <li><a href="/docs/agent-tasks/dd-availability.md">AVAILABILITY agent-task prompt</a><span>local · 2026-08-13</span></li>
+    <li><a href="/docs/agent-tasks/dd-monitoring-unavailable.md">MONITORING_UNAVAILABLE agent-task prompt</a><span>local · 2026-08-13</span></li>
+  </ul>
+  <ul class="list">
+    <li><a href="/dd-lab-timeline-error.html">ERROR lab analysis</a><span>inventory KeyError cascade</span></li>
+    <li><a href="/dd-error-mtl-dissection.html?cat=error">ERROR · MTL dissection</a><span>Layer I workbook</span></li>
+    <li><a href="/dd-lab-timeline-slowdown.html">SLOWDOWN lab analysis</a><span>ledger-scan latency</span></li>
+    <li><a href="/dd-e2e-metrics-traces-logs.html">Three-rail journey</a><span>M ∥ APM ∥ Logs</span></li>
+    <li><a href="/datadog-rca-lab/DATADOG_RCA_REFERENCE.md">Datadog lab reference</a><span>Lab layout · MTL</span></li>
+  </ul>
+
+  <h2>3b · Edge Delta · L0 vendor launchpad</h2>
+  <p class="lead" style="margin-top:-.25rem;margin-bottom:1rem;">
+    Independent third lens. Same chronology as DT/DD:
+    <strong style="color:var(--text)">01 Thesis</strong> ·
+    <strong style="color:var(--text)">02 Breakdown</strong> ·
+    <strong style="color:var(--text)">03 Dual-layer</strong> ·
+    <strong style="color:var(--text)">04 Timeline</strong>
+    · Portal walkthrough.
+    Switcher is the <strong style="color:var(--text)">10 use cases</strong> — not ERROR/SLOWDOWN.
+  </p>
+  <div class="grid two">
+    <a class="card" href="/ed-ai-team-hub.html">
+      <div class="k ed l0">L0 · ED hub</div>
+      <h3>AI Team + Telemetry Pipelines</h3>
+      <p>Launchpad: Thesis → Breakdown → Dual-layer → Timeline. Use-case switcher. Portal clicks.</p>
+    </a>
+    <a class="card" href="/edgedelta-production-pipeline.html">
+      <div class="k ed">01 · Thesis</div>
+      <h3>Edge Delta production pipeline</h3>
+      <p>Shared fabric: dual-layer mental model · native stages once · unfold to E1–E11.</p>
+    </a>
+    <a class="card" href="/edgedelta-subsystem-mechanisms.html">
+      <div class="k ed">02 · Breakdown</div>
+      <h3>Native stage IPO</h3>
+      <p>Collect → index → detect → route → investigate → package. Click a step; use case frames the Detect tip.</p>
+    </a>
+    <a class="card" href="/ed-e2e-pipelines-team.html">
+      <div class="k ed">03 · Dual-layer</div>
+      <h3>Pipelines ∥ AI Team</h3>
+      <p>Hygiene writes continuously; standing Team consumes a door. Thread ≠ Issue.</p>
+    </a>
+    <a class="card" href="/ed-lab-timeline.html">
+      <div class="k ed">04 · Timeline</div>
+      <h3>14 Aug empty fabric · 17 Aug Node lab</h3>
+      <p>UC9 done · UC8 completed (team recipe, no Issue card) · UC4 partial · UC1 parked. Issues 0.</p>
+    </a>
+    <a class="card" href="/ed-portal-walkthrough.html">
+      <div class="k ed">Portal</div>
+      <h3>app.edgedelta.com walkthrough</h3>
+      <p>Sidebar map + numbered clicks per use case. What 100% Healthy actually means.</p>
+    </a>
+    <a class="card" href="/ed-supported-scenarios.html">
+      <div class="k ed">Catalogs</div>
+      <h3>Supported scenarios</h3>
+      <p>Packs shape → monitors notice → use cases investigate. Not Node / Gateway / Team.</p>
+    </a>
+    <a class="card" href="/ed-lab-setup.html">
+      <div class="k ed">Lab</div>
+      <h3>Use-case lab setup</h3>
+      <p>RTX Node-only. No Gateway pipeline. Node → platform → Team.</p>
+    </a>
+  </div>
+
+  <h2>4 · Shared fabric / design</h2>
+  <ul class="list">
+    <li><a href="/rca-data-lake-brainstorm.html">RCA data lake brainstorm</a><span>Clock A/B · modalities</span></li>
+    <li><a href="/clock-ab-stage-reference.html">Clock A/B stage reference</a><span>Stage I/O cards</span></li>
+    <li><a href="/fanout-tailor-simulator.html">Fan-out / Tailor simulator</a><span>Interactive cut sketch</span></li>
+    <li><a href="/docs/NAVIGATION.md">NAVIGATION.md</a><span>Full repo reading path</span></li>
+  </ul>
+
+  <h2>5 · PoC console &amp; engines</h2>
+  <ul class="list">
+    <li><a href="/">PoC console home</a><span><code>:8765/</code></span></li>
+    <li><a href="/rca-workflow-sim.html">RCA workflow sim</a><span>Lean / Fed Localize</span></li>
+    <li><a href="/docs/POC_DEMO_GUIDE.md">POC demo guide</a><span>15–20 min walkthrough</span></li>
+    <li><a href="/docs/ECOM_CHECKOUT_RCA_ANALYSIS.md">E-com checkout RCA analysis</a><span>Gold vs Lean vs Fed write-up</span></li>
+  </ul>
+
+  <p class="note">
+    Same two paths as the box at the top. Site bar is shared via <code>urca-docs.css</code> + <code>doc-nav.js</code>.
+  </p>
+</div>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

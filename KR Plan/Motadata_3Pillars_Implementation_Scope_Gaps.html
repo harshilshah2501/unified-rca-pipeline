@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Motadata 3 pillars - implementation scope and gap register</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+
+<style>
+body{font-family:DejaVu Sans,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.45;color:#111;max-width:900px;margin:24px auto;padding:0 16px;}
+h1,h2,h3{page-break-after:avoid;}
+code,pre{font-family:DejaVu Sans Mono,Consolas,monospace;font-size:9.5pt;}
+pre{white-space:pre-wrap;background:#f5f5f5;padding:10px;border:1px solid #ddd;}
+ul,ol{margin-top:0.3em;}
+hr{border:none;border-top:1px solid #ccc;}
+</style>
+
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Motadata 3 pillars - implementation scope and gap
+register</h1>
+</header>
+<h1
+id="motadata-3-pillars-explained---implementation-scope-and-gap-register">Motadata
+3 pillars explained -&gt; implementation scope and gap register</h1>
+<p><strong>Date:</strong> 2026-08-20<br />
+<strong>Audience:</strong> engineering + management<br />
+<strong>Source context:</strong>
+<code>KR Plan/Motadata_Observability_3_Pillars_Architecture_Explained.pdf</code><br />
+<strong>Companion docs:</strong>
+<code>MOTADATA_3PILLARS_IMPLEMENTATION_SCOPE.md</code>,
+<code>MOTADATA_3PILLARS_STUDY_QNA.md</code>,
+<code>OBSERVEOPS_PIPELINE_HLD.md</code></p>
+<hr />
+<h2 id="purpose-of-this-document">1) Purpose of this document</h2>
+<p>This document is the plain-language, implementation-first version of
+the Motadata explained PDF mapping.<br />
+It answers five detailed Pillar-A questions, defines Pillar-B scope, and
+lists gaps/unknowns with clear ownership tracks:</p>
+<ul>
+<li><strong>Pillar 1 owner (teammate):</strong> statistics + graph
+builder data plane</li>
+<li><strong>Pillar 2 owner (you):</strong> entities + edges + changes
+graph semantics</li>
+</ul>
+<p>The intent is to remove "riddle statements" by always stating
+<strong>What, Why, How</strong>.</p>
+<hr />
+<h2 id="two-pillar-split-used-in-this-plan">2) Two-pillar split used in
+this plan</h2>
+<h3
+id="pillar-1-teammate-t-digest-explicit-buckets-seasonal-baselines-graph-builder-write-path">Pillar
+1 (Teammate): T-Digest + explicit buckets + seasonal baselines +
+graph-builder write path</h3>
+<p>Scope in practice: - metric sample selection - sketching (T-Digest +
+buckets) - seasonal baseline generation - sketch row schema per
+metric/entity/window/season - write path to S3 (durable archive) and
+read indexing via Vortex (analytical retrieval) - access control ("who
+reads it")</p>
+<h3 id="pillar-2-you-entities-edges-changes">Pillar 2 (You): entities +
+edges + changes</h3>
+<p>Scope in practice: - CI/entity definitions and identity constraints -
+relationship/edge model with provenance and validity - change facts and
+change-to-CI linkage rules - graph shape constraints for
+localize/package consumers</p>
+<hr />
+<h2 id="pillar-1-deep-dive-what-why-how">3) Pillar 1 deep-dive (What /
+Why / How)</h2>
+<h2 id="how-samples-are-chosen">3.1 How samples are chosen?</h2>
+<p><strong>What</strong><br />
+Choose metric samples by deterministic keys: - <code>tenant</code> -
+<code>entity_id</code> (or <code>ci_id</code> equivalent after E2
+identity) - <code>metric_id</code> - <code>window</code> (for example
+1m, 5m, 1h, 1d) - timestamp</p>
+<p>Only resolved identity rows are sketch-writer eligible.</p>
+<p><strong>Why</strong><br />
+Without deterministic sample admission, percentile and baseline outputs
+become non-reproducible across runs and teams.</p>
+<p><strong>How</strong><br />
+1. Admit only <code>ingest.v1</code> metric lines with
+<code>identity.status = resolved</code>. 2. Normalize metric naming
+(<code>request.latency_ms</code>, <code>cpu.utilization_pct</code>,
+etc.). 3. Assign each point to one or more configured windows
+(multi-resolution allowed). 4. Derive <code>season_key</code> from
+timestamp (for example <code>Mon-09:00</code>, <code>Fri-18:00</code>).
+5. Feed sample value into: - T-Digest state for the key - explicit
+bucket histogram for the key - seasonal baseline accumulator for the
+key</p>
+<hr />
+<h2 id="what-does-t-digest-do-what-is-mergeable-p50p95p99">3.2 What does
+T-Digest do? What is "mergeable p50/p95/p99"?</h2>
+<p><strong>What</strong><br />
+T-Digest is a compressed representation of a value distribution.<br />
+It supports fast quantile queries (<code>p50</code>, <code>p95</code>,
+<code>p99</code>) without storing all raw samples.</p>
+<p><strong>Why</strong><br />
+Raw history scans become too expensive at scale. T-Digest gives
+near-real-time percentile lookup with bounded storage.</p>
+<p><strong>How</strong><br />
+1. Each key
+<code>(tenant, entity_id, metric_id, window, season_key)</code> has a
+digest state. 2. New values update centroids (compression step). 3.
+Query asks for quantile <code>q</code> and returns estimate from digest.
+4. <strong>Mergeable</strong> means digest A + digest B -&gt; digest AB:
+- merge per host -&gt; per service - merge per minute -&gt; per 5-minute
+rollup - merge shard results -&gt; tenant/global aggregate</p>
+<p>Operational meaning: - <code>p50</code>: median behavior (normal
+center) - <code>p95</code>: high-tail service behavior (SLO-sensitive) -
+<code>p99</code>: rare tail stress/spike behavior</p>
+<hr />
+<h2 id="how-explicit-bucketing-is-done">3.3 How explicit bucketing is
+done?</h2>
+<p><strong>What</strong><br />
+Explicit bucketing is a fixed histogram with predefined boundaries.</p>
+<p><strong>Why</strong><br />
+Buckets make thresholding, alert rules, and "which range dominates?"
+questions deterministic and easy to explain.</p>
+<p><strong>How</strong><br />
+1. Define bucket sets per metric family: - latency:
+<code>[0-50), [50-100), [100-200), ...</code> - CPU%:
+<code>[0-20), [20-40), [40-60), ...</code> 2. For each sample, increment
+exactly one bucket count. 3. Keep total count, min/max, and optional sum
+for sanity checks. 4. Version bucket policy
+(<code>bucket_schema_version</code>) to prevent silent drift. 5. Never
+mix bucket versions in one logical sketch key.</p>
+<hr />
+<h2
+id="sketch-row-format-one-row-per-metric-entity-window-season_key---vortexs3">3.4
+Sketch row format: one row per metric + entity + window + season_key
+-&gt; Vortex/S3</h2>
+<p><strong>What</strong><br />
+Each row is a compact statistical state for one logical key.</p>
+<p><strong>Why</strong><br />
+This shape is the contract that allows: - durable archival in S3 -
+analytical read/index in Vortex - reproducible E6/E10 retrieval without
+raw re-scan</p>
+<p><strong>How (recommended schema v1)</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;schema_version&quot;</span><span class="fu">:</span> <span class="st">&quot;sketch.v1&quot;</span><span class="fu">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tenant&quot;</span><span class="fu">:</span> <span class="st">&quot;default&quot;</span><span class="fu">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;entity_id&quot;</span><span class="fu">:</span> <span class="st">&quot;checkout-api&quot;</span><span class="fu">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;entity_type&quot;</span><span class="fu">:</span> <span class="st">&quot;Service&quot;</span><span class="fu">,</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;metric_id&quot;</span><span class="fu">:</span> <span class="st">&quot;request.latency_ms&quot;</span><span class="fu">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;window&quot;</span><span class="fu">:</span> <span class="st">&quot;5m&quot;</span><span class="fu">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;window_start&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-08-20T03:30:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;window_end&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-08-20T03:35:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;season_key&quot;</span><span class="fu">:</span> <span class="st">&quot;Thu-09:00&quot;</span><span class="fu">,</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdigest&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;compression&quot;</span><span class="fu">:</span> <span class="dv">100</span><span class="fu">,</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;centroids&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span><span class="dt">&quot;m&quot;</span><span class="fu">:</span> <span class="fl">92.1</span><span class="fu">,</span> <span class="dt">&quot;w&quot;</span><span class="fu">:</span> <span class="dv">14</span><span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span><span class="dt">&quot;m&quot;</span><span class="fu">:</span> <span class="fl">145.3</span><span class="fu">,</span> <span class="dt">&quot;w&quot;</span><span class="fu">:</span> <span class="dv">9</span><span class="fu">}</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;buckets&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bucket_schema_version&quot;</span><span class="fu">:</span> <span class="st">&quot;latency_v1&quot;</span><span class="fu">,</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;counts&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="dv">12</span><span class="ot">,</span> <span class="dv">19</span><span class="ot">,</span> <span class="dv">5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bounds&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">50</span><span class="ot">,</span> <span class="dv">100</span><span class="ot">,</span> <span class="dv">200</span><span class="ot">,</span> <span class="dv">500</span><span class="ot">,</span> <span class="dv">1000</span><span class="ot">,</span> <span class="dv">2000</span><span class="ot">]</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;baseline&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;expected_p50&quot;</span><span class="fu">:</span> <span class="fl">88.0</span><span class="fu">,</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;expected_p95&quot;</span><span class="fu">:</span> <span class="fl">170.0</span><span class="fu">,</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;expected_p99&quot;</span><span class="fu">:</span> <span class="fl">320.0</span><span class="fu">,</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;baseline_version&quot;</span><span class="fu">:</span> <span class="st">&quot;seasonal_v1&quot;</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;sample_count&quot;</span><span class="fu">:</span> <span class="dv">23</span><span class="fu">,</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ingest_trace&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;writer&quot;</span><span class="fu">:</span> <span class="st">&quot;pillar-a-sketch-writer&quot;</span><span class="fu">,</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;written_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-08-20T03:35:05Z&quot;</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="s3-write-model">S3 write model</h3>
+<ul>
+<li>Partition recommendation:
+<ul>
+<li><code>tenant=.../metric_id=.../window=.../date=YYYY-MM-DD/</code></li>
+</ul></li>
+<li>Write mode:
+<ul>
+<li>append immutable rows (no in-place mutation)</li>
+<li>idempotent object naming using key hash + window end</li>
+</ul></li>
+<li>Rollups:
+<ul>
+<li>optional periodic compaction by day/week</li>
+</ul></li>
+</ul>
+<h3 id="vortex-indexingread-model">Vortex indexing/read model</h3>
+<ul>
+<li>Primary lookup index:
+<ul>
+<li><code>(tenant, entity_id, metric_id, window, season_key, window_start)</code></li>
+</ul></li>
+<li>Secondary filters:
+<ul>
+<li><code>entity_type</code>, date range</li>
+</ul></li>
+<li>Query patterns to optimize first:
+<ol type="1">
+<li>latest p95 for entity+metric</li>
+<li>compare current window vs seasonal baseline</li>
+<li>retrieve N prior windows for trend</li>
+</ol></li>
+</ul>
+<hr />
+<h2 id="how-who-reads-it-is-handled">3.5 How "WHO READS IT" is
+handled?</h2>
+<p><strong>What</strong><br />
+A role-based read policy for sketch data.</p>
+<p><strong>Why</strong><br />
+Different consumers need different access levels; unrestricted reads
+risk data leakage and noisy operations.</p>
+<p><strong>How (minimum RBAC plan)</strong></p>
+<ul>
+<li><code>role_observability_reader</code>
+<ul>
+<li>read sketch rows and baselines</li>
+<li>no policy changes</li>
+</ul></li>
+<li><code>role_detect_engine</code>
+<ul>
+<li>read for door-C thresholding</li>
+<li>service account only</li>
+</ul></li>
+<li><code>role_rca_engine</code>
+<ul>
+<li>read for E10 evidence correlation</li>
+</ul></li>
+<li><code>role_admin_data</code>
+<ul>
+<li>manage retention, index configs, and schema versions</li>
+</ul></li>
+</ul>
+<p>Controls: 1. tenant-scoped authorization mandatory 2. audit log for
+each read query (who/what/when) 3. deny-by-default for cross-tenant
+reads 4. schema-version compatibility checks before query execution</p>
+<hr />
+<h2 id="pillar-2-deep-dive-what-why-how">4) Pillar 2 deep-dive (What /
+Why / How)</h2>
+<h2 id="entities">4.1 Entities</h2>
+<p><strong>What</strong><br />
+CIs with stable identity (<code>tenant + ci_id</code>) and typed class
+(<code>Service</code>, <code>Host</code>, optional <code>Pod</code> with
+validity window).</p>
+<p><strong>Why</strong><br />
+Localize/package must point to durable operational targets, not
+transient noise objects.</p>
+<p><strong>How</strong> - allow only resolved identity records for
+canonical graph vertices - enforce <code>ci_type</code> catalog +
+versioning - carry aliases as metadata, not alternative primary keys</p>
+<h2 id="edges">4.2 Edges</h2>
+<p><strong>What</strong><br />
+Typed CI-CI relationships (for example <code>depends_on</code>,
+<code>runs_on</code>, <code>communicates_with</code>) with provenance
+and validity.</p>
+<p><strong>Why</strong><br />
+E8/E9 walk quality depends on relationship semantics and freshness.</p>
+<p><strong>How</strong> - each edge stores: - source/target IDs -
+relation type - provenance
+(<code>authoritative|declared|corroborating</code>) -
+<code>valid_from</code>, <code>valid_to</code> or equivalent freshness
+fields</p>
+<h2 id="changes">4.3 Changes</h2>
+<p><strong>What</strong><br />
+Time-bound facts linked to CIs (deploy/config/release/change-ticket
+references).</p>
+<p><strong>Why</strong><br />
+Change context improves root-cause explainability without polluting CI
+topology.</p>
+<p><strong>How</strong> - store change as fact records, not CI vertices
+- link by CI identity and time overlap - keep change ingestion out of E1
+for this block; attach via reserved path/future phase</p>
+<hr />
+<h2 id="gaps-unknowns-and-candidate-resolutions">5) Gaps / unknowns and
+candidate resolutions</h2>
+<h2 id="pillar-1-gaps-teammate">5.1 Pillar 1 gaps (Teammate)</h2>
+<ol type="1">
+<li><strong>Metric catalog not frozen</strong>
+<ul>
+<li>Resolution: approve initial metric shortlist + metric naming
+standard</li>
+</ul></li>
+<li><strong>Bucket boundaries undefined per metric family</strong>
+<ul>
+<li>Resolution: publish <code>bucket_schema_version</code> per
+family</li>
+</ul></li>
+<li><strong>Season-key policy not fixed</strong>
+<ul>
+<li>Resolution: start with hour-of-week key; revise only with version
+bump</li>
+</ul></li>
+<li><strong>S3 partition/idempotency policy not frozen</strong>
+<ul>
+<li>Resolution: define path template + deterministic object key</li>
+</ul></li>
+<li><strong>Vortex index plan not explicit</strong>
+<ul>
+<li>Resolution: lock 3 priority query patterns and design index around
+them</li>
+</ul></li>
+<li><strong>Reader roles not codified</strong>
+<ul>
+<li>Resolution: publish RBAC matrix and service-account boundaries</li>
+</ul></li>
+</ol>
+<h2 id="pillar-2-gaps-you">5.2 Pillar 2 gaps (You)</h2>
+<ol type="1">
+<li><strong>Entity type taxonomy not frozen for v1</strong>
+<ul>
+<li>Resolution: freeze minimal set (Service, Host; optional Pod with
+guardrails)</li>
+</ul></li>
+<li><strong>Edge catalog still broad/ambiguous</strong>
+<ul>
+<li>Resolution: freeze mandatory edge set for v1 and defer extras</li>
+</ul></li>
+<li><strong>Edge freshness/validity semantics not finalized</strong>
+<ul>
+<li>Resolution: choose explicit validity model and TTL/decay rules</li>
+</ul></li>
+<li><strong>Change-fact model not contractually defined</strong>
+<ul>
+<li>Resolution: define <code>change.fact.v1</code> structure + CI/time
+link rules</li>
+</ul></li>
+<li><strong>Graph write ownership and publication cadence
+unclear</strong>
+<ul>
+<li>Resolution: define E3 writer owner + E5 refresh cadence and SLA</li>
+</ul></li>
+</ol>
+<hr />
+<h2 id="final-implementation-scope-summary">6) Final implementation
+scope summary</h2>
+<p>In scope now: - Pillar 1 statistical plane and its
+storage/retrieval/access contracts - Pillar 2 CI graph and change-fact
+semantics - Mapping to existing E3-E5 workstream with explicit stage
+boundaries</p>
+<p>Out of scope now: - making ReAct mandatory (D5 remains Review) -
+remediation execution in this block - treating alert/incident/ticket as
+E3 topology vertices</p>
+<hr />
+<h2 id="deliverables-from-this-plan">7) Deliverables from this plan</h2>
+<ol type="1">
+<li>This canonical markdown spec<br />
+</li>
+<li>Final shareable PDF in <code>KR Plan/</code><br />
+</li>
+<li>Follow-up link from docs hub/index as needed</li>
+</ol>
+</body>
+</html>

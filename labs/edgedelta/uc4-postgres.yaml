@@ -1,0 +1,225 @@
+# UC4: Database query performance (Node-tailed logs; OTLP/Gateway optional).
+# Postgres + a client that emits slow-query ERROR logs in ed-lab.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-db
+  namespace: ed-lab
+  labels:
+    app: checkout-db
+    urca.uc: "4"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkout-db
+  template:
+    metadata:
+      labels:
+        app: checkout-db
+        urca.uc: "4"
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_PASSWORD
+              value: lab
+            - name: POSTGRES_USER
+              value: checkout
+            - name: POSTGRES_DB
+              value: checkout
+          ports:
+            - containerPort: 5432
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: checkout-db
+  namespace: ed-lab
+spec:
+  selector:
+    app: checkout-db
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-api-db
+  namespace: ed-lab
+  labels:
+    app: checkout-api-db
+    urca.uc: "4"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkout-api-db
+  template:
+    metadata:
+      labels:
+        app: checkout-api-db
+        urca.uc: "4"
+    spec:
+      containers:
+        - name: querier
+          image: postgres:15-alpine
+          env:
+            - name: PGPASSWORD
+              value: lab
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "waiting for postgres..."
+              until pg_isready -h checkout-db -U checkout -d checkout; do sleep 2; done
+              i=0
+              while true; do
+                i=$((i+1))
+                ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                if [ $((i % 4)) -eq 0 ]; then
+                  start=$(date +%s)
+                  psql -h checkout-db -U checkout -d checkout -c "SELECT pg_sleep(1.6);" >/dev/null 2>&1
+                  end=$(date +%s)
+                  dur=$(( (end-start)*1000 ))
+                  echo "{\"ts\":\"$ts\",\"service\":\"checkout-api\",\"level\":\"ERROR\",\"msg\":\"postgres slow query\",\"query\":\"SELECT pg_sleep(1.6)\",\"duration_ms\":$dur,\"db\":\"checkout\"}"
+                else
+                  psql -h checkout-db -U checkout -d checkout -c "SELECT 1;" >/dev/null 2>&1
+                  echo "{\"ts\":\"$ts\",\"service\":\"checkout-api\",\"level\":\"INFO\",\"msg\":\"postgres query ok\",\"query\":\"SELECT 1\",\"duration_ms\":8,\"db\":\"checkout\"}"
+                fi
+                sleep 3
+              done
+---
+# nginx front door (access logs) so UC4 has a proxy hop Node can tail.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: checkout-nginx
+  namespace: ed-lab
+data:
+  nginx.conf: |
+    events { worker_connections 64; }
+    http {
+      access_log /dev/stdout;
+      error_log /dev/stderr warn;
+      server {
+        listen 80;
+        location / {
+          return 200 '{"service":"checkout-edge","msg":"ok"}\n';
+          add_header Content-Type application/json;
+        }
+        location /slow {
+          return 504 '{"service":"checkout-edge","msg":"gateway timeout waiting on checkout-db"}\n';
+          add_header Content-Type application/json;
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-nginx
+  namespace: ed-lab
+  labels:
+    app: checkout-nginx
+    urca.uc: "4"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkout-nginx
+  template:
+    metadata:
+      labels:
+        app: checkout-nginx
+        urca.uc: "4"
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      volumes:
+        - name: conf
+          configMap:
+            name: checkout-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: checkout-nginx
+  namespace: ed-lab
+spec:
+  selector:
+    app: checkout-nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-nginx-hit
+  namespace: ed-lab
+  labels:
+    app: checkout-nginx-hit
+    urca.uc: "4"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkout-nginx-hit
+  template:
+    metadata:
+      labels:
+        app: checkout-nginx-hit
+        urca.uc: "4"
+    spec:
+      containers:
+        - name: hit
+          image: busybox:1.36
+          resources:
+            requests:
+              cpu: 5m
+              memory: 8Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          command:
+            - /bin/sh
+            - -c
+            - |
+              while true; do
+                wget -qO- http://checkout-nginx/ >/dev/null 2>&1 || true
+                wget -qO- http://checkout-nginx/slow >/dev/null 2>&1 || true
+                sleep 5
+              done

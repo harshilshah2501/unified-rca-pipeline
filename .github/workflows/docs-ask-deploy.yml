@@ -1,0 +1,48 @@
+# Rebuild documentation index and deploy docs-ask Worker (Cloudflare).
+# Requires GitHub repository secrets:
+#   CLOUDFLARE_API_TOKEN — Workers deploy + AI (scoped to account)
+#   CLOUDFLARE_ACCOUNT_ID
+# Optional: set DOCS_ASK_TOKEN on the Worker via wrangler secret (not in this workflow).
+
+name: docs-ask deploy
+
+on:
+  push:
+    branches: [main, chore/pillar-b-graphwriter-api-rename]
+    paths:
+      - "knowledge/**"
+      - "product/**"
+      - "tools/docs-ask/**"
+      - ".github/workflows/docs-ask-deploy.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install index builder deps
+        run: pip install pyyaml
+
+      - name: Build documentation index
+        run: python3 tools/docs-ask/index/build_index.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Worker dependencies
+        working-directory: tools/docs-ask/worker
+        run: npm install
+
+      - name: Deploy to Cloudflare Workers
+        working-directory: tools/docs-ask/worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy

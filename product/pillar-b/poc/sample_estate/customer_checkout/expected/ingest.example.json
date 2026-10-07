@@ -1,0 +1,94 @@
+{
+  "description": "Canonical ingest.v1 examples — one object per fact_kind in the writer schema enum. Each entry under examples validates as ingest.v1.",
+  "examples": [
+    {
+      "schema_version": "ingest.v1",
+      "ts": "2026-08-20T03:30:12Z",
+      "tenant": "default",
+      "ci_id": "checkout-api",
+      "ci_type": "Service",
+      "fact_kind": "metric_sample",
+      "name": "request.latency_ms",
+      "value": 92.1,
+      "labels": { "source": "lab-node", "trace_id": "abc123" },
+      "identity": {
+        "status": "resolved",
+        "bind_source": "topology_lookup",
+        "aliases": ["svc:checkout-api"]
+      },
+      "_note": "Pillar A SketchWriter admits → history/ sketch.v1. GraphWriter NOOP."
+    },
+    {
+      "schema_version": "ingest.v1",
+      "ts": "2026-08-20T03:30:00Z",
+      "tenant": "default",
+      "ci_id": "checkout-api",
+      "ci_type": "Service",
+      "fact_kind": "topo_update",
+      "relation": "runs_on",
+      "src_ci_id": "checkout-api",
+      "dst_ci_id": "linux-server-app-01",
+      "identity": {
+        "status": "resolved",
+        "bind_source": "topology_lookup",
+        "aliases": ["svc:checkout-api"]
+      },
+      "_note": "Pillar B GraphWriter admits → map/ edge. SketchWriter NOOP."
+    },
+    {
+      "schema_version": "ingest.v1",
+      "ts": "2026-07-16T10:00:00Z",
+      "tenant": "default",
+      "ci_id": "checkout-api",
+      "ci_type": "Service",
+      "fact_kind": "anomaly",
+      "name": "request.latency_ms",
+      "value": 900.0,
+      "threshold": 500.0,
+      "severity": "high",
+      "labels": { "layer": "app" },
+      "identity": {
+        "status": "resolved",
+        "bind_source": "topology_lookup"
+      },
+      "_note": "E6 Detect / E7 Curate. Both Pillar A and B skip."
+    },
+    {
+      "schema_version": "ingest.v1",
+      "ts": "2026-07-16T09:59:58Z",
+      "tenant": "default",
+      "ci_id": "checkout-api",
+      "ci_type": "Service",
+      "fact_kind": "event",
+      "name": "log.error",
+      "value": 1.0,
+      "labels": { "level": "error" },
+      "identity": {
+        "status": "resolved",
+        "bind_source": "topology_lookup"
+      },
+      "_note": "E4 evidence / E10 Identify. Both Pillar A and B skip."
+    },
+    {
+      "schema_version": "ingest.v1",
+      "ts": "2026-07-16T10:00:01Z",
+      "tenant": "default",
+      "ci_id": "checkout-api",
+      "ci_type": "Service",
+      "fact_kind": "trace_span",
+      "name": "POST /checkout",
+      "value": 210.0,
+      "labels": {
+        "route": "POST /checkout",
+        "trace_id": "abc123",
+        "span_id": "span-7",
+        "peer.service": "payments-db"
+      },
+      "identity": {
+        "status": "resolved",
+        "bind_source": "apm"
+      },
+      "_note": "E9 Localize / E10 Identify. Both pillars skip; peer labels may feed a future topo_update emitter."
+    }
+  ]
+}

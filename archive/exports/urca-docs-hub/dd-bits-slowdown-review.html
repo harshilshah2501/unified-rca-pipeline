@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Datadog · Bits — SLOWDOWN packaging</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+body{margin:0;font-family:var(--font);font-size:17px;line-height:1.65;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2438 0%,transparent 55%),var(--bg);}
+a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+h3{font-size:1.05rem;font-weight:600;margin:1.2rem 0 .5rem;color:#e8eef4;}
+.lead code,.note code,td code,li code,p code,ol code{font-family:var(--mono);font-size:.92em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#b8d4ff;}
+.note{margin:1rem 0;padding:.85rem 1rem;border-radius:var(--radius);background:rgba(91,141,239,.14);border-left:3px solid var(--accent);color:var(--muted);}
+.warn{border-left-color:var(--lean);background:rgba(240,179,90,.1);}
+.ok{border-left-color:var(--ok);background:rgba(95,224,176,.1);}
+ol,ul{margin:.4rem 0 .8rem 1.2rem;color:var(--muted);} li{margin:.4rem 0;} li strong{color:var(--text);}
+.pre{font-family:var(--mono);font-size:.9rem;background:var(--bg-soft);border:1px solid var(--stroke);border-radius:6px;padding:.85rem 1rem;overflow-x:auto;white-space:pre;color:#d0dbe6;}
+.pill{display:inline-block;font-family:var(--mono);font-size:.8rem;padding:.2rem .5rem;border-radius:4px;border:1px solid rgba(95,224,176,.5);color:var(--ok);margin-right:.35rem;}
+.toc{margin:1rem 0;padding:.85rem 1.1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
+.toc a{display:inline-block;margin:.25rem .85rem .25rem 0;}
+.flow{display:grid;gap:8px;margin:1rem 0;}
+.flow .step{border:1px solid var(--stroke);border-radius:8px;padding:12px 14px;background:var(--bg-elev);}
+.flow .step .n{font-family:var(--mono);font-size:.8rem;color:var(--accent);letter-spacing:.04em;text-transform:uppercase;}
+.flow .step h3{margin:.25rem 0 .4rem;font-size:1.05rem;border:0;padding:0;}
+.flow .step p{margin:0;color:var(--muted);font-size:.98rem;}
+</style>
+<link rel="stylesheet" href="/urca-diagrams.css" />
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="vendor-dd article">
+<div class="wrap article">
+  <div class="eyebrow">Datadog · SLOWDOWN · Bits</div>
+  <h1>Bits — hypothesis loop · longest leaf (HTTP 200)</h1>
+  <p class="lead">
+    Peer tab on the same spine as Thesis · Breakdown · Three-rail · Timeline · MTL workbook.
+    Zoom: Bits Investigation packaging after Detect —
+    observe → hypothesize → validate mapped onto the e3 ledger-scan run,
+    including how <strong style="color:var(--text)">inventory.stock self-time</strong> ranks above
+    equal wall-time on product/frontend (callers waiting on a slow <strong style="color:var(--text)">200</strong>).
+  </p>
+  <div class="note">
+    <strong style="color:var(--text)">Same spine, different zoom.</strong>
+    Thesis = model · <a href="/datadog-subsystem-mechanisms.html?cat=slowdown">Breakdown</a> = screenshot IPO · Three-rail = rail write · Timeline = clocks ·
+    MTL = queries/counts · <strong style="color:var(--text)">Bits = packaging / latency leaf ranking</strong>.
+  </div>
+  <div id="urca-dd-pipeline-guide" data-variant="compact"></div>
+
+  <div class="note ok">
+    <span class="pill">OBSERVED BITS WRITE-UP</span>
+    Sticky <strong style="color:var(--text)">Bits</strong> tab · hub card 06.
+    Tenant Bits session (2026-08-11) · conclusion captured below ·
+    scope <code>env:rca-lab-e3</code> · <code>version:slowdown-20260811t045553z</code> ·
+    fault <code>04:58:07Z–05:10:34Z</code> (IST ~10:28–10:40).
+    Paste a Bits investigation URL here when the UI link is available (ERROR peer uses <code>?v=tree</code>).
+  </div>
+  <div class="note warn">
+    Exact Bits scoring weights are unpublished. Below follows Datadog’s documented
+    observe → hypothesize → validate loop
+    (<a href="https://docs.datadoghq.com/bits_ai/bits_ai_sre/investigate_issues/">Investigate issues</a>)
+    plus the <strong style="color:var(--text)">Observed Bits RCA</strong> for this lab
+    (MCP aggregates + host CPU corroboration). No Continuous Profiler · no source-code mapping on <code>inventory</code>.
+  </div>
+  <div class="note warn">
+    <strong style="color:var(--text)">Detect was empty — Bits still needs a seed.</strong>
+    No latency Door A Alert and no Watchdog story started this case.
+    Stage 03 Write already had long HTTP 200 spans; we (lab / Bits prompt) explicitly scoped
+    <code>env:rca-lab-e3</code> · fault window and asked for latency analysis.
+    That is operator (or Bits) Localize/package — not stage 05 Detect.
+    Detail: <a href="/dd-lab-timeline-slowdown.html?cat=slowdown#insight">Timeline §2 Write ≠ Detect ≠ Localize</a>.
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#verdict">0 Verdict</a>
+    <a href="#loop">1 Hypothesis loop</a>
+    <a href="#map">2 Map to stages 05–08</a>
+    <a href="#rank">3 Ranking longest leaf</a>
+    <a href="#cpu">4 CPU corroboration</a>
+    <a href="#limits">5 Limits</a>
+    <a href="#corroborate">6 Corroborate MTL</a>
+    <a href="#leaf">7 Operator leaf claim</a>
+    <a href="#links">Links</a>
+  </nav>
+
+  <h2 id="verdict">0) Bits verdict (this run)</h2>
+  <p style="color:var(--muted)">
+    <strong style="color:var(--text)">Root cause:</strong> CPU-bound <code>inventory.stock</code> operation
+    (ledger scan for <code>sku: WIDGET-1</code>). Deepest leaf carries ~100% of latency as
+    <em>self-time</em> — no downstream calls, no I/O waits. Callers stay HTTP <strong>200</strong> and wait.
+  </p>
+  <table>
+    <tr><th>Metric (<code>inventory.stock</code>)</th><th>Value</th></tr>
+    <tr><td>Span count (Bits window subset)</td><td>59</td></tr>
+    <tr><td>Avg / P95 / Max</td><td><strong>11.84s</strong> / <strong>17.59s</strong> / <strong>21.95s</strong></td></tr>
+    <tr><td>Min</td><td>8.57s</td></tr>
+    <tr><td>Custom attribute</td><td><code>sku: WIDGET-1</code></td></tr>
+  </table>
+  <div class="ud-viz">
+  <div class="ud-cap">Call path — HTTP 200 · self-time burns in inventory.stock</div>
+  <div class="ud-chain">
+    <div class="ud-node"><span class="ud-role">FE</span>GET /api/checkout · ~12s · 200</div>
+    <div class="ud-link"></div>
+    <div class="ud-node"><span class="ud-role">Product</span>GET /api/product · ~12s · 200</div>
+    <div class="ud-link"></div>
+    <div class="ud-node"><span class="ud-role">Entry</span>GET /api/stock · ~12s · 200</div>
+    <div class="ud-link"></div>
+    <div class="ud-node leaf"><span class="ud-role">Leaf</span><code>inventory.stock</code> · longest self-time (CPU)</div>
+  </div>
+  <p class="ud-note">Nested Flask frames under stock are how the flamegraph ranks self-time — not status:error.</p>
+</div>
+  <p style="color:var(--muted)">
+    Sample flamegraph:
+    <a href="https://app.datadoghq.com/apm/trace/6a7aabea0000000020327ba0f5f0755a">6a7aabea…</a>
+    · MCP fault-window p95 ~17.6s on all three <code>GET</code> resources (equal wall time ≠ equal root).
+  </p>
+
+  <h2 id="loop">1) How Bits carries a hypothesis (published loop)</h2>
+  <div class="flow">
+    <div class="step">
+      <div class="n">Step A · Seed</div>
+      <h3>Take latency context</h3>
+      <p>General prompt / APM latency explorer / optional latency Door A (absent on this lab).
+        Seed tags: <code>env:rca-lab-e3</code> · <code>version:slowdown-…</code> · time of slow window.
+        Error-rate Door A (<code>310925690</code>) stayed <strong>OK</strong> — not the seed.</p>
+    </div>
+    <div class="step">
+      <div class="n">Step B · Scope</div>
+      <h3>Lock Related scope</h3>
+      <p>Fault window <code>04:58:07Z–05:10:34Z</code>. Filter <code>status:ok</code> + <code>@duration:&gt;5s</code>
+        (not <code>status:error</code> — there is none). Baseline = pre-fault p95 ~5&nbsp;ms.</p>
+    </div>
+    <div class="step">
+      <div class="n">Step C · Hypothesize</div>
+      <h3>Parallel latency candidates</h3>
+      <p>(1) inventory CPU / algorithm, (2) product as root, (3) frontend-only, (4) I/O / downstream wait,
+        (5) host saturation, (6) deploy regression only. Explore with duration aggregates + flamegraphs + host metrics.</p>
+    </div>
+    <div class="step">
+      <div class="n">Step D · Validate / invalidate</div>
+      <h3>Self-time vs wait time</h3>
+      <p>Equal ~12s on FE/product/inventory <em>resources</em> is correlation.
+        Causal depth = deepest span with self-time (<code>inventory.stock</code>) before trivial <code>flask.jsonify</code>.</p>
+    </div>
+    <div class="step">
+      <div class="n">Step E · Conclude</div>
+      <h3>CPU-bound ledger scan</h3>
+      <p>Validated: inventory leaf CPU. Demoted: caller wait, I/O wait, KeyError (prior version).
+        Incident still optional / absent.</p>
+    </div>
+  </div>
+
+  <h2 id="map">2) Map onto lean stages 05 → 08</h2>
+  <table>
+    <tr><th>Stage</th><th>Bits analogue</th><th>What this run shows</th></tr>
+    <tr>
+      <td><strong>05 Monitors · Watchdog</strong></td>
+      <td>Detect foghorns</td>
+      <td><strong>Empty</strong> — Error-rate Door A OK · latency Door A absent · Watchdog APM 0 · deployment change story only. Analysis did not start here.</td>
+    </tr>
+    <tr>
+      <td><strong>06 Triage · Related</strong></td>
+      <td>Seed + scope lock</td>
+      <td><code>env:rca-lab-e3</code> · demote equal-duration FE/product as “root”</td>
+    </tr>
+    <tr>
+      <td><strong>07 Leaf · tag join</strong></td>
+      <td>Causal depth + corroboration</td>
+      <td><code>inventory.stock</code> self-time · HTTP 200 · host CPU 52–57% · logs <code>inventory.stock.ok</code></td>
+    </tr>
+    <tr>
+      <td><strong>08 Bits ∥ Incident</strong></td>
+      <td>Package (optional)</td>
+      <td>Bits write-up below · Incident still 0</td>
+    </tr>
+  </table>
+
+  <h2 id="rank">3) How longest-leaf ranking works (not 500 vs 502)</h2>
+  <p style="color:var(--muted)">
+    ERROR ranks by deepest <em>error</em> + HTTP semantics (500 vs 502).
+    SLOWDOWN ranks by <em>self-time</em> on the call path while status stays <strong>ok</strong>.
+  </p>
+  <table>
+    <tr><th>Rank signal</th><th>Inventory <code>inventory.stock</code></th><th>Product/FE GET</th></tr>
+    <tr>
+      <td>Trace depth</td>
+      <td><strong>Deepest</strong> application leaf</td>
+      <td>Parents waiting on inventory</td>
+    </tr>
+    <tr>
+      <td>Self-time</td>
+      <td><strong>~100%</strong> of request latency</td>
+      <td>Mostly wait / child time</td>
+    </tr>
+    <tr>
+      <td>HTTP</td>
+      <td><strong>200</strong> success · slow</td>
+      <td><strong>200</strong> success · slow (symptom)</td>
+    </tr>
+    <tr>
+      <td>Downstream</td>
+      <td>None after leaf (only jsonify)</td>
+      <td>Calls inventory</td>
+    </tr>
+    <tr>
+      <td>Hypothesis</td>
+      <td><strong>Promote</strong> as leaf / RC</td>
+      <td><strong>Demote</strong> to cascade wait</td>
+    </tr>
+  </table>
+
+  <h3>3.1 Walk one Bits-style branch (Observed reconstruction)</h3>
+  <ol>
+    <li><strong>H1:</strong> “Frontend is slow” → FE span ~12s but child product owns the time → <em>invalidated as root</em>.</li>
+    <li><strong>H2:</strong> “Product is slow” → product ~12s; child inventory owns the time → <em>invalidated as root</em>.</li>
+    <li><strong>H3:</strong> “Inventory waits on I/O” → no child spans with duration; next is <code>flask.jsonify</code> ~0.1ms → <em>invalidated</em>.</li>
+    <li><strong>H4:</strong> “Inventory CPU / algorithm” → <code>inventory.stock</code> 8.5–22s self-time · <code>sku:WIDGET-1</code> → <em>validated</em>.</li>
+    <li><strong>H4.1:</strong> Version story → <code>slowdown-20260811t045553z</code> replaced prior <code>keyerror-…</code>
+      (fixed KeyError, introduced full ledger scan) → corroborating change context.</li>
+    <li><strong>Cross-check:</strong> Host CPU user% 52–57% during incident; Metrics p95 flask duration matches APM.</li>
+  </ol>
+  <div class="note">
+    Resource-level p95 is ~equal across FE/product/inventory — Bits (and you) must
+    <strong style="color:var(--text)">not</strong> rank by “slowest named resource.”
+    Rank by <strong style="color:var(--text)">self-time at the deepest leaf</strong>.
+  </div>
+
+  <h2 id="cpu">4) CPU confirmation (Bits + Metrics)</h2>
+  <p style="color:var(--muted)">Host <code>DESKTOP-MBPAQK1</code> (IST):</p>
+  <table>
+    <tr><th>Time (IST)</th><th>CPU user %</th></tr>
+    <tr><td>10:26 (pre-deploy)</td><td>~8–10%</td></tr>
+    <tr><td>10:27:30 (ramp)</td><td>→ ~54%</td></tr>
+    <tr><td><strong>10:28–10:40 (incident)</strong></td><td><strong>sustained 52–57%</strong></td></tr>
+    <tr><td>10:40+ (traffic stops)</td><td>~10%</td></tr>
+  </table>
+  <p style="color:var(--muted)">
+    Latency is <strong style="color:var(--text)">CPU-bound</strong>, not I/O-bound — process pegs a core for each stock lookup.
+  </p>
+
+  <h2 id="limits">5) Limits Bits stated (and we teach)</h2>
+  <ul>
+    <li><strong>No Continuous Profiler</strong> on <code>service:inventory</code> → no function-level CPU flame.</li>
+    <li><strong>No source-code mapping</strong> for inventory → cannot open the exact ledger-scan line from Bits.</li>
+    <li>Still enough for the leaf claim: self-time + CPU + version change + HTTP 200 ok logs.</li>
+  </ul>
+
+  <h2 id="corroborate">6) Corroborate with explorers (same tags)</h2>
+  <div class="pre">APM:    env:rca-lab-e3 version:slowdown-20260811t045553z status:ok @duration:>5000000000
+APM:    service:inventory resource_name:"GET /api/stock"
+Logs:   env:rca-lab-e3 service:inventory @event:inventory.stock.ok
+Metrics: p95:trace.flask.request{env:rca-lab-e3,service:inventory,version:slowdown-20260811t045553z}
+Trace:  https://app.datadoghq.com/apm/trace/6a7aabea0000000020327ba0f5f0755a
+MTL:    /dd-slowdown-mtl-dissection.html?cat=slowdown</div>
+
+  <h2 id="leaf">7) Operator leaf claim (Bits helps; you decide)</h2>
+  <p style="color:var(--muted)">
+    Name the leaf: <strong style="color:var(--text)">inventory <code>inventory.stock</code> · HTTP 200 · ~9–22s self-time · ledger scan for <code>WIDGET-1</code></strong>.
+    Product/frontend slow 200s are ranked as wait cascade. Detect ≠ Bits ≠ Incident.
+  </p>
+  <div class="note warn">
+    Incident Observed: <strong style="color:var(--text)">0</strong>. Error-rate Door A: <strong style="color:var(--text)">OK</strong>.
+    Bits packaging still names the leaf from APM + host Metrics.
+  </div>
+
+  <h2 id="links">Peer tabs + docs</h2>
+  <ul>
+    <li><a href="/datadog-subsystem-mechanisms.html?cat=slowdown">Breakdown</a></li>
+    <li><a href="/datadog-production-pipeline.html?cat=slowdown">Thesis</a></li>
+    <li><a href="/dd-e2e-metrics-traces-logs.html?cat=slowdown">Three-rail journey</a></li>
+    <li><a href="/dd-lab-timeline-slowdown.html?cat=slowdown">Timeline</a></li>
+    <li><a href="/dd-slowdown-mtl-dissection.html?cat=slowdown">MTL workbook</a></li>
+    <li><a href="/dd-detect-category-hub.html?cat=slowdown">Hub · SLOWDOWN</a></li>
+    <li><a href="/dd-bits-error-review.html?cat=error">Sibling · Bits ERROR</a> (500 vs 502 ranking)</li>
+    <li><a href="https://docs.datadoghq.com/bits_ai/bits_ai_sre/investigate_issues/">Datadog · Investigate issues</a></li>
+  </ul>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dd-detect-categories.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "case_id": "case-checkout-1",
+  "root_ci_id": "payments-db",
+  "root_ci_type": "Database",
+  "detect_class": "ERROR",
+  "confidence_tier": 2,
+  "weakest_evidence_type": "changes",
+  "path_spine": ["checkout-api", "payments-db"],
+  "must_have_evidence_kinds": ["metrics", "logs", "traces", "topology"],
+  "blast_must_include": ["checkout-api", "payments-db"]
+}

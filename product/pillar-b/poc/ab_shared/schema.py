@@ -1,0 +1,33 @@
+"""JSON Schema validation against slice SoT ``contracts/schemas/``.
+
+``publish_map`` / ``build_snapshot`` call ``validate`` so Dest never receives
+half-shaped map objects. Edit schemas only under
+``pillar-ab-implementation/contracts/schemas/`` — no package mirrors.
+"""
+
+from __future__ import annotations
+
+import json
+from functools import lru_cache
+from pathlib import Path
+
+from jsonschema import Draft202012Validator
+
+# pillar-b/poc/ab_shared → pillar-ab-implementation/contracts/schemas
+CONTRACTS = Path(__file__).resolve().parents[3] / "contracts" / "schemas"
+
+
+@lru_cache
+def _validator(name: str) -> Draft202012Validator:
+    path = CONTRACTS / name
+    schema = json.loads(path.read_text(encoding="utf-8"))
+    return Draft202012Validator(schema)
+
+
+def validate(name: str, instance: dict) -> None:
+    """Raise ``jsonschema.ValidationError`` if ``instance`` fails schema ``name``."""
+    _validator(name).validate(instance)
+
+
+def is_valid(name: str, instance: dict) -> bool:
+    return _validator(name).is_valid(instance)

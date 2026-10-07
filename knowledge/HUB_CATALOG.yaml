@@ -1,0 +1,114 @@
+# Curated docs hub catalog — authoritative for portal navigation.
+# Full crawl: HUB_CATALOG.generated.yaml (regenerate with scripts/repo_inventory.py --hub-write)
+# Policy: docs/HUB_PORTAL_AUDIT.md · Tier lock: observeops/OUR_HLD_TIER1.md
+
+generated_at: "2026-10-07"
+policy: "No new docs/index.html link without a row here."
+
+tier1_everyone:
+  - url_path: /observeops-pipeline-hld.html
+    canonical_file: docs/observeops/observeops-pipeline-hld.html
+    audience: everyone
+    action: keep-prominent
+    notes: Portal door — Overview · Workflow · GraphWriter · Diagnose
+  - url_path: /observeops-fusion-guide.html
+    canonical_file: docs/observeops/observeops-fusion-guide.html
+    audience: everyone
+    action: keep-prominent
+  - url_path: /docs/OBSERVEOPS_PIPELINE_HLD.md
+    canonical_file: docs/observeops/OBSERVEOPS_PIPELINE_HLD.md
+    audience: everyone
+    action: keep-prominent
+  - url_path: /data-shape-journey.html
+    canonical_file: docs/fabric/data-shape-journey.html
+    audience: everyone
+    action: keep-prominent
+  - url_path: /docs/GRAPH_QNA.md
+    canonical_file: pillar-ab-implementation/contracts/GRAPH_QNA.md
+    audience: everyone
+    action: keep-prominent
+  - url_path: /urca-glossary.html
+    canonical_file: docs/observeops/urca-glossary.html
+    audience: everyone
+    action: keep-prominent
+
+tier1_implementers:
+  - url_path: /pillar-ab-implementation/README.md
+    canonical_file: pillar-ab-implementation/README.md
+    audience: implementer
+    action: keep-prominent
+
+tier2_io_chain:
+  - url_path: /docs/INGEST_DATA_FORMAT.md
+    canonical_file: docs/INGEST_DATA_FORMAT.md
+    audience: implementer
+    action: keep-archive
+    notes: ObserveOps ingest.v1 bridge — not Motadata writer SoT
+  - url_path: /pillar-ab-implementation/contracts/WRITER_REGULATOR.md
+    canonical_file: pillar-ab-implementation/contracts/WRITER_REGULATOR.md
+    audience: implementer
+    action: keep-prominent
+    notes: Motadata writer_stream.v1 SoT
+  - url_path: /pillar-ab-implementation/E2_INPUT_FIXTURES.md
+    canonical_file: pillar-ab-implementation/E2_INPUT_FIXTURES.md
+    audience: implementer
+    action: keep-archive
+  - url_path: /docs/MAP_WRITE_READ_RECORD.md
+    canonical_file: pillar-ab-implementation/contracts/MAP_WRITE_READ_RECORD.md
+    audience: implementer
+    action: keep-prominent
+  - url_path: /docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md
+    canonical_file: docs/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md
+    audience: implementer
+    action: keep-archive
+
+portal_indexes:
+  - url_path: /docs.html
+    canonical_file: docs/index.html
+    hub_tier: 1
+    audience: everyone
+    action: keep-prominent
+    notes: Slim ladder only after Phase E2
+  - url_path: /hld-archive.html
+    canonical_file: docs/observeops/hld-archive.html
+    hub_tier: 2
+    audience: everyone
+    action: keep-archive
+  - url_path: /docs/fabric/README.md
+    canonical_file: docs/fabric/README.md
+    hub_tier: 2
+    audience: implementer
+    action: keep-prominent
+  - url_path: /eval-reference.html
+    canonical_file: docs/reference/eval-reference.html
+    hub_tier: 3
+    audience: eval-reference
+    action: keep-archive
+    notes: Lean/Fed/ADR-001 — not Motadata product path
+
+vendor_hubs:
+  - url_path: /dt-davis-category-hub.html
+    topic: vendor-dt
+    hub_tier: 3
+    action: keep-archive
+  - url_path: /dd-detect-category-hub.html
+    topic: vendor-dd
+    hub_tier: 3
+    action: keep-archive
+  - url_path: /ed-ai-team-hub.html
+    topic: vendor-ed
+    hub_tier: 3
+    action: keep-archive
+
+move_to_archive:
+  - url_path: /docs/agent-tasks/
+    canonical_file: docs/agent-tasks/
+    audience: past-task
+    action: move-to-archive
+    notes: Relocate to _archive/hub/agent-tasks/ with symlink shim
+
+delist_from_docs_index:
+  - pattern: "Per-category lab timeline cards (keep URLs; link only from vendor hubs)"
+  - pattern: "Federated vs DT gap map duplicate cards"
+  - pattern: "Long fabric §4 bullet farm (replace with fabric/README link)"
+  - pattern: "agent-tasks/*.md direct links"

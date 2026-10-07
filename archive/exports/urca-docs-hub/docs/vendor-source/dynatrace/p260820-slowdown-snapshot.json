@@ -1,0 +1,70 @@
+{
+  "displayId": "P-260820",
+  "title": "Response time degradation",
+  "status": "OPEN",
+  "severityLevel": "PERFORMANCE",
+  "startTime": "2026-08-06T15:10:00Z",
+  "endTime": null,
+  "rootCauseEntity": null,
+  "affectedEntities": [
+    "frontend",
+    "product",
+    "inventory"
+  ],
+  "impactedEntities": [
+    "frontend",
+    "product",
+    "inventory"
+  ],
+  "evidenceEvents": [
+    {
+      "entity": "product",
+      "eventType": "SERVICE_SLOWDOWN",
+      "rootCauseRelevant": false,
+      "startTime": "2026-08-06T15:05:00Z",
+      "endTime": null,
+      "displayName": "Response time degradation"
+    },
+    {
+      "entity": "frontend",
+      "eventType": "SERVICE_SLOWDOWN",
+      "rootCauseRelevant": false,
+      "startTime": "2026-08-06T15:05:00Z",
+      "endTime": null,
+      "displayName": "Response time degradation"
+    },
+    {
+      "entity": "inventory",
+      "eventType": "SERVICE_SLOWDOWN",
+      "rootCauseRelevant": false,
+      "startTime": "2026-08-06T15:05:00Z",
+      "endTime": null,
+      "displayName": "Response time degradation"
+    }
+  ],
+  "impactAnalysis": {
+    "impacts": [
+      {
+        "impactType": "SERVICE",
+        "impactedEntity": {
+          "entityId": {
+            "id": "SERVICE-0FAD22B40DE5F562",
+            "type": "SERVICE"
+          },
+          "name": "frontend"
+        },
+        "estimatedAffectedUsers": 0,
+        "numberOfPotentiallyAffectedServiceCalls": 159
+      }
+    ]
+  },
+  "labNotes": {
+    "defect": "inventory/app.py ledger scan + _debug_row_checksum (HTTP 200 ~9-11s)",
+    "detect": "fixed RT thresholds median 2000ms / p90 3000ms / min 1 rpm",
+    "uiMerge": "P-260822/821/820 → merged P-260820 Affected 3",
+    "whyNullEntityRca": "all SERVICE_SLOWDOWN Events same start bucket 15:05 — no temporal leaf ranking",
+    "whyNoCodeOnProblemAnalysis": "evidence is metric Events only; no exception; code on traces drill-down not auto-promoted",
+    "healedAt": "2026-08-06T15:54:44Z",
+    "healProbe": "~0.04s HTTP 200 O(1) WAREHOUSE_SKU_INDEX"
+  }
+}

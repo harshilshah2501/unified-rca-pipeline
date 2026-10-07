@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Unified-RCA Docs Ask</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --elev: #1a222c;
+      --text: #e8eef4;
+      --muted: #8a96a4;
+      --accent: #5b8def;
+      --ok: #7aecc4;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      padding: env(safe-area-inset-top) 1rem env(safe-area-inset-bottom);
+    }
+    h1 { font-size: 1.25rem; font-weight: 650; margin: 1rem 0 0.25rem; }
+    .sub { color: var(--muted); font-size: 0.85rem; line-height: 1.45; margin-bottom: 1rem; }
+    label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 0.35rem; }
+    input, textarea, button {
+      font: inherit;
+      border-radius: 10px;
+      border: 1px solid #2a3441;
+      background: var(--elev);
+      color: var(--text);
+      width: 100%;
+    }
+    input, textarea { padding: 0.65rem 0.75rem; }
+    textarea { min-height: 5rem; resize: vertical; }
+    button {
+      margin-top: 0.65rem;
+      padding: 0.75rem;
+      background: var(--accent);
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.5; cursor: wait; }
+    .row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .row button { flex: 1; margin-top: 0; background: #2a3441; }
+    .row button.primary { background: var(--accent); }
+    #out {
+      margin-top: 1.25rem;
+      padding: 1rem;
+      background: var(--elev);
+      border-radius: 12px;
+      border: 1px solid #2a3441;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+    #out a { color: var(--ok); }
+    .cites { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #2a3441; }
+    .cites h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    .cites ol { padding-left: 1.2rem; margin: 0.5rem 0 0; }
+    .cites li { margin: 0.35rem 0; font-size: 0.85rem; }
+    .err { color: #f87171; }
+  </style>
+</head>
+<body>
+  <h1>Docs Ask</h1>
+  <p class="sub">
+    Search your Unified-RCA documentation with cited answers. Works from iPhone or Mac when your laptop is off —
+    hosted on Cloudflare, index rebuilt from GitHub on push.
+  </p>
+
+  <label for="token">Access token (if your admin set one)</label>
+  <input id="token" type="password" autocomplete="off" placeholder="Optional — saved in this browser only" />
+
+  <label for="q" style="margin-top:0.75rem">Question</label>
+  <textarea id="q" placeholder="e.g. How does GraphWriter admit topology lines after E2?"></textarea>
+
+  <div class="row">
+    <button type="button" class="primary" id="btn-ask">Ask with citations</button>
+    <button type="button" id="btn-search">Search only</button>
+  </div>
+
+  <div id="out" hidden></div>
+
+  <script>
+    const tokenKey = "urca_docs_ask_token";
+    const tokenEl = document.getElementById("token");
+    const qEl = document.getElementById("q");
+    const out = document.getElementById("out");
+    tokenEl.value = localStorage.getItem(tokenKey) || "";
+
+    function headers() {
+      const h = { "Content-Type": "application/json" };
+      const t = tokenEl.value.trim();
+      if (t) h["X-Docs-Ask-Token"] = t;
+      return h;
+    }
+
+    function show(html, isErr) {
+      out.hidden = false;
+      out.className = isErr ? "err" : "";
+      out.innerHTML = html;
+    }
+
+    function mdLinks(text) {
+      return text.replace(/\[(\d+)\]/g, "<sup>[$1]</sup>").replace(
+        /(https:\/\/github\.com\/[^\s)]+)/g,
+        '<a href="$1" target="_blank" rel="noopener">$1</a>'
+      );
+    }
+
+    document.getElementById("btn-ask").addEventListener("click", async () => {
+      const question = qEl.value.trim();
+      if (!question) return;
+      localStorage.setItem(tokenKey, tokenEl.value.trim());
+      const btn = document.getElementById("btn-ask");
+      btn.disabled = true;
+      show("Thinking…", false);
+      try {
+        const res = await fetch("/api/ask", {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify({ question }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        let html = mdLinks(data.answer || "");
+        if (data.citations?.length) {
+          html += '<div class="cites"><h2>Sources</h2><ol>';
+          for (const c of data.citations) {
+            html += `<li><a href="${c.cite_url}">${c.title}</a> — <code>${c.path}</code></li>`;
+          }
+          html += "</ol></div>";
+        }
+        show(html, false);
+      } catch (e) {
+        show(String(e.message || e), true);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById("btn-search").addEventListener("click", async () => {
+      const q = qEl.value.trim();
+      if (!q) return;
+      localStorage.setItem(tokenKey, tokenEl.value.trim());
+      show("Searching…", false);
+      try {
+        const t = tokenEl.value.trim();
+        const qs = new URLSearchParams({ q });
+        if (t) qs.set("token", t);
+        const res = await fetch("/api/search?" + qs.toString());
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        let html = `<strong>Top matches</strong> (index ${data.index_generated_at || ""})\n\n`;
+        for (const h of data.hits || []) {
+          html += `<p><a href="${h.cite_url}">[${h.rank}] ${h.title}</a><br><code>${h.path}</code><br>${h.snippet}</p>`;
+        }
+        show(html, false);
+      } catch (e) {
+        show(String(e.message || e), true);
+      }
+    });
+  </script>
+</body>
+</html>

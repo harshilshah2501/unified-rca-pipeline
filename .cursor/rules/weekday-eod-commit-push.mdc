@@ -1,0 +1,24 @@
+---
+description: Weekday 17:45 local — commit and push all safe WIP (EOD backup)
+alwaysApply: true
+---
+
+# Weekday EOD commit + push (17:45)
+
+**Schedule intent:** every weekday at **17:45** in the operator’s local timezone (IST / `Asia/Kolkata` when on this machine).  
+**Outcome:** working tree backed up on the remote tracking branch — no empty commits, no secrets.
+
+When this rule is invoked (scheduled Cursor Automation, `/loop`, or an explicit “EOD commit” request):
+
+1. `git status`, `git diff` (staged + unstaged), `git log -5 --oneline` in parallel.
+2. If there is **nothing to commit**, stop — do not create an empty commit; report clean.
+3. **Never** commit secrets (`.env`, credentials, API keys, private keys). Warn and skip those paths.
+4. Stage relevant tracked/untracked project files (docs, `pillar-ab-implementation/`, labs, code). Prefer not staging `__pycache__/`, `.venv/`, huge local dumps under `datasets/ingest_samples/` unless the user already tracks them.
+5. Commit with a short message focused on **why** (HEREDOC). Example style: `EOD: backup weekday WIP — docs hub / pillar-ab`.
+6. `git push` to the current branch’s upstream (`-u` only if upstream is missing). Do **not** force-push `main`/`master`.
+7. Report: commit hash, branch, push result (or “nothing to commit”).
+
+**Remote:** `origin` → `harshilshah2501/unified-rca-pipeline` (or current `git remote`).  
+**Branch:** whatever is checked out (do not switch branches for EOD).
+
+Scheduled fire is configured in **Cursor Automations** (cron weekdays 17:45). This rule is the agent instruction set for that run.

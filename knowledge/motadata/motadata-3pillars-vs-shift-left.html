@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Motadata 3 pillars mapped onto ObserveOps E1–E11</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+body{margin:0;font-family:var(--font);font-size:17px;line-height:1.65;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2438 0%,transparent 55%),var(--bg);}
+a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+h3{font-size:1.05rem;font-weight:600;margin:1.25rem 0 .5rem;}
+.note{margin:1rem 0;padding:.85rem 1rem;border-radius:var(--radius);background:rgba(91,141,239,.14);border-left:3px solid var(--accent);color:var(--muted);}
+.warn{border-left-color:var(--lean);background:rgba(240,179,90,.1);}
+.ok-note{border-left-color:var(--ok);background:rgba(122,236,196,.08);}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.85rem;margin:1rem 0;}
+.grid.three{grid-template-columns:repeat(3,minmax(0,1fr));}
+@media (max-width:900px){.grid,.grid.three{grid-template-columns:1fr;}}
+.card{background:var(--bg-elev);border:1px solid var(--stroke);border-radius:10px;padding:1rem;}
+.card h3{margin:.2rem 0 .45rem;font-size:1rem;}
+.card .sub{color:var(--faint);font-family:var(--mono);font-size:.8rem;margin:0 0 .5rem;}
+.card p{margin:0;color:var(--muted);font-size:.95rem;}
+.stat{text-align:center;}
+.stat .val{font-family:var(--mono);font-size:1.35rem;color:var(--text);font-weight:650;}
+.pill{display:inline-block;font-family:var(--mono);font-size:.75rem;padding:.15rem .45rem;border-radius:4px;border:1px solid var(--stroke);margin-right:.25rem;}
+.pill.ok{color:var(--ok);border-color:rgba(122,236,196,.45);}
+.pill.partial{color:var(--lean);border-color:rgba(240,179,90,.45);}
+.toc{margin:1rem 0;padding:.85rem 1.1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
+.toc a{display:inline-block;margin:.25rem .85rem .25rem 0;}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="urca-doc article">
+<div class="wrap article">
+  <div class="eyebrow">Motadata KR Plan · vs ObserveOps shift-left · D5 stays Review</div>
+  <h1>3 pillars mapped onto E1–E11</h1>
+  <p class="lead">
+    Source: Motadata Observability 3 Pillars Architecture PDF (4 pages).
+    Start with the <a href="/motadata-3pillars-architecture.html">explained architecture</a> (what / why / how + diagrams).
+    This page is the <strong style="color:var(--text)">job map</strong> (phase ownership, build order, E1–E11 fit).
+    Target: <a href="/observeops-shift-left-architecture.html">shift-left</a>.
+    Markdown: <a href="/docs/MOTADATA_3PILLARS_VS_SHIFT_LEFT.md">MOTADATA_3PILLARS_VS_SHIFT_LEFT.md</a>.
+    Study notes: <a href="/motadata-3pillars-study-qna.html">Q&amp;A</a>.
+    Print: <a href="/docs/print/motadata-3pillars-architecture-explained-A4.pdf">explained A4 PDF</a>.
+  </p>
+
+  <div class="grid">
+    <div class="card stat">
+      <div class="val">P1</div>
+      <p>Pillars A + B live here (stores)</p>
+    </div>
+    <div class="card stat">
+      <div class="val">P3</div>
+      <p>Pillar C lives here (diagnose)</p>
+    </div>
+    <div class="card stat">
+      <div class="val">P2</div>
+      <p>Reads A+B; not a third pillar</p>
+    </div>
+    <div class="card stat">
+      <div class="val">Last</div>
+      <p>Build Pillar C after E7–E8; D5 optional</p>
+    </div>
+  </div>
+
+  <div class="note warn">
+    <strong style="color:var(--text)">Orthogonal axes — do not collapse.</strong>
+    The PDF is centralize-then-analyze: Telemetry → NATS → percentile + graph builders → Vortex/S3 → bounded retrieval → Rust ReAct agent → Explain / ITSM / Remediate.
+    That fills the <strong style="color:var(--text)">SaaS column</strong> of the shift-left diagram.
+    It does not specify the left column (OTel Node E1–E2, mask/Drain, Detect <strong style="color:var(--text)">door A</strong>, optional Gateway <strong style="color:var(--text)">door B</strong>).
+    Three <em>pillars</em> are store and RCA-algorithm choices. Shift-left is where E1–E6 execute. Same clock; different hop.
+  </div>
+
+  <h2 id="letters">A / B / C are not one series</h2>
+  <p>Three lettered systems sit on this page. They do not line up 1:1. Bare “A”, “B”, or “C” means <strong style="color:var(--text)">pillar</strong> unless the word <strong style="color:var(--text)">door</strong> or <strong style="color:var(--text)">Gate</strong> is in front.</p>
+  <table>
+    <tr><th>Letter</th><th>Kind</th><th>What it is</th><th>Not</th></tr>
+    <tr>
+      <td><strong style="color:var(--text)">Pillar A / B / C</strong></td>
+      <td>Motadata PDF products</td>
+      <td>A = percentile sketches · B = knowledge graph · C = Rust ReAct agent</td>
+      <td>Not Detect doors. Not phases. Not Gates.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Door A / B / C</strong></td>
+      <td>E6 Detect entry points</td>
+      <td>A = Node trigger · B = Gateway trigger · C = platform monitor</td>
+      <td>Not pillars. Door C <em>reads</em> Pillar A; it is not Pillar C.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Gate A / B / C / D</strong></td>
+      <td>Shift-left decision checkpoints</td>
+      <td>A = Node vs Gateway · B = dest profile · C = which Detect classes are platform-only · D = Layer I on/off</td>
+      <td>Not pillars. Not doors. Gate D ≠ HLD <strong style="color:var(--text)">D5</strong>.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">P1 / P2 / P3</strong></td>
+      <td>HLD phases</td>
+      <td>P1 fabric E1–E5 · P2 case-open E6–E8 · P3 diagnose/close E9–E11</td>
+      <td>Never written as A/B/C.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Clock A / Clock B</strong></td>
+      <td>Always-on vs on-incident</td>
+      <td>Clock A ≈ P1 · Clock B ≈ P3</td>
+      <td>Clock B is not Pillar B.</td>
+    </tr>
+  </table>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#letters">0 Letters</a>
+    <a href="#own">1 Phase ownership</a>
+    <a href="#order">2 Build order</a>
+    <a href="#stages">3 E1–E11 vs PDF</a>
+    <a href="#loop">4 Operating loop</a>
+    <a href="#conflicts">5 Conflicts</a>
+    <a href="#take">6 Take vs skip</a>
+    <a href="#next">7 Related</a>
+  </nav>
+
+  <h2 id="own">1. Which phase owns each pillar</h2>
+  <p>
+    A pillar is not a phase. <strong style="color:var(--text)">Pillar A</strong> and <strong style="color:var(--text)">Pillar B</strong> are always-on P1 stores. P2/P3 only read them.
+    <strong style="color:var(--text)">Pillar C</strong> runs in P3 (Clock B — diagnose/close) as optional Layer I. It is not Detect <strong style="color:var(--text)">door C</strong>.
+  </p>
+  <table>
+    <tr><th>Pillar</th><th>Owns (write path)</th><th>Read by</th><th>Does not own</th></tr>
+    <tr>
+      <td><strong style="color:var(--text)">A · Percentiles</strong></td>
+      <td>P1 <strong style="color:var(--text)">E4</strong> sketch store · P1 <strong style="color:var(--text)">E5</strong> seasonal refresh</td>
+      <td>P2 <strong style="color:var(--text)">E6 door C</strong> (thresholds) · P3 <strong style="color:var(--text)">E10</strong> <code>get_metric_baseline()</code></td>
+      <td>E1/E2 (needs identity first) · E9 leaf rule</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">B · Knowledge graph</strong></td>
+      <td>P1 <strong style="color:var(--text)">E3</strong> <code>GraphSnapshot</code> · P1 <strong style="color:var(--text)">E5</strong> versions / changes / writeback</td>
+      <td>P2 <strong style="color:var(--text)">E8</strong> hop/time budget · P3 <strong style="color:var(--text)">E9</strong> walk · P3 <strong style="color:var(--text)">E10</strong> <code>query_graph()</code></td>
+      <td>E6 Detect (Alert is a node, not the detector) · E11 executor</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">C · Rust ReAct agent</strong></td>
+      <td>P3 <strong style="color:var(--text)">E9</strong> Localize · P3 <strong style="color:var(--text)">E10</strong> Identify · P3 <strong style="color:var(--text)">E11</strong> Package (explain/ticket)</td>
+      <td>Tools read A+B via <strong style="color:var(--text)">E8</strong>-bounded retrieval</td>
+      <td>P1 fabric · P2 <strong style="color:var(--text)">E7</strong> Curate (keep as a stage) · remediation</td>
+    </tr>
+  </table>
+
+  <div class="note">
+    <strong style="color:var(--text)">P2 has no Motadata pillar.</strong>
+    Case-open (E6–E8) is not Pillar A, B, or C. Detect <strong style="color:var(--text)">door C</strong> (platform thresholds) is a <em>consumer</em> of <strong style="color:var(--text)">Pillar A</strong> (sketches).
+    Scope knobs are the PDF’s “RCA retrieval layer.”
+    Curate stays a required stage (<strong style="color:var(--text)">D3</strong>) in front of <strong style="color:var(--text)">Pillar C</strong> — do not implement it only as <code>deduplicate_incident()</code>.
+  </div>
+
+  <div class="grid three">
+    <div class="card">
+      <div class="sub">A · Percentiles</div>
+      <h3>Sketches, not Node E2</h3>
+      <p>T-Digest + buckets + seasonal baseline on Vortex/S3. Consumers: dashboards, alerts, agent. Thresholds are platform Detect (door C). Seasonal update is E5 freshness. Windowing sits after the bus.</p>
+    </div>
+    <div class="card">
+      <div class="sub">B · Knowledge graph</div>
+      <h3>SaaS owns the snapshot</h3>
+      <p>Typed entities and edges match “SaaS owns <code>GraphSnapshot</code>; Gateway only assists.” Mixes Change (E5), Alert (E6), Incident / ITSMTicket (E7/E11) into the same store. Traversal recipe is E9’s walk.</p>
+    </div>
+    <div class="card">
+      <div class="sub">C · Rust ReAct agent</div>
+      <h3>Layer I, not the clock</h3>
+      <p>Observe → retrieve baseline/graph → correlate → hypothesize → validate → act. That is Localize + Identify + Package with tools. <code>deduplicate_incident</code> leaks into E7. <code>execute_remediation</code> is outside E1–E11. LLM proposes; policy authorizes. D5 stays Review.</p>
+    </div>
+  </div>
+
+  <h2 id="order">2. Recommended implementation order</h2>
+  <p>
+    Do <strong style="color:var(--text)">not</strong> ship A → B → C as three products.
+    A and B are <strong style="color:var(--text)">parallel P1 writers</strong> after E2 keys exist.
+    C is last and opt-in (Gate D / D5 Review). Aligns with shift-left Gates A–D and LLD-E1/E2 already Done.
+  </p>
+  <table>
+    <tr><th>Seq</th><th>Build</th><th>HLD stages</th><th>Exit</th></tr>
+    <tr>
+      <td><strong style="color:var(--text)">0</strong></td>
+      <td>Edge admit + identity (PDF is silent — we still need this)</td>
+      <td>E1 Collect · E2 Identity (Node)</td>
+      <td><code>ingest.v1</code> with <code>tenant</code>+<code>ci_id</code>. LLD-E1/E2 Done. No pillar yet.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">1</strong></td>
+      <td>Ingest path into SaaS (NATS optional)</td>
+      <td>E1 SaaS ingest · E4 write path</td>
+      <td>Shaped stream lands. Gate B: Vortex/S3 may be <strong style="color:var(--text)">one</strong> dest, not the only dest.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">2</strong></td>
+      <td>Pillar A <strong style="color:var(--text)">∥</strong> Pillar B</td>
+      <td>A: E4 sketches + E5 season · B: E3 graph + E5 change feed</td>
+      <td>Query p95 by <code>entity_id</code> without raw scan. <code>GraphSnapshot</code> walkable. Same <code>entity_id</code> namespace.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">3</strong></td>
+      <td>Platform Detect on sketches</td>
+      <td>E6 door C</td>
+      <td>Gate C: which classes are platform-only. Doors A/B still separate (Node/Gateway).</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">4</strong></td>
+      <td>Case open without an LLM</td>
+      <td>E7 Curate · E8 Scope (retrieval layer)</td>
+      <td>One <code>CaseSeed</code> (D3). <code>WorkingSet</code> with time/entity/hop/evidence budget.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">5</strong></td>
+      <td>Deterministic diagnose + close</td>
+      <td>E9 Localize · E10 Identify · E11 <code>VerdictCard</code></td>
+      <td>Operator path works using A+B only. D4 Package required. No agent yet.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">6</strong></td>
+      <td>Pillar C as Layer I (opt-in)</td>
+      <td>Same E9–E11, tools only inside the <code>WorkingSet</code></td>
+      <td>Gate D: default off. LLM proposes; policy authorizes. Never owns E7 or E1.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">7</strong></td>
+      <td>Remediation (later, not this clock)</td>
+      <td>Outside E1–E11</td>
+      <td>Reuse policy/audit/idempotency. Do not call it Package.</td>
+    </tr>
+  </table>
+  <p><strong style="color:var(--text)">So:</strong> identity → stores (A+B) → detect/curate/scope → deterministic RCA → optional agent.</p>
+
+  <h2 id="stages">3. E1–E11 vs the PDF</h2>
+  <p>
+    Fit: <span class="pill ok">Covered</span> = same job exists.
+    <span class="pill partial">Partial</span> = analogous block, different locus or missing contract.
+  </p>
+  <table>
+    <tr><th>Stage</th><th>PDF implementation</th><th>Our shift-left locus</th><th>Fit</th></tr>
+    <tr>
+      <td>E1 Collect</td>
+      <td>Telemetry in (logs/metrics/APM/eBPF/events/<strong style="color:var(--text)">ITSM</strong>) → NATS</td>
+      <td>OTel Node receivers + SaaS cloud ingest; telemetry-only this pass</td>
+      <td><span class="pill partial">Partial</span> bus after sources; ITSM-as-Collect conflicts</td>
+    </tr>
+    <tr>
+      <td>E2 Identity</td>
+      <td><code>entity_id</code> on sketches and graph nodes; no bind overlay named</td>
+      <td>Node: k8sattributes / mask / Drain; SaaS bind-miss queue only</td>
+      <td><span class="pill partial">Partial</span> identity implied, not an edge Normalize stage</td>
+    </tr>
+    <tr>
+      <td>E3 Topology</td>
+      <td>Pillar B: typed entities/edges, <code>valid_from</code>/<code>to</code>, confidence, source</td>
+      <td>SaaS canonical <code>GraphSnapshot</code>; Gateway assist optional</td>
+      <td><span class="pill ok">Covered</span> SaaS graph matches; no Gateway assist described</td>
+    </tr>
+    <tr>
+      <td>E4 Stores</td>
+      <td>Vortex + S3: historical observability + percentile sketches</td>
+      <td>Ingest API + tenant dest fan-out (dest is Q1 store)</td>
+      <td><span class="pill partial">Partial</span> first-party lake vs dest-agnostic (Gate B open)</td>
+    </tr>
+    <tr>
+      <td>E5 Maintain</td>
+      <td>Seasonal keys; graph versions; outcomes written back</td>
+      <td>SaaS OpAMP fleet + retention; agents execute</td>
+      <td><span class="pill partial">Partial</span> freshness yes; fleet/config channel absent</td>
+    </tr>
+    <tr>
+      <td>E6 Detect</td>
+      <td>thresholds / anomaly bounds on sketches; Alert entity</td>
+      <td>Door A Node · Door B Gateway · Door C platform</td>
+      <td><span class="pill partial">Partial</span> door C only; no edge triggers</td>
+    </tr>
+    <tr>
+      <td>E7 Curate</td>
+      <td><code>CORRELATED_WITH</code>; <code>deduplicate_incident()</code> tool on the agent</td>
+      <td>SaaS required one <code>CaseSeed</code> (D3 Signed) before diagnose</td>
+      <td><span class="pill partial">Partial</span> merge is a tool, not a required pre-agent stage</td>
+    </tr>
+    <tr>
+      <td>E8 Scope</td>
+      <td>Retrieval bounded by time, entity, hop count, evidence budget</td>
+      <td>SaaS Tailor: <code>WorkingSet</code> from seed + graph + dest corridor</td>
+      <td><span class="pill partial">Partial</span> same knobs, folded into agent retrieve not a <code>WorkingSet</code> object</td>
+    </tr>
+    <tr>
+      <td>E9 Localize</td>
+      <td>Incident → service → deps → changes → abnormal metrics → candidates</td>
+      <td>SaaS/operator leaf rule (ERROR deepest-error, SLOWDOWN self-time)</td>
+      <td><span class="pill ok">Covered</span> graph walk is the leaf search; agent is the actor</td>
+    </tr>
+    <tr>
+      <td>E10 Identify</td>
+      <td>Retrieve baseline + traces/log patterns; validate hypothesis; evidence not LLM assertion</td>
+      <td>Multimodal dest query; Verify decided here</td>
+      <td><span class="pill ok">Covered</span> baseline + graph constrain the claim</td>
+    </tr>
+    <tr>
+      <td>E11 Package</td>
+      <td>Explain / <code>create_ticket</code> / ITSM; also Remediate</td>
+      <td><code>VerdictCard</code> required (D4); narrator optional (D5); dest UI is not Package</td>
+      <td><span class="pill partial">Partial</span> ticket ≈ Package; remediation is out of HLD scope</td>
+    </tr>
+  </table>
+
+  <h2 id="loop">4. Operating loop vs our phases</h2>
+  <table>
+    <tr><th>PDF loop step</th><th>HLD phase / stage</th><th>Shift-left hop</th></tr>
+    <tr><td>Telemetry</td><td>P1 E1 (admission)</td><td>Unspecified collectors — not OTel Node</td></tr>
+    <tr><td>NATS streaming</td><td>ingest bus (between E1 and E4)</td><td>SaaS / Motadata fabric — not Gateway</td></tr>
+    <tr><td>Percentile engine</td><td>E4 sketches + E6 door C + E5 season</td><td>SaaS after the bus</td></tr>
+    <tr><td>Graph builder</td><td>E3 + change facts (E5)</td><td>SaaS Vortex/S3</td></tr>
+    <tr><td>RCA retrieval layer</td><td>E8 Scope knobs</td><td>SaaS index in front of Vortex</td></tr>
+    <tr><td>Rust RCA agent</td><td>E9 → E10 (and some E7)</td><td>SaaS; our Layer I is optional</td></tr>
+    <tr><td>Explain / ITSM</td><td>E11 Package</td><td>SaaS</td></tr>
+    <tr><td>Remediate</td><td>outside E1–E11</td><td>not on the shift-left page</td></tr>
+    <tr><td>Outcome → graph context</td><td>E5 writeback + E3 version</td><td>SaaS closed loop</td></tr>
+  </table>
+
+  <h2 id="conflicts">5. Conflicts with locked (or Review) HLD defaults</h2>
+  <p>
+    Working ToDo (leadership ask vs resolution):
+    <a href="/motadata-3pillars-study-qna.html#todo">study Q&amp;A §10</a>.
+  </p>
+  <table>
+    <tr><th>Topic</th><th>PDF</th><th>Our HLD / shift-left</th><th>Handle</th></tr>
+    <tr>
+      <td>Where processing runs</td>
+      <td>Central bus then Vortex</td>
+      <td>Shape + mask + optional door A before TLS</td>
+      <td>Keep shift-left; treat PDF as SaaS half</td>
+    </tr>
+    <tr>
+      <td>Store</td>
+      <td>Vortex + S3 is the lake</td>
+      <td>Q1 dest-agnostic fan-out (Gate B open)</td>
+      <td>Vortex can be one dest profile, not the only E4</td>
+    </tr>
+    <tr>
+      <td>Detect doors</td>
+      <td>Alerting on sketches (platform)</td>
+      <td>Both doors; Node-first default is Open (Gate C)</td>
+      <td>PDF implements door C. Doors A/B still ours to build</td>
+    </tr>
+    <tr>
+      <td>AI / D5</td>
+      <td>Agent is the RCA engine</td>
+      <td>D5 Review; operator path always on; Layer I optional</td>
+      <td><strong style="color:var(--text)">Do not flip D5</strong> because the PDF is agentic</td>
+    </tr>
+    <tr>
+      <td>Curate D3</td>
+      <td>Dedupe as an agent tool</td>
+      <td>Required one seed before diagnose</td>
+      <td>Keep E7 in front of the agent, not inside it</td>
+    </tr>
+    <tr>
+      <td>E1 sources</td>
+      <td>ITSM listed with telemetry</td>
+      <td>Telemetry-only Collect; ticket is reserved <code>fact_kind</code></td>
+      <td>ITSM stays E11 egress / future join, not E1</td>
+    </tr>
+    <tr>
+      <td>Remediation</td>
+      <td><code>execute_remediation()</code> with policy</td>
+      <td>HLD scope-out: no remediation execution</td>
+      <td>Policy pattern is reusable; executor is not E11</td>
+    </tr>
+  </table>
+
+  <h2 id="take">6. What to take vs what not to copy</h2>
+  <div class="note ok-note">
+    <strong style="color:var(--text)">Take:</strong>
+    mergeable percentile sketches as an E4 modality; typed RCA graph with <code>valid_from</code>/<code>to</code> and confidence as E3;
+    bounded retrieval as E8; hypothesis-plus-evidence language for E10; LLM never owns authorization if Layer I ships.
+  </div>
+  <div class="note warn">
+    <strong style="color:var(--text)">Do not copy:</strong>
+    skipping Node E1–E2; treating NATS+Vortex as the whole product; folding Curate into the agent;
+    making ReAct the default Package path; calling ITSM or remediation Collect.
+  </div>
+  <p>
+    Formal contracts stay on the <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a>.
+    This PDF is a Motadata implementation sketch of the <strong style="color:var(--text)">SaaS column</strong>, not a rewrite of the clock.
+  </p>
+
+  <h2 id="next">7. Related</h2>
+  <ul>
+    <li><a href="/observeops-shift-left-architecture.html">Shift-processing-left</a> — where E1–E11 run (Node / Gateway / SaaS)</li>
+    <li><a href="/observeops-pipeline-hld.html">Our HLD</a> · <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a> — D5 stays Review</li>
+    <li><a href="/docs/LLD-E1-Collect.md">LLD-E1 Collect</a> (Done) · <a href="/docs/LLD-E2-Identity.md">LLD-E2 Identity</a> (Done)</li>
+    <li><a href="/federated-vs-dt-pipeline-gaps.html#motadata-multi-telemetry-frac-supplementary-acceptance-bar">Federated vs DT gaps · Motadata FR/AC</a></li>
+    <li><a href="/motadata-3pillars-study-qna.html">Study Q&amp;A</a> — pillars vs doors, CI vs event nodes, four topology designs, graph time ≠ Detect</li>
+  </ul>
+</div>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

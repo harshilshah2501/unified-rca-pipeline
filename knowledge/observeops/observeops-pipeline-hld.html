@@ -1,0 +1,2657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Our HLD — ObserveOps pipeline</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta name="description" content="Motadata ObserveOps HLD hub: overview, end-to-end workflow, GraphWriter I/O, and checkout diagnose walkthrough — one page." />
+<link rel="stylesheet" href="/urca-docs.css" />
+<script src="/theme-init.js"></script>
+<style>
+body{
+  margin:0;font-family:var(--font);font-size:17px;line-height:1.65;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,var(--bg-glow) 0%,transparent 55%),var(--bg);
+}
+a{color:var(--eng);text-decoration:none;} a:hover{text-decoration:underline;}
+h3{font-size:1.05rem;font-weight:650;margin:1.2rem 0 .55rem;color:#e8eef4;}
+p,li{color:var(--muted);}
+.headerCard{
+  border:1px solid var(--stroke);background:var(--bg-elev);border-radius:10px;padding:1rem;
+}
+.badge{display:inline-block;font-family:var(--mono);font-size:.76rem;padding:.18rem .45rem;border-radius:4px;margin-right:.4rem;}
+.bReview{border:1px solid rgba(122,236,196,.55);color:var(--ok);}
+.bVersion{border:1px solid rgba(123,168,245,.5);color:var(--eng);}
+.bLayerI{border:1px solid rgba(232,184,109,.6);color:var(--interp);}
+.note{margin:.9rem 0;padding:.8rem 1rem;border-radius:8px;background:rgba(91,141,239,.1);border-left:3px solid var(--eng);}
+.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media (max-width:860px){.twoCol{grid-template-columns:1fr;}}
+.panel{border:1px solid var(--stroke);border-radius:10px;padding:.9rem;background:var(--bg-elev);}
+.panel h3{margin:0 0 .4rem;font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;}
+.panel.e h3{color:var(--eng);} .panel.i h3{color:var(--interp);}
+th,td{border-bottom:1px solid var(--stroke);padding:.46rem .5rem;vertical-align:top;text-align:left;color:var(--muted);}
+th{font-size:.83rem;color:var(--faint);text-transform:uppercase;letter-spacing:.04em;}
+.phaseRail{display:grid;gap:8px;margin:1rem 0;}
+.phaseRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.bb{min-width:8rem;border:1px solid var(--stroke);border-radius:8px;background:var(--bg-elev);padding:.5rem .65rem;}
+.bb .id{font-family:var(--mono);font-size:.74rem;color:var(--eng);}
+.bb .nm{color:var(--text);font-weight:600;font-size:.92rem;}
+.arrow{font-family:var(--mono);color:var(--faint);}
+.stickyNav{
+  position:sticky;top:0;z-index:10;margin:1rem 0;padding:.7rem .9rem;
+  border:1px solid var(--stroke);border-radius:8px;background:var(--sticky-bg);backdrop-filter:blur(3px);
+}
+.stickyNav a{display:inline-block;margin:.22rem .7rem .22rem 0;font-size:.95rem;}
+details{
+  border:1px solid var(--stroke);border-radius:8px;background:var(--bg-elev);margin:.55rem 0;padding:.55rem .7rem;
+}
+summary{cursor:pointer;font-weight:600;color:var(--text);}
+summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
+.fieldList{margin:.65rem 0 0 0;padding-left:1.1rem;}
+.fieldList li{margin:.2rem 0;}
+.fieldKey{color:var(--text);font-weight:600;}
+.tier1Band{display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:8px;margin:1rem 0;}
+.tier1Band a{display:block;padding:.65rem .75rem;border:1px solid var(--stroke);border-radius:8px;background:var(--bg-elev);color:inherit;text-decoration:none;font-size:.92rem;}
+.tier1Band a:hover{border-color:rgba(91,141,239,.45);text-decoration:none;}
+.tier1Band a strong{display:block;color:var(--text);font-size:.95rem;margin-bottom:.2rem;}
+.tier1Band a span{color:var(--muted);font-size:.82rem;}
+.ioChain{display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:8px;margin:.75rem 0 1rem;}
+.ioChain a{display:block;padding:.55rem .7rem;border:1px solid var(--stroke);border-radius:8px;background:#121821;color:inherit;text-decoration:none;font-size:.88rem;}
+.ioChain a:hover{border-color:rgba(232,209,157,.45);text-decoration:none;}
+.ioChain .ioLbl{font-family:var(--mono);font-size:.68rem;color:#e8d19d;margin-right:.35rem;}
+
+  .hub-tabs {
+    display: flex; flex-wrap: wrap; gap: .4rem;
+    margin: 0 0 1.1rem;
+    position: sticky; top: 0; z-index: 12;
+    padding: .65rem 0 .55rem;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(4px);
+    border-bottom: 1px solid var(--stroke);
+  }
+  .hub-tab {
+    appearance: none; border: 1px solid var(--stroke); background: var(--bg-soft);
+    color: var(--muted); font-family: var(--font); font-size: .85rem;
+    padding: .45rem .85rem; border-radius: 999px; cursor: pointer;
+  }
+  .hub-tab[aria-selected="true"] {
+    color: var(--text); background: var(--accent-soft);
+    border-color: rgba(61,154,139,.55); font-weight: 600;
+  }
+  .hub-panel { display: none; }
+  .hub-panel.is-active { display: block; }
+  .hub-note {
+    margin: 0 0 1rem; padding: .65rem .85rem; border-radius: 8px;
+    border: 1px solid var(--stroke); background: var(--bg-elev);
+    color: var(--muted); font-size: .88rem;
+  }
+
+/* --- workflow --- */
+/* Theme-aware teaching panels (use hub tokens — no light-only white posters). */
+  .wf-wrap { max-width: 68rem; }
+  .poster {
+    background: var(--bg-elev);
+    color: var(--text);
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 1.1rem 1rem 1.25rem;
+    margin: 0 0 1.5rem;
+    overflow-x: auto;
+  }
+  .poster h2 {
+    margin: 0 0 .35rem;
+    font-size: 1.15rem;
+    color: var(--text);
+    font-weight: 650;
+  }
+  .poster .sub {
+    margin: 0 0 1rem;
+    font-size: .88rem;
+    color: var(--muted);
+  }
+  .poster .sect-label {
+    margin: 1.35rem 0 .55rem;
+    font-size: .72rem;
+    font-weight: 650;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .poster .sect-label.teal { color: var(--accent); }
+  .poster .sect-label.navy { color: var(--text); }
+
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .85rem;
+  }
+  @media (max-width: 860px) { .pair { grid-template-columns: 1fr; } }
+
+  .panel {
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    background: var(--bg-soft);
+    overflow: hidden;
+    min-height: 100%;
+  }
+  .panel.fabric { border-color: rgba(123, 168, 245, 0.45); }
+  .panel.case { border-color: rgba(240, 179, 90, 0.45); }
+  .panel-bar {
+    padding: .55rem .85rem;
+    font-weight: 650;
+    font-size: .9rem;
+    color: var(--text);
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--stroke);
+  }
+  .panel.fabric .panel-bar {
+    border-left: 3px solid #7ba8f5;
+  }
+  .panel.case .panel-bar {
+    border-left: 3px solid #f0b35a;
+  }
+  .panel-sub {
+    padding: .4rem .85rem .55rem;
+    font-size: .8rem;
+    color: var(--muted);
+    border-bottom: 1px solid var(--stroke);
+    background: var(--bg-elev);
+  }
+  .panel-body { padding: .75rem .85rem .9rem; }
+  .node-row {
+    display: flex; flex-wrap: wrap; gap: .4rem; align-items: center;
+    margin: 0 0 .55rem;
+  }
+  .node {
+    background: var(--bg-elev);
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    padding: .4rem .55rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .node small {
+    display: block;
+    font-weight: 500;
+    color: var(--faint);
+    font-size: .68rem;
+    margin-top: .1rem;
+  }
+  .node.center {
+    border-color: rgba(123, 168, 245, 0.55);
+    background: rgba(123, 168, 245, 0.08);
+  }
+  .node.warm {
+    border-color: rgba(240, 179, 90, 0.55);
+    background: rgba(240, 179, 90, 0.08);
+  }
+  .node.ok {
+    border-color: rgba(122, 236, 196, 0.45);
+    background: rgba(122, 236, 196, 0.08);
+  }
+  a.node {
+    color: var(--text);
+    text-decoration: none;
+  }
+  a.node:hover { border-color: var(--accent); color: var(--text); }
+  .edge {
+    font-size: .68rem;
+    color: var(--faint);
+    font-family: var(--mono);
+  }
+  .arrow {
+    color: var(--faint);
+    font-size: .85rem;
+    font-weight: 600;
+  }
+  .cap {
+    margin: .65rem 0 0;
+    font-size: .78rem;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .flow {
+    display: flex; flex-wrap: wrap; gap: .45rem; align-items: stretch;
+    margin: .35rem 0 .75rem;
+  }
+  .flow-step {
+    background: var(--bg-elev);
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    padding: .5rem .6rem;
+    flex: 1 1 7.5rem;
+    min-width: 0;
+    max-width: 11rem;
+    overflow: hidden;
+  }
+  .flow-step .k {
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: .2rem;
+  }
+  .flow-step .t {
+    font-size: .8rem;
+    font-weight: 650;
+    color: var(--text);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .flow-step .d {
+    font-size: .68rem;
+    color: var(--faint);
+    margin-top: .2rem;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .flow-note {
+    margin: .25rem 0 .5rem;
+    padding: .55rem .75rem;
+    background: rgba(61, 154, 139, 0.1);
+    border: 1px solid rgba(61, 154, 139, 0.35);
+    border-radius: 8px;
+    font-size: .8rem;
+    color: var(--muted);
+  }
+  .branch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .65rem;
+    margin-top: .35rem;
+  }
+  @media (max-width: 700px) { .branch { grid-template-columns: 1fr; } }
+  .branch-card {
+    background: var(--bg-elev);
+    border-radius: 10px;
+    border: 1px solid var(--stroke);
+    padding: .65rem .75rem;
+  }
+  .branch-card.follow { border-color: rgba(122, 236, 196, 0.4); }
+  .branch-card.deviate { border-color: rgba(240, 179, 90, 0.45); }
+  .branch-card h4 {
+    margin: 0 0 .35rem;
+    font-size: .82rem;
+    color: var(--text);
+  }
+  .branch-card p { margin: 0; font-size: .75rem; color: var(--muted); }
+
+  .trio {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .75rem;
+  }
+  @media (max-width: 900px) { .trio { grid-template-columns: 1fr; } }
+  .mech {
+    border-radius: 12px;
+    border: 1px solid var(--stroke);
+    background: var(--bg-soft);
+    overflow: hidden;
+  }
+  .mech-h {
+    padding: .55rem .75rem;
+    font-size: .82rem;
+    font-weight: 650;
+    color: var(--text);
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--stroke);
+  }
+  .mech.a .mech-h { border-left: 3px solid #f0b35a; }
+  .mech.b .mech-h { border-left: 3px solid #7ba8f5; }
+  .mech.c .mech-h { border-left: 3px solid #7aecc4; }
+  .mech-b {
+    padding: .75rem;
+    font-size: .78rem;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .mech-b .stack {
+    display: flex; flex-direction: column; gap: .35rem; align-items: stretch;
+    margin: .45rem 0;
+  }
+  .mech-b .stack .node { text-align: center; }
+  .mech-b .varr { text-align: center; color: var(--faint); font-size: .75rem; }
+
+  .rail {
+    display: flex; flex-wrap: wrap; gap: .35rem; align-items: center;
+    margin: .5rem 0 0;
+  }
+  .rail .chip {
+    background: var(--bg-elev);
+    border: 1px solid var(--stroke);
+    border-radius: 6px;
+    padding: .28rem .45rem;
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .rail .chip.p1 { border-color: rgba(123, 168, 245, 0.55); color: #9bc0ff; }
+  .rail .chip.p2 { border-color: rgba(240, 179, 90, 0.55); color: #f0b35a; }
+  .rail .chip.p3 { border-color: rgba(122, 236, 196, 0.45); color: #7aecc4; }
+  .rail .sep { color: var(--faint); font-size: .7rem; }
+
+  .toc {
+    display: flex; flex-wrap: wrap; gap: .4rem;
+    margin: 0 0 1.1rem;
+  }
+  .toc a {
+    text-decoration: none;
+    border: 1px solid var(--stroke);
+    background: var(--bg-soft);
+    color: var(--muted);
+    font-size: .8rem;
+    padding: .35rem .65rem;
+    border-radius: 999px;
+  }
+  .toc a:hover { color: var(--text); border-color: rgba(61,154,139,.55); }
+
+  .detail {
+    margin: 0 0 1.25rem;
+    border: 1px solid var(--stroke);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .detail summary {
+    cursor: pointer;
+    list-style: none;
+    padding: .7rem .9rem;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--stroke);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .detail summary::-webkit-details-marker { display: none; }
+  .detail[open] summary { border-bottom-color: var(--stroke); }
+  .detail .body {
+    padding: .85rem .95rem 1rem;
+    color: var(--muted);
+    font-size: .9rem;
+  }
+  .detail table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  .detail th, .detail td {
+    text-align: left; vertical-align: top;
+    padding: .45rem .55rem; border-bottom: 1px solid var(--stroke);
+  }
+  .detail th {
+    color: var(--faint);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .detail tr:last-child td { border-bottom: none; }
+  .detail .sect-label {
+    margin: 1rem 0 .45rem;
+    font-size: .72rem;
+    font-weight: 650;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .detail .sect-label:first-child { margin-top: .25rem; }
+  .io-json {
+    margin: .55rem 0 1rem;
+    padding: .75rem .85rem;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    overflow: auto;
+    font-family: var(--mono);
+    font-size: .78rem;
+    line-height: 1.45;
+    white-space: pre;
+  }
+  .callout {
+    border: 1px solid var(--stroke);
+    border-left: 3px solid var(--accent);
+    background: var(--bg-elev);
+    border-radius: 8px;
+    padding: .75rem .9rem;
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: .92rem;
+  }
+  .foot {
+    margin: 1.5rem 0 0;
+    font-size: .82rem;
+    color: var(--faint);
+  }
+/* --- graphwriter (scoped class renames) --- */
+/* Page-local chrome for the seven-step walkthrough (hub tokens from urca-docs.css). */
+  .gw-ok { --ok: #7aecc4; --warn: #f0b35a; --danger: #f07178; --info: #7ba8f5; }
+  .gw-ok .wrap { max-width: 58rem; }
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 0.35rem;
+  }
+  h1 {
+    margin: 0 0 0.5rem;
+    font-size: 1.55rem;
+    font-weight: 650;
+    line-height: 1.25;
+  }
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.15rem;
+  }
+  h3 {
+    margin: 1rem 0 0.5rem;
+    font-size: 0.95rem;
+    color: #d5dde6;
+  }
+  .lead {
+    margin: 0 0 1.25rem;
+    color: var(--muted);
+    font-size: 0.97rem;
+    max-width: 48rem;
+  }
+  .lead code, td code, .note code, li code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    color: #9bc0ff;
+  }
+  a { color: var(--accent); }
+  a:hover { color: #7ec8b8; }
+
+  .gw-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 1rem;
+  }
+  .gw-tab {
+    appearance: none;
+    border: 1px solid var(--stroke);
+    background: var(--bg-soft);
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 0.82rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .gw-tab:hover { color: var(--text); border-color: #3a4656; }
+  .gw-tab[aria-selected="true"] {
+    color: var(--text);
+    background: var(--accent-soft);
+    border-color: rgba(61, 154, 139, 0.55);
+    font-weight: 600;
+  }
+
+  .gw-panel-head { margin-bottom: 0.75rem; }
+  .gw-panel-head .blurb { margin: 0; color: var(--muted); font-size: 0.9rem; }
+  .gw-panel { display: none; }
+  .gw-panel.is-active { display: block; }
+
+  .callout {
+    border: 1px solid var(--stroke);
+    border-left: 3px solid var(--info);
+    background: var(--bg-elev);
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .callout.info { border-left-color: var(--info); }
+  .callout.neutral { border-left-color: var(--faint); }
+  .callout.warn { border-left-color: var(--warn); }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    margin: 0 0 1rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--stroke);
+  }
+  th {
+    background: #121821;
+    color: var(--faint);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr.tone-success td:last-child { color: var(--ok); }
+  tr.tone-danger td:last-child { color: var(--danger); }
+  tr.tone-warning td:last-child { color: var(--warn); }
+  tr.tone-info { background: rgba(123, 168, 245, 0.06); }
+
+  .grid-2, .grid-3 {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0 0 1rem;
+  }
+  .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 720px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+  .card-h {
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--stroke);
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: #121821;
+  }
+  .card-b { padding: 0.75rem 0.8rem; }
+  .card-b p { margin: 0.25rem 0; color: var(--muted); font-size: 0.88rem; }
+
+  .stat {
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    background: var(--bg-elev);
+    padding: 0.75rem 0.85rem;
+  }
+  .stat .v {
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    font-weight: 650;
+    color: var(--text);
+  }
+  .stat.info .v { color: var(--info); }
+  .stat .l {
+    margin-top: 0.2rem;
+    font-size: 0.78rem;
+    color: var(--faint);
+  }
+
+  pre.code {
+    margin: 0;
+    padding: 0.75rem 0.85rem;
+    background: #0c1016;
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: #d5dde6;
+    white-space: pre;
+  }
+  .card-b pre.code { border: none; border-radius: 0; background: #0c1016; }
+
+  .dia {
+    margin: 0 0 0.75rem;
+    border: 1px solid var(--stroke);
+    border-radius: 10px;
+    background: #10161d;
+    padding: 0.75rem 0.5rem;
+    overflow-x: auto;
+  }
+  .dia svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+  .note {
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
+    color: var(--faint);
+  }
+
+  .nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--stroke);
+  }
+  .nav-row .count { color: var(--faint); font-size: 0.85rem; }
+  .btn {
+    appearance: none;
+    border: 1px solid var(--stroke);
+    background: var(--bg-soft);
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .btn:hover:not(:disabled) { color: var(--text); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.primary {
+    background: var(--accent-soft);
+    border-color: rgba(61, 154, 139, 0.55);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .meta {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--stroke);
+    font-size: 0.82rem;
+    color: var(--faint);
+  }
+  .admit-legend {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin: 0 0 1rem;
+  }
+  .admit-legend div {
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    background: var(--bg-elev);
+    padding: 0.65rem 0.75rem;
+  }
+  .admit-legend .tag {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .admit-legend .tag.noop { color: var(--faint); }
+  .admit-legend .tag.write { color: var(--ok); }
+  .admit-legend .tag.drop { color: var(--danger); }
+  .admit-legend p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  @media (max-width: 720px) {
+    .admit-legend { grid-template-columns: 1fr; }
+  }
+/* --- diagnose --- */
+.wrap { max-width: 58rem; }
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 0.35rem;
+  }
+  h1 { margin: 0 0 0.5rem; font-size: 1.55rem; font-weight: 650; line-height: 1.25; }
+  h2 { margin: 0 0 0.35rem; font-size: 1.15rem; }
+  h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+  .lead { margin: 0 0 1.1rem; color: var(--muted); font-size: 0.97rem; max-width: 48rem; }
+  .lead code, .how code, .ex code, td code { font-family: var(--mono); font-size: 0.86em; color: var(--accent); }
+  a { color: var(--accent); }
+
+  .nav-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0 0 0.85rem; }
+  .btn {
+    appearance: none; border: 1px solid var(--stroke); background: var(--bg-soft);
+    color: var(--muted); font-family: var(--font); font-size: 0.85rem;
+    padding: 0.45rem 0.85rem; border-radius: 999px; cursor: pointer;
+  }
+  .btn:hover:not(:disabled) { color: var(--text); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.primary {
+    background: var(--accent-soft); border-color: rgba(61, 154, 139, 0.55);
+    color: var(--text); font-weight: 600;
+  }
+  .count { color: var(--faint); font-size: 0.85rem; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 1rem; }
+  .tab {
+    appearance: none; border: 1px solid var(--stroke); background: var(--bg-soft);
+    color: var(--muted); font-family: var(--font); font-size: 0.78rem;
+    padding: 0.35rem 0.65rem; border-radius: 999px; cursor: pointer;
+  }
+  .tab[aria-selected="true"] {
+    color: var(--text); background: var(--accent-soft);
+    border-color: rgba(61, 154, 139, 0.55); font-weight: 600;
+  }
+  .tab.done { border-color: rgba(122, 236, 196, 0.35); }
+
+  .grid-2 {
+    display: grid; gap: 0.85rem; grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0 0 1rem;
+  }
+  @media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .card {
+    border: 1px solid var(--stroke); border-radius: 10px;
+    background: var(--bg-elev); overflow: hidden;
+  }
+  .card-h {
+    display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--stroke);
+    font-size: 0.82rem; font-weight: 600; background: var(--bg-soft);
+  }
+  .card-b { padding: 0.85rem 0.9rem; }
+  .card-b p { margin: 0 0 0.55rem; color: var(--muted); font-size: 0.9rem; line-height: 1.45; }
+  .pill {
+    font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 999px;
+    border: 1px solid var(--stroke); color: var(--muted); white-space: nowrap;
+  }
+  .pill.map { color: #7ba8f5; border-color: rgba(123,168,245,.45); }
+  .pill.hist { color: #f0b35a; border-color: rgba(240,179,90,.45); }
+  .pill.case { color: #e8a070; border-color: rgba(232,160,112,.45); }
+  .pill.human { color: #7aecc4; border-color: rgba(122,236,196,.45); }
+
+  .how { margin: 0; }
+  .how ol { margin: 0.35rem 0 0; padding-left: 1.2rem; color: var(--text); }
+  .how li { margin: 0 0 0.55rem; font-size: 0.9rem; line-height: 1.45; color: var(--muted); }
+  .how li strong { color: var(--text); font-weight: 600; }
+  .ex {
+    margin: 0.75rem 0 0; padding: 0.65rem 0.75rem; border-radius: 8px;
+    background: #0c1016; border: 1px solid var(--stroke);
+    font-family: var(--mono); font-size: 0.8rem; color: #d5dde6;
+  }
+  .evidence {
+    margin: 0.85rem 0 0; padding: 0.65rem 0.8rem; border-radius: 8px;
+    border: 1px solid var(--stroke); border-left: 3px solid var(--faint);
+    background: var(--bg-soft); color: var(--faint); font-size: 0.82rem; line-height: 1.4;
+  }
+
+  .dia {
+    border: 1px solid var(--stroke); border-radius: 10px;
+    background: #10161d; padding: 0.65rem 0.4rem 0.4rem; margin: 0 0 0.5rem;
+  }
+  .dia svg { display: block; width: 100%; height: auto; }
+  .cap { margin: 0; font-size: 0.78rem; color: var(--faint); line-height: 1.35; }
+
+  .callout {
+    border: 1px solid var(--stroke); border-left: 3px solid #f0b35a;
+    background: var(--bg-elev); border-radius: 8px; padding: 0.75rem 0.9rem;
+    margin: 0 0 1.1rem; color: var(--muted); font-size: 0.9rem; line-height: 1.45;
+  }
+  .table-wrap {
+    overflow-x: auto; border: 1px solid var(--stroke); border-radius: 8px; margin: 1rem 0 0;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  th, td {
+    text-align: left; vertical-align: top; padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--stroke);
+  }
+  th {
+    background: var(--bg-soft); color: var(--faint); font-size: 0.72rem;
+    letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600;
+  }
+  tr:last-child td { border-bottom: none; }
+  .meta {
+    margin-top: 1.75rem; padding-top: 1rem; border-top: 1px solid var(--stroke);
+    font-size: 0.82rem; color: var(--faint);
+  }
+</style>
+</head>
+<body class="urca-doc article gw-ok">
+<div class="wrap article wf-wrap">
+  <div class="eyebrow">Our HLD · ObserveOps · one pipeline</div>
+  <h1>ObserveOps pipeline</h1>
+  <p class="lead">
+    There is <strong style="color:var(--text)">one pipeline</strong>: eleven steps from Collect to Package (E1–E11).
+    This hub consolidates the former separate <em>Our HLD</em>, <em>Pipeline workflow</em>, and <em>GraphWriter</em> tabs —
+    plus the checkout diagnose walk — into one page with four sections.
+  </p>
+
+  <div class="hub-note">
+    Deep specs stay linked (not duplicated):
+    <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a> ·
+    <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a> ·
+    <a href="/data-shape-journey.html">Data shape journey</a> ·
+    <a href="/observeops-fusion-guide.html">Fusion</a> (interactive try) ·
+    <a href="/hld-archive.html">HLD archive</a> ·
+    <a href="/print/our-hld-observeops-A4.pdf">A4 print brief</a>.
+  </div>
+
+  <div class="hub-tabs" role="tablist" aria-label="Our HLD sections">
+    <button type="button" class="hub-tab" role="tab" id="tab-overview" aria-controls="panel-overview" data-panel="overview" aria-selected="true">Overview</button>
+    <button type="button" class="hub-tab" role="tab" id="tab-workflow" aria-controls="panel-workflow" data-panel="workflow" aria-selected="false">Workflow</button>
+    <button type="button" class="hub-tab" role="tab" id="tab-graphwriter" aria-controls="panel-graphwriter" data-panel="graphwriter" aria-selected="false">GraphWriter</button>
+    <button type="button" class="hub-tab" role="tab" id="tab-diagnose" aria-controls="panel-diagnose" data-panel="diagnose" aria-selected="false">Diagnose</button>
+  </div>
+
+  <section class="hub-panel is-active" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" data-panel="overview">
+  <p class="lead" style="margin-top:0">
+    <strong style="color:var(--text)">Cold start:</strong>
+    <a href="/docs/observeops/OUR_HLD_TIER1.md">Tier 1 reading list</a> — then Tier 2 depth in the
+    <a href="/hld-archive.html">archive</a>. Use the tabs above for Workflow, GraphWriter, and Diagnose.
+  </p>
+
+  <div class="headerCard">
+    <span class="badge bReview">APPROVED FOR BUILD</span>
+    <span class="badge bLayerI">LAYER I IS OPTIONAL</span>
+    <p style="margin:.65rem 0 0;">
+      Vendor labs sit on the site bar (DT · DD · ED). They are teaching annexes, not this pipeline.
+      AI placement (D5) stays Review.
+    </p>
+  </div>
+
+  <h2 id="tier1">Tier 1 — start here</h2>
+  <p style="margin:0 0 .5rem;font-size:.95rem;color:var(--muted);">
+    Six pages for orientation. Full list and role shortcuts:
+    <a href="/docs/observeops/OUR_HLD_TIER1.md">OUR_HLD_TIER1.md</a>.
+  </p>
+  <div class="tier1Band">
+    <a href="/observeops-fusion-guide.html"><strong>1 · Fusion</strong><span>Try — click a Detect class</span></a>
+    <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md"><strong>2 · Pipeline HLD</strong><span>Written spec · ADRs</span></a>
+    <a href="/data-shape-journey.html"><strong>3 · Data shape journey</strong><span>Fabric · E1–E11 forms</span></a>
+    <a href="/docs/GRAPH_QNA.md"><strong>4 · GRAPH_QNA</strong><span>Locked fabric rules</span></a>
+    <a href="/urca-glossary.html"><strong>5 · Glossary</strong><span>Terms first</span></a>
+    <a href="/pillar-ab-implementation/README.md"><strong>6 · Pillar A+B</strong><span>Slice README → Pillar B PoC demo</span></a>
+  </div>
+
+  <h3 id="implementer-io">Tier 2 · Implementer I/O (wire records)</h3>
+  <p style="margin:0 0 .5rem;font-size:.92rem;color:var(--muted);">
+    Normative ingest → writer → dest contracts. Not required for product orientation.
+    <a href="/hld-archive.html#implementer-io">Archive section</a>.
+  </p>
+  <div class="ioChain">
+    <a href="/docs/INGEST_DATA_FORMAT.md"><span class="ioLbl">I/O-1</span>Ingest data format</a>
+    <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md"><span class="ioLbl">I/O-2</span>Post-E2 fixtures</a>
+    <a href="/docs/MAP_WRITE_READ_RECORD.md"><span class="ioLbl">I/O-3</span>Map write/read · vortex_s3</a>
+    <a href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md"><span class="ioLbl">I/O-4</span>Pillar A deep dive</a>
+  </div>
+
+  <h3 id="pillar-b-poc">Pillar B PoC — team demo</h3>
+  <p style="margin:0 0 .5rem;font-size:.92rem;color:var(--muted);">
+    Motadata knowledge-graph lab under <code>pillar-ab-implementation/pillar-b/</code> —
+    build/maintain + walk <code>map/</code>. Not the Lean/Federated bakeoff console.
+    Archive: <a href="/hld-archive.html#pillar-b-poc">#pillar-b-poc</a>.
+  </p>
+  <div class="tier1Band">
+    <a href="/pillar-b-poc-hub.html"><strong>Pillar B PoC hub</strong><span>Navigator · canvases → hub doors</span></a>
+    <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md"><strong>Team walkthrough</strong><span>Demo · admit · run</span></a>
+    <a href="/pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md"><strong>MAP_P1 eval</strong><span>Build/maintain + walk proofs</span></a>
+    <a href="/pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md"><strong>Codebase go-through</strong><span>Module tour + spine</span></a>
+    <a href="/pillar-ab-implementation/pillar-b/docs/README.md"><strong>Pillar B doc map</strong><span>Reading order in package</span></a>
+    <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md"><strong>Writer regulator</strong><span>writer_stream.v1 · no fact_kind</span></a>
+    <a href="/docs/MAP_WRITE_READ_RECORD.md"><strong>Map write/read</strong><span>files.v1 + vortex_s3.v1</span></a>
+    <a href="/pillar-b-poc-hub.html#dest-vortex-s3"><strong>Dest Vortex+S3</strong><span>Hub band · contracts</span></a>
+    <a href="#graphwriter"><strong>GraphWriter tab</strong><span>Hub visual · NOOP/WRITE/DROP</span></a>
+  </div>
+  <p style="margin:.35rem 0 0;font-size:.85rem;color:var(--muted);">
+    Framing, layer index, and call sequences live on
+    <a href="/pillar-b-poc-hub.html"><code>:8765/pillar-b-poc-hub.html</code></a>
+    (replaces dead <code>.canvas.tsx</code> clicks). Optional Cursor panel: Command Palette →
+    <strong style="color:var(--text)">Open Canvas</strong> → <code>pillar-b-poc-navigator</code>.
+  </p>
+
+  <h2 id="hld-pack">Reading paths (detail)</h2>
+  <p>
+    A <strong style="color:var(--text)">step</strong> is one box on the pipeline (Collect, Detect, Localize, …).
+    What goes <em>in</em> and <em>out</em> of that box is the step’s job — the written spec calls that a contract.
+    An <strong style="color:var(--text)">ADR</strong> is a signed design choice (topology, stores, Curate, Package). D5 (where AI sits) is not signed.
+  </p>
+
+  <h3 id="path-try">1 · Try a breakage</h3>
+  <p>
+    Start with the <a href="#workflow">Workflow</a> poster (estate map vs diagnose · E1–E11 rail · checkout spine · triage JSON),
+    then <a href="/observeops-fusion-guide.html">Fusion</a> for live per-step I/O, then the
+    <a href="#diagnose">Diagnose</a> tab for map/ + history/ step-through.
+  </p>
+
+  <h3 id="path-spec">2 · Read the written spec</h3>
+  <p>This page (summary) then <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a> (canonical) — purpose, contracts, ADRs, NFR targets, revision history.</p>
+
+  <h3 id="path-fabric">3 · Data shape &amp; Motadata fabric</h3>
+  <p>
+    When the question is <em>what changed name or form?</em> — Edge devices → Platform, <code>ingest.v1</code>, <code>map/</code> ∥ <code>history/</code>, case objects — use the
+    <a href="#fabric">fabric cards</a> below. Contract Q&amp;A: <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a>.
+  </p>
+
+  <h3 id="path-build">4 · Build &amp; locus</h3>
+  <p>
+    <a href="/motadata-3pillars-implementation-scope.html">3 pillars implementation scope</a> (Tier 2 kickoff) ·
+    <a href="/observeops-shift-left-architecture.html">Shift-left</a> (Node / optional Gateway / SaaS) ·
+    implementer I/O chain above (<a href="#implementer-io">I/O-1 … I/O-4</a>) ·
+    <a href="#pillar-b-poc">Pillar B PoC demo</a> (team walkthrough → tests).
+  </p>
+
+  <h3 id="path-archive">5 · Archive &amp; deep chapters</h3>
+  <p><a href="/hld-archive.html">HLD archive</a> — searchable index: Motadata study pack, example map, LLDs, print exports, full fabric list.</p>
+
+  <h2 id="fabric">Fabric depth (Tier 2 visuals)</h2>
+  <p class="sect-lead" style="margin:0 0 .85rem;font-size:.95rem;color:var(--muted);">
+    Tier 1 fabric story: <a href="/data-shape-journey.html">data shape journey</a> + <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a>.
+    Below: additional P1 fabric visuals. Full index: <a href="/hld-archive.html#fabric">archive → Fabric</a>.
+  </p>
+  <div class="grid two">
+    <a class="card" href="/edge-platform-detect-simulation.html">
+      <div class="k compare">Unified film</div>
+      <h3>Edge → Localize simulation</h3>
+      <p>Ingest → <code>map/</code> ∥ <code>history/</code> · E5 warms both · capture → Detect → Curate → WorkingSet → LeafClaim.</p>
+    </a>
+    <a class="card" href="/e1-e5-pipeline-architecture.html">
+      <div class="k compare">P1 fabric</div>
+      <h3>E1–E5 pipeline architecture</h3>
+      <p>E2 fan-out → Pillar B <code>map/</code> ∥ Pillar A <code>history/</code>. Edge · Gateway · Platform zones.</p>
+    </a>
+    <a class="card" href="/inventory-catalog-on-the-map.html">
+      <div class="k compare">E2 · E3 · provenance</div>
+      <h3>Inventory &amp; catalog on the map</h3>
+      <p>Agent inventory vs CMDB/catalog → <code>graph_edge.v1</code>. <code>authoritative</code> vs <code>declared</code>; LUT vs <code>map/</code>.</p>
+    </a>
+    <a class="card" href="/map-history-storage-blocks.html">
+      <div class="k compare">Rooms</div>
+      <h3>map/ · history/ storage</h3>
+      <p>Two writers, no sync. R/W matrix through E10. Join at <code>WorkingSet</code> (E8).</p>
+    </a>
+    <a class="card" href="/sketch-exemplars-visual.html">
+      <div class="k compare">Pillar A · RED · OTel</div>
+      <h3>Exemplars &amp; RED metrics guide</h3>
+      <p>Rate · Errors · Duration; OTel vs ObserveOps; optional <code>trace_id</code> per bin.</p>
+    </a>
+    <a class="card" href="/docs/GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md">
+      <div class="k kickoff">Sit-down brief</div>
+      <h3>Graph + sketch contract</h3>
+      <p>CI catalog, fifteen edges, <code>sketch.v1</code> row shape — what the room must sign.</p>
+    </a>
+    <a class="card" href="/docs/MAP_WRITE_READ_RECORD.md">
+      <div class="k kickoff">I/O-3</div>
+      <h3>Map write/read record</h3>
+      <p>PoC <code>files.v1</code> + Motadata <code>vortex_s3.v1</code>: columnar <code>.vortex</code>, footers, caches, Rust action items.</p>
+    </a>
+    <a class="card" href="/docs/MAP_HOT_COLD_LIFECYCLE.md">
+      <div class="k kickoff">I/O-3</div>
+      <h3>Map hot / cold lifecycle</h3>
+      <p>Upsert vs publish; <code>graph_snapshot</code> is not a table; two-level removal; multi-edge rule.</p>
+    </a>
+    <a class="card" href="/vortex-s3-interaction.html">
+      <div class="k compare">Dest temperature</div>
+      <h3>Vortex + S3 interaction</h3>
+      <p>Rooms vs temperature; query layer → WorkingSet; same schema, different role.</p>
+    </a>
+    <a class="card" href="/storage-formats-vortex-parquet-lance.html">
+      <div class="k compare">Encodings</div>
+      <h3>Vortex · Parquet · Lance</h3>
+      <p>Columnar product vs file formats on S3 — companion to Vortex+S3.</p>
+    </a>
+    <a class="card" href="/pillar-ab-implementation/contracts/GATE_B_DEST_PROFILE.md">
+      <div class="k kickoff">Dest profile</div>
+      <h3>Gate B dest profile</h3>
+      <p><code>files.v1</code> lab vs <code>vortex_s3.v1</code> Motadata layout.</p>
+    </a>
+  </div>
+  <p class="note" style="margin-top:.75rem;">
+    More Tier 2: <a href="/map-history-storage-animation.html">room animation</a> ·
+    <a href="/fabric/SIMULATION_THREAD.md">simulation locks</a> ·
+    <a href="/pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md">edge triplet allowlist</a> ·
+    <a href="/pillar-ab-implementation/pillar-b/docs/vortex_engineering_mystery_revised_v2.pdf">Vortex engineering notes (PDF)</a> ·
+    <a href="/hld-archive.html">full archive</a> (searchable, tier tags).
+  </p>
+
+  <p class="note" style="margin-top:1rem;">
+    <strong style="color:var(--text)">Spec detail below</strong> is a hub summary.
+    Canonical stage contracts, ADRs, and revision history:
+    <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD markdown</a>.
+  </p>
+
+  
+
+  <h2 id="overview">Overview</h2>
+  <div class="twoCol">
+    <div class="panel e">
+      <h3>Layer E · Engineering</h3>
+      <p>Always-on fabric plus per-case pipeline. Must localize and package without requiring MTL/Bits.</p>
+    </div>
+    <div class="panel i">
+      <h3>Layer I · Interpret</h3>
+      <p>Timeline, MTL workbook, and Bits retell evidence. Useful for humans; not required to run E-stages.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    Formal destination: surface <strong style="color:var(--text)">what broke</strong>, <strong style="color:var(--text)">where</strong>, and <strong style="color:var(--text)">what to inspect</strong> from continuous telemetry, without re-collecting the estate for every alert.
+    The Pipeline HLD freezes a ServiceOps-joinable identity namespace (<code>tenant</code>+<code>ci_id</code>) so later CMDB/change/ticket records share the same keys. Collect still admits telemetry only.
+  </div>
+
+  <table>
+    <tr><th>Phase</th><th>Stages</th><th>IDs</th><th>Alias</th></tr>
+    <tr><td>P1 Always-on fabric</td><td>5</td><td>E1-E5</td><td>Clock A fabric / F</td></tr>
+    <tr><td>P2 Case opens</td><td>3</td><td>E6-E8</td><td>Triage / T</td></tr>
+    <tr><td>P3 Diagnose and close</td><td>3</td><td>E9-E11</td><td>Clock B / D</td></tr>
+  </table>
+
+  <div class="phaseRail">
+    <div class="phaseRow">
+      <div class="bb"><div class="id">E1</div><div class="nm">Collect</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E2</div><div class="nm">Identity</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E4</div><div class="nm">Stores</div></div><span class="arrow">∥</span>
+      <div class="bb"><div class="id">E3</div><div class="nm">Topology</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E5</div><div class="nm">Maintain</div></div>
+    </div>
+    <div class="phaseRow">
+      <div class="bb"><div class="id">E6</div><div class="nm">Detect</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E7</div><div class="nm">Curate</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E8</div><div class="nm">Scope</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E9</div><div class="nm">Localize</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E10</div><div class="nm">Identify</div></div><span class="arrow">→</span>
+      <div class="bb"><div class="id">E11</div><div class="nm">Package</div></div>
+    </div>
+  </div>
+
+  <h2 id="crosswalk">Stage-vocabulary crosswalk (normative)</h2>
+  <p>Three vocabularies describe this pipeline. This table translates between them — see source §5 for reading rules.</p>
+  <table>
+    <tr><th>5-stage product model</th><th>11-stage engineering model (this HLD)</th><th>Vendor "5+3+3" / Clock language</th></tr>
+    <tr><td>Ingest</td><td>E1 Collect → E2 Identity → E3 Topology → E4 Stores → E5 Maintain (all of P1)</td><td>Clock A / Always-on fabric (F)</td></tr>
+    <tr><td>Detect</td><td>E6 Detect</td><td>Fabric hands off to Triage (T)</td></tr>
+    <tr><td><em>(no product-level name)</em></td><td>E7 Curate → E8 Scope</td><td>Triage (T)</td></tr>
+    <tr><td>Localize</td><td>E9 Localize</td><td>Clock B / Diagnose begins (D)</td></tr>
+    <tr><td>Identify</td><td>E10 Identify</td><td>Diagnose (D)</td></tr>
+    <tr><td>Verify</td><td>Spans E10 (confidence rationale) through E11 Package — <strong style="color:var(--text)">not a dedicated E-stage</strong></td><td>Diagnose close (D)</td></tr>
+  </table>
+  <div class="note">
+    Reading rules: Ingest is a phase rollup over E1–E5, which can each be at different readiness levels. Verify has no dedicated E-stage — it is the evidentiary-tier judgment made inside E10 and locked at E11. "5+3+3" and "P1(5)+P2(3)+P3(3)" are the same partition under different vendor-native vs internal names. <strong style="color:var(--text)">Normalize = E2 Identity</strong> — not a twelfth stage and not E10 Identify.
+  </div>
+
+  <h2 id="p1">P1 — Always-on fabric (E1-E5)</h2>
+  <details>
+    <summary><span>E1</span>Collect</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> ingest edge telemetry payloads (wire-format admission only; no CI bind).</li>
+      <li><span class="fieldKey">Trigger:</span> continuous stream.</li>
+      <li><span class="fieldKey">Input/Output:</span> external telemetry to <code>TelemetryEnvelope</code> (<code>ingest.v1</code>).</li>
+      <li><span class="fieldKey">Failure:</span> no data enters pipeline.</li>
+      <li><span class="fieldKey">LLD:</span> <a href="/docs/LLD-E1-Collect.md">LLD-E1 Collect</a> — Done.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E2</span>Identity (Normalize)</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> stamp join keys so records are correlation-ready (Fabric: Normalize).</li>
+      <li><span class="fieldKey">Output:</span> <code>IdentifiedRecord</code> — overlay on the same <code>ingest.v1</code> line (<code>identity.status</code> / aliases).</li>
+      <li><span class="fieldKey">Pre/Post:</span> configured mapping, record becomes joinable with topology, stores, and a future ServiceOps CI.</li>
+      <li><span class="fieldKey">Failure:</span> cross-modal joins break. Synthesized CIs are not localize/ticket targets (D-E2-1).</li>
+      <li><span class="fieldKey">LLD:</span> <a href="/docs/LLD-E2-Identity.md">LLD-E2 Identity</a> — Done.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E3</span>Topology</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> maintain walkable dependency graph.</li>
+      <li><span class="fieldKey">Output:</span> <code>GraphSnapshot</code>.</li>
+      <li><span class="fieldKey">Degradation:</span> staleness increases ambiguity.</li>
+      <li><span class="fieldKey">Lab proof:</span> required for cascade/path reasoning.</li>
+      <li><span class="fieldKey">Map detail:</span> <a href="/observeops-fusion-guide.html">Fusion</a> · <a href="/e1-e5-pipeline-architecture.html">E1–E5 fabric</a> · <a href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md">operational graph chapter</a> · <a href="/observeops-ci-graph.html">example map</a>. Authored picture, not live E3 output.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E4</span>Stores</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> persist queryable evidence history.</li>
+      <li><span class="fieldKey">Output:</span> modality query surfaces keyed by identity.</li>
+      <li><span class="fieldKey">Failure:</span> Detect/Identify cannot corroborate.</li>
+      <li><span class="fieldKey">Fabric:</span> <a href="/data-shape-journey.html">data shape journey</a> · <a href="/map-history-storage-blocks.html">map/ · history/</a> · <a href="/docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md">Pillar A deep dive</a>.</li>
+      <li><span class="fieldKey">NFR sketch:</span> retention + query latency budgets.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E5</span>Maintain</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> keep estate fresh (retention/indexing/discovery).</li>
+      <li><span class="fieldKey">Output:</span> detect-ready freshness baseline.</li>
+      <li><span class="fieldKey">Failure:</span> quality decays silently over time.</li>
+      <li><span class="fieldKey">Policy:</span> explicit required stage in our HLD.</li>
+    </ul>
+  </details>
+
+  <h2 id="p2">P2 — Case opens (E6-E8)</h2>
+  <details>
+    <summary><span>E6</span>Detect</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> emit fault <code>Signal</code> objects only.</li>
+      <li><span class="fieldKey">Inputs:</span> stores + topology context.</li>
+      <li><span class="fieldKey">Failure:</span> no automatic case opening.</li>
+      <li><span class="fieldKey">Class plug-ins:</span> ERROR, SLOWDOWN — Grounded (DT + DD, MCP-backed). AVAILABILITY, MONITORING_UNAVAILABLE, RESOURCE_CONTENTION — Grounded on DT, <strong style="color:var(--text)">Local-only</strong> on DD (Write + local probes, no MCP pull yet). A negative Detect outcome (no signal fires) is a valid result for RESOURCE_CONTENTION-class semantics, not a coverage gap.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E7</span>Curate</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> merge signals into one <code>CaseSeed</code>.</li>
+      <li><span class="fieldKey">Policy:</span> required by default (D3).</li>
+      <li><span class="fieldKey">Failure:</span> storm reaches operator unfused.</li>
+      <li><span class="fieldKey">Postcondition:</span> one seed with rationale.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E8</span>Scope</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> lock time and candidate working set.</li>
+      <li><span class="fieldKey">Output:</span> <code>WorkingSet</code>.</li>
+      <li><span class="fieldKey">Failure:</span> global/noisy diagnosis.</li>
+      <li><span class="fieldKey">Alias:</span> Tailor in the 5+3+3 lens.</li>
+    </ul>
+  </details>
+
+  <h2 id="p3">P3 — Diagnose and close (E9-E11)</h2>
+  <details>
+    <summary><span>E9</span>Localize</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> produce one <code>LeafClaim</code>.</li>
+      <li><span class="fieldKey">Rule:</span> deepest error leaf or longest self-time leaf by class.</li>
+      <li><span class="fieldKey">Failure:</span> no actionable RCA target.</li>
+      <li><span class="fieldKey">Degradation:</span> ranked candidates with lower confidence.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E10</span>Identify</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> build corroborated <code>EvidenceBundle</code>.</li>
+      <li><span class="fieldKey">Failure:</span> verdict cannot be trusted/explained.</li>
+      <li><span class="fieldKey">Degradation:</span> thin bundle must be marked incomplete.</li>
+      <li><span class="fieldKey">Emphasis:</span> stack/log/span for ERROR; self-time/CPU for SLOWDOWN.</li>
+    </ul>
+  </details>
+  <details>
+    <summary><span>E11</span>Package</summary>
+    <ul class="fieldList">
+      <li><span class="fieldKey">Purpose:</span> emit operator-facing <code>VerdictCard</code>.</li>
+      <li><span class="fieldKey">Policy:</span> required close stage (D4).</li>
+      <li><span class="fieldKey">Optional:</span> narrative layer (Bits-style), incident payload.</li>
+      <li><span class="fieldKey">Failure:</span> RCA output remains engineering-only.</li>
+    </ul>
+  </details>
+
+  <h2 id="contracts">Contracts</h2>
+  <p style="margin:0 0 .75rem;font-size:.95rem;color:var(--muted);">
+    Interactive evolution (names + example JSON per step):
+    <a href="/data-shape-journey.html">Data shape journey</a>.
+    Fabric rules: <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a>.
+  </p>
+  <table>
+    <tr><th>Edge</th><th>Contract object</th></tr>
+    <tr><td>E1 → E2</td><td><code>TelemetryEnvelope</code> (<code>ingest.v1</code>)</td></tr>
+    <tr><td>E2 → E3,E4</td><td><code>IdentifiedRecord</code> (same <code>ingest.v1</code> + identity overlay)</td></tr>
+    <tr><td>E3 → E6,E7,E9</td><td><code>GraphSnapshot</code></td></tr>
+    <tr><td>E6 → E7</td><td><code>Signal</code></td></tr>
+    <tr><td>E7 → E8</td><td><code>CaseSeed</code></td></tr>
+    <tr><td>E8 → E9</td><td><code>WorkingSet</code></td></tr>
+    <tr><td>E9 → E10</td><td><code>LeafClaim</code></td></tr>
+    <tr><td>E10 → E11</td><td><code>EvidenceBundle</code></td></tr>
+    <tr><td>E11 → Ops</td><td><code>VerdictCard</code></td></tr>
+  </table>
+
+  <table>
+    <tr><th>Class</th><th>Worked handoff</th></tr>
+    <tr><td>ERROR</td><td>E1 envelope → E2 identified route → E6 error signal → E7 seed → E8 scope → E9 deepest error leaf → E10 stack/log/span evidence → E11 verdict.</td></tr>
+    <tr><td>SLOWDOWN</td><td>E1 envelope → E2 identified operation → E6 latency signal (or alternate seed) → E7 seed → E8 scope → E9 self-time leaf → E10 self-time/CPU evidence → E11 verdict.</td></tr>
+  </table>
+
+  <h2 id="adrs">ADRs and open decisions</h2>
+  <table>
+    <tr><th>ID</th><th>Decision</th><th>Default</th><th>Status</th></tr>
+    <tr><td>D1</td><td>Topology model</td><td>Hybrid derived edges + typed IDs when cheap</td><td>Signed</td></tr>
+    <tr><td>D2</td><td>Store geometry</td><td>Separate query planes, shared identity</td><td>Signed</td></tr>
+    <tr><td>D3</td><td>Curate strength</td><td>Required one-seed default</td><td>Signed</td></tr>
+    <tr><td>D4</td><td>Package policy</td><td>Required verdict card, narrative optional</td><td>Signed</td></tr>
+    <tr><td>D5</td><td>AI placement</td><td>Optional detect door and optional narrator</td><td>Review (unchanged) — third geometry documented: <a href="/ed-ai-team-hub.html">ED AI Team</a></td></tr>
+    <tr><td>D-E2-1</td><td>Bind-miss policy</td><td>Synthesize a flagged placeholder; not a localize/ticket target</td><td>Signed</td></tr>
+    <tr><td>D-E2-2</td><td>Service tags</td><td><code>service</code>/<code>env</code>/<code>version</code> stay optional labels; join key is <code>tenant</code>+<code>ci_id</code></td><td>Signed</td></tr>
+  </table>
+  <p>Pipeline HLD signs D1–D4, D-E2-1, and D-E2-2. D5 stays Review. Identity namespace: see source §11.1. Edge Delta L0 (2026-08-14) is a third teaching lens, not an ADR flip.</p>
+
+  <h2 id="refimpl">Reference implementations and next steps</h2>
+  <table>
+    <tr><th>Stage band</th><th>Lean (primary)</th><th>Federated (optional)</th><th>Future</th></tr>
+    <tr><td>E1-E5</td><td>Lean ingest/core paths</td><td>PoC stores and adapters</td><td><a href="/docs/INGESTION_PIPELINE_VECTOR.md">Vector ingest plan</a></td></tr>
+    <tr><td>E6-E8</td><td>Rule/anomaly and seed flow</td><td>Panorama-triggered orchestration</td><td>Shared signal model</td></tr>
+    <tr><td>E9-E11</td><td>Tiered escalation and signature checks</td><td>Murphy → Nezha fusion</td><td>Contract-preserving plug-ins</td></tr>
+  </table>
+
+  <p>
+    LLD backlog: <a href="/docs/LLD-E1-Collect.md"><code>LLD-E1 Collect</code></a> (Done) ·
+    <a href="/docs/LLD-E2-Identity.md"><code>LLD-E2 Identity / Normalize</code></a> (Done) ·
+    <a href="/docs/LLD-E3-Topology.md"><code>LLD-E3</code></a> (Draft — Motadata <code>map/</code> + bakeoff; operational-graph is target map shape) ·
+    <a href="/docs/LLD-E4-Stores.md"><code>LLD-E4</code></a> (Draft — Motadata sketches + bakeoff stores) ·
+    <a href="/docs/LLD-E5-Maintain.md"><code>LLD-E5 Maintain</code></a> (Design stub) ·
+    <code>LLD-E6</code> through <code>LLD-E11</code> still backlog. Layer I remains outside <code>LLD-E*</code> until explicit productization.
+  </p>
+  <div class="note">Contracts resync (2026-08-13): identity-join note, Normalize = E2, D1–D4 / D-E2-1 / D-E2-2 Signed, E1/E2 LLDs Done. Fusion is the teaching path for step-by-step detail. Full NFR / identity namespace / revision history lives in the Pipeline HLD markdown.</div>
+  </section>
+
+  <section class="hub-panel" id="panel-workflow" role="tabpanel" aria-labelledby="tab-workflow" data-panel="workflow" hidden>
+<p class="lead" style="margin-top:0">Always-on fabric (E1–E5) then per-case triage and diagnose (E6–E11). Scope read-joins <code>map/</code> and <code>history/</code> into a WorkingSet.</p>
+
+  <div class="callout">
+    This tab is the end-to-end picture. Written contracts live under
+    <a href="#overview">Overview</a> and
+    <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a>.
+    Topology writer detail: <a href="#graphwriter">GraphWriter</a>.
+    Interactive diagnose: <a href="#diagnose">Diagnose walk</a>.
+  </div>
+
+  <nav class="toc" aria-label="Page sections">
+    <a href="#poster">Poster overview</a>
+    <a href="#stages">E1–E11 detail</a>
+    <a href="#objects">Objects that flow</a>
+    <a href="#triage-io">Signal · CaseSeed · WorkingSet</a>
+    <a href="#example">Checkout lab walk</a>
+    <a href="#investigate">Investigate (map + history)</a>
+  </nav>
+
+  <!-- ========== POSTER (visual style) ========== -->
+  <div class="poster" id="poster" role="region" aria-label="Motadata unified pipeline poster">
+
+    <h2>Inside the Motadata unified pipeline</h2>
+    <p class="sub">Always-on fabric keeps the estate warm. Case path opens when Detect fires. Same identity namespace; two rooms; one WorkingSet join.</p>
+
+    <!-- Band 1: fabric vs case -->
+    <p class="sect-label">1 · Two halves of the same pipeline</p>
+    <div class="pair">
+      <div class="panel fabric">
+        <div class="panel-bar">Always-on fabric · E1–E5</div>
+        <div class="panel-sub">Runs continuously — keeps <code>map/</code> and <code>history/</code> ready</div>
+        <div class="panel-body">
+          <div class="node-row">
+            <div class="node"><span>E1 Collect</span><small>admit ingest.v1</small></div>
+            <span class="arrow">→</span>
+            <div class="node"><span>E2 Identity</span><small>tenant + ci_id</small></div>
+          </div>
+          <div class="node-row" style="justify-content:center;margin:.65rem 0 .35rem;">
+            <div class="node center"><span>E3 Topology</span><small>Pillar B → map/</small></div>
+            <span class="edge">∥ parallel</span>
+            <div class="node center"><span>E4 Stores</span><small>Pillar A → history/</small></div>
+          </div>
+          <div class="node-row" style="justify-content:center;">
+            <div class="node"><span>E5 Maintain</span><small>freshness · validity · baselines</small></div>
+          </div>
+          <p class="cap">
+            Fabric output: versioned <strong>GraphSnapshot</strong> under <code>map/</code> and
+            <strong>sketch.v1</strong> rows under <code>history/</code>. Writers do not sync; they share join keys only.
+          </p>
+        </div>
+      </div>
+
+      <div class="panel case">
+        <div class="panel-bar">Case path · E6–E11</div>
+        <div class="panel-sub">Per Detect class — opens a case, scopes, diagnoses, packages</div>
+        <div class="panel-body">
+          <div class="node-row">
+            <div class="node warm"><span>E6 Detect</span><small>Signal</small></div>
+            <span class="arrow">→</span>
+            <div class="node warm"><span>E7 Curate</span><small>CaseSeed</small></div>
+            <span class="arrow">→</span>
+            <div class="node warm"><span>E8 Scope</span><small>WorkingSet</small></div>
+          </div>
+          <div class="node-row">
+            <div class="node warm"><span>E9 Localize</span><small>LeafClaim</small></div>
+            <span class="arrow">→</span>
+            <div class="node warm"><span>E10 Identify</span><small>EvidenceBundle</small></div>
+            <span class="arrow">→</span>
+            <div class="node ok"><span>E11 Package</span><small>VerdictCard</small></div>
+          </div>
+          <p class="cap">
+            Case path <strong>reads</strong> fabric; it does not re-collect the estate or rewrite topology for every alert.
+            Verify is judgment inside Identify — not a twelfth stage.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Band 2: case walk -->
+    <p class="sect-label teal">2 · How a case walks the pipeline</p>
+    <div class="flow" aria-label="Case object flow">
+      <div class="flow-step"><div class="k">E6</div><div class="t">Signal</div><div class="d">Fault class only — no root claim</div></div>
+      <div class="flow-step"><div class="k">E7</div><div class="t">CaseSeed</div><div class="d">Merged correlated signals</div></div>
+      <div class="flow-step"><div class="k">E8</div><div class="t">WorkingSet</div><div class="d">Window + suspects + budget</div></div>
+      <div class="flow-step"><div class="k">E9</div><div class="t">LeafClaim</div><div class="d">Deepest / longest leaf</div></div>
+      <div class="flow-step"><div class="k">E10</div><div class="t">EvidenceBundle</div><div class="d">Corroborated evidence</div></div>
+      <div class="flow-step"><div class="k">E11</div><div class="t">VerdictCard</div><div class="d">Operator / ServiceOps close</div></div>
+    </div>
+    <div class="flow-note">
+      At <strong>E8 Scope</strong>, the WorkingSet is a <em>read-join</em>: neighbors from <code>map/</code>
+      plus sketches from <code>history/</code> for those CIs — same <code>tenant</code> + <code>ci_id</code> namespace.
+    </div>
+    <div class="branch">
+      <div class="branch-card follow">
+        <h4>Follow the map (usual)</h4>
+        <p>Localize walks authoritative edges (<code>depends_on</code>, <code>runs_on</code>, …) toward the leaf the Detect class expects. Identify attaches sketch percentiles and edge provenance.</p>
+      </div>
+      <div class="branch-card deviate">
+        <h4>Evidence can override</h4>
+        <p>If sketches or corroborating edges contradict the first walk, Identify lowers confidence or revises the leaf — fabric stays; the case objects change.</p>
+      </div>
+    </div>
+
+    <!-- Band 3: three Motadata mechanics -->
+    <p class="sect-label">3 · Three mechanics that make the fabric work</p>
+    <div class="trio">
+      <div class="mech a">
+        <div class="mech-h">Identity stamps join keys once</div>
+        <div class="mech-b">
+          <div class="stack">
+            <div class="node">ingest.v1 line</div>
+            <div class="varr">↓ E2</div>
+            <div class="node">tenant + ci_id + ci_type</div>
+            <div class="varr">↓ fan-out</div>
+            <div class="node">GraphWriter · SketchWriter</div>
+          </div>
+          Same identity overlay on the line — not a second schema. Bind-miss placeholders are flagged and are not localize or ticket targets.
+        </div>
+      </div>
+      <div class="mech b">
+        <div class="mech-h">Writers admit with WRITE / NOOP / DROP</div>
+        <div class="mech-b">
+          <div class="stack">
+            <div class="node">resolved identity?</div>
+            <div class="varr">↓</div>
+            <div class="node">topology / metric block present?</div>
+            <div class="varr">↓</div>
+            <div class="node ok">WRITE · or NOOP · or DROP</div>
+          </div>
+          Regulators key on optional blocks on <code>writer_stream.v1</code> (no <code>fact_kind</code>): GraphWriter needs <code>topology</code>; SketchWriter needs <code>metric</code>. Wrong shape → silent NOOP. Reject → DROP with reason — rooms stay clean.
+        </div>
+      </div>
+      <div class="mech c">
+        <div class="mech-h">Maintain keeps priors fresh</div>
+        <div class="mech-b">
+          <div class="stack">
+            <div class="node">stale edges / weak baselines</div>
+            <div class="varr">↓ E5</div>
+            <div class="node ok">validity · retention · detect-ready</div>
+            <div class="varr">↓</div>
+            <div class="node">latest GraphSnapshot + sketches</div>
+          </div>
+          Diagnose always prefers the latest fabric version. Case path does not mutate <code>map/</code> or <code>history/</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- Compact stage rail -->
+    <p class="sect-label teal">Stage rail · E1–E11</p>
+    <div class="rail" aria-label="Full stage rail">
+      <span class="chip p1">E1 Collect</span><span class="sep">→</span>
+      <span class="chip p1">E2 Identity</span><span class="sep">→</span>
+      <span class="chip p1">E3 Topology</span><span class="sep">∥</span>
+      <span class="chip p1">E4 Stores</span><span class="sep">→</span>
+      <span class="chip p1">E5 Maintain</span><span class="sep">→</span>
+      <span class="chip p2">E6 Detect</span><span class="sep">→</span>
+      <span class="chip p2">E7 Curate</span><span class="sep">→</span>
+      <span class="chip p2">E8 Scope</span><span class="sep">→</span>
+      <span class="chip p3">E9 Localize</span><span class="sep">→</span>
+      <span class="chip p3">E10 Identify</span><span class="sep">→</span>
+      <span class="chip p3">E11 Package</span>
+    </div>
+  </div>
+
+  <!-- ========== DETAIL ========== -->
+  <h2 id="stages">E1–E11 detail</h2>
+  <details class="detail" open>
+    <summary>P1 · Always-on fabric (E1–E5)</summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Stage</th><th>Job</th><th>Primary out</th></tr></thead>
+        <tbody>
+          <tr><td>E1 Collect</td><td>Admit wire telemetry; reject unknown shape</td><td><code>ingest.v1</code></td></tr>
+          <tr><td>E2 Identity</td><td>Stamp join keys on the same line</td><td>Identified record (<code>tenant</code>, <code>ci_id</code>)</td></tr>
+          <tr><td>E3 Topology</td><td>Maintain walkable estate map (Pillar B)</td><td><code>GraphSnapshot</code> in <code>map/</code></td></tr>
+          <tr><td>E4 Stores</td><td>Persist queryable evidence history (Pillar A)</td><td><code>sketch.v1</code> in <code>history/</code></td></tr>
+          <tr><td>E5 Maintain</td><td>Freshness, validity, retention, detect-ready baselines</td><td>Updated fabric version</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+  <details class="detail" open>
+    <summary>P2 · Case opens (E6–E8)</summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Stage</th><th>Job</th><th>Primary out</th></tr></thead>
+        <tbody>
+          <tr><td>E6 Detect</td><td>Emit fault signals for a Detect class</td><td><code>Signal</code></td></tr>
+          <tr><td>E7 Curate</td><td>Merge correlated signals into one seed</td><td><code>CaseSeed</code></td></tr>
+          <tr><td>E8 Scope</td><td>Lock window + candidates; read-join rooms</td><td><code>WorkingSet</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+  <details class="detail" open>
+    <summary>P3 · Diagnose and close (E9–E11)</summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Stage</th><th>Job</th><th>Primary out</th></tr></thead>
+        <tbody>
+          <tr><td>E9 Localize</td><td>Choose one leaf claim on the scoped neighborhood</td><td><code>LeafClaim</code></td></tr>
+          <tr><td>E10 Identify</td><td>Build corroborated evidence (Verify lives here)</td><td><code>EvidenceBundle</code></td></tr>
+          <tr><td>E11 Package</td><td>Render operator-facing close artifact</td><td><code>VerdictCard</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <h2 id="objects">Objects that flow</h2>
+  <details class="detail" open>
+    <summary>Key records (plain list)</summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Object</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>ingest.v1</code></td><td>On-wire envelope from Collect; Identity adds overlay on the same line.</td></tr>
+          <tr><td>Identity</td><td>Resolved <code>tenant</code> + <code>ci_id</code> (+ type, status, aliases).</td></tr>
+          <tr><td><code>GraphSnapshot</code></td><td>Versioned walkable CI graph from Topology.</td></tr>
+          <tr><td><code>sketch.v1</code></td><td>History row (windows, baselines, percentiles) from Stores.</td></tr>
+          <tr><td><code>Signal</code></td><td>Detect output — fault class + CI tip + t0; not a root-cause claim.</td></tr>
+          <tr><td><code>CaseSeed</code></td><td>Curate output — one merged tip <code>(ci_id, t0)</code> + merge rationale.</td></tr>
+          <tr><td><code>WorkingSet</code></td><td>Scope output — window, suspects, neighborhood, sketch snippets, evidence budget.</td></tr>
+          <tr><td><code>VerdictCard</code></td><td>Package output — ticket-ready close for operators / ServiceOps.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details class="detail" open id="triage-io">
+    <summary>E6→E8 triage I/O — teaching JSON (logical shapes)</summary>
+    <div class="body">
+      <p style="margin:0 0 .75rem;color:var(--muted);font-size:.88rem;">
+        Not a frozen LLD proto. Field names illustrate HLD intent
+        (<code>Signal</code> → <code>CaseSeed</code> → <code>WorkingSet</code>) for the payment / checkout ERROR story.
+        Join keys stay <code>tenant</code> + <code>ci_id</code>.
+      </p>
+
+      <p class="sect-label">E6 Detect</p>
+      <table>
+        <thead><tr><th>Lane</th><th>Content</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Input</strong></td><td><code>GraphSnapshot</code> (which CIs / detectors apply) + store/sketch queries keyed by <code>ci_id</code></td></tr>
+          <tr><td><strong>Processing</strong></td><td>Evaluate Detect-class rule per CI (threshold / anomaly score). CI tip = the <code>ci_id</code> whose series breached. <code>t0</code> = observation / event time of that decision.</td></tr>
+          <tr><td><strong>Output</strong></td><td><code>Signal</code> — fault class + CI tip + t0 (no root claim)</td></tr>
+        </tbody>
+      </table>
+<pre class="io-json">{
+  "object": "Signal",
+  "tenant": "acme",
+  "signal_id": "sig-7f2a",
+  "fault_class": "ERROR",
+  "ci_id": "payment-service",
+  "ci_type": "Service",
+  "t0": "2025-01-15T03:42:00Z",
+  "metric": {
+    "name": "error_rate",
+    "value": 0.23,
+    "threshold": 0.05
+  },
+  "detector": "metric_threshold",
+  "graph_snapshot_id": "map-2025-01-15T03:00Z"
+}</pre>
+
+      <p class="sect-label">E7 Curate</p>
+      <table>
+        <thead><tr><th>Lane</th><th>Content</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Input</strong></td><td>One or more <code>Signal</code>s + <code>GraphSnapshot</code> (to prove adjacency for merge)</td></tr>
+          <tr><td><strong>Processing</strong></td><td>Collapse correlated Signals into <strong>one</strong> CaseSeed (D3). Tip is usually the most-upstream symptomatic CI, not yet the leaf root.</td></tr>
+          <tr><td><strong>Output</strong></td><td><code>CaseSeed</code> — tip <code>(ci_id, t0)</code> + merged signal ids + merge rationale. <em>Not</em> full neighborhood.</td></tr>
+        </tbody>
+      </table>
+<pre class="io-json">{
+  "object": "CaseSeed",
+  "tenant": "acme",
+  "case_seed_id": "seed-91c0",
+  "fault_class": "ERROR",
+  "ci_id": "payment-service",
+  "t0": "2025-01-15T03:42:00Z",
+  "merged_signal_ids": [
+    "sig-7f2a",
+    "sig-7f2b"
+  ],
+  "merge_rationale": {
+    "policy": "correlate_adjacent_ERROR",
+    "edges_used": [
+      {
+        "from": "checkout-service",
+        "to": "payment-service",
+        "type": "depends_on"
+      }
+    ],
+    "note": "checkout-service ERROR collapsed onto payment-service tip (upstream symptomatic)"
+  },
+  "graph_snapshot_id": "map-2025-01-15T03:00Z"
+}</pre>
+
+      <p class="sect-label">E8 Scope (Tailor)</p>
+      <table>
+        <thead><tr><th>Lane</th><th>Content</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Input</strong></td><td><code>CaseSeed</code> + present <code>map/</code> + <code>history/</code> sketches for candidate <code>ci_id</code>s</td></tr>
+          <tr><td><strong>Processing</strong></td><td>Lock time window around t0; k-hop neighborhood on map; pull sketch snippets for those CIs; apply hop / entity / evidence budgets.</td></tr>
+          <tr><td><strong>Output</strong></td><td><code>WorkingSet</code> — bounded diagnose domain (window + suspects + neighborhood + sketch refs + budgets)</td></tr>
+        </tbody>
+      </table>
+<pre class="io-json">{
+  "object": "WorkingSet",
+  "tenant": "acme",
+  "working_set_id": "ws-33ab",
+  "case_seed_id": "seed-91c0",
+  "seed": {
+    "ci_id": "payment-service",
+    "t0": "2025-01-15T03:42:00Z",
+    "fault_class": "ERROR"
+  },
+  "window": {
+    "from": "2025-01-15T03:27:00Z",
+    "to": "2025-01-15T03:47:00Z",
+    "note": "t0 +/- 15m teaching window"
+  },
+  "budget": {
+    "max_hop": 2,
+    "max_entities": 40,
+    "max_sketch_rows": 200,
+    "evidence_kinds": [
+      "metric_sketch",
+      "log_pointer",
+      "change_event"
+    ]
+  },
+  "neighborhood": [
+    {
+      "ci_id": "payment-service",
+      "role": "seed",
+      "distance": 0,
+      "edges_out": [
+        {
+          "to": "auth-service",
+          "type": "depends_on"
+        },
+        {
+          "to": "payment-gateway-db",
+          "type": "depends_on"
+        }
+      ]
+    },
+    {
+      "ci_id": "auth-service",
+      "role": "upstream",
+      "distance": 1
+    },
+    {
+      "ci_id": "payment-gateway-db",
+      "role": "upstream",
+      "distance": 1
+    },
+    {
+      "ci_id": "checkout-service",
+      "role": "downstream",
+      "distance": 1
+    },
+    {
+      "ci_id": "subscription-service",
+      "role": "downstream",
+      "distance": 1
+    }
+  ],
+  "history_snippets": [
+    {
+      "ci_id": "auth-service",
+      "metric": "latency_p50_ms",
+      "sketch_ref": "history/acme/auth-service/latency_p50_ms/2025-01-15T03",
+      "recent": 500,
+      "baseline": 50
+    },
+    {
+      "ci_id": "payment-service",
+      "metric": "error_rate",
+      "sketch_ref": "history/acme/payment-service/error_rate/2025-01-15T03",
+      "recent": 0.23,
+      "baseline": 0.01
+    }
+  ],
+  "env": "production",
+  "version_context": {
+    "auth-service": "v2.14.3"
+  },
+  "graph_snapshot_id": "map-2025-01-15T03:00Z"
+}</pre>
+      <p style="margin:.75rem 0 0;font-size:.82rem;color:var(--faint);">
+        Interactive step walk:
+        <a href="#diagnose">checkout-diagnose-walkthrough.html</a>.
+        After WorkingSet, P3 consumes it: Localize → Identify → Package.
+      </p>
+    </div>
+  </details>
+
+  <h2 id="example">Checkout lab walk</h2>
+  <div class="poster" style="margin-top:.5rem;">
+    <h2 style="font-size:1rem;">customer_checkout · ERROR path (teaching spine)</h2>
+    <p class="sub">Fixture estate under <code>pillar-ab-implementation/integration/sample_estate/customer_checkout/</code>.</p>
+    <div class="node-row" style="margin-bottom:.75rem;">
+      <div class="node center"><span>Service</span><small>checkout-api</small></div>
+      <span class="edge">depends_on</span>
+      <div class="node"><span>Database</span><small>payments-db</small></div>
+      <span class="edge">runs_on</span>
+      <div class="node"><span>Host</span><small>linux-server-app-01</small></div>
+      <span class="edge">part_of</span>
+      <div class="node"><span>BusinessService</span><small>bs-checkout</small></div>
+    </div>
+    <div class="flow">
+      <div class="flow-step"><div class="k">Fabric</div><div class="t">Warm</div><div class="d">5 CIs · edges · sketches</div></div>
+      <div class="flow-step"><div class="k">E6</div><div class="t">Signal</div><div class="d">Error rate on checkout-api</div></div>
+      <div class="flow-step"><div class="k">E7–E8</div><div class="t">Seed → WorkingSet</div><div class="d">Neighbors + window + sketches</div></div>
+      <div class="flow-step"><div class="k">E9–E10</div><div class="t">Leaf + evidence</div><div class="d">Walk depends_on / runs_on</div></div>
+      <div class="flow-step"><div class="k">E11</div><div class="t">VerdictCard</div><div class="d">Suspect · neighborhood · confidence</div></div>
+    </div>
+  </div>
+
+  <h2 id="investigate">Investigate — how map/ and history/ are used</h2>
+  <p>
+    Present neighbors come from <code>map/</code>; metric baselines come from sketch rows under
+    <code>history/</code>. The interactive step-through (identify → upstream → sketches → blast → localize → package)
+    is on the <a href="#diagnose"><strong>Diagnose</strong></a> tab of this same hub page.
+  </p>
+  <div class="poster" style="margin-top:.65rem;">
+    <h2 style="font-size:1rem;">Rooms vs diagnose</h2>
+    <p class="sub">Open the Diagnose tab for the numbered How for each step.</p>
+    <div class="flow" aria-label="Investigate store split">
+      <div class="flow-step"><div class="k">map/</div><div class="t">Present</div><div class="d">CI · outbound deps · reverse blast</div></div>
+      <div class="flow-step"><div class="k">history/</div><div class="t">Sketches</div><div class="d">Windows · baselines · percentiles</div></div>
+      <div class="flow-step"><div class="k">E8</div><div class="t">WorkingSet</div><div class="d">Read-join both rooms</div></div>
+      <div class="flow-step"><div class="k">E9–E11</div><div class="t">Leaf → Verdict</div><div class="d">Evidence + human close</div></div>
+    </div>
+  </div>
+
+  </section>
+
+  <section class="hub-panel" id="panel-graphwriter" role="tabpanel" aria-labelledby="tab-graphwriter" data-panel="graphwriter" hidden>
+<div class="wrap article">
+  <h2 style="margin-top:0">GraphWriter — who it talks to, and a concrete example</h2>
+  <p class="lead">
+    Walkthrough for the Pillar B Topology orchestrator under
+    <code>pillar-ab-implementation/pillar-b/poc</code>.
+    <strong style="color:var(--text)">P1 first (Increment 1):</strong> deep always-on fabric
+    E1–E5 for <code>map/</code> — guide
+    <a href="/pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md"><code>pillar-b/docs/MAP_P1_FABRIC_EVAL.md</code></a>;
+    proofs <code>test_p1_map_fabric.py</code>.
+    Team walkthrough:
+    <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md">TEAM_WALKTHROUGH.md</a>.
+    Framing hub:
+    <a href="/pillar-b-poc-hub.html">pillar-b-poc-hub.html</a>.
+    Case-path stubs under <code>case_path/</code> are optional harnesses, not the PoC mission.
+    Input: Motadata SoT is post-E2 <code>writer_stream.v1</code> with a <code>topology</code> block
+    (<a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR</a>).
+    Lab fixtures may still use legacy <code>ingest.v1</code> + <code>fact_kind=topo_update</code> until migrated.
+    Plus optional estate bootstrap — not E7 CaseSeed.
+    Output: Dest <code>files.v1</code> / <code>vortex_s3.v1</code> under <code>map/</code>.
+    OneOps / Fusion HTML briefs under <code>archived-docs/</code> are catalog material only — they are not GraphWriter callers.
+    Part of <a href="#overview">Our HLD</a> · Topology writer under <code>pillar-ab-implementation/pillar-b/poc</code>.
+  </p>
+
+  <div class="gw-tabs" role="tablist" aria-label="Walkthrough steps">
+    <button type="button" class="gw-tab" role="tab" id="tab-who" aria-controls="panel-who" data-step="who" aria-selected="true">1 · Who</button>
+    <button type="button" class="gw-tab" role="tab" id="tab-pipeline" aria-controls="panel-pipeline" data-step="pipeline" aria-selected="false">2 · Pipeline</button>
+    <button type="button" class="gw-tab" role="tab" id="tab-example" aria-controls="panel-example" data-step="example" aria-selected="false">3 · Example</button>
+    <button type="button" class="gw-tab" role="tab" id="tab-admit" aria-controls="panel-admit" data-step="admit" aria-selected="false">4 · Admit</button>
+    <button type="button" class="gw-tab" role="tab" id="tab-build" aria-controls="panel-build" data-step="build" aria-selected="false">5 · Build</button>
+    <button type="button" class="gw-tab" role="tab" id="tab-output" aria-controls="panel-output" data-step="output" aria-selected="false">6 · Output</button>
+    <button type="button" class="gw-tab" role="tab" id="tab-lab" aria-controls="panel-lab" data-step="lab" aria-selected="false">7 · Lab</button>
+  </div>
+
+  <!-- 1 · Who -->
+  <section class="gw-panel is-active" id="panel-who" role="tabpanel" aria-labelledby="tab-who" data-step="who">
+    <div class="gw-panel-head">
+      <h2>1 · Who</h2>
+      <p class="blurb">Partners GraphWriter talks to</p>
+    </div>
+    <div class="callout info">
+      GraphWriter is an orchestrator, not a network service. It is called by the lab CLI (or a future Topology worker).
+      It reads optional bootstrap + ingest, writes Dest <code>map/</code>, and optionally runs the E5 maintain stub.
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Partner</th><th>Role</th><th>What is exchanged</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>E1 Collect (upstream)</td>
+            <td>Does not talk to GraphWriter directly</td>
+            <td>Produces raw signals. Pillar B PoC never implements Collect; lab fixtures already look like post-Identity lines.</td>
+          </tr>
+          <tr>
+            <td>E2 Identity (upstream)</td>
+            <td>Stamps identity on the shared stream</td>
+            <td>GraphWriter only admits <code>identity.status = resolved</code>. Unresolved / synthesized lines become rejects.</td>
+          </tr>
+          <tr>
+            <td>Shared writer stream</td>
+            <td>Same wire as Pillar A</td>
+            <td>JSONL of <code>writer_stream.v1</code> (SoT). GraphRegulator admits when a <code>topology</code> block is present; lines with only <code>metric</code> / <code>event</code> / <code>span</code> / <code>anomaly</code> are silent NOOP. Legacy lab JSONL may still carry <code>fact_kind=topo_update</code>.</td>
+          </tr>
+          <tr>
+            <td>topology.bootstrap.json (lab)</td>
+            <td>Optional bootstrap</td>
+            <td><code>load_bootstrap</code> fills GraphState with declared nodes/edges before the stream runs.</td>
+          </tr>
+          <tr>
+            <td>ResolvedOnlyGate (ab_shared)</td>
+            <td>Shared identity admit</td>
+            <td>Same gate Pillar A uses. GraphWriter does not invent a second identity policy.</td>
+          </tr>
+          <tr>
+            <td>ci_qualify + edge_catalog</td>
+            <td>Catalog checks inside GraphWriter</td>
+            <td>May this <code>ci_type</code> be a vertex? Is <code>relation</code> in the fifteen-name catalog (or wave-1 skip)?</td>
+          </tr>
+          <tr class="tone-info">
+            <td>Dest / FileDest (Gate B)</td>
+            <td>Publish target</td>
+            <td><code>flush → Dest.put("map", …)</code> → <code>graph_snapshot.json</code>, <code>nodes.jsonl</code>, <code>edges.jsonl</code> under <code>poc/out/&lt;tenant&gt;/map/</code>.</td>
+          </tr>
+          <tr>
+            <td>Pillar A SketchWriter</td>
+            <td>Sibling, not a caller</td>
+            <td>Parallel writer on the same stream. No A∪B merge. Later diagnose read-joins by <code>tenant</code> + <code>ci_id</code>.</td>
+          </tr>
+          <tr>
+            <td>Diagnose / neighbors (downstream)</td>
+            <td>Readers of map/</td>
+            <td><code>load_snapshot</code> + neighbors walk the published graph. GraphWriter does not call Diagnose.</td>
+          </tr>
+          <tr>
+            <td>E5 maintain stub</td>
+            <td>Optional after flush</td>
+            <td><code>maintain_validity</code> expires edges / drops stale corroborating; then republish a new snapshot version.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 2 · Pipeline -->
+  <section class="panel" id="panel-pipeline" role="tabpanel" aria-labelledby="tab-pipeline" data-step="pipeline" hidden>
+    <div class="gw-panel-head">
+      <h2>2 · Pipeline</h2>
+      <p class="blurb">Where it sits after Identity</p>
+    </div>
+    <h3>Where GraphWriter sits</h3>
+    <div class="dia" role="img" aria-label="Pipeline from Collect through Identity to GraphWriter and SketchWriter">
+      <svg viewBox="0 0 920 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="gw-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a96a4"/>
+          </marker>
+        </defs>
+        <!-- rank 0 -->
+        <rect x="20" y="86" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="86" y="106" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">E1 Collect</text>
+        <text x="86" y="122" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">upstream · not in PoC</text>
+        <!-- rank 1 -->
+        <rect x="208" y="86" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="274" y="106" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">E2 Identity</text>
+        <text x="274" y="122" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">stamps identity.*</text>
+        <!-- rank 2 -->
+        <rect x="396" y="86" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="462" y="106" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">ingest.v1 stream</text>
+        <text x="462" y="122" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">shared wire</text>
+        <!-- rank 3 writers -->
+        <rect x="584" y="28" width="132" height="48" rx="4" fill="#1a2830" stroke="#3d9a8b"/>
+        <text x="650" y="48" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="600">GraphWriter</text>
+        <text x="650" y="64" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">Pillar B · E3</text>
+        <rect x="584" y="144" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="650" y="164" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">SketchWriter</text>
+        <text x="650" y="180" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">Pillar A · E4</text>
+        <!-- rank 4 dest -->
+        <rect x="772" y="28" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="838" y="48" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">map/ Dest</text>
+        <text x="838" y="64" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">snapshot · nodes · edges</text>
+        <rect x="772" y="144" width="132" height="48" rx="4" fill="#1c2430" stroke="#2a3441"/>
+        <text x="838" y="164" text-anchor="middle" fill="#e8eef4" font-size="11" font-family="IBM Plex Sans,sans-serif" font-weight="500">history/ Dest</text>
+        <text x="838" y="180" text-anchor="middle" fill="#8a96a4" font-size="9" font-family="IBM Plex Sans,sans-serif">sketches (A only)</text>
+        <!-- reader under map -->
+        <rect x="772" y="86" width="132" height="0" fill="none"/>
+        <!-- edges -->
+        <line x1="152" y1="110" x2="208" y2="110" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+        <line x1="340" y1="110" x2="396" y2="110" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+        <line x1="528" y1="100" x2="584" y2="55" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+        <line x1="528" y1="120" x2="584" y2="165" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+        <line x1="716" y1="52" x2="772" y2="52" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+        <line x1="716" y1="168" x2="772" y2="168" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#gw-arrow)"/>
+      </svg>
+    </div>
+    <p class="note">
+      GraphWriter is the only node that writes <code>map/</code>. SketchWriter is a sibling on the same stream, not an input to GraphWriter.
+      Downstream Diagnose readers call <code>load_snapshot</code> / neighbors on published map artifacts (not shown as a separate box above to keep the writer fork clear).
+    </p>
+    <div class="grid-3">
+      <div class="stat"><div class="v">E3</div><div class="l">ObserveOps stage (Topology)</div></div>
+      <div class="stat info"><div class="v">map/</div><div class="l">Only room GraphWriter writes</div></div>
+      <div class="stat"><div class="v">Parallel</div><div class="l">With Pillar A after Identity</div></div>
+    </div>
+    <p class="note">
+      Normative I/O: <code>E2_INPUT_FIXTURES.md</code> (input) · <code>MAP_WRITE_READ_RECORD.md</code> (output) ·
+      <code>IDENTIFIED_STREAM_REJECT.md</code> (drop codes).
+    </p>
+  </section>
+
+  <!-- 3 · Example -->
+  <section class="panel" id="panel-example" role="tabpanel" aria-labelledby="tab-example" data-step="example" hidden>
+    <div class="gw-panel-head">
+      <h2>3 · Example</h2>
+      <p class="blurb">checkout-api topo line → edge</p>
+    </div>
+    <div class="callout neutral">
+      Lab fixture line from <code>pillar-b/poc/sample_estate/customer_checkout/stream.resolved.jsonl</code> —
+      Service <code>checkout-api</code> <code>runs_on</code> Host <code>linux-server-app-01</code>.
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-h">Input · one writer_stream.v1 line (Motadata SoT)</div>
+        <div class="card-b">
+<pre class="code">{
+  "schema_version": "writer_stream.v1",
+  "ts": "2026-08-20T03:30:00Z",
+  "tenant": "default",
+  "identity": {
+    "status": "resolved",
+    "bind_source": "topology_lookup"
+  },
+  "ci": { "ci_id": "checkout-api", "ci_type": "Service" },
+  "topology": {
+    "relation": "runsOn",
+    "src_ci_id": "checkout-api",
+    "dst_ci_id": "linux-server-app-01",
+    "src_ci_type": "Service",
+    "dst_ci_type": "Host"
+  }
+}</pre>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h">Output · one graph_edge.v1</div>
+        <div class="card-b">
+<pre class="code">{
+  "schema_version": "graph_edge.v1",
+  "tenant": "default",
+  "edge_id": "e_checkout-api_runs_on_linux-server-app-01",
+  "src_ci_id": "checkout-api",
+  "dst_ci_id": "linux-server-app-01",
+  "relation": "runs_on",
+  "discovered_via": {
+    "evidence_type": "…from bind_source",
+    "telemetry_source": "topology_lookup"
+  },
+  "valid_from": "2026-08-20T03:30:00Z",
+  "valid_to": null
+}</pre>
+        </div>
+      </div>
+    </div>
+    <h3>What happens inside apply_topo_updates</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Check</th><th>This line</th><th>Result</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>topology</code> block</td><td>present (<code>runsOn</code>)</td><td>GraphRegulator admits</td></tr>
+          <tr><td><code>identity.status</code></td><td><code>resolved</code></td><td>Gate admits</td></tr>
+          <tr><td><code>ci_type</code></td><td><code>Service</code></td><td>May emit vertex</td></tr>
+          <tr><td><code>relation</code></td><td><code>runsOn</code> → <code>RUNS_ON</code></td><td>Catalog · upsert edge</td></tr>
+          <tr><td>Endpoints</td><td>checkout-api → linux-server-app-01</td><td>Ensure both nodes exist</td></tr>
+          <tr><td><code>edge_id</code></td><td><code>e_checkout-api_runs_on_linux-server-app-01</code></td><td>Stable replace key</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4 · Admit -->
+  <section class="panel" id="panel-admit" role="tabpanel" aria-labelledby="tab-admit" data-step="admit" hidden>
+    <div class="gw-panel-head">
+      <h2>4 · Admit</h2>
+      <p class="blurb">Three output actions · NOOP · WRITE · DROP</p>
+    </div>
+    <p class="lead" style="margin-bottom:0.85rem">
+      Every post-E2 stream line ends in one of three GraphWriter actions.
+      <strong style="color:var(--text)">NOOP</strong> (silent skip) ignores the line;
+      <strong style="color:var(--text)">WRITE</strong> (admit) mutates <code>GraphState</code>;
+      <strong style="color:var(--text)">DROP</strong> (reject) records a shared reason code and leaves the map unchanged.
+    </p>
+
+    <h3>Decision diagram</h3>
+    <div class="dia" role="img" aria-label="GraphWriter three output actions: NOOP, WRITE, DROP">
+      <svg viewBox="0 0 860 420" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, system-ui, sans-serif">
+        <defs>
+          <marker id="adm-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a96a4"/>
+          </marker>
+        </defs>
+
+        <!-- Title strip -->
+        <text x="430" y="22" text-anchor="middle" fill="#e8d19d" font-size="12" font-weight="600" font-family="IBM Plex Mono, monospace">GRAPHWRITER · THREE OUTPUT ACTIONS</text>
+
+        <!-- Start -->
+        <rect x="310" y="40" width="240" height="44" rx="8" fill="#1a2838" stroke="#7ba8f5" stroke-width="1.5"/>
+        <text x="430" y="58" text-anchor="middle" fill="#9bb8f5" font-size="11" font-weight="600">① writer_stream.v1 line</text>
+        <text x="430" y="74" text-anchor="middle" fill="#8a96a4" font-size="10">post-E2 stream (shared with Pillar A)</text>
+
+        <line x1="430" y1="84" x2="430" y2="108" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
+
+        <!-- Decision 1 -->
+        <rect x="280" y="112" width="300" height="52" rx="8" fill="#171d25" stroke="#2a3441"/>
+        <text x="430" y="132" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">② topology block present?</text>
+        <text x="430" y="150" text-anchor="middle" fill="#8a96a4" font-size="10">Presence predicate — no fact_kind router</text>
+
+        <!-- NO branch → NOOP -->
+        <path d="M280,138 L120,138 L120,210" fill="none" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
+        <text x="175" y="128" fill="#8a96a4" font-size="10" font-family="IBM Plex Mono, monospace">no · metric/event/span/…</text>
+
+        <rect x="30" y="214" width="180" height="78" rx="8" fill="#1c2430" stroke="#8a96a4" stroke-width="1.5"/>
+        <text x="120" y="236" text-anchor="middle" fill="#b8c4d0" font-size="11" font-weight="700" font-family="IBM Plex Mono, monospace">A · NOOP</text>
+        <text x="120" y="254" text-anchor="middle" fill="#e8eef4" font-size="11">Silent skip</text>
+        <text x="120" y="272" text-anchor="middle" fill="#8a96a4" font-size="9">ignore · no reject record</text>
+        <text x="120" y="286" text-anchor="middle" fill="#8a96a4" font-size="9">Pillar A may consume it</text>
+
+        <!-- YES branch -->
+        <line x1="430" y1="164" x2="430" y2="198" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
+        <text x="448" y="186" fill="#7aecc4" font-size="10" font-family="IBM Plex Mono, monospace">yes</text>
+
+        <!-- Decision 2 -->
+        <rect x="250" y="202" width="360" height="58" rx="8" fill="#171d25" stroke="#2a3441"/>
+        <text x="430" y="224" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">③ Catalog checks pass?</text>
+        <text x="430" y="244" text-anchor="middle" fill="#8a96a4" font-size="10">identity resolved · may emit CI node · relation emit/wave-1</text>
+
+        <!-- FAIL → DROP -->
+        <path d="M610,231 L740,231 L740,300" fill="none" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
+        <text x="640" y="222" fill="#f07178" font-size="10" font-family="IBM Plex Mono, monospace">fail</text>
+
+        <rect x="650" y="304" width="180" height="88" rx="8" fill="#2a1a1c" stroke="#f07178" stroke-width="1.5"/>
+        <text x="740" y="326" text-anchor="middle" fill="#f07178" font-size="11" font-weight="700" font-family="IBM Plex Mono, monospace">C · DROP</text>
+        <text x="740" y="344" text-anchor="middle" fill="#e8eef4" font-size="11">Reject</text>
+        <text x="740" y="362" text-anchor="middle" fill="#8a96a4" font-size="9">no map write</text>
+        <text x="740" y="376" text-anchor="middle" fill="#8a96a4" font-size="9">reason → writer.rejects</text>
+
+        <!-- PASS → WRITE -->
+        <line x1="430" y1="260" x2="430" y2="300" stroke="#8a96a4" stroke-width="1.5" marker-end="url(#adm-arrow)"/>
+        <text x="448" y="284" fill="#7aecc4" font-size="10" font-family="IBM Plex Mono, monospace">pass</text>
+
+        <rect x="320" y="304" width="220" height="88" rx="8" fill="#1a2830" stroke="#7aecc4" stroke-width="1.5"/>
+        <text x="430" y="326" text-anchor="middle" fill="#7aecc4" font-size="11" font-weight="700" font-family="IBM Plex Mono, monospace">B · WRITE</text>
+        <text x="430" y="344" text-anchor="middle" fill="#e8eef4" font-size="11">Admit</text>
+        <text x="430" y="362" text-anchor="middle" fill="#8a96a4" font-size="9">upsert node(s) + edge</text>
+        <text x="430" y="376" text-anchor="middle" fill="#8a96a4" font-size="9">mutates GraphState → map/</text>
+
+        <!-- Notation: phased skip -->
+        <rect x="30" y="320" width="250" height="72" rx="8" fill="#171d25" stroke="#f0b35a" stroke-dasharray="4 3"/>
+        <text x="155" y="342" text-anchor="middle" fill="#f0b35a" font-size="10" font-weight="600" font-family="IBM Plex Mono, monospace">NOTE · phased skip</text>
+        <text x="155" y="360" text-anchor="middle" fill="#b8c4d0" font-size="9">Relation in fifteen-name catalog</text>
+        <text x="155" y="374" text-anchor="middle" fill="#b8c4d0" font-size="9">but not wave-1 (e.g. mounts)</text>
+        <text x="155" y="388" text-anchor="middle" fill="#8a96a4" font-size="9">→ treat as NOOP for map (not DROP)</text>
+      </svg>
+    </div>
+
+    <div class="admit-legend" aria-label="Action legend">
+      <div>
+        <div class="tag noop">A · NOOP</div>
+        <p><strong style="color:var(--text)">Silent skip.</strong> No <code>topology</code> block for GraphWriter (and not a legacy lab <code>fact_kind=topo_update</code>). No state change, no reject code. Examples: <code>metric</code>-only, <code>event</code>, <code>span</code>, <code>anomaly</code> (Pillar A sketches are metrics-only; logs/traces are not <code>sketch.v1</code>).</p>
+      </div>
+      <div>
+        <div class="tag write">B · WRITE</div>
+        <p><strong style="color:var(--text)">Admit.</strong> Line becomes topology work: upsert CI node(s) and typed edge in <code>GraphState</code>; later <code>flush</code> publishes <code>map/</code>.</p>
+      </div>
+      <div>
+        <div class="tag drop">C · DROP</div>
+        <p><strong style="color:var(--text)">Reject.</strong> Looked like topo work but failed a rule. Map unchanged; reason on <code>writer.rejects</code> (shared codes).</p>
+      </div>
+    </div>
+
+    <h3>Case table (same three actions)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Case</th><th>Stream shape</th><th>identity</th><th>relation</th><th>Action</th><th>Outcome</th></tr>
+        </thead>
+        <tbody>
+          <tr class="tone-success">
+            <td>Happy topo</td><td><code>topology</code> present</td><td><code>resolved</code></td><td><code>runsOn</code></td>
+            <td><strong>B · WRITE</strong></td>
+            <td>Admit → upsert node(s) + edge</td>
+          </tr>
+          <tr>
+            <td>Metric on same stream</td><td><code>metric</code> only</td><td><code>resolved</code></td><td>—</td>
+            <td><strong>A · NOOP</strong></td>
+            <td>Silent skip (Pillar A sketch writer)</td>
+          </tr>
+          <tr>
+            <td>Log / event on same stream</td><td><code>event</code> only</td><td><code>resolved</code></td><td>—</td>
+            <td><strong>A · NOOP</strong></td>
+            <td>Silent skip (not map; not <code>sketch.v1</code>)</td>
+          </tr>
+          <tr>
+            <td>Span on same stream</td><td><code>span</code> only</td><td><code>resolved</code></td><td>—</td>
+            <td><strong>A · NOOP</strong></td>
+            <td>Silent skip (E9/E10 evidence path)</td>
+          </tr>
+          <tr class="tone-danger">
+            <td>Unresolved identity</td><td><code>topology</code> present</td><td><code>unattributed</code></td><td><code>runsOn</code></td>
+            <td><strong>C · DROP</strong></td>
+            <td>Reject · identity_unresolved</td>
+          </tr>
+          <tr class="tone-danger">
+            <td>Synthesized identity</td><td><code>topology</code> present</td><td><code>synthesized</code></td><td><code>runsOn</code></td>
+            <td><strong>C · DROP</strong></td>
+            <td>Reject · identity_synthesized</td>
+          </tr>
+          <tr class="tone-danger">
+            <td>Never-CI type</td><td><code>topology</code> present</td><td><code>resolved</code></td><td><code>runsOn</code></td>
+            <td><strong>C · DROP</strong></td>
+            <td>Reject · never_ci_vertex (Alert/Incident/…)</td>
+          </tr>
+          <tr class="tone-danger">
+            <td>Unknown relation</td><td><code>topology</code> present</td><td><code>resolved</code></td><td><code>CORRELATED_WITH</code></td>
+            <td><strong>C · DROP</strong></td>
+            <td>Reject · unknown_relation</td>
+          </tr>
+          <tr class="tone-warning">
+            <td>Unknown / deferred relation</td><td><code>topology</code> present</td><td><code>resolved</code></td><td><code>mounts</code> (Motadata-only example)</td>
+            <td><strong>A · NOOP</strong> or DROP*</td>
+            <td>Phased skip until Dest emit is ready</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">
+      *Phased skip is map-NOOP (no write) but is <em>not</em> silent skip: the line was Topology’s job; wave-1 simply does not emit that relation yet — and it is usually not a DROP reason.
+      Reason codes are locked in <code>contracts/IDENTIFIED_STREAM_REJECT.md</code>.
+      Wave-1 emit set today: <code>runs_on</code>, <code>hosted_on</code>, <code>depends_on</code>, <code>communicates_with</code>, <code>part_of</code>.
+    </p>
+  </section>
+
+  <!-- 5 · Build -->
+  <section class="panel" id="panel-build" role="tabpanel" aria-labelledby="tab-build" data-step="build" hidden>
+    <div class="gw-panel-head">
+      <h2>5 · Build</h2>
+      <p class="blurb">Seed + stream → GraphState</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Order</th><th>GraphWriter API</th><th>What it does</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><code>load_bootstrap(topology.bootstrap.json)</code></td>
+            <td>Creates GraphState. Qualifies each bootstrap CI type. Declared bootstrap edges get <code>evidence_type</code> declared, <code>telemetry_source</code> topology.bootstrap.</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><code>ingest(JsonlIngestSource)</code></td>
+            <td>For each <code>topo_update</code>: identity gate → ci_qualify → classify_relation → ensure endpoint nodes → upsert edge with provenance from <code>identity.bind_source</code>.</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><code>flush(FileDest)</code></td>
+            <td><code>build_snapshot(version)</code> validates packaged <code>graph_snapshot.v1</code>, then <code>publish_snapshot</code> writes the three map keys (overwrite).</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><code>maintain_validity</code> (optional)</td>
+            <td>E5 stub: expire <code>valid_to</code> / drop stale corroborating; flush again with a new version (lab CLI <code>--maintain-validity</code>).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-h">Internal helpers (not separate services)</div>
+      <div class="card-b">
+        <p>
+          <code>graph_builder.apply_topo_updates</code> ·
+          <code>ci_qualify.may_emit_vertex</code> ·
+          <code>edge_catalog.classify_relation</code> ·
+          <code>provenance.build_discovered_via</code> ·
+          <code>snapshot.build_snapshot</code> / <code>publish_snapshot</code> ·
+          <code>maintain.maintain_graph_validity</code>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · Output -->
+  <section class="panel" id="panel-output" role="tabpanel" aria-labelledby="tab-output" data-step="output" hidden>
+    <div class="gw-panel-head">
+      <h2>6 · Output</h2>
+      <p class="blurb">What lands under map/</p>
+    </div>
+    <h3>poc/out/&lt;tenant&gt;/map/</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Dest key</th><th>Schema</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>graph_snapshot.json</code></td>
+            <td><code>graph_snapshot.v1</code></td>
+            <td>Packaged read unit: tenant, version, nodes[], edges[]</td>
+          </tr>
+          <tr>
+            <td><code>nodes.jsonl</code></td>
+            <td><code>graph_node.v1</code> per line</td>
+            <td>Same vertices as the snapshot, one object per line for inspection</td>
+          </tr>
+          <tr>
+            <td><code>edges.jsonl</code></td>
+            <td><code>graph_edge.v1</code> per line</td>
+            <td>Same typed relations as the snapshot, one object per line</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid-3">
+      <div class="stat"><div class="v">(tenant, ci_id)</div><div class="l">Node logical key</div></div>
+      <div class="stat"><div class="v">(tenant, edge_id)</div><div class="l">Edge logical key</div></div>
+      <div class="stat"><div class="v">(tenant, version)</div><div class="l">Snapshot generation</div></div>
+    </div>
+    <div class="callout warn">
+      GraphWriter never writes <code>history/sketches.jsonl</code>. Computed blast-radius style edges from product briefs
+      are not map rows — readers derive those later.
+    </div>
+  </section>
+
+  <!-- 7 · Lab -->
+  <section class="panel" id="panel-lab" role="tabpanel" aria-labelledby="tab-lab" data-step="lab" hidden>
+    <div class="gw-panel-head">
+      <h2>7 · Lab</h2>
+      <p class="blurb">make flush walkthrough</p>
+    </div>
+<pre class="code">cd pillar-ab-implementation/pillar-b/poc
+make install &amp;&amp; make flush
+# → poc/out/default/map/{graph_snapshot.json,nodes.jsonl,edges.jsonl}</pre>
+    <div class="grid-2" style="margin-top:1rem">
+      <div class="card">
+        <div class="card-h">Bootstrap vertices (topology.bootstrap.json)</div>
+        <div class="card-b">
+          <p>bs-checkout (BusinessService)</p>
+          <p>checkout-api (Service)</p>
+          <p>linux-server-app-01 (Host)</p>
+          <p>app-runtime-jvm (Runtime)</p>
+          <p>payments-db (Database)</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h">Relations the lab emits</div>
+        <div class="card-b" style="padding:0">
+          <div class="table-wrap" style="margin:0;border:none;border-radius:0">
+            <table>
+              <thead>
+                <tr><th>from</th><th>relation</th><th>to</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>checkout-api</td><td><code>runs_on</code></td><td>linux-server-app-01</td></tr>
+                <tr><td>app-runtime-jvm</td><td><code>runs_on</code></td><td>linux-server-app-01</td></tr>
+                <tr><td>checkout-api</td><td><code>depends_on</code></td><td>payments-db</td></tr>
+                <tr><td>checkout-api</td><td><code>part_of</code></td><td>bs-checkout</td></tr>
+                <tr><td>checkout-api</td><td><code>communicates_with</code></td><td>payments-db</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      CLI path: <code>GraphWriter.load_bootstrap</code> → <code>ingest(stream.resolved.jsonl)</code> → <code>FileDest.flush</code>.
+      Same five relations appear both in bootstrap and stream so the lab round-trips a small estate map.
+      Expected-vs-actual spines: <code>poc/sample_estate/customer_checkout/SAMPLE_IO.md</code>.
+    </p>
+  </section>
+
+  <div class="nav-row">
+    <button type="button" class="btn" id="btn-prev">Previous</button>
+    <span class="count" id="step-count">1 / 7</span>
+    <button type="button" class="btn primary" id="btn-next">Next</button>
+  </div>
+
+  <p class="meta">
+    Source of truth: <code>docs/fabric/graphwriter-io-walkthrough.html</code>
+    (flat hub URL <a href="/graphwriter-io-walkthrough.html"><code>/graphwriter-io-walkthrough.html</code></a>).
+    Package docs: <a href="/pillar-ab-implementation/pillar-b/docs/README.md">pillar-b/docs/</a>.
+    Sample I/O: <a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/SAMPLE_IO.md">SAMPLE_IO.md</a> ·
+    Post-E2 input: <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md#writer-stream-presence-cheat-sheet">E2_INPUT_FIXTURES.md</a> ·
+    Contracts: <a href="/docs/MAP_WRITE_READ_RECORD.md">MAP_WRITE_READ_RECORD.md</a> ·
+    Team demo: <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md">TEAM_WALKTHROUGH.md</a>.
+  </p>
+</div>
+
+
+  </section>
+
+  <section class="hub-panel" id="panel-diagnose" role="tabpanel" aria-labelledby="tab-diagnose" data-panel="diagnose" hidden>
+<div class="wrap article">
+  <h2 style="margin-top:0">Checkout case — how diagnose uses map/ and history/</h2>
+  <p class="lead">
+    Interactive walkthrough for one Detect signal on a payment / checkout path.
+    Present topology comes from <code>map/</code> (Pillar B). Metric and baseline history
+    come from sketch rows under <code>history/</code> (Pillar A). The Knowledge Graph / map is
+    an at-the-moment view — it does not store time series.
+    Part of <a href="#workflow">Workflow</a> · triage JSON under <a href="#triage-io">Signal · CaseSeed · WorkingSet</a>.
+  </p>
+
+  <div class="callout">
+    <strong style="color:var(--text)">Rooms, not one store.</strong>
+    Scope read-joins neighbors from <code>map/</code> with sketch windows from <code>history/</code>
+    into a WorkingSet. Do not ask Topology for “what was p99 yesterday,” and do not ask
+    sketch-history to rebuild the whole dependency graph.
+  </div>
+
+  <div class="nav-btns">
+    <button type="button" class="btn" id="prev" disabled>Previous</button>
+    <button type="button" class="btn primary" id="next">Next step</button>
+    <button type="button" class="btn" id="reset">Reset</button>
+    <span class="count" id="count">Step 1 of 7</span>
+  </div>
+  <div class="tabs" role="tablist" aria-label="Diagnose steps" id="tabs"></div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-h">
+        <span id="title">…</span>
+        <span class="pill" id="storePill">…</span>
+      </div>
+      <div class="card-b">
+        <h3>What diagnose does</h3>
+        <p id="what"></p>
+        <h3>This scenario</h3>
+        <div class="ex" id="example"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span>Topology focus (present <code>map/</code>)</span></div>
+      <div class="card-b">
+        <div class="dia" aria-hidden="true">
+          <svg id="topo" viewBox="0 0 300 240" role="img" aria-label="Checkout dependency graph"></svg>
+        </div>
+        <p class="cap">Accent edges = upstream deps from the suspect. Grey edges = downstream blast radius. Auth highlights when history implicates a change.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span>How this step works</span></div>
+    <div class="card-b how">
+      <p id="howIntro"></p>
+      <ol id="howSteps"></ol>
+      <div class="evidence" id="howNote"></div>
+    </div>
+  </div>
+
+  <h2 style="margin-top:1.5rem;">Present map vs history stores</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Question</th><th>Motadata room</th><th>Edge Delta comparator (research)</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Who is this CI <strong>now</strong>?</td>
+          <td>Present node in <code>map/</code> (GraphSnapshot)</td>
+          <td>Knowledge Graph entity</td>
+        </tr>
+        <tr>
+          <td>What does it depend on <strong>now</strong>?</td>
+          <td>Outbound edges on present map</td>
+          <td>KG upstream (+ live K8s map)</td>
+        </tr>
+        <tr>
+          <td>Who fails if it fails <strong>now</strong>?</td>
+          <td>Inbound / reverse walk on present map</td>
+          <td>KG blast radius</td>
+        </tr>
+        <tr>
+          <td>Was behaviour worse than baseline around <strong>t0</strong>?</td>
+          <td><strong>sketch-history</strong> rows under <code>history/</code> for that <code>ci_id</code></td>
+          <td>MCP metrics / logs / traces (not KG)</td>
+        </tr>
+        <tr>
+          <td>Did something change recently?</td>
+          <td>Change / deploy evidence (separate from sketches)</td>
+          <td>GitHub / change connectors</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="meta">
+    Hub URL: <a href="/checkout-diagnose-walkthrough.html"><code>:8765/checkout-diagnose-walkthrough.html</code></a>
+    · Embedded from <a href="/motadata-unified-pipeline-workflow.html#investigate">unified pipeline workflow § investigate</a>
+    · ED research notes in repo root <code>E6-E11-mapping.md</code> (comparator only).
+    Teaching spine aligned with <code>customer_checkout</code> fixtures where named.
+  </p>
+</div>
+
+  </section>
+</div>
+
+
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.hub-tab'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.hub-panel'));
+  function show(name, push) {
+    tabs.forEach(function (t) {
+      var on = t.getAttribute('data-panel') === name;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    panels.forEach(function (p) {
+      var on = p.getAttribute('data-panel') === name;
+      p.classList.toggle('is-active', on);
+      if (on) p.removeAttribute('hidden'); else p.setAttribute('hidden', '');
+    });
+    if (push) {
+      var hash = '#' + name;
+      if (location.hash !== hash) history.replaceState(null, '', hash);
+    }
+  }
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () { show(t.getAttribute('data-panel'), true); });
+  });
+  function fromHash() {
+    var h = (location.hash || '#overview').replace(/^#/, '');
+    // allow deep links into workflow anchors while selecting workflow tab
+    if (h === 'poster' || h === 'stages' || h === 'objects' || h === 'triage-io' || h === 'example' || h === 'investigate') {
+      show('workflow', false);
+      return;
+    }
+    if (['overview', 'workflow', 'graphwriter', 'diagnose'].indexOf(h) >= 0) show(h, false);
+    else show('overview', false);
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+<script>
+(function () {
+  var root = document.getElementById("panel-graphwriter");
+  if (!root) return;
+  var STEPS = ["who", "pipeline", "example", "admit", "build", "output", "lab"];
+  var idx = 0;
+
+  function show(i) {
+    if (i < 0 || i >= STEPS.length) return;
+    idx = i;
+    var step = STEPS[idx];
+    root.querySelectorAll(".gw-tab").forEach(function (btn) {
+      var on = btn.getAttribute("data-step") === step;
+      btn.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    root.querySelectorAll(".gw-panel").forEach(function (panel) {
+      var on = panel.getAttribute("data-step") === step;
+      panel.classList.toggle("is-active", on);
+      if (on) panel.removeAttribute("hidden");
+      else panel.setAttribute("hidden", "");
+    });
+    var count = root.querySelector("#step-count");
+    if (count) count.textContent = (idx + 1) + " / " + STEPS.length;
+    var prev = root.querySelector("#btn-prev");
+    var next = root.querySelector("#btn-next");
+    if (prev) prev.disabled = idx === 0;
+    if (next) next.disabled = idx === STEPS.length - 1;
+  }
+
+  root.querySelectorAll(".gw-tab").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var step = btn.getAttribute("data-step");
+      show(STEPS.indexOf(step));
+    });
+  });
+  var prev = root.querySelector("#btn-prev");
+  var next = root.querySelector("#btn-next");
+  if (prev) prev.addEventListener("click", function () { show(idx - 1); });
+  if (next) next.addEventListener("click", function () { show(idx + 1); });
+  show(0);
+})();
+</script>
+<script>
+(function () {
+  var root = document.getElementById("panel-diagnose");
+  if (!root) return;
+  var doc = root;
+  const STEPS = [
+    {
+      id: "alert",
+      label: "0 · Detect",
+      title: "E6 Detect — form the Signal seed",
+      store: "case",
+      storeLabel: "Case path (not map/)",
+      what: "Turn the firing detector into a Signal: which configuration item, which fault class, and when (t0). No root-cause claim yet.",
+      howIntro: "Diagnose does not start by walking the graph. Detect emits a Signal; Curate later merges correlated Signals into a CaseSeed. The seed must carry enough identity to join map/ and history/.",
+      howSteps: [
+        "Read structured detector fields when present: service / ci name, severity, timestamp, measured value (for example error rate 23%).",
+        "If the alert is free text only, extract a candidate CI name (payment-service / checkout-api) and normalize to the identity namespace Identity already uses.",
+        "Fix t0 and a provisional window so later sketch fetches are bounded — not whole-estate forever.",
+        "Hand off to E7 Curate to merge related Signals into one CaseSeed before Scope.",
+      ],
+      howNote: "Motadata: Signal is fault class only. Edge Delta analogue: monitor event or pipeline signal JSON — still not a Knowledge Graph query.",
+      example: "Signal · payment-service · error_rate spike 23% · t0 = 03:42",
+      showUp: false, showDown: false, highlightAuth: false, highlightPayment: false, showHistoryBadge: false,
+    },
+    {
+      id: "entity",
+      label: "1 · Identify",
+      title: "Resolve the suspect CI on present map/",
+      store: "map",
+      storeLabel: "map/ · present GraphSnapshot",
+      what: "Bind the seed string to a real configuration item (ci_id) and attach type / ownership context from the present graph.",
+      howIntro: "Identity already stamped tenant + ci_id on fabric ingest. On the case path, Scope starts from the CaseSeed CI and loads that node from the current GraphSnapshot under map/ — not from sketch-history.",
+      howSteps: [
+        "Take the seed CI name / id from the CaseSeed.",
+        "Lookup the node in the present GraphSnapshot (Pillar B Topology output). Confirm ci_type (Service, Database, …) and aliases.",
+        "Attach neighborhood metadata available on the node (owner/team when modeled) for paging and citations.",
+        "If the CI is brand-new and not yet on map/, Scope cannot invent topology — fabric must admit the CI first (or you degrade to name-only telemetry joins).",
+      ],
+      howNote: "Present map only. Freshness is E5 Maintain’s job on the fabric side — cases read a versioned snapshot, they do not rewrite topology per alert.",
+      example: "ci_id → payment-service · type Service · on map/ snapshot",
+      showUp: false, showDown: false, highlightAuth: false, highlightPayment: true, showHistoryBadge: false,
+    },
+    {
+      id: "upstream",
+      label: "2 · Upstream",
+      title: "E8 Scope — walk outbound dependencies on map/",
+      store: "map",
+      storeLabel: "map/ · present edges",
+      what: "List CIs this service depends on (depends_on, runs_on, calls, …) to build the WorkingSet neighborhood.",
+      howIntro: "Edges already live in map/ from Topology (GraphWriter). Scope performs a bounded outbound walk from the seed CI — it does not rediscover the estate from raw telemetry inside the case.",
+      howSteps: [
+        "Start at payment-service (or checkout-api in customer_checkout).",
+        "Follow catalog edge types outbound (for example depends_on → auth-service, payments-db).",
+        "Respect WorkingSet budget: depth / fan-out limits so the neighborhood stays diagnosable.",
+        "Keep relationship labels — blocking synchronous deps are checked first when Identify runs.",
+        "Still no latency numbers: this step only shapes the candidate set.",
+      ],
+      howNote: "Pillar B owns edge write path. Case path is read-only on map/.",
+      example: "payment-service → auth-service · payment-gateway-db · stripe-api (async fraud secondary)",
+      showUp: true, showDown: false, highlightAuth: false, highlightPayment: true, showHistoryBadge: false,
+    },
+    {
+      id: "history",
+      label: "3 · History",
+      title: "Join sketch-history rows for those CIs",
+      store: "hist",
+      storeLabel: "history/ · sketch.v1 rows",
+      what: "Prove which neighbor actually degraded around t0 using metric sketches and baselines — not by time-traveling the graph.",
+      howIntro: "map/ told diagnose where to look. history/ tells what changed in time. For each CI in the WorkingSet, fetch sketch.v1 rows (windows, percentiles, seasonal baselines) for the alert window.",
+      howSteps: [
+        "For the seed and each blocking neighbor, read sketch-history keyed by tenant + ci_id (+ metric name) over the Scope window.",
+        "Compare recent window stats to baseline / prior windows (story: auth latency 50ms → 500ms).",
+        "Optionally join change evidence (deploy version near t0) from a change feed — separate from sketches.",
+        "Correlate: payment timeouts + auth sketch breach + auth deploy → working leaf hypothesis.",
+        "Do not expect sketch-history to list dependency edges; do not expect map/ to hold p99 time series.",
+      ],
+      howNote: "Motadata sketch-history = metric sketch retention (E4 Stores / E5 baselines). Edge Delta analogue = MCP telemetry + deploy connectors — not Knowledge Graph edges.",
+      example: "auth-service sketches · p50 50→500ms · deploy v2.14.3 @ 03:30",
+      showUp: true, showDown: false, highlightAuth: true, highlightPayment: true, showHistoryBadge: true,
+    },
+    {
+      id: "blast",
+      label: "4 · Blast",
+      title: "Downstream impact — reverse walk on map/",
+      store: "map",
+      storeLabel: "map/ · reverse edges",
+      what: "Enumerate who depends on the failing CI so Package can state blast radius and stakeholders.",
+      howIntro: "Reverse of upstream: walk inbound edges to payment-service (callers / dependents) on the present snapshot.",
+      howSteps: [
+        "From the suspect CI, traverse inbound catalog edges (who depends_on / calls this CI).",
+        "Label distance: direct callers = 1; transitive via another CI = 2+.",
+        "Enrich with traffic or customer-facing hints from sketches / business tags when available — rates come from history or tags, not static edge rows alone.",
+        "Feed Scope / Package narrative: count of affected CIs and user-impact estimate.",
+      ],
+      howNote: "Blast radius is present topology. Historical “who used to call me last month” needs map snapshots if you require that — not sketch rows.",
+      example: "checkout · subscription · refund (d=1) · order-fulfillment (d=2 via checkout)",
+      showUp: true, showDown: true, highlightAuth: true, highlightPayment: true, showHistoryBadge: false,
+    },
+    {
+      id: "criticality",
+      label: "5 · Localize",
+      title: "E9 Localize — pick the leaf claim",
+      store: "map",
+      storeLabel: "WorkingSet · leaf on map + history",
+      what: "Choose one LeafClaim on the scoped neighborhood: deepest / longest-supported fault, not merely the noisiest alert.",
+      howIntro: "Localize combines present graph structure (where the leaf sits) with history evidence (which CI’s sketches actually broke). Criticality / serial vs parallel dependency patterns bias which leaf is actionable.",
+      howSteps: [
+        "Rank candidates using neighborhood structure (serial payment hop vs parallel auth mesh) plus sketch breaches.",
+        "Select one leaf CI + fault class as LeafClaim (story: auth-service latency / pool exhaustion).",
+        "Carry supporting neighbor context for Identify (EvidenceBundle), not a second competing root.",
+        "Escalate priority when blast radius is customer-facing (checkout blocked).",
+      ],
+      howNote: "Motadata Localize ≠ Edge Delta “criticality score” API — same intent (environmental impact), different product object (LeafClaim).",
+      example: "LeafClaim · auth-service · latency / pool · payment is symptom",
+      showUp: true, showDown: true, highlightAuth: true, highlightPayment: true, showHistoryBadge: true,
+    },
+    {
+      id: "package",
+      label: "6 · Package",
+      title: "E10–E11 — evidence then VerdictCard",
+      store: "human",
+      storeLabel: "EvidenceBundle → VerdictCard",
+      what: "Attach evidence, then package a ticket-ready close for operators — humans approve remediations.",
+      howIntro: "Identify gathers EvidenceBundle (sketches, logs, change). Package emits VerdictCard: suspect, neighborhood, confidence, recommended action.",
+      howSteps: [
+        "Bind LeafClaim to concrete evidence pointers (sketch windows, log excerpts, deploy id).",
+        "Write VerdictCard: root vs symptom, blast radius, confidence, recommended rollback / fix.",
+        "Cite rooms used: map/ edge trail + history/ sketch keys — so operators can re-open the same joins.",
+        "Human executes remediation (rollback auth). Pipeline packages judgment; it does not silently mutate production.",
+      ],
+      howNote: "Verify is judgment inside Identify — not a twelfth stage on the Motadata poster.",
+      example: "VerdictCard · rollback auth-service → prior version · @oncall confirms",
+      showUp: true, showDown: true, highlightAuth: true, highlightPayment: true, showHistoryBadge: true,
+    },
+  ];
+
+  const NODES = [
+    { id: "checkout", x: 40, y: 28, label: "checkout", tier: "down" },
+    { id: "subscription", x: 140, y: 28, label: "subscription", tier: "down" },
+    { id: "refund", x: 240, y: 28, label: "refund", tier: "down" },
+    { id: "payment", x: 140, y: 110, label: "payment", tier: "suspect" },
+    { id: "auth", x: 40, y: 192, label: "auth", tier: "up" },
+    { id: "pgdb", x: 140, y: 192, label: "pay-db", tier: "up" },
+    { id: "stripe", x: 240, y: 192, label: "stripe", tier: "up" },
+  ];
+  const EDGES = [
+    { from: "checkout", to: "payment", kind: "down" },
+    { from: "subscription", to: "payment", kind: "down" },
+    { from: "refund", to: "payment", kind: "down" },
+    { from: "payment", to: "auth", kind: "up" },
+    { from: "payment", to: "pgdb", kind: "up" },
+    { from: "payment", to: "stripe", kind: "up" },
+  ];
+
+  const css = getComputedStyle(document.documentElement);
+  // Fallbacks if CSS vars resolve empty in some themes
+  const color = {
+    text: css.getPropertyValue("--text").trim() || "#e8eef5",
+    muted: css.getPropertyValue("--muted").trim() || "#9aa8b8",
+    stroke: css.getPropertyValue("--stroke").trim() || "#2a3441",
+    accent: css.getPropertyValue("--accent").trim() || "#3d9a8b",
+    soft: css.getPropertyValue("--bg-soft").trim() || "#121821",
+    elev: css.getPropertyValue("--bg-elev").trim() || "#151c26",
+  };
+
+  let idx = 0;
+  const tabsEl = root.querySelector("#tabs");
+  const svg = root.querySelector("#topo");
+  const nodeMap = Object.fromEntries(NODES.map((n) => [n.id, n]));
+
+  STEPS.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "tab";
+    b.textContent = s.label;
+    b.setAttribute("role", "tab");
+    b.addEventListener("click", () => { idx = i; render(); });
+    tabsEl.appendChild(b);
+  });
+
+  function draw(step) {
+    const accent = color.accent;
+    const muted = color.muted;
+    let html = "";
+    EDGES.forEach((e) => {
+      const show = (e.kind === "up" && step.showUp) || (e.kind === "down" && step.showDown);
+      if (!show) return;
+      const a = nodeMap[e.from], b = nodeMap[e.to];
+      html += `<line x1="${a.x + 28}" y1="${a.y + 14}" x2="${b.x + 28}" y2="${b.y + 14}" stroke="${e.kind === "up" ? accent : muted}" stroke-width="2" opacity="0.85" />`;
+    });
+    NODES.forEach((n) => {
+      const isPayment = n.id === "payment";
+      const isAuth = n.id === "auth";
+      const dimUp = n.tier === "up" && !step.showUp;
+      const dimDown = n.tier === "down" && !step.showDown;
+      const dim = (dimUp || dimDown) && !isPayment;
+      const active = (isPayment && step.highlightPayment) || (isAuth && step.highlightAuth);
+      const fill = dim ? color.soft : active ? accent : color.elev;
+      const stroke = active ? accent : color.stroke;
+      const textFill = dim ? muted : active ? "#0b1210" : color.text;
+      html += `<g opacity="${dim ? 0.35 : 1}"><rect x="${n.x}" y="${n.y}" width="56" height="28" rx="4" fill="${fill}" stroke="${stroke}" stroke-width="1"/><text x="${n.x + 28}" y="${n.y + 18}" text-anchor="middle" fill="${textFill}" font-size="9" font-family="inherit">${n.label}</text></g>`;
+    });
+    if (step.showHistoryBadge) {
+      html += `<g><rect x="8" y="218" width="200" height="16" rx="3" fill="${color.soft}" stroke="${color.stroke}"/><text x="14" y="229" fill="${muted}" font-size="9" font-family="inherit">History: history/ sketches — not map/ edges</text></g>`;
+    }
+    svg.innerHTML = html;
+  }
+
+  function render() {
+    const step = STEPS[idx];
+    root.querySelector("#count").textContent = `Step ${idx + 1} of ${STEPS.length}`;
+    root.querySelector("#title").textContent = step.title;
+    root.querySelector("#what").textContent = step.what;
+    root.querySelector("#example").textContent = step.example;
+    root.querySelector("#howIntro").textContent = step.howIntro;
+    root.querySelector("#howNote").textContent = "Evidence bar: " + step.howNote;
+    const ol = root.querySelector("#howSteps");
+    ol.innerHTML = "";
+    step.howSteps.forEach((line) => {
+      const li = document.createElement("li");
+      li.textContent = line;
+      ol.appendChild(li);
+    });
+    const pill = root.querySelector("#storePill");
+    pill.textContent = step.storeLabel;
+    pill.className = "pill " + step.store;
+    [...tabsEl.children].forEach((el, i) => {
+      el.setAttribute("aria-selected", i === idx ? "true" : "false");
+      el.classList.toggle("done", i < idx);
+    });
+    root.querySelector("#prev").disabled = idx === 0;
+    root.querySelector("#next").disabled = idx >= STEPS.length - 1;
+    draw(step);
+  }
+
+  root.querySelector("#prev").addEventListener("click", () => { if (idx > 0) { idx--; render(); } });
+  root.querySelector("#next").addEventListener("click", () => { if (idx < STEPS.length - 1) { idx++; render(); } });
+  root.querySelector("#reset").addEventListener("click", () => { idx = 0; render(); });
+  render();
+})();
+</script>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

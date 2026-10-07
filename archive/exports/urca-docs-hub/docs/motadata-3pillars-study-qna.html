@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Motadata 3 pillars — study Q&amp;A</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+body{margin:0;font-family:var(--font);font-size:17px;line-height:1.7;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2438 0%,transparent 55%),var(--bg);}
+.wrap.article{max-width:68rem;}
+a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+h2{margin-top:2.2rem;}
+h3{font-size:1.08rem;font-weight:650;margin:1.6rem 0 .55rem;}
+p{margin:0 0 .85rem;}
+.lead{margin-bottom:1.1rem;}
+.q{margin:1.35rem 0 .55rem;font-weight:650;color:var(--text);font-size:1.02rem;}
+.note{margin:1.1rem 0;padding:.9rem 1.05rem;border-radius:var(--radius);background:rgba(91,141,239,.14);border-left:3px solid var(--accent);color:var(--muted);}
+.warn{border-left-color:var(--lean);background:rgba(240,179,90,.1);}
+.ok-note{border-left-color:var(--ok);background:rgba(122,236,196,.08);}
+.toc{margin:1.15rem 0 1.4rem;padding:.9rem 1.15rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
+.toc a{display:inline-block;margin:.28rem .9rem .28rem 0;}
+.topic{margin:0 0 1.75rem;padding:0 0 1.35rem;border-bottom:1px solid var(--stroke);}
+.topic:last-of-type{border-bottom:none;}
+.topic p{color:var(--muted);}
+.lbl{display:inline-block;font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);margin-bottom:.2rem;}
+.wrap-table{overflow-x:auto;margin:1rem 0 1.25rem;}
+.wrap-table table{min-width:52rem;font-size:.86rem;}
+ol,ul{margin:.2rem 0 1rem;padding-left:1.25rem;color:var(--muted);}
+li{margin:.35rem 0;}
+.grid.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.85rem;margin:1rem 0 1.25rem;}
+@media (max-width:900px){.grid.three{grid-template-columns:1fr;}}
+.card{background:var(--bg-elev);border:1px solid var(--stroke);border-radius:10px;padding:1rem;}
+.card .sub{color:var(--faint);font-family:var(--mono);font-size:.8rem;margin:0 0 .45rem;}
+.card h3{margin:.15rem 0 .4rem;font-size:1rem;}
+.card p{margin:0;font-size:.95rem;}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="urca-doc article">
+<div class="wrap article">
+  <div class="eyebrow">Study Q&amp;A · 2026-08-19 · D5 stays Review</div>
+  <h1>Motadata 3 pillars — study notes</h1>
+  <p class="lead">
+    ObserveOps E1–E11 is our pipeline. The Motadata PDF is a <strong style="color:var(--text)">leadership requirements</strong> sketch — map it, name conflicts, record resolutions.
+    This is <strong style="color:var(--text)">not</strong> a rewrite of the Pipeline HLD.
+    Issue ≠ Problem ≠ Bits ≠ Incident. Thread ≠ Issue.
+  </p>
+  <p>
+    Read with
+    <a href="/motadata-3pillars-architecture.html">explained architecture</a>,
+    the <a href="/motadata-3pillars-vs-shift-left.html">job map</a>,
+    <a href="/observeops-shift-left-architecture.html">shift-left</a>,
+    and the <a href="/docs/OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md">operational-graph chapter</a>.
+    Canonical markdown: <a href="/docs/MOTADATA_3PILLARS_STUDY_QNA.md">MOTADATA_3PILLARS_STUDY_QNA.md</a>.
+  </p>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#letters">1 Letters</a>
+    <a href="#pillars">2 Three pillars</a>
+    <a href="#sketches">3 Sketches</a>
+    <a href="#entities">4 Entity vs CI</a>
+    <a href="#edges">5 Edge buckets</a>
+    <a href="#alert">6 Alert ≠ vertex</a>
+    <a href="#four">7 Four designs + merge</a>
+    <a href="#grail">7b Grail analogue</a>
+    <a href="#time">8 Graph time ≠ Detect</a>
+    <a href="#lock">9 Locked</a>
+    <a href="#todo">10 ToDo · leadership</a>
+  </nav>
+
+  <h2 id="letters">1. Letters: pillar vs door vs Gate vs phase</h2>
+  <p class="q">Are A, B, and C doors, phases, or pillars?</p>
+  <p>
+    Three lettered systems sit on the mapping pages. They do not line up 1:1.
+    Bare “A”, “B”, or “C” means <strong style="color:var(--text)">pillar</strong> unless the word
+    <strong style="color:var(--text)">door</strong> or <strong style="color:var(--text)">Gate</strong> is in front.
+  </p>
+  <div class="wrap-table">
+  <table>
+    <tr><th>Letter</th><th>Kind</th><th>What it is</th><th>Not</th></tr>
+    <tr>
+      <td><strong style="color:var(--text)">Pillar A / B / C</strong></td>
+      <td>Motadata PDF products</td>
+      <td>A = percentile sketches · B = knowledge graph · C = Rust ReAct agent</td>
+      <td>Not Detect doors. Not phases. Not Gates.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Door A / B / C</strong></td>
+      <td>E6 Detect entry points</td>
+      <td>A = Node trigger · B = Gateway trigger · C = platform monitor</td>
+      <td>Not pillars. Door C <em>reads</em> Pillar A; it is not Pillar C.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Gate A / B / C / D</strong></td>
+      <td>Shift-left checkpoints</td>
+      <td>A = Node vs Gateway · B = dest profile · C = Detect split · D = Layer I on/off</td>
+      <td>Gate D ≠ HLD <strong style="color:var(--text)">D5</strong></td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">P1 / P2 / P3</strong></td>
+      <td>HLD phases</td>
+      <td>P1 E1–E5 · P2 E6–E8 · P3 E9–E11</td>
+      <td>Never written as A/B/C</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Clock A / Clock B</strong></td>
+      <td>Always-on vs on-incident</td>
+      <td>Clock A ≈ P1 · Clock B ≈ P3</td>
+      <td>Clock B is not Pillar B</td>
+    </tr>
+  </table>
+  </div>
+  <p>
+    “C is Clock B” was a bad sentence. It meant <strong style="color:var(--text)">Pillar C runs in P3</strong>,
+    not that C is a phase or a door.
+  </p>
+  <p class="q">Where do the pillars sit?</p>
+  <p>
+    Pillar A and Pillar B are always-on <strong style="color:var(--text)">P1 stores</strong> (write path).
+    P2 and P3 only read them. Pillar C is optional <strong style="color:var(--text)">P3 / Layer I</strong>.
+    <strong style="color:var(--text)">P2 has no Motadata pillar.</strong>
+  </p>
+
+  <h2 id="pillars">2. What the three pillars are</h2>
+  <p class="q">What are the three pillars in the Motadata PDF?</p>
+  <p>Products, not phases, not Detect doors.</p>
+  <div class="grid three">
+    <div class="card">
+      <div class="sub">Pillar A</div>
+      <h3>Percentiles</h3>
+      <p>Compact “is this weird?” store — T-Digest, buckets, seasonal baseline.</p>
+    </div>
+    <div class="card">
+      <div class="sub">Pillar B</div>
+      <h3>Knowledge graph</h3>
+      <p>Typed “who is connected / what changed?” map. Smartscape-shaped job, not a service map.</p>
+    </div>
+    <div class="card">
+      <div class="sub">Pillar C</div>
+      <h3>Rust ReAct agent</h3>
+      <p>Bounded diagnose/close. Our Layer I, opt-in. D5 stays Review.</p>
+    </div>
+  </div>
+  <p>
+    The PDF is <strong style="color:var(--text)">centralize-then-analyze</strong> (the SaaS column).
+    It does not specify Node E1–E2, mask/Drain, Detect door A, or Gateway door B.
+  </p>
+
+  <h2 id="sketches">3. Pillar A pipeline (sketches)</h2>
+  <p class="q">What does Telemetry → windowing → seasonal baseline → T-Digest + bucket sketch → Vortex/S3 → O(1) index mean?</p>
+  <p>
+    Only <strong style="color:var(--text)">Pillar A’s write path</strong>.
+    A <strong style="color:var(--text)">sketch</strong> is a small stored summary of many samples — not a drawing, and not the raw time series.
+    Goal: p95 / “normal for this slot” without replaying weeks of points.
+  </p>
+  <table>
+    <tr><th>Term</th><th>Meaning</th></tr>
+    <tr><td><strong style="color:var(--text)">Windowing</strong></td><td>Chop the stream into slices (1m / 5m / 1h / 1d). One row per metric + entity + window + season_key. Not Node Identity (E2). After the bus.</td></tr>
+    <tr><td><strong style="color:var(--text)">Seasonal baseline</strong></td><td>Usual range for this hour of this weekday. Stops business cycles looking like outages. Refresh is E5, not Detect.</td></tr>
+    <tr><td><strong style="color:var(--text)">T-Digest</strong></td><td>Mergeable distribution → p50 / p95 / p99 without keeping every sample.</td></tr>
+    <tr><td><strong style="color:var(--text)">Bucket sketch</strong></td><td>Fixed histogram bins. Cheap, deterministic for histogram queries and alert rules. PDF keeps both T-Digest and buckets.</td></tr>
+    <tr><td><strong style="color:var(--text)">Vortex/S3</strong></td><td>Durable lake for those rows. For us: one dest profile, not the only E4 (Gate B open).</td></tr>
+    <tr><td><strong style="color:var(--text)">O(1)</strong></td><td>Cost does not grow with historical sample count. Still a bounded key lookup + deserialize.</td></tr>
+  </table>
+  <p>
+    Consumers: dashboards, <strong style="color:var(--text)">E6 door C</strong>, <strong style="color:var(--text)">E10</strong> <code>get_metric_baseline()</code>.
+    Pillar A does not name the leaf (E9). Drain on the Node is a different “pattern” — volume reduce, not this store.
+  </p>
+
+  <h2 id="entities">4. “Entities” that are not CIs</h2>
+  <p class="q">Motadata lists Container, Pod, Network, Change, Alert… Many have no persistent unique id. Wrong?</p>
+  <p>
+    The <strong style="color:var(--text)">CI bar</strong> is right: localize and ticket need a stable id (or a scoped id plus a validity window) on <code>tenant</code>+<code>ci_id</code>.
+    Motadata used “entity” for any typed graph vertex, including events.
+  </p>
+  <table>
+    <tr><th>Kind</th><th>Examples</th><th>Verdict</th></tr>
+    <tr><td>Durable CIs</td><td>Service, Host, Customer, BusinessService; Database <em>if</em> instance/cluster is named</td><td>Pass the CI test</td></tr>
+    <tr><td>Ephemeral runtime</td><td>Pod (UID while alive), Container (this run), Process (pid is not identity)</td><td>Graph nodes for a while, not ServiceOps roots</td></tr>
+    <tr><td>Underspecified</td><td>Database, Deployment, Network</td><td>Pause until you pick the id</td></tr>
+    <tr><td>Events reified as nodes</td><td>Change, Alert, Incident, ITSMTicket, Metric, LogPattern, Trace</td><td>Not CIs. Fact / evidence / case objects</td></tr>
+  </table>
+  <p>
+    Our HLD is stricter: E9/E11 only <code>identity.status = resolved</code>.
+    D-E2-1: synthesized or unresolved is not a ticket.
+    Change and ticket are reserved <code>signal_class</code> values, not Collect this pass.
+  </p>
+
+  <h2 id="edges">5. Motadata edges — four jobs</h2>
+  <p class="q">How do we segregate CALLS, DEPENDS_ON, RUNS_ON, CONTAINS, … RESOLVED_BY?</p>
+  <p>Four jobs. Only the first two belong on <strong style="color:var(--text)">E3 <code>GraphSnapshot</code></strong>.</p>
+  <p>
+    <strong style="color:var(--text)">1. Structure</strong> (CI–CI, often authoritative) —
+    <code>CONTAINS</code>, <code>RUNS_ON</code>, <code>DEPLOYED_AS</code> only if you pick one meaning (k8s resource <em>or</em> release).
+    Our analogues: <code>part_of</code> / <code>runs_on</code> / <code>hosted_on</code>.
+  </p>
+  <p>
+    <strong style="color:var(--text)">2. Runtime / contract</strong> (CI–CI, service-map core) —
+    <code>CALLS</code>, <code>DEPENDS_ON</code>, <code>CONNECTS_TO</code>, <code>PRODUCES</code> / <code>CONSUMES</code>.
+    <code>CALLS</code> is the service map; <code>DEPENDS_ON</code> is wider.
+  </p>
+  <p>
+    <strong style="color:var(--text)">3. Change hitch</strong> (CI–event) —
+    <code>CHANGED_BY</code>, <code>TRIGGERED</code>, <code>DEPLOYED_AS</code> in the release sense.
+    Change is a fact with a time, not a CMDB CI.
+  </p>
+  <p>
+    <strong style="color:var(--text)">4. Case / close</strong> (not E3) —
+    <code>AFFECTS</code> is blast radius at E9/E11.
+    <code>CORRELATED_WITH</code> is E7 Curate (one <code>CaseSeed</code>, D3).
+    <code>RESOLVED_BY</code> is E11 Package.
+    Motadata folding Curate into Pillar B is exactly <code>CORRELATED_WITH</code> on the graph. We do not.
+  </p>
+  <p class="q">Can the same edges be bucketed upstream / downstream / peer?</p>
+  <p>
+    Only buckets 1–2, and only relative to a seed.
+    Upstream/downstream is a walk orientation, not a property of every Motadata edge type.
+    <code>RUNS_ON</code> / <code>CONTAINS</code> are vertical. Peer is same-tier (<code>clustered_with</code>) — Motadata did not name it.
+    Change/case edges are not upstream/downstream.
+  </p>
+
+  <h2 id="alert">6. Alert on the graph vs E6 Signal</h2>
+  <p class="q">Motadata reifies Alert as a graph node, but alerts are E6 Signals?</p>
+  <p>Both. Two uses of “node”:</p>
+  <ul>
+    <li><strong style="color:var(--text)">CI node</strong> — <code>tenant</code>+<code>ci_id</code>, leaf, maybe ticket. Alert is not this.</li>
+    <li><strong style="color:var(--text)">Fact / event vertex</strong> — Motadata draws Detect output on the map so it can store <code>TRIGGERED</code> / <code>CORRELATED_WITH</code>.</li>
+  </ul>
+  <p>
+    For us: Detect emits a <code>Signal</code> (E6). It points <em>at</em> a CI. It is not a vertex in <code>GraphSnapshot</code>.
+    Curate merges signals (E7). Same split for Incident (<code>CaseSeed</code>) and Change (fact, not localize target).
+  </p>
+  <p class="q">Do Dynatrace / Datadog / Edge Delta have fact/event nodes on the map?</p>
+  <p>
+    They have the <strong style="color:var(--text)">objects</strong>. They do not treat them as <strong style="color:var(--text)">topology vertices</strong>.
+    Join is identity + time, not Alert as a neighbor of Service on the same graph.
+  </p>
+  <div class="wrap-table">
+  <table>
+    <tr><th>Vendor</th><th>Map (CI / entity plane)</th><th>Event / case objects (not map vertices)</th><th>How they join</th></tr>
+    <tr>
+      <td><strong style="color:var(--text)">Dynatrace</strong></td>
+      <td>Smartscape — hosts, processes, services, k8s (<code>entityId</code>)</td>
+      <td>Davis Event (Detect), Problem (package). Events also in Grail by entityId + time</td>
+      <td>Problem/Event points at entityId. Davis walks Smartscape, then pulls Grail</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Datadog</strong></td>
+      <td>Service Map — APM peers (tags)</td>
+      <td>Monitor / Watchdog. Incident / Bits optional. Husky is an event store, not an alert graph</td>
+      <td>Tags / service. Alert ≠ Incident (Observed)</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Edge Delta</strong></td>
+      <td>eBPF / pipeline service map</td>
+      <td>Monitor → Issue / Overview (their package, not our E11)</td>
+      <td>Issue about a service/pipeline. Not an extra map node type</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Motadata PDF</strong></td>
+      <td>Same graph as events</td>
+      <td>Alert, Incident, Change, ITSMTicket listed as entities</td>
+      <td>TRIGGERED / CORRELATED_WITH / RESOLVED_BY as edges</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Ours</strong></td>
+      <td>E3 CIs only</td>
+      <td>E6 Signal, E7 CaseSeed, E11 VerdictCard</td>
+      <td>Pointer from signal → ci_id. Same split as DT/DD/ED</td>
+    </tr>
+  </table>
+  </div>
+  <p>
+    DT/DD/ED match column 3 (map ∥ event store). Motadata is the outlier.
+    Deploy/change events still exist — as facts on a CI, not as a second Smartscape.
+  </p>
+
+  <h2 id="four">7. Four designs, then merge 3 + 4</h2>
+  <p class="q">Is Motadata’s knowledge graph Smartscape or a service map?</p>
+  <p>
+    Closer to <strong style="color:var(--text)">Smartscape’s job</strong> than to a service map. It is neither product.
+  </p>
+  <p>
+    A service map is usually one layer: services + CALLS (Datadog APM, ED eBPF). Hop budget.
+    No host→pod→process, no Change/Alert vertices.
+  </p>
+  <p>
+    Smartscape is Dynatrace’s typed multi-layer topology. Davis walks it, then pulls Grail on the same <code>entityId</code>. Map ∥ lake.
+  </p>
+  <p>
+    Motadata Pillar B aims at that RCA walk, then also hangs Change / Alert / Incident as vertices.
+  </p>
+  <p class="q">3rd design or 4th?</p>
+  <p>
+    Count: (1) service map, (2) Smartscape, (3) ours, (4) Motadata.
+    Motadata is <strong style="color:var(--text)">not</strong> design 3.
+  </p>
+  <div class="wrap-table">
+  <table>
+    <tr><th></th><th>1 Service map</th><th>2 Smartscape</th><th>3 Ours — E3</th><th>4 Motadata Pillar B</th></tr>
+    <tr><td><strong style="color:var(--text)">Job</strong></td><td>Who talks to whom (hop budget)</td><td>Walk where the fault sits, then fetch evidence</td><td>Same walk job, auditable edges</td><td>Same walk, then onto Change / Alert / Incident vertices</td></tr>
+    <tr><td><strong style="color:var(--text)">Layers</strong></td><td>One: services</td><td>Host / process / service / k8s / …</td><td>CI stack (tier + instance_scope). Illustration ≠ required list</td><td>Mixes durable CIs, ephemeral runtime, and event types</td></tr>
+    <tr><td><strong style="color:var(--text)">Nodes</strong></td><td>Services</td><td>DT entities</td><td>CIs only (tenant+ci_id)</td><td>CIs and Alert, Incident, Change, ticket, Metric, Trace…</td></tr>
+    <tr><td><strong style="color:var(--text)">Identity</strong></td><td>service + tags. Soft</td><td>entityId on map and lake</td><td>tenant+ci_id. Unresolved ≠ ticket (D-E2-1)</td><td>entity_id + type + tenant. Persistence not specified per type</td></tr>
+    <tr><td><strong style="color:var(--text)">Edges</strong></td><td>CALLS / inferred DEPENDS_ON</td><td>Typed, OneAgent-fresh</td><td>15 types + authoritative | declared | corroborating</td><td>Those plus TRIGGERED, CORRELATED_WITH, RESOLVED_BY, AFFECTS</td></tr>
+    <tr><td><strong style="color:var(--text)">Time</strong></td><td>Current map; often lags</td><td>Live discovery; not a lake rebuild</td><td>refresh cadence; declared can stale (E5)</td><td>valid_from / valid_to on nodes and edges. Not Detect time</td></tr>
+    <tr><td><strong style="color:var(--text)">Not on the map</strong></td><td>Infra stack, Change, Alert</td><td>Event/Problem are Davis objects</td><td>E6 Signal, E7 CaseSeed, E11 VerdictCard</td><td>Almost nothing — they reify Detect/case onto the graph</td></tr>
+    <tr><td><strong style="color:var(--text)">Who walks</strong></td><td>Human / APM UI. Does not name the leaf</td><td>Davis neighborhood walk</td><td>E8 hop budget · E9 leaf rule. SaaS owns the snapshot</td><td>Rust ReAct agent and a written traversal recipe. SaaS-only PDF</td></tr>
+    <tr><td><strong style="color:var(--text)">Locus</strong></td><td>APM / eBPF UI</td><td>SaaS</td><td>Node cues; Gateway assist = thin call-map; SaaS owns GraphSnapshot</td><td>PDF is the SaaS column only</td></tr>
+    <tr><td><strong style="color:var(--text)">Evidence store</strong></td><td>Traces in APM</td><td>Grail, same entityId</td><td>E4 dest(s), same ci_id (D2)</td><td>Vortex/S3 sketches + graph. Retrieval layer = our E8</td></tr>
+    <tr><td><strong style="color:var(--text)">What it is not</strong></td><td>Not RCA</td><td>Not a generic CMDB dump</td><td>Not Motadata event vertices; not the lake</td><td>Not a classic service map; Curate/Package live on their graph</td></tr>
+  </table>
+  </div>
+  <p>
+    Subset: service map ⊂ Smartscape-shaped CI graph ⊂ Motadata if you add event nodes.
+    Column 3 is the middle. Column 4 is the middle plus event vertices and case edges.
+  </p>
+
+  <p class="q">Should the final design be a hybrid of 3 and 4?</p>
+  <div class="note">
+    <strong style="color:var(--text)">Yes — one graph, two planes.</strong>
+    Column 3’s CI plane is canonical.
+    Column 4’s extras are either folded into E3/E5 as <em>time on CI edges</em>, or kept off E3 as P2/P3 objects.
+    Not “union every Motadata entity type.”
+  </div>
+
+
+  <p>Compare 3 vs 4 before merging. Each <strong style="color:var(--text)">topic</strong> below is context for that row (what it is and why it is needed).</p>
+  <div class="wrap-table">
+  <table>
+    <tr><th>Topic</th><th>3 (ours)</th><th>4 (Motadata)</th><th>Merge</th></tr>
+    <tr>
+      <td><strong style="color:var(--text)">Node kinds</strong></td>
+      <td>CIs only</td>
+      <td>CIs + events</td>
+      <td><strong style="color:var(--text)">Keep 3.</strong> Ephemeral CIs (Pod) only with a validity window + parent CI. Alert/Incident/ticket stay off E3.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Graph time</strong></td>
+      <td>refresh + E5 decay</td>
+      <td>valid_from / valid_to</td>
+      <td><strong style="color:var(--text)">Take 4’s job.</strong> Validity is E3/E5, never E6 — so a dead pod does not look live.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Provenance</strong></td>
+      <td>authoritative / declared / corroborating</td>
+      <td>confidence + source</td>
+      <td><strong style="color:var(--text)">Keep 3.</strong> Map Motadata source → discovered_via.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Structure + runtime edges</strong></td>
+      <td>15 typed CI–CI edges</td>
+      <td>CONTAINS RUNS_ON CALLS DEPENDS_ON …</td>
+      <td><strong style="color:var(--text)">Keep 3’s catalog.</strong> Motadata names alias into buckets 1–2.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Change</strong></td>
+      <td>Reserved change_event; not Collect this pass</td>
+      <td>Change vertex + CHANGED_BY</td>
+      <td><strong style="color:var(--text)">Take 4 as a fact, not a CI.</strong> Join change_id → CI. Not an E9 ticket root.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Alert / Incident</strong></td>
+      <td>Signal / CaseSeed</td>
+      <td>Vertices + TRIGGERED / CORRELATED_WITH</td>
+      <td><strong style="color:var(--text)">Keep 3.</strong> Those edges are E6/E7, not topology.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Impact / close</strong></td>
+      <td>Derived at E9/E11</td>
+      <td>AFFECTS / RESOLVED_BY stored</td>
+      <td><strong style="color:var(--text)">Keep 3.</strong> Do not persist blast radius or resolver as E3 edges.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Walker</strong></td>
+      <td>E8/E9; Layer I optional (D5 Review)</td>
+      <td>ReAct agent walks the graph</td>
+      <td><strong style="color:var(--text)">Keep 3.</strong> Steal the recipe for E9; the agent is not the graph.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--text)">Store</strong></td>
+      <td>Dest-agnostic E4; graph is not the lake</td>
+      <td>Vortex/S3 holds graph + sketches</td>
+      <td><strong style="color:var(--text)">Keep 3 + Gate B.</strong> Same ci_id namespace as Pillar A sketches.</td>
+    </tr>
+  </table>
+  </div>
+
+
+  <div class="topic" id="merge-nodes">
+    <h3>Node kinds</h3>
+    <p><span class="lbl">What</span><br>
+      What is allowed to be a vertex. A CI node has tenant+ci_id; E9 may name it as a leaf and E11 may ticket it.
+      A fact/event vertex is a time-stamped object (Alert, Incident, Change-as-entity) drawn as if it were a neighbor of a service.
+    </p>
+    <p><span class="lbl">Why</span><br>
+      If Alert is a vertex, Curate and Detect leak into E3. You cannot tell “who exists in the estate” from “what fired this minute.”
+      If only eternal CMDB CIs are vertices, a Pod that lived for ten minutes cannot appear on the walk at all.
+    </p>
+  </div>
+
+  <div class="topic" id="merge-time">
+    <h3>Graph time</h3>
+    <p><span class="lbl">What</span><br>
+      When a <em>map</em> fact was true: “this pod existed,” “this RUNS_ON held.”
+      Motadata names it valid_from / valid_to. We already have per-edge refresh and E5 decay (declared 7d / 30d).
+      This is not when the alert fired (E6) and not the E8 investigation corridor.
+    </p>
+    <p><span class="lbl">Why</span><br>
+      Without it, a replaced pod or a stale declared cluster membership still looks live, and E9 walks a ghost.
+      Topology history is P1 work. Detect must not be the first place time appears on the map.
+    </p>
+  </div>
+
+  <div class="topic" id="merge-prov">
+    <h3>Provenance</h3>
+    <p><span class="lbl">What</span><br>
+      Why we believe this edge. Our three epistemic types: authoritative (owner system), declared (CMDB said so),
+      corroborating (inferred from traces/flows). Plus confidence, discovered_via, refresh.
+      Motadata stores confidence + source.
+    </p>
+    <p><span class="lbl">Why</span><br>
+      Half a real graph is inference. If the operator cannot see that app → db came from a sampled trace,
+      the verdict’s confidence is decoration. Ranking should degrade when the path walks declared or corroborating
+      (specified; not lab-validated yet).
+    </p>
+  </div>
+
+  <div class="topic" id="merge-edges">
+    <h3>Structure + runtime edges</h3>
+    <p><span class="lbl">What</span><br>
+      CI–CI relationship types. Structure = stack (CONTAINS, RUNS_ON, part_of).
+      Runtime / contract = who talks to whom (CALLS, DEPENDS_ON, PRODUCES / CONSUMES).
+      Our catalog has 15 names. Motadata’s CALLS list is the same two buckets plus case edges — those case edges are not this topic.
+    </p>
+    <p><span class="lbl">Why</span><br>
+      E8 hop budget and E9 leaf search need typed walks (down the stack vs along callers).
+      A service map is only the runtime bucket. RCA needs both.
+    </p>
+  </div>
+
+  <div class="topic" id="merge-change">
+    <h3>Change</h3>
+    <p><span class="lbl">What</span><br>
+      Something in the estate was modified — deploy, config, git SHA, change ticket.
+      Motadata makes Change a vertex with CHANGED_BY.
+      We reserved change_event as a signal_class and do not Collect it this pass.
+    </p>
+    <p><span class="lbl">Why</span><br>
+      The walk “deps → recent changes → abnormal metrics” is how you stop blaming the symptom app for a bad release.
+      That hitch is real. Making Change a CI (ticket root, eternal id) is not: a change is an operation with a time, not a host.
+    </p>
+  </div>
+
+  <div class="topic" id="merge-alert">
+    <h3>Alert / Incident</h3>
+    <p><span class="lbl">What</span><br>
+      Detect output vs case object. Alert / Event / Signal = something looks wrong now (E6).
+      Incident / Problem / CaseSeed = curated one-case (E7).
+      Motadata draws both as vertices and links them with TRIGGERED / CORRELATED_WITH.
+    </p>
+    <p><span class="lbl">Why</span><br>
+      DT/DD/ED keep these off Smartscape / Service Map and join by identity.
+      If we copy Motadata, E3 becomes the case bus, D3 Curate disappears into an edge, and every storm pollutes the topology.
+    </p>
+  </div>
+
+  <div class="topic" id="merge-impact">
+    <h3>Impact / close</h3>
+    <p><span class="lbl">What</span><br>
+      Impact (AFFECTS) = blast radius: who hurts if this leaf is down.
+      Close (RESOLVED_BY) = ticket, verdict, or person that closed the case.
+      Motadata stores both as graph edges. We compute impact at E9/E11 and emit close as VerdictCard / optional ITSM.
+    </p>
+    <p><span class="lbl">Why</span><br>
+      Blast radius depends on the current walk and the current seed.
+      Persisting AFFECTS as a standing topology edge goes stale the next deploy.
+      RESOLVED_BY is a case outcome, not “who contains whom.”
+    </p>
+  </div>
+
+  <div class="topic" id="merge-walker">
+    <h3>Walker</h3>
+    <p><span class="lbl">What</span><br>
+      Who reads the graph to name a leaf. Ours: E8 cuts hops/time, E9 applies a leaf rule;
+      Layer I / ReAct is optional (D5 Review).
+      Motadata: the Rust agent walks, with a written recipe (Incident → service → deps → changes → metrics).
+    </p>
+    <p><span class="lbl">Why</span><br>
+      If the agent <em>is</em> the graph, the operator path dies and D5 flips.
+      The recipe is still useful as E9 search order, not as a product that owns topology.
+    </p>
+  </div>
+
+  <div class="topic" id="merge-store">
+    <h3>Store</h3>
+    <p><span class="lbl">What</span><br>
+      Where the map and the evidence live. Dynatrace: Smartscape ∥ Grail.
+      Ours: E3 ∥ E4 dests, same ci_id (D2).
+      Motadata: Vortex/S3 holds graph and sketches (both rooms).
+    </p>
+    <p><span class="lbl">Why</span><br>
+      One warehouse is simpler to demo and easier to lock in as “the” lake.
+      We stay dest-agnostic (Gate B): Vortex may be one dest profile.
+      Sketches are an E4 modality, not a second map. The agent must not scan the lake (that bound is E8).
+    </p>
+  </div>
+
+  <h3>Merged solution — one E3 GraphSnapshot</h3>
+  <ol>
+    <li><strong style="color:var(--text)">Vertices</strong> = CIs (tenant+ci_id), including time-bounded runtime CIs (Pod/Container) with valid_from/valid_to (or equivalent) and a scope_parent. No Alert, Incident, ITSMTicket, Metric, Trace, LogPattern vertices.</li>
+    <li><strong style="color:var(--text)">CI–CI edges</strong> = our 15 types + Motadata buckets 1–2, each with provenance and a validity window. Service-map CALLS is one family (communicates_with), not the whole graph.</li>
+    <li><strong style="color:var(--text)">Change</strong> = optional fact records (not CIs) attached by CHANGED_BY, admitted later as change_event, not E1 this pass.</li>
+    <li><strong style="color:var(--text)">Detect / Curate / Package</strong> stay E6 / E7 / E11. The Motadata walk is how E9 reads the CI graph + facts + E4, not extra vertex types.</li>
+    <li><strong style="color:var(--text)">P2 still has no pillar.</strong> Retrieval bounds stay E8. Pillar C stays opt-in Layer I. Do not flip D5.</li>
+  </ol>
+  <p>
+    That is Smartscape’s job (columns 2/3) with Motadata’s temporal CI edges and change hitch, without Motadata’s event-node bus.
+  </p>
+
+  <h2 id="grail">7b. Grail analogue</h2>
+  <p class="q">Pillar B ≈ Smartscape. Do we have anything parallel to Grail?</p>
+  <p>
+    <strong style="color:var(--text)">Yes: E4 Stores.</strong>
+    We did not brand a first-party lake.
+    Dynatrace’s split is Smartscape (map) ∥ Grail (evidence) on one entityId.
+    Ours is E3 GraphSnapshot (map) ∥ E4 dest query surfaces (evidence) on one ci_id (D2 Signed).
+    The map does not rebuild from the lake.
+  </p>
+  <p>
+    Motadata Vortex/S3 puts both rooms in one product: historical observability (sketches) and the knowledge graph.
+    That is Grail plus Smartscape in one warehouse. We keep the rooms separate.
+  </p>
+  <table>
+    <tr><th>Dynatrace</th><th>Motadata Vortex/S3</th><th>Ours</th></tr>
+    <tr><td>Smartscape</td><td>Graph builder → graph tables</td><td><strong style="color:var(--text)">E3</strong></td></tr>
+    <tr><td>Grail (metrics / logs / traces / events)</td><td>Historical observability, including Pillar A sketches</td><td><strong style="color:var(--text)">E4</strong> (tenant dest in Q1; Gate B: not only Vortex)</td></tr>
+    <tr><td>Shared entityId</td><td>Shared entity_id</td><td>Shared tenant+ci_id</td></tr>
+  </table>
+  <p>
+    Pillar A sketches are not a third map. They are a compact history modality that lives in E4 (refreshed by E5).
+    Dashboards, E6 door C, and E10 get_metric_baseline() read them the way Davis reads Grail after a Smartscape walk.
+  </p>
+  <p>
+    What we do not have yet: a named ObserveOps lake SKU, numeric E4 retention/latency NFRs (LLD-E4 still Draft),
+    or a requirement that E4 be Vortex. Q1 dest is the store. Node/Gateway only buffer — they are not Grail.
+  </p>
+
+  <h2 id="time">8. valid_from / valid_to — graph time, not Detect</h2>
+  <p class="q">Time bounds are not part of the knowledge graph; they appear at E6 Detect, right?</p>
+  <p>
+    <strong style="color:var(--text)">No.</strong>
+    Motadata valid_from / valid_to are when a graph fact was true (edge/node history).
+    That is E3 write + E5 Maintain.
+    Our analogue: per-edge refresh, declared-edge decay (7d soft / 30d hard).
+    We did not copy the Motadata field names; we copied the job.
+  </p>
+  <p>E6 is a different clock: when the Signal fired. E8 locks the investigation corridor.</p>
+  <table>
+    <tr><th>Clock</th><th>Stage</th><th>Meaning</th></tr>
+    <tr><td>Edge/node validity</td><td>E3, E5</td><td>Was this CI–CI fact true then?</td></tr>
+    <tr><td>Signal time</td><td>E6</td><td>When did we decide something is wrong?</td></tr>
+    <tr><td>Case window</td><td>E8</td><td>What interval may E9/E10 query?</td></tr>
+  </table>
+  <p>Do not merge these three. Graph time stays P1. Detect time stays P2.</p>
+
+  <h2 id="lock">9. Locked takeaways</h2>
+  <ul>
+    <li>Pillars ≠ doors ≠ Gates ≠ phases.</li>
+    <li>Door C consumes Pillar A; it is not Pillar C.</li>
+    <li>Alert = Signal (E6), not a CI. DT/DD/ED agree: events are off the topology map.</li>
+    <li>Canonical graph = SaaS E3; Gateway assist may look like a service map. Grail analogue = E4.</li>
+    <li>Hybrid 3+4 = temporal CI graph + Change-as-fact; not Motadata’s event vertices.</li>
+    <li><strong style="color:var(--text)">Do not flip D5.</strong> Operator E9–E11 must work with Pillar C off.</li>
+  </ul>
+
+  <h2 id="todo">10. ToDo — leadership PDF vs our pipeline</h2>
+  <p class="q">What are we actually supposed to do with the Motadata PDF?</p>
+  <p>
+    The pipeline is <strong style="color:var(--text)">ours</strong> (vendor research → ObserveOps E1–E11, shift-left locus).
+    The 4-page Motadata PDF is a <strong style="color:var(--text)">leadership requirements</strong> document — not a second HLD and not a product we re-implement.
+  </p>
+  <div class="note warn">
+    <strong style="color:var(--text)">ToDo.</strong>
+    Map every PDF box onto E1–E11. List conflicts. Pick a resolution that does not rewrite the clock.
+    Twin: <a href="/motadata-3pillars-vs-shift-left.html">job map</a> §3 (fit) and §5 (conflicts).
+    The PDF specifies the <strong style="color:var(--text)">SaaS column</strong> only. It does not specify Node E1–E2, mask/Drain, Detect door A, or Gateway door B.
+  </div>
+
+  <h3>Already maps (not a conflict)</h3>
+  <table>
+    <tr><th>Leadership asks</th><th>Our stage</th><th>Note</th></tr>
+    <tr><td>Percentile sketches / seasonal “is this weird?”</td><td>E4 modality + E5 refresh; door C and E10 read</td><td>Pillar A</td></tr>
+    <tr><td>Typed RCA map, walk toward a leaf</td><td>E3 GraphSnapshot + E9</td><td>Pillar B’s job</td></tr>
+    <tr><td>Bounded retrieval</td><td>E8 WorkingSet</td><td>Not a pillar</td></tr>
+    <tr><td>Baseline + evidence, not LLM assertion</td><td>E10</td><td></td></tr>
+    <tr><td>Explain / ticket</td><td>E11 VerdictCard</td><td>Ticket yes; remediation is not Package</td></tr>
+  </table>
+
+  <h3>Conflicts — leadership vs us, and the resolution</h3>
+  <p>
+    Status: <strong style="color:var(--text)">resolution proposed</strong> (HLD locks stay). Remaining work is to land the resolution, not to adopt the PDF shape.
+  </p>
+  <div class="wrap-table">
+  <table>
+    <tr><th>#</th><th>Leadership (PDF)</th><th>Our pipeline</th><th>Conflict</th><th>Resolution (do this)</th><th>Still ToDo</th></tr>
+    <tr>
+      <td>1</td>
+      <td>Processing after a central bus</td>
+      <td>Shape / mask / identity on Node; optional door A</td>
+      <td>PDF is silent on the left column</td>
+      <td>Keep shift-left. Treat PDF as SaaS half. Seq 0 (E1–E2) is ours.</td>
+      <td>Prove Node ingest.v1 + tenant+ci_id (Block-2 obj 1)</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Vortex+S3 is the lake (graph and history together)</td>
+      <td>Dest-agnostic E4 (D2); graph is E3</td>
+      <td>One warehouse vs two rooms</td>
+      <td>Same ci_id. Two rooms. Vortex = one dest (Gate B). Sketches = E4 modality. Map does not rebuild from the lake.</td>
+      <td>Close LLD-E4; dest besides Vortex; sketch writer into E4</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Alert / Incident / Change as graph entities</td>
+      <td>Map = CIs only; Alert = E6 Signal</td>
+      <td>Event-node bus vs CI plane</td>
+      <td>Keep our map. Take graph time on CI edges (E3/E5). Change = fact, not a vertex, not Collect this pass.</td>
+      <td>Hybrid GraphSnapshot: validity + provenance; no event vertices (Block-2 obj 2)</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>CORRELATED_WITH / dedupe on the agent</td>
+      <td>E7 Curate required (D3) before diagnose</td>
+      <td>Curate folded into Pillar C</td>
+      <td>Keep E7 in front of any agent. Do not implement Curate only as a tool.</td>
+      <td>One CaseSeed + merge rationale (Block-2 obj 3)</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>ReAct is the RCA engine</td>
+      <td>Operator E9–E11 always on; D5 Review</td>
+      <td>Agentic default vs operator path</td>
+      <td>Steal the walk recipe for E9. Pillar C = optional Layer I. Do not flip D5.</td>
+      <td>3 classes close with Layer I off (Block-2 obj 4). Agent out of this block.</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Detect = sketch thresholds (platform only)</td>
+      <td>Doors A, B, and C</td>
+      <td>PDF implements door C only</td>
+      <td>PDF = door C. We still build A/B. Door C consumes Pillar A; it is not Pillar C.</td>
+      <td>Gate C written; door C on ≥2 classes</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>ITSM listed with Collect; Remediate in the loop</td>
+      <td>Telemetry-only E1; no remediation in E1–E11</td>
+      <td>Wrong stage for ticket/fix</td>
+      <td>ITSM = E11 egress / later join. Remediate stays out of this clock.</td>
+      <td>Do not add ITSM or remediate to Collect</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>Identity implied as entity_id on rows</td>
+      <td>Explicit E2 overlay; unresolved ≠ ticket (D-E2-1)</td>
+      <td>Gap, not a fight</td>
+      <td>Bind first; PDF assumes ids already exist.</td>
+      <td>Same as row 1 — identity is a precondition for A/B</td>
+    </tr>
+  </table>
+  </div>
+  <p>
+    <strong style="color:var(--text)">Hybrid 3+4</strong> in this ToDo is the resolution set for rows 2–5, not a new architecture:
+    keep our CI graph and stage split; absorb PDF jobs we were missing; refuse PDF shapes that break HLD locks
+    (event vertices, agent-owned Curate, ReAct as default Package).
+  </p>
+  <p>
+    Open decisions that stay Review until Block-2 exits: D5 / Gate D (Layer I off by default);
+    LLD-E3 and LLD-E4 still Draft until the stores land.
+  </p>
+
+  <h2>Related</h2>
+  <ul>
+    <li><a href="/motadata-3pillars-architecture.html">Motadata 3 pillars explained</a></li>
+    <li><a href="/motadata-3pillars-vs-shift-left.html">Job map</a></li>
+    <li><a href="/observeops-shift-left-architecture.html">Shift-left</a> · <a href="/observeops-pipeline-hld.html">Our HLD</a></li>
+    <li><a href="/docs.html">Docs hub index</a></li>
+  </ul>
+</div>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

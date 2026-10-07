@@ -1,0 +1,69 @@
+{
+  "displayId": "P-260854",
+  "problemId": "-8058094962590037226_1786528140000V2",
+  "title": "Response time degradation",
+  "status": "CLOSED",
+  "severityLevel": "PERFORMANCE",
+  "impactLevel": "SERVICES",
+  "startTime": "2026-08-12T09:54:00+00:00",
+  "endTime": "2026-08-12T10:04:00+00:00",
+  "rootCauseEntity": "product",
+  "affectedEntities": ["frontend", "product"],
+  "impactedEntities": ["frontend", "product"],
+  "evidenceDetails": [
+    {
+      "evidenceType": "TRANSACTIONAL",
+      "displayName": "Server response time",
+      "entity": "Mapped Instance for product",
+      "startTime": "2026-08-12T09:35:00+00:00",
+      "rootCauseRelevant": null
+    },
+    {
+      "evidenceType": "EVENT",
+      "displayName": "Response time degradation",
+      "entity": "product",
+      "startTime": "2026-08-12T09:49:00+00:00",
+      "rootCauseRelevant": null
+    },
+    {
+      "evidenceType": "TRANSACTIONAL",
+      "displayName": "Client error rate increase",
+      "entity": "Requests to unmonitored hosts",
+      "startTime": "2026-08-12T09:35:00+00:00",
+      "rootCauseRelevant": null
+    },
+    {
+      "evidenceType": "EVENT",
+      "displayName": "Response time degradation",
+      "entity": "frontend",
+      "startTime": "2026-08-12T09:49:00+00:00",
+      "rootCauseRelevant": null
+    }
+  ],
+  "siblings": [
+    {
+      "displayId": "P-260852",
+      "severityLevel": "PERFORMANCE",
+      "affected": ["product"],
+      "startTime": "2026-08-12T09:53:00+00:00"
+    },
+    {
+      "displayId": "P-260853",
+      "severityLevel": "PERFORMANCE",
+      "affected": ["frontend"],
+      "startTime": "2026-08-12T09:53:00+00:00"
+    }
+  ],
+  "labNotes": {
+    "category": "AVAILABILITY",
+    "rerun": "code-only 2026-08-12",
+    "defect": "inventory/app.py SCENARIO_MODE=AVAILABILITY_DOWN — process os._exit(1) ~2s after boot (no docker stop)",
+    "organicDetect": "PERFORMANCE Response time degradation on frontend+product; RC=product; evidence includes Requests to unmonitored hosts + RT Events @09:49",
+    "breakAt": "2026-08-12T09:49:33Z",
+    "loadWindow": "2026-08-12T09:49:50Z → ~2026-08-12T10:00:00Z",
+    "problemAt": "2026-08-12T09:54:00Z",
+    "problemClosedAt": "2026-08-12T10:04:00Z",
+    "healedAt": "2026-08-12T10:00:11Z",
+    "comparePriorIngest": "Prior Observed P-260831 used events.ingest AVAILABILITY_EVENT for severity AVAILABILITY teaching card"
+  }
+}

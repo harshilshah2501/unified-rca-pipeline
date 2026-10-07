@@ -1,0 +1,97 @@
+{
+  "category": "SLOWDOWN",
+  "env": "rca-lab-e3",
+  "version": "slowdown-20260811T045553Z",
+  "version_apm_tag": "slowdown-20260811t045553z",
+  "fault_mechanism": "break_inventory_slow_code.sh — 50k-row WAREHOUSE_LEDGER scan + _debug_row_checksum (not faults/*.latency sleep)",
+  "clocks_utc": {
+    "version_stamp": "2026-08-11T04:55:53Z",
+    "baseline": "2026-08-11T04:56:27Z",
+    "fault_start": "2026-08-11T04:58:07Z",
+    "load_start": "2026-08-11T04:58:18Z",
+    "load_end": "2026-08-11T05:10:34Z",
+    "heal_done": "2026-08-11T05:10:58Z"
+  },
+  "load": {
+    "script": "load.sh 4",
+    "batches": 15,
+    "approx_checkouts": 60,
+    "http": "all 200"
+  },
+  "apm_aggregates_fault_window": {
+    "from": "2026-08-11T04:58:07Z",
+    "to": "2026-08-11T05:10:34Z",
+    "query": "env:rca-lab-e3 version:slowdown-20260811t045553z",
+    "resources": [
+      {
+        "service": "inventory",
+        "resource_name": "GET /api/stock",
+        "status": "ok",
+        "count": 177,
+        "p50_s": 10.89,
+        "p95_s": 17.59,
+        "max_s": 21.96
+      },
+      {
+        "service": "product",
+        "resource_name": "GET /api/product",
+        "status": "ok",
+        "count": 177,
+        "p50_s": 10.89,
+        "p95_s": 17.59,
+        "max_s": 21.99
+      },
+      {
+        "service": "frontend",
+        "resource_name": "GET /api/checkout",
+        "status": "ok",
+        "count": 177,
+        "p50_s": 10.89,
+        "p95_s": 17.59,
+        "max_s": 22.01
+      }
+    ],
+    "status_rollup": {
+      "ok": { "frontend": 709, "product": 709, "inventory": 650 },
+      "error": 0
+    },
+    "inventory_spans_gt_5s": 295
+  },
+  "representative_trace": {
+    "trace_id": "6a7aabea0000000020327ba0f5f0755a",
+    "url": "https://app.datadoghq.com/apm/trace/6a7aabea0000000020327ba0f5f0755a",
+    "start": "2026-08-11T04:58:18Z",
+    "http_status": 200,
+    "flamegraph_ms": {
+      "frontend_GET_/api/checkout": 10480.6,
+      "product_GET_/api/product": 10474.1,
+      "inventory_GET_/api/stock": 10460.5,
+      "inventory.stock": 10449.5
+    }
+  },
+  "metrics": {
+    "p95_trace_flask_request_inventory": {
+      "baseline_s": 0.005,
+      "fault_range_s": [9.0, 22.0],
+      "post_heal_s": 0.016
+    }
+  },
+  "logs": {
+    "inventory_stock_ok": true,
+    "keyerror_count": 0,
+    "http_status": 200
+  },
+  "detect": {
+    "door_a_error_rate_monitor_310925690": "OK",
+    "door_a_latency_monitor_scoped": "absent",
+    "door_b_watchdog_apm_stories": 0,
+    "change_stories": ["deployment version slowdown-20260811t045553z"],
+    "incidents": 0,
+    "teaching": "Write ≠ Detect ≠ Localize — stage 03 had long ok spans; stage 05 empty; leaf via operator APM open (Timeline §2)"
+  },
+  "post_heal_probe": {
+    "checkout_http": 200,
+    "checkout_s": 0.049
+  },
+  "mcp_pulled_at": "2026-08-11T05:12Z"
+}

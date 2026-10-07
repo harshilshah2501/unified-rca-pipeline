@@ -1,0 +1,211 @@
+digraph pillar_b_write_path {
+  // Curated write-path call graph — each node + edge has a one-liner
+  graph [
+    rankdir=TB
+    splines=true
+    concentrate=false
+    nodesep=0.6
+    ranksep=1.05
+    fontname="Helvetica"
+    fontsize=13
+    label="Pillar B — map/ build+maintain call graph\nEach box = function (one-liner). Each arrow = call (one-liner)."
+    labelloc=t
+    bgcolor="white"
+    pad=0.35
+  ];
+  node [
+    shape=box
+    style="rounded,filled"
+    fontname="Helvetica"
+    fontsize=10
+    margin="0.18,0.12"
+  ];
+  edge [
+    fontname="Helvetica"
+    fontsize=8
+    color="#555555"
+    arrowsize=0.7
+    labeldistance=2.5
+  ];
+
+  subgraph cluster_entry {
+    label="1 · Lab entry"
+    bgcolor="#F4F4F4"
+    color="#AAAAAA"
+    main [
+      fillcolor="#8B7355" fontcolor=white
+      label=<<B>cli_publish_map.main()</B><BR/><FONT POINT-SIZE="9">Lab entry: wires files → GraphWriter → Dest</FONT>>
+    ];
+  }
+
+  subgraph cluster_orch {
+    label="2 · GraphWriter (public API)"
+    bgcolor="#EAF2FA"
+    color="#6A93B8"
+    gw_boot [
+      fillcolor="#C9DDF0"
+      label=<<B>load_estate_bootstrap()</B><BR/><FONT POINT-SIZE="9">Load optional starting estate into memory</FONT>>
+    ];
+    gw_write [
+      fillcolor="#C9DDF0"
+      label=<<B>write_topo_stream()</B><BR/><FONT POINT-SIZE="9">Admit-triage topo lines into GraphState</FONT>>
+    ];
+    gw_pub [
+      fillcolor="#C9DDF0"
+      label=<<B>publish_map()</B><BR/><FONT POINT-SIZE="9">Validate GraphState and write Dest map/</FONT>>
+    ];
+    gw_maint [
+      fillcolor="#C9DDF0"
+      label=<<B>maintain_map() [optional]</B><BR/><FONT POINT-SIZE="9">E5 validity pass — does not create edges</FONT>>
+    ];
+  }
+
+  subgraph cluster_inputs {
+    label="Inputs (sample estate)"
+    bgcolor="#FAFAFA"
+    color="#CCCCCC"
+    estate [
+      shape=note fillcolor="#F0F0F0"
+      label=<<B>topology.bootstrap.json</B><BR/><FONT POINT-SIZE="9">Declared starting nodes+edges (not CaseSeed)</FONT>>
+    ];
+    stream [
+      shape=note fillcolor="#F0F0F0"
+      label=<<B>stream.*.jsonl</B><BR/><FONT POINT-SIZE="9">Post-E2 ingest lines (JsonlIngestSource)</FONT>>
+    ];
+  }
+
+  subgraph cluster_builder {
+    label="3 · Write core"
+    bgcolor="#F8F3E8"
+    color="#B8955A"
+    boot_state [
+      fillcolor="#E8D9B8"
+      label=<<B>load_estate_bootstrap_state()</B><BR/><FONT POINT-SIZE="9">Parse bootstrap JSON into GraphState</FONT>>
+    ];
+    apply [
+      fillcolor="#E8D9B8"
+      label=<<B>apply_topo_stream()</B><BR/><FONT POINT-SIZE="9">Per-line NOOP / WRITE / DROP</FONT>>
+    ];
+  }
+
+  subgraph cluster_policy {
+    label="4 · Shared shape + admit helpers"
+    bgcolor="#F8EDED"
+    color="#B87A7A"
+    helpers [
+      fillcolor="#E8B8B8"
+      label=<<B>shape + admit helpers</B><BR/><FONT POINT-SIZE="9">Shared fan-in for bootstrap and stream writers</FONT>>
+    ];
+    gate [
+      fillcolor="#F0D0D0"
+      label=<<B>ResolvedOnlyGate.admit()</B><BR/><FONT POINT-SIZE="9">DROP unless identity.status=resolved</FONT>>
+    ];
+    qualify [
+      fillcolor="#C8E6C9"
+      label=<<B>may_emit_vertex()</B><BR/><FONT POINT-SIZE="9">Allow CI types; reject never-CI vertices</FONT>>
+    ];
+    catalog [
+      fillcolor="#C8E6C9"
+      label=<<B>classify_relation()</B><BR/><FONT POINT-SIZE="9">Relation → emit / reject (fifteen catalog)</FONT>>
+    ];
+    proven [
+      fillcolor="#C8E6C9"
+      label=<<B>provenance helpers</B><BR/><FONT POINT-SIZE="9">Stamp discovered_via evidence on edges</FONT>>
+    ];
+    make_n [
+      fillcolor="#C8E6C9"
+      label=<<B>_make_node()</B><BR/><FONT POINT-SIZE="9">Shape graph_node.v1 from id/type/name</FONT>>
+    ];
+    make_e [
+      fillcolor="#C8E6C9"
+      label=<<B>_make_edge()</B><BR/><FONT POINT-SIZE="9">Shape graph_edge.v1 with stable edge_id</FONT>>
+    ];
+  }
+
+  subgraph cluster_publish {
+    label="5 · Publish to Dest map/"
+    bgcolor="#EAF6EE"
+    color="#6AAB7A"
+    build_snap [
+      fillcolor="#B8DFC4"
+      label=<<B>build_snapshot()</B><BR/><FONT POINT-SIZE="9">Assemble graph_snapshot.v1 from GraphState</FONT>>
+    ];
+    validate [
+      fillcolor="#C8E6C9"
+      label=<<B>schema.validate()</B><BR/><FONT POINT-SIZE="9">JSON-Schema check before Dest write</FONT>>
+    ];
+    pub_snap [
+      fillcolor="#B8DFC4"
+      label=<<B>publish_snapshot()</B><BR/><FONT POINT-SIZE="9">Write snapshot + nodes/edges JSONL keys</FONT>>
+    ];
+    dest [
+      fillcolor="#C8E6C9"
+      label=<<B>FileDest / MemoryDest</B><BR/><FONT POINT-SIZE="9">Gate-B Dest put/get for the map/ room</FONT>>
+    ];
+  }
+
+  subgraph cluster_e5 {
+    label="6 · E5 maintain (no new edges)"
+    bgcolor="#F1EBF7"
+    color="#8A6AAB"
+    mgv [
+      fillcolor="#D4C0E8"
+      label=<<B>maintain_graph_validity()</B><BR/><FONT POINT-SIZE="9">Run expire + stale + declared freshness</FONT>>
+    ];
+    expire [
+      fillcolor="#C8E6C9"
+      label=<<B>expire_edges()</B><BR/><FONT POINT-SIZE="9">Drop edges past valid_to</FONT>>
+    ];
+    stale [
+      fillcolor="#C8E6C9"
+      label=<<B>drop_stale_corroborating()</B><BR/><FONT POINT-SIZE="9">Drop old corroborating edges by age</FONT>>
+    ];
+    decl [
+      fillcolor="#C8E6C9"
+      label=<<B>apply_declared_freshness()</B><BR/><FONT POINT-SIZE="9">Mark declared edges soft 7d / hard 30d</FONT>>
+    ];
+  }
+
+  // 1 → 2
+  main -> gw_boot  [label="load starting estate"];
+  main -> gw_write [label="apply topo stream"];
+  main -> gw_pub   [label="flush snapshot to Dest"];
+  main -> gw_maint [style=dashed label="optional E5 then re-flush"];
+
+  // inputs
+  estate -> gw_boot [style=dashed label="bootstrap file path"];
+  stream -> gw_write [style=dashed label="JSONL record source"];
+
+  // 2 → 3
+  gw_boot  -> boot_state [label="delegate bootstrap load"];
+  gw_write -> apply      [label="delegate per-line admit"];
+
+  // 3 → 4
+  boot_state -> helpers [label="qualify/catalog/shape nodes+edges"];
+  apply -> helpers      [label="same helpers after admit"];
+  apply -> gate         [style=dashed label="identity gate first on stream"];
+  helpers -> qualify    [label="CI type allowed?"];
+  helpers -> catalog    [label="relation catalog?"];
+  helpers -> proven     [label="attach discovered_via"];
+  helpers -> make_n     [label="build node object"];
+  helpers -> make_e     [label="build edge object"];
+
+  // 2 → 5
+  gw_pub -> build_snap [label="assemble snapshot"];
+  build_snap -> validate [label="schema-validate nodes/edges"];
+  gw_pub -> pub_snap   [label="persist to Dest"];
+  pub_snap -> dest     [label="put map/ keys"];
+
+  // 2 → 6 → re-publish
+  gw_maint -> mgv    [label="run validity suite"];
+  mgv -> expire      [label="cut expired edges"];
+  mgv -> stale       [label="cut stale corroborating"];
+  mgv -> decl        [label="soft/hard declared marks"];
+  gw_maint -> gw_pub [style=dashed label="re-publish after maintain"];
+
+  { rank=same; gw_boot; gw_write; gw_pub; gw_maint }
+  { rank=same; estate; stream }
+  { rank=same; boot_state; apply }
+  { rank=same; qualify; catalog; proven; make_n; make_e }
+  { rank=same; expire; stale; decl }
+}

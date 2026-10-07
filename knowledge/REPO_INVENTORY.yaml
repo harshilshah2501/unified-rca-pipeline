@@ -1,0 +1,172 @@
+# Generated / maintained — Unified-RCA repo inventory
+generated_at: 2026-10-07T09:40:17Z
+generator: scripts/repo_inventory.py
+repo_root: /root/Harshil-PoCs/Unified-RCA
+
+stats:
+  docs_html_count: 156
+  docs_md_count: 143
+  docs_flat_symlinks: 152
+  dashboard_root_symlinks: 92
+  dashboard_root_real_files: 10
+  drift_fact_kind_files: 54
+  drift_ingest_v1_files: 67
+
+top_level:
+  - path: '_archive'
+    kind: symlink
+    size_human: '0B'
+    status: archive
+    canonical_edit: false
+    action: keep
+    notes: 'Parked snapshots — never day-edit. Future rename: archive/'
+  - path: 'archive'
+    kind: dir
+    size_human: '24.2MiB'
+    status: active
+    canonical_edit: false
+    action: keep
+    notes: 'Unclassified — review in REPO_AUDIT'
+  - path: 'benchmarking'
+    kind: symlink
+    size_human: '0B'
+    status: active
+    canonical_edit: true
+    action: keep
+    notes: 'Bakeoff + :8765 host. Future zone: eval/benchmarking/'
+  - path: 'datasets'
+    kind: symlink
+    size_human: '0B'
+    status: active
+    canonical_edit: false
+    action: keep
+    notes: 'ObserveOps UC active; large JSONL gitignored. Future: eval/datasets/'
+  - path: 'docs'
+    kind: symlink
+    size_human: '0B'
+    status: active
+    canonical_edit: true
+    action: keep
+    notes: 'Docs hub source; Phase E portal slim. Future zone: knowledge/'
+  - path: 'eval'
+    kind: dir
+    size_human: '4.3GiB'
+    status: active
+    canonical_edit: false
+    action: keep
+    notes: 'Unclassified — review in REPO_AUDIT'
+  - path: 'federated-pipeline'
+    kind: symlink
+    size_human: '0B'
+    status: reference
+    canonical_edit: false
+    action: move
+    notes: 'Eval history; Nezha bulk gitignored. Future: reference/federated-pipeline/'
+  - path: 'ingestion-poc'
+    kind: dir
+    size_human: '290.9KiB'
+    status: active
+    canonical_edit: true
+    action: keep
+    notes: 'ingest.v1 bridge for ObserveOps replay — not Motadata writer SoT'
+  - path: 'knowledge'
+    kind: dir
+    size_human: '15.4MiB'
+    status: active
+    canonical_edit: false
+    action: keep
+    notes: 'Unclassified — review in REPO_AUDIT'
+  - path: 'KR Plan'
+    kind: dir
+    size_human: '581.2KiB'
+    status: active
+    canonical_edit: true
+    action: keep
+    notes: 'Management PDFs/OKRs. Optional future: management/'
+  - path: 'labs'
+    kind: dir
+    size_human: '66.2MiB'
+    status: active
+    canonical_edit: true
+    action: keep
+    notes: 'Vendor fault labs; decide labs/ed-lab track vs gitignore'
+  - path: 'lean-pipeline'
+    kind: symlink
+    size_human: '0B'
+    status: reference
+    canonical_edit: false
+    action: move
+    notes: 'ADR-001 eval history — demote to reference/lean-pipeline/'
+  - path: 'NAVIGATION.md'
+    kind: symlink
+    size_human: '0B'
+    status: host-only
+    canonical_edit: false
+    action: keep
+    redundancy_of: 'docs/NAVIGATION.md'
+    notes: 'Symlink → docs/NAVIGATION.md'
+  - path: 'pillar-ab-implementation'
+    kind: symlink
+    size_human: '0B'
+    status: active
+    canonical_edit: true
+    action: keep
+    notes: 'Motadata Pillar A/B SoT. Future zone: product/'
+  - path: 'product'
+    kind: dir
+    size_human: '46.5MiB'
+    status: active
+    canonical_edit: false
+    action: keep
+    notes: 'Unclassified — review in REPO_AUDIT'
+  - path: 'rca-use-cases-only.md'
+    kind: symlink
+    size_human: '0B'
+    status: host-only
+    canonical_edit: false
+    action: keep
+    redundancy_of: 'docs/rca-use-cases-only.md'
+    notes: 'Symlink → docs/rca-use-cases-only.md'
+  - path: 'README.md'
+    kind: file
+    size_human: '2.5KiB'
+    status: active
+    canonical_edit: true
+    action: keep
+    notes: 'Root orientation'
+  - path: 'reference'
+    kind: dir
+    size_human: '2.9GiB'
+    status: active
+    canonical_edit: false
+    action: keep
+    notes: 'Unclassified — review in REPO_AUDIT'
+  - path: 'repo_paths.py'
+    kind: file
+    size_human: '2.9KiB'
+    status: active
+    canonical_edit: true
+    action: keep
+    notes: 'Shared path constants'
+  - path: 'ROADMAP.md'
+    kind: symlink
+    size_human: '0B'
+    status: host-only
+    canonical_edit: false
+    action: keep
+    redundancy_of: 'docs/ROADMAP.md'
+    notes: 'Symlink → docs/ROADMAP.md'
+  - path: 'scripts'
+    kind: dir
+    size_human: '18.2KiB'
+    status: active
+    canonical_edit: true
+    action: keep
+    notes: 'Repo hygiene tooling (this script)'
+  - path: 'start-poc-dash.sh'
+    kind: file
+    size_human: '2.8KiB'
+    status: active
+    canonical_edit: true
+    action: keep
+    notes: 'Dashboard singleton helper'

@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Edge Delta → Motadata · information-flow map</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta name="description" content="Clean diagrams mapping Edge Delta pipelines, Knowledge Graph, Service Map, MCP, and events/signals/alerts onto Motadata ObserveOps E1–E11 language." />
+<link rel="stylesheet" href="/urca-docs.css" />
+<script src="/theme-init.js"></script>
+<style>
+  .edmd-wrap { max-width: 60rem; }
+  .tabs { display:flex; flex-wrap:wrap; gap:.4rem; margin:0 0 1rem; }
+  .tab {
+    appearance:none; border:1px solid var(--stroke); background:var(--bg-soft);
+    color:var(--muted); font-family:var(--font); font-size:.82rem;
+    padding:.4rem .7rem; border-radius:999px; cursor:pointer;
+  }
+  .tab:hover { color:var(--text); }
+  .tab[aria-selected="true"] {
+    color:var(--text); background:var(--accent-soft);
+    border-color:rgba(61,154,139,.55); font-weight:600;
+  }
+  .panel { display:none; }
+  .panel.is-active { display:block; }
+  .panel-head { margin-bottom:.75rem; }
+  .panel-head .blurb { margin:0; color:var(--muted); font-size:.9rem; }
+  .dia {
+    margin:.9rem 0; border:1px solid var(--stroke); border-radius:10px;
+    background:#10161d; padding:.75rem .5rem; overflow-x:auto;
+  }
+  .dia svg { display:block; margin:0 auto; max-width:100%; height:auto; }
+  .note { margin:.5rem 0 1rem; font-size:.85rem; color:var(--faint); }
+  .callout {
+    border:1px solid var(--stroke); border-left:3px solid #e8b86d;
+    background:var(--bg-elev); border-radius:8px; padding:.75rem .9rem;
+    margin:0 0 1rem; color:var(--muted); font-size:.92rem;
+  }
+  .callout.info { border-left-color:#7ba8f5; }
+  .callout.ok { border-left-color:var(--accent); }
+  .grid-2, .grid-3 { display:grid; gap:.75rem; margin:0 0 1rem; }
+  .grid-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .grid-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  @media (max-width:720px){ .grid-2,.grid-3{ grid-template-columns:1fr; } }
+  .card {
+    border:1px solid var(--stroke); border-radius:8px;
+    background:var(--bg-elev); overflow:hidden;
+  }
+  .card-h {
+    padding:.55rem .8rem; border-bottom:1px solid var(--stroke);
+    font-size:.82rem; font-weight:600; background:#121821;
+  }
+  .card-b { padding:.75rem .8rem; color:var(--muted); font-size:.88rem; }
+  .card-b p { margin:.3rem 0; }
+  .card-b ul { margin:.35rem 0 0; padding-left:1.1rem; }
+  .table-wrap {
+    overflow-x:auto; border:1px solid var(--stroke);
+    border-radius:8px; margin:0 0 1rem;
+  }
+  table { width:100%; border-collapse:collapse; font-size:.86rem; }
+  th, td {
+    text-align:left; vertical-align:top; padding:.55rem .7rem;
+    border-bottom:1px solid var(--stroke);
+  }
+  th {
+    background:#121821; color:var(--faint); font-size:.72rem;
+    letter-spacing:.04em; text-transform:uppercase; font-weight:600;
+  }
+  tr:last-child td { border-bottom:none; }
+  .tag {
+    display:inline-block; font-family:var(--mono); font-size:.7rem;
+    letter-spacing:.03em; padding:.1rem .4rem; border-radius:4px;
+    border:1px solid var(--stroke); color:var(--faint);
+  }
+  .tag.ed { color:#e8b86d; border-color:rgba(232,184,109,.4); }
+  .tag.md { color:#7ec8b8; border-color:rgba(61,154,139,.45); }
+  .nav-row {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:.75rem; margin-top:1.5rem; padding-top:1rem;
+    border-top:1px solid var(--stroke);
+  }
+  .nav-row .count { color:var(--faint); font-size:.85rem; }
+  .btn {
+    appearance:none; border:1px solid var(--stroke); background:var(--bg-soft);
+    color:var(--muted); font-family:var(--font); font-size:.85rem;
+    padding:.45rem .85rem; border-radius:999px; cursor:pointer;
+  }
+  .btn:hover:not(:disabled) { color:var(--text); }
+  .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .btn.primary {
+    background:var(--accent-soft); border-color:rgba(61,154,139,.55);
+    color:var(--text); font-weight:600;
+  }
+  .legend {
+    display:flex; flex-wrap:wrap; gap:.75rem 1.25rem;
+    margin:.25rem 0 1rem; font-size:.8rem; color:var(--faint);
+  }
+  .legend span::before {
+    content:""; display:inline-block; width:.65rem; height:.65rem;
+    border-radius:2px; margin-right:.35rem; vertical-align:middle;
+  }
+  .legend .ed::before { background:#e8b86d; }
+  .legend .md::before { background:#3d9a8b; }
+  .legend .ai::before { background:#7ba8f5; }
+  .legend .warn::before { background:#f0b35a; }
+</style>
+</head>
+<body class="urca-doc article">
+<div class="wrap article edmd-wrap">
+  <div class="eyebrow">Vendors · Edge Delta · Motadata ObserveOps</div>
+  <h1>Edge Delta → Motadata · information-flow map</h1>
+  <p class="lead">
+    Structured rewrite of research notes gathered from Edge Delta docs
+    (<code>pillar-ab-implementation/Mapping ED to MD.pdf</code>).
+    <strong style="color:var(--text)">MD</strong> here means Motadata / ObserveOps (E1–E11 fabric language).
+    This page is a <em>comparator map</em>, not a decision to replace the Motadata build path.
+    Companion hubs:
+    <a href="/ed-ai-team-hub.html">ED AI Team hub</a> ·
+    <a href="/observeops-pipeline-hld.html">Our HLD</a> ·
+    <a href="/graphwriter-io-walkthrough.html">GraphWriter</a>.
+  </p>
+
+  <div class="callout info">
+    Edge Delta is a <strong style="color:var(--text)">dual-layer</strong> product:
+    <span class="tag ed">Telemetry Pipelines</span> (collect → process → route) plus
+    <span class="tag ed">AI Team</span> (investigation / RCA).
+    Motadata ObserveOps names eleven stages; Edge Delta names pipeline nodes and teammates.
+    Same jobs can land in different boxes — diagrams below keep both vocabularies visible.
+  </div>
+
+  <div class="legend">
+    <span class="ed">Edge Delta term</span>
+    <span class="md">Motadata / ObserveOps term</span>
+    <span class="ai">AI Team / MCP</span>
+    <span class="warn">Caveat / not 1:1</span>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Mapping sections">
+    <button type="button" class="tab" role="tab" data-step="dual" aria-selected="true">1 · Dual layer</button>
+    <button type="button" class="tab" role="tab" data-step="pipeline" aria-selected="false">2 · Pipeline</button>
+    <button type="button" class="tab" role="tab" data-step="terms" aria-selected="false">3 · Terms</button>
+    <button type="button" class="tab" role="tab" data-step="sources" aria-selected="false">4 · Multi-source</button>
+    <button type="button" class="tab" role="tab" data-step="agents" aria-selected="false">5 · Node / GW</button>
+    <button type="button" class="tab" role="tab" data-step="events" aria-selected="false">6 · Events</button>
+    <button type="button" class="tab" role="tab" data-step="mcp" aria-selected="false">7 · MCP · KG</button>
+    <button type="button" class="tab" role="tab" data-step="rca" aria-selected="false">8 · RCA flow</button>
+    <button type="button" class="tab" role="tab" data-step="stages" aria-selected="false">9 · E1–E11</button>
+  </div>
+
+  <!-- 1 Dual -->
+  <section class="panel is-active" data-step="dual">
+    <div class="panel-head">
+      <h2>1 · Dual layer &amp; two “graphs”</h2>
+      <p class="blurb">Telemetry Pipelines ∥ AI Team · Knowledge Graph ≠ Service Map ≠ MCP “graph” tools</p>
+    </div>
+
+    <div class="dia" role="img" aria-label="Edge Delta dual layer overview">
+      <svg viewBox="0 0 880 280" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans,system-ui,sans-serif">
+        <text x="440" y="22" text-anchor="middle" fill="#e8d19d" font-size="12" font-weight="600" font-family="IBM Plex Mono,monospace">EDGE DELTA · DUAL LAYER</text>
+        <rect x="40" y="48" width="380" height="200" rx="10" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="230" y="72" text-anchor="middle" fill="#e8b86d" font-size="13" font-weight="600">Telemetry Pipelines</text>
+        <text x="230" y="92" text-anchor="middle" fill="#8a96a4" font-size="10">data plane · Motadata E1–E5-ish jobs</text>
+        <rect x="70" y="110" width="100" height="44" rx="6" fill="#121821" stroke="#2a3441"/>
+        <text x="120" y="128" text-anchor="middle" fill="#e8eef4" font-size="11">Sources</text>
+        <text x="120" y="144" text-anchor="middle" fill="#8a96a4" font-size="9">collect</text>
+        <rect x="190" y="110" width="100" height="44" rx="6" fill="#121821" stroke="#2a3441"/>
+        <text x="240" y="128" text-anchor="middle" fill="#e8eef4" font-size="11">Processors</text>
+        <text x="240" y="144" text-anchor="middle" fill="#8a96a4" font-size="9">transform</text>
+        <rect x="310" y="110" width="90" height="44" rx="6" fill="#121821" stroke="#2a3441"/>
+        <text x="355" y="128" text-anchor="middle" fill="#e8eef4" font-size="11">Destinations</text>
+        <text x="355" y="144" text-anchor="middle" fill="#8a96a4" font-size="9">route</text>
+        <path d="M170,132 H190" stroke="#8a96a4" stroke-width="1.5"/>
+        <path d="M290,132 H310" stroke="#8a96a4" stroke-width="1.5"/>
+        <text x="230" y="185" text-anchor="middle" fill="#b8c4d0" font-size="10">Also: Service Map (eBPF K8s traffic)</text>
+        <text x="230" y="205" text-anchor="middle" fill="#8a96a4" font-size="9">Platform → Service Map · real-time links</text>
+        <text x="230" y="228" text-anchor="middle" fill="#8a96a4" font-size="9">Motadata closest: Topology / map room (partial)</text>
+
+        <rect x="460" y="48" width="380" height="200" rx="10" fill="#1a222c" stroke="#7ba8f5"/>
+        <text x="650" y="72" text-anchor="middle" fill="#7ba8f5" font-size="13" font-weight="600">AI Team</text>
+        <text x="650" y="92" text-anchor="middle" fill="#8a96a4" font-size="10">investigation plane · Motadata E6–E11-ish jobs</text>
+        <rect x="490" y="110" width="140" height="50" rx="6" fill="#121821" stroke="#2a3441"/>
+        <text x="560" y="130" text-anchor="middle" fill="#e8eef4" font-size="11">Knowledge Graph</text>
+        <text x="560" y="148" text-anchor="middle" fill="#8a96a4" font-size="9">internal teammate context</text>
+        <rect x="660" y="110" width="150" height="50" rx="6" fill="#121821" stroke="#2a3441"/>
+        <text x="735" y="130" text-anchor="middle" fill="#e8eef4" font-size="11">MCP tools</text>
+        <text x="735" y="148" text-anchor="middle" fill="#8a96a4" font-size="9">logs · metrics · traces</text>
+        <text x="650" y="190" text-anchor="middle" fill="#b8c4d0" font-size="10">SRE / Security / OnCall teammates</text>
+        <text x="650" y="210" text-anchor="middle" fill="#8a96a4" font-size="9">Monitors fire → investigate → cite evidence</text>
+        <text x="650" y="232" text-anchor="middle" fill="#8a96a4" font-size="9">Motadata closest: Detect → Localize → Package</text>
+      </svg>
+    </div>
+
+    <h3>Two Edge Delta topology products (do not conflate)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th></th><th>Knowledge Graph (AI Team)</th><th>Service Map (Platform)</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Purpose</strong></td>
+            <td>AI investigation context (owners, deps, blast radius)</td>
+            <td>Live K8s service-to-service communication view</td>
+          </tr>
+          <tr>
+            <td><strong>Inputs</strong></td>
+            <td>Event connectors (GitHub, Slack, PagerDuty, Jira, AWS, …) + K8s Service Map connector</td>
+            <td>eBPF traffic via Kubernetes Service Map source → Edge Delta destination</td>
+          </tr>
+          <tr>
+            <td><strong>Update</strong></td>
+            <td>~3 min after connect; re-reconcile ~24 h</td>
+            <td>Real-time metrics (rpm, errors, p95 latency)</td>
+          </tr>
+          <tr>
+            <td><strong>Access</strong></td>
+            <td>AI Team → Knowledge · Topology View UI; <em>not</em> public REST/MCP</td>
+            <td>Platform → Service Map</td>
+          </tr>
+          <tr>
+            <td><strong>Motadata note</strong></td>
+            <td>Closest to estate relationships used in Localize — but vendor-private to ED teammates</td>
+            <td>Closest to live <code>communicates_with</code>-style edges; not a full CI catalog</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">
+      MCP tools named <code>get_*_graph</code> are <strong style="color:var(--text)">time-series charts</strong>, not the Knowledge Graph.
+      See tab <strong>7 · MCP · KG</strong>.
+    </p>
+  </section>
+
+  <!-- 2 Pipeline -->
+  <section class="panel" data-step="pipeline" hidden>
+    <div class="panel-head">
+      <h2>2 · Actual Edge Delta pipeline flow</h2>
+      <p class="blurb">Sources → Processors → Destinations — not ingest.v1 / TelemetryEnvelope</p>
+    </div>
+    <div class="callout">
+      Motadata PoC wire is <code>ingest.v1</code> with <code>ci_id</code>, <code>fact_kind</code>, identity.
+      Edge Delta agents speak OpenTelemetry-shaped items (logs / metrics / traces / events) plus signals.
+      There is <strong style="color:var(--text)">no CMDB bind at source</strong>.
+    </div>
+    <div class="dia" role="img" aria-label="Sources processors destinations flow">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans,system-ui,sans-serif">
+        <text x="440" y="22" text-anchor="middle" fill="#e8d19d" font-size="12" font-weight="600" font-family="IBM Plex Mono,monospace">DATA PLANE FLOW</text>
+        <rect x="30" y="50" width="200" height="160" rx="8" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="130" y="74" text-anchor="middle" fill="#e8b86d" font-size="12" font-weight="600">① Sources</text>
+        <text x="130" y="96" text-anchor="middle" fill="#b8c4d0" font-size="10">K8s logs · OTLP · files</text>
+        <text x="130" y="112" text-anchor="middle" fill="#b8c4d0" font-size="10">syslog · Kafka · CloudWatch</text>
+        <text x="130" y="128" text-anchor="middle" fill="#b8c4d0" font-size="10">K8s / Windows events</text>
+        <text x="130" y="156" text-anchor="middle" fill="#8a96a4" font-size="9">Motadata ≈ E1 Collect</text>
+        <text x="130" y="176" text-anchor="middle" fill="#8a96a4" font-size="9">no ci_id / fact_kind</text>
+        <text x="130" y="192" text-anchor="middle" fill="#8a96a4" font-size="9">resource attrs instead</text>
+
+        <path d="M230,130 H270" stroke="#8a96a4" stroke-width="2"/>
+        <polygon points="270,130 262,126 262,134" fill="#8a96a4"/>
+
+        <rect x="270" y="50" width="220" height="160" rx="8" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="380" y="74" text-anchor="middle" fill="#e8b86d" font-size="12" font-weight="600">② Processors</text>
+        <text x="380" y="96" text-anchor="middle" fill="#b8c4d0" font-size="10">parse · enrich · mask</text>
+        <text x="380" y="112" text-anchor="middle" fill="#b8c4d0" font-size="10">filter · extract metric</text>
+        <text x="380" y="128" text-anchor="middle" fill="#b8c4d0" font-size="10">patterns · route · OTTL</text>
+        <text x="380" y="156" text-anchor="middle" fill="#8a96a4" font-size="9">Motadata ≈ E2 normalize</text>
+        <text x="380" y="176" text-anchor="middle" fill="#8a96a4" font-size="9">(+ bits of Detect prep)</text>
+        <text x="380" y="192" text-anchor="middle" fill="#8a96a4" font-size="9">still no CMDB graph write</text>
+
+        <path d="M490,130 H530" stroke="#8a96a4" stroke-width="2"/>
+        <polygon points="530,130 522,126 522,134" fill="#8a96a4"/>
+
+        <rect x="530" y="40" width="320" height="180" rx="8" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="690" y="64" text-anchor="middle" fill="#e8b86d" font-size="12" font-weight="600">③ Destinations</text>
+        <rect x="550" y="80" width="90" height="50" rx="5" fill="#121821" stroke="#2a3441"/>
+        <text x="595" y="100" text-anchor="middle" fill="#e8eef4" font-size="10">Archive</text>
+        <text x="595" y="116" text-anchor="middle" fill="#8a96a4" font-size="8">S3 · Parquet</text>
+        <rect x="650" y="80" width="90" height="50" rx="5" fill="#121821" stroke="#2a3441"/>
+        <text x="695" y="100" text-anchor="middle" fill="#e8eef4" font-size="10">Streaming</text>
+        <text x="695" y="116" text-anchor="middle" fill="#8a96a4" font-size="8">ED · Splunk</text>
+        <rect x="750" y="80" width="80" height="50" rx="5" fill="#121821" stroke="#2a3441"/>
+        <text x="790" y="100" text-anchor="middle" fill="#e8eef4" font-size="10">Trigger</text>
+        <text x="790" y="116" text-anchor="middle" fill="#8a96a4" font-size="8">Slack · PD</text>
+        <text x="690" y="160" text-anchor="middle" fill="#8a96a4" font-size="9">Motadata ≈ E4 rooms + alert egress</text>
+        <text x="690" y="178" text-anchor="middle" fill="#8a96a4" font-size="9">ED Platform store ≈ hot query backend</text>
+        <text x="690" y="200" text-anchor="middle" fill="#b8c4d0" font-size="10">Threshold node → signal → trigger dest</text>
+
+        <text x="440" y="260" text-anchor="middle" fill="#8a96a4" font-size="10">Processing engine = agent runtime · Processors = tools inside the engine</text>
+        <text x="440" y="280" text-anchor="middle" fill="#8a96a4" font-size="10">Optional lookup processor can stamp a ci_id from a table — not native Identity</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 3 Terms -->
+  <section class="panel" data-step="terms" hidden>
+    <div class="panel-head">
+      <h2>3 · Terminology crosswalk</h2>
+      <p class="blurb">Motadata words → Edge Delta words (and honest gaps)</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Motadata / ObserveOps</th><th>Edge Delta</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>E1 Collect</td><td>Source nodes</td><td>Per-pipeline sources, not one global stage object</td></tr>
+          <tr><td><code>ingest.v1</code> / TelemetryEnvelope</td><td>OTLP / JSON / syslog / … items</td><td>No single Motadata envelope on the wire</td></tr>
+          <tr><td><code>ci_id</code> / <code>ci_type</code></td><td>Resource attributes (<code>service.name</code>, <code>k8s.pod.name</code>, …)</td><td>Semantic conventions; optional lookup for CI ids</td></tr>
+          <tr><td><code>fact_kind</code></td><td>Item types: log · metric · trace · event · signal</td><td>Different enum; not a CMDB class router</td></tr>
+          <tr><td>E2 Identity</td><td>Processors (enrich / OTTL / lookup)</td><td>No resolved/synthesized identity gate as Motadata defines it</td></tr>
+          <tr><td>E3 Topology / <code>map/</code></td><td>Knowledge Graph + Service Map</td><td>Two products; KG not GraphWriter-shaped public store</td></tr>
+          <tr><td>E4 Stores / sketches</td><td>ED Platform (e.g. ClickHouse) + archive destinations</td><td>Not Motadata <code>sketch.v1</code> rows</td></tr>
+          <tr><td>E6 Detect</td><td>Monitors · Threshold nodes</td><td>Monitor events vs pipeline signals (see tab 6)</td></tr>
+          <tr><td>E7–E11 Curate→Package</td><td>AI Team teammates + workflows</td><td>Agentic, not Motadata case-seed contracts</td></tr>
+          <tr><td>WorkingSet / retrieval</td><td>MCP search + graph tools + (internal) KG</td><td>External agents: MCP only — no KG API</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4 Multi-source -->
+  <section class="panel" data-step="sources" hidden>
+    <div class="panel-head">
+      <h2>4 · Multi-source SRE companion architecture</h2>
+      <p class="blurb">Your three enterprise sources → Edge Delta pipeline types → one AI Team</p>
+    </div>
+    <div class="dia" role="img" aria-label="Three sources into Edge Delta platform and AI Team">
+      <svg viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans,system-ui,sans-serif">
+        <text x="450" y="22" text-anchor="middle" fill="#e8d19d" font-size="12" font-weight="600" font-family="IBM Plex Mono,monospace">THREE SOURCES · ONE RCA SURFACE</text>
+
+        <rect x="20" y="50" width="200" height="90" rx="8" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="120" y="74" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">① AWS cloud</text>
+        <text x="120" y="94" text-anchor="middle" fill="#8a96a4" font-size="10">agentless Cloud Pipeline</text>
+        <text x="120" y="112" text-anchor="middle" fill="#8a96a4" font-size="9">Lambda · CloudWatch packs</text>
+        <text x="120" y="128" text-anchor="middle" fill="#8a96a4" font-size="9">or Gateway in ECS/EC2</text>
+
+        <rect x="250" y="50" width="200" height="90" rx="8" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="350" y="74" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">② OTEL apps</text>
+        <text x="350" y="94" text-anchor="middle" fill="#8a96a4" font-size="10">Gateway Pipeline</text>
+        <text x="350" y="112" text-anchor="middle" fill="#8a96a4" font-size="9">OTLP 4317 / 4318</text>
+        <text x="350" y="128" text-anchor="middle" fill="#8a96a4" font-size="9">tail sample · aggregate</text>
+
+        <rect x="480" y="50" width="200" height="90" rx="8" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="580" y="74" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">③ On-prem</text>
+        <text x="580" y="94" text-anchor="middle" fill="#8a96a4" font-size="10">Node Pipeline (DaemonSet)</text>
+        <text x="580" y="112" text-anchor="middle" fill="#8a96a4" font-size="9">+ Coordinator (control)</text>
+        <text x="580" y="128" text-anchor="middle" fill="#8a96a4" font-size="9">logs · metrics · eBPF map</text>
+
+        <path d="M120,140 V175 H450" stroke="#8a96a4" stroke-width="1.5" fill="none"/>
+        <path d="M350,140 V175" stroke="#8a96a4" stroke-width="1.5"/>
+        <path d="M580,140 V175 H450" stroke="#8a96a4" stroke-width="1.5" fill="none"/>
+        <path d="M450,175 V195" stroke="#8a96a4" stroke-width="1.5"/>
+
+        <rect x="280" y="198" width="340" height="54" rx="8" fill="#1a2830" stroke="#3d9a8b"/>
+        <text x="450" y="220" text-anchor="middle" fill="#7ec8b8" font-size="12" font-weight="600">Edge Delta Platform</text>
+        <text x="450" y="238" text-anchor="middle" fill="#8a96a4" font-size="10">processed telemetry · monitors · explorers (CQL)</text>
+
+        <path d="M450,252 V272" stroke="#7ba8f5" stroke-width="1.5"/>
+        <rect x="250" y="274" width="400" height="50" rx="8" fill="#1a222c" stroke="#7ba8f5"/>
+        <text x="450" y="296" text-anchor="middle" fill="#9bb8f5" font-size="12" font-weight="600">AI Team · SRE companion</text>
+        <text x="450" y="314" text-anchor="middle" fill="#8a96a4" font-size="10">ED MCP connector · event connectors · Knowledge Graph (internal)</text>
+
+        <rect x="710" y="50" width="170" height="90" rx="8" fill="#121821" stroke="#2a3441"/>
+        <text x="795" y="78" text-anchor="middle" fill="#f0b35a" font-size="10" font-weight="600">Objective</text>
+        <text x="795" y="98" text-anchor="middle" fill="#b8c4d0" font-size="10">Unified RCA across</text>
+        <text x="795" y="114" text-anchor="middle" fill="#b8c4d0" font-size="10">cloud · OTEL · on-prem</text>
+        <text x="795" y="130" text-anchor="middle" fill="#8a96a4" font-size="9">shared tags: env · svc</text>
+      </svg>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-h">Cloud Pipeline</div>
+        <div class="card-b"><p>Agentless path for AWS streaming / Lambda / CloudWatch packs.</p></div>
+      </div>
+      <div class="card">
+        <div class="card-h">Gateway Pipeline</div>
+        <div class="card-b"><p>Aggregation layer: OTLP receive, dedupe, cross-source ops, optional fan-in from nodes.</p></div>
+      </div>
+      <div class="card">
+        <div class="card-h">Node + Coordinator</div>
+        <div class="card-b"><p>DaemonSet collects; Coordinator is control-plane only (heartbeats, leader election) — not a telemetry processor.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 Agents -->
+  <section class="panel" data-step="agents" hidden>
+    <div class="panel-head">
+      <h2>5 · Node · Coordinator · Gateway hierarchy</h2>
+      <p class="blurb">Where each component sits in your infrastructure</p>
+    </div>
+    <div class="dia" role="img" aria-label="Node coordinator gateway backend stack">
+      <svg viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans,system-ui,sans-serif">
+        <text x="360" y="24" text-anchor="middle" fill="#e8d19d" font-size="12" font-weight="600" font-family="IBM Plex Mono,monospace">INFRA STACK (BOTTOM → TOP)</text>
+        <rect x="160" y="48" width="400" height="48" rx="8" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="360" y="68" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">④ Edge Delta backend</text>
+        <text x="360" y="86" text-anchor="middle" fill="#8a96a4" font-size="10">platform store · monitors · AI Team host</text>
+        <path d="M360,96 V112" stroke="#8a96a4" stroke-width="1.5"/>
+        <rect x="160" y="112" width="400" height="48" rx="8" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="360" y="132" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">③ Gateway</text>
+        <text x="360" y="150" text-anchor="middle" fill="#8a96a4" font-size="10">aggregate · process · forward (same or other cluster)</text>
+        <path d="M360,160 V176" stroke="#8a96a4" stroke-width="1.5"/>
+        <rect x="160" y="176" width="400" height="48" rx="8" fill="#1a222c" stroke="#f0b35a"/>
+        <text x="360" y="196" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">② Coordinator</text>
+        <text x="360" y="214" text-anchor="middle" fill="#8a96a4" font-size="10">control plane only · not telemetry path</text>
+        <path d="M360,224 V240" stroke="#8a96a4" stroke-width="1.5"/>
+        <rect x="160" y="240" width="400" height="48" rx="8" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="360" y="260" text-anchor="middle" fill="#e8eef4" font-size="12" font-weight="600">① Node agents (DaemonSet)</text>
+        <text x="360" y="278" text-anchor="middle" fill="#8a96a4" font-size="10">node-local collect · optional eBPF Service Map</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 6 Events -->
+  <section class="panel" data-step="events" hidden>
+    <div class="panel-head">
+      <h2>6 · Events · signals · alerts</h2>
+      <p class="blurb">Three similar words — different types</p>
+    </div>
+    <div class="dia" role="img" aria-label="Events signals alerts distinction">
+      <svg viewBox="0 0 880 240" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans,system-ui,sans-serif">
+        <rect x="30" y="40" width="260" height="160" rx="8" fill="#1a222c" stroke="#7ba8f5"/>
+        <text x="160" y="68" text-anchor="middle" fill="#9bb8f5" font-size="13" font-weight="600">Event</text>
+        <text x="160" y="90" text-anchor="middle" fill="#e8eef4" font-size="11">Data item · <tspan font-family="IBM Plex Mono,monospace" font-size="10">_type: event</tspan></text>
+        <text x="160" y="114" text-anchor="middle" fill="#b8c4d0" font-size="10">Original: K8s · Windows · connectors</text>
+        <text x="160" y="134" text-anchor="middle" fill="#b8c4d0" font-size="10">Derived: Monitor events</text>
+        <text x="160" y="164" text-anchor="middle" fill="#8a96a4" font-size="9">Motadata: closer to event / anomaly</text>
+        <text x="160" y="180" text-anchor="middle" fill="#8a96a4" font-size="9">lines — not topology edges</text>
+
+        <rect x="310" y="40" width="260" height="160" rx="8" fill="#1a222c" stroke="#7aecc4"/>
+        <text x="440" y="68" text-anchor="middle" fill="#7aecc4" font-size="13" font-weight="600">Signal</text>
+        <text x="440" y="90" text-anchor="middle" fill="#e8eef4" font-size="11">Data item · Threshold node</text>
+        <text x="440" y="114" text-anchor="middle" fill="#b8c4d0" font-size="10">Always derived at the edge</text>
+        <text x="440" y="134" text-anchor="middle" fill="#b8c4d0" font-size="10">→ trigger destinations</text>
+        <text x="440" y="164" text-anchor="middle" fill="#8a96a4" font-size="9">Not Motadata fact_kind</text>
+        <text x="440" y="180" text-anchor="middle" fill="#8a96a4" font-size="9">Name collision — different meaning</text>
+
+        <rect x="590" y="40" width="260" height="160" rx="8" fill="#1a222c" stroke="#f0b35a"/>
+        <text x="720" y="68" text-anchor="middle" fill="#f0b35a" font-size="13" font-weight="600">Alert</text>
+        <text x="720" y="90" text-anchor="middle" fill="#e8eef4" font-size="11">State / concept (not a type)</text>
+        <text x="720" y="114" text-anchor="middle" fill="#b8c4d0" font-size="10">Monitor state: OK · Warning · Alert</text>
+        <text x="720" y="134" text-anchor="middle" fill="#b8c4d0" font-size="10">UI “Alerts” often means signals</text>
+        <text x="720" y="164" text-anchor="middle" fill="#8a96a4" font-size="9">Human notification language</text>
+        <text x="720" y="180" text-anchor="middle" fill="#8a96a4" font-size="9">Docs mix “alert” and “signal”</text>
+      </svg>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Environment</th><th>Infra events</th><th>Monitor events</th><th>Connectors</th><th>Pipeline signals</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Kubernetes</td><td>Yes (K8s API)</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Windows</td><td>Yes (Event Log)</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Linux / macOS non-K8s</td><td>No native OS event source like above</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 7 MCP KG -->
+  <section class="panel" data-step="mcp" hidden>
+    <div class="panel-head">
+      <h2>7 · MCP plane vs Knowledge Graph</h2>
+      <p class="blurb">MCP is not the ingest path · KG is not get_*_graph</p>
+    </div>
+    <div class="dia" role="img" aria-label="Data plane versus MCP AI plane">
+      <svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans,system-ui,sans-serif">
+        <text x="450" y="22" text-anchor="middle" fill="#e8d19d" font-size="12" font-weight="600" font-family="IBM Plex Mono,monospace">TWO PLANES</text>
+
+        <rect x="40" y="48" width="400" height="120" rx="8" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="240" y="74" text-anchor="middle" fill="#e8b86d" font-size="12" font-weight="600">Data plane</text>
+        <text x="240" y="98" text-anchor="middle" fill="#b8c4d0" font-size="11">Sources → Pipelines → Platform → Destinations</text>
+        <text x="240" y="120" text-anchor="middle" fill="#8a96a4" font-size="10">Also: in.edgedelta.com ingestion HTTP</text>
+        <text x="240" y="142" text-anchor="middle" fill="#8a96a4" font-size="10">Telemetry in / out · not MCP</text>
+
+        <rect x="460" y="48" width="400" height="120" rx="8" fill="#1a222c" stroke="#7ba8f5"/>
+        <text x="660" y="74" text-anchor="middle" fill="#7ba8f5" font-size="12" font-weight="600">AI / management plane</text>
+        <text x="660" y="98" text-anchor="middle" fill="#b8c4d0" font-size="11">AI agents ↔ MCP Server ↔ REST API</text>
+        <text x="660" y="120" text-anchor="middle" fill="#8a96a4" font-size="10">Search · pipeline mgmt · time-series “graph” tools</text>
+        <text x="660" y="142" text-anchor="middle" fill="#8a96a4" font-size="10">ED teammates use same MCP for telemetry</text>
+
+        <rect x="120" y="200" width="660" height="96" rx="8" fill="#121821" stroke="#f0b35a"/>
+        <text x="450" y="228" text-anchor="middle" fill="#f0b35a" font-size="12" font-weight="600">Knowledge Graph (separate)</text>
+        <text x="450" y="250" text-anchor="middle" fill="#b8c4d0" font-size="11">Built from connectors · consumed internally by ED teammates</text>
+        <text x="450" y="270" text-anchor="middle" fill="#8a96a4" font-size="10">No public REST · no MCP tool · Topology View for humans</text>
+        <text x="450" y="286" text-anchor="middle" fill="#8a96a4" font-size="10">Why shared MCP for ED teammates: one permission / audit / connector model</text>
+      </svg>
+    </div>
+    <h3>Who can query what</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Access</th><th>Who</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Logs / metrics / traces</td><td>REST via MCP tools</td><td>All agents (ED + external)</td></tr>
+          <tr><td>Pipelines / dashboards</td><td>REST via MCP tools</td><td>All agents (with permission)</td></tr>
+          <tr><td>Time-series charts</td><td><code>get_log_graph</code>, <code>get_metric_graph</code>, <code>get_trace_graph</code>, <code>get_pattern_graph</code></td><td>All MCP clients — means <em>chart</em>, not topology</td></tr>
+          <tr><td>Knowledge Graph</td><td>Internal teammate capability</td><td>Edge Delta AI teammates only</td></tr>
+          <tr><td>Topology View</td><td>UI</td><td>Humans</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout ok">
+      Compared with Datadog Service Catalog / Dynatrace Smartscape (API-accessible topology),
+      Edge Delta’s Knowledge Graph is a <strong style="color:var(--text)">teammate-private context layer</strong>.
+      Motadata Pillar B <code>map/</code> is intentionally a published estate store — different product choice.
+    </div>
+  </section>
+
+  <!-- 8 RCA -->
+  <section class="panel" data-step="rca" hidden>
+    <div class="panel-head">
+      <h2>8 · RCA / investigation information flow</h2>
+      <p class="blurb">Detect → localize with KG (internal) → corroborate via MCP → package</p>
+    </div>
+    <div class="dia" role="img" aria-label="Investigation flow using Knowledge Graph and MCP">
+      <svg viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans,system-ui,sans-serif">
+        <text x="450" y="22" text-anchor="middle" fill="#e8d19d" font-size="12" font-weight="600" font-family="IBM Plex Mono,monospace">INVESTIGATION FLOW (INFERRED + DOCUMENTED)</text>
+
+        <rect x="40" y="50" width="160" height="70" rx="8" fill="#1a222c" stroke="#e8b86d"/>
+        <text x="120" y="78" text-anchor="middle" fill="#e8eef4" font-size="11" font-weight="600">① Detect</text>
+        <text x="120" y="98" text-anchor="middle" fill="#8a96a4" font-size="9">Monitor / signal / PD</text>
+
+        <path d="M200,85 H240" stroke="#8a96a4" stroke-width="1.5"/>
+        <rect x="240" y="50" width="180" height="70" rx="8" fill="#1a222c" stroke="#7ba8f5"/>
+        <text x="330" y="78" text-anchor="middle" fill="#e8eef4" font-size="11" font-weight="600">② Localize (KG)</text>
+        <text x="330" y="98" text-anchor="middle" fill="#8a96a4" font-size="9">entity · neigh · blast</text>
+
+        <path d="M420,85 H460" stroke="#8a96a4" stroke-width="1.5"/>
+        <rect x="460" y="50" width="180" height="70" rx="8" fill="#1a222c" stroke="#7ba8f5"/>
+        <text x="550" y="78" text-anchor="middle" fill="#e8eef4" font-size="11" font-weight="600">③ Corroborate</text>
+        <text x="550" y="98" text-anchor="middle" fill="#8a96a4" font-size="9">MCP search / *graph</text>
+
+        <path d="M640,85 H680" stroke="#8a96a4" stroke-width="1.5"/>
+        <rect x="680" y="50" width="180" height="70" rx="8" fill="#1a222c" stroke="#3d9a8b"/>
+        <text x="770" y="78" text-anchor="middle" fill="#e8eef4" font-size="11" font-weight="600">④ Package</text>
+        <text x="770" y="98" text-anchor="middle" fill="#8a96a4" font-size="9">thread · citations · actions</text>
+
+        <rect x="80" y="160" width="740" height="170" rx="8" fill="#121821" stroke="#2a3441"/>
+        <text x="450" y="186" text-anchor="middle" fill="#f0b35a" font-size="11" font-weight="600">Seed-shaped reasoning (Motadata language ↔ ED behavior)</text>
+        <text x="120" y="218" fill="#b8c4d0" font-size="11">Suspect service</text>
+        <text x="320" y="218" fill="#8a96a4" font-size="11">← KG entity lookup (internal; undocumented API)</text>
+        <text x="120" y="244" fill="#b8c4d0" font-size="11">Neighborhood</text>
+        <text x="320" y="244" fill="#8a96a4" font-size="11">← deps / dependents / blast radius</text>
+        <text x="120" y="270" fill="#b8c4d0" font-size="11">Time window</text>
+        <text x="320" y="270" fill="#8a96a4" font-size="11">← anomaly window + recent change hints from connectors</text>
+        <text x="120" y="296" fill="#b8c4d0" font-size="11">Evidence</text>
+        <text x="320" y="296" fill="#8a96a4" font-size="11">← MCP get_log_search / get_*_graph / traces (public tools)</text>
+        <text x="450" y="322" text-anchor="middle" fill="#8a96a4" font-size="10">External agents can do ③; only ED teammates get ② via Knowledge Graph</text>
+      </svg>
+    </div>
+    <p class="note">
+      Exact KG query mechanism is <strong style="color:var(--text)">not documented</strong> (no MCP tool, no REST).
+      Threads show “Knowledge references.” Treat internal KG access as inferred platform capability.
+    </p>
+  </section>
+
+  <!-- 9 Stages -->
+  <section class="panel" data-step="stages" hidden>
+    <div class="panel-head">
+      <h2>9 · ObserveOps E1–E11 coverage map</h2>
+      <p class="blurb">Rough fit for research — not a migration scorecard</p>
+    </div>
+    <div class="callout info">
+      Motadata’s current build path remains ObserveOps + Pillar A∥B.
+      Use this table to see <em>where Edge Delta puts similar work</em>, including gaps (Identity, published topology, Curate).
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>ObserveOps</th><th>Edge Delta locus</th><th>Fit</th><th>Watch-outs</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>E1 Collect</td><td>Source nodes / pipeline types</td><td>Strong</td><td>Different wire formats</td></tr>
+          <tr><td>E2 Identity</td><td>Processors · lookup · OTTL</td><td>Partial</td><td>No Motadata identity statuses</td></tr>
+          <tr><td>E3 Topology</td><td>Knowledge Graph · Service Map</td><td>Partial</td><td>KG private; Service Map K8s-centric</td></tr>
+          <tr><td>E4 Stores</td><td>ED Platform · archive dests</td><td>Strong (as vendor store)</td><td>Not <code>sketch.v1</code> / <code>map/</code> contracts</td></tr>
+          <tr><td>E5 Maintain</td><td>Platform ops · pipeline redeploy</td><td>Partial</td><td>Different validity model</td></tr>
+          <tr><td>E6 Detect</td><td>Monitors · Threshold signals</td><td>Strong</td><td>Events vs signals naming</td></tr>
+          <tr><td>E7 Curate</td><td>Composite monitors / AI merge</td><td>Different</td><td>No Motadata case_seed contract</td></tr>
+          <tr><td>E8–E10</td><td>AI teammates</td><td>Strong (agentic)</td><td>KG moat for localize</td></tr>
+          <tr><td>E11 Package</td><td>Threads · actions · ITSM connectors</td><td>Strong</td><td>Approval workflows differ</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">
+      Source notes also contained POC/ADR/cost option trees — intentionally omitted here.
+      Those are delivery choices, not information-flow architecture.
+      Raw PDF remains at <code>pillar-ab-implementation/Mapping ED to MD.pdf</code>.
+    </p>
+  </section>
+
+  <div class="nav-row">
+    <button type="button" class="btn" id="btn-prev">Previous</button>
+    <span class="count" id="step-count">1 / 9</span>
+    <button type="button" class="btn primary" id="btn-next">Next</button>
+  </div>
+
+  <p class="note" style="margin-top:1.5rem">
+    Hub URL: <a href="/edgedelta-to-motadata-mapping.html"><code>:8765/edgedelta-to-motadata-mapping.html</code></a>
+    · ED hub: <a href="/ed-ai-team-hub.html">ed-ai-team-hub.html</a>
+    · Motadata GraphWriter: <a href="/graphwriter-io-walkthrough.html">graphwriter-io-walkthrough.html</a>
+  </p>
+</div>
+
+<script>
+(function () {
+  var STEPS = ["dual","pipeline","terms","sources","agents","events","mcp","rca","stages"];
+  var idx = 0;
+  function show(i) {
+    if (i < 0 || i >= STEPS.length) return;
+    idx = i;
+    var step = STEPS[idx];
+    document.querySelectorAll(".tab").forEach(function (btn) {
+      btn.setAttribute("aria-selected", btn.getAttribute("data-step") === step ? "true" : "false");
+    });
+    document.querySelectorAll(".panel").forEach(function (panel) {
+      var on = panel.getAttribute("data-step") === step;
+      panel.classList.toggle("is-active", on);
+      if (on) panel.removeAttribute("hidden");
+      else panel.setAttribute("hidden", "");
+    });
+    document.getElementById("step-count").textContent = (idx + 1) + " / " + STEPS.length;
+    document.getElementById("btn-prev").disabled = idx === 0;
+    document.getElementById("btn-next").disabled = idx === STEPS.length - 1;
+    try { history.replaceState(null, "", "#" + step); } catch (e) {}
+  }
+  document.querySelectorAll(".tab").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      show(STEPS.indexOf(btn.getAttribute("data-step")));
+    });
+  });
+  document.getElementById("btn-prev").addEventListener("click", function () { show(idx - 1); });
+  document.getElementById("btn-next").addEventListener("click", function () { show(idx + 1); });
+  var hash = (location.hash || "").replace(/^#/, "");
+  var start = STEPS.indexOf(hash);
+  show(start >= 0 ? start : 0);
+})();
+</script>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

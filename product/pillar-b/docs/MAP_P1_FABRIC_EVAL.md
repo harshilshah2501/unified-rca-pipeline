@@ -1,0 +1,114 @@
+# P1 map fabric eval — build / maintain / walk
+
+**Doc job:** Core **knowledge-graph** eval — build + maintain `map/`, then walk it.  
+**PoC framing:** [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) · code tour → [`Codebase-go-through.md`](./Codebase-go-through.md) · package door → [`../README.md`](../README.md).
+
+**In scope:** GraphWriter admit → publish → E5 maintain → walk helpers.  
+**Stubbed / assumed:** Collect/Identity (fixtures), sketches, Detect/Curate/Identify/Package (optional `case_path/` harness only).
+
+**Run proofs:**
+
+```bash
+cd pillar-ab-implementation/pillar-b/poc
+make test-all
+# Use case 1: graph/tests/unit/test_p1_map_fabric.py (+ maintain / sample_io / writer)
+# Use case 2: graph/tests/unit/test_map_walk.py
+```
+
+---
+
+## Terminology (do not blur)
+
+| Term | Meaning | Not |
+|------|---------|-----|
+| **Estate bootstrap** (`topology.bootstrap.json`, `GraphWriter.load_estate_bootstrap`) | Optional lab/CMDB-style **starting map** before the `topo_update` stream | Not E7 CaseSeed |
+| **`topo_update` stream** | Continuous Motadata map WRITE path after E2 Identity | — |
+| **CaseSeed** | P2 · E7 Curate tip for Scope | Does **not** write `map/` |
+| **Admit** | Per-line decision a writer makes when an `ingest.v1` record arrives: what to do with *this* line | Not “admission control” / authn; not Collect wire validation; not “the line was accepted into Motadata” |
+
+**Admit (GraphWriter sense), in one sentence:** for each stream line, GraphWriter chooses **NOOP**, **WRITE**, or **DROP** — that choice *is* “admit.” Hub tab name “Admit” means this outcome table, not a separate product stage.
+
+Spine for E3: **optional estate bootstrap + `topo_update` → nodes/edges + provenance → `GraphSnapshot` publish**.
+
+---
+
+## Stage matrix (map lens)
+
+| Stage | Map interaction | PoC proof | Honest gap |
+|-------|-----------------|-----------|------------|
+| **E1 Collect** | **None** — wire admit only; does not write or read `map/` | Fixture lines carry `schema_version=ingest.v1` + known `fact_kind` spine; GraphWriter never “Collect-rejects” | Live Collect Done elsewhere; Pillar B **simulates** post-E2 |
+| **E2 Identity** | **Gate into writers** — `ResolvedOnlyGate`; Design: read `telemetry_key_index` | Unresolved / synthesized `topo_update` → **DROP** (reject tape); never silent map write | Full LUT + unresolved→discovery feedback = Design |
+| **E3 Topology** | **Sole `map/` writer** | NOOP / WRITE / DROP / upsert idempotency (below) | Live continuous discovery = Design; PoC = bootstrap + stream upsert |
+| **E4 Stores** | **Orthogonal** — Pillar A `history/` sketches | Mixed tape leaves map spine unchanged for metric/event/trace/anomaly | Log/trace history ≠ `sketch.v1` |
+| **E5 Maintain** | **Validity on existing edges** — does not create edges | Expire `valid_to`; stale corroborating; declared soft 7d / hard 30d (Design-numeric, fixture clock) | Full discovery re-derive = Design |
+
+---
+
+## Two use cases (test matrix)
+
+| Use case | Job | Primary tests |
+|----------|-----|----------------|
+| **1 · Build + maintain** | Estate bootstrap + `topo_update` admit + Dest publish + E5 marks | `test_p1_map_fabric`, `test_maintain`, `test_graph_writer`, `test_sample_io` Case A/B |
+| **2 · Walk-through** | Read published `map/`: hops, inbound/outbound, relation filters, reachable set, leaf paths, confidence-bearing filter after E5 | `test_map_walk` (+ smoke neighbors in older writer/builder tests) |
+
+Optional stub harnesses that *call* walk APIs (not core PoC): `test_case_path`, `test_identify_package` — see [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html).
+
+### Walk-through proofs (`test_map_walk.py`)
+
+| Band | Proof |
+|------|--------|
+| **B1** | 1-hop outbound on customer_checkout; `runs_on` / multi-relation filters; inbound to `payments-db` and host; missing seed / `hops=0` → empty |
+| **B2** | Multi-hop on [`walk_chain.bootstrap.json`](../poc/sample_estate/customer_checkout/walk_chain.bootstrap.json); `reachable_ci_ids` WorkingSet-lite; path to named leaf and to `Host` type; relation-scoped path; undirected `both` from a leaf host |
+| **B3** | Dest load still walkable; expire removes edge from relation walk; `confidence_bearing_only` skips `hard_downgraded`; maintain re-flush WorkingSet still non-empty |
+
+Helpers: [`../poc/graph/neighbors.py`](../poc/graph/neighbors.py) · thin wrappers [`../poc/graph/read_api.py`](../poc/graph/read_api.py).
+
+---
+
+## E3 GraphWriter admit outcomes
+
+**Reminder — “admit” here:** not a pipeline stage and not “user was allowed in.” It is GraphWriter’s **per-line triage** after Identity: skip quietly (NOOP), mutate the map (WRITE), or reject with a code (DROP). The hub step labeled *Admit* is this table.
+
+Aligned with hub Admit language and [`../README.md`](../README.md):
+
+| Outcome | When | Effect |
+|---------|------|--------|
+| **NOOP** | `fact_kind` ≠ `topo_update` | No state change, no reject row |
+| **WRITE** | Resolved identity + CI vertex + catalog relation + allowlisted type pair | Upsert node(s) + edge → flush `map/` |
+| **DROP** | Unresolved/synthesized identity; never-CI type; unknown relation; missing endpoint type; illegal triplet | Append `writer.rejects`; map unchanged |
+| **Upsert idempotency** | Same resolved `topo_update` replayed | Same `edge_id` replace key; no duplicate edges |
+
+Wave-1 emit set: `runs_on`, `hosted_on`, `depends_on`, `communicates_with`, `part_of`.
+
+**E1 vs E3 reject boundary:** unknown / reserved `fact_kind` on the wire is a **Collect** concern. GraphWriter treats non-`topo_update` as **NOOP**, not DROP. Do not count Collect rejects as GraphWriter DROPs.
+
+---
+
+## Sample estate and acceptance
+
+| Artifact | Role |
+|----------|------|
+| [`../poc/sample_estate/customer_checkout/topology.bootstrap.json`](../poc/sample_estate/customer_checkout/topology.bootstrap.json) | Estate bootstrap |
+| [`../poc/sample_estate/customer_checkout/stream.resolved.jsonl`](../poc/sample_estate/customer_checkout/stream.resolved.jsonl) | Case A WRITE spine |
+| [`../poc/sample_estate/customer_checkout/stream.reject.jsonl`](../poc/sample_estate/customer_checkout/stream.reject.jsonl) | Case B DROP + NOOP mix |
+| [`../poc/sample_estate/customer_checkout/SAMPLE_IO.md`](../poc/sample_estate/customer_checkout/SAMPLE_IO.md) | Expected vs actual |
+
+---
+
+## Design stubs called out in code/docs
+
+- **`telemetry_key_index`** — Identity→graph join surface (LLD-E2); PoC does not implement the LUT.
+- **Live discovery crawler** — Motadata E3 continuous path; PoC uses bootstrap + `topo_update` upsert only.
+- **Declared 7d / 30d clocks** — product defaults from operational graph; PoC injects them as labeled Design-numeric constants in [`../poc/graph/maintain.py`](../poc/graph/maintain.py).
+
+---
+
+## Related
+
+- Doc map: [`README.md`](./README.md)  
+- Package I/O: [`../README.md`](../README.md)  
+- Code tour: [`Codebase-go-through.md`](./Codebase-go-through.md)  
+- Hub: [Our HLD → GraphWriter](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter)  
+- LLD-E3: [`../../../docs/observeops/LLD-E3-Topology.md`](../../../docs/observeops/LLD-E3-Topology.md)  
+- LLD-E5 stub: [`../../../docs/observeops/LLD-E5-Maintain.md`](../../../docs/observeops/LLD-E5-Maintain.md)  
+- Map contract (slice SoT): [`../../contracts/MAP_WRITE_READ_RECORD.md`](../../contracts/MAP_WRITE_READ_RECORD.md)

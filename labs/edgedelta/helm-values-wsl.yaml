@@ -1,0 +1,24 @@
+# WSL k3d lab — helm chart defaults are 2 CPU / 2Gi per extra agent (compactor, rollup).
+# This box is 2 CPU / ~3 Gi free. Processor DaemonSet only.
+#
+# Install (pipeline ID is NOT in this file):
+#   export ED_NODE_PIPELINE_ID='<from AI Team Kubernetes connector / get_pipelines>'
+#   helm upgrade edgedelta edgedelta/edgedelta -i -n edgedelta --create-namespace \
+#     -f labs/edgedelta/helm-values-wsl.yaml \
+#     --set secretApiKey.value="$ED_NODE_PIPELINE_ID"
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+aggregatorProps:
+  enabled: false
+compactorProps:
+  enabled: false
+rollUpProps:
+  enabled: false
+tracerProps:
+  enabled: false

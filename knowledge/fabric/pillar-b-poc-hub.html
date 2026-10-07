@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pillar B PoC — hub (navigator · GraphWriter · map/history)</title>
+<meta name="description" content="Docs-hub door for the Motadata Pillar B knowledge-graph PoC: two use cases, layer index, call sequences, and links that work on :8765 (no dead .canvas.tsx clicks)." />
+<link rel="stylesheet" href="/urca-docs.css" />
+<link rel="stylesheet" href="/urca-diagrams.css" />
+<script src="/theme-init.js"></script>
+<style>
+  .poc-hub .band {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: .75rem;
+    margin: 1rem 0 1.5rem;
+  }
+  .poc-hub .band a {
+    display: block;
+    padding: .85rem 1rem;
+    border: 1px solid var(--stroke);
+    border-radius: 10px;
+    background: var(--bg-elev);
+    text-decoration: none;
+    color: inherit;
+  }
+  .poc-hub .band a:hover { border-color: var(--accent, #0369a1); }
+  .poc-hub .band strong { display: block; font-size: .95rem; margin-bottom: .2rem; }
+  .poc-hub .band span { display: block; font-size: .82rem; color: var(--muted); }
+  .poc-hub .seq {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0 1.5rem;
+  }
+  @media (max-width: 800px) { .poc-hub .seq { grid-template-columns: 1fr; } }
+  .poc-hub .seq ol {
+    margin: .5rem 0 0;
+    padding-left: 1.2rem;
+    font-size: .9rem;
+  }
+  .poc-hub .seq li { margin: .35rem 0; }
+  .poc-hub .seq code { font-size: .85em; }
+  .poc-hub table.layers td:first-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .poc-hub .callout {
+    border-left: 3px solid var(--accent, #0369a1);
+    background: var(--bg-elev);
+    border: 1px solid var(--stroke);
+    border-left-width: 3px;
+    border-radius: 0 8px 8px 0;
+    padding: .85rem 1rem;
+    margin: 1rem 0 1.25rem;
+    font-size: .92rem;
+    color: var(--muted);
+  }
+  .poc-hub .callout strong { color: var(--text); }
+  .poc-hub .canvas-note {
+    font-size: .88rem;
+    color: var(--muted);
+    margin: .5rem 0 0;
+  }
+  .poc-hub .layer-diagram {
+    margin: 1rem 0 1.5rem;
+    padding: 1rem 1.1rem;
+    background: var(--bg-elev);
+    border: 1px solid var(--stroke);
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+  .poc-hub .layer-diagram svg { display: block; max-width: 100%; height: auto; }
+  .poc-hub .layer-diagram figcaption {
+    margin-top: .65rem;
+    font-size: .82rem;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body class="urca-doc article poc-hub">
+<div class="wrap article">
+
+  <p class="eyebrow">Pillar B · Motadata knowledge-graph PoC</p>
+  <h1>Pillar B PoC hub</h1>
+  <p class="lead">
+    Browser door for the Motadata Pillar B knowledge-graph lab under
+    <code>pillar-ab-implementation/pillar-b/</code>.
+    Two use cases only: <strong>build + maintain</strong> the graph into Dest
+    <code>map/</code>, and <strong>walk-through</strong> a published snapshot.
+    Detect, Curate, Identify, Package, and sketches are assumed or stubbed — not the PoC mission.
+  </p>
+  <p class="canvas-note">
+    Flat hub URL: <a href="/pillar-b-poc-hub.html"><code>:8765/pillar-b-poc-hub.html</code></a>
+    · Source: <code>docs/fabric/pillar-b-poc-hub.html</code>
+    · Our HLD: <a href="/observeops-pipeline-hld.html#pillar-b-poc">#pillar-b-poc</a>
+  </p>
+
+  <div class="callout">
+    <strong>Why this page exists.</strong>
+    Cursor <code>.canvas.tsx</code> files do not render on the docs hub at <code>:8765</code>.
+    Clicks on those paths (or on IDE-only canvas folders) return 404 or open raw source.
+    This page is the hub replacement for the three PoC canvases; use Command Palette →
+    <strong>Open Canvas</strong> only when you want the interactive layer panel beside chat.
+  </div>
+
+  <h2 id="canvases">Canvases → hub doors</h2>
+  <p>
+    Each Cursor canvas for this PoC maps to a page that works in the browser.
+    Prefer these links from Markdown, Our HLD, and the archive.
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Cursor canvas (IDE)</th>
+        <th>Open on the hub</th>
+        <th>What it covers</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>pillar-b-poc-navigator</code></td>
+        <td><strong>This page</strong> (framing + layers + sequences below)</td>
+        <td>Two use cases, package layers, write/walk call sequences</td>
+      </tr>
+      <tr>
+        <td><code>graphwriter-io-walkthrough</code></td>
+        <td><a href="/observeops-pipeline-hld.html#graphwriter">Our HLD → GraphWriter</a>
+          (<a href="/graphwriter-io-walkthrough.html">legacy redirect</a>)</td>
+        <td>Admit NOOP / WRITE / DROP · partners · seed→flush</td>
+      </tr>
+      <tr>
+        <td><code>map-history-storage-blocks</code></td>
+        <td><a href="/map-history-storage-blocks.html">map/ vs history/ storage blocks</a></td>
+        <td>Room split, R/W, join at WorkingSet (shared with Pillar A)</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="canvas-note">
+    Repo copies of the canvases (for sync / diff, not browser view):
+    <a href="/pillar-ab-implementation/pillar-b/reference/canvases/README.md"><code>pillar-b/reference/canvases/</code></a>.
+    Live Open Canvas copies live under the Cursor project <code>canvases/</code> folder.
+  </p>
+
+  <h2 id="start">Start here (demo pack)</h2>
+  <div class="band">
+    <a href="/pillar-ab-implementation/pillar-b/docs/TEAM_WALKTHROUGH.md">
+      <strong>Team walkthrough</strong>
+      <span>Demo script · admit · run · writer_stream note</span>
+    </a>
+    <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">
+      <strong>Writer regulator</strong>
+      <span>writer_stream.v1 · no fact_kind · intents</span>
+    </a>
+    <a href="/pillar-ab-implementation/pillar-b/docs/PILLAR_B_POC_CHAT_QNA.md">
+      <strong>Session Q&amp;A</strong>
+      <span>Wire · admit · writer_stream supersession</span>
+    </a>
+    <a href="/pillar-b-stream-graph-demo.html">
+      <strong>Stream → graph demo</strong>
+      <span>PoC GraphWriter timeline · admit NOOP/WRITE/DROP</span>
+    </a>
+    <a href="/pillar-ab-implementation/pillar-b/docs/MAP_P1_FABRIC_EVAL.md">
+      <strong>MAP_P1 fabric eval</strong>
+      <span>Build/maintain + walk proofs</span>
+    </a>
+    <a href="/pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md">
+      <strong>Codebase go-through</strong>
+      <span>Module tour + spine</span>
+    </a>
+    <a href="/observeops-pipeline-hld.html#graphwriter">
+      <strong>GraphWriter tab</strong>
+      <span>Hub visual · NOOP / WRITE / DROP</span>
+    </a>
+    <a href="/map-history-storage-blocks.html">
+      <strong>map/ ∥ history/</strong>
+      <span>Storage rooms teaching page</span>
+    </a>
+  </div>
+
+  <h2 id="dest-vortex-s3">Dest: knowledge graph → Vortex + S3</h2>
+  <ul class="canvas-note" style="list-style:disc;padding-left:1.25rem;line-height:1.55;">
+    <li>Normative I/O for Motadata <code>vortex_s3.v1</code> (columnar <code>.vortex</code> parts, ObserveOps manifest footer, read caches).</li>
+    <li><strong>Only two columnar tables:</strong> <code>map_nodes</code>, <code>map_edges</code>.</li>
+    <li><code>graph_snapshot</code> is a package envelope, not a Vortex table.</li>
+    <li>Hot upsert mutates in-memory Arrays; cold <code>.vortex</code> files appear only on <code>publish_map</code>.</li>
+    <li>Removal has two levels: <code>maintain_map</code> (validity clocks) vs explicit retire (cascade incident edges).</li>
+    <li>Primer: <a href="/docs/MAP_VORTEX_S3_POC_PRIMER.md">MAP_VORTEX_S3_POC_PRIMER.md</a>.</li>
+    <li>Rows → Arrow → Vortex APIs: <a href="/docs/MAP_ARROW_VORTEX_PIPELINE.md">MAP_ARROW_VORTEX_PIPELINE.md</a>.</li>
+    <li>Normative: <a href="/docs/MAP_WRITE_READ_RECORD.md">MAP_WRITE_READ_RECORD.md</a> · lifecycle <a href="/docs/MAP_HOT_COLD_LIFECYCLE.md">MAP_HOT_COLD_LIFECYCLE.md</a>.</li>
+  </ul>
+  <div class="band">
+    <a href="/docs/MAP_VORTEX_S3_POC_PRIMER.md">
+      <strong>Vortex + S3 PoC primer</strong>
+      <span>Orientation · lab · map_vortex</span>
+    </a>
+    <a href="/docs/MAP_ARROW_VORTEX_PIPELINE.md">
+      <strong>Rows → Arrow → Vortex</strong>
+      <span>API companion · flat lock</span>
+    </a>
+    <a href="/map-arrow-vortex-pipeline.html">
+      <strong>JSON → Arrow → Vortex → S3</strong>
+      <span>Visual · hot vs cold</span>
+    </a>
+    <a href="/docs/MAP_WRITE_READ_RECORD.md">
+      <strong>Map write/read record</strong>
+      <span>Normative files.v1 + vortex_s3.v1</span>
+    </a>
+    <a href="/docs/MAP_HOT_COLD_LIFECYCLE.md">
+      <strong>Hot / cold lifecycle</strong>
+      <span>Admit · mutate · publish · removal</span>
+    </a>
+    <a href="/pillar-ab-implementation/contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md">
+      <strong>Columnar schema</strong>
+      <span>map_nodes + map_edges</span>
+    </a>
+    <a href="/pillar-ab-implementation/pillar-b/map-vortex/">
+      <strong>map_vortex (Rust)</strong>
+      <span>cargo test · demo CLI</span>
+    </a>
+    <a href="/pillar-ab-implementation/contracts/EDGE_TRIPLET_ALLOWLIST.md">
+      <strong>Edge triplet allowlist</strong>
+      <span>Admit pairing</span>
+    </a>
+    <a href="/vortex-s3-interaction.html">
+      <strong>Vortex + S3 visual</strong>
+      <span>Optional · rooms vs temperature</span>
+    </a>
+  </div>
+
+  <h2 id="use-cases">The only two use cases that matter</h2>
+  <table>
+    <thead>
+      <tr><th>Use case</th><th>What we own</th><th>Proof</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1 · Build + maintain</td>
+        <td>Admit <code>topo_update</code>, upsert nodes/edges, publish <code>GraphSnapshot</code>, E5 validity marks</td>
+        <td><code>test_p1_map_fabric</code>, <code>test_maintain</code>, <code>test_graph_writer</code>, <code>test_sample_io</code></td>
+      </tr>
+      <tr>
+        <td>2 · Walk-through</td>
+        <td>Read a published snapshot: hops, direction, relation filters, reachable set, paths, confidence-bearing filter</td>
+        <td><code>test_map_walk</code></td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    Spine in one line: build/maintain → <code>GraphState</code> → <code>publish_map</code> → Dest
+    <code>map/</code> ← walk-through (<code>neighbors</code> / <code>reachable</code> / <code>paths</code>).
+    Optional <code>maintain_map</code> (E5) sits on the write side.
+  </p>
+
+  <h3 id="stubs">What we stub or assume (not PoC core)</h3>
+  <table>
+    <thead>
+      <tr><th>Concern</th><th>Stance in this PoC</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>E1 Collect / E2 Identity</td><td>Assumed done — lab fixtures still look like post-E2 <code>ingest.v1</code>; target writer wire is <code>writer_stream.v1</code></td></tr>
+      <tr><td>Pillar A sketches / <code>history/</code></td><td>Out of package; optional <code>sketch_provider</code> hook only</td></tr>
+      <tr><td>Detect Signal storm</td><td>Stub JSON under <code>cases/stub_case_path/</code></td></tr>
+      <tr><td>CaseSeed / WorkingSet / LeafClaim</td><td>Thin drivers that call walk APIs — not a second product</td></tr>
+      <tr><td>EvidenceBundle / VerdictCard</td><td>Lab stubs for a diagnose-shaped close — not ServiceOps</td></tr>
+      <tr><td>Live Vortex / S3 / discovery crawler</td><td>Dest is <code>files.v1</code>; discovery = Design</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sequences">Call sequences</h2>
+  <div class="seq">
+    <div>
+      <h3>Use case 1 — write path</h3>
+      <ol>
+        <li><code>load_estate_bootstrap</code> — optional starting estate into memory</li>
+        <li><code>write_topo_stream</code> — admit topo lines → <code>GraphState</code> (not Dest yet)</li>
+        <li><code>publish_map</code> — validate + write snapshot / nodes / edges to Dest</li>
+        <li><code>maintain_map</code> — E5 validity marks — then <code>publish_map</code> again</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Use case 2 — walk-through</h3>
+      <ol>
+        <li><code>load_snapshot</code> — read Dest <code>map/</code> keys into a snapshot dict</li>
+        <li><code>get_neighbors</code> — 1-hop / multi-hop via <code>neighbors()</code></li>
+        <li><code>get_reachable</code> — seed + neighborhood CI set via <code>reachable_ci_ids()</code></li>
+        <li><code>get_paths</code> — simple paths via <code>find_paths()</code></li>
+      </ol>
+    </div>
+  </div>
+
+  <h2 id="layers">How the layers relate</h2>
+  <p>
+    Same spine as the Cursor navigator diagram. Use case 1 writes left →
+    <code>publish_map</code> into Dest <code>map/</code>. Use case 2 reads right via
+    <code>load_snapshot</code> · walk.
+  </p>
+  <figure class="layer-diagram">
+    <svg viewBox="0 0 820 210" width="820" height="210" role="img" aria-labelledby="layer-diag-title layer-diag-desc">
+      <title id="layer-diag-title">Pillar B package layers</title>
+      <desc id="layer-diag-desc">Lab entry calls GraphWriter, which uses Write core and Shared glue; publish_map writes Dest map/; load_snapshot walk reads into Read helpers.</desc>
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor" />
+        </marker>
+        <marker id="arr-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--accent, #0369a1)" />
+        </marker>
+      </defs>
+      <!-- top row -->
+      <g font-family="var(--font-mono, ui-monospace, monospace)" font-size="11">
+        <rect x="16" y="16" width="136" height="52" rx="4" fill="var(--bg, #fff)" stroke="var(--stroke)" />
+        <text x="84" y="38" text-anchor="middle" fill="var(--text)" font-weight="600">Lab entry</text>
+        <text x="84" y="54" text-anchor="middle" fill="var(--muted)" font-size="9">CLI / make</text>
+
+        <line x1="152" y1="42" x2="196" y2="42" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr)" />
+        <text x="174" y="34" text-anchor="middle" fill="var(--muted)" font-size="10">calls</text>
+
+        <rect x="196" y="16" width="136" height="52" rx="4" fill="var(--bg, #fff)" stroke="var(--stroke)" />
+        <text x="264" y="38" text-anchor="middle" fill="var(--text)" font-weight="600">Public orchestrator</text>
+        <text x="264" y="54" text-anchor="middle" fill="var(--muted)" font-size="9">GraphWriter</text>
+
+        <line x1="332" y1="42" x2="376" y2="42" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr)" />
+        <text x="354" y="34" text-anchor="middle" fill="var(--muted)" font-size="10">uses</text>
+
+        <rect x="376" y="16" width="136" height="52" rx="4" fill="var(--bg, #fff)" stroke="var(--stroke)" />
+        <text x="444" y="38" text-anchor="middle" fill="var(--text)" font-weight="600">Write core</text>
+        <text x="444" y="54" text-anchor="middle" fill="var(--muted)" font-size="9">builder · catalog</text>
+
+        <line x1="512" y1="42" x2="556" y2="42" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr)" />
+        <text x="534" y="34" text-anchor="middle" fill="var(--muted)" font-size="10">uses</text>
+
+        <rect x="556" y="16" width="136" height="52" rx="4" fill="var(--bg, #fff)" stroke="var(--stroke)" />
+        <text x="624" y="38" text-anchor="middle" fill="var(--text)" font-weight="600">Shared glue</text>
+        <text x="624" y="54" text-anchor="middle" fill="var(--muted)" font-size="9">ab_shared</text>
+      </g>
+      <!-- publish_map down -->
+      <line x1="444" y1="68" x2="444" y2="118" stroke="var(--accent, #0369a1)" stroke-width="2" marker-end="url(#arr-accent)" />
+      <text x="456" y="98" fill="var(--accent, #0369a1)" font-size="11" font-weight="600" font-family="var(--font-mono, ui-monospace, monospace)">publish_map</text>
+      <!-- walk label above Dest/Read gap -->
+      <text x="610" y="128" text-anchor="middle" fill="var(--accent, #0369a1)" font-size="11" font-weight="600" font-family="var(--font-mono, ui-monospace, monospace)">load_snapshot · walk</text>
+      <!-- Dest + Read -->
+      <g font-family="var(--font-mono, ui-monospace, monospace)">
+        <rect x="344" y="136" width="200" height="56" rx="28" fill="var(--accent, #0369a1)" stroke="var(--accent, #0369a1)" />
+        <text x="444" y="160" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">Dest map/</text>
+        <text x="444" y="176" text-anchor="middle" fill="#fff" font-size="9" opacity="0.9">UC1 publish · UC2 walk hub</text>
+
+        <line x1="544" y1="164" x2="628" y2="164" stroke="var(--accent, #0369a1)" stroke-width="2" marker-end="url(#arr-accent)" />
+
+        <rect x="628" y="142" width="136" height="44" rx="4" fill="var(--bg, #fff)" stroke="var(--stroke)" />
+        <text x="696" y="160" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Read helpers</text>
+        <text x="696" y="174" text-anchor="middle" fill="var(--muted)" font-size="9">UC2 walk APIs</text>
+      </g>
+    </svg>
+    <figcaption>
+      Interactive clickable version: Command Palette → <strong>Open Canvas</strong> → <code>pillar-b-poc-navigator</code>.
+    </figcaption>
+  </figure>
+
+  <h3 id="layer-table">Package layers (read order)</h3>
+  <p>
+    Read top-down once, then drill files in
+    <a href="/pillar-ab-implementation/pillar-b/docs/Codebase-go-through.md">Codebase go-through</a>.
+  </p>
+  <table class="layers">
+    <thead>
+      <tr><th>#</th><th>Layer</th><th>Job</th><th>Anchor files</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Spine</td>
+        <td>Parent frame: write left → <code>publish_map</code> → Dest → walk right</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Public orchestrator</td>
+        <td>Sole library API for map writes</td>
+        <td><code>graph/graph_writer.py</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Lab entry</td>
+        <td>Make / CLI wiring for sample estate (not production HTTP)</td>
+        <td><code>graph/cli_publish_map.py</code></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Write core</td>
+        <td>Admit triage, mutate <code>GraphState</code>, validate, publish, E5</td>
+        <td><code>graph_builder</code>, <code>edge_catalog</code>, <code>snapshot</code>, <code>maintain</code></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Shared glue</td>
+        <td>Post-Identity utilities (<code>ab_shared</code>)</td>
+        <td><code>identity_gate</code>, <code>dest</code>, <code>schema</code>, <code>reject_codes</code></td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>Read helpers</td>
+        <td>Walk-through APIs over a published snapshot</td>
+        <td><code>neighbors</code>, <code>read_api</code> (+ optional <code>case_path/</code>)</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>Production surfaces</td>
+        <td>Dest <code>map/</code> + <code>ingest.v1</code> topo stream — not a frozen GraphWriter REST</td>
+        <td>Dest put/get · Vortex/S3 as encodings later</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="open-canvas">Optional: Open Canvas in Cursor</h2>
+  <ol>
+    <li>Command Palette → <strong>Open Canvas</strong></li>
+    <li>Pick <code>pillar-b-poc-navigator</code> (or GraphWriter / map-history canvases)</li>
+  </ol>
+  <p class="canvas-note">
+    Do not paste <code>vscode://</code> or absolute IDE paths into hub Markdown — they break on <code>:8765</code>.
+    Catalog of other former canvases: <a href="/docs/CANVASES.md">CANVASES.md</a>.
+  </p>
+
+  <p style="margin-top:2rem;font-size:.85rem;color:var(--muted);">
+    Package door:
+    <a href="/pillar-ab-implementation/pillar-b/README.md">pillar-b/README.md</a>
+    · Doc map:
+    <a href="/pillar-ab-implementation/pillar-b/docs/README.md">pillar-b/docs/README.md</a>
+    · Archive:
+    <a href="/hld-archive.html#pillar-b-poc">hld-archive.html#pillar-b-poc</a>
+  </p>
+
+</div>
+</body>
+</html>

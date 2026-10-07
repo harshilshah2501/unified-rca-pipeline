@@ -1,0 +1,54 @@
+{
+  "displayId": "P-260826",
+  "problemId": "8520156600867700763_1786084955771V2",
+  "title": "MONITORING_UNAVAILABLE lab: inventory telemetry dark while HTTP up",
+  "status": "OPEN",
+  "severityLevel": "CUSTOM_ALERT",
+  "impactLevel": "INFRASTRUCTURE",
+  "startTime": "2026-08-07T06:42:35Z",
+  "endTime": null,
+  "rootCauseEntity": null,
+  "affectedEntities": [
+    "inventory"
+  ],
+  "impactedEntities": [
+    "inventory"
+  ],
+  "evidenceEvents": [
+    {
+      "entity": "inventory",
+      "entityId": "PROCESS_GROUP-6E59A21625366AA5",
+      "entityType": "PROCESS_GROUP",
+      "eventType": "CUSTOM_ALERT",
+      "rootCauseRelevant": false,
+      "startTime": "2026-08-07T06:42:35Z",
+      "endTime": null,
+      "displayName": "MONITORING_UNAVAILABLE lab: inventory telemetry dark while HTTP up",
+      "correlationId": "f312390106285375"
+    }
+  ],
+  "impactAnalysis": null,
+  "labNotes": {
+    "category": "MONITORING_UNAVAILABLE",
+    "defect": "Inventory visibility dark: OTEL_SDK_DISABLED=true + process-group MONITORING_OFF (no OneAgent Python inject) while HTTP /stock stayed 200; host OneAgent stopped 06:31–06:43 UTC",
+    "not": "No container stop (AVAILABILITY). No 5xx (ERROR). No ledger-scan latency (SLOWDOWN).",
+    "httpThroughout": "frontend checkout HTTP 200 during fault window",
+    "organicDetect": "Davis did not auto-open MONITORING_UNAVAILABLE (platform-wide majority-agent interruption) nor OSI_UNEXPECTEDLY_UNAVAILABLE for graceful systemctl stop oneagent within ~10m",
+    "problemSurface": "events.ingest CUSTOM_ALERT on PROCESS_GROUP inventory → Problem P-260826 (severity CUSTOM_ALERT, title carries MONITORING_UNAVAILABLE lab label)",
+    "compareHostClass": "Historical P-260810 = Host or monitoring unavailable / OSI_UNEXPECTEDLY_UNAVAILABLE / AVAILABILITY on HOST-2FAAA6F0DAF83B21",
+    "breakAt": "2026-08-07T06:20:00Z approx (break_inventory_monitoring_dark.sh)",
+    "deepMonitorOffAt": "2026-08-07T06:22:47Z (builtin:process-group.monitoring.state MONITORING_OFF)",
+    "loadWindow": "2026-08-07T06:21:08Z → 2026-08-07T06:36:10Z",
+    "oneAgentStopAt": "2026-08-07T06:31:19Z",
+    "problemAt": "2026-08-07T06:42:35Z",
+    "healedAt": "2026-08-07T06:43:41Z",
+    "healSteps": [
+      "systemctl start oneagent",
+      "PROCESS_GROUP monitoring state → MONITORING_ON",
+      "delete container MONITORING_OFF rule contains inventory",
+      "./scripts/heal_inventory_monitoring_dark.sh",
+      "force-recreate inventory → liboneagentpython reinjected; OTEL_SDK_DISABLED=false"
+    ],
+    "healProbe": "HTTP 200 checkout JSON stock+product; OTEL_SDK_DISABLED=false; oneagentpython mappings present"
+  }
+}

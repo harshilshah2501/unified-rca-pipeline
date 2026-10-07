@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ObserveOps fabric — edge → Detect → Localize</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,650&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+    --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --bg: #f6f4ef; --surface: #fbfaf7; --ink: #1c1a16; --muted: #5c5850; --faint: #8a857c;
+    --line: rgba(28, 26, 22, 0.10);
+    --accent: #3d5a73; --accent-soft: rgba(61, 90, 115, 0.08);
+    --map: #8b4a55; --map-soft: rgba(139, 74, 85, 0.08);
+    --hist: #3d6b58; --hist-soft: rgba(61, 107, 88, 0.08);
+    --col: #6b5a82; --col-soft: rgba(107, 90, 130, 0.08);
+    --warn: #8a6a32; --warn-soft: rgba(138, 106, 50, 0.10);
+    --evt: #5a4a6b; --evt-soft: rgba(90, 74, 107, 0.10);
+    --seed: #5a4a3a; --seed-soft: rgba(90, 74, 58, 0.10);
+    --zone-edge: #f3f1eb; --zone-node: #f2f3f2; --zone-col: #f4f2f6; --zone-saas: #f1f3f1;
+    --zone-ingest: #f4f3ef; --tls: rgba(138, 106, 50, 0.45);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161513; --surface: #1c1b18; --ink: #ece8e0; --muted: #b4aea4; --faint: #8a857c;
+      --line: rgba(236, 232, 224, 0.12);
+      --accent: #8eabc2; --accent-soft: rgba(142, 171, 194, 0.12);
+      --map: #d09aa2; --map-soft: rgba(208, 154, 162, 0.12);
+      --hist: #8fbfa8; --hist-soft: rgba(143, 191, 168, 0.12);
+      --col: #b5a6c9; --col-soft: rgba(181, 166, 201, 0.12);
+      --warn: #d4b56a; --warn-soft: rgba(212, 181, 106, 0.14);
+      --evt: #b5a6c9; --evt-soft: rgba(181, 166, 201, 0.12);
+      --seed: #c4b09a; --seed-soft: rgba(196, 176, 154, 0.12);
+      --zone-edge: #1a1916; --zone-node: #1b1c1b; --zone-col: #1c1a1e; --zone-saas: #1a1c1a;
+      --zone-ingest: #191816; --tls: rgba(212, 181, 106, 0.4);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body); background: var(--bg); color: var(--ink);
+    padding: 40px 24px 72px; min-height: 100vh; font-size: 16.5px; line-height: 1.55;
+  }
+  .wrap { max-width: 1680px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 8px;
+  }
+  h1 {
+    font-family: var(--font-serif); font-size: clamp(1.7rem, 2.4vw, 2.25rem);
+    font-weight: 600; letter-spacing: -0.02em; line-height: 1.2;
+    margin-bottom: 12px; max-width: 40ch;
+  }
+  .lead {
+    color: var(--muted); font-size: 1.05rem; max-width: 92ch;
+    margin-bottom: 22px; line-height: 1.6;
+  }
+  .lead a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+  .lead code, .brief code, .hint code {
+    font-family: var(--font-mono); font-size: 0.88em;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 0.08em 0.35em; border-radius: 4px;
+  }
+  .filmbar {
+    margin-bottom: 14px; padding: 10px 12px 12px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+  }
+  .filmbar-meta {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    margin-bottom: 8px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--faint);
+  }
+  .track { height: 3px; background: var(--line); border-radius: 99px; overflow: hidden; margin-bottom: 10px; }
+  .track > i {
+    display: block; height: 100%; width: 0%;
+    background: var(--accent); border-radius: 99px; transition: width 80ms linear;
+  }
+  .beats { display: flex; flex-wrap: wrap; gap: 5px; }
+  .beat {
+    font-size: 12.5px; font-weight: 600; padding: 5px 9px; border-radius: 6px;
+    border: 1px solid var(--line); color: var(--muted); background: transparent;
+  }
+  .beat.on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+  .beat.done { color: var(--faint); }
+  .brief {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+    gap: 0; margin-bottom: 16px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+  }
+  .brief > div { padding: 14px 16px; border-right: 1px solid var(--line); }
+  .brief > div:last-child { border-right: none; }
+  .brief .k {
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 6px;
+  }
+  .brief .v { font-size: 15px; color: var(--ink); line-height: 1.45; }
+  .brief .lede { font-family: var(--font-serif); font-size: 1.12rem; font-weight: 500; line-height: 1.35; }
+  @media (max-width: 960px) {
+    .brief { grid-template-columns: 1fr 1fr; }
+    .brief > div:nth-child(1) { grid-column: 1 / -1; }
+  }
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+    gap: 14px;
+    align-items: start;
+    margin-bottom: 8px;
+  }
+  @media (max-width: 1100px) {
+    .split { grid-template-columns: 1fr; }
+  }
+  .stage {
+    position: relative; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 24px 12px 14px; overflow: auto;
+    min-height: 0; max-height: min(78vh, 920px); z-index: 1;
+  }
+  .stage-label {
+    position: absolute; top: 10px; left: 16px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--faint);
+  }
+  svg.anim { width: 100%; min-width: 0; height: auto; display: block; margin-top: 6px; }
+  svg.anim text, svg.anim .actor, svg.anim .chip, svg.anim .wlab, svg.anim .packet {
+    pointer-events: none;
+  }
+  .box.clickable { cursor: pointer; pointer-events: all; }
+  .box.selected {
+    stroke-width: 2.4 !important; stroke-dasharray: none !important;
+    filter: drop-shadow(0 0 0.5px var(--accent));
+  }
+  .box.map.selected { stroke: var(--map) !important; }
+  .box.hist.selected { stroke: var(--hist) !important; }
+  .box.detect.selected { stroke: var(--warn) !important; }
+  .box.seed.selected { stroke: var(--seed) !important; }
+  .detail {
+    position: sticky; top: 12px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 22px 16px 16px; overflow: auto;
+    min-height: 420px; max-height: min(78vh, 920px);
+    display: flex; flex-direction: column; gap: 12px; z-index: 2;
+  }
+  .detail-label {
+    position: absolute; top: 10px; left: 16px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--faint);
+  }
+  .detail-empty {
+    margin-top: 28px; color: var(--muted); font-size: 15px; line-height: 1.55;
+  }
+  .detail-empty strong { color: var(--ink); font-weight: 600; }
+  .detail-head { margin-top: 18px; }
+  .detail-head .eyebrow {
+    margin-bottom: 4px; color: var(--faint);
+  }
+  .detail-head h2 {
+    font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600;
+    letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 6px;
+  }
+  .detail-head p { color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+  .detail-meta {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .detail-meta > div {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 7px;
+    padding: 10px 12px;
+  }
+  .detail-meta .k {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 4px;
+  }
+  .detail-meta .v { font-size: 13.5px; color: var(--ink); line-height: 1.4; }
+  .detail-flow {
+    border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+    padding: 10px 8px 8px; overflow: auto;
+  }
+  .detail-flow svg { width: 100%; min-width: 280px; height: auto; display: block; }
+  .detail-steps { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .detail-steps li {
+    display: grid; grid-template-columns: 28px 1fr; gap: 10px;
+    align-items: start; padding: 8px 10px; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--bg);
+  }
+  .detail-steps .n {
+    font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+    color: var(--accent); padding-top: 2px;
+  }
+  .detail-steps .t { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .detail-steps .d { font-size: 13px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .detail-steps li.live-step {
+    border-color: var(--accent); background: var(--accent-soft);
+  }
+  .detail-foot {
+    margin-top: auto; font-size: 12.5px; color: var(--faint); line-height: 1.45;
+  }
+  .detail-foot code {
+    font-family: var(--font-mono); font-size: 0.92em;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 0.08em 0.3em; border-radius: 3px;
+  }
+  .detail-close {
+    position: absolute; top: 8px; right: 10px;
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    background: transparent; border: 1px solid var(--line); border-radius: 6px;
+    padding: 4px 9px; cursor: pointer; font-family: var(--font-body);
+  }
+  .detail-close:hover { color: var(--ink); border-color: var(--accent); }
+  .zone-label { font-size: 14px; font-weight: 650; fill: var(--ink); }
+  .zone-sub { font-size: 12px; fill: var(--muted); }
+  .box { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+  .box.edge { fill: var(--zone-edge); }
+  .box.node { fill: var(--zone-node); }
+  .box.col { fill: var(--zone-col); }
+  .box.map { fill: var(--map-soft); stroke: var(--map); stroke-dasharray: 5 4; }
+  .box.hist { fill: var(--hist-soft); stroke: var(--hist); stroke-dasharray: 5 4; }
+  .box.detect { fill: var(--warn-soft); stroke: var(--warn); }
+  .box.seed { fill: var(--seed-soft); stroke: var(--seed); }
+  .box.scope { fill: var(--accent-soft); stroke: var(--accent); }
+  .box.evt { fill: var(--evt-soft); stroke: var(--evt); }
+  .box.muted { fill: transparent; stroke: var(--faint); stroke-dasharray: 4 4; opacity: 0.7; }
+  .box.idle { opacity: 0.55; }
+  .box.live { stroke-width: 2.1; stroke-dasharray: none; }
+  .box.node.live, .box.edge.live { stroke: var(--accent); }
+  .box.col.live { stroke: var(--col); }
+  .box.map.live { stroke: var(--map); }
+  .box.hist.live { stroke: var(--hist); }
+  .box.detect.live { stroke: var(--warn); }
+  .box.seed.live { stroke: var(--seed); }
+  .box.scope.live { stroke: var(--accent); }
+  .box.evt.live { stroke: var(--evt); }
+  @keyframes sigpulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .chip.pulse { animation: sigpulse 1.25s ease-in-out infinite; }
+  .ico-badge { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+  .ico { color: var(--muted); }
+  .ico.accent { color: var(--accent); }
+  .ico.map { color: var(--map); }
+  .ico.hist { color: var(--hist); }
+  .ico.col { color: var(--col); }
+  .ico.warn { color: var(--warn); }
+  .ico.evt { color: var(--evt); }
+  .ico.seed { color: var(--seed); }
+  .box.idle + .actor { opacity: 0.42; }
+  .box.live + .actor .ico-badge { stroke-width: 1.5; }
+  .box.edge.live + .actor .ico-badge,
+  .box.node.live + .actor .ico-badge { stroke: var(--accent); }
+  .box.col.live + .actor .ico-badge { stroke: var(--col); }
+  .box.map.live + .actor .ico-badge { stroke: var(--map); }
+  .box.hist.live + .actor .ico-badge { stroke: var(--hist); }
+  .box.detect.live + .actor .ico-badge { stroke: var(--warn); }
+  .box.seed.live + .actor .ico-badge { stroke: var(--seed); }
+  .box.scope.live + .actor .ico-badge { stroke: var(--accent); }
+  .box.evt.live + .actor .ico-badge { stroke: var(--evt); }
+  .lbl { font-family: var(--font-serif); font-size: 15px; font-weight: 600; fill: var(--ink); }
+  .sub { font-size: 12px; fill: var(--muted); }
+  .tag { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; fill: var(--faint); text-transform: uppercase; }
+  .mono { font-family: var(--font-mono); font-size: 11px; fill: var(--accent); }
+  .wire { fill: none; stroke-width: 1.7; stroke-linecap: round; opacity: 0.2; }
+  .wire.j { stroke: var(--accent); }
+  .wire.a { stroke: var(--hist); }
+  .wire.b { stroke: var(--map); }
+  .wire.c { stroke: var(--col); }
+  .wire.w { stroke: var(--warn); }
+  .wire.e { stroke: var(--evt); }
+  .wire.s { stroke: var(--seed); }
+  .wire.active { opacity: 0.95; }
+  .packet { opacity: 0; pointer-events: none; }
+  .packet.on { opacity: 1; }
+  .chip { font-size: 11.5px; font-weight: 600; fill: var(--warn); opacity: 0; }
+  .chip.on { opacity: 1; }
+  .chip.evt { fill: var(--evt); }
+  .chip.seed { fill: var(--seed); }
+  .chip.hist { fill: var(--hist); }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px;
+    font-size: 13.5px; color: var(--muted);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .sw { width: 11px; height: 11px; border-radius: 2px; border: 1.5px solid; }
+  .hint { margin-top: 18px; font-size: 14.5px; color: var(--faint); line-height: 1.55; max-width: 95ch; }
+  .hint a { color: var(--accent); }
+
+  .zone-mega { fill: transparent; stroke: var(--line); stroke-width: 1.4; }
+  .lane-label { font-size: 12px; font-weight: 650; fill: var(--muted); letter-spacing: 0.04em; }
+  .mega-title { font-size: 15px; font-weight: 700; fill: var(--ink); }
+  .mega-sub { font-size: 12px; fill: var(--muted); }
+  .wlab { opacity: 0.42; }
+  .wlab.on { opacity: 1; }
+  .wlab-bg { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+  .wlab.on .wlab-bg { stroke: var(--accent); }
+  .wlab-t {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+    fill: var(--muted); dominant-baseline: middle;
+  }
+  .wlab.on .wlab-t { fill: var(--ink); font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .packet, .wire, .chip.pulse { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">ObserveOps · one film · two zones · labeled handoffs</div>
+  <h1>Ingestion on the left, SaaS processing on the right</h1>
+  <p class="lead">
+    Two zones only: <strong>Ingestion</strong> (Edge devices · Node · optional Collector) and
+    <strong>SaaS platform</strong> (processing: Ingest API → <code>map/</code> ∥ <code>history/</code> → Maintain → Detect → case path).
+    Left pane is the end-to-end film. <strong>Click any processing block</strong> (for example E3 Pillar B or E4 Pillar A)
+    to open that block’s low-level admit / write flow on the right.
+    Every arrow is labeled with the contract that crosses it.
+    <a href="./SIMULATION_THREAD.md">Thread locks</a> ·
+    <a href="../INGEST_DATA_FORMAT.md">ingest fact kinds</a> ·
+    <a href="../observeops/observeops-pipeline-hld.html#fabric">Our HLD · Fabric</a>.
+  </p>
+
+  <div class="filmbar" aria-hidden="true">
+    <div class="filmbar-meta">
+      <span id="filmStatus">Looping film</span>
+      <span id="filmClock">Beat 1 of 11</span>
+    </div>
+    <div class="track"><i id="filmFill"></i></div>
+    <div class="beats" id="beats"></div>
+  </div>
+
+  <div class="brief">
+    <div>
+      <div class="k" id="briefKicker">Step</div>
+      <p class="lede" id="briefLede"></p>
+    </div>
+    <div>
+      <div class="k">Where it runs</div>
+      <p class="v" id="briefWhere"></p>
+    </div>
+    <div>
+      <div class="k">In → out</div>
+      <p class="v" id="briefIo"></p>
+    </div>
+    <div>
+      <div class="k">Not this step</div>
+      <p class="v" id="briefNot"></p>
+    </div>
+  </div>
+
+  <div class="split">
+  <div class="stage">
+    <span class="stage-label">End-to-end · click a block for detail →</span>
+    <svg class="anim" viewBox="0 0 1480 980" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Two zones: Ingestion (Edge, Node, Collector) and SaaS processing. Wires labeled with contracts.">
+      <defs>
+        <marker id="arrJ" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#3d5a73"/></marker>
+        <marker id="arrC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#6b5a82"/></marker>
+        <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#8b4a55"/></marker>
+        <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#3d6b58"/></marker>
+        <marker id="arrW" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#8a6a32"/></marker>
+        <marker id="arrE" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#5a4a6b"/></marker>
+        <marker id="arrS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#5a4a3a"/></marker>
+        <symbol id="i-estate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9.5L9 5l5 4.5V19H4z"/><path d="M14 19v-8h6v8"/><path d="M8.5 19v-4h3v4"/></symbol>
+        <symbol id="i-agent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4 19 7.4v9.2l-7 4-7-4V7.4L12 3.4z"/><circle cx="12" cy="12" r="2"/></symbol>
+        <symbol id="i-hopper" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-5.2 7.2V20l-5.6-2.4v-5.4L4 5z"/></symbol>
+        <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18h10.5a3.6 3.6 0 0 0 .2-7.2 5 5 0 0 0-9.6-1.4A3.6 3.6 0 0 0 7 18z"/></symbol>
+        <symbol id="i-host" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="11.5" rx="1.6"/><path d="M8 20h8M12 16v4"/></symbol>
+        <symbol id="i-svc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 8.5 12 5l7.5 3.5L12 12z"/><path d="M4.5 12.5 12 16l7.5-3.5"/><path d="M4.5 16 12 19.5 19.5 16"/></symbol>
+        <symbol id="i-net" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="9" width="17" height="5.5" rx="1.2"/><path d="M7 14.5V19M12 14.5V19M17 14.5V19M7 5v4M17 5v4"/></symbol>
+        <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16l-2.2 6.2H6.2L4 13z"/><path d="M8 13V8.2h8V13"/><path d="M10 10.2h4"/></symbol>
+        <symbol id="i-stamp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="3"/><path d="M12 12h8M17 12v3.5M20 12v2.2"/></symbol>
+        <symbol id="i-door" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V5.5A1.5 1.5 0 0 1 8.5 4H18v17H7z"/><path d="M15 12.5h.01"/></symbol>
+        <symbol id="i-merge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5v4c0 3.4 6 3.8 6 8"/><path d="M18 4.5v4c0 3.4-6 3.8-6 8"/><path d="M12 16.5V20"/><path d="M9.5 18.2H14.5"/></symbol>
+        <symbol id="i-sniff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18.5h.01"/><path d="M8.2 14.8a5.4 5.4 0 0 1 7.6 0"/><path d="M5.4 11.8a9.4 9.4 0 0 1 13.2 0"/></symbol>
+        <symbol id="i-gate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V8.5L12 4l8 4.5V20"/><path d="M12 20v-7.5"/><path d="M8 20v-4h8v4"/></symbol>
+        <symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="8" r="2.3"/><circle cx="17" cy="8.5" r="2.3"/><circle cx="12" cy="17" r="2.3"/><path d="M9.2 8.4h5.4M8.2 10.1l2.6 5M15.8 10.4l-2.5 4.7"/></symbol>
+        <symbol id="i-bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18V11M10 18V6.5M15 18v-8M20 18V9"/></symbol>
+        <symbol id="i-warm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a7 7 0 0 1 11.5-5.2L18.5 4v5.5H13"/><path d="M19 13a7 7 0 0 1-11.5 5.2L5.5 20v-5.5H11"/></symbol>
+        <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12s3.4-6 8.5-6 8.5 6 8.5 6-3.4 6-8.5 6-8.5-6-8.5-6z"/><circle cx="12" cy="12" r="2.4"/></symbol>
+        <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 5.5 13.5H12L11 21l7.5-10.5H12L13 3z"/></symbol>
+        <symbol id="i-msg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6.5h14v9.5H9.5L5 20V6.5z"/></symbol>
+        <symbol id="i-window" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="1.6"/><path d="M3.5 10h17M10 10v9"/></symbol>
+        <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"/><circle cx="12" cy="11" r="2"/></symbol>
+        <symbol id="i-stack" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 8.5 12 5l7.5 3.5L12 12z"/><path d="M4.5 12.5 12 16l7.5-3.5"/><path d="M4.5 16 12 19.5 19.5 16"/></symbol>
+        <symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="1.6"/><path d="M4 10h16M8 14h5"/></symbol>
+      </defs>
+
+      <!-- ZONE 1: Ingestion -->
+      <rect id="zIngest" x="8" y="34" width="720" height="920" rx="10" fill="var(--zone-ingest)" stroke="var(--accent)" stroke-opacity="0.35"/>
+      <text class="mega-title" x="24" y="58">1 · Ingestion</text>
+      <text class="mega-sub" x="24" y="76">Edge devices · Node · optional Collector</text>
+
+      <rect x="20" y="96" width="220" height="840" rx="7" fill="var(--zone-edge)" stroke="var(--line)"/>
+      <g class="actor" transform="translate(30, 106)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-estate" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="lane-label" x="62" y="122">Edge devices</text>
+
+      <rect x="250" y="96" width="228" height="840" rx="7" fill="var(--zone-node)" stroke="var(--line)"/>
+      <g class="actor" transform="translate(260, 106)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-agent" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="lane-label" x="292" y="122">Node · E1 + E2</text>
+
+      <rect id="zCol" class="box idle" x="488" y="96" width="224" height="840" rx="7" fill="var(--zone-col)" stroke="var(--col)" stroke-dasharray="5 4" stroke-opacity="0.5"/>
+      <g class="actor" transform="translate(498, 106)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-hopper" class="ico col" x="2" y="2" width="20" height="20"/></g>
+      <text class="lane-label" x="530" y="122">Collector · optional</text>
+
+      <!-- ZONE 2: SaaS -->
+      <rect id="zSaas" x="748" y="34" width="724" height="920" rx="10" fill="var(--zone-saas)" stroke="var(--accent)" stroke-opacity="0.35"/>
+      <g class="actor" transform="translate(760, 42)"><rect class="ico-badge" width="26" height="26" rx="6"/><use href="#i-cloud" class="ico accent" x="3" y="3" width="20" height="20"/></g>
+      <text class="mega-title" x="796" y="58">2 · SaaS platform · processing</text>
+      <text class="mega-sub" x="796" y="76">Ingest fan-out · Maintain both rooms · Detect · triage · localize</text>
+
+      <line x1="736" y1="96" x2="736" y2="942" stroke="var(--tls)" stroke-width="2" stroke-dasharray="3 5"/>
+      <text class="tag" x="742" y="112">TLS boundary</text>
+
+      <!-- Edge cards -->
+      <rect class="box edge" id="devVm" x="34" y="150" width="192" height="72" rx="6"/>
+      <g class="actor" transform="translate(42, 158)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-host" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="74" y="172">Host</text>
+      <text class="lbl" x="46" y="196">guest-os-vm-app-01</text>
+      <text class="sub" x="46" y="212">CPU · logs</text>
+
+      <rect class="box edge" id="devApi" x="34" y="240" width="192" height="72" rx="6"/>
+      <g class="actor" transform="translate(42, 248)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-svc" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="74" y="262">Service</text>
+      <text class="lbl" x="46" y="286">checkout-api</text>
+      <text class="sub" x="46" y="302">p95 · 5xx · spans</text>
+
+      <rect class="box edge" id="devSw" x="34" y="330" width="192" height="72" rx="6"/>
+      <g class="actor" transform="translate(42, 338)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-net" class="ico warn" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="74" y="352">Network</text>
+      <text class="lbl" x="46" y="376">switch-core-01</text>
+      <text class="sub" x="46" y="392">SNMP · flows</text>
+
+      <!-- Node -->
+      <rect class="box node" id="nE1" x="264" y="160" width="200" height="88" rx="6"/>
+      <g class="actor" transform="translate(272, 168)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-inbox" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="304" y="182">E1 Collect</text>
+      <text class="lbl" x="276" y="208">Admit envelope</text>
+      <text class="sub" x="276" y="228">no CI bind yet</text>
+
+      <rect class="box node" id="nE2" x="264" y="270" width="200" height="100" rx="6"/>
+      <g class="actor" transform="translate(272, 278)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-stamp" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="304" y="292">E2 Identity</text>
+      <text class="lbl" x="276" y="318">Normalize</text>
+      <text class="sub" x="276" y="338">tenant + ci_id</text>
+      <text class="sub" x="276" y="354">not E10 Identify</text>
+
+      <rect class="box node" id="nDoorA" x="276" y="390" width="176" height="42" rx="6"/>
+      <g class="actor" transform="translate(284, 396)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-door" class="ico warn" x="2" y="2" width="20" height="20"/></g>
+      <text class="sub" x="316" y="414">Door A · not fired</text>
+
+      <!-- Collector -->
+      <rect class="box col idle" id="nAgg" x="504" y="160" width="192" height="92" rx="6"/>
+      <g class="actor" transform="translate(512, 168)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-merge" class="ico col" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="544" y="182">From Node</text>
+      <text class="lbl" x="516" y="208">Aggregate / dedup</text>
+      <text class="sub" x="516" y="228">≠ Identity</text>
+
+      <rect class="box col idle" id="nDirect" x="504" y="274" width="192" height="92" rx="6"/>
+      <g class="actor" transform="translate(512, 282)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-sniff" class="ico col" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="544" y="296">No Node hop</text>
+      <text class="lbl" x="516" y="322">Direct collect</text>
+      <text class="sub" x="516" y="342">SNMP / APM</text>
+
+      <!-- SaaS boxes - keep similar positions shifted -->
+      <rect class="box node" id="nIng" x="768" y="118" width="190" height="70" rx="6"/>
+      <g class="actor" transform="translate(776, 126)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-gate" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="140">Ingest API</text>
+      <text class="lbl" x="780" y="164">Fan-out hub</text>
+      <text class="sub" x="780" y="180">→ both rooms</text>
+
+      <rect class="box map" id="nMap" x="1088" y="110" width="360" height="84" rx="6"/>
+      <g class="actor" transform="translate(1096, 118)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-graph" class="ico map" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="1128" y="132">E3 · Pillar B</text>
+      <text class="lbl" x="1100" y="156" fill="var(--map)">map/</text>
+      <text class="sub" x="1100" y="176">GraphSnapshot · edges</text>
+
+      <rect class="box hist" id="nHist" x="1088" y="216" width="360" height="84" rx="6"/>
+      <g class="actor" transform="translate(1096, 224)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-bars" class="ico hist" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="1128" y="238">E4 · Pillar A</text>
+      <text class="lbl" x="1100" y="262" fill="var(--hist)">history/</text>
+      <text class="sub" x="1100" y="282">sketch.v1 · baselines</text>
+
+      <text class="sub" x="1268" y="206" text-anchor="middle">no sync</text>
+      <line id="noSync" x1="1268" y1="196" x2="1268" y2="216" stroke="var(--warn)" stroke-dasharray="3 3" opacity="0.35"/>
+
+      <rect class="box node" id="nE5" x="768" y="216" width="190" height="84" rx="6"/>
+      <g class="actor" transform="translate(776, 224)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-warm" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="238">E5 Maintain · shared</text>
+      <text class="lbl" x="780" y="262">Warm both</text>
+      <text class="sub" x="780" y="280">validity · baselines</text>
+
+      <rect class="box evt" id="nCap" x="768" y="318" width="680" height="92" rx="6"/>
+      <g class="actor" transform="translate(776, 326)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-bolt" class="ico warn" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="340">Capture · writer_stream.v1 blocks (no fact_kind)</text>
+      <text class="mono" id="capMet" x="780" y="364" opacity="0.35">metric</text>
+      <text class="mono" id="capTopo" x="880" y="364" opacity="0.35">topology</text>
+      <text class="mono" id="capAno" x="1000" y="364" opacity="0.35">anomaly</text>
+      <text class="mono" id="capEvt" x="1110" y="364" opacity="0.35">event</text>
+      <text class="mono" id="capSpan" x="1210" y="364" opacity="0.35">span</text>
+      <text class="sub" x="780" y="386">Regulators key on which optional blocks are present</text>
+      <text class="chip evt" id="evtNameChip" x="780" y="400">event.name example: log.error</text>
+
+      <rect class="box detect" id="nDet" x="768" y="428" width="680" height="96" rx="6"/>
+      <g class="actor" transform="translate(776, 436)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-eye" class="ico warn" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="450">E6 Detect · Door C</text>
+      <text class="lbl" x="780" y="474">Signal storm</text>
+      <text class="chip hist" id="skChip" x="980" y="470">Door C reads: sketch p95 vs baseline</text>
+      <text class="chip" id="sigA" x="780" y="502">Signal · Door C</text>
+      <text class="chip" id="sigB" x="980" y="502">Signal · anomaly</text>
+      <text class="chip evt" id="sigC" x="1180" y="502">event correlated</text>
+
+      <rect class="box seed" id="nCur" x="768" y="540" width="210" height="104" rx="6"/>
+      <g class="actor" transform="translate(776, 548)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-merge" class="ico seed" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="562">E7 Curate</text>
+      <text class="lbl" x="780" y="588">CaseSeed</text>
+      <text class="chip seed" id="seedBadge" x="780" y="620">one seed</text>
+
+      <rect class="box scope" id="nScope" x="1002" y="540" width="210" height="104" rx="6"/>
+      <g class="actor" transform="translate(1010, 548)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-window" class="ico accent" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="1042" y="562">E8 Scope</text>
+      <text class="lbl" x="1014" y="588">WorkingSet</text>
+      <text class="sub" x="1014" y="606">read-join rooms</text>
+      <text class="chip" id="wsBadge" x="1014" y="624" style="fill:var(--accent)">window + suspects</text>
+
+      <rect class="box map" id="nLoc" x="1236" y="540" width="212" height="104" rx="6"/>
+      <g class="actor" transform="translate(1244, 548)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-pin" class="ico map" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="1276" y="562">E9 Localize</text>
+      <text class="lbl" x="1248" y="588">LeafClaim</text>
+      <text class="chip" id="leafBadge" x="1248" y="620" style="fill:var(--map)">payments-db</text>
+
+      <rect class="box muted" id="nId" x="768" y="668" width="320" height="84" rx="6"/>
+      <g class="actor" transform="translate(776, 676)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-stack" class="ico" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="808" y="690">E10 Identify · drawn</text>
+      <text class="lbl" x="780" y="716">EvidenceBundle</text>
+      <text class="chip evt" id="idBadge" x="780" y="736">cite log.error</text>
+
+      <rect class="box muted" id="nPkg" x="1112" y="668" width="336" height="84" rx="6"/>
+      <g class="actor" transform="translate(1120, 676)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-card" class="ico" x="2" y="2" width="20" height="20"/></g>
+      <text class="tag" x="1152" y="690">E11 Package · not played</text>
+      <text class="lbl" x="1124" y="716">VerdictCard</text>
+      <text class="sub" x="1124" y="736">operator handoff later</text>
+
+      <!-- wires (IDs preserved) -->
+      <path class="wire j" id="wDevE1" d="M226 210 C240 210 240 204 264 204" marker-end="url(#arrJ)"/>
+      <path class="wire j" id="wE1E2" d="M364 248 L364 270" marker-end="url(#arrJ)"/>
+      <path class="wire j" id="wNodeSaas" d="M464 320 C540 320 660 153 768 153" marker-end="url(#arrJ)"/>
+      <path class="wire c" id="wNodeCol" d="M464 330 L504 206" marker-end="url(#arrC)"/>
+      <path class="wire c" id="wColSaas" d="M696 206 C730 206 740 153 768 153" marker-end="url(#arrC)"/>
+      <path class="wire c" id="wNetCol" d="M226 366 C340 420 440 320 504 320" marker-end="url(#arrC)"/>
+      <path class="wire b" id="wIngMap" d="M958 153 C1010 153 1040 152 1088 152" marker-end="url(#arrB)"/>
+      <path class="wire a" id="wIngHist" d="M958 153 C1010 153 1040 258 1088 258" marker-end="url(#arrA)"/>
+      <path class="wire j" id="wE5Map" d="M958 248 C1010 248 1040 152 1088 152" marker-end="url(#arrJ)"/>
+      <path class="wire j" id="wE5Hist" d="M958 258 C1010 258 1040 258 1088 258" marker-end="url(#arrJ)"/>
+      <path class="wire a" id="wHistCap" d="M1268 300 L1100 360" marker-end="url(#arrA)"/>
+      <path class="wire w" id="wCapDet" d="M1108 410 L1108 428" marker-end="url(#arrW)"/>
+      <path class="wire w" id="wDetCur" d="M900 524 L873 540" marker-end="url(#arrW)"/>
+      <path class="wire s" id="wCurScope" d="M978 592 L1002 592" marker-end="url(#arrS)"/>
+      <path class="wire b" id="wMapScope" d="M1268 194 C1268 470 1120 566 1114 566" marker-end="url(#arrB)"/>
+      <path class="wire a" id="wHistScope" d="M1268 300 C1268 490 1120 596 1114 596" marker-end="url(#arrA)"/>
+      <path class="wire j" id="wScopeLoc" d="M1212 592 L1236 592" marker-end="url(#arrJ)"/>
+      <path class="wire e" id="wEvtId" d="M873 644 L873 668" marker-end="url(#arrE)"/>
+
+      <!-- wire labels -->
+      <g class="wlab" data-for="wDevE1"><rect class="wlab-bg" x="228" y="186" width="58" height="16" rx="3"/><text class="wlab-t" x="257" y="194" text-anchor="middle">raw MELT</text></g>
+      <g class="wlab" data-for="wE1E2"><rect class="wlab-bg" x="368" y="250" width="88" height="16" rx="3"/><text class="wlab-t" x="412" y="258" text-anchor="middle">stream row</text></g>
+      <g class="wlab" data-for="wNodeSaas"><rect class="wlab-bg" x="548" y="128" width="148" height="16" rx="3"/><text class="wlab-t" x="622" y="136" text-anchor="middle">writer_stream.v1</text></g>
+      <g class="wlab" data-for="wNodeCol"><rect class="wlab-bg" x="458" y="248" width="88" height="16" rx="3"/><text class="wlab-t" x="502" y="256" text-anchor="middle">stream row</text></g>
+      <g class="wlab" data-for="wColSaas"><rect class="wlab-bg" x="686" y="168" width="100" height="16" rx="3"/><text class="wlab-t" x="736" y="176" text-anchor="middle">writer_stream</text></g>
+      <g class="wlab" data-for="wNetCol"><rect class="wlab-bg" x="300" y="372" width="78" height="16" rx="3"/><text class="wlab-t" x="339" y="380" text-anchor="middle">SNMP / flows</text></g>
+      <g class="wlab" data-for="wIngMap"><rect class="wlab-bg" x="980" y="128" width="96" height="16" rx="3"/><text class="wlab-t" x="1028" y="136" text-anchor="middle">→ GraphSnapshot</text></g>
+      <g class="wlab" data-for="wIngHist"><rect class="wlab-bg" x="980" y="218" width="88" height="16" rx="3"/><text class="wlab-t" x="1024" y="226" text-anchor="middle">→ sketch.v1</text></g>
+      <g class="wlab" data-for="wE5Map"><rect class="wlab-bg" x="990" y="178" width="58" height="16" rx="3"/><text class="wlab-t" x="1019" y="186" text-anchor="middle">validity</text></g>
+      <g class="wlab" data-for="wE5Hist"><rect class="wlab-bg" x="990" y="278" width="64" height="16" rx="3"/><text class="wlab-t" x="1022" y="286" text-anchor="middle">baselines</text></g>
+      <g class="wlab" data-for="wHistCap"><rect class="wlab-bg" x="1140" y="318" width="100" height="16" rx="3"/><text class="wlab-t" x="1190" y="326" text-anchor="middle">digest + baseline</text></g>
+      <g class="wlab" data-for="wCapDet"><rect class="wlab-bg" x="1118" y="408" width="72" height="16" rx="3"/><text class="wlab-t" x="1154" y="416" text-anchor="middle">fire inputs</text></g>
+      <g class="wlab" data-for="wDetCur"><rect class="wlab-bg" x="848" y="522" width="58" height="16" rx="3"/><text class="wlab-t" x="877" y="530" text-anchor="middle">Signal(s)</text></g>
+      <g class="wlab" data-for="wCurScope"><rect class="wlab-bg" x="980" y="568" width="62" height="16" rx="3"/><text class="wlab-t" x="1011" y="576" text-anchor="middle">CaseSeed</text></g>
+      <g class="wlab" data-for="wMapScope"><rect class="wlab-bg" x="1188" y="470" width="68" height="16" rx="3"/><text class="wlab-t" x="1222" y="478" text-anchor="middle">neighbors</text></g>
+      <g class="wlab" data-for="wHistScope"><rect class="wlab-bg" x="1188" y="510" width="62" height="16" rx="3"/><text class="wlab-t" x="1219" y="518" text-anchor="middle">sketches</text></g>
+      <g class="wlab" data-for="wScopeLoc"><rect class="wlab-bg" x="1210" y="568" width="72" height="16" rx="3"/><text class="wlab-t" x="1246" y="576" text-anchor="middle">WorkingSet</text></g>
+      <g class="wlab" data-for="wEvtId"><rect class="wlab-bg" x="882" y="648" width="68" height="16" rx="3"/><text class="wlab-t" x="916" y="656" text-anchor="middle">event cite</text></g>
+
+      <circle class="packet" id="pA" r="7" fill="#3d5a73"/>
+      <circle class="packet" id="pB" r="7" fill="#6b5a82"/>
+      <circle class="packet" id="pC" r="7" fill="#8a6a32"/>
+      <circle class="packet" id="pMap" r="7" fill="#8b4a55"/>
+      <circle class="packet" id="pHist" r="7" fill="#3d6b58"/>
+      <circle class="packet" id="pE5a" r="6" fill="#3d5a73"/>
+      <circle class="packet" id="pE5b" r="6" fill="#3d5a73"/>
+      <circle class="packet" id="pSig" r="8" fill="#8a6a32"/>
+      <circle class="packet" id="pSeed" r="8" fill="#5a4a3a"/>
+      <circle class="packet" id="pJoinM" r="6" fill="#8b4a55"/>
+      <circle class="packet" id="pJoinH" r="6" fill="#3d6b58"/>
+      <circle class="packet" id="pLeaf" r="8" fill="#8b4a55"/>
+      <circle class="packet" id="pCite" r="7" fill="#5a4a6b"/>
+    </svg>
+
+    <div class="legend">
+      <span><i class="sw" style="border-color:var(--accent);background:var(--accent-soft)"></i> Zone 1 Ingestion · Zone 2 SaaS</span>
+      <span><i class="sw" style="border-color:var(--map);background:var(--map-soft)"></i> map/ · GraphSnapshot</span>
+      <span><i class="sw" style="border-color:var(--hist);background:var(--hist-soft)"></i> history/ · sketch.v1</span>
+      <span><i class="sw" style="border-color:var(--warn);background:var(--warn-soft)"></i> Signal</span>
+      <span><i class="sw" style="border-color:var(--seed);background:var(--seed-soft)"></i> CaseSeed</span>
+      <span>Click a box → low-level flow on the right</span>
+    </div>
+  </div>
+
+  <aside class="detail" id="detailPane" aria-live="polite">
+    <span class="detail-label">Block processing</span>
+    <button type="button" class="detail-close" id="detailClose" hidden>Clear</button>
+    <div id="detailBody">
+      <p class="detail-empty">
+        <strong>Select a block</strong> on the left film — for example
+        <strong>E3 · Pillar B</strong> (<code>map/</code>) or <strong>E4 · Pillar A</strong> (<code>history/</code>) —
+        to see how that stage admits input, decides WRITE / DROP / NOOP, and what it publishes.
+      </p>
+    </div>
+  </aside>
+  </div>
+
+  <p class="hint">
+    Wire chips name the handoff object. After E2, the hub fans out <code>writer_stream.v1</code>; regulators admit by optional-block presence (not <code>fact_kind</code>). E5 Maintain warms both rooms.
+    Block detail on the right matches Motadata-aligned map rows (<code>entity_id</code>, <code>edge_type</code>) and sketch <code>entity_id</code> join.
+    Locks: <a href="./SIMULATION_THREAD.md">SIMULATION_THREAD.md</a> ·
+    <a href="../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a>.
+  </p>
+</div>
+
+<script>
+(function () {
+  const phases = [
+    {
+      title: "Emit",
+      kicker: "Beat 1 of 11 · Edge",
+      lede: "Telemetry starts on the estate. These boxes are sources, not SaaS ingest.",
+      where: "Ingestion zone · Edge devices. Nothing has entered Node or Collector yet.",
+      io: "Out: raw metrics, logs, spans, SNMP, flows.",
+      not: "Not Collect. Not Detect. SaaS rooms are empty.",
+      live: ["devVm", "devApi", "devSw"]
+    },
+    {
+      title: "Collect",
+      kicker: "Beat 2 of 11 · E1",
+      lede: "Node admits wire-format stream rows — no router enum, no Dest write yet.",
+      where: "Ingestion zone · Node agent. Collector stays idle until a packet uses it.",
+      io: "In: vendor streams. Out: common stream spine (ts, tenant placeholder, optional blocks).",
+      not: "E1 does not resolve ci_id, does not stamp fact_kind, and does not write map/ / history/.",
+      live: ["nE1"]
+    },
+    {
+      title: "Normalize",
+      kicker: "Beat 3 of 11 · E2",
+      lede: "Normalize is Identity: stamp tenant + ci_id so later rooms can meet.",
+      where: "Ingestion zone · Node. Door A is visible and not fired in this film.",
+      io: "In: admitted stream row. Out: writer_stream.v1 with identity overlay (still no fact_kind).",
+      not: "Not E10 Identify. Fan-out happens after SaaS ingest, not on the Node.",
+      live: ["nE2"]
+    },
+    {
+      title: "Two doors",
+      kicker: "Beat 4 of 11 · Ingest",
+      lede: "SaaS has two doors only: Node direct, or Collector (aggregate or collector-direct).",
+      where: "Boundary: Ingestion → SaaS over TLS. Ingest API is the processing-side hub.",
+      io: "In: identified stream and/or Collector-direct records. Out: one ingest hub.",
+      not: "Coordinator is not a data path. Collector does not replace Identity.",
+      live: ["nIng", "nAgg", "nDirect"]
+    },
+    {
+      title: "Fan-out",
+      kicker: "Beat 5 of 11 · E3 ∥ E4",
+      lede: "Ingest API fans out writer_stream.v1 to both regulators. Rooms never copy each other.",
+      where: "GraphRegulator → map/. SketchRegulator → history/. Same stream; presence predicates decide care.",
+      io: "In: identified writer_stream.v1. Out: GraphSnapshot and sketch.v1 keyed by the same entity_id.",
+      not: "No fact_kind router. No sync job. E5 has not run yet. This is not Detect.",
+      live: ["nIng", "nMap", "nHist"]
+    },
+    {
+      title: "Maintain",
+      kicker: "Beat 6 of 11 · E5 shared",
+      lede: "E5 Maintain is common: keep map/ validity and history/ baselines warm.",
+      where: "SaaS policy over both rooms. Does not create edges and does not merge rooms.",
+      io: "In: rooms already written. Out: freshness on graph and seasonal baselines on sketches.",
+      not: "Maintain is not only for Pillar A. It is not a case opener.",
+      live: ["nE5", "nMap", "nHist"]
+    },
+    {
+      title: "Capture",
+      kicker: "Beat 7 of 11 · stream blocks",
+      lede: "Optional blocks on writer_stream.v1: metric, topology, anomaly, event, span — no fact_kind.",
+      where: "SaaS capture strip. metric → SketchRegulator; topology → GraphRegulator; anomaly/event/span stay for Detect / evidence.",
+      io: "Out: presence of blocks. One line may carry metric and topology together — both regulators can fire.",
+      not: "No fact_kind enum. Logs ride the event block (example name log.error). Sketch p95 vs baseline is a Door C read.",
+      live: ["nCap", "nHist", "nMap", "nIng"]
+    },
+    {
+      title: "Detect",
+      kicker: "Beat 8 of 11 · E6",
+      lede: "Door C reads sketch p95 vs baseline; anomaly line adds a Signal; event correlates.",
+      where: "Platform Detect. Signals are noisy by design and carry no root cause.",
+      io: "Out: Signal storm (Door C SLOWDOWN + anomaly breach + correlated event).",
+      not: "Not Curate yet. Door A stays unfired here.",
+      live: ["nDet", "nCap", "nHist"]
+    },
+    {
+      title: "Curate",
+      kicker: "Beat 9 of 11 · E7",
+      lede: "Curate collapses the storm into one CaseSeed.",
+      where: "SaaS triage. Default policy is one seed.",
+      io: "In: Signals. Out: CaseSeed on the checkout path.",
+      not: "Not Scope. Not Localize.",
+      live: ["nCur", "nDet"]
+    },
+    {
+      title: "Scope",
+      kicker: "Beat 10 of 11 · E8",
+      lede: "Scope read-joins map/ and history/ into a WorkingSet — first join of the two writers.",
+      where: "Neighbors from the graph room; sketches and window from history/.",
+      io: "Out: WorkingSet with suspects, neighborhood, sketch refs, event evidence budget.",
+      not: "Scope does not pick the leaf.",
+      live: ["nScope", "nMap", "nHist", "nCur"]
+    },
+    {
+      title: "Localize",
+      kicker: "Beat 11 of 11 · E9",
+      lede: "Localize emits one LeafClaim. Identify may cite log.error next; Package stays muted.",
+      where: "Diagnose start. ERROR teaching walk → deepest error leaf payments-db.",
+      io: "Out: LeafClaim. Evidence cite chip lights for teaching; full Identify/Package not played.",
+      not: "Not a packaged VerdictCard.",
+      live: ["nLoc", "nScope", "nId"]
+    }
+  ];
+
+  const reduce = false;
+  const beatsEl = document.getElementById("beats");
+  const fillEl = document.getElementById("filmFill");
+  const clockEl = document.getElementById("filmClock");
+  const statusEl = document.getElementById("filmStatus");
+  const boxIds = ["devVm","devApi","devSw","nE1","nE2","nAgg","nDirect","nIng","nMap","nHist","nE5","nCap","nDet","nCur","nScope","nLoc","nId"];
+  const packetIds = ["pA","pB","pC","pMap","pHist","pE5a","pE5b","pSig","pSeed","pJoinM","pJoinH","pLeaf","pCite"];
+  const wireIds = ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist","wE5Map","wE5Hist","wHistCap","wCapDet","wDetCur","wCurScope","wMapScope","wHistScope","wScopeLoc","wEvtId"];
+  const chipIds = ["skChip","evtNameChip","sigA","sigB","sigC","seedBadge","wsBadge","leafBadge","idBadge"];
+  const factIds = ["capMet","capTopo","capAno","capEvt","capSpan"];
+
+  phases.forEach((p, idx) => {
+    const s = document.createElement("span");
+    s.className = "beat";
+    s.textContent = (idx + 1) + "  " + p.title;
+    beatsEl.appendChild(s);
+  });
+
+  let generation = 0;
+  const TRAVEL = 980;
+  const HOLD = 2000;
+  const HOLD_END = 3400;
+  const LOOP_GAP = 1200;
+
+  function el(id) { return document.getElementById(id); }
+  function wireOn(id, yes) {
+    const n = el(id);
+    if (n) n.classList.toggle("active", !!yes);
+    document.querySelectorAll('.wlab[data-for="'+id+'"]').forEach(g => g.classList.toggle("on", !!yes));
+  }
+  function chipOn(id, yes, pulse) {
+    const n = el(id); if (!n) return;
+    n.classList.toggle("on", !!yes);
+    n.classList.toggle("pulse", !!pulse);
+    n.style.opacity = yes ? "1" : "0";
+  }
+  function factOn(id, yes) { const n = el(id); if (n) n.style.opacity = yes ? "1" : "0.35"; }
+  function moveAlong(packet, path, t) {
+    const len = path.getTotalLength();
+    const pt = path.getPointAtLength(Math.max(0, Math.min(1, t)) * len);
+    packet.setAttribute("cx", pt.x); packet.setAttribute("cy", pt.y);
+  }
+  function hidePackets() { packetIds.forEach(id => el(id).classList.remove("on")); }
+  function wiresOff() { wireIds.forEach(id => wireOn(id, false)); }
+  function chipsOff() { chipIds.forEach(id => chipOn(id, false, false)); }
+  function factsOff() { factIds.forEach(id => factOn(id, false)); }
+  function liveBoxes(ids) { boxIds.forEach(id => el(id).classList.toggle("live", ids.indexOf(id) !== -1)); }
+  function idle(id, yes) { const n = el(id); if (n) n.classList.toggle("idle", !!yes); }
+  function ease(t) { return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2; }
+  function wait(ms, gen) {
+    return new Promise(resolve => {
+      const t0 = performance.now();
+      const tick = (now) => {
+        if (gen !== generation) return resolve(false);
+        if (now - t0 >= ms) return resolve(true);
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+  function travel(packet, path, ms, gen) {
+    packet.classList.add("on");
+    return new Promise(resolve => {
+      const t0 = performance.now();
+      moveAlong(packet, path, 0);
+      const tick = (now) => {
+        if (gen !== generation) return resolve(false);
+        const t = Math.min(1, (now - t0) / ms);
+        moveAlong(packet, path, ease(t));
+        if (t < 1) requestAnimationFrame(tick); else resolve(true);
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+  function stagger(ms, gen) { return wait(ms, gen); }
+
+  function renderBrief(n) {
+    const p = phases[n];
+    el("briefKicker").textContent = p.kicker;
+    el("briefLede").innerHTML = p.lede;
+    el("briefWhere").innerHTML = p.where;
+    el("briefIo").innerHTML = p.io;
+    el("briefNot").innerHTML = p.not;
+    [...beatsEl.children].forEach((node, idx) => {
+      node.classList.toggle("on", idx === n);
+      node.classList.toggle("done", idx < n);
+    });
+    clockEl.textContent = "Beat " + (n + 1) + " of " + phases.length;
+    fillEl.style.width = (((n + 1) / phases.length) * 100).toFixed(1) + "%";
+    liveBoxes(p.live);
+  }
+
+  function resetScene() {
+    wiresOff(); hidePackets(); chipsOff(); factsOff(); liveBoxes([]);
+    el("noSync").style.opacity = "0.35";
+    idle("zCol", true); idle("nAgg", true); idle("nDirect", true);
+  }
+
+  async function playBeat(n, gen) {
+    renderBrief(n);
+    if (n === 0) {
+      wireOn("wDevE1", true);
+      return travel(el("pA"), el("wDevE1"), TRAVEL, gen);
+    }
+    if (n === 1) {
+      wireOn("wDevE1", true); wireOn("wE1E2", true);
+      el("pA").classList.add("on"); moveAlong(el("pA"), el("wDevE1"), 1);
+      return wait(HOLD * 0.4, gen);
+    }
+    if (n === 2) {
+      wireOn("wDevE1", true); wireOn("wE1E2", true);
+      return travel(el("pA"), el("wE1E2"), TRAVEL, gen);
+    }
+    if (n === 3) {
+      idle("zCol", false); idle("nAgg", false); idle("nDirect", false);
+      ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol"].forEach(id => wireOn(id, true));
+      await Promise.all([
+        travel(el("pA"), el("wNodeSaas"), TRAVEL + 80, gen),
+        (async () => { await stagger(160, gen); await travel(el("pB"), el("wNodeCol"), TRAVEL*0.65, gen); await travel(el("pB"), el("wColSaas"), TRAVEL*0.65, gen); })(),
+        (async () => { await stagger(280, gen); await travel(el("pC"), el("wNetCol"), TRAVEL, gen); })()
+      ]);
+      return gen === generation;
+    }
+    if (n === 4) {
+      idle("zCol", false); idle("nAgg", false); idle("nDirect", false);
+      ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist"].forEach(id => wireOn(id, true));
+      el("noSync").style.opacity = "0.9";
+      await Promise.all([
+        travel(el("pMap"), el("wIngMap"), TRAVEL, gen),
+        travel(el("pHist"), el("wIngHist"), TRAVEL, gen)
+      ]);
+      return gen === generation;
+    }
+    if (n === 5) {
+      idle("zCol", false); idle("nAgg", false); idle("nDirect", false);
+      ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist","wE5Map","wE5Hist"].forEach(id => wireOn(id, true));
+      el("noSync").style.opacity = "0.9";
+      el("pMap").classList.add("on"); el("pHist").classList.add("on");
+      moveAlong(el("pMap"), el("wIngMap"), 1); moveAlong(el("pHist"), el("wIngHist"), 1);
+      await Promise.all([
+        travel(el("pE5a"), el("wE5Map"), TRAVEL, gen),
+        travel(el("pE5b"), el("wE5Hist"), TRAVEL, gen)
+      ]);
+      return gen === generation;
+    }
+    if (n === 6) {
+      idle("zCol", false); idle("nAgg", false); idle("nDirect", false);
+      ["wIngMap","wIngHist","wE5Map","wE5Hist","wHistCap"].forEach(id => wireOn(id, true));
+      el("noSync").style.opacity = "0.9";
+      factIds.forEach(id => factOn(id, true));
+      chipOn("evtNameChip", true, false);
+      await travel(el("pHist"), el("wHistCap"), TRAVEL, gen);
+      return gen === generation;
+    }
+    if (n === 7) {
+      idle("zCol", false); idle("nAgg", false); idle("nDirect", false);
+      ["wIngMap","wIngHist","wE5Map","wE5Hist","wHistCap","wCapDet"].forEach(id => wireOn(id, true));
+      factIds.forEach(id => factOn(id, true));
+      chipOn("evtNameChip", true, false);
+      await travel(el("pSig"), el("wCapDet"), TRAVEL, gen);
+      chipOn("skChip", true, true);
+      chipOn("sigA", true, true);
+      await stagger(200, gen); chipOn("sigB", true, true);
+      await stagger(200, gen); chipOn("sigC", true, true);
+      return gen === generation;
+    }
+    if (n === 8) {
+      idle("zCol", false);
+      ["wCapDet","wDetCur"].forEach(id => wireOn(id, true));
+      ["skChip","sigA","sigB","sigC"].forEach(id => chipOn(id, true, false));
+      factIds.forEach(id => factOn(id, true));
+      chipOn("evtNameChip", true, false);
+      await travel(el("pSeed"), el("wDetCur"), TRAVEL, gen);
+      chipOn("seedBadge", true, true);
+      return gen === generation;
+    }
+    if (n === 9) {
+      ["wDetCur","wCurScope","wMapScope","wHistScope"].forEach(id => wireOn(id, true));
+      chipOn("seedBadge", true, false);
+      ["sigA","sigB","sigC"].forEach(id => chipOn(id, true, false));
+      await travel(el("pSeed"), el("wCurScope"), TRAVEL * 0.7, gen);
+      await Promise.all([
+        travel(el("pJoinM"), el("wMapScope"), TRAVEL, gen),
+        travel(el("pJoinH"), el("wHistScope"), TRAVEL, gen)
+      ]);
+      chipOn("wsBadge", true, true);
+      return gen === generation;
+    }
+    if (n === 10) {
+      ["wCurScope","wMapScope","wHistScope","wScopeLoc","wEvtId"].forEach(id => wireOn(id, true));
+      chipOn("seedBadge", true, false); chipOn("wsBadge", true, false);
+      ["sigA","sigB","sigC"].forEach(id => chipOn(id, true, false));
+      await travel(el("pLeaf"), el("wScopeLoc"), TRAVEL, gen);
+      chipOn("leafBadge", true, true);
+      await travel(el("pCite"), el("wEvtId"), TRAVEL * 0.7, gen);
+      chipOn("idBadge", true, true);
+      return gen === generation;
+    }
+    return true;
+  }
+
+  async function loop(gen) {
+    while (gen === generation) {
+      resetScene();
+      statusEl.textContent = "Looping film";
+      fillEl.style.width = "0%";
+      for (let n = 0; n < phases.length; n++) {
+        if (gen !== generation) return;
+        if (!(await playBeat(n, gen))) return;
+        const hold = n === phases.length - 1 ? HOLD_END : HOLD;
+        if (!(await wait(hold, gen))) return;
+      }
+      statusEl.textContent = "Replay";
+      await wait(LOOP_GAP, gen);
+    }
+  }
+
+  /* —— Right pane: per-block low-level processing —— */
+  const BLOCKS = {
+    nE1: {
+      kicker: "E1 · Collect",
+      title: "Admit the stream row",
+      blurb: "Node Collect shapes vendor streams into a common row. No CI bind, no Dest write, and no fact_kind stamp.",
+      inn: "Raw MELT / SNMP / APM payloads from Edge.",
+      out: "Stream spine (ts, tenant placeholder) plus optional metric / topology / event / span / anomaly blocks.",
+      accent: "var(--accent)",
+      steps: [
+        { t: "Receive stream", d: "Host, service, and network devices emit metrics, logs-as-events, spans, SNMP." },
+        { t: "Shape the row", d: "Adapters put optional blocks on the line — there is no router enum." },
+        { t: "Hand to Identity", d: "Same line continues to E2. Collect does not resolve ci_id." }
+      ],
+      flow: ["raw MELT", "stream row", "→ E2"]
+    },
+    nE2: {
+      kicker: "E2 · Identity",
+      title: "Normalize = bind tenant + ci_id",
+      blurb: "Identity overlays identity.status / bind_source onto writer_stream.v1. Not E10 Identify.",
+      inn: "Admitted stream row from Collect.",
+      out: "writer_stream.v1 with identity overlay; Door A stays unfired in this film.",
+      accent: "var(--accent)",
+      steps: [
+        { t: "Look up / bind", d: "LUT-style binders attach a stable ci_id inside the tenant." },
+        { t: "Stamp identity", d: "status=resolved|unresolved|synthesized; bind_source for audit." },
+        { t: "Forward to SaaS", d: "Identified writer_stream crosses TLS to Ingest API — one stream, two regulators later." }
+      ],
+      flow: ["stream row", "identity.*", "writer_stream"]
+    },
+    nIng: {
+      kicker: "Ingest API · SaaS hub",
+      title: "Fan-out, not merge",
+      blurb: "One hub offers every identified writer_stream.v1 line to GraphRegulator and SketchRegulator. Each decides alone by presence.",
+      inn: "Identified writer_stream.v1 (Node direct and/or Collector).",
+      out: "Same stream to both regulators in parallel — no fact_kind split.",
+      accent: "var(--accent)",
+      steps: [
+        { t: "Accept doors", d: "Node path and optional Collector path land on one hub." },
+        { t: "Fan-out", d: "Offer the line to GraphRegulator and SketchRegulator together." },
+        { t: "No sync", d: "Rooms never copy each other; join happens later at Scope." }
+      ],
+      flow: ["writer_stream", "∥ fan-out", "regulators"]
+    },
+    nMap: {
+      kicker: "E3 · Pillar B · Topology",
+      title: "GraphRegulator → GraphWriter → map/",
+      blurb: "Admit when identity is resolved and a topology triple is present. No fact_kind filter.",
+      inn: "writer_stream.v1 with topology.relation + src_ci_id + dst_ci_id; identity.status=resolved.",
+      out: "graph_snapshot.v1 under Dest map/ — nodes with entity_id / type; edges with source_id, edge_type, snowflake edge_id.",
+      accent: "var(--map)",
+      steps: [
+        { t: "NOOP without topology", d: "metric / event / anomaly / span only — GraphRegulator does not care." },
+        { t: "Resolved identity", d: "NOOP if identity unresolved or synthesized." },
+        { t: "CI on map", d: "Admit Motadata CI types only (service, host, db, …). Reject alert/incident/metric/trace/change." },
+        { t: "Relation + triplet", d: "Canonical camelCase relation → Motadata SCREAMING_SNAKE edge_type; illegal endpoint pairs reject." },
+        { t: "Upsert GraphState", d: "Node key=entity_id (last_seen, version++). Edge key=(source_id, edge_type, target_id); reuse snowflake edge_id." },
+        { t: "publish_map", d: "Checkpoint hot → Dest (files.v1 lab or vortex_s3.v1). Tenant on path/envelope only." }
+      ],
+      flow: ["topology block", "intent", "entity_id", "map/"]
+    },
+    nHist: {
+      kicker: "E4 · Pillar A · Sketches",
+      title: "SketchRegulator → SketchWriter → history/",
+      blurb: "Admit when a metric block is present. Topology alone is SketchRegulator NOOP.",
+      inn: "writer_stream.v1 with metric.value + metric_id/name; subject CI bound.",
+      out: "sketch.v1 rows in history/ keyed by entity_id ≡ ci_id after bind.",
+      accent: "var(--hist)",
+      steps: [
+        { t: "NOOP without metric", d: "Topology is Pillar B’s job; SketchRegulator does not invent edges." },
+        { t: "Presence predicate", d: "Need numeric value and metric_id or name." },
+        { t: "Map fields", d: "ci_id → entity_id; metric_id; value into T-Digest + buckets." },
+        { t: "Seasonal baseline", d: "Maintain later warms baselines; Detect Door C reads sketch p95 vs baseline." },
+        { t: "Publish history/", d: "Append / flush sketch rows. No GraphSnapshot here." }
+      ],
+      flow: ["metric block", "intent", "entity_id", "history/"]
+    },
+    nE5: {
+      kicker: "E5 · Maintain · shared",
+      title: "Warm both rooms",
+      blurb: "Shared policy over map/ and history/. Does not create edges and does not merge rooms.",
+      inn: "Already-published map/ and history/.",
+      out: "Map: valid_to / last_seen / version. History: seasonal baselines refreshed.",
+      accent: "var(--accent)",
+      steps: [
+        { t: "Map validity", d: "Expire edges past valid_to; drop stale stream-origin edges; mark declared soft/hard." },
+        { t: "Touch nodes", d: "Optional last_seen refresh and version bump (Motadata maintain)." },
+        { t: "History baselines", d: "Keep sketch seasonal baselines warm for Door C." },
+        { t: "Re-publish", d: "Callers publish_map again so Dest reflects marks — still two rooms." }
+      ],
+      flow: ["map/ + history/", "validity ∥ baselines", "re-publish"]
+    },
+    nCap: {
+      kicker: "Capture · writer_stream blocks",
+      title: "Optional blocks — no fact_kind",
+      blurb: "writer_stream.v1 carries optional metric, topology, anomaly, event, span. Regulators infer care from presence.",
+      inn: "Identified lines already carrying whatever blocks adapters emitted.",
+      out: "Correct block presence for GraphRegulator / SketchRegulator / Detect evidence.",
+      accent: "var(--evt)",
+      steps: [
+        { t: "metric", d: "→ SketchRegulator → history/ sketches." },
+        { t: "topology", d: "→ GraphRegulator → map/ GraphWriter." },
+        { t: "anomaly", d: "Detect Signal path — neither pillar writer admits in this pass." },
+        { t: "event", d: "Evidence (including logs). Correlate / Identify cite — not a sixth router kind." },
+        { t: "span", d: "Localize / Identify context — not a map vertex via GraphWriter." }
+      ],
+      flow: ["blocks", "presence", "regulators"]
+    },
+    nDet: {
+      kicker: "E6 · Detect · Door C",
+      title: "Signal storm",
+      blurb: "Door C reads sketch p95 vs baseline; anomaly adds a Signal; events correlate. No root cause yet.",
+      inn: "Warm sketches + anomaly / event blocks.",
+      out: "Signal(s) — noisy by design.",
+      accent: "var(--warn)",
+      steps: [
+        { t: "Door C read", d: "Compare sketch p95 to seasonal baseline." },
+        { t: "Anomaly Signal", d: "anomaly block becomes another Signal in the storm." },
+        { t: "Event correlate", d: "event block (e.g. log.error) attaches as evidence — not a second engine." }
+      ],
+      flow: ["sketch read", "Signals", "→ Curate"]
+    },
+    nCur: {
+      kicker: "E7 · Curate",
+      title: "One CaseSeed",
+      blurb: "Collapse the Signal storm into a single case tip for Scope.",
+      inn: "Signal storm.",
+      out: "CaseSeed (checkout teaching path).",
+      accent: "var(--seed)",
+      steps: [
+        { t: "Group Signals", d: "Same incident window / tip CI." },
+        { t: "Emit CaseSeed", d: "Default policy: one seed." },
+        { t: "Hand to Scope", d: "Does not walk the map yet." }
+      ],
+      flow: ["Signals", "CaseSeed", "→ Scope"]
+    },
+    nScope: {
+      kicker: "E8 · Scope",
+      title: "WorkingSet read-join",
+      blurb: "First join of the two writers: neighbors from map/, sketches from history/.",
+      inn: "CaseSeed + published map/ + history/.",
+      out: "WorkingSet (suspects, paths, sketch refs).",
+      accent: "var(--accent)",
+      steps: [
+        { t: "Walk map/", d: "neighbors / reachable from seed_ci_id → entity_id." },
+        { t: "Attach history/", d: "Sketches for the same entity ids in the window." },
+        { t: "Budget evidence", d: "Hops, CI count, confidence-bearing filter." }
+      ],
+      flow: ["CaseSeed", "map/ ∥ history/", "WorkingSet"]
+    },
+    nLoc: {
+      kicker: "E9 · Localize",
+      title: "LeafClaim",
+      blurb: "Pick where to look next — teaching walk prefers deepest Database/Host leaf.",
+      inn: "WorkingSet.",
+      out: "LeafClaim (e.g. payments-db). Identify cite optional; Package muted.",
+      accent: "var(--map)",
+      steps: [
+        { t: "Prefer deep leaf", d: "Database path, else Host, else seed." },
+        { t: "Emit LeafClaim", d: "claim_ci_id + path_from_seed + rationale." },
+        { t: "Optional cite", d: "Identify may cite log.error next — not fully played here." }
+      ],
+      flow: ["WorkingSet", "LeafClaim", "→ Identify*"]
+    },
+    nId: {
+      kicker: "E10 · Identify · drawn",
+      title: "EvidenceBundle (light)",
+      blurb: "Shown for teaching; full Identify → Package film is deferred.",
+      inn: "LeafClaim + evidence budget.",
+      out: "EvidenceBundle (metrics, logs-as-events, traces, topology cites).",
+      accent: "var(--evt)",
+      steps: [
+        { t: "Gather cites", d: "History + map facts around the leaf." },
+        { t: "Bundle", d: "EvidenceBundle for Package." },
+        { t: "Not VerdictCard", d: "Package stays muted on this film." }
+      ],
+      flow: ["LeafClaim", "cites", "EvidenceBundle"]
+    },
+    nAgg: {
+      kicker: "Collector · aggregate",
+      title: "Optional hop",
+      blurb: "Collector may aggregate / dedup Node traffic. It does not replace Identity and does not stamp fact_kind.",
+      inn: "Stream rows from Node.",
+      out: "Still writer_stream.v1 toward SaaS.",
+      accent: "var(--col)",
+      steps: [
+        { t: "Receive from Node", d: "Already identified (or pending bind policy)." },
+        { t: "Aggregate / dedup", d: "Volume control — not CI resolve." },
+        { t: "Forward to SaaS", d: "Same Ingest API hub." }
+      ],
+      flow: ["Node", "agg", "SaaS"]
+    },
+    nDirect: {
+      kicker: "Collector · direct",
+      title: "No Node hop",
+      blurb: "SNMP / flows / APM can enter Collector without passing the Node agent first.",
+      inn: "Vendor direct streams.",
+      out: "writer_stream.v1 into SaaS (Identity still required before rooms).",
+      accent: "var(--col)",
+      steps: [
+        { t: "Direct collect", d: "SNMP, flows, APM agents." },
+        { t: "Shape stream row", d: "Optional blocks — same contract as Node path." },
+        { t: "SaaS door", d: "Still only two doors into the hub." }
+      ],
+      flow: ["SNMP/APM", "writer_stream", "SaaS"]
+    },
+    nDoorA: {
+      kicker: "Door A · Node",
+      title: "Not fired in this film",
+      blurb: "Door A can fire on-Node detects. This teaching loop keeps Door C as the primary Detect story.",
+      inn: "—",
+      out: "—",
+      accent: "var(--warn)",
+      steps: [
+        { t: "Visible only", d: "Drawn so the estate knows Door A exists." },
+        { t: "Film choice", d: "Door C (platform on sketches) carries the storm." }
+      ],
+      flow: ["idle", "Door C primary"]
+    },
+    nPkg: {
+      kicker: "E11 · Package · muted",
+      title: "VerdictCard later",
+      blurb: "Operator handoff packaging is drawn but not played in this loop.",
+      inn: "EvidenceBundle (when Identify runs).",
+      out: "VerdictCard / ServiceOps handoff.",
+      accent: "var(--faint)",
+      steps: [
+        { t: "Deferred beat", d: "Pillar B Increment 3 covers the code path." },
+        { t: "Not this film", d: "Localize LeafClaim is the end of the played story." }
+      ],
+      flow: ["EvidenceBundle", "VerdictCard*"]
+    },
+    devVm: {
+      kicker: "Edge · Host",
+      title: "Estate source",
+      blurb: "guest-os-vm-app-01 emits CPU and logs — not SaaS processing.",
+      inn: "OS / agent sensors.",
+      out: "Raw MELT toward Collect.",
+      accent: "var(--accent)",
+      steps: [{ t: "Emit", d: "Host metrics and log events leave the guest." }],
+      flow: ["Host", "raw", "E1"]
+    },
+    devApi: {
+      kicker: "Edge · Service",
+      title: "Estate source",
+      blurb: "checkout-api emits p95, 5xx, and spans.",
+      inn: "APM / service metrics.",
+      out: "Raw MELT toward Collect.",
+      accent: "var(--accent)",
+      steps: [{ t: "Emit", d: "Service RED signals and spans." }],
+      flow: ["Service", "raw", "E1"]
+    },
+    devSw: {
+      kicker: "Edge · Network",
+      title: "Estate source",
+      blurb: "switch-core-01 can go Collector-direct (SNMP / flows).",
+      inn: "Network devices.",
+      out: "SNMP / flows toward Collector or Node.",
+      accent: "var(--warn)",
+      steps: [{ t: "Emit", d: "Often Collector-direct in this film." }],
+      flow: ["Network", "SNMP", "Collector"]
+    }
+  };
+
+  const clickableIds = Object.keys(BLOCKS);
+  let selectedBlock = null;
+  let detailStepTimer = null;
+
+  function flowSvg(labels, color) {
+    const w = 420, h = 56, n = labels.length;
+    const gap = w / Math.max(n, 1);
+    let nodes = "";
+    let wires = "";
+    labels.forEach((lab, i) => {
+      const x = gap * i + gap / 2;
+      const bw = Math.min(100, gap - 10);
+      nodes += '<rect x="'+(x-bw/2)+'" y="12" width="'+bw+'" height="32" rx="6" fill="var(--surface)" stroke="'+color+'" stroke-width="1.4"/>';
+      nodes += '<text x="'+x+'" y="32" text-anchor="middle" font-size="10" font-family="var(--font-mono)" fill="var(--ink)">'+lab+'</text>';
+      if (i < n - 1) {
+        const x2 = gap * (i + 1) + gap / 2 - bw / 2;
+        wires += '<path d="M '+(x+bw/2+2)+' 28 L '+(x2-2)+' 28" stroke="'+color+'" stroke-width="1.5" fill="none" opacity="0.7"/>';
+      }
+    });
+    return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+wires+nodes+'</svg>';
+  }
+
+  function renderDetail(id) {
+    const body = el("detailBody");
+    const closeBtn = el("detailClose");
+    if (!id || !BLOCKS[id]) {
+      selectedBlock = null;
+      closeBtn.hidden = true;
+      clickableIds.forEach(bid => { const n = el(bid); if (n) n.classList.remove("selected"); });
+      body.innerHTML = '<p class="detail-empty"><strong>Select a block</strong> on the left film — for example <strong>E3 · Pillar B</strong> (<code>map/</code>) or <strong>E4 · Pillar A</strong> (<code>history/</code>) — to see how that stage admits input, decides WRITE / DROP / NOOP, and what it publishes.</p>';
+      if (detailStepTimer) { clearInterval(detailStepTimer); detailStepTimer = null; }
+      return;
+    }
+    const b = BLOCKS[id];
+    selectedBlock = id;
+    closeBtn.hidden = false;
+    clickableIds.forEach(bid => {
+      const n = el(bid);
+      if (n) n.classList.toggle("selected", bid === id);
+    });
+    const steps = b.steps.map((s, i) =>
+      '<li data-step="'+i+'"><span class="n">'+(i+1)+'</span><div><div class="t">'+s.t+'</div><div class="d">'+s.d+'</div></div></li>'
+    ).join("");
+    body.innerHTML =
+      '<div class="detail-head">' +
+        '<div class="eyebrow">'+b.kicker+'</div>' +
+        '<h2>'+b.title+'</h2>' +
+        '<p>'+b.blurb+'</p>' +
+      '</div>' +
+      '<div class="detail-meta">' +
+        '<div><div class="k">In</div><div class="v">'+b.inn+'</div></div>' +
+        '<div><div class="k">Out</div><div class="v">'+b.out+'</div></div>' +
+      '</div>' +
+      '<div class="detail-flow">'+flowSvg(b.flow, b.accent)+'</div>' +
+      '<ol class="detail-steps">'+steps+'</ol>' +
+      '<p class="detail-foot">Film on the left keeps looping. Detail steps on the right pulse so you can read the block in isolation.</p>';
+
+    if (detailStepTimer) clearInterval(detailStepTimer);
+    let step = 0;
+    const items = body.querySelectorAll(".detail-steps li");
+    const pulse = () => {
+      items.forEach((li, i) => li.classList.toggle("live-step", i === step));
+      step = (step + 1) % Math.max(items.length, 1);
+    };
+    pulse();
+    detailStepTimer = setInterval(pulse, 1600);
+  }
+
+  function setupBlockClicks() {
+    clickableIds.forEach(id => {
+      const node = el(id);
+      if (!node) return;
+      node.classList.add("clickable");
+      node.setAttribute("tabindex", "0");
+      node.setAttribute("role", "button");
+      node.setAttribute("aria-label", "Open block detail: " + (BLOCKS[id].kicker || id));
+      const open = (ev) => {
+        if (ev) ev.stopPropagation();
+        renderDetail(id);
+      };
+      node.addEventListener("click", open);
+      node.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(ev); }
+      });
+    });
+    el("detailClose").addEventListener("click", () => renderDetail(null));
+  }
+
+  setupBlockClicks();
+  loop(generation);
+})();
+</script>
+</body>
+</html>

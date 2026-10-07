@@ -1,0 +1,76 @@
+# UC8: Kubernetes troubleshooting — a CrashLoopBackOff pod + a healthy twin.
+# Same cluster as noisy-logger. Events (BackOff, Failed, Unhealthy) are the signal.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crash-loop
+  namespace: ed-lab
+  labels:
+    app: crash-loop
+    urca.uc: "8"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crash-loop
+  template:
+    metadata:
+      labels:
+        app: crash-loop
+        urca.uc: "8"
+    spec:
+      containers:
+        - name: boom
+          image: busybox:1.36
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "{\"service\":\"inventory-api\",\"level\":\"ERROR\",\"msg\":\"refusing to start: missing INVENTORY_DSN\"}"
+              sleep 3
+              exit 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-ok
+  namespace: ed-lab
+  labels:
+    app: inventory-ok
+    urca.uc: "8"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-ok
+  template:
+    metadata:
+      labels:
+        app: inventory-ok
+        urca.uc: "8"
+    spec:
+      containers:
+        - name: ok
+          image: busybox:1.36
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          command:
+            - /bin/sh
+            - -c
+            - |
+              while true; do
+                echo "{\"service\":\"inventory-api\",\"level\":\"INFO\",\"msg\":\"ready\"}"
+                sleep 15
+              done

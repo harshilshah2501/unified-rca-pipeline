@@ -1,0 +1,15 @@
+{
+  "nodes": [
+    { "id": "storefront-web", "type": "Service", "name": "storefront-web" },
+    { "id": "checkout-api", "type": "Service", "name": "checkout-api" },
+    { "id": "payments-db", "type": "Database", "name": "payments-db" },
+    { "id": "db-host-01", "type": "Host", "name": "db-01" },
+    { "id": "linux-server-app-01", "type": "Host", "name": "app-01" }
+  ],
+  "edges": [
+    { "from": "storefront-web", "to": "checkout-api", "relation": "depends_on" },
+    { "from": "checkout-api", "to": "payments-db", "relation": "depends_on" },
+    { "from": "payments-db", "to": "db-host-01", "relation": "runs_on" },
+    { "from": "checkout-api", "to": "linux-server-app-01", "relation": "runs_on" }
+  ]
+}

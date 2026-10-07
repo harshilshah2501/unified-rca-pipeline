@@ -1,0 +1,124 @@
+from ab_shared.dest import FileDest, MemoryDest
+from ab_shared.ingest_source import JsonlIngestSource, ListIngestSource
+from ab_shared.paths import SAMPLE_ESTATE
+from graph.graph_writer import GraphWriter
+from graph.neighbors import neighbor_ids
+from graph.read_api import get_neighbors
+from graph.snapshot import load_snapshot
+
+
+def test_graph_writer_case_a_flush():
+    writer = GraphWriter()
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
+    dest = MemoryDest()
+    snapshot = writer.publish_map(dest)
+    assert snapshot["version"] == "1"
+    assert len(snapshot["nodes"]) >= 4
+    assert len(snapshot["edges"]) >= 4
+    loaded = load_snapshot(dest)
+    assert loaded is not None
+    assert "payments-db" in get_neighbors(loaded, "checkout-api")
+
+
+def test_graph_writer_file_dest_roundtrip(tmp_path):
+    writer = GraphWriter()
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.resolved.jsonl"))
+    dest = FileDest(tmp_path, tenant="default")
+    writer.publish_map(dest)
+    loaded = load_snapshot(dest)
+    assert loaded is not None
+    assert neighbor_ids(loaded, "checkout-api")
+
+
+def test_graph_writer_silent_skip_non_topo():
+    writer = GraphWriter()
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(
+        ListIngestSource(
+            [
+                {
+                    "schema_version": "ingest.v1",
+                    "ts": "2026-08-20T03:30:00Z",
+                    "tenant": "default",
+                    "ci_id": "checkout-api",
+                    "ci_type": "Service",
+                    "fact_kind": "metric_sample",
+                    "name": "request.latency_ms",
+                    "value": 42.0,
+                    "identity": {"status": "resolved"},
+                },
+                {
+                    "schema_version": "ingest.v1",
+                    "ts": "2026-08-20T03:30:00Z",
+                    "tenant": "default",
+                    "ci_id": "checkout-api",
+                    "ci_type": "Service",
+                    "fact_kind": "topo_update",
+                    "relation": "depends_on",
+                    "src_ci_id": "checkout-api",
+                    "dst_ci_id": "payments-db",
+                    "dst_ci_type": "Database",
+                    "identity": {"status": "resolved"},
+                },
+            ]
+        )
+    )
+    assert not writer.rejects
+    snapshot = writer.publish_map(MemoryDest())
+    assert any(e["edge_type"] == "DEPENDS_ON" for e in snapshot["edges"])
+
+
+def test_graph_writer_admits_writer_stream_topology_block():
+    """Motadata SoT: presence of topology block — no fact_kind required."""
+    writer = GraphWriter()
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(
+        ListIngestSource(
+            [
+                {
+                    "schema_version": "writer_stream.v1",
+                    "ts": "2026-08-20T03:30:00Z",
+                    "tenant": "default",
+                    "identity": {"status": "resolved", "bind_source": "discovery"},
+                    "ci": {"ci_id": "checkout-api", "ci_type": "Service"},
+                    "metric": {"name": "request.latency_ms", "value": 42.0},
+                },
+                {
+                    "schema_version": "writer_stream.v1",
+                    "ts": "2026-08-20T03:31:00Z",
+                    "tenant": "default",
+                    "identity": {"status": "resolved", "bind_source": "discovery"},
+                    "topology": {
+                        "relation": "runsOn",
+                        "src_ci_id": "checkout-api",
+                        "dst_ci_id": "linux-server-app-01",
+                        "src_ci_type": "Service",
+                        "dst_ci_type": "Host",
+                    },
+                },
+            ]
+        )
+    )
+    assert not writer.rejects
+    snapshot = writer.publish_map(MemoryDest())
+    assert any(
+        e["edge_type"] == "RUNS_ON"
+        and e["source_id"] == "checkout-api"
+        and e["target_id"] == "linux-server-app-01"
+        for e in snapshot["edges"]
+    )
+
+
+def test_graph_writer_case_b_rejects():
+    writer = GraphWriter()
+    writer.load_estate_bootstrap(SAMPLE_ESTATE / "topology.bootstrap.json")
+    writer.write_topo_stream(JsonlIngestSource(SAMPLE_ESTATE / "stream.reject.jsonl"))
+    reasons = {reason for _, reason in writer.rejects}
+    assert "identity_unresolved" in reasons
+    assert "identity_synthesized" in reasons
+    assert "never_ci_vertex" in reasons
+    assert "unknown_relation" in reasons
+    snapshot = writer.publish_map(MemoryDest())
+    assert not any(n["entity_id"] == "alert-1" for n in snapshot["nodes"])

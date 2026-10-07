@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observeops.local/schemas/ingest_v1.schema.json",
+  "title": "ingest.v1",
+  "deprecated": true,
+  "description": "DEPRECATED — superseded by writer_stream.v1 (no fact_kind; optional topology/metric/event/span/anomaly blocks). See WRITER_REGULATOR.md. Kept for lab fixtures and the stream→graph demo until migrated. Identified ingest line historically consumed by Pillar A/B writers via fact_kind routing.",
+  "type": "object",
+  "required": ["schema_version", "ts", "tenant", "ci_id", "fact_kind"],
+  "properties": {
+    "schema_version": { "const": "ingest.v1" },
+    "ts": { "type": "string", "minLength": 1 },
+    "tenant": { "type": "string", "minLength": 1 },
+    "ci_id": { "type": "string", "minLength": 1 },
+    "ci_type": { "type": "string" },
+    "fact_kind": {
+      "type": "string",
+      "enum": ["metric_sample", "anomaly", "event", "trace_span", "topo_update"],
+      "description": "Legacy router enum. Do not stamp on new writer_stream.v1 lines."
+    },
+    "name": { "type": "string" },
+    "metric_id": { "type": "string" },
+    "value": { "type": "number" },
+    "relation": { "type": "string" },
+    "src_ci_id": { "type": "string" },
+    "dst_ci_id": { "type": "string" },
+    "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+    "identity": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["resolved", "unattributed", "synthesized"] },
+        "bind_source": { "type": "string" },
+        "aliases": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

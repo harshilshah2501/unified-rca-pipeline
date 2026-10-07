@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "workspaceOpen": [
+      {
+        "command": "bash benchmarking/dashboard/ensure_poc_dash_hook.sh",
+        "timeout": 15
+      }
+    ],
+    "sessionStart": [
+      {
+        "command": "bash benchmarking/dashboard/ensure_poc_dash_hook.sh",
+        "timeout": 15
+      }
+    ]
+  }
+}

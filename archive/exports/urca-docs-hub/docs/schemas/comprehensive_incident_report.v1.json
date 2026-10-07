@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "unified-rca/comprehensive_incident_report.v1",
+  "title": "Comprehensive Incident RCA Report v1",
+  "description": "Gold-report-shaped RCA shared by Lean and Federated. Localization may differ by engine; sections must still be filled from multimodal evidence.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "incident_id",
+    "engine",
+    "incident_summary",
+    "rca_summary",
+    "impact",
+    "service_dependencies",
+    "distributed_traces",
+    "log_patterns",
+    "metrics_analysis",
+    "recent_changes",
+    "causal_chain",
+    "contributing_factors",
+    "timeline",
+    "actions",
+    "remediation",
+    "executive_summary",
+    "localization"
+  ],
+  "properties": {
+    "schema_version": { "const": "comprehensive_rca.v1" },
+    "incident_id": { "type": "string" },
+    "engine": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "localization": {
+      "type": "object",
+      "required": ["root_ci", "signature"],
+      "properties": {
+        "root_ci": { "type": "string" },
+        "signature": { "type": "string" },
+        "contributor_cis": { "type": "array", "items": { "type": "string" } },
+        "false_leads_ruled_out": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "incident_summary": { "type": "object" },
+    "rca_summary": { "type": "object" },
+    "impact": { "type": "object" },
+    "service_dependencies": { "type": "object" },
+    "distributed_traces": { "type": "object" },
+    "log_patterns": { "type": "object" },
+    "metrics_analysis": { "type": "object" },
+    "recent_changes": { "type": "object" },
+    "causal_chain": { "type": "object" },
+    "contributing_factors": { "type": "object" },
+    "timeline": { "type": "array" },
+    "actions": { "type": "object" },
+    "remediation": { "type": "object" },
+    "executive_summary": { "type": "object" },
+    "completeness": { "type": "object" }
+  }
+}

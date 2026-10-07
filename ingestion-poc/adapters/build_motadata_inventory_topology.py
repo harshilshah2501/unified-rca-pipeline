@@ -217,6 +217,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    from local_dumps import require_file
+
+    if args.spans is not None:
+        require_file(args.spans)
+
     inventory = build_inventory(
         bind_path=args.bind.resolve(),
         span_path=args.spans.resolve(),

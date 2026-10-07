@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fusion SaaS · CMDB Philosophy Compared to the Incumbents · Motadata</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Geist+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Motadata coral, pulled from brand SVG */
+  --coral:        #f17463;
+  --coral-deep:   #c95644;
+  --coral-soft:   #fdf0ed;
+
+  /* Ink scale */
+  --ink:          #1a1a1f;
+  --ink-2:        #3a3a42;
+  --ink-3:        #56575e;
+  --ink-4:        #7a7b82;
+  --ink-5:        #a1a2a9;
+  --ink-6:        #d1d2d7;
+
+  /* Surfaces */
+  --line:         #ececef;
+  --line-soft:    #f4f4f6;
+  --paper:        #ffffff;
+  --paper-2:      #fafbfc;
+  --paper-3:      #f5f6f8;
+
+  /* Card system — one set of values for every card in the document */
+  --card-bg:      #ffffff;
+  --card-border:  1px solid var(--line);
+  --card-radius:  12px;
+  --card-pad-x:   1.9rem;
+  --card-pad-y:   1.8rem;
+
+  /* Layout */
+  --w:            720px;
+  --w-wide:       960px;
+  --gutter:       2rem;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink-2);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 400;
+  line-height: 1.75;
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern', 'ss01';
+  overflow-x: hidden;
+}
+::selection { background: var(--coral-soft); color: var(--coral-deep); }
+
+/* ===== NAV ===== */
+nav.topnav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--line);
+  height: 60px;
+}
+nav .nav-inner {
+  max-width: calc(var(--w-wide) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.nav-logo svg {
+  height: 20px;
+  width: auto;
+  display: block;
+}
+.nav-logo svg path:not([fill]) { fill: var(--ink); }
+.nav-links {
+  display: flex;
+  list-style: none;
+  flex: 1;
+  justify-content: flex-end;
+  gap: 0.2rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  display: block;
+  padding: 0.45rem 0.9rem;
+  color: var(--ink-3);
+  text-decoration: none;
+  font-size: 0.83rem;
+  font-weight: 400;
+  white-space: nowrap;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+.nav-links a:hover {
+  color: var(--ink);
+  background: var(--line-soft);
+}
+.nav-version {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ink-5);
+  letter-spacing: 0.06em;
+  padding-left: 1.2rem;
+  border-left: 1px solid var(--line);
+}
+
+/* ===== CONTAINERS ===== */
+.wrap {
+  max-width: calc(var(--w) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+.wrap-wide {
+  max-width: calc(var(--w-wide) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* ===== TYPOGRAPHY BASE ===== */
+h1, h2, h3, h4 {
+  font-family: 'Fraunces', Georgia, serif;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+p {
+  margin-bottom: 1.4rem;
+  font-size: 1rem;
+  line-height: 1.78;
+  color: var(--ink-2);
+}
+p:last-child { margin-bottom: 0; }
+em { font-style: italic; color: var(--ink); }
+strong { font-weight: 600; color: var(--ink); }
+code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.86em;
+  color: var(--coral-deep);
+  background: var(--coral-soft);
+  padding: 0.08em 0.4em;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* ===== HERO ===== */
+.hero {
+  padding: 10rem 0 5rem;
+}
+.hero .eyebrow {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--coral);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-bottom: 2rem;
+}
+.hero h1 {
+  font-size: clamp(2.8rem, 5.5vw, 4.2rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 500;
+  margin-bottom: 2rem;
+}
+.hero h1 em {
+  color: var(--coral);
+  font-style: italic;
+  font-weight: 400;
+}
+.hero .subtitle {
+  font-size: 1.2rem;
+  color: var(--ink-3);
+  line-height: 1.55;
+  font-weight: 400;
+  max-width: 600px;
+  margin-bottom: 4rem;
+}
+.hero-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 2.5rem;
+  padding-top: 3rem;
+  border-top: 1px solid var(--line);
+}
+.hero-meta .item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.hero-meta .label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem;
+  color: var(--ink-5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.hero-meta .val {
+  font-size: 0.92rem;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* ===== ACT BREAKS ===== */
+/* subtle background tint signals chapter change without needing accent lines */
+.act-break {
+  background: var(--paper-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 7rem 0;
+  margin: 5rem 0 0;
+  text-align: center;
+}
+.act-break .act-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+.act-break h2 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  max-width: 640px;
+  margin: 0 auto 1.5rem;
+  font-weight: 500;
+}
+.act-break .lede {
+  font-size: 1.1rem;
+  color: var(--ink-3);
+  line-height: 1.65;
+  max-width: 600px;
+  margin: 0 auto;
+  font-weight: 400;
+}
+
+/* ===== SECTION ===== */
+section {
+  padding: 5rem 0;
+}
+.sec-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin-bottom: 1.3rem;
+  font-weight: 500;
+}
+h2.sec-title {
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.022em;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+h2.sec-title em { color: var(--coral); font-style: italic; }
+h3.sub {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  margin-top: 3.5rem;
+  margin-bottom: 1.2rem;
+}
+.intro {
+  font-size: 1.12rem;
+  color: var(--ink-2);
+  line-height: 1.7;
+  margin-bottom: 1.8rem;
+}
+
+/* ============================================================ */
+/* ============== UNIFIED CARD SYSTEM ========================= */
+/* ============================================================ */
+/* every card in the document uses these shared values.
+   internal layout varies; the shell never does. */
+
+.card {
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  padding: var(--card-pad-y) var(--card-pad-x);
+  margin: 1.5rem 0;
+}
+
+.card + .card { margin-top: 1rem; }
+
+/* a "stack" of cards keeps tight, uniform spacing between them */
+.card-stack { margin: 2rem 0; }
+.card-stack .card { margin-bottom: 0.9rem; }
+.card-stack .card:last-child { margin-bottom: 0; }
+
+/* card with a small numbered marker on the left */
+.card.numbered {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 1.4rem;
+  align-items: start;
+}
+.card .c-num {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: var(--coral);
+  font-style: italic;
+  line-height: 1;
+  padding-top: 0.1rem;
+}
+.card .c-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.18rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 0.45rem;
+}
+.card .c-desc {
+  font-size: 0.97rem;
+  color: var(--ink-3);
+  line-height: 1.7;
+  margin: 0;
+}
+.card .c-desc code { font-size: 0.85em; }
+
+/* card with a small label above the title (used for steps and gates) */
+.card .c-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--coral);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+/* feature card — used for villain/platform sections and two-up grids */
+.feature-card {
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  margin: 2rem 0;
+}
+.feature-card .fc-head {
+  padding: 1.5rem var(--card-pad-x);
+  border-bottom: 1px solid var(--line);
+  background: var(--paper-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1.5rem;
+}
+.feature-card .fc-name {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.55rem;
+  font-weight: 500;
+  letter-spacing: -0.022em;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.feature-card .fc-motto {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-size: 0.97rem;
+  color: var(--ink-4);
+  font-weight: 400;
+  margin-top: 0.35rem;
+}
+.feature-card .fc-stat {
+  text-align: right;
+  flex-shrink: 0;
+}
+.feature-card .fc-big {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.9rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  line-height: 1;
+}
+.feature-card .fc-lab {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--ink-4);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 0.45rem;
+  font-weight: 500;
+}
+.feature-card .fc-body {
+  padding: var(--card-pad-y) var(--card-pad-x);
+}
+.feature-card .fc-body p {
+  font-size: 0.98rem;
+  color: var(--ink-2);
+  line-height: 1.72;
+}
+
+.feature-card .fc-subhead {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--coral);
+  font-weight: 500;
+  margin-top: 2rem;
+  margin-bottom: 0.7rem;
+  display: block;
+}
+.feature-card .fc-subhead:first-child { margin-top: 0; }
+
+/* pain item inside feature card — small inset, no separate box */
+.feature-card .pain {
+  margin: 1.2rem 0;
+  padding: 1rem 1.2rem;
+  background: var(--paper-3);
+  border-radius: 8px;
+}
+.feature-card .pain .pain-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  display: block;
+}
+.feature-card .pain p {
+  margin: 0;
+  font-size: 0.94rem;
+  color: var(--ink-2);
+  line-height: 1.65;
+}
+
+/* ===== TWO-COLUMN CARD GRID (for the four-question grids) ===== */
+.card-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 2.5rem 0;
+}
+.card-grid-2 .card { margin: 0; }
+.card-grid-2 .card .c-title { font-size: 1.1rem; }
+
+/* ===== ASIDE — small inline callouts ===== */
+.aside {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--coral);
+  border-radius: var(--card-radius);
+  padding: 1.4rem 1.6rem;
+  margin: 2rem 0;
+}
+.aside.tech {
+  border-left-color: var(--ink-4);
+}
+.aside .aside-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--coral);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+.aside.tech .aside-label { color: var(--ink-3); }
+.aside p {
+  margin: 0;
+  font-size: 0.97rem;
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+
+/* ===== PULL QUOTE — visual moment, uses same card shell ===== */
+.pullquote {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  padding: 2.2rem 2rem;
+  margin: 3rem 0;
+  text-align: left;
+}
+.pullquote .pq-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--coral);
+  font-weight: 500;
+  margin-bottom: 0.9rem;
+}
+.pullquote .pq-text {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.25rem, 2.4vw, 1.55rem);
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  font-weight: 400;
+}
+.pullquote .pq-text em {
+  color: var(--coral);
+  font-style: italic;
+}
+
+/* ===== EDGE LIST — uses the card shell as outer container ===== */
+.edges {
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  margin: 2rem 0;
+}
+.edges .edges-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--coral);
+  font-weight: 500;
+  padding: 1.1rem 1.5rem;
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--line);
+}
+.edges .edge {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 1.5rem;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--line-soft);
+  align-items: baseline;
+}
+.edges .edge:last-child { border-bottom: none; }
+.edges .edge-name {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 500;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+.edges .edge.computed { background: var(--coral-soft); }
+.edges .edge.computed .edge-name { color: var(--coral-deep); font-weight: 600; }
+.edges .edge-desc {
+  font-size: 0.95rem;
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+.edges .edge-desc code { font-size: 0.85em; }
+
+/* ===== TABLES — for genuine tabular data only ===== */
+.table-wrap {
+  margin: 2rem 0;
+  overflow-x: auto;
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.93rem;
+}
+table th, table td {
+  text-align: left;
+  padding: 0.95rem 1.2rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  color: var(--ink-2);
+}
+table thead th {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom: 1px solid var(--ink-6);
+  background: var(--paper-2);
+}
+table thead th.col-oneops { color: var(--coral); }
+table tbody td:first-child {
+  font-weight: 500;
+  color: var(--ink);
+  font-size: 0.94rem;
+}
+table tbody td.cell-oneops {
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--coral-soft);
+}
+table tbody tr:last-child td { border-bottom: none; }
+
+/* monochrome verdict glyphs */
+.gl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.92rem;
+  color: var(--ink-2);
+}
+.gl::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  border: 1.5px solid var(--ink-4);
+}
+.gl.full::before { background: var(--ink); border-color: var(--ink); }
+.gl.half::before {
+  background: linear-gradient(to right, var(--ink) 50%, transparent 50%);
+  border-color: var(--ink);
+}
+.gl.none::before { background: transparent; border-color: var(--ink-5); }
+
+/* ===== FOOTER ===== */
+footer {
+  border-top: 1px solid var(--line);
+  padding: 5rem 0 4rem;
+  margin-top: 6rem;
+  text-align: center;
+  background: var(--paper-2);
+}
+footer .foot-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+footer .foot-icon svg {
+  width: 32px;
+  height: 32px;
+}
+footer .foot-icon svg path:not([fill]) { fill: var(--ink); }
+footer .foot-brand {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-bottom: 1.5rem;
+}
+footer .foot-note {
+  font-size: 0.88rem;
+  color: var(--ink-4);
+  max-width: 540px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+footer .foot-meta {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ink-5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 1.5rem;
+}
+
+/* ===== FADE-IN ===== */
+.fade-in { opacity: 0; transform: translateY(12px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.fade-in.visible { opacity: 1; transform: none; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 760px) {
+  :root { --gutter: 1.4rem; --card-pad-x: 1.4rem; --card-pad-y: 1.4rem; }
+  body { font-size: 16px; }
+  .hero { padding: 7rem 0 4rem; }
+  .act-break { padding: 5rem 0; }
+  section { padding: 4rem 0; }
+  .card-grid-2 { grid-template-columns: 1fr; }
+  .card.numbered { grid-template-columns: 1fr; gap: 0.5rem; }
+  .feature-card .fc-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+  .feature-card .fc-stat { text-align: left; }
+  .edges .edge {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+  }
+  table { font-size: 0.85rem; }
+  table th, table td { padding: 0.65rem 0.8rem; }
+  nav .nav-inner { padding: 0 1rem; gap: 1rem; }
+  .nav-version { display: none; }
+}
+
+/* ===== ADDITIONS FOR MERGED DOC ===== */
+.dont-list { margin: 2rem 0; }
+.dont {
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  padding: 1.3rem var(--card-pad-x);
+  margin-bottom: 0.9rem;
+}
+.dont .dl-row { display: grid; grid-template-columns: 76px 1fr; gap: 1.1rem; align-items: baseline; }
+.dont .dl-row + .dl-row { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--line-soft); }
+.dont .dl-key {
+  font-family: 'Geist Mono', monospace; font-size: 0.66rem; letter-spacing: 0.1em;
+  text-transform: uppercase; font-weight: 500; color: var(--ink-4);
+}
+.dont .dl-row.instead .dl-key { color: var(--coral); }
+.dont .dl-val { font-size: 0.96rem; line-height: 1.68; color: var(--ink-2); margin: 0; }
+.dont .dl-row.instead .dl-val { color: var(--ink); }
+.dont .dl-val code { font-size: 0.85em; }
+
+.split-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 2rem 0; }
+.split-2 .card { margin: 0; }
+.split-2 ul { list-style: none; margin: 0; padding: 0; }
+.split-2 li {
+  font-size: 0.94rem; color: var(--ink-2); line-height: 1.6;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--line-soft);
+}
+.split-2 li:last-child { border-bottom: none; }
+
+.dlog { background: var(--card-bg); border: var(--card-border); border-radius: var(--card-radius); overflow: hidden; margin: 2rem 0; }
+.dlog .dlog-head {
+  padding: 1.1rem 1.5rem; background: var(--paper-2); border-bottom: 1px solid var(--line);
+  font-family: 'Geist Mono', monospace; font-size: 0.7rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--coral); font-weight: 500;
+}
+.dlog .dlog-row { display: grid; grid-template-columns: 170px 1fr; gap: 1.4rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--line-soft); align-items: baseline; }
+.dlog .dlog-row:last-child { border-bottom: none; }
+.dlog .dlog-k { font-family: 'Geist Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-4); font-weight: 500; }
+.dlog .dlog-v { font-size: 0.95rem; line-height: 1.68; color: var(--ink-2); }
+
+.meta-list { margin: 1.5rem 0 0; padding: 0; list-style: none; }
+.meta-list li {
+  font-family: 'Geist Mono', monospace; font-size: 0.84rem; color: var(--ink-2);
+  padding: 0.6rem 0; border-bottom: 1px solid var(--line-soft); line-height: 1.6;
+}
+.meta-list li:last-child { border-bottom: none; }
+.meta-list li b { color: var(--coral-deep); font-weight: 600; }
+.meta-list li span { font-family: 'Inter', sans-serif; color: var(--ink-3); }
+
+.vector { margin: 1.6rem 0; }
+.vector .v-tag {
+  font-family: 'Geist Mono', monospace; font-size: 0.66rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--coral); font-weight: 500; display: block; margin-bottom: 0.4rem;
+}
+.rel { font-family: 'Geist Mono', monospace; font-size: 0.86em; color: var(--coral-deep); }
+
+@media (max-width: 760px) {
+  .split-2 { grid-template-columns: 1fr; }
+  .dont .dl-row { grid-template-columns: 1fr; gap: 0.3rem; }
+  .dlog .dlog-row { grid-template-columns: 1fr; gap: 0.3rem; }
+}
+
+</style>
+</head>
+<body>
+
+
+<!-- ===== NAV ===== -->
+<nav class="topnav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 82.04" aria-label="Motadata">
+        <g>
+          <path d="M91.04,47.42v33.35h-12.92v-32.31c0-9.11-4.15-14.19-11.88-14.19-8.54,0-14.19,6-14.19,14.88v31.62h-12.92v-32.31c0-9.11-4.27-14.19-12-14.19-8.42,0-14.19,6-14.19,14.88v31.62H0V23.77h11.54l.12,6.69c4.15-5.31,9.69-7.85,16.85-7.85,8.08,0,14.88,3.81,18.46,10.04,4.5-6.69,11.42-10.04,20.31-10.04,14.65,0,23.77,9.35,23.77,24.81Z"/>
+          <path d="M170.33,23.77v-14.88l12.81-1.38v16.27h16.38v10.96h-16.38v26.42c0,5.77,2.65,9,7.96,9,2.31,0,4.96-.69,7.15-1.73l3.58,10.38c-4.38,1.96-8.08,2.77-12.81,2.77-11.77,0-18.69-6.81-18.69-20.42v-26.42"/>
+          <path d="M265.84,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM252.92,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M335.97,0v80.77h-11.54l-.12-7.61c-4.38,5.54-12,8.88-21,8.88-16.15,0-28.04-11.77-28.04-29.77s11.88-29.77,28.04-29.77c8.19,0,15.23,2.77,19.73,7.38V0h12.92ZM323.05,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M406.1,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM393.18,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M416.49,23.77v-14.88l12.81-1.38v16.27h16.38v10.96h-16.38v26.42c0,5.77,2.65,9,7.96,9,2.31,0,4.96-.69,7.15-1.73l3.58,10.38c-4.38,1.96-8.08,2.77-12.81,2.77-11.77,0-18.69-6.81-18.69-20.42v-26.42"/>
+          <path d="M512,23.77v57h-11.54l-.12-7.61c-4.38,5.54-12,8.88-20.77,8.88-16.73,0-28.27-12.23-28.27-29.77s11.54-29.77,28.27-29.77c8.88,0,16.38,3.35,20.77,8.88l.12-7.61h11.54ZM499.08,52.27c0-10.61-7.15-18-17.42-18s-17.42,7.38-17.42,18,7.15,18,17.42,18,17.42-7.38,17.42-18Z"/>
+          <path d="M135.26,47.31v-24.39c12.47,2.09,22.31,11.93,24.39,24.39h-24.39Z" fill="#f17463"/>
+          <path d="M160.06,52.92c-.33,16.14-13.54,29.13-29.76,29.13s-29.77-13.33-29.77-29.77c0-1.69.14-3.36.41-4.96,2.32-13.87,14.26-24.49,28.72-24.8v12.32c-7.59.28-13.95,5.45-16.01,12.47-.46,1.56-.72,3.23-.72,4.96,0,9.63,7.78,17.44,17.37,17.44,1.72,0,3.38-.24,4.96-.72,6.97-2.08,12.12-8.46,12.39-16.08h12.41Z"/>
+        </g>
+      </svg>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#start">Start</a></li>
+      <li><a href="#act1">Incumbents</a></li>
+      <li><a href="#act2">Insight</a></li>
+      <li><a href="#act3">Emerging</a></li>
+      <li><a href="#act4">The Design</a></li>
+      <li><a href="#act5">Position</a></li>
+      <li><a href="#changelog">Changelog</a></li>
+    </ul>
+    <div class="nav-version">v0.2</div>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero fade-in visible">
+  <div class="wrap">
+    <div class="eyebrow">Motadata Fusion SaaS · Service-Centric Knowledge Graph</div>
+    <h1>The CMDB philosophy, <em>compared honestly.</em></h1>
+    <p class="subtitle">How ServiceNow, BMC Helix, and OpenText UCMDB each decided what a relationship means, what each decision cost them, what is coming to displace them, and the philosophy Fusion SaaS is built on instead.</p>
+    <div class="hero-meta">
+      <div class="item"><div class="label">Document</div><div class="val">Fusion SaaS CMDB Philosophy</div></div>
+      <div class="item"><div class="label">Audience</div><div class="val">Engineering · Product · CXO</div></div>
+      <div class="item"><div class="label">Supersedes</div><div class="val">SKG Master · SKG Story v0.2</div></div>
+      <div class="item"><div class="label">Version</div><div class="val">v0.2 · 2026-09-02</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== START HERE ===== -->
+<section id="start">
+  <div class="wrap">
+    <div class="sec-label">Start here</div>
+    <h2 class="sec-title">What this document is, and <em>why it exists.</em></h2>
+
+    <p class="intro">There is a piece of software inside every large company that almost nobody outside IT has heard of. It is called a CMDB — a Configuration Management Database. Its job is to keep an accurate picture of everything the company runs: servers, applications, databases, networks, and how they all connect.</p>
+
+    <p>When something breaks, the CMDB is supposed to tell you what else is going to break. When you want to change something, it is supposed to tell you what you are about to risk. When finance asks what IT costs the business, it is supposed to give the answer.</p>
+
+    <p>For twenty years, three platforms have dominated this market — ServiceNow, BMC Helix, and OpenText UCMDB. Each is excellent at what it was originally designed for. Each is also, in a different way, failing the modern world. Gartner's 2019 assessment remains the most defensible public figure: only about a quarter of CMDB initiatives achieve meaningful value. The other three quarters are abandoned, or survive with data nobody trusts.</p>
+
+    <p>That failure rate is what Motadata <strong>Fusion SaaS</strong> is built to fix. The component inside Fusion SaaS that does the fixing is the <strong>Service-Centric Knowledge Graph</strong>, or SKG. This document explains the philosophy behind it by comparing it, point for point, against the three incumbents.</p>
+
+    <div class="aside">
+      <span class="aside-label">For the non-technical reader</span>
+      <p>Think of a CMDB as a giant map of everything a company runs, with lines drawn between things that depend on each other. The map has to be accurate, or it is worse than useless. For twenty years the leading maps have been getting messier, not cleaner. The SKG is a new way of drawing that map — small, clean, and one an AI can actually read.</p>
+    </div>
+
+    <p>The document runs in five acts. <strong>Act One</strong> introduces the three incumbents and the specific pain each leaves customers with. <strong>Act Two</strong> is the turning point — the single insight that ties all their failures together, and the seven principles that follow from it. <strong>Act Three</strong> looks outward at what is emerging to disrupt this market, and where Fusion SaaS wedges in. <strong>Act Four</strong> is the design itself: the eleven stored edges, the four computed ones, the metamodel, the anti-patterns, and the proof that eleven is enough. <strong>Act Five</strong> is positioning and governance — who we win, who we do not, and how decisions get recorded.</p>
+
+    <p>Read it in order or jump to the act that matters to you. A CXO who reads only the first paragraph of each section still leaves with the full story. An engineer who reads everything finds the precision needed to do the work. A new joiner who has never heard of any of this can follow, because every technical term is explained the first time it appears.</p>
+  </div>
+</section>
+
+<!-- ===== ACT ONE ===== -->
+<div class="act-break" id="act1">
+  <div class="wrap">
+    <div class="act-label">Act One</div>
+    <h2>Three platforms, three philosophies, three different kinds of pain.</h2>
+    <p class="lede">Before we explain what Fusion SaaS does differently, we have to be honest about what we are different from. Each incumbent made a defensible choice in its era. Each carries the consequences into the present.</p>
+  </div>
+</div>
+
+<!-- §01 ServiceNow -->
+<section id="s01">
+  <div class="wrap">
+    <div class="sec-label">§ 01 · ServiceNow</div>
+    <h2 class="sec-title">The sticky note that <em>grew for twenty years.</em></h2>
+
+    <p class="intro">ServiceNow's relationship catalog is not designed. It is accumulated — like socks under a bed. Once you accept that, everything about its strengths and its pathologies makes sense.</p>
+
+    <p>ServiceNow was founded in 2004 as a SaaS workflow platform. From day one the strategic bet was that customers would want to customize freely without breaking the platform. So relationships between things were not enforced by the schema. They were text labels in a flat table called <code>cmdb_rel_ci</code>. Every customer, every partner, every product team could add their own.</p>
+
+    <div class="feature-card">
+      <div class="fc-head">
+        <div>
+          <div class="fc-name">ServiceNow</div>
+          <div class="fc-motto">"A CMDB to document things."</div>
+        </div>
+        <div class="fc-stat">
+          <div class="fc-big">~53</div>
+          <div class="fc-lab">Relationship labels in baseline</div>
+        </div>
+      </div>
+      <div class="fc-body">
+        <span class="fc-subhead">Philosophy</span>
+        <p>Relationships are <em>data</em>, not schema. Customers should be able to customize without breaking the platform. So each relationship is a free-form verb pair — "Depends on / Used by", "Runs on / Runs", "Hosted on / Hosts" — stored as a string.</p>
+
+        <span class="fc-subhead">How the catalog grew</span>
+        <p>Twenty years of customer requests, discovery probe releases, and product launches each added labels. Five era-layers are visible in the catalog: ITIL foundations (2006), the Discovery wave (2010), the Cloud &amp; App wave (2014), the Resilience era (2018), and ongoing additions. The "Manages / Managed by" pair was last touched in May 2026 — the catalog is still growing. In a real production instance the count often climbs past a hundred.</p>
+
+        <span class="fc-subhead">The hidden order</span>
+        <p>Strip the verb labels away and the fifty-three pairs collapse into roughly ten semantic buckets: facilities, hosting, composition, dependency, service model, network, data flow, storage, resilience, governance, and discovery. The buckets are the real model. The verbs are the customer-facing crust.</p>
+
+        <span class="fc-subhead">The pain it leaves customers with</span>
+        <p>The pain is not the count. The pain is that the platform does not know what any label <em>means</em>. Labels are strings. The database does not understand that "Depends on" and "Used by" describe the same relationship from two angles, or that a server's CPU should die with the server while a network cable should not. All of that meaning lives in business rules layered on top — rules that drift, conflict, and rot.</p>
+
+        <div class="pain">
+          <span class="pain-name">Pathology 01 · Same edge, two labels</span>
+          <p>One team's discovery probe writes "Runs on / Runs" between Tomcat and Linux. Another team's import writes "Hosted on / Hosts" for the same physical reality. A blast-radius query now has to look for both. Miss one and the answer is silently incomplete.</p>
+        </div>
+        <div class="pain">
+          <span class="pain-name">Pathology 02 · The ghost CI epidemic</span>
+          <p>Delete a decommissioned VM and the forty-seven things attached to it — installed software, mounted disks, running processes — stay in the database. The platform does not know which attachments should be cleaned up. After five years, twenty to forty percent of entries in a mature ServiceNow CMDB are ghosts.</p>
+        </div>
+        <div class="pain">
+          <span class="pain-name">Pathology 03 · Naming paralysis</span>
+          <p>An admin connecting an application to a database is shown twelve plausible labels. Different admins pick differently. Six months later the same relationship has been recorded five ways, and reports filtering on one label silently miss the other four.</p>
+        </div>
+
+        <span class="fc-subhead">The compensating mechanism: CSDM</span>
+        <p>ServiceNow shipped the Common Service Data Model — now v5.0, launched at Knowledge 2025 by Mark Bodman and Scott Lemm — as a prescriptive layer that tells customers which label to use for which situation, organised into seven domains (Foundation, Design, Build, Service Delivery, Service Consumption, Manage Portfolios, Ideation &amp; Strategy). It is, in effect, a fifteen-year admission that the original model needed an opinionated layer on top to be usable. Customers pay consultants for months to implement it correctly.</p>
+
+        <span class="fc-subhead">Why this was once the right choice</span>
+        <p>None of this means ServiceNow was wrong. The flexibility is exactly why it became the dominant ITSM vendor of the 2010s — customers could mold the platform to any workflow on the planet without filing a feature request. The mess is the price of that flexibility, and for a long time the price was worth paying.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- §02 BMC -->
+<section id="s02">
+  <div class="wrap">
+    <div class="sec-label">§ 02 · BMC Helix</div>
+    <h2 class="sec-title">The labeled box from a <em>1998 standards committee.</em></h2>
+
+    <p class="intro">BMC did not grow their model. They inherited it. The Common Data Model derives directly from the DMTF Common Information Model, a vendor consortium standard finalised around 2000. Every strength and every weakness flows from that single fact.</p>
+
+    <p>Where ServiceNow chose flexibility, BMC chose rigor. Relationships in BMC are not text labels. They are strongly-typed classes in a hierarchy, like classes in a Java program. The schema enforces cardinality, cascading delete, and which types of things may connect to which.</p>
+
+    <div class="feature-card">
+      <div class="fc-head">
+        <div>
+          <div class="fc-name">BMC Helix</div>
+          <div class="fc-motto">"A CMDB to prove things."</div>
+        </div>
+        <div class="fc-stat">
+          <div class="fc-big">~20</div>
+          <div class="fc-lab">Typed relationship classes</div>
+        </div>
+      </div>
+      <div class="fc-body">
+        <span class="fc-subhead">Philosophy</span>
+        <p>Relationships are <em>typed classes</em>, not text labels. Each carries built-in rules — cardinality enforced by the database, cascading delete defined at the class level, and attributes attached to the relationship itself.</p>
+
+        <span class="fc-subhead">The six base classes</span>
+        <p><code>BMC_Component</code> (part-of, with a weak subclass), <code>BMC_Dependency</code> (operational dependency), <code>BMC_ElementLocation</code> (placement), <code>BMC_Genealogy</code> (version chains), <code>BMC_Impact</code> (propagation), and <code>BMC_MemberOfCollection</code> (logical grouping). With subclasses and service-modeling extensions the practical shipping total is about twenty concrete classes.</p>
+
+        <span class="fc-subhead">The signature trick</span>
+        <p>BMC uses inheritance for structural meaning and the <code>Name</code> attribute for fine-grained labeling. A single <code>BMC_Dependency</code> class can express dozens of logical relationships — "RunsOn", "DataFlow", "Calls" — just by varying the name. Class for structure, attribute for flavor. It is elegant, and it is the part of BMC worth stealing.</p>
+
+        <span class="fc-subhead">What BMC does that ServiceNow cannot</span>
+        <p><strong>Cascading delete is built in.</strong> A weak relationship such as <code>BMC_HostedSystemComponents</code> automatically removes the destination when the source is deleted. No business rule needed. Ghost CIs are prevented at the schema layer.</p>
+        <p><strong>Rich edge attributes.</strong> Every relationship instance carries <code>HasImpact</code>, <code>CostFlow</code>, <code>CostApportionment</code>, <code>IsDR</code>, and weak/strong. ServiceNow has none of these as first-class properties.</p>
+        <p><strong>Type safety.</strong> You cannot create an invalid relationship between two CI types. The schema rejects it, so reports become reliable by default.</p>
+        <p><strong>Polymorphic queries.</strong> Asking for "all dependencies" returns every subclass automatically. ServiceNow needs explicit <code>IN</code> lists.</p>
+
+        <span class="fc-subhead">The pain it leaves customers with</span>
+        <div class="pain">
+          <span class="pain-name">Pathology 01 · Schema migrations are governance events</span>
+          <p>Kubernetes arrives. Modeling "Pod in Namespace in Cluster on Nodes" requires a schema migration with downstream effects on every reconciliation rule, report, and dashboard. That is not a config change you push on a Friday — it takes months. BMC was five or more years late to cloud-native for exactly this reason, and the world does not wait months for containers, serverless, edge, or GPU clusters.</p>
+        </div>
+        <div class="pain">
+          <span class="pain-name">Pathology 02 · The direction gotcha</span>
+          <p>In BMC, "Source impacts Destination." If application A depends on database B, the arrow points from B to A — the opposite of how the English sentence reads. Every BMC-to-ServiceNow integration ships with this bug. Every newly-built impact-tree visualization gets it wrong the first time. Two decades of subtle errors from one convention.</p>
+        </div>
+        <div class="pain">
+          <span class="pain-name">Pathology 03 · The learning cliff</span>
+          <p>A new admin has to learn the six base classes, the subclass hierarchy, the CIM heritage, the direction convention, and the Relationship Normalization Table. Onboarding takes weeks; ServiceNow onboarding takes minutes. This is why BMC implementations almost always require expensive specialist consultants.</p>
+        </div>
+
+        <span class="fc-subhead">Why this was once the right choice</span>
+        <p>BMC's customer base in the early 2000s was large regulated enterprises — banks, telecoms, government agencies — who needed to prove things to auditors. For that audience, in that era, schema-enforced correctness was exactly what was wanted. The rigidity is the price of the audit story, and the world's expectations of agility have simply changed faster than the schema can.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- §03 UCMDB -->
+<section id="s03">
+  <div class="wrap">
+    <div class="sec-label">§ 03 · OpenText UCMDB</div>
+    <h2 class="sec-title">The graph-native model that was <em>a decade early.</em></h2>
+
+    <p class="intro">UCMDB is the most interesting of the three and the most relevant to where we are going. It was born from Mercury Interactive, acquired by HP in 2006 for four and a half billion dollars, sold on to Micro Focus, and bought by OpenText in January 2023 for around five point eight billion. Three corporate owners in twenty years is a hard life for any product. But the architecture survived, and the architecture is what matters.</p>
+
+    <div class="feature-card">
+      <div class="fc-head">
+        <div>
+          <div class="fc-name">UCMDB</div>
+          <div class="fc-motto">"A CMDB to query things."</div>
+        </div>
+        <div class="fc-stat">
+          <div class="fc-big">~25</div>
+          <div class="fc-lab">Core relationship CITs</div>
+        </div>
+      </div>
+      <div class="fc-body">
+        <span class="fc-subhead">Philosophy</span>
+        <p>Relationships are <em>query patterns</em>, not merely stored facts. Some are stored — composition, dependency, communication. Others are derived at query time from the stored ones — impact, blast radius, reachability.</p>
+
+        <span class="fc-subhead">The core CITs</span>
+        <p>Composition (cascade-delete), Containment (independent lifecycle), Dependency (consumer to provider), Usage (softer than dependency), Membership, Realization, Ownership / Manage, Connection, ExecutionEnvironment, and MonitoredBy — all inheriting from an abstract root, <code>Managed Relationship</code>. Subtypes and discovery-specific CITs bring the practical catalog to roughly twenty-five.</p>
+
+        <span class="fc-subhead">The killer feature: calculated relationships</span>
+        <p><code>Impacted By</code> is not stored. It is a TQL (Topology Query Language) traversal computed on demand. Change your impact rules and you edit the query, not the data. You can run several impact models simultaneously. This is the single architectural pattern Fusion SaaS inherits wholesale.</p>
+
+        <span class="fc-subhead">The three convictions that make UCMDB different</span>
+        <p><strong>01 · Relationships are queries, not facts.</strong> Store the ground truth. Derive impact, blast radius, and reachability at query time. The stored data is smaller; the analytical power is larger.</p>
+        <p><strong>02 · Type hierarchy beats type labels.</strong> Relationships inherit from each other. You can query at the abstract level ("any dependency") or narrow to a subtype ("usage specifically"). Inheritance gives you zoom levels for free.</p>
+        <p><strong>03 · The model enforces correctness.</strong> Triplets define which <code>[source CIT, relationship, target CIT]</code> combinations are valid. Invalid combinations are rejected — like a strongly-typed programming language for the CMDB.</p>
+
+        <span class="fc-subhead">The direction win</span>
+        <p>Unlike BMC, UCMDB's arrows match how a human reads the sentence. "A depends on B" points from A to B. A small thing that saves years of confusion.</p>
+
+        <span class="fc-subhead">Why UCMDB lost despite being right</span>
+        <div class="pain">
+          <span class="pain-name">TQL was too hard for ordinary users</span>
+          <p>Powerful, but it reads like a database query language. Most operations engineers cannot write it. UCMDB became the product where you pay a consultant to build queries for you. The gap between the platform's power and the user's ability to reach it was simply too wide.</p>
+        </div>
+        <div class="pain">
+          <span class="pain-name">No prescriptive default</span>
+          <p>UCMDB shipped a toolkit and walked away. CSDM tells ServiceNow customers "use this for that." UCMDB never did. Customers were left to invent their own service models, and most never finished.</p>
+        </div>
+        <div class="pain">
+          <span class="pain-name">Enterprise-only distribution</span>
+          <p>Always sold through heavyweight enterprise motions — no self-service, no freemium, no mid-market. While ServiceNow built a multi-billion-dollar mid-market business, UCMDB negotiated multi-year contracts with the largest enterprises on earth. The market it could have owned slipped past it.</p>
+        </div>
+
+        <span class="fc-subhead">What we learned</span>
+        <p>UCMDB is the most important platform in this story — not because it won, but because it was architecturally right. Inherit the architecture. Fix the user experience: no TQL, natural language and visual queries instead. Ship a prescriptive default service model from day one. Go to market in the mid-market, as SaaS.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- §04 Comparison -->
+<section id="s04">
+  <div class="wrap">
+    <div class="sec-label">§ 04 · The honest comparison</div>
+    <h2 class="sec-title">Three platforms, judged on <em>the dimensions that matter.</em></h2>
+
+    <p class="intro">None of these three is bad. Each made a defensible bet for the world it was born into. But each carries trade-offs that hurt today's customers, and naming them honestly is the only way to design something better. Use this table as the Rosetta stone when a stakeholder asks "but how is this different from ServiceNow?"</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Dimension</th><th>ServiceNow</th><th>BMC Helix</th><th>UCMDB</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Origin philosophy</td><td>2004 SaaS, customization-first</td><td>2003 enterprise, standards-first (DMTF CIM)</td><td>2000 graph theory, query-first</td></tr>
+          <tr><td>Storage model</td><td>Flat table, text labels</td><td>Typed class hierarchy</td><td>Graph CITs, inheritance-aware</td></tr>
+          <tr><td>Relationship count</td><td>~53 baseline, drift to 70–100</td><td>~20</td><td>~25</td></tr>
+          <tr><td>How impact is defined</td><td>Hidden in business rules</td><td>Flag stored on each edge (<code>HasImpact</code>)</td><td>Computed by TQL at query time</td></tr>
+          <tr><td>Arrow direction</td><td>Inconsistent</td><td>Source impacts Destination — reverse of English</td><td>Dependent → provider — matches English</td></tr>
+          <tr><td>Cascading delete</td><td>Manual business rules</td><td>Native to the class</td><td>Native to Composition</td></tr>
+          <tr><td>Type safety</td><td>None</td><td>Strong</td><td>Strongest — triplets, though loosely enforced</td></tr>
+          <tr><td>Edge attributes</td><td>Minimal</td><td>Rich (CostFlow, IsDR, HasImpact)</td><td>Per-CIT configurable</td></tr>
+          <tr><td>Adapts to new tech</td><td>Add a row</td><td>Schema migration</td><td>CIT update</td></tr>
+          <tr><td>Onboarding time</td><td>Minutes</td><td>Weeks</td><td>Weeks (TQL learning)</td></tr>
+          <tr><td>Ships prescriptive defaults</td><td>CSDM v5</td><td>Service modeling guides</td><td>None — left to consultants</td></tr>
+          <tr><td>Delivery model</td><td>SaaS-native</td><td>On-prem heritage, SaaS retrofit</td><td>On-prem / managed</td></tr>
+          <tr><td>Signature strength</td><td>Customer adaptability</td><td>Audit and compliance</td><td>Graph query power</td></tr>
+          <tr><td>Signature weakness</td><td>Data quality decay</td><td>Slow to adapt</td><td>UX and distribution</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Look down each column and you see the trade-off. ServiceNow traded rigor for flexibility and pays in data decay. BMC traded flexibility for rigor and pays in slowness. UCMDB traded ease-of-use for power and paid with the market itself.</p>
+
+    <div class="pullquote">
+      <div class="pq-label">The pattern in one line</div>
+      <div class="pq-text">ServiceNow built a CMDB to <em>document</em>. BMC built a CMDB to <em>prove</em>. UCMDB built a CMDB to <em>query</em>. None of them was built for the world we are entering — where AI has to reason over the graph in real time.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ACT TWO ===== -->
+<div class="act-break" id="act2">
+  <div class="wrap">
+    <div class="act-label">Act Two</div>
+    <h2>One insight that ties every legacy failure together.</h2>
+    <p class="lede">Once we had studied all three platforms in detail, a single observation kept surfacing. It explains why ServiceNow's labels multiply, why BMC's schema is rigid, why UCMDB's TQL is hard, and why all three decay. The observation is small. The consequences are large.</p>
+  </div>
+</div>
+
+<!-- §05 Four questions -->
+<section id="s05">
+  <div class="wrap">
+    <div class="sec-label">§ 05 · The core insight</div>
+    <h2 class="sec-title">Four questions wearing <em>one trench coat.</em></h2>
+
+    <p class="intro">In any CMDB diagram you see boxes (the things) and arrows between them (the relationships). The arrows look uniform. They carry labels like "depends on" or "runs on" or "is part of." It looks like a single concept.</p>
+
+    <p>It is not. Underneath that uniform arrow you are being asked to answer four completely different questions at once. Every CMDB ever built has had to decide how to separate them, and the way it separates them determines everything about how the platform behaves.</p>
+
+    <div class="card-grid-2">
+      <div class="card numbered">
+        <div class="c-num">01</div>
+        <div>
+          <div class="c-title">Composition</div>
+          <p class="c-desc">Is A part of B — does it die when B dies? A CPU inside a server cannot exist without the server.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">02</div>
+        <div>
+          <div class="c-title">Dependency</div>
+          <p class="c-desc">Does A stop working if B fails? An application needs its database; if the database is down, the application is down.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">03</div>
+        <div>
+          <div class="c-title">Communication</div>
+          <p class="c-desc">Do A and B exchange data over the wire? Evidence that they might depend on each other — not the same thing as dependency.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">04</div>
+        <div>
+          <div class="c-title">Identity</div>
+          <p class="c-desc">Is A's identity partly defined by its link to B? Not just "a Tomcat process" — "the Tomcat running on server-42."</p>
+        </div>
+      </div>
+    </div>
+
+    <p>ServiceNow mostly did not separate them — it gave you fifty-three labels and left you to figure out which questions each answered. BMC tagged each typed relationship with attributes to keep the questions apart, but kept all four fused into one class hierarchy. UCMDB got closest, inventing different relationship types for different questions, but still tangled some together.</p>
+
+    <div class="aside">
+      <span class="aside-label">For the non-technical reader</span>
+      <p>Imagine being told to draw a single arrow that simultaneously means "is part of," "needs to work," "talks to," and "is named after." You cannot. It is four different ideas. Every existing CMDB squashes all four into one arrow, and the data decays because the meaning of any given arrow is ambiguous from the moment it is written.</p>
+    </div>
+
+    <div class="pullquote">
+      <div class="pq-label">The unlock</div>
+      <div class="pq-text">If you stop trying to write a single perfect relationship label and instead ask <em>which of the four questions each edge answers</em> — most CMDB design problems collapse.</div>
+    </div>
+
+    <h3 class="sub">Four questions to design around, four jobs to serve</h3>
+
+    <p>The other thing every CMDB exists to do is answer four operational questions for the business. Before a relationship earns a place in the schema, we ask which of these four jobs it helps with. If none, it is noise.</p>
+
+    <div class="card-grid-2">
+      <div class="card numbered">
+        <div class="c-num">01</div>
+        <div><div class="c-title">Blast radius</div><p class="c-desc">If this thing breaks, what else breaks?</p></div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">02</div>
+        <div><div class="c-title">Incident routing</div><p class="c-desc">Who do I call when this breaks?</p></div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">03</div>
+        <div><div class="c-title">Change risk</div><p class="c-desc">If I change this, what am I risking?</p></div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">04</div>
+        <div><div class="c-title">Cost attribution</div><p class="c-desc">What does our IT cost — and to whom?</p></div>
+      </div>
+    </div>
+
+    <p>Every design choice in the rest of this document is justified by these four jobs. If a feature does not make one of them faster, more accurate, or more trustworthy, the feature does not ship.</p>
+  </div>
+</section>
+
+<!-- §06 Seven principles -->
+<section id="s06">
+  <div class="wrap">
+    <div class="sec-label">§ 06 · The seven principles</div>
+    <h2 class="sec-title">From observation <em>to philosophy.</em></h2>
+
+    <p class="intro">Once you accept that a relationship is four questions, and that the platform exists to serve four operational jobs, seven design principles follow almost automatically. These are the non-negotiables. Every edge type must satisfy all seven. Every design discussion ends here.</p>
+
+    <div class="card-stack">
+      <div class="card numbered">
+        <div class="c-num">01</div>
+        <div>
+          <div class="c-title">Keep the edge vocabulary small.</div>
+          <p class="c-desc">ServiceNow's fifty-three labels are evidence that more is worse. Aim for ten to twelve canonical stored edge types. Every type must have a one-sentence operational meaning. If you cannot write the sentence, the edge does not ship. <strong>Rule: no more than twelve stored edge types in v1.</strong></p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">02</div>
+        <div>
+          <div class="c-title">Separate ground truth from derived truth.</div>
+          <p class="c-desc">Store the facts the world produces — composition, dependency, communication. Compute the rest — impact, blast radius, reachability, criticality. UCMDB's calculated-relationship pattern is the correct architecture; ServiceNow and BMC blur this and pay for it forever. <strong>Rule: impact is a query, not a flag.</strong></p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">03</div>
+        <div>
+          <div class="c-title">Every edge carries its evidence.</div>
+          <p class="c-desc">An edge written by an agent on a live server is not as trustworthy as an edge inferred by AI from a log file. The legacy three treat all edges as equally true once written, which is why CMDBs decay. Every Fusion SaaS edge carries evidence source, confidence, last-observed time, and time-to-live as first-class properties.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">04</div>
+        <div>
+          <div class="c-title">Direction matches English.</div>
+          <p class="c-desc">"A depends on B" points from A to B. "A runs on B" points from A to B. Match how humans read the sentence. BMC's "Source impacts Destination" generated twenty years of integration bugs. Do not repeat the mistake.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">05</div>
+        <div>
+          <div class="c-title">Schema enforces correctness at write time.</div>
+          <p class="c-desc">Each edge type has an allowlist of valid source-and-target class pairs, called a triplet. Invalid relationships are rejected at the API boundary, not flagged for cleanup later. Type safety is much cheaper than data hygiene.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">06</div>
+        <div>
+          <div class="c-title">Edge types are config, not schema.</div>
+          <p class="c-desc">The edge catalog and the triplet rules live as JSON Schema files in a version-controlled repository. Adding a new edge type or changing a constraint is a pull request, not a database migration. This is the modern advantage neither ServiceNow nor BMC has.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">07</div>
+        <div>
+          <div class="c-title">Ship a prescriptive default out of the box.</div>
+          <p class="c-desc">UCMDB failed partly because it handed customers a toolkit and walked away. ServiceNow won partly because CSDM tells customers what good looks like. Fusion SaaS ships an opinionated Capability → Business Application → Application Service → Infrastructure spine that works on day one.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="aside tech">
+      <span class="aside-label">For the engineering reader</span>
+      <p>These map directly to concrete schema decisions. Principle 1 caps the stored vocabulary at eleven. Principle 2 produces the four computed traversal patterns. Principle 3 produces the metamodel — every edge instance carries <code>evidenceSource</code>, <code>confidence</code>, <code>lastObserved</code>, <code>ttl</code>. Principle 4 fixes the arrow convention. Principle 5 produces the triplet allowlist enforced at the API boundary; in v0.2 the <code>dependsOn</code> triplet rules are tightened explicitly to prevent the ServiceNow overload pattern. Principle 6 puts the triplet config under <code>/skg/triplets/</code> as JSON Schema. Principle 7 produces the default service spine in the <code>realizes</code> edge.</p>
+    </div>
+
+    <p>Notice what happens when all seven are applied at once. The vocabulary stops growing. The data stops decaying. The arrows stop being ambiguous. The platform stops needing a fifteen-year compensating layer like CSDM. And — most importantly for the era we are entering — the graph becomes small enough and clean enough that an AI model can actually reason over it.</p>
+
+    <div class="pullquote">
+      <div class="pq-label">The philosophy in one line</div>
+      <div class="pq-text">ServiceNow built a CMDB to document. BMC built a CMDB to prove. UCMDB built a CMDB to query. <em>Fusion SaaS is built for what comes next — a CMDB that AI can reason over.</em></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ACT THREE ===== -->
+<div class="act-break" id="act3">
+  <div class="wrap">
+    <div class="act-label">Act Three</div>
+    <h2>There is no single fourth product. There are three disruption vectors.</h2>
+    <p class="lede">The CMDB space is being attacked from three directions at once. Only one of them is an architectural threat. The other two are layer attacks. Knowing which is which is critical to positioning Fusion SaaS.</p>
+  </div>
+</div>
+
+<!-- §07 What's emerging -->
+<section id="s07">
+  <div class="wrap">
+    <div class="sec-label">§ 07 · What's emerging</div>
+    <h2 class="sec-title">Three vectors, <em>one real threat.</em></h2>
+
+    <div class="card-stack">
+      <div class="card">
+        <div class="vector">
+          <span class="v-tag">Vector 01 · Discovery wrappers</span>
+          <div class="c-title">Polishing the input layer.</div>
+        </div>
+        <p class="c-desc"><strong>Examples:</strong> Device42 (acquired by Freshworks, 2023), Virima, Cloudaware, Lansweeper.</p>
+        <p class="c-desc" style="margin-top:0.7rem"><strong>Pitch:</strong> "ServiceNow's CMDB is famously inaccurate. We'll do better discovery and feed it cleaner data."</p>
+        <p class="c-desc" style="margin-top:0.7rem">These are parasites on ServiceNow, not replacements. They accept the fifty-three-verb mess and polish the input. Not an architectural threat — plumbers. <strong>Relevance to Fusion SaaS: low.</strong></p>
+      </div>
+
+      <div class="card">
+        <div class="vector">
+          <span class="v-tag">Vector 02 · Agentic AI ITSM platforms</span>
+          <div class="c-title">Skipping the CMDB entirely.</div>
+        </div>
+        <p class="c-desc"><strong>Examples:</strong> Atomicwork ($25M from Khosla, early 2025), Rezolve.ai, Moveworks (acquired by ServiceNow, Q4 2025, $2.85B), Aisera (acquired by Automation Anywhere).</p>
+        <p class="c-desc" style="margin-top:0.7rem"><strong>Pitch:</strong> "Skip the CMDB. AI agents read logs, traces, and observability data in real time. The CMDB doesn't need to be perfect — the AI figures it out at the moment of need."</p>
+        <p class="c-desc" style="margin-top:0.7rem">Partially right for low-stakes tickets, plainly wrong for high-stakes operations. You cannot compute blast radius from log lines — you need a structured graph. <strong>Relevance to Fusion SaaS: medium.</strong> This competes for the ITSM layer above the graph, not for the graph itself.</p>
+      </div>
+
+      <div class="card">
+        <div class="vector">
+          <span class="v-tag">Vector 03 · Internal Developer Portals</span>
+          <div class="c-title">The real disruption.</div>
+        </div>
+        <p class="c-desc"><strong>Examples:</strong> Port ($100M Series C at $800M valuation, December 2025), Cortex ($60M Series C, September 2024), OpsLevel, Backstage (open source, from Spotify), Atlassian Compass.</p>
+        <p class="c-desc" style="margin-top:0.7rem"><strong>Pitch:</strong> "Developers gave up on the CMDB. We built a software catalog as a knowledge graph that AI can reason over."</p>
+        <p class="c-desc" style="margin-top:0.7rem">Port's data model is <em>blueprints and relations</em>. A blueprint is a CI type — Service, Environment, Deployment, K8s Cluster. A relation connects two blueprints with target, cardinality, and required flags, defined in JSON Schema. Config not code. GitOps-friendly. AI-native from day one. This is essentially UCMDB's CIT model reborn for the developer era — and it is the architecture Fusion SaaS converges on independently.</p>
+      </div>
+    </div>
+
+    <div class="aside">
+      <span class="aside-label">The strategic insight</span>
+      <p>ServiceNow has the customer relationships but the wrong architecture. Port has the right architecture but sells only to developers. Nobody has yet won the unified business + IT + developer audience with the modern graph-primitive architecture.</p>
+    </div>
+
+    <div class="pullquote">
+      <div class="pq-label">The Fusion SaaS wedge</div>
+      <div class="pq-text">Bring Port's graph-primitive architecture to ServiceNow's customer base, and broaden the scope from developer-only to the full enterprise — ITSM, ITOM, ITAM, ESM, CRM, HRMS. Mid-market. AI-native. SaaS. <em>The thing that would have existed if ServiceNow had been founded in 2024.</em></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ACT FOUR ===== -->
+<div class="act-break" id="act4">
+  <div class="wrap">
+    <div class="act-label">Act Four</div>
+    <h2>The design, in plain English first and detail second.</h2>
+    <p class="lede">Now we can introduce the design itself — what it is, how it works, the mistakes it deliberately avoids, and why it survives comparison with all three incumbents. This is the heart of the document.</p>
+  </div>
+</div>
+
+<!-- §08 What the SKG is -->
+<section id="s08">
+  <div class="wrap">
+    <div class="sec-label">§ 08 · What the SKG is</div>
+    <h2 class="sec-title">A small clean graph of <em>how everything connects.</em></h2>
+
+    <p class="intro">The Fusion SaaS Service-Centric Knowledge Graph is a graph database — a system that stores things as nodes (Configuration Items, or CIs) and the relationships between them as edges. "Service-Centric" means the graph is organised around services the business cares about, not just raw infrastructure. "Knowledge Graph" means the structure is designed for an AI model to read and reason over, not just for humans to browse.</p>
+
+    <p>The whole design comes down to two numbers: <strong>eleven and four</strong>. Eleven kinds of relationships we store — the facts the world produces. Four kinds we calculate from those facts at the moment they are asked — the operational truths.</p>
+
+    <div class="aside">
+      <span class="aside-label">For the non-technical reader</span>
+      <p>Imagine a Google Maps for your company's IT. The roads are relationships between things — "this app talks to that database," "this server is in that rack." We only draw eleven kinds of roads, because that turns out to be enough. The interesting stuff — "if I close this road, how long is the detour?" — we calculate the moment you ask, never store ahead of time. Calculated answers stay fresh. Stored answers go stale.</p>
+    </div>
+
+    <h3 class="sub">The eleven stored edges — ground truth</h3>
+
+    <p>These are the only kinds of relationships written to the graph. Every discovery probe, every cloud API integration, every IaC parser, every human-authored service map produces one or more of these eleven. Anything that does not fit is rejected at the API boundary, before it can contaminate the data.</p>
+
+    <div class="edges">
+      <div class="edges-label">Stored — written by discovery, APIs, agents, and humans</div>
+      <div class="edge"><div class="edge-name">composedOf</div><div class="edge-desc">B is a structural part of A; B dies when A dies. A server <code>composedOf</code> CPU, disk, memory.</div></div>
+      <div class="edge"><div class="edge-name">contains</div><div class="edge-desc">A logically holds B right now, but B survives if A goes away. A rack <code>contains</code> servers; servers can be moved.</div></div>
+      <div class="edge"><div class="edge-name">runsOn</div><div class="edge-desc">A is a runtime instance hosted by B. A Tomcat process <code>runsOn</code> Linux; Linux <code>runsOn</code> a virtual machine.</div></div>
+      <div class="edge"><div class="edge-name">dependsOn</div><div class="edge-desc">A stops working if B fails. The payment service <code>dependsOn</code> the user database. In v0.2 strict triplet rules reject misuse — not for hosting (use <code>runsOn</code>), not for raw traffic (use <code>communicatesWith</code>), not for service realization (use <code>realizes</code>).</div></div>
+      <div class="edge"><div class="edge-name">communicatesWith</div><div class="edge-desc">A and B exchange traffic on the wire. Evidence that they might depend on each other — not the same as dependency. In v0.2 it carries <code>observation_frequency</code> (<code>one_shot</code> / <code>intermittent</code> / <code>sustained</code> / <code>continuous</code>) so a single blip ages differently from thirty days of constant traffic.</div></div>
+      <div class="edge"><div class="edge-name">realizes</div><div class="edge-desc">A concrete thing fulfills an abstract concept. The payment microservice <code>realizes</code> the "Accept Payment" business capability.</div></div>
+      <div class="edge"><div class="edge-name">memberOf</div><div class="edge-desc">A belongs to a logical group. A node is <code>memberOf</code> a Kubernetes cluster; a server is <code>memberOf</code> a load-balancer pool.</div></div>
+      <div class="edge"><div class="edge-name">manages</div><div class="edge-desc">A is the control plane for B. vCenter <code>manages</code> ESX hosts; the Kubernetes control plane <code>manages</code> worker nodes. Excluded from default blast radius.</div></div>
+      <div class="edge"><div class="edge-name">ownedBy</div><div class="edge-desc">A is governance-accountable to B. An application is <code>ownedBy</code> a business unit; a database is <code>ownedBy</code> a cost center.</div></div>
+      <div class="edge"><div class="edge-name">locatedIn</div><div class="edge-desc">A is physically or logically placed inside B. A virtual machine is <code>locatedIn</code> an availability zone.</div></div>
+      <div class="edge"><div class="edge-name">succeedsLifecycleOf</div><div class="edge-desc">A is the successor of B. Version 2 <code>succeedsLifecycleOf</code> version 1. In v0.2 it carries a sharpened subtype enum (<code>version</code> / <code>dr</code> / <code>backup</code> / <code>migration</code> / <code>rollback</code>) — five precise flavors, still one edge.</div></div>
+    </div>
+
+    <p>That is the complete stored vocabulary. Each type has a one-sentence meaning. Each was selected because it answers at least one of the four operational jobs, and because there is a clear answer to what happens when one side is deleted.</p>
+
+    <h3 class="sub">The eleven, in schema terms</h3>
+
+    <p>The same eleven, with the properties that engineering actually builds against.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Edge</th><th>Forward / Reverse</th><th>Lifecycle</th><th>Identity?</th><th>Impact?</th><th>Primary use</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="rel">composedOf</span></td><td>composedOf / partOf</td><td>cascade</td><td>yes</td><td>yes</td><td>Hardware components, OS modules, anything that dies with its host</td></tr>
+          <tr><td><span class="rel">contains</span></td><td>contains / containedIn</td><td>detach</td><td>no</td><td>conditional</td><td>Logical grouping that survives parent deletion (IPs on a node)</td></tr>
+          <tr><td><span class="rel">runsOn</span></td><td>runsOn / runs</td><td>detach (parent)</td><td>yes</td><td>yes</td><td>Process on OS, OS on VM, VM on hypervisor, app on app-server</td></tr>
+          <tr><td><span class="rel">dependsOn</span></td><td>dependsOn / usedBy</td><td>independent</td><td>no</td><td>yes</td><td>Operational dependency across hosting boundaries</td></tr>
+          <tr><td><span class="rel">communicatesWith</span></td><td>communicatesWith / communicatesWith</td><td>independent</td><td>no</td><td>conditional</td><td>Wire-level traffic; evidence for dependency, not identical to it</td></tr>
+          <tr><td><span class="rel">realizes</span></td><td>realizes / realizedBy</td><td>independent</td><td>no</td><td>yes</td><td>Concrete to abstract: AppService realizes BusinessCapability</td></tr>
+          <tr><td><span class="rel">memberOf</span></td><td>memberOf / hasMember</td><td>detach</td><td>no</td><td>conditional</td><td>Cluster membership, group membership</td></tr>
+          <tr><td><span class="rel">manages</span></td><td>manages / managedBy</td><td>independent</td><td>no</td><td>conditional</td><td>Control plane: vCenter manages ESX; K8s control manages workers</td></tr>
+          <tr><td><span class="rel">ownedBy</span></td><td>ownedBy / owns</td><td>independent</td><td>no</td><td>no</td><td>Governance accountability (human or org)</td></tr>
+          <tr><td><span class="rel">locatedIn</span></td><td>locatedIn / houses</td><td>independent</td><td>no</td><td>conditional</td><td>Physical or logical location (rack, region, AZ)</td></tr>
+          <tr><td><span class="rel">succeedsLifecycleOf</span></td><td>succeedsLifecycleOf / succeededBy</td><td>independent</td><td>no</td><td>no</td><td>Genealogy: replacement, upgrade, migration</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">The four computed edges — operational truth</h3>
+
+    <p>These are never written to the graph. They are traversal patterns resolved the moment a question is asked, using only the eleven stored edges as input. This separation — stored facts versus computed truths — is the most important architectural commitment in the entire design, and it is inherited directly from UCMDB.</p>
+
+    <div class="edges">
+      <div class="edges-label">Computed — calculated at query time, never stored</div>
+      <div class="edge computed"><div class="edge-name">impactedBy</div><div class="edge-desc">Blast radius. Inverse of any <code>dependsOn</code> / <code>runsOn</code> path, optionally including <code>composedOf</code>. In v0.2 results return in two buckets: <strong>Directly impacted</strong> (path traverses only high-confidence impact-bearing edges) and <strong>Potentially impacted</strong> (path includes at least one inferred or low-confidence edge). High-stakes incidents need "will fail" separated from "might fail."</div></div>
+      <div class="edge computed"><div class="edge-name">reaches</div><div class="edge-desc">Transitive closure over <code>communicatesWith</code> and <code>dependsOn</code>. Can A reach B at all, directly or through hops? Useful for lateral-movement analysis and compliance scoping.</div></div>
+      <div class="edge computed"><div class="edge-name">sharesFailureDomain</div><div class="edge-desc">Common ancestor over <code>locatedIn</code> and <code>runsOn</code> chains. Do A and B share a rack, availability zone, or hypervisor? Critical for redundancy planning.</div></div>
+      <div class="edge computed"><div class="edge-name">criticalPath</div><div class="edge-desc">Shortest <code>dependsOn</code> path from a BusinessCapability down to the lowest CI. What concrete infrastructure underpins the "Payment" capability? The executive-reporting wedge — every CMDB has the data, almost none ship it as a queryable edge.</div></div>
+    </div>
+
+    <h3 class="sub">The edge metamodel</h3>
+
+    <p>Every stored edge, regardless of type, carries the same metadata. This is the schema-level template all relationship instances conform to, and it is the third architectural commitment — the one that makes the self-maintaining loop possible.</p>
+
+    <div class="card">
+      <ul class="meta-list">
+        <li><b>edgeId</b> — <span>UUID, stable identifier</span></li>
+        <li><b>edgeType</b> — <span>one of the eleven canonical types</span></li>
+        <li><b>sourceCI, targetCI</b> — <span>references to the connected CIs</span></li>
+        <li><b>strength</b> — <span>mandatory / common / conditional / rare — drives CMDB health scoring</span></li>
+        <li><b>identityContributing</b> — <span>boolean — does this edge participate in IRE-style reconciliation?</span></li>
+        <li><b>impactBearing</b> — <span>boolean — does this edge propagate impact in default blast-radius queries?</span></li>
+        <li><b>evidenceSource</b> — <span>enum: agent / discovery / api / iac / traffic / log_inference / ai_inferred / manual / identity_correlation / service_mapping_session</span></li>
+        <li><b>confidence</b> — <span>float 0.0–1.0, varies by evidence source</span></li>
+        <li><b>lastObserved</b> — <span>timestamp of most recent confirmation</span></li>
+        <li><b>ttl</b> — <span>staleness threshold before re-validation is required</span></li>
+        <li><b>validationRule</b> — <span>reference to the triplet rule constraining valid source and target classes</span></li>
+      </ul>
+    </div>
+
+    <p>The evidence-source enum spans the spectrum from highly trustworthy (agent telemetry on a live server, confidence 0.95) through medium (IaC declarations, traffic observation, roughly 0.75 to 0.85) down to AI-inferred (0.60, requiring human confirmation for high-stakes decisions). Manual edges are confidence 1.0 but carry a mandatory TTL — humans claim things and forget; manual claims decay without re-confirmation.</p>
+
+    <p>One design choice is worth making explicit. When two discovery sources independently identify the same underlying CI — an agent says "host-42," a cloud API says "i-abc123," and we determine they are the same machine — we record that correlation as evidence metadata on existing edges (<code>evidenceSource = identity_correlation</code>), not as a new edge type. BMC ships a separate <code>BMC_FederatedKeyLink</code> edge for this. We deliberately chose the lighter approach: identity correlation is provenance about <em>how we know</em> an edge, not a relationship in the world. A twelfth edge would inflate the vocabulary for a case mid-market customers rarely encounter.</p>
+
+    <div class="aside tech">
+      <span class="aside-label">For the engineering reader</span>
+      <p>The split between stored and computed is enforced at the API layer. The eleven stored edges have triplet validation rules — JSON Schema files under <code>/skg/triplets/</code> that allowlist valid <code>(sourceClass, edgeType, targetClass)</code> tuples. Writes that violate a triplet are rejected at the boundary with a 400, not flagged for cleanup. The four computed edges live in the query layer as traversal patterns; they cannot be written to. Two v0.2 changes are resolver-side only, with no schema impact — <code>impactedBy</code> returns <code>directly</code> and <code>potentially</code> arrays based on a confidence threshold of 0.85 along the path, and <code>dependsOn</code> validation tightens to reject the three anti-patterns at write time.</p>
+    </div>
+
+    <div class="pullquote">
+      <div class="pq-label">Why this matters in plain English</div>
+      <div class="pq-text">When a customer asks <em>"what dependencies are we asserting that no probe has confirmed in ninety days?"</em> — we answer in one query. None of the incumbents can. Stale data surfaces itself instead of hiding.</div>
+    </div>
+  </div>
+</section>
+
+<!-- §09 Mistakes to avoid -->
+<section id="s09">
+  <div class="wrap">
+    <div class="sec-label">§ 09 · Mistakes to avoid</div>
+    <h2 class="sec-title">Ten anti-patterns, drawn from <em>twenty years of CMDB pain.</em></h2>
+
+    <p class="intro">Each of these failure modes appears in at least one of the three incumbents. Knowing them by name is the cheapest insurance Fusion SaaS can buy.</p>
+
+    <div class="dont-list">
+      <div class="dont">
+        <div class="dl-row"><div class="dl-key">Don't</div><p class="dl-val">Let every edge type be free-form text that admins can rename, alias, or duplicate.</p></div>
+        <div class="dl-row instead"><div class="dl-key">Instead</div><p class="dl-val">Lock the canonical edge vocabulary in schema. UI verb labels are a presentation layer over the schema, not the schema itself.</p></div>
+      </div>
+      <div class="dont">
+        <div class="dl-row"><div class="dl-key">Don't</div><p class="dl-val">Mix structural meaning ("part of") with operational meaning ("breaks if") into one edge type.</p></div>
+        <div class="dl-row instead"><div class="dl-key">Instead</div><p class="dl-val">Use <code>composedOf</code> for structural composition and <code>dependsOn</code> for operational dependency. They have different lifecycle behavior and different impact semantics.</p></div>
+      </div>
+      <div class="dont">
+        <div class="dl-row"><div class="dl-key">Don't</div><p class="dl-val">Store "impact" as a flag on each edge instance — BMC's <code>HasImpact</code> pattern.</p></div>
+        <div class="dl-row instead"><div class="dl-key">Instead</div><p class="dl-val">Compute impact at query time via graph traversal. The flag drifts; the query is always current.</p></div>
+      </div>
+      <div class="dont">
+        <div class="dl-row"><div class="dl-key">Don't</div><p class="dl-val">Treat all edges as equally true once written, with no concept of evidence or freshness.</p></div>
+        <div class="dl-row instead"><div class="dl-key">Instead</div><p class="dl-val">Every edge carries <code>evidenceSource</code>, <code>confidence</code>, <code>lastObserved</code>, and <code>ttl</code>. Stale edges surface in a review queue automatically.</p></div>
+      </div>
+      <div class="dont">
+        <div class="dl-row"><div class="dl-key">Don't</div><p class="dl-val">Allow inconsistent arrow direction conventions across discovery sources.</p></div>
+        <div class="dl-row instead"><div class="dl-key">Instead</div><p class="dl-val">Direction matches English: "A depends on B" points from A to B. Document it loudly. Test it in every discovery integration.</p></div>
+      </div>
+      <div class="dont">
+        <div class="dl-row"><div class="dl-key">Don't</div><p class="dl-val">Require a database schema migration to add a new edge type or modify a validation rule.</p></div>
+        <div class="dl-row instead"><div class="dl-key">Instead</div><p class="dl-val">Edge types and validation triplets are config — JSON Schema in Git. Pull request, code review, deploy.</p></div>
+      </div>
+      <div class="dont">
+        <div class="dl-row"><div class="dl-key">Don't</div><p class="dl-val">Model "vCenter manages VM" as "VM <code>dependsOn</code> vCenter." Discovery tools commonly do this, and it produces blast-radius lies.</p></div>
+        <div class="dl-row instead"><div class="dl-key">Instead</div><p class="dl-val">Use <code>manages</code> for control-plane relationships. A vCenter outage degrades management; it does not down the VMs.</p></div>
+      </div>
+      <div class="dont">
+        <div class="dl-row"><div class="dl-key">Don't</div><p class="dl-val">Conflate communication (observed traffic) with dependency (operational need).</p></div>
+        <div class="dl-row instead"><div class="dl-key">Instead</div><p class="dl-val"><code>communicatesWith</code> is evidence; <code>dependsOn</code> is the operational claim. Two services can talk with idempotent retries — A does not break if B does.</p></div>
+      </div>
+      <div class="dont">
+        <div class="dl-row"><div class="dl-key">Don't</div><p class="dl-val">Ship a toolkit with no opinionated default service model, on the theory that customers know best.</p></div>
+        <div class="dl-row instead"><div class="dl-key">Instead</div><p class="dl-val">Ship a default Capability → Business Application → Application Service → Infrastructure spine that works on day one. UCMDB lost partly because it did not.</p></div>
+      </div>
+      <div class="dont">
+        <div class="dl-row"><div class="dl-key">Don't</div><p class="dl-val">Build a query DSL like TQL that requires a consultant to use.</p></div>
+        <div class="dl-row instead"><div class="dl-key">Instead</div><p class="dl-val">Expose the graph via natural-language queries, a visual graph builder for power users, and a typed API for engineering. A DSL is for the back office, not the primary surface.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- §10 The proof -->
+<section id="s10">
+  <div class="wrap">
+    <div class="sec-label">§ 10 · The proof</div>
+    <h2 class="sec-title">Every concept they ship has <em>a home in our eleven.</em></h2>
+
+    <p class="intro">Anyone who has worked in this industry has one reasonable question: how can eleven stored edges cover what ServiceNow does with fifty-three, BMC with twenty, and UCMDB with twenty-five? We mapped every relationship type in all three platforms against our eleven, edge by edge.</p>
+
+    <p>Every one of the eleven stored edges has at least two direct conceptual analogues across the three platforms. We invented nothing from scratch. The incumbents ship two to five times as many relationship types because they collapse three concerns the Fusion SaaS design keeps separate — the relationship's <strong>semantics</strong> (what kind of edge it is), the <strong>evidence</strong> for the assertion (where the claim came from), and the <strong>operational computation</strong> (what it implies about impact). Keep those three apart and you do not need fifty-three labels. You need eleven.</p>
+
+    <h3 class="sub">What we kept clean</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Dimension</th><th>ServiceNow</th><th>BMC Helix</th><th>UCMDB</th><th class="col-oneops">Fusion SaaS SKG</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Stored relationship types</td><td>~53, drifting to 70–100</td><td>~20</td><td>~25</td><td class="cell-oneops">11</td></tr>
+          <tr><td>Computed relationships</td><td>Hidden in rules</td><td>1 — impact</td><td>2 — directly / potentially</td><td class="cell-oneops">4 — impact, reach, failure domain, critical path</td></tr>
+          <tr><td>Evidence on the edge</td><td><span class="gl none">No</span></td><td><span class="gl none">No</span></td><td><span class="gl none">No</span></td><td class="cell-oneops"><span class="gl full">Source, confidence, freshness, TTL</span></td></tr>
+          <tr><td>Communication vs dependency</td><td>Fused</td><td>Fused</td><td>Distinct via <code>talk</code></td><td class="cell-oneops">Distinct, with observation frequency</td></tr>
+          <tr><td>Write-time validation</td><td><span class="gl none">None</span></td><td><span class="gl half">Partial — identity only</span></td><td><span class="gl half">Not strictly enforced</span></td><td class="cell-oneops"><span class="gl full">Strict — triplet allowlist, API-rejected</span></td></tr>
+          <tr><td>Adding a new edge type</td><td>Add a table row</td><td>Schema migration</td><td>CIT update</td><td class="cell-oneops">Pull request to JSON Schema</td></tr>
+          <tr><td>Delivery model</td><td>SaaS-native</td><td>On-prem heritage</td><td>On-prem / managed</td><td class="cell-oneops">SaaS-native, multi-tenant</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The four things in the Fusion SaaS column with no real equivalent in the incumbents are not accidents. They are the four claims the design rests on, and each solves a specific pain from Act One.</p>
+
+    <div class="card-stack">
+      <div class="card numbered">
+        <div class="c-num">01</div>
+        <div>
+          <div class="c-title">Evidence is first class.</div>
+          <p class="c-desc">None of the three stores evidence source and confidence on every relationship. They track discovery source at the CI level, not the edge level. We track it at both. This is the foundation of the self-maintaining CMDB — stale edges surface themselves, and the human review queue is generated rather than curated.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">02</div>
+        <div>
+          <div class="c-title">Observation stays distinct from claim.</div>
+          <p class="c-desc">BMC collapses observed traffic into <code>BMC_Dependency</code> at sync time, losing the provenance forever. ServiceNow has overlapping types with no clean separation from dependency. UCMDB's <code>talk</code> comes closest. Our <code>communicatesWith</code> is the cleanest version, and in v0.2 it carries observation frequency so a one-shot blip is treated differently from thirty days of constant traffic.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">03</div>
+        <div>
+          <div class="c-title">Four computed edges, not one.</div>
+          <p class="c-desc">All three incumbents compute or auto-maintain impact. None ships <code>reaches</code>, <code>sharesFailureDomain</code>, or <code>criticalPath</code> as first-class queryable edges — those get delegated to network monitoring or custom scripts. Operators ask these questions constantly. Making them one-line queries instead of multi-day projects is a real product difference.</p>
+        </div>
+      </div>
+      <div class="card numbered">
+        <div class="c-num">04</div>
+        <div>
+          <div class="c-title">Schema rejects bad data at the API.</div>
+          <p class="c-desc">ServiceNow allows any relationship type between any two CIs at write time; rules are advisory. BMC enforces validity for identity edges only. UCMDB has hierarchical type rules that are not strictly enforced. The Fusion SaaS triplet allowlist — config-driven, version-controlled, with explicit anti-patterns documented for overloaded edges like <code>dependsOn</code> — is the direct answer to the three-in-four CMDB failure rate.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="pullquote">
+      <div class="pq-label">What the validation proved</div>
+      <div class="pq-text">Eleven stored edges absorb everything ServiceNow's fifty-three, BMC's twenty, and UCMDB's twenty-five assert — because we separated three concerns the incumbents fuse: <em>semantics, evidence, and computation.</em></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ACT FIVE ===== -->
+<div class="act-break" id="act5">
+  <div class="wrap">
+    <div class="act-label">Act Five</div>
+    <h2>Positioning, validation, and the record of why.</h2>
+    <p class="lede">The design is v0.2. It is internally aligned and validated against the incumbent catalogs, but not yet against three real customer scenarios. Until it is, we are honest that this is a proposal under active validation, not a final contract.</p>
+  </div>
+</div>
+
+<!-- §11 Value & positioning -->
+<section id="s11">
+  <div class="wrap">
+    <div class="sec-label">§ 11 · Customer value &amp; positioning</div>
+    <h2 class="sec-title">Why this design wins, <em>in plain English.</em></h2>
+
+    <p class="intro">This section is preliminary. The full sales narrative locks only after the edge schema is validated against three real customer scenarios.</p>
+
+    <h3 class="sub">The customer-visible value</h3>
+
+    <div class="card-stack">
+      <div class="card">
+        <div class="c-title">Blast radius queries that are actually correct.</div>
+        <p class="c-desc">Because composition and dependency are separated, and because impact is computed rather than flagged, the answer to "what breaks if this fails?" is the answer reality gives — not the answer twenty years of accumulated business rules give.</p>
+      </div>
+      <div class="card">
+        <div class="c-title">A CMDB that stays clean by itself.</div>
+        <p class="c-desc">Cascading delete via <code>composedOf</code> prevents ghost CIs. Evidence-tagged edges with TTL surface stale data automatically. Admins spend hours on hygiene, not weeks.</p>
+      </div>
+      <div class="card">
+        <div class="c-title">A real answer to "does it work with our tools?"</div>
+        <p class="c-desc">Because edge types are config and validation is triplet-based, integrating a new discovery probe or observability platform is a pull request, not a quarter-long project.</p>
+      </div>
+      <div class="card">
+        <div class="c-title">AI that grounds itself in the graph.</div>
+        <p class="c-desc">The reason agentic AI fails on high-stakes operations is that it has no structured truth to verify against. The SKG is that structured truth. AI plus graph beats either alone.</p>
+      </div>
+      <div class="card">
+        <div class="c-title">Cost attribution that ties to the business.</div>
+        <p class="c-desc">Because the realization spine is opinionated and built in, showback and chargeback work from day one — not after a six-month CSDM-style modeling project.</p>
+      </div>
+    </div>
+
+    <div class="pullquote">
+      <div class="pq-label">The pitch · 60-second version · internal alignment only</div>
+      <div class="pq-text">ServiceNow built a CMDB to document things. BMC built a CMDB to prove things. UCMDB built a CMDB to query things. None of them was built for the AI era.<br><br>Motadata Fusion SaaS is the CMDB that exists if you start fresh today. A small, clean set of typed edges. Impact computed at query time, not stored as a flag. Every edge carries its evidence and confidence. AI can reason over it because the schema is small enough to fit in a prompt — <em>and trustworthy enough to act on.</em><br><br>Built for the mid-market that ServiceNow over-serves and Port under-serves. Unified across ITSM, ITOM, ITAM, ESM, CRM, and HRMS.</div>
+    </div>
+
+    <h3 class="sub">Where we win, where we don't</h3>
+
+    <div class="split-2">
+      <div class="card">
+        <div class="c-title">We win when…</div>
+        <ul>
+          <li>Mid-market customer, 500–5,000 employees</li>
+          <li>Multi-domain: IT + business + dev</li>
+          <li>Buying their first CMDB, or replacing a stalled one</li>
+          <li>Already evaluating AI-native ITSM</li>
+          <li>Comfortable with config-as-code workflows</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="c-title">We don't win yet when…</div>
+        <ul>
+          <li>Large enterprise locked into ServiceNow with five-plus years of CSDM investment</li>
+          <li>Heavily regulated customer needing a DMTF CIM compliance audit trail</li>
+          <li>Pure developer-tools buyer — Port wins this</li>
+          <li>Customer explicitly buying a workflow engine, not a system of record</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- §12 Three gates -->
+<section id="s12">
+  <div class="wrap">
+    <div class="sec-label">§ 12 · The three gates to v1.0</div>
+    <h2 class="sec-title">The validation work that has to pass <em>before we lock.</em></h2>
+
+    <p class="intro">Three gates have to pass before v0.2 graduates to v1.0. Each produces a decision-log entry. A failure at any gate produces a schema revision, not a workaround.</p>
+
+    <div class="card-stack">
+      <div class="card">
+        <div class="c-label">Gate 01 · Three-scenario modeling pass</div>
+        <div class="c-title">Model three real systems end-to-end using only the eleven stored edges.</div>
+        <p class="c-desc">A vCenter virtualization stack with all its external dependencies (DB, AD/SSO, NTP, DNS, certificate authority); a Kubernetes application with control plane, worker nodes, and pods; a multi-tier banking application (load balancer → web tier → application tier → database → cache → identity provider). Every relationship in each scenario has to map to one of the eleven without forcing. Any place the model strains gets noted, then resolved — refine a definition, accept the strain, or add an edge.</p>
+      </div>
+      <div class="card">
+        <div class="c-label">Gate 02 · Computed-edge correctness</div>
+        <div class="c-title">Run all four computed edges against each scenario and verify they match reality.</div>
+        <p class="c-desc">For each scenario, run <code>impactedBy</code> (both Directly and Potentially buckets), <code>reaches</code>, <code>sharesFailureDomain</code>, and <code>criticalPath</code>, and confirm the answers match what an operator who knows that system would give. The famous trap we guard against is "VM <code>dependsOn</code> vCenter," which makes a vCenter outage falsely appear as a total VM outage. In our model vCenter <code>manages</code> the VM, and <code>manages</code> is excluded from default blast radius.</p>
+      </div>
+      <div class="card">
+        <div class="c-label">Gate 03 · Discovery integration trial</div>
+        <div class="c-title">One real discovery source writes edges through the API end-to-end.</div>
+        <p class="c-desc">One genuine source — agent telemetry or a cloud API integration — writes edges through the Fusion SaaS API. Triplet validation has to reject at least one invalid edge during the trial. Evidence and confidence fields populate correctly. TTL surfaces a stale edge after one full cycle. The <code>observation_frequency</code> attribute populates correctly from a traffic source.</p>
+      </div>
+    </div>
+
+    <p>Once these three gates pass, v0.2 becomes v1.0. After that lock, every change to the spec flows through a new decision-log entry. v1.0 is the contract engineering builds against. v1.1 is the next contract — never an undocumented drift from v1.0.</p>
+  </div>
+</section>
+
+<!-- §13 Decision log -->
+<section id="s13">
+  <div class="wrap">
+    <div class="sec-label">§ 13 · The decision log</div>
+    <h2 class="sec-title">The most important artifact <em>long-term.</em></h2>
+
+    <p class="intro">Every relationship-model decision Fusion SaaS makes from here lives in a decision-log entry. Six months from now, when engineering asks "why eleven edges and not fifteen?", the answer is in the log — not in someone's memory.</p>
+
+    <p>Keep entries short, one paragraph per field. Log every meaningful decision: adding or removing an edge type, changing a validation rule, redefining an impact computation, settling a direction convention. Suggested location is a <code>/skg/decisions/</code> folder, one markdown file per decision, indexed in a top-level README, numbered sequentially.</p>
+
+    <div class="dlog">
+      <div class="dlog-head">Decision · #001 · Adopt eleven canonical stored edge types</div>
+      <div class="dlog-row"><div class="dlog-k">Date</div><div class="dlog-v">2026-05-20</div></div>
+      <div class="dlog-row"><div class="dlog-k">Status</div><div class="dlog-v">Accepted · v0.1 · pending validation</div></div>
+      <div class="dlog-row"><div class="dlog-k">Decision</div><div class="dlog-v">Eleven stored edge types as listed in § 08. Four computed edges. Edge types defined as config (JSON Schema), not database schema.</div></div>
+      <div class="dlog-row"><div class="dlog-k">Rationale</div><div class="dlog-v">ServiceNow's fifty-three verb pairs are evidence that more is worse. BMC's six base classes are evidence that even less works. UCMDB's core CITs hit the right balance. The set was derived from the four-question framing in § 05 plus the four operational jobs.</div></div>
+      <div class="dlog-row"><div class="dlog-k">Alternatives considered</div><div class="dlog-v">(a) Adopt ServiceNow's fifty-three-verb model — rejected, fails principle 01. (b) Adopt BMC's six-class model — rejected, too coarse for blast-radius computation. (c) Adopt Port's fully-configurable model — rejected, no opinionated default ships.</div></div>
+      <div class="dlog-row"><div class="dlog-k">Implications</div><div class="dlog-v">Discovery integrations must map their output to one of the eleven. AI reasoning prompts can list all eleven in the system message. UI dropdowns are derived from the schema, not authored separately.</div></div>
+      <div class="dlog-row"><div class="dlog-k">Reviewers</div><div class="dlog-v">Meetkumar (Product), Rakesh (Engineering)</div></div>
+      <div class="dlog-row"><div class="dlog-k">Revisit by</div><div class="dlog-v">2026-08-31 — after three customer scenarios validated</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Changelog -->
+<section id="changelog">
+  <div class="wrap">
+    <div class="sec-label">Changelog · v0.1 → v0.2</div>
+    <h2 class="sec-title">What changed, <em>and why.</em></h2>
+
+    <p class="intro">Six refinements emerged from cross-validation against ServiceNow, BMC Helix, and UCMDB. Each was discussed individually and adopted with a specific intent. The changes are surgical — the eleven-and-four shape of the design is preserved.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Change</th><th>Why</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>R01</td><td>Add <code>observation_frequency</code> to <code>communicatesWith</code></td><td>UCMDB's <code>talk</code> CIT has carried frequency for twenty years. Lets us age out one-shot observations fast and trust sustained ones more. Cheap, additive, no schema disruption.</td><td>Adopted</td></tr>
+          <tr><td>R02</td><td>Split <code>impactedBy</code> output into Directly vs Potentially</td><td>UCMDB's cleanest operational distinction. "Will fail" separated from "might fail." Resolver-only change, no schema impact.</td><td>Adopted</td></tr>
+          <tr><td>R03</td><td>Strict triplet rules and anti-patterns for <code>dependsOn</code></td><td>Directly answers ServiceNow's most-overloaded edge problem. Explicit "do not use for" guidance: not hosting, not raw traffic, not realization.</td><td>Adopted</td></tr>
+          <tr><td>R04</td><td>Sharpen <code>succeedsLifecycleOf</code> subtype enum</td><td>Stay unified like <code>BMC_Genealogy</code>, not split like ServiceNow. Five precise subtypes: <code>version</code>, <code>dr</code>, <code>backup</code>, <code>migration</code>, <code>rollback</code>.</td><td>Adopted</td></tr>
+          <tr><td>R05</td><td>Federated identity stays as evidence metadata</td><td>BMC ships a separate <code>BMC_FederatedKeyLink</code> edge. We deliberately use <code>evidenceSource = identity_correlation</code> on existing edges. Mid-market customers rarely federate CMDBs.</td><td>Adopted</td></tr>
+          <tr><td>R06</td><td>Contract-to-CI binding deferred to ITAM module design</td><td>BMC ships <code>BMC_ContractComponent</code> and ServiceNow has an explicit contract module. Our <code>ownedBy</code> plus <code>memberOf</code> covers it indirectly — workable but less queryable. Decision deferred.</td><td>Forward</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The stored vocabulary remains at eleven. The computed vocabulary remains at four. Five of the six refinements landed as attribute additions, resolver changes, enum tightening, or deliberate documented choices not to add. The sixth is a deferred decision the ITAM module will resolve when it begins.</p>
+
+    <p>This list lives in the decision log at <code>/skg/decisions/</code> as a single entry — Decision 002, the v0.1 to v0.2 refinement pass. Anyone six months from now who asks why <code>communicatesWith</code> has an observation frequency will find R01 with the full reasoning attached. That is the point of the log: institutional memory in one place, never in someone's head.</p>
+
+    <div class="aside">
+      <span class="aside-label">Closing note</span>
+      <p>This document is the source of truth for everything that follows — engineering specs, customer pitches, analyst conversations, the eventual sales deck. Every other artifact should reference back to a section here. When this document is updated, every derived artifact gets re-derived. One source of truth, many formats.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-label="Motadata">
+        <g>
+          <path d="M291.6,220.35V45.51c89.35,14.97,159.88,85.5,174.85,174.85h-174.85Z" fill="#f17463"/>
+          <path d="M469.33,260.55c-2.39,115.7-97.04,208.78-213.29,208.78S42.67,373.76,42.67,255.95c0-12.13,1.01-24.08,2.94-35.56C62.24,120.96,147.8,44.87,251.45,42.67v88.31c-54.4,2.02-99.98,39.06-114.78,89.41-3.31,11.21-5.14,23.16-5.14,35.56,0,69.01,55.78,124.98,124.52,124.98,12.31,0,24.26-1.75,35.56-5.15,49.99-14.89,86.84-60.65,88.77-115.24h88.95Z"/>
+        </g>
+      </svg>
+    </div>
+    <div class="foot-brand">Motadata · Fusion SaaS</div>
+    <div class="foot-note">The consolidated philosophy document for the Fusion SaaS Service-Centric Knowledge Graph, merged from the SKG Master Design and the SKG Story, and cross-validated against ServiceNow, BMC Helix, and OpenText UCMDB.</div>
+    <div class="foot-meta">v0.2 · 2026-09-02 · Internal Product Document</div>
+  </div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.04, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('section, .act-break').forEach(el => {
+  el.classList.add('fade-in');
+  observer.observe(el);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E1–E5 Pipeline Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ============ THEME — Blueprint (deep slate/blue, technical) ============ */
+  :root {
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --border: rgba(15, 23, 42, 0.08);
+    --text: #0f172a;
+    --text-dim: #475569;
+    --text-faint: #94a3b8;
+
+    --primary: #1e3a5f;
+    --primary-dim: rgba(30, 58, 95, 0.08);
+    --accent-a: #0369a1;
+    --accent-a-dim: rgba(3, 105, 161, 0.08);
+    --accent-b: #d97706;
+    --accent-b-dim: rgba(217, 119, 6, 0.08);
+    --pillar-a: #059669;
+    --pillar-a-dim: rgba(5, 150, 105, 0.10);
+    --pillar-b: #be123c;
+    --pillar-b-dim: rgba(190, 18, 60, 0.10);
+    --aux: #7c3aed;
+    --aux-dim: rgba(124, 58, 237, 0.10);
+
+    --zone-edge: rgba(3, 105, 161, 0.07);
+    --zone-edge-stroke: rgba(3, 105, 161, 0.28);
+    --zone-gw: rgba(5, 150, 105, 0.06);
+    --zone-gw-stroke: rgba(5, 150, 105, 0.35);
+    --zone-platform: rgba(30, 58, 95, 0.05);
+    --zone-platform-stroke: rgba(30, 58, 95, 0.18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1220;
+      --surface: #111a2e;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-faint: #64748b;
+
+      --primary: #5e9ed6;
+      --primary-dim: rgba(94, 158, 214, 0.12);
+      --accent-a: #38bdf8;
+      --accent-a-dim: rgba(56, 189, 248, 0.14);
+      --accent-b: #fbbf24;
+      --accent-b-dim: rgba(251, 191, 36, 0.14);
+      --pillar-a: #34d399;
+      --pillar-a-dim: rgba(52, 211, 153, 0.14);
+      --pillar-b: #fb7185;
+      --pillar-b-dim: rgba(251, 113, 133, 0.14);
+      --aux: #a78bfa;
+      --aux-dim: rgba(167, 139, 250, 0.14);
+
+      --zone-edge: rgba(56, 189, 248, 0.08);
+      --zone-edge-stroke: rgba(56, 189, 248, 0.32);
+      --zone-gw: rgba(52, 211, 153, 0.07);
+      --zone-gw-stroke: rgba(52, 211, 153, 0.38);
+      --zone-platform: rgba(94, 158, 214, 0.06);
+      --zone-platform-stroke: rgba(94, 158, 214, 0.22);
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(rgba(30, 58, 95, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30, 58, 95, 0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--text);
+    font-family: var(--font-body);
+    padding: 48px 32px;
+    min-height: 100vh;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-image:
+        linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+    }
+  }
+
+  /* ============ ANIMATION ============ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes drawIn {
+    from { stroke-dashoffset: 280; }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes pulseNode {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  .animate {
+    animation: fadeUp 0.5s ease-out both;
+    animation-delay: calc(var(--i, 0) * 0.07s);
+  }
+  .connector-path {
+    stroke-dasharray: 280;
+    animation: drawIn 0.9s ease-out both;
+    animation-delay: calc(0.4s + var(--ci, 0) * 0.08s);
+  }
+  .pulse {
+    animation: pulseNode 2.4s ease-in-out infinite;
+    animation-delay: calc(var(--pi, 0) * 0.4s);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+    }
+    .connector-path { stroke-dasharray: none; }
+  }
+
+  /* ============ LAYOUT ============ */
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  .header {
+    margin-bottom: 36px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    margin-bottom: 10px;
+    text-wrap: balance;
+  }
+  h1 .accent { color: var(--accent-a); }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 680px;
+  }
+  .subtitle code {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    background: var(--primary-dim);
+    color: var(--primary);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* ============ DIAGRAM CANVAS ============ */
+  .canvas {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 56px 24px 48px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 12px 36px -16px rgba(15,23,42,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    .canvas { box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 12px 36px -16px rgba(0,0,0,0.5); }
+  }
+
+  .canvas-label {
+    position: absolute;
+    top: 16px;
+    left: 22px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .pipeline-svg {
+    width: 100%;
+    min-width: 720px;
+    height: auto;
+    display: block;
+    max-width: 100%;
+  }
+
+  /* ============ NODE STYLING ============ */
+  .node-rect {
+    fill: var(--surface);
+    stroke-width: 1.5;
+    transition: filter 0.2s ease, stroke-width 0.2s ease;
+  }
+  .node-rect.collect { stroke: var(--accent-a); }
+  .node-rect.identity { stroke: var(--primary); }
+  .node-rect.topology { stroke: var(--pillar-b); }
+  .node-rect.stores { stroke: var(--pillar-a); }
+  .node-rect.baseline { stroke: var(--accent-b); }
+
+  .node-rect:hover {
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.12));
+    stroke-width: 2.5;
+    cursor: pointer;
+  }
+
+  .node-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    fill: var(--text-faint);
+  }
+
+  .node-title {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+    fill: var(--text);
+  }
+
+  .node-sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    fill: var(--text-dim);
+  }
+
+  .pillar-badge-rect {
+    stroke-width: 1;
+    rx: 4;
+    ry: 4;
+  }
+  .pillar-badge-rect.a { fill: var(--pillar-a-dim); stroke: var(--pillar-a); }
+  .pillar-badge-rect.b { fill: var(--pillar-b-dim); stroke: var(--pillar-b); }
+  .pillar-badge-text {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .pillar-badge-text.a { fill: var(--pillar-a); }
+  .pillar-badge-text.b { fill: var(--pillar-b); }
+
+  .branch-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    fill: var(--text-dim);
+  }
+  .branch-label-bg {
+    fill: var(--bg);
+    stroke: none;
+  }
+
+  .out-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .out-label.topology { fill: var(--pillar-b); }
+  .out-label.stores { fill: var(--pillar-a); }
+
+  .e5-link {
+    stroke: var(--accent-b);
+    stroke-width: 1.4;
+    stroke-dasharray: 4 4;
+    fill: none;
+  }
+  .e5-link-arrow {
+    fill: var(--accent-b);
+  }
+  .e5-label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    fill: var(--accent-b);
+  }
+
+  .zone-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    fill: var(--text-faint);
+  }
+  .zone-sublabel {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    fill: var(--text-faint);
+    opacity: 0.85;
+  }
+  .zone-edge-rect { fill: var(--zone-edge); stroke: var(--zone-edge-stroke); stroke-width: 1.2; }
+  .zone-gw-rect { fill: var(--zone-gw); stroke: var(--zone-gw-stroke); stroke-width: 1.2; stroke-dasharray: 6 4; }
+  .zone-platform-rect { fill: var(--zone-platform); stroke: var(--zone-platform-stroke); stroke-width: 1.2; }
+  .edge-node-rect { fill: var(--surface); stroke: var(--accent-a); stroke-width: 1.3; }
+  .gw-node-rect { fill: var(--surface); stroke: var(--pillar-a); stroke-width: 1.2; stroke-dasharray: 5 3; }
+  .boundary-line { stroke: var(--text-faint); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.5; }
+
+  /* ============ LEGEND ============ */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin-top: 28px;
+    padding: 18px 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--text-dim);
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1.5px solid;
+    flex-shrink: 0;
+  }
+
+  .legend-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border);
+    align-self: center;
+  }
+
+  /* ============ DETAIL CARDS ============ */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 36px;
+  }
+  @media (max-width: 760px) {
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+
+  .ve-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    border-left: 3px solid var(--accent-a);
+  }
+  .ve-card.pillar-a { border-left-color: var(--pillar-a); }
+  .ve-card.pillar-b { border-left-color: var(--pillar-b); }
+  .ve-card.baseline { border-left-color: var(--accent-b); }
+  .ve-card.identity { border-left-color: var(--primary); }
+  .ve-card.collect { border-left-color: var(--accent-a); }
+
+  .card-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .card-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-a);
+    background: var(--accent-a-dim);
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .ve-card.pillar-a .card-tag { color: var(--pillar-a); background: var(--pillar-a-dim); }
+  .ve-card.pillar-b .card-tag { color: var(--pillar-b); background: var(--pillar-b-dim); }
+  .ve-card.baseline .card-tag { color: var(--accent-b); background: var(--accent-b-dim); }
+  .ve-card.identity .card-tag { color: var(--primary); background: var(--primary-dim); }
+
+  .card-title {
+    font-size: 15.5px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .card-body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+  .card-body code {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    background: var(--primary-dim);
+    color: var(--primary);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .card-output {
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+  .card-output strong {
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  /* ============ CALLOUT ============ */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-b);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-dim);
+    margin-top: 28px;
+  }
+  .callout strong { color: var(--text); }
+  .callout code {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    background: var(--accent-b-dim);
+    color: var(--accent-b);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  @media (max-width: 768px) {
+    body { padding: 24px 16px; }
+    h1 { font-size: 26px; }
+    .canvas { padding: 40px 12px 32px; }
+    .pipeline-svg { min-width: 640px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="header animate" style="--i:0">
+    <div class="eyebrow">ObserveOps · E1–E5 fabric</div>
+    <h1>E1 → E2 <span class="accent">branches</span> into Pillar A &amp; Pillar B</h1>
+    <p class="subtitle">
+      Always-on fabric after ingest: optional <strong>Edge</strong> and <strong>Gateway</strong> shape telemetry
+      before the <strong>Platform</strong> control plane runs <code>E1 Collect</code> through <code>E5 Maintain</code>.
+      <code>E2 Identity</code> binds signals to stable configuration items, then the resolved stream fans out in
+      <strong>parallel</strong> — Pillar B topology (<code>E3</code> → <code>map/</code>) and Pillar A sketches
+      (<code>E4</code> → <code>history/</code>). <code>E5</code> refreshes seasonal baselines into Pillar A.
+      See <a href="/observeops-shift-left-architecture.html" style="color:var(--accent-a)">shift-left locus map</a>.
+    </p>
+  </header>
+
+  <!-- ============ SVG DIAGRAM ============ -->
+  <section class="canvas animate" style="--i:1">
+    <span class="canvas-label">pipeline · flow</span>
+
+    <svg class="pipeline-svg" viewBox="0 0 1240 480" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Pipeline with Edge, Gateway, and Platform zones: shaped stream enters Platform at E1 Collect, E2 Identity branches to E3 map and E4 history, E5 refreshes baselines.">
+
+      <!-- ============ DEFS: arrowheads + clip paths ============ -->
+      <defs>
+        <marker id="arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#0369a1"/>
+        </marker>
+        <marker id="arrow-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#1e3a5f"/>
+        </marker>
+        <marker id="arrow-pillarb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#be123c"/>
+        </marker>
+        <marker id="arrow-pillara" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#059669"/>
+        </marker>
+        <marker id="arrow-e5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706"/>
+        </marker>
+        <marker id="arrow-edge" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+        </marker>
+        <clipPath id="clip-edge-src"><rect x="24" y="128" width="160" height="52" rx="8"/></clipPath>
+        <clipPath id="clip-edge-node"><rect x="24" y="222" width="160" height="78" rx="8"/></clipPath>
+        <clipPath id="clip-gw"><rect x="210" y="166" width="92" height="92" rx="6"/></clipPath>
+        <clipPath id="clip-e1"><rect x="308" y="148" width="156" height="94" rx="10"/></clipPath>
+        <clipPath id="clip-e4"><rect x="798" y="238" width="168" height="104" rx="10"/></clipPath>
+        <clipPath id="clip-e5"><rect x="798" y="398" width="168" height="64" rx="10"/></clipPath>
+      </defs>
+
+      <!-- ============ ZONE BACKGROUNDS ============ -->
+      <rect class="zone-edge-rect" x="8" y="48" width="196" height="412" rx="12"/>
+      <text class="zone-label" x="106" y="68" text-anchor="middle">Edge</text>
+      <text class="zone-sublabel" x="106" y="82" text-anchor="middle">customer infra</text>
+
+      <rect class="zone-gw-rect" x="210" y="48" width="92" height="412" rx="8"/>
+      <text class="zone-label" x="256" y="68" text-anchor="middle">Gateway</text>
+      <text class="zone-sublabel" x="256" y="82" text-anchor="middle">optional</text>
+
+      <rect class="zone-platform-rect" x="310" y="48" width="922" height="412" rx="12"/>
+      <text class="zone-label" x="771" y="68" text-anchor="middle">Platform</text>
+      <text class="zone-sublabel" x="771" y="82" text-anchor="middle">SaaS control plane</text>
+      <text class="zone-sublabel" x="771" y="94" text-anchor="middle">E1–E5 fabric</text>
+
+      <line class="boundary-line" x1="310" y1="102" x2="310" y2="448"/>
+
+      <!-- ============ EDGE: Sources → Node ============ -->
+      <g class="animate" style="--i:1.5" clip-path="url(#clip-edge-src)">
+        <rect class="edge-node-rect" x="24" y="128" width="160" height="52" rx="8"/>
+        <text class="node-tag" x="104" y="146" text-anchor="middle">SRC</text>
+        <text class="node-title" x="104" y="164" text-anchor="middle" font-size="13">Sources</text>
+        <text class="node-sub" x="104" y="178" text-anchor="middle" font-size="10">pods · VMs · APIs</text>
+      </g>
+      <text class="node-sub" x="104" y="196" text-anchor="middle" font-size="10">raw MELT</text>
+      <path class="connector-path" style="--ci:0.2"
+            d="M 104 202 L 104 216" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow-edge)"/>
+      <g class="animate" style="--i:1.6" clip-path="url(#clip-edge-node)">
+        <rect class="edge-node-rect" x="24" y="222" width="160" height="78" rx="8"/>
+        <text class="node-tag" x="104" y="240" text-anchor="middle">NODE</text>
+        <text class="node-title" x="104" y="258" text-anchor="middle" font-size="13">Node / OTel</text>
+        <text class="node-sub" x="104" y="274" text-anchor="middle" font-size="10">parse · enrich</text>
+        <text class="node-sub" x="104" y="288" text-anchor="middle" font-size="10">E6 door A</text>
+      </g>
+
+      <text class="node-sub" x="104" y="316" text-anchor="middle" font-size="10">shaped stream</text>
+      <path class="connector-path" style="--ci:0.3"
+            d="M 184 258 C 240 258, 240 195, 308 195" stroke="#64748b" stroke-width="1.8" fill="none"
+            marker-end="url(#arrow-a)"/>
+
+      <g class="animate" style="--i:1.7" clip-path="url(#clip-gw)">
+        <rect class="gw-node-rect" x="210" y="166" width="92" height="92" rx="6"/>
+        <text class="node-tag" x="256" y="186" text-anchor="middle" font-size="9">GW</text>
+        <text class="node-title" x="256" y="204" text-anchor="middle" font-size="11">Gateway</text>
+        <text class="node-sub" x="256" y="222" text-anchor="middle" font-size="9">aggregate</text>
+        <text class="node-sub" x="256" y="236" text-anchor="middle" font-size="9">E6 door B</text>
+      </g>
+
+      <!-- ============ CONNECTORS (platform) ============ -->
+      <path class="connector-path" style="--ci:0"
+            d="M 464 195 L 564 195" stroke="#0369a1" stroke-width="2" fill="none"
+            marker-end="url(#arrow-a)"/>
+
+      <path class="connector-path" style="--ci:1"
+            d="M 724 175 C 774 175, 774 100, 804 100" stroke="#1e3a5f" stroke-width="2" fill="none"
+            marker-end="url(#arrow-b)"/>
+
+      <path class="connector-path" style="--ci:2"
+            d="M 724 215 C 774 215, 774 290, 804 290" stroke="#1e3a5f" stroke-width="2" fill="none"
+            marker-end="url(#arrow-b)"/>
+
+      <path class="connector-path" style="--ci:3"
+            d="M 968 100 L 1088 100" stroke="#be123c" stroke-width="2" fill="none"
+            marker-end="url(#arrow-pillarb)"/>
+
+      <path class="connector-path" style="--ci:4"
+            d="M 968 290 L 1088 290" stroke="#059669" stroke-width="2" fill="none"
+            marker-end="url(#arrow-pillara)"/>
+
+      <path class="e5-link connector-path" style="--ci:5"
+            d="M 882 408 L 882 348"
+            marker-end="url(#arrow-e5)"/>
+
+      <rect class="branch-label-bg" x="734" y="128" width="80" height="18" rx="3"/>
+      <text class="branch-label" x="774" y="140" text-anchor="middle">Pillar B</text>
+
+      <rect class="branch-label-bg" x="734" y="244" width="80" height="18" rx="3"/>
+      <text class="branch-label" x="774" y="256" text-anchor="middle">Pillar A</text>
+
+      <!-- ============ E1: Collect (Platform) ============ -->
+      <g class="animate" style="--i:2" clip-path="url(#clip-e1)">
+        <rect class="node-rect collect" x="308" y="148" width="156" height="94" rx="10" ry="10"/>
+        <text class="node-tag" x="324" y="168">E1</text>
+        <text class="node-title" x="324" y="190">Collect</text>
+        <text class="node-sub" x="324" y="210" font-size="10">shaped stream in</text>
+        <text class="node-sub" x="324" y="226" font-size="10" opacity="0.7">ingest.v1</text>
+      </g>
+
+      <!-- ============ E2: Identity ============ -->
+      <g class="animate" style="--i:3">
+        <rect class="node-rect identity" x="564" y="148" width="160" height="94" rx="10" ry="10"/>
+        <text class="node-tag" x="580" y="168">E2</text>
+        <text class="node-title" x="580" y="190">Identity</text>
+        <text class="node-sub" x="580" y="210" font-size="10">LUT · ci_id</text>
+        <text class="node-sub" x="580" y="226" font-size="10" opacity="0.7">fan-out point</text>
+      </g>
+
+      <!-- ============ E3: Topology ============ -->
+      <g class="animate" style="--i:4">
+        <rect class="node-rect topology" x="804" y="50" width="164" height="100" rx="10" ry="10"/>
+        <text class="node-tag" x="820" y="70">E3</text>
+        <text class="node-title" x="820" y="92">Topology</text>
+        <text class="node-sub" x="820" y="112" font-size="10">map · edges</text>
+        <text class="node-sub" x="820" y="128" font-size="10" opacity="0.7">hierarchy</text>
+        <rect class="pillar-badge-rect b" x="892" y="59" width="64" height="16"/>
+        <text class="pillar-badge-text b" x="924" y="70" text-anchor="middle">PILLAR B</text>
+      </g>
+
+      <!-- ============ E4: Stores sketches ============ -->
+      <g class="animate" style="--i:5" clip-path="url(#clip-e4)">
+        <rect class="node-rect stores" x="804" y="238" width="168" height="104" rx="10" ry="10"/>
+        <text class="node-tag" x="820" y="258">E4</text>
+        <text class="node-title" x="820" y="280" font-size="15">Sketches</text>
+        <text class="node-sub" x="820" y="300" font-size="10">digest · buckets</text>
+        <text class="node-sub" x="820" y="316" font-size="10" opacity="0.7">exemplars opt.</text>
+        <rect class="pillar-badge-rect a" x="896" y="247" width="64" height="16"/>
+        <text class="pillar-badge-text a" x="928" y="258" text-anchor="middle">PILLAR A</text>
+      </g>
+
+      <!-- ============ E5: Baseline refresh ============ -->
+      <g class="animate pulse" style="--i:6; --pi:0" clip-path="url(#clip-e5)">
+        <rect class="node-rect baseline" x="804" y="398" width="168" height="64" rx="10" ry="10"/>
+        <text class="node-tag" x="820" y="418">E5</text>
+        <text class="node-title" x="820" y="440" font-size="15">Baseline</text>
+        <text class="node-sub" x="820" y="456" font-size="10" opacity="0.8">seasonal refresh</text>
+      </g>
+
+      <!-- ============ OUTPUTS ============ -->
+      <g class="animate" style="--i:7">
+        <rect x="1088" y="72" width="128" height="56" rx="8" ry="8"
+              fill="var(--pillar-b-dim)" stroke="#be123c" stroke-width="1.2"
+              stroke-dasharray="5 3"/>
+        <text class="out-label topology" x="1152" y="96" text-anchor="middle" font-weight="600">map/</text>
+        <text class="node-sub" x="1152" y="114" text-anchor="middle" font-size="10" opacity="0.8">GraphSnapshot</text>
+      </g>
+
+      <g class="animate" style="--i:8">
+        <rect x="1088" y="262" width="128" height="56" rx="8" ry="8"
+              fill="var(--pillar-a-dim)" stroke="#059669" stroke-width="1.2"
+              stroke-dasharray="5 3"/>
+        <text class="out-label stores" x="1152" y="286" text-anchor="middle" font-weight="600">history/</text>
+        <text class="node-sub" x="1152" y="304" text-anchor="middle" font-size="10" opacity="0.8">sketch.v1</text>
+      </g>
+
+    </svg>
+
+    <!-- ============ LEGEND ============ -->
+    <div class="legend animate" style="--i:9">
+      <div class="legend-item">
+        <div class="legend-swatch" style="border-color:var(--zone-edge-stroke); background:var(--zone-edge); border-style:solid"></div>
+        Edge (customer infra)
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="border-color:var(--zone-gw-stroke); background:var(--zone-gw); border-style:dashed"></div>
+        Gateway (optional)
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="border-color:var(--zone-platform-stroke); background:var(--zone-platform); border-style:solid"></div>
+        Platform (SaaS)
+      </div>
+      <div class="legend-divider"></div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="border-color:var(--accent-a); background:var(--accent-a-dim)"></div>
+        Ingest (E1)
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="border-color:var(--primary); background:var(--primary-dim)"></div>
+        Resolve
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="border-color:var(--pillar-b); background:var(--pillar-b-dim)"></div>
+        Pillar B — Topology
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="border-color:var(--pillar-a); background:var(--pillar-a-dim)"></div>
+        Pillar A — Stores
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="border-color:var(--accent-b); background:var(--accent-b-dim)"></div>
+        Baseline refresh
+      </div>
+      <div class="legend-item">
+        <svg width="28" height="14" style="flex-shrink:0">
+          <line x1="2" y1="7" x2="26" y2="7" stroke="var(--accent-b)" stroke-width="1.4" stroke-dasharray="4 4"/>
+        </svg>
+        Feedback / refresh link
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DETAIL CARDS ============ -->
+  <div class="detail-grid">
+
+    <div class="ve-card collect animate" style="--i:10">
+      <div class="card-head">
+        <span class="card-tag">E1</span>
+        <span class="card-title">Collect</span>
+      </div>
+      <div class="card-body">
+        Platform admission point: receives the <strong>shaped stream</strong> from Edge (optionally via Gateway)
+        over TLS. E1 validates wire format and buffers — it does not bind CIs (that is E2).
+      </div>
+      <div class="card-output"><strong>input ←</strong> shaped MELT from Edge · <strong>output →</strong> ingest.v1 batch</div>
+    </div>
+
+    <div class="ve-card identity animate" style="--i:11">
+      <div class="card-head">
+        <span class="card-tag">E2</span>
+        <span class="card-title">Identity</span>
+      </div>
+      <div class="card-body">
+        Binds collected signals to stable configuration items: identity matching,
+        canonicalization, and <code>identity.status</code> (sketch writers admit
+        <strong>resolved</strong> only). The resolved stream is the
+        <strong>fan-out point</strong> — it feeds both pillars in parallel.
+        Neither pillar sits inside Identity.
+      </div>
+      <div class="card-output"><strong>output →</strong> resolved identity stream (branched)</div>
+    </div>
+
+    <div class="ve-card pillar-b animate" style="--i:12">
+      <div class="card-head">
+        <span class="card-tag">E3 · Pillar B</span>
+        <span class="card-title">Topology</span>
+      </div>
+      <div class="card-body">
+        Builds the relationship map from resolved configuration items — typed
+        edges, hierarchy, provenance. Writes <code>graph_node.v1</code> /
+        <code>graph_edge.v1</code> as a <code>GraphSnapshot</code> under
+        <code>map/</code>. Does <strong>not</strong> write metric sketches.
+      </div>
+      <div class="card-output"><strong>output →</strong> map/ (GraphSnapshot)</div>
+    </div>
+
+    <div class="ve-card pillar-a animate" style="--i:13">
+      <div class="card-head">
+        <span class="card-tag">E4 · Pillar A</span>
+        <span class="card-title">Stores sketches</span>
+      </div>
+      <div class="card-body">
+        Writes compressed <strong>metric history</strong> for one entity + window:
+        T-Digest + buckets + seasonal baseline in one <code>sketch.v1</code> row.
+        Same <code>tenant</code> + <code>entity_id</code> (= <code>ci_id</code>) as
+        the graph — but sketches never carry edges. Receives seasonal baseline
+        refresh from <code>E5</code>. Writes to <code>history/</code>.
+      </div>
+      <div class="card-output"><strong>output →</strong> history/ (sketch.v1 store)</div>
+    </div>
+
+    <div class="ve-card baseline animate" style="--i:14; grid-column: span 2;">
+      <div class="card-head">
+        <span class="card-tag">E5</span>
+        <span class="card-title">Baseline refresh (Maintain)</span>
+      </div>
+      <div class="card-body">
+        Periodic sidecar. The dashed link on this diagram is
+        <strong>seasonal baseline re-anchor into Pillar A</strong> (expected p50/p95/p99
+        for each <code>season_key</code> so Detect can compare digest vs season).
+        Broader Maintain also covers graph validity / decay on the Pillar B map;
+        that path is not drawn here so the fan-out stays readable.
+      </div>
+      <div class="card-output"><strong>feeds →</strong> E4 seasonal baselines (shown) · map validity (off diagram) · cadence: periodic</div>
+    </div>
+
+  </div>
+
+  <!-- ============ CALLOUT ============ -->
+  <div class="callout animate" style="--i:15">
+    <strong>Three zones, one pipeline.</strong> <strong>Edge</strong> (Node / OTel) shapes telemetry before egress;
+    <strong>Gateway</strong> is optional consolidation; <strong>Platform</strong> runs E1–E5 on our SaaS control plane.
+    <code>E2 Identity</code> is the branch point inside Platform: resolved stream feeds
+    <strong>Pillar B</strong> (<code>E3</code> → <code>map/</code>) and <strong>Pillar A</strong>
+    (<code>E4</code> → <code>history/</code> / <code>sketch.v1</code>) in parallel.
+    Exemplars (optional) are captured at <code>E4</code>, not at Edge or E2.
+    <code>E5</code>’s dashed link is seasonal baseline refresh into Pillar A.
+    Teaching: <a href="./PILLAR_A_PERCENTILES_DEEP_DIVE.md" style="color:var(--accent-a)">Pillar A deep dive</a>
+    · <a href="/observeops-shift-left-architecture.html" style="color:var(--accent-a)">shift-left locus</a>
+    · FAQ Q26 in the graph/sketch contract brief.
+  </div>
+
+</div>
+
+</body>
+</html>

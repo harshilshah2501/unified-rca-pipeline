@@ -1,0 +1,30 @@
+---
+description: Write elaboratively in plain language — no jargon dump, no invented symbols
+alwaysApply: true
+---
+
+# Plain, complete writing (chat and docs)
+
+Readers of this repo often context-switch across many workstreams. Do **not** assume they still hold prior chat, prior decisions, or product instinct in mind.
+
+## When you write (answers, commits, docs, briefs)
+
+1. **Be elaborative and definite.** Prefer full sentences that state who, what, where, and why. Do not compress into telegram-style fragments when the reader needs to act later without rereading the whole thread.
+2. **Explain terms the first time they appear in that page or reply.** If a short name is unavoidable (for example a folder path or a Motadata product name from leadership), write the long meaning next to it once, then the short name is allowed.
+3. **Do not invent house vocabulary.** Do not create labels like “Path A / Path B / Path C,” coded vote names, or new acronyms for options we discussed. Describe the choice in ordinary words (for example: “richer configuration-item catalog with fifteen edge types” — not a private letter code).
+4. **Do not flood terminology.** Prefer words already used by Motadata leadership materials, ObserveOps pipeline docs, or the vendors (Dynatrace, Datadog, Edge Delta). If two names mean the same thing, pick one and stick to it on that page.
+5. **Do not assume pre-context.** Restate the decision or fact when it matters. Link or name the file the reader should open. Do not write “as locked earlier” without repeating what was locked.
+6. **Special vocab and unexplained acronyms are a failure mode.** Spell out or replace them. Pipeline stage labels that already live in the hub (for example Collect, Identity, Topology) may be used when the surrounding sentence says what the stage does.
+
+## When you update documentation
+
+- Edit content under `docs/` or `pillar-ab-implementation/` only. The dashboard under `benchmarking/dashboard/` is a host with links; do not create a second copy of the same article there.
+- Do not put day-to-day edits under `_archive/`.
+- Management PDFs and OKR spreadsheets stay under `KR Plan/` unless the user asks to regenerate them.
+- After structural moves, update navigation and relative links so a cold reader can still find the page from the docs hub.
+
+## Self-check before you finish
+
+- Could a teammate who did not see this chat follow the paragraph without asking what a symbol means?
+- Did you introduce any new private label that is not in Motadata or ObserveOps source docs?
+- If you used a short name, did you define it in plain language nearby?

@@ -63,7 +63,7 @@ def write_l0_sinks(stream: Path, out_dir: Path) -> dict[str, int]:
                 continue
             row = json.loads(line)
             counts["total"] += 1
-            if row.get("signal_class") in LEAN_CLASSES:
+            if row.get("fact_kind") in LEAN_CLASSES:
                 lean_fh.write(json.dumps(row, separators=(",", ":")) + "\n")
                 counts["lean"] += 1
     return counts

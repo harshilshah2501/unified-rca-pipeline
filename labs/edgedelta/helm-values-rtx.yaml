@@ -1,0 +1,21 @@
+# RTX k3s — Node still compactors/rollup off; eBPF traces on (pipeline has k8s_trace_input).
+# Gateway is a separate chart + separate pipeline ID — do not reuse this file for that.
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+aggregatorProps:
+  enabled: false
+compactorProps:
+  enabled: false
+rollUpProps:
+  enabled: false
+tracerProps:
+  enabled: true
+  port: 9595
+coordinatorProps:
+  enabled: true

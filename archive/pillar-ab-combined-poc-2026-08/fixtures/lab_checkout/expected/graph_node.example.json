@@ -1,0 +1,16 @@
+{
+  "schema_version": "graph_node.v1",
+  "tenant": "default",
+  "ci_id": "checkout-api",
+  "ci_type": "Service",
+  "ci_name": "checkout-api",
+  "ci_class": "application",
+  "tier": "technical_service",
+  "instance_scope": "single",
+  "identity_status": "resolved",
+  "monitored_via": ["agent", "apm"],
+  "aliases": ["svc:checkout-api"],
+  "labels": { "env": "rca-lab" },
+  "valid_from": null,
+  "valid_to": null
+}

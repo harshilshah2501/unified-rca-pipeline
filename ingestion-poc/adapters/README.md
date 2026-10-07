@@ -1,6 +1,8 @@
 # Motadata → ingest.v1 adapter (+ depth / broaden)
 
-Converts local Motadata dumps in `datasets/ingest_samples/jsonl_resolved/` (gitignored large files) into `ingest.v1` JSONL.
+Converts local Motadata dumps in `datasets/ingest_samples/jsonl_resolved/` (gitignored large files, ~4.3G) into `ingest.v1` JSONL.
+
+**Dump policy / when dumps are optional:** [`../README.md`](../README.md) · helper [`local_dumps.py`](local_dumps.py) (clear exit if dumps missing).
 
 ## Depth / broaden tools
 
@@ -60,7 +62,7 @@ python3 ingestion-poc/adapters/motadata_to_ingest_v1.py --smoke \
 
 **Output:** `datasets/ingest_samples/motadata-ingest/` (`stream*.jsonl` gitignored; `ci_bind.json`, `incidents/`, `manifest.json` OK to commit)
 
-| Source | → signal_class | ci_id |
+| Source | → fact_kind | ci_id |
 |--------|----------------|-------|
 | `log.jsonl` | `event` | hostname / `event_source` |
 | `metric_numeric.jsonl` | `metric_sample` + **threshold** | bound name or `monitor-{id}` |

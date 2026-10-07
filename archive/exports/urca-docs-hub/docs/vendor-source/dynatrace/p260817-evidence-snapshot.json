@@ -1,0 +1,36 @@
+{
+  "displayId": "P-260817",
+  "title": "Failure rate increase",
+  "status": "CLOSED",
+  "startTime": "2026-08-06T11:46:00Z",
+  "endTime": "2026-08-06T12:11:00Z",
+  "rootCauseEntity": null,
+  "affectedEntities": [
+    "frontend",
+    "product",
+    "inventory"
+  ],
+  "evidenceEvents": [
+    {
+      "entity": "frontend",
+      "eventType": "SERVICE_ERROR_RATE_INCREASED",
+      "rootCauseRelevant": false,
+      "startTime": "2026-08-06T11:41:00Z",
+      "endTime": "2026-08-06T12:11:00Z"
+    },
+    {
+      "entity": "product",
+      "eventType": "SERVICE_ERROR_RATE_INCREASED",
+      "rootCauseRelevant": false,
+      "startTime": "2026-08-06T11:41:00Z",
+      "endTime": "2026-08-06T12:11:00Z"
+    },
+    {
+      "entity": "inventory",
+      "eventType": "SERVICE_ERROR_RATE_INCREASED",
+      "rootCauseRelevant": false,
+      "startTime": "2026-08-06T11:41:00Z",
+      "endTime": "2026-08-06T12:11:00Z"
+    }
+  ]
+}

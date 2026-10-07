@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observeops.local/schemas/writer_stream_v1.schema.json",
+  "title": "writer_stream.v1",
+  "description": "Common post-E2 stream object shared by all writers (GraphWriter, SketchWriter, …). No fact_kind — regulators infer from which optional blocks are present. Supersedes ingest.v1 for Motadata writer fan-out. Topology vocabulary is Fusion/OneOps camelCase (see WRITER_REGULATOR.md + RELATION_MAPPING.md).",
+  "type": "object",
+  "required": ["schema_version", "ts", "tenant", "identity"],
+  "properties": {
+    "schema_version": { "const": "writer_stream.v1" },
+    "ts": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Event time (ISO-8601 preferred)."
+    },
+    "tenant": { "type": "string", "minLength": 1 },
+    "identity": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["resolved", "unattributed", "synthesized"] },
+        "bind_source": { "type": "string" },
+        "aliases": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true,
+      "description": "E2 Identity overlay. GraphRegulator requires status=resolved before admit."
+    },
+    "ci": {
+      "type": "object",
+      "description": "Primary subject CI for this line (metric/event/span/anomaly subject). Topology endpoints live under topology.",
+      "properties": {
+        "ci_id": { "type": "string", "minLength": 1 },
+        "ci_type": {
+          "type": "string",
+          "description": "OneOps / Motadata CI class when known (e.g. Service, Host, ApplicationService)."
+        }
+      },
+      "additionalProperties": true
+    },
+    "topology": {
+      "type": "object",
+      "description": "Optional topology assertion block. Presence of relation+src_ci_id+dst_ci_id is what GraphRegulator keys on — not a fact_kind.",
+      "required": ["relation", "src_ci_id", "dst_ci_id"],
+      "properties": {
+        "relation": {
+          "type": "string",
+          "enum": [
+            "composedOf",
+            "contains",
+            "runsOn",
+            "dependsOn",
+            "communicatesWith",
+            "realizes",
+            "memberOf",
+            "manages",
+            "ownedBy",
+            "locatedIn",
+            "succeedsLifecycleOf"
+          ],
+          "description": "Canonical Fusion/OneOps stored edge type (camelCase). Motadata SCREAMING_SNAKE storage mapping: RELATION_MAPPING.md."
+        },
+        "src_ci_id": { "type": "string", "minLength": 1 },
+        "dst_ci_id": { "type": "string", "minLength": 1 },
+        "src_ci_type": { "type": "string" },
+        "dst_ci_type": { "type": "string" },
+        "evidenceSource": {
+          "type": "string",
+          "enum": [
+            "agent",
+            "api",
+            "discovery",
+            "iac",
+            "identity_correlation",
+            "service_mapping_session",
+            "traffic",
+            "log_inference",
+            "ai_inferred",
+            "manual"
+          ]
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "lastObserved": { "type": "string" },
+        "ttl": { "type": ["string", "null"] },
+        "lifecycleSubtype": {
+          "type": "string",
+          "enum": ["version", "dr", "backup", "migration", "rollback"],
+          "description": "Only for succeedsLifecycleOf."
+        },
+        "attributes": {
+          "type": "object",
+          "description": "Type-specific edge attrs (e.g. protocol, port for communicatesWith).",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "metric": {
+      "type": "object",
+      "description": "Optional metric sample block for SketchRegulator / SketchWriter.",
+      "properties": {
+        "name": { "type": "string", "description": "Metric name; may double as metric_id." },
+        "metric_id": { "type": "string" },
+        "value": { "type": "number" },
+        "labels": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "event": {
+      "type": "object",
+      "description": "Optional discrete occurrence (incl. logs). Not admitted by GraphWriter/SketchWriter regulators in this pass.",
+      "properties": {
+        "name": { "type": "string" },
+        "value": { "type": "number" },
+        "labels": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "span": {
+      "type": "object",
+      "description": "Optional trace span. Not admitted as a graph edge by GraphRegulator (peer labels do not invent communicatesWith).",
+      "properties": {
+        "name": { "type": "string", "description": "Operation name." },
+        "value": { "type": "number", "description": "Duration ms." },
+        "labels": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "anomaly": {
+      "type": "object",
+      "description": "Optional pre-marked crossing for Detect/Curate. Not admitted by GraphWriter/SketchWriter regulators.",
+      "properties": {
+        "name": { "type": "string" },
+        "value": { "type": "number" },
+        "threshold": { "type": "number" },
+        "severity": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

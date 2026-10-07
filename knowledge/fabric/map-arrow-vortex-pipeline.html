@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JSON → Arrow → Vortex → S3 — map pipeline</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+/* Larger teaching typography for this page */
+.wrap.article.pipeline-learn{
+  max-width:58rem;
+  font-size:1.125rem;
+  line-height:1.65;
+  overflow-x:hidden;
+  min-width:0;
+  box-sizing:border-box;
+}
+.pipeline-learn .eyebrow{font-size:.85rem;letter-spacing:.08em;}
+.pipeline-learn h1{font-size:clamp(2rem,4.2vw,2.75rem);line-height:1.15;margin:.35rem 0 .85rem;}
+.pipeline-learn h2{font-size:1.55rem;margin:2rem 0 .85rem;}
+.pipeline-learn .lead{font-size:1.2rem;line-height:1.6;max-width:46rem;}
+.pipeline-learn p,.pipeline-learn li{font-size:1.05rem;}
+.pipeline-learn a{font-size:inherit;}
+
+.hero-strip{display:flex;flex-wrap:wrap;gap:.55rem;margin:0 0 1.35rem;}
+.hero-strip span{
+  font-family:var(--mono);font-size:.95rem;letter-spacing:.03em;
+  padding:.55rem .9rem;border-radius:999px;border:1px solid var(--stroke);
+  background:#121821;color:var(--muted);transition:color .25s,border-color .25s,background .25s,transform .25s,box-shadow .25s;
+}
+.hero-strip span.is-active{
+  border-color:#7ba8f5;color:#e8eef4;background:#1a2a40;
+  box-shadow:0 0 0 1px rgba(123,168,245,.35),0 0 18px rgba(123,168,245,.18);
+  transform:translateY(-2px);
+}
+.hero-strip span.is-done{border-color:#3d4f63;color:#9bb8f5;}
+
+.dia{margin:1.25rem 0;border:1px solid var(--stroke);border-radius:12px;background:#10161d;padding:1rem .65rem;overflow:hidden;}
+.dia svg{display:block;width:100%;height:auto;max-height:300px;}
+
+/* All five steps visible; pills / animation only highlight the active card */
+.steps{display:flex;flex-direction:column;gap:12px;margin:1.25rem 0 1.5rem;min-width:0;}
+.steps article{
+  border:1px solid var(--stroke);border-radius:12px;padding:1.05rem 1.15rem;
+  background:var(--bg-elev);min-width:0;overflow:hidden;
+  box-sizing:border-box;
+  transition:border-color .25s,box-shadow .25s;
+}
+.steps article.is-lit{
+  border-color:#7ba8f5;
+  box-shadow:0 0 0 1px rgba(123,168,245,.25),inset 0 0 22px rgba(123,168,245,.06);
+}
+.steps .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:.45rem .75rem;margin-bottom:.4rem;}
+.steps .n{font-family:var(--mono);font-size:.88rem;color:#e8d19d;letter-spacing:.06em;}
+.steps h3{margin:0;font-size:1.2rem;color:var(--text);}
+.steps > article > p{margin:0 0 .65rem;font-size:1.02rem;color:var(--muted);line-height:1.45;}
+.file-meta{
+  font-family:var(--mono);font-size:.8rem;color:#9bb8f5;
+  margin:0 0 .4rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
+}
+.file-meta a{color:#9bb8f5;}
+.file-box{
+  border:1px solid #2a3441;border-radius:10px;background:#0c1016;
+  padding:.7rem .85rem;overflow:hidden;min-width:0;max-width:100%;
+  box-sizing:border-box;
+}
+.file-box pre{
+  margin:0;font-family:var(--mono);font-size:.8rem;line-height:1.4;color:#c5d0dc;
+  white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;
+  overflow:hidden;max-width:100%;
+}
+.file-box .k{color:#7aecc4;}
+.file-box .c{color:#8a96a4;}
+.file-box .s{color:#e8d19d;}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;min-width:0;}
+.cols > *{min-width:0;overflow:hidden;}
+@media (max-width:720px){.cols{grid-template-columns:minmax(0,1fr);}}
+
+.temp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin:1.15rem 0;}
+.temp > div{border:1px solid var(--stroke);border-radius:12px;padding:1.2rem 1.25rem;background:var(--bg-elev);position:relative;overflow:hidden;min-width:0;}
+.temp h3{margin:0 0 .55rem;font-size:1rem;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);}
+.temp .tag{display:inline-block;font-family:var(--mono);font-size:.85rem;padding:.3rem .55rem;border-radius:5px;margin-bottom:.65rem;}
+.temp .hot .tag{background:rgba(240,179,90,.15);color:#f0b35a;border:1px solid #f0b35a;}
+.temp .cold .tag{background:rgba(123,168,245,.12);color:#9bb8f5;border:1px solid #7ba8f5;}
+.temp p{margin:0 0 .65rem;font-size:1.08rem;line-height:1.5;}
+.temp ul{margin:.4rem 0 0;padding-left:1.2rem;font-size:1.02rem;color:var(--muted);line-height:1.5;}
+.temp .hot::after{
+  content:"";position:absolute;inset:auto -20% -40% -20%;height:55%;
+  background:radial-gradient(ellipse at center,rgba(240,179,90,.12),transparent 70%);
+  animation:glow-hot 3s ease-in-out infinite;pointer-events:none;
+}
+.temp .cold::after{
+  content:"";position:absolute;inset:auto -20% -40% -20%;height:55%;
+  background:radial-gradient(ellipse at center,rgba(123,168,245,.12),transparent 70%);
+  animation:glow-cold 3.2s ease-in-out infinite;pointer-events:none;
+}
+
+.ex{border:1px solid var(--stroke);border-radius:12px;background:#0c1016;padding:1.15rem 1.25rem;margin:1.15rem 0;overflow:hidden;min-width:0;}
+.ex pre{margin:0;font-family:var(--mono);font-size:.9rem;line-height:1.45;color:#c5d0dc;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;}
+.ex .k{color:#7aecc4;}
+.ex .c{color:#8a96a4;}
+
+.owners{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:1.15rem 0;}
+.owners div{border:1px solid var(--stroke);border-radius:10px;padding:1.05rem 1.1rem;background:var(--bg-elev);min-width:0;overflow:hidden;}
+.owners h3{margin:0 0 .45rem;font-size:.95rem;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);}
+.owners p{margin:0;font-size:1.05rem;line-height:1.5;}
+
+.pipeline-learn .try pre{
+  background:#121821;border:1px solid var(--stroke);border-radius:10px;
+  padding:1rem 1.1rem;overflow:hidden;font-size:.95rem;line-height:1.45;
+  white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;
+}
+
+.legend{font-size:1rem;color:var(--muted);margin:.35rem 0 0;}
+.legend kbd{font-family:var(--mono);font-size:.9rem;padding:.15rem .4rem;border:1px solid var(--stroke);border-radius:4px;background:#121821;}
+
+@keyframes march{to{stroke-dashoffset:-22;}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes glow-hot{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes glow-cold{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes stage-pop{0%{transform:scale(.96)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
+.march{stroke-dasharray:6 6;animation:march .95s linear infinite;}
+.pulse-soft{animation:pulse 2.4s ease-in-out infinite;}
+.stage-box.is-focus{animation:stage-pop .55s ease;}
+
+@media (prefers-reduced-motion:reduce){
+  .march,.pulse-soft,.temp .hot::after,.temp .cold::after,.stage-box.is-focus{animation:none!important;}
+  .march{stroke-dasharray:none;}
+  .hero-strip span.is-active{transform:none;box-shadow:none;}
+}
+@media (max-width:960px){.owners{grid-template-columns:1fr}}
+@media (max-width:580px){.temp{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="urca-doc article">
+<div class="wrap article pipeline-learn">
+  <div class="eyebrow">Pillar B · map/ · vortex_s3.v1 · learning</div>
+  <h1>JSON → Arrow → Vortex → S3</h1>
+  <p class="lead">
+    One path for Motadata’s <strong style="color:var(--text)">present topology map</strong>.
+    GraphWriter admits JSON stream lines, keeps a <strong style="color:var(--text)">hot</strong> in-process estate,
+    then on publish materializes flat columns through Arrow into immutable <code>.vortex</code> parts on Dest (S3).
+    Walks always read <strong style="color:var(--text)">hot</strong> after load — never hop S3 per neighbor.
+  </p>
+
+  <div class="hero-strip" id="stage-pills" aria-label="Pipeline stages (animated highlight)">
+    <span data-stage="0">1 · JSON stream</span>
+    <span data-stage="1">2 · Hot map</span>
+    <span data-stage="2">3 · Arrow batch</span>
+    <span data-stage="3">4 · .vortex parts</span>
+    <span data-stage="4">5 · S3 + manifest</span>
+  </div>
+  <p class="legend">Watch the highlight move left → right. That is one <kbd>publish_map</kbd> journey after hot admits.</p>
+
+  <p><strong>On this page</strong></p>
+  <ul>
+    <li><a href="#pipeline">Five steps (pills highlight · all cards shown)</a></li>
+    <li><a href="#hot-cold">How hot and cold are kept</a></li>
+    <li><a href="#example">Tiny estate example</a></li>
+    <li><a href="#why-arrow">Why Arrow sits in the middle</a></li>
+    <li><a href="#owners">Who writes what</a></li>
+  </ul>
+  <p><strong>Related</strong> ·
+    <a href="/docs/MAP_ARROW_VORTEX_PIPELINE.md">API companion (markdown)</a> ·
+    <a href="/docs/MAP_VORTEX_S3_POC_PRIMER.md">PoC primer</a> ·
+    <a href="/docs/MAP_HOT_COLD_LIFECYCLE.md">Hot / cold lifecycle</a> ·
+    <a href="/pillar-b-poc-hub.html">Pillar B PoC hub</a> ·
+    <a href="/vortex-s3-interaction.html">Vortex + S3 rooms</a>
+  </p>
+
+  <h2 id="pipeline">Five steps + file previews</h2>
+  <p class="legend" style="margin-bottom:.75rem">All five cards stay on the page. Click a stage pill (or watch the highlight) to light the matching card — code stays inside each frame (no nested scrollbars).</p>
+  <div class="dia" role="img" aria-label="Animated pipeline from JSON stream to S3">
+    <svg viewBox="0 0 960 320" xmlns="http://www.w3.org/2000/svg" id="pipe-svg">
+      <rect width="960" height="320" fill="#10161d"/>
+      <text x="480" y="36" text-anchor="middle" fill="#e8d19d" font-size="18" font-weight="700" font-family="ui-monospace,monospace">MOTADATA map/ · PRESENT TOPOLOGY ONLY</text>
+
+      <!-- stage boxes -->
+      <g class="stage-box" data-stage="0">
+        <rect x="20" y="62" width="156" height="88" rx="10" fill="#171d25" stroke="#7aecc4" stroke-width="2" class="pulse-soft"/>
+        <text x="98" y="96" text-anchor="middle" fill="#7aecc4" font-size="16" font-weight="700">1 · JSON</text>
+        <text x="98" y="118" text-anchor="middle" fill="#b0bac6" font-size="13">writer_stream</text>
+        <text x="98" y="136" text-anchor="middle" fill="#8a96a4" font-size="12">flat graph_node.v1</text>
+      </g>
+
+      <path class="march" id="p01" d="M176,106 H214" stroke="#7ba8f5" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+      <circle r="5" fill="#9bb8f5"><animateMotion dur="1.6s" repeatCount="indefinite" path="M176,106 H214"/></circle>
+
+      <g class="stage-box" data-stage="1">
+        <rect x="214" y="62" width="156" height="88" rx="10" fill="#1a2838" stroke="#f0b35a" stroke-width="2"/>
+        <text x="292" y="96" text-anchor="middle" fill="#f0b35a" font-size="16" font-weight="700">2 · Hot map</text>
+        <text x="292" y="118" text-anchor="middle" fill="#b0bac6" font-size="13">in-process Arrays</text>
+        <text x="292" y="136" text-anchor="middle" fill="#8a96a4" font-size="12">walks live here</text>
+      </g>
+
+      <path class="march" d="M370,106 H408" stroke="#7ba8f5" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+      <circle r="5" fill="#9bb8f5"><animateMotion dur="1.6s" begin="0.25s" repeatCount="indefinite" path="M370,106 H408"/></circle>
+
+      <g class="stage-box" data-stage="2">
+        <rect x="408" y="62" width="156" height="88" rx="10" fill="#171d25" stroke="#e8d19d" stroke-width="2"/>
+        <text x="486" y="96" text-anchor="middle" fill="#e8d19d" font-size="16" font-weight="700">3 · Arrow</text>
+        <text x="486" y="118" text-anchor="middle" fill="#b0bac6" font-size="13">RecordBatch</text>
+        <text x="486" y="136" text-anchor="middle" fill="#8a96a4" font-size="12">memory (interchange)</text>
+      </g>
+
+      <path class="march" d="M564,106 H602" stroke="#7ba8f5" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+      <circle r="5" fill="#9bb8f5"><animateMotion dur="1.6s" begin="0.5s" repeatCount="indefinite" path="M564,106 H602"/></circle>
+
+      <g class="stage-box" data-stage="3">
+        <rect x="602" y="62" width="156" height="88" rx="10" fill="#171d25" stroke="#9bb8f5" stroke-width="2"/>
+        <text x="680" y="96" text-anchor="middle" fill="#9bb8f5" font-size="16" font-weight="700">4 · .vortex</text>
+        <text x="680" y="118" text-anchor="middle" fill="#b0bac6" font-size="13">nodes + edges</text>
+        <text x="680" y="136" text-anchor="middle" fill="#8a96a4" font-size="12">SpiralDB writer</text>
+      </g>
+
+      <path class="march" d="M758,106 H796" stroke="#7ba8f5" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+      <circle r="5" fill="#9bb8f5"><animateMotion dur="1.6s" begin="0.75s" repeatCount="indefinite" path="M758,106 H796"/></circle>
+
+      <g class="stage-box" data-stage="4">
+        <rect x="796" y="62" width="144" height="88" rx="10" fill="#0e1319" stroke="#7ba8f5" stroke-width="2"/>
+        <text x="868" y="96" text-anchor="middle" fill="#9bb8f5" font-size="16" font-weight="700">5 · Dest</text>
+        <text x="868" y="118" text-anchor="middle" fill="#b0bac6" font-size="13">S3 / path</text>
+        <text x="868" y="136" text-anchor="middle" fill="#8a96a4" font-size="12">+ manifest</text>
+      </g>
+
+      <rect x="20" y="178" width="920" height="118" rx="10" fill="#0c1016" stroke="#2a3441" stroke-width="1.5"/>
+      <text x="40" y="212" fill="#e8eef4" font-size="17" font-weight="700">publish_map — one cold generation</text>
+      <text x="40" y="240" fill="#b0bac6" font-size="15">snapshots/&lt;version&gt;/nodes/part-*.vortex · edges/part-*.vortex · manifest.json</text>
+      <text x="40" y="266" fill="#b0bac6" font-size="15">then latest.json → “this version is current.” Incomplete generations stay invisible.</text>
+      <text x="40" y="288" fill="#7a8694" font-size="13">* Demo may also write .arrow IPC twins for debugging — Motadata cold target is .vortex only.</text>
+
+      <!-- return path load_map -->
+      <path class="march" d="M868,150 C868,168 292,168 292,150" stroke="#f0b35a" stroke-width="2" fill="none" opacity=".75"/>
+      <text x="580" y="164" text-anchor="middle" fill="#f0b35a" font-size="13" font-weight="600">load_map rebuilds hot ←</text>
+
+      <defs>
+        <marker id="arr" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8" fill="#7ba8f5"/></marker>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="steps" id="step-cards">
+    <article data-stage="0" id="step-0" class="is-lit">
+      <div class="head"><span class="n">STEP 1</span><h3>JSON in</h3></div>
+      <p>Stream claim: two CI ids + relation. Lab uses <code>topo_update</code>; target wire is <code>writer_stream.v1</code>.</p>
+      <div class="cols">
+        <div>
+          <p class="file-meta"><a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/stream.resolved.jsonl">stream.resolved.jsonl</a> · lab</p>
+          <div class="file-box"><pre>{
+  <span class="s">"schema_version"</span>: <span class="k">"ingest.v1"</span>,
+  <span class="s">"ci_id"</span>: <span class="k">"checkout-api"</span>,
+  <span class="s">"fact_kind"</span>: <span class="k">"topo_update"</span>,
+  <span class="s">"relation"</span>: <span class="k">"runs_on"</span>,
+  <span class="s">"src_ci_id"</span>: <span class="k">"checkout-api"</span>,
+  <span class="s">"dst_ci_id"</span>: <span class="k">"linux-server-app-01"</span>
+}</pre></div>
+        </div>
+        <div>
+          <p class="file-meta"><a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR.md</a> · target</p>
+          <div class="file-box"><pre>{
+  <span class="s">"schema_version"</span>: <span class="k">"writer_stream.v1"</span>,
+  <span class="s">"ci"</span>: { <span class="s">"ci_id"</span>: <span class="k">"checkout-api"</span> },
+  <span class="s">"topology"</span>: {
+    <span class="s">"relation"</span>: <span class="k">"runsOn"</span>,
+    <span class="s">"src_ci_id"</span>: <span class="k">"checkout-api"</span>,
+    <span class="s">"dst_ci_id"</span>: <span class="k">"linux-server-app-01"</span>
+  }
+}</pre></div>
+        </div>
+      </div>
+    </article>
+
+    <article data-stage="1" id="step-1">
+      <div class="head"><span class="n">STEP 2</span><h3>Hot mutate</h3></div>
+      <p>After admit WRITE, flat rows sit in memory — <a href="/pillar-ab-implementation/pillar-b/map-vortex/src/hot.rs">hot.rs</a> / GraphWriter. No Dest PUT yet.</p>
+      <div class="cols">
+        <div>
+          <p class="file-meta"><a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/expected/graph_node.example.json">graph_node.example.json</a></p>
+          <div class="file-box"><pre>{
+  <span class="s">"entity_id"</span>: <span class="k">"checkout-api"</span>,
+  <span class="s">"type"</span>: <span class="k">"service"</span>,
+  <span class="s">"env"</span>: <span class="k">"rca-lab"</span>,
+  <span class="s">"last_seen"</span>: <span class="k">1787196600000</span>,
+  <span class="s">"valid_from"</span>: <span class="k">1787184000000</span>,
+  <span class="s">"version"</span>: <span class="k">1</span>
+}</pre></div>
+        </div>
+        <div>
+          <p class="file-meta"><a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/expected/graph_edge.example.json">graph_edge.example.json</a></p>
+          <div class="file-box"><pre>{
+  <span class="s">"edge_id"</span>: <span class="k">7146828800000001</span>,
+  <span class="s">"source_id"</span>: <span class="k">"checkout-api"</span>,
+  <span class="s">"target_id"</span>: <span class="k">"linux-server-app-01"</span>,
+  <span class="s">"edge_type"</span>: <span class="k">"RUNS_ON"</span>,
+  <span class="s">"valid_from"</span>: <span class="k">1787184000000</span>
+}</pre></div>
+        </div>
+      </div>
+    </article>
+
+    <article data-stage="2" id="step-2">
+      <div class="head"><span class="n">STEP 3</span><h3>Arrow table</h3></div>
+      <p>Publish builds a <code>RecordBatch</code> from locked flat columns · <a href="/pillar-ab-implementation/contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md">columnar schema</a> · <a href="/pillar-ab-implementation/pillar-b/map-vortex/src/tables.rs">tables.rs</a></p>
+      <div class="file-box"><pre><span class="c">map_nodes  (2 rows)</span>  entity_id · type · name · env · last_seen=u64 · …
+checkout-api         service  checkout-api  rca-lab  1787196600000
+linux-server-app-01  host     …             rca-lab  1787196600000
+
+<span class="c">map_edges  (1 row)</span>  edge_id · source_id · target_id · edge_type=RUNS_ON</pre></div>
+    </article>
+
+    <article data-stage="3" id="step-3">
+      <div class="head"><span class="n">STEP 4</span><h3>Vortex file</h3></div>
+      <p>SpiralDB VTXF parts from demo publish · <a href="/pillar-ab-implementation/pillar-b/map-vortex/src/write.rs">write.rs</a></p>
+      <div class="cols">
+        <div class="file-box"><pre><span class="c">$ ls snapshots/lab-1/nodes/</span>
+part-00000.vortex   <span class="c">~9.6 KB · Motadata cold</span>
+part-00000.arrow    <span class="c">optional debug twin</span></pre></div>
+        <div class="file-box"><pre><span class="c">$ vx tree layout …/part-00000.vortex</span>
+last_seen=<span class="k">u64</span>  valid_from=<span class="k">u64?</span>  valid_to=<span class="k">u64?</span>
+env / region / owner / namespace = utf8?
+children: 11 · no metadata bag</pre></div>
+      </div>
+    </article>
+
+    <article data-stage="4" id="step-4">
+      <div class="head"><span class="n">STEP 5</span><h3>Dest + index</h3></div>
+      <p>ObserveOps footers outside the Vortex postscript · <a href="/pillar-ab-implementation/pillar-b/map-vortex/src/manifest.rs">manifest.rs</a></p>
+      <div class="cols">
+        <div>
+          <p class="file-meta"><code>latest.json</code></p>
+          <div class="file-box"><pre>{ <span class="s">"version"</span>: <span class="k">"lab-1"</span> }</pre></div>
+          <div class="file-box" style="margin-top:.5rem"><pre>map/&lt;tenant&gt;/
+  latest.json
+  snapshots/lab-1/
+    manifest.json
+    nodes/…vortex
+    edges/…vortex</pre></div>
+        </div>
+        <div>
+          <p class="file-meta"><code>manifest.json</code></p>
+          <div class="file-box"><pre>{
+  <span class="s">"schema_version"</span>: <span class="k">"map_snapshot_manifest.v1"</span>,
+  <span class="s">"version"</span>: <span class="k">"lab-1"</span>,
+  <span class="s">"node_parts"</span>: [<span class="k">"nodes/part-00000.vortex"</span>],
+  <span class="s">"edge_parts"</span>: [<span class="k">"edges/part-00000.vortex"</span>],
+  <span class="s">"node_count"</span>: <span class="k">2</span>,
+  <span class="s">"edge_count"</span>: <span class="k">1</span>
+}</pre></div>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <h2 id="hot-cold">How hot and cold are kept</h2>
+  <div class="temp">
+    <div class="hot">
+      <span class="tag">HOT · live</span>
+      <h3>In the GraphWriter / map_vortex process</h3>
+      <p>Current estate for walks: node/edge Arrays (and adjacency when Phase C lands).</p>
+      <ul>
+        <li>Grows from admitted stream lines</li>
+        <li>Mutated in place until the next publish</li>
+        <li>After restart: rebuilt by <code>load_map</code> from cold</li>
+        <li><strong>Not</strong> a second copy of S3 opened per hop</li>
+      </ul>
+    </div>
+    <div class="cold">
+      <span class="tag">COLD · checkpoint</span>
+      <h3>Immutable objects on Dest (S3 / path)</h3>
+      <p>One generation = present map frozen at publish time.</p>
+      <ul>
+        <li><code>nodes/part-*.vortex</code> + <code>edges/part-*.vortex</code></li>
+        <li><code>manifest.json</code> lists the parts</li>
+        <li><code>latest.json</code> points at the generation</li>
+        <li>Never patch an old <code>.vortex</code> — write a new version</li>
+      </ul>
+    </div>
+  </div>
+  <p>
+    Pillar B <code>map/</code> is <strong style="color:var(--text)">present status</strong>, not the ObserveOps <code>history/</code> sketch room.
+    Snapshot versions are checkpoints of that present map for load/rebuild — not an event diary.
+  </p>
+
+  <h2 id="example">Tiny estate example</h2>
+  <div class="ex">
+<pre><span class="c"># After admit WRITE — hot holds two nodes + one edge</span>
+checkout-api <span class="k">service</span>   env=rca-lab   last_seen=1787196600000
+linux-server-app-01 <span class="k">host</span>   env=rca-lab
+checkout-api  <span class="k">--RUNS_ON--&gt;</span>  linux-server-app-01
+
+<span class="c"># publish_map builds Arrow columns, then SpiralDB writes:</span>
+map/&lt;tenant&gt;/snapshots/lab-1/
+  nodes/part-00000.vortex
+  edges/part-00000.vortex
+  manifest.json
+map/&lt;tenant&gt;/latest.json          <span class="c"># { "version": "lab-1" }</span>
+
+<span class="c"># load_map: latest → manifest → .vortex → Arrow batches → hot again</span></pre>
+  </div>
+
+  <h2 id="why-arrow">Why Arrow sits in the middle</h2>
+  <div class="owners">
+    <div>
+      <h3>Arrow</h3>
+      <p>In-memory columnar spreadsheet (<code>RecordBatch</code>). Same columns as the Motadata lock. Build and scan language.</p>
+    </div>
+    <div>
+      <h3>Vortex</h3>
+      <p>On-disk / object packing: compression, zones, postscript. Optimized for prune + selective read from S3.</p>
+    </div>
+    <div>
+      <h3>Together</h3>
+      <p>We build Arrow; SpiralDB’s bridge turns it into a <code>.vortex</code> file. On load, Vortex materializes back toward Arrow for walks.</p>
+    </div>
+  </div>
+
+  <h2 id="owners">Who writes what</h2>
+  <div class="owners">
+    <div>
+      <h3>ObserveOps / map_vortex</h3>
+      <p>Admit, hot upsert, Arrow schema + <code>RecordBatch</code>, Dest paths, <code>manifest</code> / <code>latest</code>.</p>
+    </div>
+    <div>
+      <h3>SpiralDB vortex crate</h3>
+      <p><code>from_arrow_record_batch</code> → <code>write_options().write</code> → VTXF segments + layout + postscript.</p>
+    </div>
+    <div>
+      <h3>Not our job</h3>
+      <p>Hand-editing Vortex footers, or treating <code>.arrow</code> demo twins as Motadata cold SoT.</p>
+    </div>
+  </div>
+
+  <h2 class="try">Try it</h2>
+  <pre><code>cd pillar-ab-implementation/pillar-b/map-vortex
+cargo test
+cargo run --bin map_vortex_demo -- --tenant-root /tmp/map-tenant --version lab-1 --verify-load
+# optional: vx tree layout /tmp/map-tenant/snapshots/lab-1/nodes/part-00000.vortex</code></pre>
+
+  <p class="note" style="margin-top:1.75rem;font-size:1.05rem;">
+    Deep API tables: <a href="/docs/MAP_ARROW_VORTEX_PIPELINE.md">MAP_ARROW_VORTEX_PIPELINE.md</a> ·
+    Column lock: <a href="/pillar-ab-implementation/contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md">MAP_VORTEX_COLUMNAR_SCHEMA.md</a>
+  </p>
+</div>
+<script src="/doc-nav.js"></script>
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var pills = document.querySelectorAll("#stage-pills [data-stage]");
+  var cards = document.querySelectorAll("#step-cards [data-stage]");
+  var boxes = document.querySelectorAll("#pipe-svg .stage-box");
+  var i = 0;
+  var n = pills.length;
+  function paint(idx) {
+    pills.forEach(function (el, j) {
+      el.classList.toggle("is-active", j === idx);
+      el.classList.toggle("is-done", j < idx);
+    });
+    cards.forEach(function (el) {
+      el.classList.toggle("is-lit", Number(el.getAttribute("data-stage")) === idx);
+    });
+    boxes.forEach(function (el) {
+      var on = Number(el.getAttribute("data-stage")) === idx;
+      el.classList.toggle("is-focus", on);
+      var rect = el.querySelector("rect");
+      if (rect) rect.setAttribute("stroke-width", on ? "3.5" : "2");
+    });
+  }
+  paint(0);
+  pills.forEach(function (el) {
+    el.style.cursor = "pointer";
+    el.addEventListener("click", function () {
+      i = Number(el.getAttribute("data-stage"));
+      paint(i);
+    });
+  });
+  if (reduce) return;
+  setInterval(function () {
+    i = (i + 1) % n;
+    paint(i);
+  }, 2800);
+})();
+</script>
+</body>
+</html>

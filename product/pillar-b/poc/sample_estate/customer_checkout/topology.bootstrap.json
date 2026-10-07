@@ -1,0 +1,16 @@
+{
+  "nodes": [
+    { "id": "bs-checkout", "type": "BusinessService", "name": "Customer checkout" },
+    { "id": "checkout-api", "type": "Service", "name": "checkout-api" },
+    { "id": "linux-server-app-01", "type": "Host", "name": "app-01" },
+    { "id": "app-runtime-jvm", "type": "Runtime", "name": "checkout-jvm" },
+    { "id": "payments-db", "type": "Database", "name": "payments-db" }
+  ],
+  "edges": [
+    { "from": "checkout-api", "to": "linux-server-app-01", "relation": "runs_on" },
+    { "from": "app-runtime-jvm", "to": "linux-server-app-01", "relation": "runs_on" },
+    { "from": "checkout-api", "to": "payments-db", "relation": "depends_on" },
+    { "from": "checkout-api", "to": "bs-checkout", "relation": "part_of" },
+    { "from": "checkout-api", "to": "payments-db", "relation": "communicates_with" }
+  ]
+}

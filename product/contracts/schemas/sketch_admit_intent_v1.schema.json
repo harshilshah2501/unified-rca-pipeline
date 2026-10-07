@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observeops.local/schemas/sketch_admit_intent_v1.schema.json",
+  "title": "sketch_admit_intent.v1",
+  "description": "Output of SketchRegulator: metric sample projection for SketchWriter. Built when writer_stream.v1.metric carries a numeric value and a metric name/id. May coexist on the same stream line as topology (both regulators fire). Sketch admit predicates beyond this spine are deferred.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tenant",
+    "ts",
+    "ci_id",
+    "metric_id",
+    "value",
+    "identity"
+  ],
+  "properties": {
+    "schema_version": { "const": "sketch_admit_intent.v1" },
+    "tenant": { "type": "string", "minLength": 1 },
+    "ts": { "type": "string", "minLength": 1 },
+    "ci_id": { "type": "string", "minLength": 1 },
+    "ci_type": { "type": "string" },
+    "metric_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "From metric.metric_id or metric.name."
+    },
+    "value": { "type": "number" },
+    "labels": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "identity": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["resolved", "unattributed", "synthesized"] },
+        "bind_source": { "type": "string" },
+        "aliases": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "source_stream_ref": { "type": "string" }
+  },
+  "additionalProperties": false
+}

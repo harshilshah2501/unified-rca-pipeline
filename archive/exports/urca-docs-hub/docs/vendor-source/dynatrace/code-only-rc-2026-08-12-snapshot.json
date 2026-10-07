@@ -1,0 +1,14 @@
+{
+  "category": "RESOURCE_CONTENTION",
+  "rerun": "code-only 2026-08-12",
+  "window": {"from": "2026-08-12T10:00:30Z", "to": "2026-08-12T10:15:53Z"},
+  "fault": "inventory/app.py RESOURCE_BURN background CPU-spin thread (HTTP lookup stays O(1))",
+  "httpDuringFault": "200 fast (load ok=10/10; post-heal probe ~28ms)",
+  "organicProblemsInWindow": [],
+  "organicEventsOfInterest": [],
+  "metricsApi": "builtin host/process CPU queries returned HTTP 403 on this token (metrics.read not granted)",
+  "insight": "Background CPU burn kept request path fast, so SERVICE_SLOWDOWN / PERFORMANCE did not fire as the primary card. No RESOURCE_CONTENTION Problem opened in the 15m window. Teaching: resource-gauge Detect and request-path SLOWDOWN are parallel layers — burn alone is not enough for a Davis RESOURCE_CONTENTION Problem in this tenant/window.",
+  "contrastSlowdown": "P-260820 used ledger-scan in the request path (~9s HTTP 200) → SERVICE_SLOWDOWN",
+  "healedAt": "2026-08-12T10:15:53Z",
+  "healProbe": "HTTP 200 · RESOURCE_BURN IDLE · SCENARIO_MODE=HEALTHY"
+}

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dynatrace lab · RESOURCE_CONTENTION · Code-only observed (negative Detect)</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+body{margin:0;font-family:var(--font);font-size:15.5px;line-height:1.55;color:var(--text);
+  background:radial-gradient(ellipse 80% 50% at 10% -10%,#1a2830 0%,transparent 55%),var(--bg);}
+a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
+h3{font-size:1rem;font-weight:600;margin:1.25rem 0 .5rem;color:#d5dde6;}
+.lead code,.note code,td code,li code,p code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);padding:.05rem .3rem;border-radius:3px;color:#9bc0ff;}
+.note{margin:1rem 0;padding:.75rem .9rem;border-radius:var(--radius);background:rgba(61,154,139,.12);border-left:3px solid var(--accent);color:var(--muted);font-size:.95rem;}
+.warn{border-left-color:var(--lean);background:rgba(240,179,90,.08);}
+.ok{border-left-color:var(--ok);background:rgba(95,224,176,.08);}
+.tl{border:1px solid var(--stroke);border-radius:10px;background:var(--bg-elev);padding:0;margin:1rem 0;overflow:hidden;}
+.tl-row{display:grid;grid-template-columns:8.5rem 1fr;gap:0;border-bottom:1px solid var(--stroke);}
+.tl-row:last-child{border-bottom:none;}
+.tl-t{padding:.85rem .9rem;font-family:var(--mono);font-size:.82rem;color:var(--ok);background:#0c1016;border-right:1px solid var(--stroke);}
+.tl-b{padding:.85rem 1rem;color:var(--muted);font-size:.95rem;}
+.tl-b strong{color:var(--text);font-weight:600;}
+.pill{display:inline-block;font-family:var(--mono);font-size:.72rem;padding:.15rem .45rem;border-radius:4px;border:1px solid rgba(95,224,176,.45);color:var(--ok);margin-right:.35rem;}
+.pre{font-family:var(--mono);font-size:.82rem;background:var(--bg-soft);border:1px solid var(--stroke);border-radius:6px;padding:.75rem .9rem;overflow-x:auto;white-space:pre;color:#b8c9d4;}
+ul{margin:.4rem 0 .8rem 1.2rem;} li{margin:.28rem 0;color:var(--muted);} li strong{color:var(--text);}
+.toc{margin:1rem 0 0;padding:.75rem 1rem;background:var(--bg-elev);border:1px solid var(--stroke);border-radius:8px;}
+.toc a{display:inline-block;margin:.2rem .75rem .2rem 0;font-size:.9rem;}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="vendor-dt article">
+<div class="wrap article">
+  <div class="eyebrow">Davis category · RESOURCE_CONTENTION · Observed analysis (negative Detect)</div>
+  <h1>RESOURCE_CONTENTION — CPU burn (code-only)</h1>
+  <p class="lead">
+    Category write-up for <strong style="color:var(--text)">RESOURCE_CONTENTION</strong>.
+    Background CPU burn in inventory kept the request path
+    <strong style="color:var(--text)">fast HTTP 200</strong> (not ledger-scan SLOWDOWN).
+    Code-only rerun <strong style="color:var(--text)">2026-08-12</strong> opened
+    <strong style="color:var(--text)">no</strong> RESOURCE_CONTENTION Problem in-window.
+    Defect is <strong style="color:var(--text)">healed</strong>.
+    Hub: <a href="/dt-davis-category-hub.html?cat=resource_contention">Davis event categories</a>.
+  </p>
+
+  <div class="note ok">
+    <span class="pill">HEALED</span>
+    <code>./scripts/heal_inventory_resource_burn.sh</code> ·
+    <code>RESOURCE_BURN IDLE</code> · <code>SCENARIO_MODE=HEALTHY</code> · probe ~28ms HTTP 200
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#defect">1 Defect</a>
+    <a href="#detect">2 Detect reality</a>
+    <a href="#observed">3 Observed window</a>
+    <a href="#contrast">4 vs SLOWDOWN</a>
+    <a href="#scripts">5 Scripts</a>
+  </nav>
+
+  <h2 id="defect">1) The defect (background burn, not request-path latency)</h2>
+  <p style="color:var(--muted)">
+    Checkout path stayed successful and fast. Inventory spun a background CPU thread
+    (<code>RESOURCE_BURN</code>) while <code>/inventory</code> lookup stayed O(1).
+  </p>
+  <table>
+    <tr><th></th><th>Healthy</th><th>Broken (this run)</th></tr>
+    <tr>
+      <td>HTTP</td>
+      <td>200 · ~30–50ms</td>
+      <td>200 · still fast (load ok=10/10)</td>
+    </tr>
+    <tr>
+      <td>Leaf</td>
+      <td>no burn</td>
+      <td>Background CPU-spin thread in <code>inventory/app.py</code></td>
+    </tr>
+    <tr>
+      <td>Not used</td>
+      <td colspan="2">Ledger-scan in request path · container stop · OTEL dark · 5xx</td>
+    </tr>
+  </table>
+
+  <h2 id="detect">2) Detect reality (Observed)</h2>
+  <div class="note warn">
+    Background burn kept request duration healthy, so
+    <code>SERVICE_SLOWDOWN</code> / PERFORMANCE did <strong>not</strong> fire as the primary card.
+    No <code>RESOURCE_CONTENTION</code> / HIGH_CPU Problem opened in the ~15 min window.
+    Metrics API returned <code>403</code> on this token (<code>metrics.read</code> not granted) —
+    CPU gauges could not be pulled via API for this evidence pack.
+  </div>
+  <p style="color:var(--muted)">
+    Teaching: resource-gauge Detect and request-path SLOWDOWN are
+    <strong style="color:var(--text)">parallel layers</strong>. Burn alone is not enough for a
+    Davis RESOURCE_CONTENTION Problem in this tenant/window. Contrast Observed SLOWDOWN
+    <a href="/dt-lab-timeline-slowdown.html">P-260820</a> (ledger-scan ≈9s HTTP 200).
+  </p>
+
+  <h2 id="observed">3) Observed window (API)</h2>
+  <div class="note">
+    <span class="pill">FETCHED</span>
+    Snapshot
+    <code>docs/vendor-source/dynatrace/code-only-rc-2026-08-12-snapshot.json</code>
+    · combined pack
+    <code>code-only-rerun-2026-08-12-snapshot.json</code>
+  </div>
+  <table>
+    <tr><th>Anchor</th><th>UTC (2026-08-12)</th></tr>
+    <tr><td>Break / burn start</td><td>~<strong>10:00:30</strong></td></tr>
+    <tr><td>Load + burn</td><td>10:00 → 10:15</td></tr>
+    <tr><td>Organic Problems</td><td><strong>none</strong> (RC / HIGH_CPU / SLOWDOWN)</td></tr>
+    <tr><td>Heal</td><td><strong>10:15:53</strong> · IDLE · HEALTHY · probe 200</td></tr>
+  </table>
+
+  <div class="tl">
+    <div class="tl-row">
+      <div class="tl-t">10:00:30</div>
+      <div class="tl-b"><strong>Break</strong> — <code>break_inventory_resource_burn.sh</code> · background CPU thread</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">10:00–10:15</div>
+      <div class="tl-b">Checkout load · HTTP 200 fast · no RC Problem packaged</div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-t">10:15:53</div>
+      <div class="tl-b"><strong>Heal</strong> — burn IDLE · <code>SCENARIO_MODE=HEALTHY</code></div>
+    </div>
+  </div>
+
+  <h2 id="contrast">4) vs SLOWDOWN (P-260820)</h2>
+  <table>
+    <tr><th></th><th>SLOWDOWN · P-260820</th><th>This · code-only RC</th></tr>
+    <tr>
+      <td>Leaf</td>
+      <td>Ledger scan in request path (~9s)</td>
+      <td>Background CPU burn (HTTP O(1))</td>
+    </tr>
+    <tr>
+      <td>HTTP during fault</td>
+      <td>Slow 200</td>
+      <td><strong>Fast 200</strong></td>
+    </tr>
+    <tr>
+      <td>Detect tip</td>
+      <td>response_time / <code>SERVICE_SLOWDOWN</code></td>
+      <td>CPU / mem gauges (intended)</td>
+    </tr>
+    <tr>
+      <td>Problem in window</td>
+      <td>Yes · PERFORMANCE</td>
+      <td><strong>None</strong></td>
+    </tr>
+  </table>
+
+  <h2 id="scripts">5) Lab scripts</h2>
+  <div class="pre">cd labs/dynatrace-rca-lab
+./scripts/break_inventory_resource_burn.sh
+./scripts/run_resource_contention_rca.sh --minutes 15 --heal-after
+./scripts/heal_inventory_resource_burn.sh
+# Optional next: grant metrics.read for CPU gauge evidence, or events.ingest teaching surface</div>
+
+  <h2 id="related">Related</h2>
+  <ul>
+    <li><a href="/dt-lab-timeline-slowdown.html">SLOWDOWN / P-260820</a> — request-path latency</li>
+    <li><a href="/dt-cat-availability-lab.html">AVAILABILITY</a> — hard down · organic P-260854</li>
+    <li><a href="/eleven-subsystem-mechanisms.html?cat=resource_contention">Breakdown · Detect tip = cpu/mem</a></li>
+    <li><a href="/dt-e2e-smartscape-grail.html?cat=resource_contention">Dual-track · runsOn</a></li>
+    <li>Agent prompt: <a href="/docs/agent-tasks/dt-resource-contention.md"><code>dt-resource-contention.md</code></a></li>
+  </ul>
+
+  <p><a href="/dt-davis-category-hub.html?cat=resource_contention">← Hub</a></p>
+</div>
+<script src="/doc-nav.js" defer></script>
+<script src="/dt-davis-categories.js" defer></script>
+</body>
+</html>

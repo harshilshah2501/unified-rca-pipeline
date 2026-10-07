@@ -1,0 +1,1 @@
+vendors/edgedelta-k3d-fabric-2026-08-17.md

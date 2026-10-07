@@ -1,0 +1,59 @@
+{
+  "case": "case_a_map_spine",
+  "inputs": {
+    "bootstrap": "topology.bootstrap.json",
+    "stream": "stream.resolved.jsonl"
+  },
+  "tenant": "default",
+  "version": "1",
+  "nodes": [
+    {
+      "entity_id": "app-runtime-jvm",
+      "type": "process"
+    },
+    {
+      "entity_id": "bs-checkout",
+      "type": "business_service"
+    },
+    {
+      "entity_id": "checkout-api",
+      "type": "service"
+    },
+    {
+      "entity_id": "linux-server-app-01",
+      "type": "host"
+    },
+    {
+      "entity_id": "payments-db",
+      "type": "db"
+    }
+  ],
+  "edges": [
+    {
+      "source_id": "app-runtime-jvm",
+      "edge_type": "RUNS_ON",
+      "target_id": "linux-server-app-01"
+    },
+    {
+      "source_id": "checkout-api",
+      "edge_type": "COMMUNICATES_WITH",
+      "target_id": "payments-db"
+    },
+    {
+      "source_id": "checkout-api",
+      "edge_type": "DEPENDS_ON",
+      "target_id": "payments-db"
+    },
+    {
+      "source_id": "checkout-api",
+      "edge_type": "PART_OF",
+      "target_id": "bs-checkout"
+    },
+    {
+      "source_id": "checkout-api",
+      "edge_type": "RUNS_ON",
+      "target_id": "linux-server-app-01"
+    }
+  ],
+  "rejects": []
+}

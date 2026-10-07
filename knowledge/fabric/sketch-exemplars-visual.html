@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Exemplars &amp; RED metrics — complete guide (sketch.v1)</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<style>
+.dia{margin:1.2rem 0;border:1px solid var(--stroke);border-radius:10px;background:#10161d;padding:.8rem .6rem;overflow:hidden;}
+.dia svg{display:block;width:100%;height:auto;max-width:100%;}
+.step{margin:.6rem 0;border:1px solid var(--stroke);border-radius:8px;padding:.75rem .9rem;background:var(--bg-elev);overflow:hidden;min-width:0;}
+.step h3{margin:0 0 .35rem;font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);}
+.step p{margin:0 0 .45rem;font-size:.9rem;line-height:1.45;overflow-wrap:anywhere;}
+.step p:last-child{margin-bottom:0;}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin:.75rem 0;font-size:.82rem;}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px;flex-shrink:0;}
+.flow{display:block;max-width:100%;box-sizing:border-box;font-family:var(--mono);font-size:.72rem;color:var(--muted);background:#121821;border:1px solid var(--stroke);border-radius:6px;padding:.55rem .75rem;margin:.5rem 0;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;overflow-x:auto;line-height:1.45;}
+.callout{border-left:3px solid var(--accent);padding:.65rem .85rem;margin:.75rem 0;background:var(--accent-soft);border-radius:0 8px 8px 0;font-size:.9rem;overflow-wrap:anywhere;}
+.callout.warn{border-left-color:#f0b35a;background:rgba(240,179,90,.1);}
+.callout strong{color:var(--text);}
+table.ex{width:100%;border-collapse:collapse;font-size:.84rem;margin:.6rem 0;table-layout:fixed;}
+table.ex th,table.ex td{text-align:left;vertical-align:top;padding:.45rem .55rem;border-bottom:1px solid var(--stroke);overflow-wrap:anywhere;word-break:break-word;}
+table.ex th{color:var(--faint);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
+table.ex code{font-size:.8rem;word-break:break-all;}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:.7rem 0;}
+@media (max-width:720px){.grid2{grid-template-columns:1fr;}}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:.7rem 0;}
+@media (max-width:900px){.grid3{grid-template-columns:1fr;}}
+.toc{margin:1rem 0 1.4rem;padding:.85rem 1rem;border:1px solid var(--stroke);border-radius:8px;background:var(--bg-elev);}
+.toc h2{margin:0 0 .5rem;font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);}
+.toc ol{margin:0;padding-left:1.25rem;font-size:.9rem;line-height:1.65;}
+.toc a{color:var(--accent);}
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:.8rem 0;}
+.compare .col{border-radius:8px;padding:.75rem .9rem;overflow:hidden;min-width:0;}
+.compare .without{background:rgba(240,96,96,.06);border:1px solid rgba(240,96,96,.35);}
+.compare .with{background:rgba(61,154,139,.06);border:1px solid rgba(61,154,139,.35);}
+.compare h3{margin:0 0 .45rem;font-size:.82rem;letter-spacing:.04em;text-transform:uppercase;}
+.compare .without h3{color:#f06060;}
+.compare .with h3{color:#7aecc4;}
+.compare ol,.compare ul{margin:0;padding-left:1.15rem;font-size:.88rem;line-height:1.5;}
+.compare li{margin:.25rem 0;}
+.role-card{border:1px solid var(--stroke);border-radius:8px;padding:.7rem .85rem;background:var(--bg-elev);}
+.role-card h3{margin:0 0 .35rem;font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;}
+.role-card p{margin:0;font-size:.88rem;line-height:1.45;}
+.role-card.digest h3{color:#9bb8f5;}
+.role-card.bucket h3{color:#7aecc4;}
+.role-card.baseline h3{color:#e8d19d;}
+.role-card.exemplar h3{color:#f0b35a;}
+@media (max-width:720px){.compare{grid-template-columns:1fr;}}
+.ex-tabs{margin:1.2rem 0;border:1px solid var(--stroke);border-radius:10px;background:var(--bg-elev);overflow:hidden;}
+.ex-tablist{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--stroke);background:#121821;padding:0 .35rem;}
+.ex-tab{flex:1 1 0;min-width:8rem;padding:.7rem .85rem;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;color:var(--muted);font-family:var(--font);font-size:.84rem;line-height:1.35;text-align:left;cursor:pointer;transition:color .15s,border-color .15s,background .15s;}
+.ex-tab:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.ex-tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent);background:var(--bg-elev);font-weight:600;}
+.ex-tab-num{display:inline-flex;align-items:center;justify-content:center;width:1.35rem;height:1.35rem;margin-right:.4rem;border-radius:50%;background:rgba(240,179,90,.12);border:1px solid #f0b35a;color:#f0b35a;font-size:.68rem;font-weight:700;font-family:var(--mono);vertical-align:middle;}
+.ex-tabpanel{display:none;padding:0;}
+.ex-tabpanel.is-active{display:block;}
+.ex-frame{background:#0c1016;padding:.6rem .5rem .35rem;}
+.ex-frame svg{display:block;width:100%;height:auto;min-height:280px;max-height:min(62vh,520px);}
+.ex-caption{padding:1rem 1.15rem 1.2rem;border-top:1px solid var(--stroke);}
+.ex-caption h3{margin:0 0 .45rem;font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);}
+.ex-caption p{margin:0;font-size:.95rem;line-height:1.55;max-width:52rem;}
+@keyframes ex-march{to{stroke-dashoffset:-24;}}
+@keyframes ex-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes ex-glow{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes ex-fade-swap{0%,42%{opacity:1}50%,92%{opacity:.2}100%{opacity:1}}
+@keyframes ex-flush-discard{0%,48%{opacity:1;transform:translateY(0)}58%,100%{opacity:.12;transform:translateY(10px)}}
+@keyframes ex-flush-save{0%,38%{opacity:.45}52%,100%{opacity:1}}
+@keyframes ex-flush-pop{0%,42%{opacity:.25;transform:scale(.96)}55%,100%{opacity:1;transform:scale(1)}}
+@keyframes ex-flush-x{0%,52%{opacity:0;transform:scale(.6)}58%,88%{opacity:1;transform:scale(1)}100%{opacity:1}}
+.ex-tabpanel .flush-discard{animation:ex-flush-discard 5s ease-in-out infinite;transform-box:fill-box;transform-origin:center;}
+.ex-tabpanel .flush-save{animation:ex-flush-save 5s ease-in-out infinite;}
+.ex-tabpanel .flush-pop{animation:ex-flush-pop 5s ease-in-out infinite;transform-box:fill-box;transform-origin:center;}
+.ex-tabpanel .flush-pop-d1{animation-delay:.15s;}
+.ex-tabpanel .flush-pop-d2{animation-delay:.3s;}
+.ex-tabpanel .flush-pop-d4{animation-delay:.6s;}
+.ex-tabpanel .flush-pop-d5{animation-delay:.75s;}
+.ex-tabpanel .flush-x{animation:ex-flush-x 5s ease-in-out infinite;transform-box:fill-box;transform-origin:center;}
+.ex-tabpanel .march{stroke-dasharray:6 6;animation:ex-march 1.1s linear infinite;}
+.ex-tabpanel .pulse-soft{animation:ex-pulse 2.4s ease-in-out infinite;}
+.ex-tabpanel .glow{animation:ex-glow 2s ease-in-out infinite;}
+.ex-tabpanel .swap-a{animation:ex-fade-swap 4s ease-in-out infinite;}
+.ex-tabpanel .swap-b{animation:ex-fade-swap 4s ease-in-out infinite;animation-delay:-2s;}
+@media (prefers-reduced-motion:reduce){
+  .ex-tabpanel .march,.ex-tabpanel .pulse-soft,.ex-tabpanel .glow,.ex-tabpanel .swap-a,.ex-tabpanel .swap-b,
+  .ex-tabpanel .flush-discard,.ex-tabpanel .flush-save,.ex-tabpanel .flush-pop,.ex-tabpanel .flush-x,
+  .ex-tabpanel animateMotion,.ex-tabpanel animate{animation:none!important;}
+  .ex-tabpanel .flush-discard,.ex-tabpanel .flush-pop,.ex-tabpanel .flush-x{transform:none!important;}
+}
+@media (max-width:640px){
+  .ex-tablist{flex-direction:column;padding:0;}
+  .ex-tab{min-width:100%;border-bottom:1px solid var(--stroke);border-left:3px solid transparent;}
+  .ex-tab[aria-selected="true"]{border-left-color:var(--accent);border-bottom-color:var(--stroke);}
+}
+</style>
+<link rel="stylesheet" href="/urca-docs.css" />
+</head>
+<body class="urca-doc article">
+<div class="wrap article">
+  <div class="eyebrow">Pillar A · sketch.v1 · RED · OpenTelemetry · canonical guide</div>
+  <h1>Exemplars &amp; RED metrics — complete guide</h1>
+  <p class="lead">
+    One-stop reference for <strong style="color:var(--text)">service RED metrics</strong> (Rate · Errors · Duration),
+    <strong style="color:var(--text)">histogram exemplars</strong> in OpenTelemetry and Prometheus,
+    and how both map to ObserveOps Pillar A (<code>metric_sample</code> → <code>sketch.v1</code>).
+    Exemplars are <strong style="color:var(--text)">optional write-time pointers</strong> on the <strong>Duration</strong> path —
+    not a fourth Detect input, not derived from histogram counts later, and not a substitute for keeping metric raw.
+    Canonical Q&amp;A: <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a> <strong>G22</strong>, <strong>G26</strong>, <strong>G28</strong>, <strong>G29</strong>, <strong>G41</strong>, <strong>G43</strong>–<strong>G46</strong>
+    · counter-question: <a href="/pillar-ab-implementation/discussion/04-raw-data-identity-lut-open-questions.md">raw/LUT discussion §4.5</a>
+    · industry: <a href="https://opentelemetry.io/docs/specs/otel/metrics/">OpenTelemetry Metrics</a> ·
+    <a href="https://opentelemetry.io/docs/languages/dotnet/metrics/exemplars/">OTel exemplars guide</a>.
+  </p>
+
+  <nav class="toc" aria-label="On this page">
+    <h2>On this page</h2>
+    <ol>
+      <li><a href="#what-is">What is an exemplar?</a></li>
+      <li><a href="#red-metrics">RED metrics — Rate · Errors · Duration</a></li>
+      <li><a href="#ci-entity-resolved">CI vs entity vs resolved — vocabulary</a></li>
+      <li><a href="#where-in-pipeline">Pipeline placement — E4, not E2</a></li>
+      <li><a href="#four-mechanisms">Four mechanisms — digest, buckets, baseline, exemplars</a></li>
+      <li><a href="#otel-vs-observeops">OpenTelemetry vs ObserveOps — our take</a></li>
+      <li><a href="#with-without">With vs without exemplars — scenarios</a></li>
+      <li><a href="#how-it-works">How write-time capture works</a></li>
+      <li><a href="#step-by-step">Step-by-step — metric_sample → sketch row</a></li>
+      <li><a href="#worked-example">Worked example — four metric_samples, one hot bin</a></li>
+      <li><a href="#one-per-bin-resolution">One trace_id per bin — policy &amp; resolution</a></li>
+      <li><a href="#two-stores">Two stores — metric raw vs trace product</a></li>
+      <li><a href="#common-confusions">Common confusions</a></li>
+      <li><a href="#pipeline-stages">Pipeline stages — who needs what</a></li>
+      <li><a href="#when-enable">When to enable vs skip in v1</a></li>
+      <li><a href="#limits">Honest limits</a></li>
+      <li><a href="#cheat-sheet">Cheat sheet and further reading</a></li>
+    </ol>
+  </nav>
+
+  <div class="legend">
+    <span><i style="background:#7ba8f5"></i> T-Digest</span>
+    <span><i style="background:#3d9a8b"></i> Buckets</span>
+    <span><i style="background:#e8d19d"></i> Baseline</span>
+    <span><i style="background:#f0b35a"></i> Exemplar (write-time pointer)</span>
+    <span><i style="background:#9bb8f5"></i> Trace store (separate retention)</span>
+  </div>
+
+  <!-- ═══ SECTION 1: DEFINITION ═══ -->
+  <h2 id="what-is">1 · What is an exemplar?</h2>
+
+  <p>
+    An <strong>exemplar</strong> (in the OpenTelemetry / GCP Monitoring sense) is a <strong>small pointer stored beside a histogram bin</strong>
+    — usually one <code>trace_id</code> or request id — so an operator can open <em>one real request</em> that landed in a hot latency range
+    after Detect has already fired. In our <code>sketch.v1</code> row it is an optional parallel array <code>buckets.exemplars[]</code>,
+    aligned index-for-index with <code>buckets.counts[]</code>.
+  </p>
+
+  <div class="grid2">
+    <div class="step" style="margin:0">
+      <h3>What an exemplar is</h3>
+      <p>A <strong>bookmark</strong> captured at <strong>E4 (platform sketch writer)</strong> while Pillar A still sees each resolved <code>metric_sample</code> and updates bins.
+      One id per bin (policy: first in bin, slowest in bin, etc.). Stored in <code>history/</code> on the flushed <code>sketch.v1</code> row.</p>
+    </div>
+    <div class="step" style="margin:0">
+      <h3>What an exemplar is not</h3>
+      <p>Not a metric raw lake. Not every request in the bin. Not a substitute for T-Digest, buckets, or baseline.
+      Not required for E6 Detect (door C). Not reverse-engineered from <code>counts[]</code> after flush.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>One-line definition:</strong> exemplars answer <em>“which request should I open first?”</em> after buckets have already answered
+    <em>“which range is hot?”</em> — without keeping every resolved <code>metric_sample</code> in <code>history/</code>.
+    On the <strong>RED</strong> pattern, that question applies almost only to <strong>Duration</strong> (latency), not Rate or Errors counters.
+  </div>
+
+  <!-- ═══ SECTION 2: RED METRICS ═══ -->
+  <h2 id="red-metrics">2 · RED metrics — Rate · Errors · Duration</h2>
+
+  <p>
+    <strong>RED</strong> is the usual service-health lens for request-driven workloads (HTTP APIs, gRPC, queue consumers).
+    Three questions: how <strong>busy</strong>, how <strong>broken</strong>, how <strong>slow</strong>.
+    RED does not replace topology RCA — it tells Detect and operators where to look first.
+    Each letter is usually <strong>one or more time series</strong> per service (often per route), not a single magic metric name.
+  </p>
+
+  <table class="ex">
+    <thead>
+      <tr><th>Letter</th><th>Question</th><th>Typical signal</th><th>Exemplars?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>R</strong>ate</td><td>How much traffic?</td><td>Requests per second (counter)</td><td><strong>No</strong> — already an aggregate</td></tr>
+      <tr><td><strong>E</strong>rrors</td><td>How much is failing?</td><td>Error count or error rate</td><td><strong>Rarely</strong> — use trace/log search on error spans</td></tr>
+      <tr><td><strong>D</strong>uration</td><td>How slow?</td><td>Latency distribution (p50, p95, p99)</td><td><strong>Optional</strong> — one <code>trace_id</code> per hot bin after Detect</td></tr>
+    </tbody>
+  </table>
+
+  <h3>RED mapped to OpenTelemetry instruments and ObserveOps</h3>
+  <p>
+    OpenTelemetry separates measurement (<a href="https://opentelemetry.io/docs/specs/otel/metrics/">Metrics API</a>) from aggregation (SDK → exporter).
+    After <strong>E1 Collect</strong>, we admit lines as <code>metric_sample</code>; <strong>E4 Stores</strong> compresses Duration into <code>sketch.v1</code>.
+  </p>
+  <table class="ex">
+    <thead>
+      <tr><th>RED</th><th>OTel instrument (usual)</th><th>Exported / stored shape</th><th>ObserveOps after E4</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Rate</strong></td><td><strong>Counter</strong> (<code>http.server.request.count</code>)</td><td>Sum over interval</td><td>Counter series or rolled request count — not the latency sketch</td></tr>
+      <tr><td><strong>Errors</strong></td><td><strong>Counter</strong> on error outcomes</td><td>Error count / ratio</td><td>Separate <code>metric_id</code> (e.g. <code>request.errors</code>) or labeled counter</td></tr>
+      <tr><td><strong>Duration</strong></td><td><strong>Histogram</strong> (preferred) or Summary</td><td>Bucket counts + optional exemplars</td><td><strong>T-Digest + buckets + baseline</strong> on <code>sketch.v1</code>; optional <code>exemplars[]</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Duration must be a distribution</strong> — not one gauge per request kept forever.
+    OTel histograms and Prometheus histograms exist so backends compute quantiles and bin heat maps.
+    ObserveOps Pillar A does the same job with <code>sketch.v1</code> plus <strong>seasonal baseline</strong> for E6 Detect door C.
+  </div>
+
+  <h3>RED + exemplars — one request on <code>checkout-api</code></h3>
+  <p>Aligns with <a href="/data-shape-journey.html">data shape journey</a> (842&nbsp;ms latency thread).</p>
+  <table class="ex">
+    <thead>
+      <tr><th>Moment</th><th>RED lens</th><th>After E4 flush</th><th>Exemplar?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Request completes</td><td><strong>Rate</strong> +1</td><td>Counter / request count series</td><td>No</td></tr>
+      <tr><td>HTTP 500</td><td><strong>Errors</strong> +1</td><td>Error counter increment</td><td>No</td></tr>
+      <tr><td>Latency 842&nbsp;ms, <code>trace_id: abc123</code></td><td><strong>Duration</strong></td><td><code>sketch.v1</code>: digest, buckets, baseline</td><td>Optional: <code>exemplars: [{ value: 842, trace_id: "abc123" }]</code></td></tr>
+    </tbody>
+  </table>
+  <p>
+    <strong>E6 Detect</strong> compares digest p95 vs seasonal baseline — <strong>does not require exemplars</strong>.
+    <strong>Investigation after Detect</strong> uses buckets + exemplar to open one slow trace — same division of labor as Grafana + Prometheus exemplar-storage.
+  </p>
+
+  <div class="step" id="ci-entity-resolved">
+    <h3>CI vs entity vs resolved — vocabulary (Pillar A path)</h3>
+    <p>
+      Reviews often mix three ideas. They are related but not the same:
+      <strong>what shape of data the sketch writer sees</strong>, <strong>what we call the configuration item</strong>, and
+      <strong>whether Identity bind succeeded</strong>.
+    </p>
+    <table class="ex">
+      <thead>
+        <tr><th>Term</th><th>Where</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong><code>metric_sample</code></strong></td>
+          <td>E1 ingest → E4 writer (in memory per window)</td>
+          <td>One identified measurement line: <code>value</code>, <code>ts</code>, labels (e.g. <code>trace_id</code>). <strong>Not</strong> forever-raw in <code>history/</code> after flush. Optional Edge/Gateway may shape telemetry <em>before</em> E1 — the sketch writer still sees <code>fact_kind: metric_sample</code>, not a raw lake rescan.</td>
+        </tr>
+        <tr>
+          <td><strong><code>ci_id</code></strong> (configuration item)</td>
+          <td>E2 Identity, graph <code>map/</code>, topology</td>
+          <td>Stable join key for “which thing in the estate.” E2 maps source labels (host, service name, monitor id) onto this id via look-up / bind.</td>
+        </tr>
+        <tr>
+          <td><strong><code>entity_id</code></strong></td>
+          <td><code>sketch.v1</code> in <code>history/</code></td>
+          <td><strong>Same string as <code>ci_id</code></strong> after bind — copied at Pillar A admit (<a href="/docs/GRAPH_QNA.md">G21</a>). “Entity” is sketch/history language; “CI” is graph/E2 language.</td>
+        </tr>
+        <tr>
+          <td><strong><code>identity.status = resolved</code></strong></td>
+          <td>E2 output overlay</td>
+          <td>Bind succeeded to a trusted configuration item. Production sketch admit typically requires <strong>resolved</strong>. <code>synthesized</code> / <code>unattributed</code> lines do not enter <code>sketch.v1</code> (unattributed queue / replay — still E2, not E4).</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="flow">Edge (optional) → E1 Collect → E2 Identity bind
+  ingest line: { fact_kind: metric_sample, ci_id: "checkout-api",
+                 identity: { status: "resolved" }, value: 420, labels: { trace_id: "…" } }
+       ↓ E4 admit copies ci_id → entity_id on sketch row
+  sketch.v1: { entity_id: "checkout-api", … exemplars[] … }   ← metric_sample stream discarded after flush</div>
+    <p style="margin:.65rem 0 0;font-size:.9rem">
+      <strong>E2</strong> stamps identity (<code>ci_id</code>, <code>resolved</code>) and passes labels — it does <strong>not</strong> build histogram bins or exemplars.
+      <strong>E4</strong> aggregates resolved <code>metric_sample</code> lines into one sketch row. Exemplars copy a <code>trace_id</code> label during that pass; the operator later resolves it in the <strong>trace store</strong>, not from metric raw in <code>history/</code>.
+      See <a href="#one-per-bin-resolution">how trace_id resolves</a>.
+    </p>
+  </div>
+
+  <div class="step" id="where-in-pipeline">
+    <h3>Where in the pipeline — E4 Collect path, not E2 Identity</h3>
+    <p>
+      <strong>E2 Identity</strong> (look-up / bind) stamps <code>tenant</code> + <code>ci_id</code> and passes labels through — including <code>trace_id</code> if the <code>metric_sample</code> already carries it.
+      E2 does <strong>not</strong> maintain histogram bins or write <code>exemplars[]</code>; that requires bucket counts, which is sketch-writer work.
+    </p>
+    <p>
+      <strong>E4 Pillar A sketch writer</strong> (platform, after E2) aggregates resolved <code>metric_sample</code> lines into one <code>sketch.v1</code> row:
+      T-Digest, buckets, baseline, and optionally exemplars. The bookmark is chosen here — while the writer increments <code>counts[]</code> — then metric raw for that window is discarded.
+    </p>
+    <p>
+      <strong>Edge / shift-left</strong> (optional, before E1 Collect) may shape volume or attach tags earlier, but our locked contract places exemplars on the platform sketch row (<a href="/docs/GRAPH_QNA.md">G42</a>).
+      A future edge histogram with exemplars would be a different aggregation layer — not E2 Identity.
+    </p>
+  </div>
+
+  <!-- ═══ SECTION 3: FOUR MECHANISMS ═══ -->
+  <h2 id="four-mechanisms">3 · Four mechanisms — digest, buckets, baseline, exemplars</h2>
+
+  <p>
+    Pillar A’s <code>sketch.v1</code> row can hold <strong>four complementary structures</strong> about one metric window.
+    The first three are the core Detect + investigation stack; exemplars are an optional accelerator on top.
+  </p>
+
+  <div class="grid2">
+    <div class="role-card digest">
+      <h3>T-Digest</h3>
+      <p><strong>Question:</strong> how bad as a percentile this window?<br>
+      <strong>Input:</strong> numeric <code>value</code> from each resolved <code>metric_sample</code> (not T-Digest output).<br>
+      <strong>Output:</strong> mergeable p50 / p95 / p99.<br>
+      <strong>E6 Detect:</strong> yes — current p95.</p>
+    </div>
+    <div class="role-card bucket">
+      <h3>Buckets</h3>
+      <p><strong>Question:</strong> where is the mass in fixed ranges?<br>
+      <strong>Input:</strong> same <code>metric_sample</code> values as digest (parallel readout).<br>
+      <strong>Output:</strong> <code>bounds[]</code> + <code>counts[]</code>.<br>
+      <strong>E6 Detect:</strong> no (primary path). <strong>After fire:</strong> yes — hot bin.</p>
+    </div>
+    <div class="role-card baseline">
+      <h3>Seasonal baseline</h3>
+      <p><strong>Question:</strong> what is normal for this hour-of-week?<br>
+      <strong>Input:</strong> past windows with same <code>season_key</code> (e.g. <code>Thu-09:00</code>).<br>
+      <strong>Output:</strong> <code>expected_p95</code> (and p50/p99).<br>
+      <strong>E6 Detect:</strong> yes — expected p95.</p>
+    </div>
+    <div class="role-card exemplar">
+      <h3>Exemplars (optional)</h3>
+      <p><strong>Question:</strong> which single request in a hot bin?<br>
+      <strong>Input:</strong> <code>value</code> + <code>trace_id</code> label from each <code>metric_sample</code> at write time.<br>
+      <strong>Output:</strong> one id per bin in <code>exemplars[]</code>.<br>
+      <strong>E6 Detect:</strong> no. <strong>After fire:</strong> yes — open trace.</p>
+    </div>
+  </div>
+
+  <table class="ex">
+    <thead>
+      <tr><th>Mechanism</th><th>Detect (E6 door C)</th><th>After Detect</th><th>Can drop metric raw?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>T-Digest</strong></td><td>Current p95 vs baseline</td><td>Corroboration, merge across windows</td><td>Yes — digest is the kept aggregate</td></tr>
+      <tr><td><strong>Buckets</strong></td><td>Not in primary ratio</td><td>Hot range, heatmap, rules on bin counts</td><td>Yes — counts are the kept aggregate</td></tr>
+      <tr><td><strong>Baseline</strong></td><td>Expected p95 for <code>season_key</code></td><td>Context (“usually 173 ms at Thu 09:00”)</td><td>Yes — built from past sketch rows</td></tr>
+      <tr><td><strong>Exemplars</strong></td><td><strong>Not used</strong></td><td>Click-through to one trace in hot bin</td><td>Yes — id captured before discard</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    <strong>Digest + baseline</strong> are enough to fire Detect: <code>current_p95 / expected_p95 &gt; threshold</code> (walkthrough: 455 / 173 = 2.64×).
+    <strong>Buckets</strong> tell you the abnormal mass sits in <code>[200, 500) ms</code> with <code>n = 2836</code>.
+    <strong>Exemplars</strong> add <code>trace-000001</code> on that bin so you do not have to hunt traces manually.
+    None of the four replaces another; exemplars are the only one that is optional in v1 schema.
+    On RED dashboards, only <strong>Duration</strong> uses this quartet; Rate and Errors use counter paths.
+  </p>
+
+  <!-- ═══ SECTION 4: OTEL VS OBSERVEOPS ═══ -->
+  <h2 id="otel-vs-observeops">4 · OpenTelemetry vs ObserveOps — our take</h2>
+
+  <p>
+    Both ecosystems share one <strong>idea</strong>: an exemplar is a <strong>write-time pointer</strong> from an aggregate (histogram bin or sketch bin)
+    to one underlying measurement — usually so an operator opens a <strong>trace</strong> by <code>trace_id</code>.
+    Neither keeps every metric sample forever. The [OpenTelemetry Metrics SDK](https://opentelemetry.io/docs/specs/otel/metrics/sdk/#exemplar) calls exemplars
+    “example data points for aggregated data”; our contract matches the drill-down goal but differs on <strong>pipeline stage</strong>, <strong>storage</strong>, and <strong>Detect</strong>.
+  </p>
+
+  <div class="flow">OpenTelemetry (industry)                         ObserveOps Pillar A
+─────────────────────────────────────            ─────────────────────────────────
+Active span (trace_id)                           E1 Collect → E2 Identity (resolved)
+        │                                                  │
+histogram.Record(latency)                          metric_sample { value, trace_id }
+        │                                                  │
+SDK aggregator: counts + exemplar subset           E4 writer: digest + buckets + exemplars[]
+        │                                                  │
+OTLP → Prometheus exemplar-storage               sketch.v1 flush → history/
+        │                                                  │
+Grafana: diamond on bucket → Jaeger              E6 Detect: digest vs baseline ONLY
+        │                                                  │
+Investigate: open trace by trace_id                After fire: hot bin → exemplar → trace store</div>
+
+  <table class="ex">
+    <thead>
+      <tr><th>Topic</th><th>OpenTelemetry / Prometheus</th><th>ObserveOps Pillar A</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Purpose</strong></td><td>Link metrics to traces (<a href="https://opentelemetry.io/docs/specs/otel/metrics/">metrics overview</a>)</td><td><strong>Post-Detect acceleration</strong> — not a Detect input (<a href="/docs/GRAPH_QNA.md">G22, G29</a>)</td></tr>
+      <tr><td><strong>Alerting / Detect</strong></td><td>Uses aggregates</td><td><strong>E6 door C:</strong> T-Digest p95 vs <code>baseline.expected_p95</code> only</td></tr>
+      <tr><td><strong>Capture locus</strong></td><td>SDK at <code>Record</code> time; export via OTLP</td><td><strong>E4 Stores</strong> sketch writer at flush — <strong>not E2 Identity</strong> (<a href="#where-in-pipeline">§ pipeline</a>)</td></tr>
+      <tr><td><strong>Duration aggregate</strong></td><td>Histogram buckets in TSDB</td><td><strong>T-Digest + fixed buckets</strong> on one <code>sketch.v1</code> row</td></tr>
+      <tr><td><strong>Seasonal normal</strong></td><td>Often external (recording rules, SLO)</td><td><code>baseline.expected_p*</code> on same row; E5 refreshes</td></tr>
+      <tr><td><strong>Exemplar shape</strong></td><td>Per Prometheus bucket / OTLP path</td><td>Optional <code>exemplars[]</code> — typically <strong>one <code>trace_id</code> per bin</strong></td></tr>
+      <tr><td><strong>Sampling</strong></td><td>e.g. <code>TraceBased</code> when span active (<a href="https://opentelemetry.io/docs/languages/dotnet/metrics/exemplars/">.NET guide</a>)</td><td>E4 writer policy (first in bin, slowest, …) — need not match OTel byte-for-byte</td></tr>
+      <tr><td><strong>Trace lookup</strong></td><td>Grafana → Jaeger / Tempo</td><td>Exemplar → <strong>trace product</strong> at E10; separate from <code>history/</code></td></tr>
+      <tr><td><strong>After aggregate</strong></td><td>TSDB retention</td><td>Per-sample <code>value</code> <strong>discarded after flush</strong> — exemplar ≠ raw lake (<a href="/pillar-ab-implementation/discussion/04-raw-data-identity-lut-open-questions.md">§4.5</a>)</td></tr>
+      <tr><td><strong>v1 default</strong></td><td>Common in Prometheus + Grafana stacks</td><td><strong>Optional</strong> — ship Detect on digest + baseline first (G29)</td></tr>
+      <tr><td><strong>RED Rate / Errors</strong></td><td>Counters; exemplars rarely used</td><td>Same — exemplars on <strong>Duration</strong> latency sketches only</td></tr>
+      <tr><td><strong>Cannot do</strong></td><td>List every request in a bin</td><td>Same — one (or few) ids per bin; Case 6 needs raw/archive</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>One sentence for cold readers:</strong>
+    <strong>OpenTelemetry</strong> teaches exemplars on the <strong>metrics SDK export path</strong> into Prometheus/Grafana.
+    <strong>ObserveOps</strong> teaches exemplars as an <strong>optional field on <code>sketch.v1</code> at E4 flush</strong>, after E2 Identity resolved the stream —
+    same trace-drill-down idea; different stage, storage shape, and Detect contract.
+  </div>
+
+  <div class="flow">Shared principle (both sides):
+
+Resolved measurements (optional trace_id on each sample)
+        ├─► update aggregate (OTel histogram / ObserveOps T-Digest + buckets)
+        └─► optionally remember (bin → trace_id) for selected samples
+                ▼
+        discard per-sample metric list
+                ▼
+        later: alert / Detect on aggregate only
+                ▼
+        investigate: hot bin → exemplar → trace store</div>
+
+  <!-- ═══ SECTION 5: WITH VS WITHOUT ═══ -->
+  <h2 id="with-without">5 · With vs without exemplars — scenarios and justification</h2>
+
+  <p>
+    The existing <strong>digest + buckets + baseline</strong> system is complete for Detect and for knowing <em>where</em> latency regressed.
+    Exemplars only change <strong>how fast</strong> an operator reaches <em>one concrete request</em> — not whether Detect fires.
+  </p>
+
+  <h3>Same incident — operator path comparison</h3>
+  <p>Scenario: <code>checkout-api</code> · <code>request.latency_ms</code> · Thursday 09:00 · p95 = 455 ms vs expected 173 ms (2.64×).</p>
+
+  <div class="compare">
+    <div class="col without">
+      <h3>Without exemplars (digest + buckets + baseline only)</h3>
+      <ol>
+        <li><strong>E6 Detect fires</strong> — digest p95 vs seasonal baseline. Signal: SLOWDOWN on checkout-api.</li>
+        <li><strong>Investigate “where”</strong> — open heatmap / bucket view. Hot bin: <code>[200, 500) ms</code>, n = 2836.</li>
+        <li><strong>Investigate “which”</strong> — open trace or log explorer. Filter service, time window, sort by duration.</li>
+        <li><strong>Manually hunt</strong> — scan slow traces until one matches the hot range. Works; slower; more triage drift.</li>
+      </ol>
+      <p style="margin:.5rem 0 0;font-size:.88rem"><strong>Justification to skip exemplars in v1:</strong> Detect and localization still work; tracing may be sparse; team may prefer logs + topology.</p>
+    </div>
+    <div class="col with">
+      <h3>With exemplars (same sketch row, optional array)</h3>
+      <ol>
+        <li><strong>E6 Detect fires</strong> — identical math. Exemplars do not change fire / no-fire.</li>
+        <li><strong>Investigate “where”</strong> — same hot bin <code>[200, 500) ms</code> from buckets.</li>
+        <li><strong>Investigate “which”</strong> — UI reads <code>exemplars[bin3] = "trace-000001"</code> from the sketch.</li>
+        <li><strong>One click</strong> — open that trace in APM / OTel backend. See e.g. payments-db span at 420 ms immediately.</li>
+      </ol>
+      <p style="margin:.5rem 0 0;font-size:.88rem"><strong>Justification to enable:</strong> high-traffic services, trace-first debugging, repeated “which request?” bottleneck after SLOWDOWN fires.</p>
+    </div>
+  </div>
+
+  <h3>Capability matrix — what changes when you add exemplars?</h3>
+  <table class="ex">
+    <thead>
+      <tr><th>Capability</th><th>Digest + buckets + baseline</th><th>+ Exemplars</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Fire Detect on seasonal p95</td><td>Yes</td><td>Yes (unchanged)</td></tr>
+      <tr><td>Merge windows / long-range percentiles</td><td>Yes (digest)</td><td>Yes (unchanged)</td></tr>
+      <tr><td>Heatmap / “which bin is hot?”</td><td>Yes (buckets)</td><td>Yes (unchanged)</td></tr>
+      <tr><td>Season context (“Thu 09:00 usual”)</td><td>Yes (baseline)</td><td>Yes (unchanged)</td></tr>
+      <tr><td>Open <strong>one</strong> request in hot bin</td><td>Manual trace/log search</td><td><strong>Direct</strong> via stored <code>trace_id</code></td></tr>
+      <tr><td>List <strong>all</strong> requests in hot bin</td><td>No</td><td><strong>Still no</strong> — needs raw / events (Case 6)</td></tr>
+      <tr><td>Works if tracing off / span expired</td><td>Detect + buckets still work</td><td>Exemplar slot empty or dead link; fall back to manual search</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>Why exemplars do not replace digest + buckets + baseline:</strong> you cannot compute p95 vs season from a <code>trace_id</code>,
+    and you cannot know the hot range from a trace alone. Exemplars assume the sketch already proved abnormality (digest + baseline)
+    and already located mass (buckets). They only shorten the last hop to a trace product.
+  </div>
+
+  <!-- ═══ SECTION 6: HOW IT WORKS ═══ -->
+  <h2 id="how-it-works">6 · How write-time capture works</h2>
+
+  <div class="callout">
+    <strong>Terminology — what “sample” means on this page:</strong>
+    A <strong>sample</strong> is one resolved <code>metric_sample</code> ingest line — one measurement event with a numeric <code>value</code>
+    (for example 420 ms) and optional labels (for example <code>trace_id</code>). It is <strong>input</strong> to the E4 sketch writer, not output from T-Digest.
+    T-Digest, buckets, and exemplars are three parallel summaries built from the same <code>metric_sample</code> while the writer still holds it in memory.
+    After flush, individual lines are discarded; only aggregates land in <code>sketch.v1</code>.
+  </div>
+
+  <p>
+    The counter-question: <em>“counts are aggregate — how does <code>trace_id</code> appear if we discard metric raw?”</em>
+    Answer: the writer stores the id <strong>while each <code>metric_sample</code> is still visible</strong>, in a parallel side table — not by decoding <code>counts[]</code> later.
+  </p>
+
+  <div class="callout">
+    <strong>Key insight:</strong> bucket <code>counts[]</code> are pure aggregates — you <em>cannot</em> reverse a <code>trace_id</code> from “2,836 metric_samples in [200,500)”.
+    The writer <strong>remembers one id while each <code>metric_sample</code> is still visible</strong>, stores it beside the bin, then discards the in-window stream.
+    Investigation uses <strong>sketch → stored trace_id → trace/APM store</strong>, not histogram → inferred id.
+  </div>
+
+  <div class="grid2">
+    <div class="step" style="margin:0">
+      <h3>What the histogram stores</h3>
+      <p>Only <strong>how many</strong> <code>metric_sample</code> values fell in each fixed range. No per-request ids inside <code>counts[]</code>.</p>
+      <span class="flow">counts: [2, 8, 10, 2836, 2, 1]
+bounds: [0, 50, 100, 200, 500, 1000, 2000]</span>
+    </div>
+    <div class="step" style="margin:0">
+      <h3>What the exemplar stores (optional)</h3>
+      <p>A <strong>parallel side table</strong> filled during E4 — typically one <code>trace_id</code> per bin (policy: first in bin, slowest, etc.).</p>
+      <span class="flow">exemplars: [null, null, null,
+  "trace-000001", "trace-000042", null]</span>
+    </div>
+  </div>
+
+  <div class="flow">Per incoming metric_sample (while E4 writer still sees it):
+  metric_sample { value: 420 ms, labels: { trace_id: "trace-000001" } }
+      ├─► T-Digest.update(420)          ← consumes value; updates centroids (not a sample)
+      ├─► buckets[200-500) count += 1   ← consumes value; increments count
+      └─► exemplars[200-500) = "trace-000001"
+          (only if slot empty — first-in-bin policy)
+
+After flush → sketch.v1 in history/  ·  in-window metric_sample list discarded
+Later     → Detect on digest vs baseline  ·  click exemplar → trace store (not history/)</div>
+
+  <!-- ═══ DIAGRAM 1 — animated tabs ═══ -->
+  <h2 id="step-by-step">7 · Step by step — metric_sample stream → sketch row</h2>
+  <p>Four animated steps — one focus per tab. Each step shows how E4 aggregates resolved <code>metric_sample</code> lines (input), not T-Digest output. Use arrow keys on tabs to step through.</p>
+
+  <div class="ex-tabs" id="ex-build-tabs">
+    <div class="ex-tablist" role="tablist" aria-label="Sketch build steps">
+      <button type="button" class="ex-tab" role="tab" id="tab-b1" data-tab="b1" data-group="build" aria-selected="true" aria-controls="panel-b1"><span class="ex-tab-num">1</span>metric_samples in</button>
+      <button type="button" class="ex-tab" role="tab" id="tab-b2" data-tab="b2" data-group="build" aria-selected="false" aria-controls="panel-b2" tabindex="-1"><span class="ex-tab-num">2</span>Parallel update</button>
+      <button type="button" class="ex-tab" role="tab" id="tab-b3" data-tab="b3" data-group="build" aria-selected="false" aria-controls="panel-b3" tabindex="-1"><span class="ex-tab-num">3</span>Baseline</button>
+      <button type="button" class="ex-tab" role="tab" id="tab-b4" data-tab="b4" data-group="build" aria-selected="false" aria-controls="panel-b4" tabindex="-1"><span class="ex-tab-num">4</span>Flush row</button>
+    </div>
+
+    <div class="ex-tabpanel is-active" role="tabpanel" id="panel-b1" aria-labelledby="tab-b1">
+      <div class="ex-frame">
+        <svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+          <rect width="720" height="340" fill="#0c1016"/>
+          <defs><marker id="b1-arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><path d="M0,0 L10,3.5 L0,7" fill="#8a96a4"/></marker></defs>
+          <text x="360" y="36" text-anchor="middle" fill="#e8eef4" font-size="18" font-weight="600">STEP 0 · metric_sample lines arrive</text>
+          <text x="360" y="58" text-anchor="middle" fill="#8a96a4" font-size="14">5m window · Thu-09:00 · checkout-api · request.latency_ms</text>
+          <rect x="80" y="80" width="560" height="72" rx="10" fill="#1a2233" stroke="#8a96a4" stroke-width="1.5" class="pulse-soft"/>
+          <text x="360" y="110" text-anchor="middle" fill="#e8eef4" font-size="16" font-weight="600">5,000 resolved metric_samples</text>
+          <text x="360" y="134" text-anchor="middle" fill="#8a96a4" font-size="13">fact_kind: metric_sample · value + ts + ci_id · trace_id in labels</text>
+          <rect x="200" y="178" width="320" height="56" rx="8" fill="#171d25" stroke="#f0b35a"/>
+          <text x="360" y="202" text-anchor="middle" fill="#f0b35a" font-size="12" font-family="ui-monospace,monospace">metric_sample { 420 ms, trace-000001 }</text>
+          <text x="360" y="222" text-anchor="middle" fill="#8a96a4" font-size="12">input event — writer sees once, then aggregates</text>
+          <path d="M360,152 L360,172" fill="none" stroke="#7ba8f5" stroke-width="2" marker-end="url(#b1-arr)" class="march"/>
+          <text x="360" y="268" text-anchor="middle" fill="#9bb8f5" font-size="14" font-weight="600">↓ E4 sketch writer (one pass per metric_sample)</text>
+          <circle r="5" fill="#7ba8f5"><animate attributeName="opacity" values="0;1;1;0" dur="2.5s" repeatCount="indefinite"/><animateMotion dur="2.5s" repeatCount="indefinite" path="M360,152 L360,172"/></circle>
+        </svg>
+      </div>
+      <div class="ex-caption"><h3>Step 0 — metric_samples in</h3><p>The sketch writer receives resolved <code>metric_sample</code> lines for one closed window. These are <strong>input events</strong> (one measurement each), not T-Digest centroids. Lines may include a <code>trace_id</code> label from upstream APM. Nothing is persisted yet — the writer aggregates in memory.</p></div>
+    </div>
+
+    <div class="ex-tabpanel" role="tabpanel" id="panel-b2" aria-labelledby="tab-b2" hidden>
+      <div class="ex-frame">
+        <svg viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+          <rect width="720" height="380" fill="#0c1016"/>
+          <defs><marker id="b2-arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><path d="M0,0 L10,3.5 L0,7" fill="#8a96a4"/></marker></defs>
+          <text x="360" y="32" text-anchor="middle" fill="#7ba8f5" font-size="17" font-weight="600">STEP 1 · Three parallel updates per metric_sample</text>
+          <path d="M360,48 L360,68" fill="none" stroke="#8a96a4" stroke-width="2" marker-end="url(#b2-arr)" class="march"/>
+          <path d="M360,68 L130,100" fill="none" stroke="#7ba8f5" stroke-width="2" marker-end="url(#b2-arr)" class="march"/>
+          <path d="M360,68 L360,100" fill="none" stroke="#3d9a8b" stroke-width="2" marker-end="url(#b2-arr)" class="march"/>
+          <path d="M360,68 L590,100" fill="none" stroke="#f0b35a" stroke-width="2" marker-end="url(#b2-arr)" class="march"/>
+          <rect x="24" y="100" width="210" height="240" rx="10" fill="#171d25" stroke="#7ba8f5" stroke-width="2"/>
+          <text x="129" y="132" text-anchor="middle" fill="#9bb8f5" font-size="16" font-weight="600">T-DIGEST</text>
+          <text x="129" y="168" text-anchor="middle" fill="#e8eef4" font-size="15">p50 ≈ 100 ms</text>
+          <text x="129" y="196" text-anchor="middle" fill="#e8eef4" font-size="15">p95 ≈ 455 ms</text>
+          <text x="129" y="310" text-anchor="middle" fill="#7ba8f5" font-size="13" font-weight="600">Detect: how bad?</text>
+          <rect x="255" y="100" width="210" height="240" rx="10" fill="#171d25" stroke="#3d9a8b" stroke-width="2"/>
+          <text x="360" y="132" text-anchor="middle" fill="#7aecc4" font-size="16" font-weight="600">BUCKETS</text>
+          <rect x="330" y="168" width="60" height="90" fill="#3d9a8b" opacity=".9" class="glow"/>
+          <text x="360" y="278" text-anchor="middle" fill="#e8eef4" font-size="14">[200, 500) ms</text>
+          <text x="360" y="300" text-anchor="middle" fill="#8a96a4" font-size="13">n = 2,836</text>
+          <text x="360" y="324" text-anchor="middle" fill="#3d9a8b" font-size="13" font-weight="600">Investigate: where?</text>
+          <rect x="486" y="100" width="210" height="240" rx="10" fill="#171d25" stroke="#f0b35a" stroke-width="2"/>
+          <text x="591" y="132" text-anchor="middle" fill="#f0b35a" font-size="16" font-weight="600">EXEMPLAR</text>
+          <text x="591" y="158" text-anchor="middle" fill="#8a96a4" font-size="12">optional · write-time</text>
+          <text x="591" y="190" text-anchor="middle" fill="#e8eef4" font-size="13">bin [200,500) holds id</text>
+          <text x="591" y="218" text-anchor="middle" fill="#f0b35a" font-size="14" font-family="ui-monospace,monospace">trace-000001</text>
+          <text x="591" y="244" text-anchor="middle" fill="#8a96a4" font-size="12">lookup key → trace store</text>
+          <text x="591" y="324" text-anchor="middle" fill="#f0b35a" font-size="13" font-weight="600">Investigate: which?</text>
+          <circle r="4" fill="#7ba8f5"><animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/><animateMotion dur="2s" repeatCount="indefinite" path="M360,68 L130,100"/></circle>
+          <circle r="4" fill="#3d9a8b"><animate attributeName="opacity" values="0;1;0" dur="2s" begin="0.3s" repeatCount="indefinite"/><animateMotion dur="2s" begin="0.3s" repeatCount="indefinite" path="M360,68 L360,100"/></circle>
+          <circle r="4" fill="#f0b35a"><animate attributeName="opacity" values="0;1;0" dur="2s" begin="0.6s" repeatCount="indefinite"/><animateMotion dur="2s" begin="0.6s" repeatCount="indefinite" path="M360,68 L590,100"/></circle>
+        </svg>
+      </div>
+      <div class="ex-caption"><h3>Step 1 — parallel update</h3><p>Every <code>metric_sample</code> updates digest, bucket count, and (optionally) the exemplar slot in one pass — same input, three different summaries. Digest and buckets answer different questions from the same <code>value</code>. Exemplar stores one <code>trace_id</code> beside the hot bin — not inside <code>counts[]</code>.</p></div>
+    </div>
+
+    <div class="ex-tabpanel" role="tabpanel" id="panel-b3" aria-labelledby="tab-b3" hidden>
+      <div class="ex-frame">
+        <svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+          <rect width="720" height="340" fill="#0c1016"/>
+          <text x="360" y="36" text-anchor="middle" fill="#e8d19d" font-size="17" font-weight="600">STEP 2 · Compare to seasonal baseline</text>
+          <text x="360" y="58" text-anchor="middle" fill="#8a96a4" font-size="14">season_key = Thu-09:00 · from past windows, not this window alone</text>
+          <rect x="40" y="84" width="640" height="200" rx="10" fill="#171d25" stroke="#e8d19d" stroke-width="1.5"/>
+          <text x="360" y="118" text-anchor="middle" fill="#e8d19d" font-size="15" font-weight="600">SEASONAL BASELINE</text>
+          <text x="120" y="162" text-anchor="end" fill="#8a96a4" font-size="14">expected p95</text>
+          <rect x="130" y="148" width="100" height="22" rx="4" fill="#e8d19d" opacity=".75"/>
+          <text x="245" y="164" fill="#e8d19d" font-size="14" font-weight="600">173 ms</text>
+          <text x="120" y="210" text-anchor="end" fill="#8a96a4" font-size="14">this window p95</text>
+          <rect x="130" y="196" width="280" height="22" rx="4" fill="#f06060" opacity=".9" class="pulse-soft"/>
+          <text x="425" y="212" fill="#f06060" font-size="14" font-weight="600">455 ms</text>
+          <text x="360" y="260" text-anchor="middle" fill="#f06060" font-size="16" font-weight="700">ratio 2.64× → ABNORMAL → E6 fires</text>
+          <text x="360" y="288" text-anchor="middle" fill="#8a96a4" font-size="13">exemplars not used in this comparison</text>
+        </svg>
+      </div>
+      <div class="ex-caption"><h3>Step 2 — baseline</h3><p>Door C Detect compares digest p95 to the seasonal expected p95. Buckets and exemplars are not part of the fire decision — they matter after the Signal.</p></div>
+    </div>
+
+    <div class="ex-tabpanel" role="tabpanel" id="panel-b4" aria-labelledby="tab-b4" hidden>
+      <div class="ex-frame">
+        <svg viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+          <rect width="720" height="440" fill="#0c1016"/>
+      <defs>
+            <marker id="b4-arr-up" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L10,3.5 L0,7" fill="#3d9a8b"/></marker>
+            <marker id="b4-arr-warn" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L10,3.5 L0,7" fill="#f0b35a"/></marker>
+            <clipPath id="b4-banner-clip"><rect x="120" y="44" width="480" height="32" rx="6"/></clipPath>
+            <clipPath id="b4-foot-l"><rect x="24" y="364" width="210" height="68" rx="6"/></clipPath>
+            <clipPath id="b4-foot-m"><rect x="250" y="364" width="220" height="68" rx="6"/></clipPath>
+            <clipPath id="b4-foot-r"><rect x="486" y="364" width="210" height="68" rx="6"/></clipPath>
+      </defs>
+
+          <text x="360" y="32" text-anchor="middle" fill="#e8eef4" font-size="17" font-weight="600">STEP 4 · Flush — compress into row, discard stream</text>
+
+          <!-- Phase banner — SVG animate (one label visible at a time) -->
+          <rect x="120" y="44" width="480" height="32" rx="6" fill="#121821" stroke="#2a3441"/>
+          <g clip-path="url(#b4-banner-clip)">
+            <text x="360" y="65" text-anchor="middle" fill="#9bb8f5" font-size="13" font-weight="600">
+              ① Aggregates ready in memory
+              <animate attributeName="opacity" values="1;1;0;0;0;1" keyTimes="0;0.28;0.32;0.65;0.68;1" dur="5s" repeatCount="indefinite"/>
+            </text>
+            <text x="360" y="65" text-anchor="middle" fill="#3d9a8b" font-size="13" font-weight="600" opacity="0">
+              ② Write sketch.v1 row → history/
+              <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.32;0.36;0.62;0.66;1" dur="5s" repeatCount="indefinite"/>
+            </text>
+            <text x="360" y="65" text-anchor="middle" fill="#f06060" font-size="13" font-weight="600" opacity="0">
+              ③ Discard metric_sample stream
+              <animate attributeName="opacity" values="0;0;0;0;1;1" keyTimes="0;0.64;0.68;0.96;1;1" dur="5s" repeatCount="indefinite"/>
+            </text>
+          </g>
+
+          <!-- IN MEMORY (source) -->
+          <rect x="24" y="92" width="672" height="108" rx="10" fill="#171d25" stroke="#8a96a4" stroke-width="1.5" class="pulse-soft"/>
+          <text x="360" y="116" text-anchor="middle" fill="#8a96a4" font-size="14" font-weight="600">IN MEMORY · E4 writer (before flush)</text>
+
+          <rect x="44" y="128" width="300" height="58" rx="8" fill="#1a2233" stroke="#f06060" stroke-dasharray="4,3" class="flush-discard"/>
+          <text x="194" y="152" text-anchor="middle" fill="#f06060" font-size="13" font-weight="600">metric_sample stream</text>
+          <text x="194" y="172" text-anchor="middle" fill="#8a96a4" font-size="11">5,000 lines · discarded after flush</text>
+
+          <rect x="376" y="128" width="300" height="58" rx="8" fill="#1a2233" stroke="#7ba8f5" stroke-width="1.5"/>
+          <text x="526" y="152" text-anchor="middle" fill="#9bb8f5" font-size="13" font-weight="600">aggregates built</text>
+          <text x="526" y="172" text-anchor="middle" fill="#8a96a4" font-size="11">tdigest · counts · exemplars · baseline</text>
+
+          <!-- Animated arrows down into row -->
+          <path d="M130,216 L130,252" fill="none" stroke="#7ba8f5" stroke-width="2.5" marker-end="url(#b4-arr-up)" class="march"/>
+          <path d="M216,216 L216,252" fill="none" stroke="#3d9a8b" stroke-width="2.5" marker-end="url(#b4-arr-up)" class="march"/>
+          <path d="M334,216 L334,252" fill="none" stroke="#3d9a8b" stroke-width="2.5" marker-end="url(#b4-arr-up)" class="march"/>
+          <path d="M463,216 L463,252" fill="none" stroke="#f0b35a" stroke-width="2.5" marker-end="url(#b4-arr-warn)" class="march"/>
+          <path d="M608,216 L608,252" fill="none" stroke="#e8d19d" stroke-width="2.5" marker-end="url(#b4-arr-up)" class="march"/>
+
+          <circle r="4" fill="#7ba8f5"><animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite"/><animateMotion dur="2.5s" repeatCount="indefinite" path="M130,216 L130,252"/></circle>
+          <circle r="4" fill="#f0b35a"><animate attributeName="opacity" values="0;1;0" dur="2.5s" begin="0.3s" repeatCount="indefinite"/><animateMotion dur="2.5s" begin="0.3s" repeatCount="indefinite" path="M463,216 L463,252"/></circle>
+
+          <!-- DURABLE ROW (destination) -->
+          <rect x="24" y="252" width="672" height="100" rx="10" fill="#1a2233" stroke="#2a3441" stroke-width="1.5" class="flush-save"/>
+          <text x="360" y="276" text-anchor="middle" fill="#3d9a8b" font-size="14" font-weight="600">history/ · sketch.v1 · ONE durable row</text>
+
+          <rect x="44" y="288" width="100" height="52" rx="6" fill="#171d25" stroke="#7ba8f5" stroke-width="1.5" class="flush-pop flush-pop-d1"/>
+          <text x="94" y="310" text-anchor="middle" fill="#9bb8f5" font-size="11" font-weight="600">tdigest</text>
+          <text x="94" y="328" text-anchor="middle" fill="#8a96a4" font-size="10">p95 ≈ 455</text>
+
+          <rect x="154" y="288" width="100" height="52" rx="6" fill="#171d25" stroke="#3d9a8b" stroke-width="1.5" class="flush-pop flush-pop-d2"/>
+          <text x="204" y="310" text-anchor="middle" fill="#7aecc4" font-size="11" font-weight="600">counts[]</text>
+          <text x="204" y="328" text-anchor="middle" fill="#8a96a4" font-size="10">2836 in bin</text>
+
+          <rect x="264" y="288" width="100" height="52" rx="6" fill="#171d25" stroke="#3d9a8b" stroke-width="1.5" class="flush-pop flush-pop-d2"/>
+          <text x="314" y="310" text-anchor="middle" fill="#7aecc4" font-size="11" font-weight="600">bounds[]</text>
+          <text x="314" y="328" text-anchor="middle" fill="#8a96a4" font-size="10">fixed bins</text>
+
+          <rect x="374" y="288" width="178" height="52" rx="6" fill="#171d25" stroke="#f0b35a" stroke-width="2" class="flush-pop flush-pop-d4 glow"/>
+          <text x="463" y="308" text-anchor="middle" fill="#f0b35a" font-size="11" font-weight="600">exemplars[]</text>
+          <text x="463" y="326" text-anchor="middle" fill="#f0b35a" font-size="10" font-family="ui-monospace,monospace">trace-000001</text>
+
+          <rect x="562" y="288" width="118" height="52" rx="6" fill="#171d25" stroke="#e8d19d" stroke-width="1.5" class="flush-pop flush-pop-d5"/>
+          <text x="621" y="310" text-anchor="middle" fill="#e8d19d" font-size="11" font-weight="600">baseline</text>
+          <text x="621" y="328" text-anchor="middle" fill="#8a96a4" font-size="10">expected p95</text>
+
+          <!-- Footer — three clipped columns, no overlap -->
+          <rect x="24" y="364" width="210" height="68" rx="6" fill="#171d25" stroke="#f06060" stroke-dasharray="4,3"/>
+          <g clip-path="url(#b4-foot-l)">
+            <text x="129" y="388" text-anchor="middle" fill="#f06060" font-size="18" font-weight="700" class="flush-x">✕</text>
+            <text x="129" y="410" text-anchor="middle" fill="#f06060" font-size="11" font-weight="600">stream discarded</text>
+            <text x="129" y="426" text-anchor="middle" fill="#8a96a4" font-size="10">not kept in history/</text>
+          </g>
+
+          <rect x="250" y="364" width="220" height="68" rx="6" fill="#171d25" stroke="#f0b35a" stroke-width="1.5"/>
+          <g clip-path="url(#b4-foot-m)">
+            <text x="360" y="392" text-anchor="middle" fill="#f0b35a" font-size="11" font-weight="600">exemplar id saved in row</text>
+            <text x="360" y="410" text-anchor="middle" fill="#8a96a4" font-size="10">lookup key only — not metric raw</text>
+            <text x="360" y="426" text-anchor="middle" fill="#8a96a4" font-size="10">click → trace store later</text>
+          </g>
+
+          <rect x="486" y="364" width="210" height="68" rx="6" fill="#171d25" stroke="#3d9a8b" stroke-width="1.5"/>
+          <g clip-path="url(#b4-foot-r)">
+            <text x="591" y="392" text-anchor="middle" fill="#3d9a8b" font-size="11" font-weight="600">row kept for Detect</text>
+            <text x="591" y="410" text-anchor="middle" fill="#8a96a4" font-size="10">digest + baseline → E6</text>
+            <text x="591" y="426" text-anchor="middle" fill="#8a96a4" font-size="10">counts for heatmap</text>
+          </g>
+    </svg>
+      </div>
+      <div class="ex-caption"><h3>Step 4 — flush</h3><p>Watch the cycle: aggregates compress into one <code>sketch.v1</code> row (digest, counts, exemplars, baseline). The in-window <code>metric_sample</code> stream is discarded — only the exemplar <em>string</em> survives inside the row, as a lookup key to the trace store, not as metric raw.</p></div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 2: SAMPLE TABLE ═══ -->
+  <h2 id="worked-example">8 · Worked example — four metric_samples, one hot bin</h2>
+
+  <p>While the sketch writer processes the stream, each resolved <code>metric_sample</code> with a <code>trace_id</code> in labels can update digest, bucket count, and exemplar slot in one pass. Each row below is one ingest line — not T-Digest output.</p>
+
+  <div class="callout">
+    <strong>PoC / walkthrough default policy: first in bin.</strong>
+    The exemplar slot holds <strong>one</strong> <code>trace_id</code> per histogram bin — not every request in that bin.
+    Under <strong>first in bin</strong>, the writer sets the slot when it is still empty and never overwrites.
+    So <code>trace-000001</code> below is the <em>first</em> request seen in <code>[200,500)</code>, not necessarily the slowest of the 2,836.
+    Other policies (slowest in bin, most recent) are product-configurable — see <a href="#exemplar-policies">selection policies</a>.
+  </div>
+
+  <table class="ex">
+    <thead>
+      <tr><th>Incoming metric_sample</th><th>Bin</th><th>count +=</th><th>exemplar slot</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>45 ms</code>, trace-A</td><td>[0, 50)</td><td>1</td><td>unchanged</td></tr>
+      <tr><td><code>380 ms</code>, <strong>trace-000001</strong></td><td>[200, 500)</td><td>1</td><td><strong>set</strong> <code>trace-000001</code> (first in bin)</td></tr>
+      <tr><td><code>410 ms</code>, trace-000002</td><td>[200, 500)</td><td>1</td><td>unchanged (slot already set)</td></tr>
+      <tr><td>… 2,834 more in [200, 500)</td><td>[200, 500)</td><td>each +1</td><td>unchanged</td></tr>
+    </tbody>
+  </table>
+
+  <p>After flush: <code>counts[bin3] = 2836</code> and <code>exemplars[bin3] = "trace-000001"</code>. Individual 380 ms / 410 ms values are <strong>not</strong> kept in <code>history/</code>.</p>
+
+  <div class="step">
+    <h3>Example sketch fragment (illustrative — exemplars optional in v1 schema)</h3>
+    <span class="flow">{
+  "schema_version": "sketch.v1",
+  "entity_id": "checkout-api",
+  "metric_id": "request.latency_ms",
+  "window": "5m",
+  "season_key": "Thu-09:00",
+  "sample_count": 5000,
+  "tdigest": { "...": "p95 ≈ 455" },
+  "buckets": {
+    "bounds": [0, 50, 100, 200, 500, 1000, 2000],
+    "counts": [2, 8, 10, 2836, 2, 1],
+    "exemplars": [null, null, null,
+      "trace-000001", "trace-000042", null]
+  },
+  "baseline": { "expected_p95": 173.0 }
+}</span>
+  </div>
+
+  <!-- ═══ ONE PER BIN + RESOLUTION ═══ -->
+  <h2 id="one-per-bin-resolution">9 · One trace_id per bin — policy &amp; how it resolves</h2>
+
+  <p>
+    A hot bin can contain <strong>thousands</strong> of requests (<code>counts[bin3] = 2836</code>), but <code>exemplars[]</code> stores
+    <strong>one bookmark per bin</strong>. The team will ask: <em>“The operator clicks that id — how do we actually fetch the trace?”</em>
+  </p>
+
+  <h3>How the writer picks one id (when many land in the same bin)</h3>
+  <table class="ex">
+    <thead>
+      <tr><th>Policy (configurable)</th><th>Rule while E4 processes each <code>metric_sample</code></th><th>PoC default?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>First in bin</strong></td><td>Set slot when empty; never overwrite</td><td><strong>Yes</strong> — walkthrough + table above</td></tr>
+      <tr><td><strong>Slowest in bin</strong></td><td>Replace if new sample value &gt; current exemplar value</td><td>No</td></tr>
+      <tr><td><strong>Most recent</strong></td><td>Always overwrite with latest sample in bin</td><td>No</td></tr>
+      <tr><td><strong>No <code>trace_id</code> on sample</strong></td><td>Leave slot <code>null</code></td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3>How the operator resolves <code>trace-000001</code> after Detect (room answer)</h3>
+  <p>
+    The exemplar string on the sketch row is <strong>not</strong> metric raw and <strong>not</strong> a row key inside <code>history/</code>.
+    It is a <strong>foreign key</strong> into the trace / APM product that already stored that request when it ran.
+    Resolution is a <strong>cross-product lookup</strong>, not a replay from the discarded <code>metric_sample</code> stream.
+  </p>
+
+  <div class="flow">PREREQUISITE (when the request ran)
+  Instrumentation exported latency with trace_id = "trace-000001"
+  → trace / span store indexed that id (Datadog APM, Dynatrace, OTel backend, …)
+
+WRITE (E4 flush — bookmark only)
+  sketch.v1 row: exemplars[bin3] = "trace-000001"
+  (2,835 other requests in that bin are counted but not listed)
+
+INVESTIGATE (after E6 Detect + hot bin from buckets)
+  1. UI reads sketch row from history/  → hot bin [200,500) + exemplars[bin3]
+  2. Operator clicks exemplar / “open example trace”
+  3. Platform calls trace store: GET trace("trace-000001")   ← E10 Identify / APM integration
+  4. Trace UI returns span tree, errors, dependency breakdown for that one request
+  5. Optional: logs joined on same trace_id (vendor-specific)
+
+NOT this path: history/ → metric_sample replay → infer trace   ✕</div>
+
+  <table class="ex">
+    <thead>
+      <tr><th>Step</th><th>System</th><th>What happens</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Detect fired</td><td>E6 door C</td><td>Digest p95 vs baseline — exemplars not used</td></tr>
+      <tr><td>Hot range shown</td><td>UI + buckets</td><td><code>[200,500) ms</code>, n = 2836</td></tr>
+      <tr><td>Bookmark read</td><td><code>history/</code> sketch row</td><td><code>exemplars[bin3] = "trace-000001"</code></td></tr>
+      <tr><td>Trace fetched</td><td>Trace / APM store</td><td><code>GET trace("trace-000001")</code> — full distributed trace</td></tr>
+      <tr><td>Operator sees</td><td>Trace UI (E10)</td><td>One request path — e.g. payments-db span at 380 ms</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>When resolution fails (honest limits):</strong>
+    <code>trace_id</code> missing on the <code>metric_sample</code> at write → slot stays <code>null</code>.
+    Trace aged out of APM retention → dead link; Detect + buckets still valid.
+    Operator needs <strong>all</strong> requests in the bin → trace/log search or events — exemplars only jump to <em>one</em> id.
+  </div>
+
+  <div class="step">
+    <h3>Ready reply — “How is trace-000001 resolved?”</h3>
+    <p>
+      We store <strong>one id per bin</strong> on the sketch row (default: <strong>first in bin</strong>).
+      After Detect, the UI reads that string from <code>exemplars[]</code> and calls the <strong>trace store</strong> with
+      <code>GET trace("trace-000001")</code> — the same id APM already indexed when the request ran.
+      We do not reconstruct the trace from <code>history/</code> metric raw; the exemplar is only a lookup key.
+    </p>
+  </div>
+
+  <!-- ═══ DIAGRAM 2: TWO STORES ═══ -->
+  <h2 id="two-stores">10 · Two stores — metric raw vs trace product</h2>
+
+  <div class="callout warn">
+    <strong>Do not collapse these.</strong> Exemplars do <em>not</em> pull individual <code>metric_sample</code> lines back out of the histogram.
+    They point at a <strong>trace / span store</strong> (APM, Grail, OTel backend) with its own retention.
+  </div>
+  <p>Animated tabs — write-time capture vs post-Detect investigation path.</p>
+
+  <div class="ex-tabs" id="ex-stores-tabs">
+    <div class="ex-tablist" role="tablist" aria-label="Two stores diagram">
+      <button type="button" class="ex-tab" role="tab" id="tab-s1" data-tab="s1" data-group="stores" aria-selected="true" aria-controls="panel-s1"><span class="ex-tab-num">1</span>Write time (E4)</button>
+      <button type="button" class="ex-tab" role="tab" id="tab-s2" data-tab="s2" data-group="stores" aria-selected="false" aria-controls="panel-s2" tabindex="-1"><span class="ex-tab-num">2</span>Investigate (E6+)</button>
+    </div>
+
+    <div class="ex-tabpanel is-active" role="tabpanel" id="panel-s1" aria-labelledby="tab-s1">
+      <div class="ex-frame">
+        <svg viewBox="0 0 720 400" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+          <rect width="720" height="400" fill="#0c1016"/>
+      <defs>
+            <marker id="s1-warn" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><path d="M0,0 L10,3.5 L0,7" fill="#f0b35a"/></marker>
+            <marker id="s1-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><path d="M0,0 L10,3.5 L0,7" fill="#7ba8f5"/></marker>
+      </defs>
+          <text x="360" y="32" text-anchor="middle" fill="#e8eef4" font-size="17" font-weight="600">AT WRITE TIME · E4 sees each metric_sample once</text>
+
+          <rect x="24" y="52" width="300" height="88" rx="10" fill="#171d25" stroke="#8a96a4" stroke-width="1.5" class="swap-a"/>
+          <text x="174" y="82" text-anchor="middle" fill="#8a96a4" font-size="15" font-weight="600">METRIC_SAMPLE STREAM</text>
+          <text x="174" y="106" text-anchor="middle" fill="#e8eef4" font-size="13">fact_kind · value + labels + ci_id</text>
+          <text x="174" y="128" text-anchor="middle" fill="#f06060" font-size="12">discarded after flush · not in history/</text>
+
+          <path d="M174,140 L174,168" fill="none" stroke="#7ba8f5" stroke-width="2.5" marker-end="url(#s1-blue)" class="march"/>
+
+          <rect x="24" y="168" width="300" height="96" rx="10" fill="#171d25" stroke="#7ba8f5" stroke-width="2"/>
+          <text x="174" y="198" text-anchor="middle" fill="#9bb8f5" font-size="15" font-weight="600">history/ · sketch.v1</text>
+          <text x="174" y="222" text-anchor="middle" fill="#e8eef4" font-size="13">digest + counts + exemplars[]</text>
+          <text x="174" y="244" text-anchor="middle" fill="#e8eef4" font-size="13">+ baseline</text>
+
+          <path d="M324,216 L380,216" fill="none" stroke="#f0b35a" stroke-width="2.5" marker-end="url(#s1-warn)" class="march"/>
+          <text x="352" y="200" text-anchor="middle" fill="#f0b35a" font-size="12" font-weight="600">exemplar</text>
+          <text x="352" y="238" text-anchor="middle" fill="#f0b35a" font-size="12" font-family="ui-monospace,monospace">trace-000001</text>
+
+          <rect x="380" y="52" width="316" height="212" rx="10" fill="#171d25" stroke="#9bb8f5" stroke-width="2"/>
+          <text x="538" y="82" text-anchor="middle" fill="#9bb8f5" font-size="15" font-weight="600">TRACE / SPAN STORE</text>
+          <text x="538" y="104" text-anchor="middle" fill="#8a96a4" font-size="12">separate product · own retention</text>
+          <text x="538" y="126" text-anchor="middle" fill="#e8eef4" font-size="13">distributed trace · spans · errors</text>
+          <rect x="420" y="144" width="100" height="18" rx="3" fill="#7ba8f5" opacity=".55"/>
+          <rect x="530" y="144" width="120" height="18" rx="3" fill="#7ba8f5" opacity=".7"/>
+          <rect x="660" y="144" width="90" height="18" rx="3" fill="#f06060" opacity=".9" class="pulse-soft"/>
+          <text x="420" y="178" fill="#8a96a4" font-size="12">checkout-api</text>
+          <text x="530" y="178" fill="#8a96a4" font-size="12">payments-db</text>
+          <text x="660" y="178" fill="#f06060" font-size="12">DB 420ms</text>
+          <text x="538" y="210" text-anchor="middle" fill="#9bb8f5" font-size="14">GET trace(trace-000001)</text>
+          <text x="538" y="234" text-anchor="middle" fill="#8a96a4" font-size="12">OTel · GCP · Dynatrace</text>
+          <text x="538" y="254" text-anchor="middle" fill="#f0b35a" font-size="12">bookmark — not a raw lake</text>
+
+          <text x="360" y="310" text-anchor="middle" fill="#8a96a4" font-size="14">exemplar links sketch bin → trace product · metric raw still discarded</text>
+          <circle r="5" fill="#f0b35a"><animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite"/><animateMotion dur="2.5s" repeatCount="indefinite" path="M324,216 L380,216"/></circle>
+        </svg>
+      </div>
+      <div class="ex-caption"><h3>Write time — two stores</h3><p>Resolved <code>metric_sample</code> lines compress into <code>history/sketch.v1</code>. The exemplar stores a <code>trace_id</code> pointer to a separate trace/APM product. Do not collapse in-window metric discard with trace retention — they are different products.</p></div>
+    </div>
+
+    <div class="ex-tabpanel" role="tabpanel" id="panel-s2" aria-labelledby="tab-s2" hidden>
+      <div class="ex-frame">
+        <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+          <rect width="720" height="320" fill="#0c1016"/>
+          <defs><marker id="s2-arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><path d="M0,0 L10,3.5 L0,7" fill="#8a96a4"/></marker></defs>
+          <text x="360" y="32" text-anchor="middle" fill="#e8eef4" font-size="17" font-weight="600">AFTER DETECT · investigation path</text>
+          <text x="360" y="54" text-anchor="middle" fill="#8a96a4" font-size="14">digest + baseline already fired · now locate and open</text>
+
+          <rect x="24" y="80" width="150" height="72" rx="8" fill="#1a2233" stroke="#f06060" stroke-width="2" class="pulse-soft"/>
+          <text x="99" y="108" text-anchor="middle" fill="#f06060" font-size="14" font-weight="600">E6 Detect</text>
+          <text x="99" y="132" text-anchor="middle" fill="#8a96a4" font-size="12">digest vs baseline</text>
+
+          <path d="M174,116 L208,116" fill="none" stroke="#8a96a4" stroke-width="2" marker-end="url(#s2-arr)" class="march"/>
+
+          <rect x="208" y="80" width="150" height="72" rx="8" fill="#1a2233" stroke="#3d9a8b" stroke-width="2"/>
+          <text x="283" y="108" text-anchor="middle" fill="#7aecc4" font-size="14" font-weight="600">Hot bin</text>
+          <text x="283" y="132" text-anchor="middle" fill="#8a96a4" font-size="12">[200,500) n=2836</text>
+
+          <path d="M358,116 L392,116" fill="none" stroke="#f0b35a" stroke-width="2" marker-end="url(#s2-arr)" class="march"/>
+
+          <rect x="392" y="80" width="150" height="72" rx="8" fill="#1a2233" stroke="#f0b35a" stroke-width="2" class="glow"/>
+          <text x="467" y="108" text-anchor="middle" fill="#f0b35a" font-size="14" font-weight="600">Exemplar</text>
+          <text x="467" y="132" text-anchor="middle" fill="#8a96a4" font-size="12" font-family="ui-monospace,monospace">trace-000001</text>
+
+          <path d="M542,116 L576,116" fill="none" stroke="#9bb8f5" stroke-width="2" marker-end="url(#s2-arr)" class="march"/>
+
+          <rect x="576" y="80" width="120" height="72" rx="8" fill="#1a2233" stroke="#9bb8f5" stroke-width="2"/>
+          <text x="636" y="108" text-anchor="middle" fill="#9bb8f5" font-size="13" font-weight="600">Trace UI</text>
+          <text x="636" y="132" text-anchor="middle" fill="#8a96a4" font-size="11">E10 Identify</text>
+
+          <rect x="80" y="190" width="560" height="100" rx="10" fill="#171d25" stroke="#2a3441"/>
+          <text x="360" y="222" text-anchor="middle" fill="#e8eef4" font-size="14">open one slow request path · see DB span at 420 ms</text>
+          <text x="360" y="248" text-anchor="middle" fill="#8a96a4" font-size="13">cannot derive trace_id from counts[] alone — exemplar was captured at write</text>
+          <text x="360" y="274" text-anchor="middle" fill="#8a96a4" font-size="12">without exemplars: same Detect + hot bin, but manual trace search</text>
+          <circle r="5" fill="#f0b35a"><animate attributeName="opacity" values="1;1;0" dur="3s" repeatCount="indefinite"/><animateMotion dur="3s" repeatCount="indefinite" path="M174,116 L208,116 L392,116 L576,116"/></circle>
+    </svg>
+      </div>
+      <div class="ex-caption"><h3>Investigation path</h3><p>After E6 fires, buckets show <em>where</em> mass sits. Exemplars jump to <em>which</em> request via the trace store. Without exemplars the first three steps still work — the operator hunts traces manually.</p></div>
+    </div>
+  </div>
+
+  <!-- ═══ COMMON CONFUSIONS ═══ -->
+  <h2 id="common-confusions">11 · Common confusions</h2>
+
+  <h3>“trace-000001” is not a pointer into metric raw in <code>history/</code></h3>
+  <p>
+    You are right: after flush, <code>history/</code> does <strong>not</strong> keep the original <code>metric_sample</code> line for 420 ms.
+    The exemplar id is also <strong>not</strong> a row key back into a metric raw lake. It is a <strong>lookup key into a different product</strong> — the trace / span store (Datadog APM, Dynatrace, OTel backend, etc.) that already captured that request when it ran.
+  </p>
+
+  <div class="flow">WHEN THE REQUEST HAPPENED (before E4 flush)
+  APM / OTel already stored the full trace under trace_id = "trace-000001"
+  (spans, timings, errors, service names — separate retention)
+
+WHEN E4 WRITES THE SKETCH
+  metric_sample { value: 380 ms, trace_id: "trace-000001" }  ← writer sees this once
+  exemplars[bin [200,500)] = "trace-000001"                  ← copies the id beside the bin
+  metric_sample stream discarded                             ← 380 ms line not kept in history/
+
+LATER — OPERATOR CLICKS THE EXEMPLAR
+  UI: GET trace("trace-000001") on trace store   ← NOT a read from history/
+  → flamegraph / span tree for that one request
+  → logs joined by same trace_id (if your APM supports it)
+
+What you get back: one real request path — not the full list of 2,836 requests in that bin.</div>
+
+  <div class="callout">
+    <strong>Where did <code>trace-000001</code> come from?</strong> Upstream instrumentation put it on the <code>metric_sample</code> label when the request was measured.
+    E4 only <em>remembers</em> that id while processing the line. “First in bin” means the first request that landed in <code>[200,500)</code> during that window — a bookmark, not a guarantee it was the slowest.
+    If the trace aged out of APM, the link is dead even though the exemplar string remains on the sketch row.
+  </div>
+
+  <h3>Low traffic — can we use exemplars alone (skip T-Digest + buckets + baseline)?</h3>
+  <p><strong>No</strong> — not in ObserveOps Pillar A / E6 door C. Exemplars and the sketch aggregates do different jobs:</p>
+
+  <table class="ex">
+    <thead>
+      <tr><th>Question</th><th>Who answers it</th><th>Exemplars alone?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>“Is latency abnormal for this hour-of-week?”</td><td>T-Digest + baseline → E6 Detect</td><td><strong>No</strong> — a trace id does not tell you p95 vs season</td></tr>
+      <tr><td>“Which latency range is hot?”</td><td>Buckets → heatmap / rules</td><td><strong>No</strong> — one id does not describe mass across bins</td></tr>
+      <tr><td>“Open one request in that hot range”</td><td>Exemplar → trace store</td><td>Only <em>after</em> the first two are answered</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    In <strong>low-traffic</strong> services the tradeoff flips the other way (<a href="/docs/GRAPH_QNA.md">G29</a>):
+    manual trace or log search is cheap, so you often <strong>skip exemplars</strong> — not replace digest + baseline with exemplars.
+    You might keep raw metrics longer in a hot tier, or debug from traces directly, but that is a different storage choice — not “exemplars instead of <code>sketch.v1</code>.”
+  </p>
+
+  <div class="compare">
+    <div class="col without">
+      <h3>High traffic (exemplars worth it)</h3>
+      <p>Thousands of requests per window → hunting traces manually after Detect is slow → store one <code>trace_id</code> per hot bin.</p>
+    </div>
+    <div class="col with">
+      <h3>Low traffic (exemplars often skipped)</h3>
+      <p>Tens of requests per window → you can open traces or logs without a bookmark → still keep digest + baseline for Detect; skip optional <code>exemplars[]</code>.</p>
+    </div>
+  </div>
+
+  <!-- ═══ DIAGRAM 3: ALL FOUR ═══ -->
+  <h2 id="pipeline-stages">12 · Pipeline stages — who needs what</h2>
+  <p>Two tabs — E6 Detect (digest + baseline only) vs investigation (buckets + exemplars).</p>
+
+  <div class="ex-tabs" id="ex-pipeline-tabs">
+    <div class="ex-tablist" role="tablist" aria-label="Pipeline stages">
+      <button type="button" class="ex-tab" role="tab" id="tab-p1" data-tab="p1" data-group="pipeline" aria-selected="true" aria-controls="panel-p1"><span class="ex-tab-num">1</span>E6 Detect</button>
+      <button type="button" class="ex-tab" role="tab" id="tab-p2" data-tab="p2" data-group="pipeline" aria-selected="false" aria-controls="panel-p2" tabindex="-1"><span class="ex-tab-num">2</span>Investigate</button>
+    </div>
+
+    <div class="ex-tabpanel is-active" role="tabpanel" id="panel-p1" aria-labelledby="tab-p1">
+      <div class="ex-frame">
+        <svg viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+          <rect width="720" height="380" fill="#0c1016"/>
+          <text x="360" y="32" text-anchor="middle" fill="#7ba8f5" font-size="16" font-weight="600">checkout-api · request.latency_ms · Thu-09:00</text>
+          <text x="360" y="54" text-anchor="middle" fill="#8a96a4" font-size="13">E6 Detect (door C) — digest + baseline only</text>
+
+          <rect x="80" y="80" width="240" height="140" rx="10" fill="#171d25" stroke="#7ba8f5" stroke-width="2.5" class="pulse-soft"/>
+          <text x="200" y="118" text-anchor="middle" fill="#9bb8f5" font-size="16" font-weight="600">T-DIGEST</text>
+          <text x="200" y="152" text-anchor="middle" fill="#e8eef4" font-size="18">p95 = 455 ms</text>
+          <text x="200" y="198" text-anchor="middle" fill="#7ba8f5" font-size="13" font-weight="600">current window</text>
+
+          <rect x="400" y="80" width="240" height="140" rx="10" fill="#171d25" stroke="#e8d19d" stroke-width="2.5" class="pulse-soft"/>
+          <text x="520" y="118" text-anchor="middle" fill="#e8d19d" font-size="16" font-weight="600">BASELINE</text>
+          <text x="520" y="152" text-anchor="middle" fill="#e8eef4" font-size="18">exp p95 = 173 ms</text>
+          <text x="520" y="198" text-anchor="middle" fill="#e8d19d" font-size="13" font-weight="600">season Thu-09:00</text>
+
+          <text x="360" y="260" text-anchor="middle" fill="#f06060" font-size="20" font-weight="700">455 ÷ 173 = 2.64× → Signal</text>
+
+          <rect x="120" y="288" width="200" height="72" rx="8" fill="#121821" stroke="#2a3441" opacity=".5"/>
+          <text x="220" y="318" text-anchor="middle" fill="#8a96a4" font-size="13">BUCKETS</text>
+          <text x="220" y="340" text-anchor="middle" fill="#5a6570" font-size="12">not used at E6</text>
+
+          <rect x="400" y="288" width="200" height="72" rx="8" fill="#121821" stroke="#2a3441" opacity=".5"/>
+          <text x="500" y="318" text-anchor="middle" fill="#8a96a4" font-size="13">EXEMPLARS</text>
+          <text x="500" y="340" text-anchor="middle" fill="#5a6570" font-size="12">not used at E6</text>
+        </svg>
+      </div>
+      <div class="ex-caption"><h3>E6 Detect — without exemplars</h3><p>Detect fires from digest + baseline alone. Buckets and exemplars are greyed out — they do not change fire/no-fire. This is the complete Detect path even when exemplars are disabled.</p></div>
+    </div>
+
+    <div class="ex-tabpanel" role="tabpanel" id="panel-p2" aria-labelledby="tab-p2" hidden>
+      <div class="ex-frame">
+        <svg viewBox="0 0 720 400" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+          <rect width="720" height="400" fill="#0c1016"/>
+          <text x="360" y="32" text-anchor="middle" fill="#f0b35a" font-size="16" font-weight="600">After fire · E8 / E10 / operator</text>
+          <text x="360" y="54" text-anchor="middle" fill="#8a96a4" font-size="13">digest + baseline already fired · now locate and open</text>
+
+          <rect x="40" y="80" width="300" height="160" rx="10" fill="#171d25" stroke="#3d9a8b" stroke-width="2.5" class="glow"/>
+          <text x="190" y="118" text-anchor="middle" fill="#7aecc4" font-size="16" font-weight="600">BUCKETS</text>
+          <rect x="150" y="136" width="80" height="60" fill="#3d9a8b" opacity=".9"/>
+          <text x="190" y="214" text-anchor="middle" fill="#e8eef4" font-size="14">hot [200, 500) ms</text>
+          <text x="190" y="236" text-anchor="middle" fill="#8a96a4" font-size="13">n = 2,836</text>
+          <text x="190" y="258" text-anchor="middle" fill="#3d9a8b" font-size="13" font-weight="600">where is mass?</text>
+
+          <rect x="380" y="80" width="300" height="160" rx="10" fill="#171d25" stroke="#f0b35a" stroke-width="2.5" class="glow"/>
+          <text x="530" y="118" text-anchor="middle" fill="#f0b35a" font-size="16" font-weight="600">EXEMPLARS</text>
+          <text x="530" y="156" text-anchor="middle" fill="#f0b35a" font-size="15" font-family="ui-monospace,monospace">trace-000001</text>
+          <text x="530" y="184" text-anchor="middle" fill="#8a96a4" font-size="13">on hot bin · optional</text>
+          <text x="530" y="258" text-anchor="middle" fill="#f0b35a" font-size="13" font-weight="600">which request?</text>
+
+          <rect x="80" y="270" width="560" height="56" rx="8" fill="#121821" stroke="#2a3441"/>
+          <text x="360" y="304" text-anchor="middle" fill="#e8eef4" font-size="14">sketch.v1 = digest + buckets + exemplars[] + baseline</text>
+
+          <text x="360" y="360" text-anchor="middle" fill="#8a96a4" font-size="13">buckets → where · exemplars → which (via trace store)</text>
+          <text x="360" y="382" text-anchor="middle" fill="#8a96a4" font-size="12">cannot derive trace_id from counts[] alone</text>
+    </svg>
+      </div>
+      <div class="ex-caption"><h3>Investigate — where exemplars help</h3><p>After Detect, buckets show the hot range. Exemplars (if enabled) store one <code>trace_id</code> for click-through. Without exemplars you still have buckets — but manual trace search replaces the last hop.</p></div>
+    </div>
+  </div>
+
+  <p>
+    At <strong>E4 write</strong>, all four structures can be built from the same <code>metric_sample</code> stream (exemplars optional).
+    At <strong>E6 Detect</strong>, only digest + baseline participate in door C.
+    At <strong>E8 Scope / E10 Identify</strong> and operator investigation, buckets locate the range and exemplars (if present) jump to a trace.
+    See <a href="/docs/GRAPH_QNA.md">G41</a> for why E6 needs no graph edges.
+  </p>
+
+  <!-- ═══ SECTION: WHEN ENABLE ═══ -->
+  <h2 id="when-enable">13 · When to enable vs skip in v1</h2>
+
+  <h3 id="red-when-exemplars">RED scenarios — when exemplars help Duration</h3>
+  <table class="ex">
+    <thead>
+      <tr><th>Scenario</th><th>Need exemplars?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Fire Detect on latency regression (p95 vs season)</td><td><strong>No</strong> — digest + baseline</td></tr>
+      <tr><td>RED dashboard panels (rate, error %, p95)</td><td><strong>No</strong></td></tr>
+      <tr><td>Operator: “Which request was in the hot bin?” (Duration)</td><td><strong>Yes</strong> — exemplar or full raw (Case 6)</td></tr>
+      <tr><td>Error spike — open a failing trace (Errors)</td><td>Often <strong>trace search on error spans</strong>, not latency exemplars</td></tr>
+      <tr><td>Compliance: every request in a bin</td><td><strong>No</strong> — raw/archive product (Q6)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid2">
+    <div class="step" style="margin:0">
+      <h3>Enable exemplars first when…</h3>
+      <ul style="margin:0;padding-left:1.15rem;font-size:.9rem;line-height:1.5">
+        <li>High-traffic services — many traces per minute in the hot window</li>
+        <li>Team debugs primarily via distributed traces (OTel, Dynatrace PurePath, GCP)</li>
+        <li>Repeated SLOWDOWN cases stall on “which request?” after heatmap shows hot bin</li>
+        <li><code>trace_id</code> is already on resolved <code>metric_sample</code> labels at E2</li>
+      </ul>
+    </div>
+    <div class="step" style="margin:0">
+      <h3>Skip exemplars in v1 when…</h3>
+      <ul style="margin:0;padding-left:1.15rem;font-size:.9rem;line-height:1.5">
+        <li>Low-traffic or batch services — manual trace search is cheap</li>
+        <li>Tracing is sparse, expensive, or off for that entity</li>
+        <li>Team resolves with metrics + topology + logs without trace click-through</li>
+        <li>Product priority is Prove Detect on digest + baseline first (G29)</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>
+    <strong>Product stance (locked):</strong> keep <code>exemplars[]</code> <strong>optional</strong> in <code>sketch.v1</code>.
+    Ship Detect on digest + buckets + baseline; add exemplars when investigation velocity matters.
+    PoC schema today does not require exemplars on flush — the JSON fragments on this page are illustrative.
+  </p>
+
+  <h3 id="exemplar-policies">Exemplar selection policies (when enabled)</h3>
+  <p>Default for PoC demos and the worked example above: <strong>first in bin</strong>. Product may expose slowest / most recent per entity or tenant.</p>
+  <table class="ex">
+    <thead>
+      <tr><th>Policy</th><th>Behavior</th><th>Typical use</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>First in bin</strong></td><td>Set slot when empty; never overwrite</td><td>Simplest; walkthrough default</td></tr>
+      <tr><td><strong>Slowest in bin</strong></td><td>Replace if new <code>metric_sample</code> value &gt; current exemplar value</td><td>Prefer worst-case request in range</td></tr>
+      <tr><td><strong>Most recent</strong></td><td>Always overwrite with latest <code>metric_sample</code> in bin</td><td>Freshness over representativeness</td></tr>
+      <tr><td><strong>No trace_id on metric_sample</strong></td><td>Leave slot <code>null</code></td><td>Fall back to logs / broad search</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ═══ SECTION 5: LIMITS ═══ -->
+  <h2 id="limits">14 · Honest limits</h2>
+
+  <table class="ex">
+    <thead>
+      <tr><th>Need</th><th>Exemplars enough?</th><th>What else?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Fire Detect (p95 vs season)</td><td>Not required</td><td>Digest + baseline</td></tr>
+      <tr><td>“Which bin is hot?”</td><td>No — use buckets</td><td><code>counts[]</code> on sketch</td></tr>
+      <tr><td>“Open <strong>one</strong> slow request”</td><td><strong>Yes</strong> (if <code>trace_id</code> was on the <code>metric_sample</code> and trace still exists)</td><td>Trace / APM store lookup</td></tr>
+      <tr><td>“List <strong>all</strong> requests in that bin”</td><td><strong>No</strong></td><td>Full events / raw / rehydration (PDF Case 6)</td></tr>
+      <tr><td><code>metric_sample</code> had no <code>trace_id</code></td><td>Empty exemplar slot</td><td>Logs / broader search</td></tr>
+      <tr><td>Trace aged out of APM</td><td>Dead link</td><td>Detect + topology still work; drill-down does not</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="cheat-sheet">15 · Cheat sheet and further reading</h2>
+  <div class="grid2">
+    <div class="step" style="margin:0">
+      <h3>Same data?</h3>
+      <p>Digest + buckets: same window’s <code>metric_sample</code> values.<br>Baseline: past <code>season_key</code> windows.<br>Exemplars: one <code>trace_id</code> per bin policy, captured at write.</p>
+    </div>
+    <div class="step" style="margin:0">
+      <h3>Substitutes?</h3>
+      <p>Exemplars do <strong>not</strong> replace digest, baseline, or buckets.<br>Detect does <strong>not</strong> need exemplars.<br>Exemplars are post-Detect acceleration (G29).</p>
+    </div>
+    <div class="step" style="margin:0">
+      <h3>Not the same as…</h3>
+      <p>Detect on a 1% subsampled metric stream (different product).<br>An event / execution graph.<br>Re-reading metric raw from S3 after flush.<br>A full trace archive inside <code>history/</code>.</p>
+    </div>
+    <div class="step" style="margin:0">
+      <h3>Further reading</h3>
+      <p>
+        <a href="#red-metrics">RED metrics (this page)</a> ·
+        <a href="#otel-vs-observeops">OTel vs ObserveOps (this page)</a> ·
+        <a href="/data-shape-journey.html">Data shape journey</a><br>
+        <a href="/pillar-ab-implementation/pillar-a/docs/end-to-end-algorithm-walkthrough.md">End-to-end walkthrough</a> Stage 5<br>
+        <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a> G22 · G26 · G28 · G29 · G41 · G43–G46<br>
+        <a href="/pillar-ab-implementation/discussion/04-raw-data-identity-lut-open-questions.md">§4.5 exemplars counter-Q</a><br>
+        <a href="https://opentelemetry.io/docs/specs/otel/metrics/">OpenTelemetry Metrics</a> ·
+        <a href="https://opentelemetry.io/docs/languages/dotnet/metrics/exemplars/">OTel exemplars guide</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <h3>Ready reply in the room</h3>
+    <p>We store <strong>one <code>trace_id</code> per bin</strong> (default: first in bin). After Detect, the UI reads that id from <code>exemplars[]</code> and resolves it via the <strong>trace store</strong> (<code>GET trace(...)</code>) — not from metric raw in <code>history/</code>. We see each <code>metric_sample</code> once at E4, update digest and buckets, copy the label onto the hot bin, then discard the stream. Detect still runs on digest + baseline only; exemplars are optional post-Detect speed.</p>
+  </div>
+</div>
+<script>
+(function () {
+  var groups = {
+    build: { root: "ex-build-tabs", tabs: ["b1", "b2", "b3", "b4"], hash: "ex-build" },
+    stores: { root: "ex-stores-tabs", tabs: ["s1", "s2"], hash: "ex-stores" },
+    pipeline: { root: "ex-pipeline-tabs", tabs: ["p1", "p2"], hash: "ex-pipeline" }
+  };
+
+  function initGroup(key) {
+    var cfg = groups[key];
+    var root = document.getElementById(cfg.root);
+    if (!root) return;
+    var tabEls = root.querySelectorAll(".ex-tab");
+    var panels = root.querySelectorAll(".ex-tabpanel");
+
+    function activate(id) {
+      tabEls.forEach(function (tab) {
+        var on = tab.getAttribute("data-tab") === id;
+        tab.setAttribute("aria-selected", on ? "true" : "false");
+        tab.tabIndex = on ? 0 : -1;
+      });
+      panels.forEach(function (panel) {
+        var on = panel.id === "panel-" + id;
+        panel.classList.toggle("is-active", on);
+        panel.hidden = !on;
+      });
+      if (history.replaceState) {
+        history.replaceState(null, "", "#" + cfg.hash + "-" + id);
+      }
+    }
+
+    tabEls.forEach(function (tab) {
+      var id = tab.getAttribute("data-tab");
+      tab.addEventListener("click", function () { activate(id); });
+      tab.addEventListener("keydown", function (e) {
+        var idx = cfg.tabs.indexOf(id);
+        var next = null;
+        if (e.key === "ArrowRight") next = (idx + 1) % cfg.tabs.length;
+        if (e.key === "ArrowLeft") next = (idx + cfg.tabs.length - 1) % cfg.tabs.length;
+        if (next !== null) {
+          e.preventDefault();
+          var nextId = cfg.tabs[next];
+          activate(nextId);
+          root.querySelector('[data-tab="' + nextId + '"]').focus();
+        }
+      });
+    });
+
+    var prefix = "#" + cfg.hash + "-";
+    var hash = location.hash || "";
+    if (hash.indexOf(prefix) === 0) {
+      var id = hash.slice(prefix.length);
+      if (cfg.tabs.indexOf(id) >= 0) activate(id);
+    }
+  }
+
+  Object.keys(groups).forEach(initGroup);
+
+  window.addEventListener("hashchange", function () {
+    Object.keys(groups).forEach(function (key) {
+      var cfg = groups[key];
+      var prefix = "#" + cfg.hash + "-";
+      var hash = location.hash || "";
+      if (hash.indexOf(prefix) === 0) {
+        var id = hash.slice(prefix.length);
+        if (cfg.tabs.indexOf(id) >= 0) {
+          var root = document.getElementById(cfg.root);
+          if (root) root.querySelector('[data-tab="' + id + '"]').click();
+        }
+      }
+    });
+  });
+})();
+</script>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

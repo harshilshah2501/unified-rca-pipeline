@@ -1,0 +1,50 @@
+# Pillar A + Pillar B — implementation slice
+
+**Location:** project root `pillar-ab-implementation/`  
+**Status:** Split into owner packages (2026-08-27)  
+**Owners:** Pillar A (statistics + sketch) — teammate · Pillar B (entities + edges) — Harshil  
+**D5:** stays Review  
+**Hygiene:** [`docs/REPO_HYGIENE.md`](../docs/REPO_HYGIENE.md)
+
+## Start here (split packages)
+
+| Package | Path | Zip for teammate? |
+|---------|------|-------------------|
+| **Pillar A** | [`pillar-a/`](./pillar-a/) | **Yes** — [`pillar-a-handoff-2026-08-27.zip`](./pillar-a-handoff-2026-08-27.zip) |
+| **Pillar B** | [`pillar-b/`](./pillar-b/) | Owner local |
+| **Integration** | [`integration/`](./integration/) | Optional **read-join harness** after both unit suites are green (not an A∪B merge) |
+
+```bash
+# Pillar A
+cd pillar-a/poc && make install && make test-all
+
+# Pillar B
+cd pillar-b/poc && make install && make test-all
+```
+
+## Contracts (canonical)
+
+Shared brief, schemas, samples, fabric Q&A, and **map write/read JSON record**: [`contracts/`](./contracts/) (`GRAPH_QNA.md` lives here; `docs/GRAPH_QNA.md` is a symlink for hub URLs).  
+**JSON schemas SoT:** [`contracts/schemas/`](./contracts/schemas/) — **edit here only**. Packages do not mirror this folder; `ab_shared.schema` loads this path. Guard: `make check-schemas` or `python3 scripts/check_schema_mirrors.py`.  
+Map dest keys/encoding: [`contracts/MAP_WRITE_READ_RECORD.md`](./contracts/MAP_WRITE_READ_RECORD.md).  
+Post-E2 **ingest fixture map** (what A and B consume): [`E2_INPUT_FIXTURES.md`](./E2_INPUT_FIXTURES.md).  
+**Pillar B guide:** [`pillar-b/README.md`](./pillar-b/README.md) (reading order) · **team demo** [`pillar-b/docs/TEAM_WALKTHROUGH.md`](./pillar-b/docs/TEAM_WALKTHROUGH.md) · lab [`SAMPLE_IO.md`](./pillar-b/poc/sample_estate/customer_checkout/SAMPLE_IO.md) · hub [Our HLD → Pillar B PoC](http://127.0.0.1:8765/observeops-pipeline-hld.html#pillar-b-poc) · [GraphWriter tab](http://127.0.0.1:8765/observeops-pipeline-hld.html#graphwriter).  
+Implementer **I/O chain** (ingest → fixtures → map/sketch output): [`docs/observeops/OUR_HLD_TIER1.md`](../docs/observeops/OUR_HLD_TIER1.md#tier-2--implementer-io-contracts-not-tier-1).  
+Some teaching pages under package `docs/` remain hub URL helpers — prefer linking the slice SoT for contracts. Handoff zips should **copy** needed schemas from `contracts/schemas/` into the archive (do not rely on package mirrors). See [`docs/REPO_HYGIENE.md`](../docs/REPO_HYGIENE.md).
+
+## Team discussion
+
+| Note | Topic |
+|------|--------|
+| [`discussion/04-raw-data-identity-lut-open-questions.md`](./discussion/04-raw-data-identity-lut-open-questions.md) | Raw data + Identity look-up table (LUT) open questions — vote card |
+| [`Raw_Data_Handling.pdf`](./Raw_Data_Handling.pdf) | Source synthesis for discussion 04 |
+
+## Related docs (repo `docs/`)
+
+- [`docs/GRAPH_QNA.md`](../docs/GRAPH_QNA.md)
+- [`docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md`](../docs/PILLAR_A_PERCENTILES_DEEP_DIVE.md)
+- Cursor canvases: `pillar-a/reference/canvases/`
+
+## Legacy combined PoC
+
+Moved to [`_archive/pillar-ab-combined-poc-2026-08/`](../_archive/pillar-ab-combined-poc-2026-08/). Do not expand.
