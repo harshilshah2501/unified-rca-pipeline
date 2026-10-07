@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unified RCA — Documentation index</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link rel="stylesheet" href="/urca-docs.css" />
+<script src="/theme-init.js"></script>
+</head>
+<body class="urca-doc hub-index">
+<div class="wrap hub-index">
+  <div class="eyebrow">Unified RCA · documentation hub</div>
+  <h1>Documentation index</h1>
+  <p class="lead">
+    Cold start at <a href="/observeops-pipeline-hld.html">Our HLD</a> (the door).
+    This page is a <strong style="color:var(--text)">short ladder</strong> — not a dump of every lab page.
+    Portal audit: <a href="/docs/HUB_PORTAL_AUDIT.md">HUB_PORTAL_AUDIT.md</a> ·
+    Tier lock: <a href="/docs/observeops/OUR_HLD_TIER1.md">OUR_HLD_TIER1.md</a>.
+    Served at <code>http://127.0.0.1:8765/docs.html</code>.
+  </p>
+
+  <div class="ladder" aria-label="Documentation ladder">
+    <a class="step" href="/observeops-pipeline-hld.html">
+      <div class="lv">Door · Our HLD</div>
+      <h3>ObserveOps pipeline hub</h3>
+      <p>Overview · Workflow · GraphWriter · Diagnose — start here.</p>
+    </a>
+    <a class="step here" href="/docs.html">
+      <div class="lv">Index · this page</div>
+      <h3>Tier 1 + pointers</h3>
+      <p>Must-read pages, implementer I/O, vendor hubs, eval reference.</p>
+    </a>
+    <a class="step" href="/docs/fabric/README.md">
+      <div class="lv">Fabric</div>
+      <h3>Pillar A ∥ B teaching</h3>
+      <p>Map / history / Vortex / simulations — implementer depth.</p>
+    </a>
+    <a class="step" href="/hld-archive.html">
+      <div class="lv">Archive</div>
+      <h3>Searchable Tier 2 / 3</h3>
+      <p>LLDs, Motadata study, print — not cold-start.</p>
+    </a>
+  </div>
+
+  <div class="note ok">
+    <strong style="color:var(--text)">Product path:</strong>
+    <a href="/observeops-pipeline-hld.html">Our HLD</a> →
+    Tier 1 below →
+    <a href="/docs/fabric/README.md">Fabric</a> /
+    <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">Writer regulator</a>.
+    Vendor labs and Lean/Federated bakeoff are <strong style="color:var(--text)">reference</strong>, not the Motadata lock list.
+  </div>
+
+  <h2>0 · Tier 1 (Everyone)</h2>
+  <p class="lead" style="margin-top:0">
+    Six pages from <a href="/docs/observeops/OUR_HLD_TIER1.md">OUR_HLD_TIER1</a>. Read in order on first visit.
+  </p>
+  <div class="grid two">
+    <a class="card" href="/observeops-pipeline-hld.html">
+      <div class="k compare">Door</div>
+      <h3>Our HLD hub</h3>
+      <p>Overview · Workflow · GraphWriter · Diagnose · fabric cards.</p>
+    </a>
+    <a class="card" href="/observeops-fusion-guide.html">
+      <div class="k compare">1 · Try</div>
+      <h3>Fusion</h3>
+      <p>Click a Detect class; walk E1–E11 inputs and outputs.</p>
+    </a>
+    <a class="card" href="/docs/OBSERVEOPS_PIPELINE_HLD.md">
+      <div class="k compare">2 · Spec</div>
+      <h3>Pipeline HLD</h3>
+      <p>Canonical written spec — stage purpose and signed choices.</p>
+    </a>
+    <a class="card" href="/data-shape-journey.html">
+      <div class="k compare">3 · Fabric</div>
+      <h3>Data shape journey</h3>
+      <p>Object names and JSON forms Edge → Platform → case objects.</p>
+    </a>
+    <a class="card" href="/docs/GRAPH_QNA.md">
+      <div class="k compare">4 · Rules</div>
+      <h3>GRAPH_QNA</h3>
+      <p>Locked fabric FAQ — map/ vs history/, rooms ≠ temperature.</p>
+    </a>
+    <a class="card" href="/urca-glossary.html">
+      <div class="k compare">5 · Terms</div>
+      <h3>Glossary</h3>
+      <p>Normalize vs Identify, Detect classes, tier vocabulary.</p>
+    </a>
+  </div>
+
+  <h2>1 · Implementers</h2>
+  <div class="grid two">
+    <a class="card" href="/pillar-ab-implementation/README.md">
+      <div class="k kickoff">Pillar A + B</div>
+      <h3>Implementation slice</h3>
+      <p>Contracts SoT, packages, unit tests. Demo: team walkthrough.</p>
+    </a>
+    <a class="card" href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">
+      <div class="k kickoff">Wire SoT</div>
+      <h3>Writer regulator</h3>
+      <p><code>writer_stream.v1</code> — presence predicates, no <code>fact_kind</code>.</p>
+    </a>
+    <a class="card" href="/docs/fabric/README.md">
+      <div class="k compare">Fabric index</div>
+      <h3>Map · history · Vortex</h3>
+      <p>All teaching HTML and normative map contract links in one place.</p>
+    </a>
+    <a class="card" href="/pillar-b-poc-hub.html">
+      <div class="k kickoff">Pillar B PoC</div>
+      <h3>Knowledge-graph hub</h3>
+      <p>Navigator · GraphWriter · map/history doors.</p>
+    </a>
+  </div>
+  <p class="note" style="margin-top:.75rem;">
+    Tier 2 I/O chain (ingest bridge → writer fixtures → map/history output):
+    <a href="/docs/observeops/OUR_HLD_TIER1.md#tier-2--implementer-io-contracts-not-tier-1">OUR_HLD_TIER1 § I/O</a>.
+    Full searchable list: <a href="/hld-archive.html">HLD archive</a>.
+  </p>
+
+  <h2>2 · Vendor labs (Tier 3)</h2>
+  <p class="lead" style="margin-top:0">
+    Open a vendor hub for timelines and evidence. Per-category lab pages stay linked from those hubs — not duplicated here.
+  </p>
+  <div class="grid">
+    <a class="card" href="/dt-davis-category-hub.html">
+      <div class="k dt l0">L0 · Dynatrace</div>
+      <h3>Davis category hub</h3>
+      <p>ERROR · SLOWDOWN · MU · AVAILABILITY · RESOURCE_CONTENTION.</p>
+    </a>
+    <a class="card" href="/dd-detect-category-hub.html">
+      <div class="k dd l0">L0 · Datadog</div>
+      <h3>Detect category hub</h3>
+      <p>ERROR · SLOWDOWN full depth · other Timelines local.</p>
+    </a>
+    <a class="card" href="/ed-ai-team-hub.html">
+      <div class="k ed l0">L0 · Edge Delta</div>
+      <h3>AI Team + Pipelines</h3>
+      <p>Independent third lens — use-case switcher, not ERROR/SLOWDOWN twins.</p>
+    </a>
+    <a class="card" href="/comparable-pipeline-dt-dd.html">
+      <div class="k compare">Compare</div>
+      <h3>DT vs DD vs ED</h3>
+      <p>Abstract compare after reading vendors natively.</p>
+    </a>
+  </div>
+
+  <h2>3 · Eval reference (not Motadata path)</h2>
+  <div class="grid two">
+    <a class="card" href="/eval-reference.html">
+      <div class="k compare">Bakeoff history</div>
+      <h3>Lean · Federated · ADR-001</h3>
+      <p>PoC console, workflow sim, E-com write-up — evaluation track only.</p>
+    </a>
+    <a class="card" href="/docs/REPO_AUDIT.md">
+      <div class="k compare">Repo hygiene</div>
+      <h3>Audit &amp; inventory</h3>
+      <p>Zone plan, drift counts, worksheet sign-off.</p>
+    </a>
+  </div>
+
+  <p class="note">
+    Markdown map: <a href="/docs/NAVIGATION.md">NAVIGATION.md</a>.
+    Site bar via <code>urca-docs.css</code> + <code>doc-nav.js</code>.
+  </p>
+</div>
+<script src="/doc-nav.js" defer></script>
+</body>
+</html>

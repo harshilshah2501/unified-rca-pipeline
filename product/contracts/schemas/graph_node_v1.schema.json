@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observeops.local/schemas/graph_node_v1.schema.json",
+  "title": "graph_node.v1",
+  "description": "Motadata-aligned configuration-item vertex on map/ (flat wire = Vortex physical). Tenant lives on snapshot/Dest path, not on the node. CI-only types — alert/incident/metric/trace/change/ticket are never vertices. No nested metadata JSON bag. Physical Arrow overlay: graph_node_v1.physical.json (see MAP_PHYSICAL_OVERLAY.md).",
+  "x-observeops-physical": "graph_node_v1.physical.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "entity_id",
+    "type",
+    "name",
+    "last_seen",
+    "version"
+  ],
+  "properties": {
+    "schema_version": { "const": "graph_node.v1" },
+    "entity_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical CI id within the Dest tenant. Same string as ingest ci_id / sketch entity_id after bind."
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Motadata-style lowercase CI type (service, host, …). Non-CI Motadata names are rejected at admit."
+    },
+    "name": { "type": "string" },
+    "env": {
+      "type": ["string", "null"],
+      "description": "Promoted tag attr_catalog.v1 — deploy environment."
+    },
+    "region": {
+      "type": ["string", "null"],
+      "description": "Promoted tag attr_catalog.v1 — cloud/geo region."
+    },
+    "owner": {
+      "type": ["string", "null"],
+      "description": "Promoted tag attr_catalog.v1 — owning team/service."
+    },
+    "namespace": {
+      "type": ["string", "null"],
+      "description": "Promoted tag attr_catalog.v1 — K8s/logical namespace."
+    },
+    "last_seen": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Unix epoch milliseconds UTC; refreshed on every upsert."
+    },
+    "valid_from": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Unix epoch milliseconds UTC; null = open start."
+    },
+    "valid_to": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Unix epoch milliseconds UTC; null = open end."
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Monotonic UInt32-style version per entity_id (latest-wins)."
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observeops.local/schemas/graph_edge_v1.schema.json",
+  "title": "graph_edge.v1",
+  "description": "Motadata-aligned typed relationship on map/ (flat wire = Vortex physical). Tenant lives on snapshot/Dest path. Upsert identity is (source_id, edge_type, target_id); edge_id is a snowflake for the row. Clocks are epoch ms integers. Physical Arrow overlay: graph_edge_v1.physical.json (see MAP_PHYSICAL_OVERLAY.md).",
+  "x-observeops-physical": "graph_edge_v1.physical.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "edge_id",
+    "source_id",
+    "target_id",
+    "edge_type",
+    "evidence_event_id"
+  ],
+  "properties": {
+    "schema_version": { "const": "graph_edge.v1" },
+    "edge_id": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Snowflake UInt64 (JSON number). Stable across upserts of the same logical edge."
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "entity_id of the source node."
+    },
+    "target_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "entity_id of the destination node."
+    },
+    "edge_type": {
+      "type": "string",
+      "enum": [
+        "DEPENDS_ON",
+        "RUNS_ON",
+        "MOUNTS",
+        "CONNECTS_TO",
+        "BACKS",
+        "USES",
+        "HOSTED_ON",
+        "MEMBER_OF",
+        "PART_OF",
+        "ROUTES_THROUGH",
+        "AUTHENTICATES_VIA",
+        "MONITORED_BY",
+        "BACKED_UP_BY",
+        "CLUSTERED_WITH",
+        "COMMUNICATES_WITH"
+      ]
+    },
+    "valid_from": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Unix epoch milliseconds UTC; null = open start."
+    },
+    "valid_to": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Unix epoch milliseconds UTC; null = open end."
+    },
+    "evidence_event_id": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Snowflake UInt64 of the ingest/event row that proved this edge."
+    }
+  },
+  "additionalProperties": true
+}

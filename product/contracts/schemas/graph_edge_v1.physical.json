@@ -1,0 +1,68 @@
+{
+  "schema_version": "map_physical_overlay.v1",
+  "logical_schema": "graph_edge_v1.schema.json",
+  "table": "map_edges",
+  "observeops_schema_version": "graph_edge.v1",
+  "attr_catalog": null,
+  "envelope_only_fields": ["schema_version"],
+  "walk_columns": ["source_id", "target_id", "edge_type"],
+  "description": "Motadata physical Arrow/Vortex overlay for graph_edge.v1. Edit this file, then run scripts/generate_map_arrow_schema.py. Phase-1 check: scripts/check_map_physical_schema.py.",
+  "columns": [
+    {
+      "name": "edge_id",
+      "arrow_plain": "UInt64",
+      "arrow_dict": null,
+      "nullable": false,
+      "json_types": ["integer"],
+      "role": "snowflake"
+    },
+    {
+      "name": "source_id",
+      "arrow_plain": "Utf8",
+      "arrow_dict": null,
+      "nullable": false,
+      "json_types": ["string"],
+      "role": "id"
+    },
+    {
+      "name": "target_id",
+      "arrow_plain": "Utf8",
+      "arrow_dict": null,
+      "nullable": false,
+      "json_types": ["string"],
+      "role": "id"
+    },
+    {
+      "name": "edge_type",
+      "arrow_plain": "Utf8",
+      "arrow_dict": "Utf8",
+      "nullable": false,
+      "json_types": ["string"],
+      "role": "enum_like"
+    },
+    {
+      "name": "valid_from",
+      "arrow_plain": "UInt64",
+      "arrow_dict": null,
+      "nullable": true,
+      "json_types": ["integer", "null"],
+      "role": "epoch_ms"
+    },
+    {
+      "name": "valid_to",
+      "arrow_plain": "UInt64",
+      "arrow_dict": null,
+      "nullable": true,
+      "json_types": ["integer", "null"],
+      "role": "epoch_ms"
+    },
+    {
+      "name": "evidence_event_id",
+      "arrow_plain": "UInt64",
+      "arrow_dict": null,
+      "nullable": false,
+      "json_types": ["integer"],
+      "role": "snowflake"
+    }
+  ]
+}

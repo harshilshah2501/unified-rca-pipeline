@@ -1,0 +1,100 @@
+{
+  "schema_version": "map_physical_overlay.v1",
+  "logical_schema": "graph_node_v1.schema.json",
+  "table": "map_nodes",
+  "observeops_schema_version": "graph_node.v1",
+  "attr_catalog": "attr_catalog.v1",
+  "envelope_only_fields": ["schema_version"],
+  "walk_columns": ["entity_id", "type"],
+  "description": "Motadata physical Arrow/Vortex overlay for graph_node.v1. Edit this file, then run scripts/generate_map_arrow_schema.py. Phase-1 check: scripts/check_map_physical_schema.py.",
+  "columns": [
+    {
+      "name": "entity_id",
+      "arrow_plain": "Utf8",
+      "arrow_dict": null,
+      "nullable": false,
+      "json_types": ["string"],
+      "role": "id"
+    },
+    {
+      "name": "type",
+      "arrow_plain": "Utf8",
+      "arrow_dict": "Utf8",
+      "nullable": false,
+      "json_types": ["string"],
+      "role": "enum_like"
+    },
+    {
+      "name": "name",
+      "arrow_plain": "Utf8",
+      "arrow_dict": null,
+      "nullable": false,
+      "json_types": ["string"],
+      "role": "string"
+    },
+    {
+      "name": "env",
+      "arrow_plain": "Utf8",
+      "arrow_dict": "Utf8",
+      "nullable": true,
+      "json_types": ["string", "null"],
+      "role": "promoted_tag"
+    },
+    {
+      "name": "region",
+      "arrow_plain": "Utf8",
+      "arrow_dict": "Utf8",
+      "nullable": true,
+      "json_types": ["string", "null"],
+      "role": "promoted_tag"
+    },
+    {
+      "name": "owner",
+      "arrow_plain": "Utf8",
+      "arrow_dict": "Utf8",
+      "nullable": true,
+      "json_types": ["string", "null"],
+      "role": "promoted_tag"
+    },
+    {
+      "name": "namespace",
+      "arrow_plain": "Utf8",
+      "arrow_dict": "Utf8",
+      "nullable": true,
+      "json_types": ["string", "null"],
+      "role": "promoted_tag"
+    },
+    {
+      "name": "last_seen",
+      "arrow_plain": "UInt64",
+      "arrow_dict": null,
+      "nullable": false,
+      "json_types": ["integer"],
+      "role": "epoch_ms"
+    },
+    {
+      "name": "valid_from",
+      "arrow_plain": "UInt64",
+      "arrow_dict": null,
+      "nullable": true,
+      "json_types": ["integer", "null"],
+      "role": "epoch_ms"
+    },
+    {
+      "name": "valid_to",
+      "arrow_plain": "UInt64",
+      "arrow_dict": null,
+      "nullable": true,
+      "json_types": ["integer", "null"],
+      "role": "epoch_ms"
+    },
+    {
+      "name": "version",
+      "arrow_plain": "UInt32",
+      "arrow_dict": null,
+      "nullable": false,
+      "json_types": ["integer"],
+      "role": "u32"
+    }
+  ]
+}
