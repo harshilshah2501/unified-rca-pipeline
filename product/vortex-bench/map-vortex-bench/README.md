@@ -27,4 +27,6 @@ cargo run --release --bin map_vortex_bench -- \
   --out out/run-100k-edges-clustered --warmup 1 --repeats 3
 ```
 
+Natural vs clustered scale sweep (nodes = edges / 5): see [`../reports/02-map-load-adjacency.md`](../reports/02-map-load-adjacency.md) §5.1 and §8.
+
 Results: `<out>/results.json` plus a cold→walk summary on stdout.

@@ -49,9 +49,9 @@ Vortex’s three layers apply to both Dest rooms. The **optimization target** di
 ### Map
 
 - After adjacency exists, BFS cost is negligible vs cold rebuild — lifecycle docs are right.
-- **Adjacency build**, not Vortex decode, dominates cold→walk at 100k–500k edges.
+- **Adjacency build**, not Vortex decode, dominates cold→walk at 100k–1000k edges.
 - Spine vs full projection is a modest decode win (thin columns); still the correct default for walk rebuild.
-- Clustering edges at publish shrinks edge parts (~26% at 100k) — free Dest win.
+- Clustering edges at publish shrinks edge parts (~10–27% across 100k–1000k) and, more importantly, cuts cold→walk time by ~28% → ~50–60% as edge count grows — mostly via faster adjacency build (see report 02 scale sweep).
 
 **Provisional physical direction:** keep locked flat tables; optimize **publish sort + spine load + hot index reuse**.
 

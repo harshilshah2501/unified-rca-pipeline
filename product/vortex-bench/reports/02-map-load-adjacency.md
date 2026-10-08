@@ -3,10 +3,7 @@
 - **Bench:** [`../map-vortex-bench/`](../map-vortex-bench/)
 - **Room:** Motadata `map/` (Pillar B topology)
 - **Status:** Experiment results (not a schema redesign — columns stay locked)
-- **Primary artifacts:**
-  - `map-vortex-bench/out/run-100k-edges-clustered/results.json`
-  - `map-vortex-bench/out/run-100k-edges-natural/results.json`
-  - `map-vortex-bench/out/run-500k-edges-clustered/results.json`
+- **Primary artifacts:** natural vs clustered pairs at five edge counts under `map-vortex-bench/out/run-{100k,250k,500k,750k,1000k}-edges-{natural,clustered}/results.json`, plus rollup `map-vortex-bench/out/sort-scale-sweep-summary.json`
 - **Contracts:** [`MAP_VORTEX_COLUMNAR_SCHEMA.md`](../../contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md) · [`MAP_HOT_COLD_LIFECYCLE.md`](../../contracts/MAP_HOT_COLD_LIFECYCLE.md) · [`MAP_SCOPE_WALK_POLICY.md`](../../contracts/MAP_SCOPE_WALK_POLICY.md)
 
 ---
@@ -99,13 +96,25 @@ This is **not** a nested-vs-flat layout contest like the sketch report. Map has 
 
 ### 4.1 Synthetic estate
 
-| Knob       | 100k-edge runs                                                | 500k-edge run |
-| ---------- | ------------------------------------------------------------- | ------------- |
-| Nodes      | 20,000                                                        | 50,000        |
-| Edges      | 100,000                                                       | 500,000       |
-| Node types | service, host, database, queue, runtime, middleware           | same          |
-| Edge types | all fifteen Motadata SCREAMING names (mixed)                  | same          |
-| Columns    | Locked Motadata flat schema (promoted tags + epoch-ms clocks) | same          |
+Natural vs clustered is compared at **matched** estates. Seed is always `42`.
+
+**Why `nodes = edges / 5` (average out-degree ≈ 5).** Larger runs should be bigger graphs with the **same density**, so a slowdown can be blamed on more rows—not on “each node suddenly has more neighbors.” The ratio is **average outgoing edges per node** (`edges ÷ nodes`), which is what the **out-adjacency** index cares about. Counting both ends of each directed edge, a typical node is incident to about **10** edge endpoints; this report treats “degree” as **out-degree** unless it says otherwise.
+
+| Edges | Nodes | Mean out-degree | Out dirs (pair) |
+| ----- | ----- | --------------- | --------------- |
+| 100,000 | 20,000 | ~5 | `run-100k-edges-{natural,clustered}` |
+| 250,000 | 50,000 | ~5 | `run-250k-edges-{natural,clustered}` |
+| 500,000 | 100,000 | ~5 | `run-500k-edges-{natural,clustered}` |
+| 750,000 | 150,000 | ~5 | `run-750k-edges-{natural,clustered}` |
+| 1,000,000 | 200,000 | ~5 | `run-1000k-edges-{natural,clustered}` |
+
+| Knob | Value |
+| ---- | ----- |
+| Node types | service, host, database, queue, runtime, middleware (cycled by a mix hash) |
+| Edge types | all fifteen Motadata SCREAMING names (cycled by the same mix) |
+| Endpoint sampling | For each edge, source and target are chosen **near-uniformly** over all nodes (`mix(seed, i) % nodes`, self-loops skipped and topped up). **No preferential attachment** — this estate does **not** invent a few hub CIs the way many real customer graphs do. Generator: [`map-vortex-bench/src/synth.rs`](../map-vortex-bench/src/synth.rs) `generate_estate`. |
+| Columns | Locked Motadata flat schema (promoted tags + epoch-ms clocks) |
+| Edge sort | **Natural** = generation order · **Clustered** = `source_id` → `edge_type` → `target_id` before write |
 
 ### 4.2 Load modes
 
@@ -130,52 +139,60 @@ Median of 3 timed repeats after 1 warmup (`--release`): node decode_ms, edge dec
 
 ## 5. Results
 
-### 5.1 Compression / part size (100k edges)
+All timings below are median of 3 timed repeats after 1 warmup (`--release`), load mode **`full`** unless noted. Percentages are **(natural − clustered) / natural** — positive means clustered is smaller or faster.
 
-| Edge sort | nodes.vortex | edges.vortex | Total       |
-| --------- | ------------ | ------------ | ----------- |
-| Clustered | 378 KB       | **1.26 MB**  | **1.63 MB** |
-| Natural   | 378 KB       | **1.71 MB**  | **2.09 MB** |
+### 5.1 Natural vs clustered scale sweep (primary)
 
-Clustering edges by source + type shrinks the edge part ~26% at this scale (dictionary / run locality).
+| Edges | nodes.vortex (same both sorts) | edges.vortex natural | edges.vortex clustered | Edge-part % smaller | Cold→walk natural | Cold→walk clustered | Cold→walk % faster |
+| ----- | ------------------------------ | -------------------- | ---------------------- | ------------------- | ----------------- | ------------------- | ------------------ |
+| 100k | 378 KB | 1.71 MB | **1.26 MB** | **26.6%** | 22.9 ms | **16.6 ms** | **27.7%** |
+| 250k | 944 KB | 4.50 MB | **3.32 MB** | **26.1%** | 61.4 ms | **38.1 ms** | **37.9%** |
+| 500k | 1.89 MB | 7.85 MB | **6.84 MB** | **12.9%** | 161.9 ms | **77.2 ms** | **52.3%** |
+| 750k | 2.83 MB | 11.41 MB | **10.29 MB** | **9.9%** | 261.0 ms | **136.1 ms** | **47.9%** |
+| 1000k | 3.77 MB | 16.55 MB | **14.05 MB** | **15.1%** | 383.4 ms | **175.3 ms** | **54.3%** |
 
-### 5.2 Cold → walk totals (100k edges, clustered)
+Same sweep with **spine** load (narrower decode; same edge files):
 
-| Load mode                | decode (n+e) ms | adj ms | bfs ms | total ms |
-| ------------------------ | --------------- | ------ | ------ | -------- |
-| `full`                   | 6.6             | 25.9   | 0.03   | **32.5** |
-| `spine`                  | 6.6             | 48.8*  | 0.04   | 55.4*    |
-| `nodes_full_edges_spine` | 8.5             | 30.1   | 0.01   | 38.6     |
+| Edges | Cold→walk natural | Cold→walk clustered | Cold→walk % faster |
+| ----- | ----------------- | ------------------- | ------------------ |
+| 100k | 21.3 ms | **15.1 ms** | **28.8%** |
+| 250k | 76.8 ms | **35.4 ms** | **53.9%** |
+| 500k | 166.8 ms | **69.9 ms** | **58.1%** |
+| 750k | 284.0 ms | **119.6 ms** | **57.9%** |
+| 1000k | 423.7 ms | **162.6 ms** | **61.6%** |
 
-\*Spine adjacency was noisier in this median sample; see natural run and 500k run where spine is consistently competitive or better. Decode deltas between full and spine are **small** at 100k because map columns are thin (no 512‑byte blobs).
+### 5.2 Where the cold→walk win comes from (`full` load)
 
-### 5.3 Cold → walk totals (100k edges, natural)
+| Edges | Decode natural | Decode clustered | Adj build natural | Adj build clustered | Adj % faster |
+| ----- | -------------- | ---------------- | ----------------- | ------------------- | ------------ |
+| 100k | 6.0 ms | 4.6 ms | 16.9 ms | **11.9 ms** | **29%** |
+| 250k | 9.9 ms | 10.5 ms | 51.4 ms | **27.6 ms** | **46%** |
+| 500k | 17.8 ms | 16.8 ms | 144.1 ms | **60.4 ms** | **58%** |
+| 750k | 25.7 ms | 25.7 ms | 235.3 ms | **110.4 ms** | **53%** |
+| 1000k | 35.8 ms | 35.4 ms | 347.5 ms | **139.9 ms** | **60%** |
 
-| Load mode                | decode (n+e) ms | adj ms | bfs ms | total ms |
-| ------------------------ | --------------- | ------ | ------ | -------- |
-| `full`                   | 7.0             | 33.7   | 0.02   | 40.7     |
-| `spine`                  | **5.2**         | 29.4   | 0.05   | **34.6** |
-| `nodes_full_edges_spine` | 8.2             | 23.9   | 0.02   | 32.1     |
+BFS stays under **0.1 ms** at every scale once the index exists.
 
-### 5.4 Scale-up (500k edges, clustered)
+### 5.3 Load-mode spot check (1000k edges, clustered)
 
-| Load mode                | decode (n+e) ms | adj ms | bfs ms | total ms  | parts      |
-| ------------------------ | --------------- | ------ | ------ | --------- | ---------- |
-| `full`                   | 19.8            | 95.2   | 0.05   | **115.1** | 7.4 MB     |
-| `spine`                  | **17.3**        | 84.7   | 0.03   | **102.1** | same files |
-| `nodes_full_edges_spine` | 22.7            | 80.4   | 0.04   | 103.1     | same files |
+| Load mode | decode (n+e) ms | adj ms | bfs ms | total ms |
+| --------- | --------------- | ------ | ------ | -------- |
+| `full` | 35.4 | 139.9 | 0.02 | **175.3** |
+| `spine` | **26.4** | 136.2 | 0.10 | **162.6** |
+| `nodes_full_edges_spine` | 30.2 | 134.4 | 0.11 | 164.7 |
 
-Reachable set from seed at hops=2: 93 nodes (synthetic random graph — not a teaching checkout estate).
+Spine still wins a little on decode; adjacency build stays the dominant term.
 
 ---
 
 ## 6. Interpretation
 
-1. **BFS after adjacency is negligible** (much less than 1 ms). Once the hot index exists, Scope-style walks are cheap relative to cold rebuild. This confirms the lifecycle rule: optimize load/rebuild, not per-hop Vortex.
-2. **Adjacency build dominates** cold→walk total (~70–85% at 500k edges). Future map work should care about how quickly we turn an edge-spine batch into an index (and whether that index is retained across publishes).
-3. **Spine projection helps modestly** on decode (~10–25% edge/node decode at 500k) because map columns are already narrow. The sketch lesson (“never `select *` over fat blobs”) still applies as hygiene, but the **absolute** win is smaller until promoted-tag catalogs grow or multi-part analytics scans appear.
-4. **Clustered edge sort improves compression** (smaller S3 footprint / fewer bytes to open). Worth doing at publish even if decode ms gains are mild in-process.
-5. **Do not invent nested map layouts.** The locked flat schema is the right physical shape; the experiment supports keeping it and measuring load modes + sort, not redesigning nesting.
+1. **Compression gain is real but not a smooth climb with scale.** Edge-part shrink peaks near **26%** at 100k–250k, then sits around **10–15%** at 500k–1000k on this synthetic estate. Still worth clustering for Dest bytes; do not expect “bigger graph ⇒ bigger % compression forever.”
+2. **Cold→walk % gain does grow with scale**, roughly **28% → ~50–55%** (`full`) and **29% → ~60%** (`spine`) from 100k to 1000k. The driver is **adjacency build**, not decode: clustered edges share consecutive `source_id` values, so building the out-neighbor map stays much cheaper as edge count rises.
+3. **BFS after adjacency is negligible** (much less than 1 ms at every scale). Lifecycle rule holds: optimize load/rebuild and publish sort, not per-hop Vortex.
+4. **Adjacency build dominates** cold→walk once the estate is large (~80–90% of total at 500k–1000k natural). Publish-time clustering is therefore a rebuild latency tool, not only a compression tool.
+5. **Spine projection** remains correct hygiene; absolute decode wins stay modest because map columns are thin.
+6. **Do not invent nested map layouts.** Keep locked flat tables; standardize clustered edge publish + spine load + hot-index reuse.
 
 ---
 
@@ -196,11 +213,17 @@ Reachable set from seed at hops=2: 93 nodes (synthetic random graph — not a te
 
 ```bash
 cd pillar-ab-implementation/vortex-bench/map-vortex-bench
-cargo run --release --bin map_vortex_bench -- \
-  --nodes 20000 --edges 100000 --edge-sort clustered \
-  --out out/run-100k-edges-clustered --warmup 1 --repeats 3
-
-cargo run --release --bin map_vortex_bench -- \
-  --nodes 50000 --edges 500000 --edge-sort clustered \
-  --out out/run-500k-edges-clustered --warmup 1 --repeats 3
+# natural vs clustered at each scale (nodes = edges / 5)
+for edges in 100000 250000 500000 750000 1000000; do
+  nodes=$((edges / 5))
+  case $edges in
+    100000) label=100k ;; 250000) label=250k ;; 500000) label=500k ;;
+    750000) label=750k ;; 1000000) label=1000k ;;
+  esac
+  for sort in natural clustered; do
+    cargo run --release --bin map_vortex_bench -- \
+      --nodes "$nodes" --edges "$edges" --edge-sort "$sort" \
+      --out "out/run-${label}-edges-${sort}" --warmup 1 --repeats 3
+  done
+done
 ```
