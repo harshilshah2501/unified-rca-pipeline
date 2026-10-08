@@ -3,7 +3,7 @@
 - **Bench:** [`../map-vortex-bench/`](../map-vortex-bench/)
 - **Room:** Motadata `map/` (Pillar B topology)
 - **Status:** Experiment results (not a schema redesign — columns stay locked)
-- **Primary artifacts:** natural vs clustered pairs at five edge counts under `map-vortex-bench/out/run-{100k,250k,500k,750k,1000k}-edges-{natural,clustered}/results.json`, plus rollup `map-vortex-bench/out/sort-scale-sweep-summary.json`
+- **Primary artifacts:** natural vs clustered pairs at five edge counts under `map-vortex-bench/out/run-{100k,250k,500k,750k,1000k}-edges-{natural,clustered}/results.json`; follow-up builder×hubby matrix under `out/followup-*/results.json` and `out/followup-builder-shape-summary.json`
 - **Contracts:** [`MAP_VORTEX_COLUMNAR_SCHEMA.md`](../../contracts/MAP_VORTEX_COLUMNAR_SCHEMA.md) · [`MAP_HOT_COLD_LIFECYCLE.md`](../../contracts/MAP_HOT_COLD_LIFECYCLE.md) · [`MAP_SCOPE_WALK_POLICY.md`](../../contracts/MAP_SCOPE_WALK_POLICY.md)
 
 ---
@@ -183,29 +183,82 @@ BFS stays under **0.1 ms** at every scale once the index exists.
 
 Spine still wins a little on decode; adjacency build stays the dominant term.
 
+### 5.4 Follow-up — builder × hubby × light profiling (density fixed)
+
+The §5.1–5.3 sweep used a **naive** adjacency builder (`HashMap::entry` once per edge) on **uniform** estates. This follow-up isolates four improvements in one matrix (spine load only; `--fix-nodes-from-density --mean-out-degree 5`):
+
+| Knob | Values |
+| ---- | ------ |
+| Edges | 250k, 500k |
+| Estate shape | **uniform** (near-uniform endpoints) · **hubby** (1% of nodes emit 50% of edges as sources) |
+| Edge sort | natural · clustered |
+| Adj builder | **naive** · **sort_aware** (one source-key clone + one HashMap insert per contiguous `source_id` run) |
+| Light profile | `source_key_clones`, `hashmap_source_ops`, `source_groups`, `neighbor_string_clones` |
+
+Artifacts: `map-vortex-bench/out/followup-{250k,500k}-{uniform,hubby}-{natural,clustered}/results.json` and rollup `out/followup-builder-shape-summary.json`.
+
+#### Degree skew (sanity)
+
+| Edges | Shape | Max out-degree | Top 1% sources’ edge share |
+| ----- | ----- | -------------: | -------------------------: |
+| 250k | uniform | 16 | 2% |
+| 250k | hubby | **297** | **47%** |
+| 500k | uniform | 19 | 2% |
+| 500k | hubby | **295** | **47%** |
+
+Hubby estates are denser at the head without changing mean out-degree (~5).
+
+#### Adjacency build ms (spine) — naive vs sort_aware
+
+| Edges | Shape | Sort | Naive adj ms | Sort-aware adj ms | Sort-aware % faster | Naive key clones | Sort-aware key clones |
+| ----- | ----- | ---- | -----------: | ----------------: | ------------------: | ---------------: | --------------------: |
+| 250k | uniform | clustered | 31.1 | **22.3** | **28%** | 250,000 | 49,641 |
+| 250k | uniform | natural | 68.2 | 60.9 | 11% | 250,000 | ~250,000 |
+| 250k | hubby | clustered | 33.4 | **21.0** | **37%** | 250,000 | 46,009 |
+| 250k | hubby | natural | 47.4 | 45.0 | 5% | 250,000 | ~250,000 |
+| 500k | uniform | clustered | 73.6 | **49.6** | **33%** | 500,000 | 99,346 |
+| 500k | uniform | natural | 152.2 | 166.1 | −9% | 500,000 | ~500,000 |
+| 500k | hubby | clustered | 64.5 | **46.0** | **29%** | 500,000 | 92,091 |
+| 500k | hubby | natural | 124.9 | 124.2 | ~0% | 500,000 | ~500,000 |
+
+#### Clustered vs natural under the **naive** builder (same estates)
+
+| Edges | Shape | Natural adj ms | Clustered adj ms | Clustered % faster |
+| ----- | ----- | -------------: | ---------------: | -----------------: |
+| 250k | uniform | 68.2 | **31.1** | **54%** |
+| 250k | hubby | 47.4 | **33.4** | **29%** |
+| 500k | uniform | 152.2 | **73.6** | **52%** |
+| 500k | hubby | 124.9 | **64.5** | **48%** |
+
 ---
 
 ## 6. Interpretation
 
-1. **Compression gain is real but not a smooth climb with scale.** Edge-part shrink peaks near **26%** at 100k–250k, then sits around **10–15%** at 500k–1000k on this synthetic estate. Still worth clustering for Dest bytes; do not expect “bigger graph ⇒ bigger % compression forever.”
-2. **Cold→walk % gain does grow with scale**, roughly **28% → ~50–55%** (`full`) and **29% → ~60%** (`spine`) from 100k to 1000k. The driver is **adjacency build**, not decode: clustered edges share consecutive `source_id` values, so building the out-neighbor map stays much cheaper as edge count rises.
+1. **Compression gain is real but not a smooth climb with scale.** Edge-part shrink peaks near **26%** at 100k–250k, then sits around **10–15%** at 500k–1000k on the uniform estate. Still worth clustering for Dest bytes; do not expect “bigger graph ⇒ bigger % compression forever.”
+2. **Cold→walk % gain does grow with scale** on the uniform sweep (§5.1), roughly **28% → ~50–55%** (`full`). The driver is **adjacency build**, not decode.
 3. **BFS after adjacency is negligible** (much less than 1 ms at every scale). Lifecycle rule holds: optimize load/rebuild and publish sort, not per-hop Vortex.
-4. **Adjacency build dominates** cold→walk once the estate is large (~80–90% of total at 500k–1000k natural). Publish-time clustering is therefore a rebuild latency tool, not only a compression tool.
+4. **Adjacency build dominates** cold→walk once the estate is large. Publish-time clustering is a rebuild latency tool, not only a compression tool.
 5. **Spine projection** remains correct hygiene; absolute decode wins stay modest because map columns are thin.
-6. **Do not invent nested map layouts.** Keep locked flat tables; standardize clustered edge publish + spine load + hot-index reuse.
+6. **Sort-aware builder pays only when rows are clustered.** On clustered parts it cuts adj build ~**28–37%** and drops source-key clones from *E* to ~*unique sources*. On natural parts, `source_groups ≈ E`, so sort-aware ≈ naive (sometimes slightly worse from run noise).
+7. **Hubby estates still reward clustering** under the naive builder (~**30–50%** faster adj). Absolute max out-degree jumps from ~20 to ~300; product GraphWriter should test hubby, not only uniform labs.
+8. **Light profiling explains part of the win:** naive always does `E` source-string allocations for HashMap keys; sort-aware does one per contiguous source run. Neighbor clones stay `2E` either way.
+9. **Do not invent nested map layouts.** Keep locked flat tables; standardize clustered edge publish + spine load + hot-index reuse; prefer a **sort-aware** rebuild when publish guarantees clustered order.
 
 ---
 
 ## 7. Recommendations (map)
 
-| Decision                        | Recommendation                                                                                             |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Schema                          | Keep locked flat `map_nodes` / `map_edges`                                                                 |
-| Cold load for walk rebuild      | Prefer **edge spine** projection (§2: `source_id`, `target_id`, `edge_type`); load node tags lazily if UI needs them |
-| Publish sort                    | Cluster edges by `source_id`, `edge_type`, `target_id` (and consider node cluster by `type` / `entity_id`) |
-| Hot path                        | Persist / reuse adjacency across `publish_map` generations when safe; walks must not re-open Vortex        |
-| Analytics / filtered cold scans | Revisit zone prune with pushdown filters (`edge_type`, `env`, `last_seen`) — not covered in this run       |
-| Bench vs product                | Teaching estates are too small to stress zones; keep 100k–1M edge labs in CI-ish benches                   |
+| Decision | Recommendation |
+| -------- | -------------- |
+| Schema | Keep locked flat `map_nodes` / `map_edges` |
+| Cold load for walk rebuild | Prefer **edge spine** projection (§2); load node tags lazily if UI needs them |
+| Publish sort | Cluster edges by `source_id`, `edge_type`, `target_id` |
+| Hot rebuild | Use a **sort-aware** adjacency builder when parts are known clustered; keep naive as fallback for unsorted inputs |
+| Density in labs | Scale with **fixed mean out-degree** (`--fix-nodes-from-density`) so size and bushiness stay separable |
+| Realism | Include **hubby** estates (skewed sources) before trusting rebuild timings for Motadata-like graphs |
+| Hot path | Persist / reuse adjacency across `publish_map` generations when safe; walks must not re-open Vortex |
+| Analytics / filtered cold scans | Revisit zone prune with pushdown filters — not covered here |
+| Bench vs product | Keep 100k–1M edge labs; add builder × shape matrix (§5.4) to CI-ish benches |
 
 ---
 
@@ -213,17 +266,32 @@ Spine still wins a little on decode; adjacency build stays the dominant term.
 
 ```bash
 cd pillar-ab-implementation/vortex-bench/map-vortex-bench
-# natural vs clustered at each scale (nodes = edges / 5)
+
+# Scale sweep (uniform, density fixed via nodes = edges / 5)
 for edges in 100000 250000 500000 750000 1000000; do
-  nodes=$((edges / 5))
   case $edges in
     100000) label=100k ;; 250000) label=250k ;; 500000) label=500k ;;
     750000) label=750k ;; 1000000) label=1000k ;;
   esac
   for sort in natural clustered; do
     cargo run --release --bin map_vortex_bench -- \
-      --nodes "$nodes" --edges "$edges" --edge-sort "$sort" \
+      --edges "$edges" --fix-nodes-from-density --mean-out-degree 5 \
+      --edge-sort "$sort" --estate-shape uniform \
       --out "out/run-${label}-edges-${sort}" --warmup 1 --repeats 3
+  done
+done
+
+# Follow-up: builder × hubby × sort (spine only)
+for edges in 250000 500000; do
+  case $edges in 250000) label=250k ;; 500000) label=500k ;; esac
+  for shape in uniform hubby; do
+    for sort in natural clustered; do
+      cargo run --release --bin map_vortex_bench -- \
+        --edges "$edges" --fix-nodes-from-density --mean-out-degree 5 \
+        --estate-shape "$shape" --edge-sort "$sort" \
+        --load-mode spine --adj-builder naive --adj-builder sort-aware \
+        --out "out/followup-${label}-${shape}-${sort}" --warmup 1 --repeats 3
+    done
   done
 done
 ```
