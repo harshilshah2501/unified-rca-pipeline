@@ -1,1 +1,1 @@
-../../docs/OBSERVEOPS_PIPELINE_HLD.md
+../../../docs/OBSERVEOPS_PIPELINE_HLD.md

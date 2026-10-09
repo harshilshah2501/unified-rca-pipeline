@@ -570,15 +570,16 @@ Sources (MELTS-shaped telemetry)
     ↓  shift-left (optional)
 Shaped / aggregated stream     ← rollups, dedup, mask — still telemetry records
     ↓  E1 Collect
-ingest.v1  (fact_kind: metric_sample | event | trace_span | topo_update | …)
+ingest.v1  (Collect corpus — may carry a fact_kind label on the line)
     ↓  E2 Identity
-    ├─► E3 Topology  → map/
+    ↓  Motadata writer SoT: writer_stream.v1 (presence blocks — no fact_kind router)
+    ├─► E3 Topology  → map/     (admits when topology block present)
     └─► E4 Sketch writer  → history/sketch.v1   ← second aggregation; metrics only
             ↓
         E6 Detect (door C): p95 vs seasonal baseline on sketch rows
 ```
 
-**At E3/E4, writers use `fact_kind`, not MELTS letters** (**G31**). Pillar A admits `metric_sample` and builds sketches; Pillar B admits `topo_update`; other classes are skipped or routed to other store surfaces. PoC fixtures may still be **one sample per `metric_sample` line** — E4 **aggregates those samples into windowed sketch rows**; that is not the same object as the edge aggregated stream.
+**At E3/E4, Motadata writers use `writer_stream.v1` presence predicates, not MELTS letters and not Collect `fact_kind`** (**G31**, [`WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md)). Pillar A admits when a **`metric`** block is present and builds sketches; Pillar B admits when a **`topology`** block is present; lines with only other blocks are silent NOOP for that writer. Lab JSONL may still use legacy `ingest.v1` + `fact_kind` until fixtures migrate (dual-admit in the PoC). PoC fixtures may still be **one sample per metric line** — E4 **aggregates those samples into windowed sketch rows**; that is not the same object as the edge aggregated stream.
 
 **Only the Metrics path becomes `sketch.v1`.** Events, logs, and traces do not land in sketch rows (non-metric lines are silent-skipped by Pillar A; schema forbids edge fields). Other modalities need other evidence surfaces (Lean bundle files, future execution graph, etc.) — out of the A/B freeze for topology + sketches (**GRAPH_CONTRACT_V1_DISCUSSION_BRIEF.md** §8).
 
@@ -669,17 +670,19 @@ Pillar A consumes **whole identified metric lines** (already stamped at E2). It 
 
 **One line:** first table = example inputs; second table = field wiring — same admit job.
 
-### G31. Why does the lab file mix metrics and `topo_update` lines? Does Pillar A reject topology? (§5.3, lab fixture)
+### G31. Why does the lab file mix metric and topology lines? Does Pillar A reject topology? (§5.3, lab fixture)
 
-**A.** The shared lab stream is a **mixed tape** for the whole A+B demo: metric samples **and** topology updates in one JSONL file.
+**A.** The shared lab stream is a **mixed tape** for the whole A+B demo: metric samples **and** topology claims in one JSONL file. Motadata SoT is **`writer_stream.v1`**: each writer admits by **block presence**, not by Collect `fact_kind`.
 
-| Line kind | Pillar A | Pillar B |
-|-----------|----------|----------|
-| `fact_kind: metric_sample` | Admit → sketch writer (`sketch.v1`) | **Silent skip (NOOP)** |
-| `fact_kind: topo_update` | **Silent skip (NOOP)** — not a reject | Admit → graph builder (**WRITE** if catalog checks pass) |
-| `event` / `trace_span` / `anomaly` | Silent skip (not `sketch.v1`) | **Silent skip (NOOP)** — case path / other stores |
+| Line shape (SoT) | Pillar A | Pillar B |
+|------------------|----------|----------|
+| `metric` block present | Admit → sketch writer (`sketch.v1`) | **Silent skip (NOOP)** |
+| `topology` block present | **Silent skip (NOOP)** — not a reject | Admit → graph builder (**WRITE** if catalog checks pass) |
+| Only `event` / `span` / `anomaly` (no metric / topology) | Silent skip (not `sketch.v1`) | **Silent skip (NOOP)** — case path / other stores |
 
-Topology rows (`runs_on`, `depends_on`, …) are **not** sketch inputs and **never** become `sketch.v1` fields. “One file feeds both products” is **fixture packaging**, not a claim that sketches store edges. Full consumer map: [`E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md).
+**Legacy lab dual-admit:** fixtures may still send `ingest.v1` with `fact_kind: metric_sample` or `fact_kind: topo_update`. GraphWriter / SketchWriter map those onto the same NOOP / WRITE outcomes until migration completes — that is **not** the Motadata writer router.
+
+Topology rows (`runs_on`, `depends_on`, …) are **not** sketch inputs and **never** become `sketch.v1` fields. “One file feeds both products” is **fixture packaging**, not a claim that sketches store edges. Full consumer map: [`E2_INPUT_FIXTURES.md`](../E2_INPUT_FIXTURES.md) · wire SoT: [`WRITER_REGULATOR.md`](../pillar-ab-implementation/contracts/WRITER_REGULATOR.md).
 
 ### G32. Where are false positives filtered — is it E5 Maintain? (§5.2.1, E6, E7)
 

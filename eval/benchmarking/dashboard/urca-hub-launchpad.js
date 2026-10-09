@@ -1,1 +1,1 @@
-../../docs/urca-hub-launchpad.js
+../../../docs/urca-hub-launchpad.js

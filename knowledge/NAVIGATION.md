@@ -40,7 +40,7 @@ Always-on fabric (E1–E5) → Pillar A∥B contracts → Detect onward → Refe
 
 **One-line product contract (current stage):** ObserveOps **E1–E5 always-on fabric** with Motadata **Pillar A (sketches) ∥ Pillar B (graph)** after Identity; Detect onward reads those stores. Lean-vs-Federated bakeoff remains **evaluation history** (ADR-001), not the Motadata lock list.
 
-**Portal cold start:** [`observeops/observeops-pipeline-hld.html`](./observeops/observeops-pipeline-hld.html) → Tier 1 in [`observeops/OUR_HLD_TIER1.md`](./observeops/OUR_HLD_TIER1.md). Slim index: [`index.html`](./index.html) (`:8765/docs.html`). Eval history: [`reference/eval-reference.html`](./reference/eval-reference.html). Repo zones: [`REPO_AUDIT.md`](./REPO_AUDIT.md).
+**Portal cold start:** [`observeops/observeops-pipeline-hld.html`](./observeops/observeops-pipeline-hld.html) → Tier 1 in [`observeops/OUR_HLD_TIER1.md`](./observeops/OUR_HLD_TIER1.md). Slim index: [`index.html`](./index.html) (`:8765/docs.html`). Site bar groups: **Vendor survey** (DT / DD / ED hubs · Obs 1.0/2.0/3.0 · compare) and **Bakeoff** (Fed vs DT · Lean/Federated eval). Eval history: [`reference/eval-reference.html`](./reference/eval-reference.html). Repo zones: [`REPO_AUDIT.md`](./REPO_AUDIT.md).
 
 ---
 

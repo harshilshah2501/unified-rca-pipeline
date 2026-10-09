@@ -1,6 +1,6 @@
 # Docs hub web portal — audit
 
-**Status:** Phase E0–E1 (2026-10-07).  
+**Status:** Phase E2+ integrity lock (2026-10-09).  
 **Catalog:** [`HUB_CATALOG.yaml`](./HUB_CATALOG.yaml) (curated) · [`HUB_CATALOG.generated.yaml`](./HUB_CATALOG.generated.yaml) (crawl)  
 **Tier lock:** [`observeops/OUR_HLD_TIER1.md`](./observeops/OUR_HLD_TIER1.md)  
 **Repo audit:** [`REPO_AUDIT.md`](./REPO_AUDIT.md)
@@ -13,56 +13,49 @@ Served at `http://127.0.0.1:8765/` (PoC console) and **`/docs.html`** (documenta
 
 **Not the primary job (still hosted, demoted):**
 
-- Per-category Dynatrace / Datadog / Edge Delta lab timelines (Tier 3 — live under vendor hubs)
-- Cursor **agent-task** prompts for unfinished MCP pulls
-- Lean / Federated bakeoff sims (eval **reference**)
+- Per-category Dynatrace / Datadog / Edge Delta lab timelines (Tier 3 — site bar **Vendor survey**)
+- Lean / Federated bakeoff sims (site bar **Bakeoff** · eval **reference**)
 - Print/PDF A4 exports
+- Pre-merge HTML under `observeops/_consolidated_sources/` (backup only)
 
-## Entry-point conflict (W10)
+## Entry points (post E2 slim)
 
-| Entry | Problem |
-|-------|---------|
-| `/docs.html` ([`index.html`](./index.html)) | Mega-scroll: Tier 1 + all vendor cards + fabric farm + eval |
-| `/observeops-pipeline-hld.html` | Correct **door** per Tier 1 — under-linked as sole cold start |
-| `/hld-archive.html` | Useful search, but duplicates Tier 1 and mixes stale `fact_kind` row copy |
-| `/docs/NAVIGATION.md` | Long reading path — keep as lookup, not first screen |
-| `/` PoC console | Bakeoff UI — must not look like Motadata product docs |
+| Entry | Role |
+|-------|------|
+| `/observeops-pipeline-hld.html` | **Door** — Overview · Workflow · GraphWriter · Diagnose |
+| `/docs.html` ([`index.html`](./index.html)) | **Short ladder** — Tier 1 Everyone + Implementers + Vendor survey + Bakeoff |
+| `/docs/fabric/README.md` | Fabric teaching index |
+| `/hld-archive.html` | Searchable Tier 2/3 depth |
+| `/` PoC console | Bakeoff UI — not Motadata product docs |
 
-**Target:** Cold start = **Our HLD door** → Tier 1 six pages. `docs.html` becomes a **short ladder** + pointers.
+**Cold start:** Our HLD door → Tier 1 Everyone (#0 Workflow … #5 Glossary). Optional companion: ERROR + SLOWDOWN narration. Former `motadata-unified-pipeline-workflow.html` redirects to `#workflow`.
 
-## Clutter taxonomy (W11)
+## Integrity lock (2026-10-09)
 
-| Bucket | Paths | Action |
-|--------|-------|--------|
-| Past agent tasks | [`agent-tasks/`](./agent-tasks/) | Move → `_archive/hub/agent-tasks/`; symlink shim for one cycle |
-| Vendor lab depth | `dd-lab-timeline-*`, `dt-cat-*`, MTL dissections | Keep files; surface only from DT/DD/ED hubs |
-| Eval / engines | `rca-workflow-sim.html`, Federated gap cards on index | One [`eval-reference.html`](./reference/eval-reference.html) entry |
-| Stale wire story | Index cards saying `ingest.v1` as Motadata router | Banner + WRITER_REGULATOR link |
-| Redirect HTML | [`observeops/_consolidated_sources/`](./observeops/_consolidated_sources/) | Delist from archive TOC if already redirected |
-| Print exports | [`print/`](./print/) | Tier 3 only |
-| Fabric link farm | Index §4 (15+ bullets) | Collapse to [`fabric/README.md`](./fabric/README.md) / fabric index |
-
-## Crawl snapshot
-
-Regenerate: `python3 scripts/repo_inventory.py --hub-write`
-
-| Metric | Value (2026-10-07) |
-|--------|---------------------|
-| Pages reachable from seeds | ~144 |
-| Auto-tagged hub Tier 1 | few (classifier under-counts — curated catalog fixes) |
-| `move-to-archive` candidates | agent-tasks + orphans |
+| Item | Status |
+|------|--------|
+| Tier 1 #0 = Workflow tab (not redirect stub) | Done |
+| Index · OUR_HLD_TIER1 · HLD band · HUB_CATALOG agree | Done |
+| GRAPH_QNA G25/G31 = `writer_stream.v1` presence | Done |
+| GraphWriter SoT = hub `#graphwriter` (not stub HTML) | Done |
+| Dashboard `fcd-*.svg` symlink depth | Fixed |
+| `check_doc_drift.sh` scans GRAPH_QNA + OUR_HLD_TIER1 | Done |
 
 ## Target information architecture
 
 | Layer | URL | Contents |
 |-------|-----|----------|
 | Door | `/observeops-pipeline-hld.html` | Overview · Workflow · GraphWriter · Diagnose · Fabric shortcuts |
-| Docs home | `/docs.html` | Short Tier 1 ladder · I/O chain · vendor hub cards · eval reference · archive |
-| Fabric | `/docs/fabric/README.md` | Map / Vortex / simulations |
-| Vendor labs | DT / DD / ED hubs | Own timelines and lab refs |
-| Eval reference | `/eval-reference.html` | Lean/Fed / ADR-001 / E-com — not Motadata path |
+| Docs home | `/docs.html` | Short Tier 1 ladder · I/O · Vendor survey · Bakeoff · archive |
+| Fabric | `/docs/fabric/README.md` | Map / Vortex / simulations · knowledge-graph use cases |
+| Vendor labs | DT / DD / ED hubs | Own timelines (site bar group) |
+| Eval / Bakeoff | `/eval-reference.html` · Fed vs DT | Not Motadata product path |
 | Archive | `/hld-archive.html` | Tier 2/3 search |
 
-## Governance rule (after slim)
+## Governance rule
 
-No new link on `docs/index.html` without a row in [`HUB_CATALOG.yaml`](./HUB_CATALOG.yaml) (`hub_tier` + `audience`).
+No new link on `docs/index.html` without a row in [`HUB_CATALOG.yaml`](./HUB_CATALOG.yaml) (`hub_tier` / audience section).
+
+## Crawl snapshot
+
+Regenerate: `python3 scripts/repo_inventory.py --hub-write`

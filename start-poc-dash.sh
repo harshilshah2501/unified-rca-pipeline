@@ -11,7 +11,8 @@ LOCKFILE="${POC_DASH_LOCKFILE:-/tmp/poc-dash-${PORT}.lock}"
 LOGFILE="${POC_DASH_LOGFILE:-/tmp/poc-dash-${PORT}.log}"
 PY="${ROOT}/.venv/bin/python"
 [[ -x "$PY" ]] || PY="$(command -v python3)"
-SERVER="${ROOT}/benchmarking/dashboard/server.py"
+SERVER="${ROOT}/eval/benchmarking/dashboard/server.py"
+# Shim path still works: ${ROOT}/benchmarking → eval/benchmarking
 URL="http://127.0.0.1:${PORT}/"
 
 cmd="${1:-start}"
@@ -25,7 +26,7 @@ pid_is_ours() {
   local pid="$1" cmdline
   is_alive "$pid" || return 1
   cmdline="$(tr '\0' ' ' <"/proc/${pid}/cmdline" 2>/dev/null || true)"
-  [[ "$cmdline" == *"benchmarking/dashboard/server.py"* ]]
+  [[ "$cmdline" == *"benchmarking/dashboard/server.py"* || "$cmdline" == *"eval/benchmarking/dashboard/server.py"* ]]
 }
 
 port_up() {

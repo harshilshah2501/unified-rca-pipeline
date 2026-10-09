@@ -1,1 +1,1 @@
-../../docs/doc-nav.js
+../../../docs/doc-nav.js

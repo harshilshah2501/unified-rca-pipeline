@@ -839,17 +839,25 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
 
   <h2 id="tier1">Tier 1 — start here</h2>
   <p style="margin:0 0 .5rem;font-size:.95rem;color:var(--muted);">
-    Six pages for orientation. Full list and role shortcuts:
+    Six Everyone pages for orientation (Workflow → Glossary), then Implementers #6.
+    Full list and role shortcuts:
     <a href="/docs/observeops/OUR_HLD_TIER1.md">OUR_HLD_TIER1.md</a>.
   </p>
   <div class="tier1Band">
+    <a href="#workflow"><strong>0 · Workflow</strong><span>Estate map · E1–E11 rail · checkout</span></a>
     <a href="/observeops-fusion-guide.html"><strong>1 · Fusion</strong><span>Try — click a Detect class</span></a>
     <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md"><strong>2 · Pipeline HLD</strong><span>Written spec · ADRs</span></a>
     <a href="/data-shape-journey.html"><strong>3 · Data shape journey</strong><span>Fabric · E1–E11 forms</span></a>
     <a href="/docs/GRAPH_QNA.md"><strong>4 · GRAPH_QNA</strong><span>Locked fabric rules</span></a>
     <a href="/urca-glossary.html"><strong>5 · Glossary</strong><span>Terms first</span></a>
-    <a href="/pillar-ab-implementation/README.md"><strong>6 · Pillar A+B</strong><span>Slice README → Pillar B PoC demo</span></a>
+    <a href="/pillar-ab-implementation/README.md"><strong>6 · Pillar A+B</strong><span>Implementers · slice README</span></a>
   </div>
+  <p style="margin:.45rem 0 .85rem;font-size:.9rem;color:var(--muted);">
+    Optional companion after Fusion (not numbered Tier 1):
+    <a href="/docs/observeops/E1_E11_ERROR_SLOWDOWN_NARRATIVE.md">ERROR + SLOWDOWN · E1–E11 narration</a>
+    · ranked walks: Fusion → narration → Workflow →
+    <a href="#diagnose">Diagnose</a>.
+  </p>
 
   <h3 id="implementer-io">Tier 2 · Implementer I/O (wire records)</h3>
   <p style="margin:0 0 .5rem;font-size:.92rem;color:var(--muted);">
@@ -1231,6 +1239,8 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     <a href="/docs/OBSERVEOPS_PIPELINE_HLD.md">Pipeline HLD</a>.
     Topology writer detail: <a href="#graphwriter">GraphWriter</a>.
     Interactive diagnose: <a href="#diagnose">Diagnose walk</a>.
+    <br /><span style="color:var(--muted);font-size:.9em;">Bookmark survivors: former
+    <code>/motadata-unified-pipeline-workflow.html</code> redirects here (<code>#workflow</code>).</span>
   </div>
 
   <nav class="toc" aria-label="Page sections">
@@ -1684,6 +1694,8 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
     Output: Dest <code>files.v1</code> / <code>vortex_s3.v1</code> under <code>map/</code>.
     OneOps / Fusion HTML briefs under <code>archived-docs/</code> are catalog material only — they are not GraphWriter callers.
     Part of <a href="#overview">Our HLD</a> · Topology writer under <code>pillar-ab-implementation/pillar-b/poc</code>.
+    <br /><span style="color:var(--muted);font-size:.9em;">Bookmark survivors: former
+    <code>/graphwriter-io-walkthrough.html</code> redirects here (<code>#graphwriter</code>).</span>
   </p>
 
   <div class="gw-tabs" role="tablist" aria-label="Walkthrough steps">
@@ -1768,7 +1780,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   </section>
 
   <!-- 2 · Pipeline -->
-  <section class="panel" id="panel-pipeline" role="tabpanel" aria-labelledby="tab-pipeline" data-step="pipeline" hidden>
+  <section class="gw-panel" id="panel-pipeline" role="tabpanel" aria-labelledby="tab-pipeline" data-step="pipeline" hidden>
     <div class="gw-panel-head">
       <h2>2 · Pipeline</h2>
       <p class="blurb">Where it sits after Identity</p>
@@ -1834,7 +1846,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   </section>
 
   <!-- 3 · Example -->
-  <section class="panel" id="panel-example" role="tabpanel" aria-labelledby="tab-example" data-step="example" hidden>
+  <section class="gw-panel" id="panel-example" role="tabpanel" aria-labelledby="tab-example" data-step="example" hidden>
     <div class="gw-panel-head">
       <h2>3 · Example</h2>
       <p class="blurb">checkout-api topo line → edge</p>
@@ -1905,7 +1917,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   </section>
 
   <!-- 4 · Admit -->
-  <section class="panel" id="panel-admit" role="tabpanel" aria-labelledby="tab-admit" data-step="admit" hidden>
+  <section class="gw-panel" id="panel-admit" role="tabpanel" aria-labelledby="tab-admit" data-step="admit" hidden>
     <div class="gw-panel-head">
       <h2>4 · Admit</h2>
       <p class="blurb">Three output actions · NOOP · WRITE · DROP</p>
@@ -2067,7 +2079,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   </section>
 
   <!-- 5 · Build -->
-  <section class="panel" id="panel-build" role="tabpanel" aria-labelledby="tab-build" data-step="build" hidden>
+  <section class="gw-panel" id="panel-build" role="tabpanel" aria-labelledby="tab-build" data-step="build" hidden>
     <div class="gw-panel-head">
       <h2>5 · Build</h2>
       <p class="blurb">Seed + stream → GraphState</p>
@@ -2117,7 +2129,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   </section>
 
   <!-- 6 · Output -->
-  <section class="panel" id="panel-output" role="tabpanel" aria-labelledby="tab-output" data-step="output" hidden>
+  <section class="gw-panel" id="panel-output" role="tabpanel" aria-labelledby="tab-output" data-step="output" hidden>
     <div class="gw-panel-head">
       <h2>6 · Output</h2>
       <p class="blurb">What lands under map/</p>
@@ -2159,7 +2171,7 @@ summary span{font-family:var(--mono);color:var(--eng);margin-right:.45rem;}
   </section>
 
   <!-- 7 · Lab -->
-  <section class="panel" id="panel-lab" role="tabpanel" aria-labelledby="tab-lab" data-step="lab" hidden>
+  <section class="gw-panel" id="panel-lab" role="tabpanel" aria-labelledby="tab-lab" data-step="lab" hidden>
     <div class="gw-panel-head">
       <h2>7 · Lab</h2>
       <p class="blurb">make flush walkthrough</p>
@@ -2212,8 +2224,10 @@ make install &amp;&amp; make flush
   </div>
 
   <p class="meta">
-    Source of truth: <code>docs/fabric/graphwriter-io-walkthrough.html</code>
-    (flat hub URL <a href="/graphwriter-io-walkthrough.html"><code>/graphwriter-io-walkthrough.html</code></a>).
+    Source of truth: <strong style="color:var(--text)">this GraphWriter tab</strong>
+    (<a href="#graphwriter"><code>#graphwriter</code></a>).
+    Former flat URL <a href="/graphwriter-io-walkthrough.html"><code>/graphwriter-io-walkthrough.html</code></a> redirects here;
+    pre-merge backup only under <code>observeops/_consolidated_sources/</code>.
     Package docs: <a href="/pillar-ab-implementation/pillar-b/docs/README.md">pillar-b/docs/</a>.
     Sample I/O: <a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/SAMPLE_IO.md">SAMPLE_IO.md</a> ·
     Post-E2 input: <a href="/pillar-ab-implementation/E2_INPUT_FIXTURES.md#writer-stream-presence-cheat-sheet">E2_INPUT_FIXTURES.md</a> ·
@@ -2234,6 +2248,8 @@ make install &amp;&amp; make flush
     come from sketch rows under <code>history/</code> (Pillar A). The Knowledge Graph / map is
     an at-the-moment view — it does not store time series.
     Part of <a href="#workflow">Workflow</a> · triage JSON under <a href="#triage-io">Signal · CaseSeed · WorkingSet</a>.
+    <br /><span style="color:var(--muted);font-size:.9em;">Bookmark survivors: former
+    <code>/checkout-diagnose-walkthrough.html</code> redirects here (<code>#diagnose</code>).</span>
   </p>
 
   <div class="callout">
@@ -2261,7 +2277,7 @@ make install &amp;&amp; make flush
         <h3>What diagnose does</h3>
         <p id="what"></p>
         <h3>This scenario</h3>
-        <div class="ex" id="example"></div>
+        <div class="ex" id="dia-example"></div>
       </div>
     </div>
     <div class="card">
@@ -2337,7 +2353,20 @@ make install &amp;&amp; make flush
 (function () {
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.hub-tab'));
   var panels = Array.prototype.slice.call(document.querySelectorAll('.hub-panel'));
-  function show(name, push) {
+  var OVERVIEW_ANCHORS = ['tier1', 'implementer-io', 'pillar-b-poc', 'fabric', 'path-build'];
+  var WORKFLOW_ANCHORS = ['poster', 'stages', 'objects', 'triage-io', 'example', 'investigate'];
+
+  function scrollToId(id) {
+    if (!id) return;
+    var el = document.getElementById(id);
+    if (el && typeof el.scrollIntoView === 'function') {
+      requestAnimationFrame(function () {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }
+
+  function show(name, push, scrollId) {
     tabs.forEach(function (t) {
       var on = t.getAttribute('data-panel') === name;
       t.setAttribute('aria-selected', on ? 'true' : 'false');
@@ -2348,22 +2377,31 @@ make install &amp;&amp; make flush
       if (on) p.removeAttribute('hidden'); else p.setAttribute('hidden', '');
     });
     if (push) {
-      var hash = '#' + name;
+      var hash = '#' + (scrollId || name);
       if (location.hash !== hash) history.replaceState(null, '', hash);
     }
+    scrollToId(scrollId || ('panel-' + name));
   }
+
   tabs.forEach(function (t) {
     t.addEventListener('click', function () { show(t.getAttribute('data-panel'), true); });
   });
+
   function fromHash() {
     var h = (location.hash || '#overview').replace(/^#/, '');
-    // allow deep links into workflow anchors while selecting workflow tab
-    if (h === 'poster' || h === 'stages' || h === 'objects' || h === 'triage-io' || h === 'example' || h === 'investigate') {
-      show('workflow', false);
+    if (WORKFLOW_ANCHORS.indexOf(h) >= 0) {
+      show('workflow', false, h);
       return;
     }
-    if (['overview', 'workflow', 'graphwriter', 'diagnose'].indexOf(h) >= 0) show(h, false);
-    else show('overview', false);
+    if (OVERVIEW_ANCHORS.indexOf(h) >= 0) {
+      show('overview', false, h);
+      return;
+    }
+    if (['overview', 'workflow', 'graphwriter', 'diagnose'].indexOf(h) >= 0) {
+      show(h, false);
+      return;
+    }
+    show('overview', false);
   }
   window.addEventListener('hashchange', fromHash);
   fromHash();
@@ -2624,7 +2662,7 @@ make install &amp;&amp; make flush
     root.querySelector("#count").textContent = `Step ${idx + 1} of ${STEPS.length}`;
     root.querySelector("#title").textContent = step.title;
     root.querySelector("#what").textContent = step.what;
-    root.querySelector("#example").textContent = step.example;
+    root.querySelector("#dia-example").textContent = step.example;
     root.querySelector("#howIntro").textContent = step.howIntro;
     root.querySelector("#howNote").textContent = "Evidence bar: " + step.howNote;
     const ol = root.querySelector("#howSteps");

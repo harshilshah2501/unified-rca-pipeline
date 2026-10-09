@@ -12,6 +12,8 @@ CHECK_PATHS=(
   "docs/fabric/README.md"
   "docs/HUB_PORTAL_AUDIT.md"
   "docs/REPO_AUDIT.md"
+  "docs/GRAPH_QNA.md"
+  "docs/observeops/OUR_HLD_TIER1.md"
   "docs/observeops/observeops-pipeline-hld.html"
   "docs/observeops/hld-archive.html"
   "docs/fabric/pillar-b-poc-hub.html"
@@ -50,6 +52,24 @@ for path in "${CHECK_PATHS[@]}"; do
       fail=1
     fi
   done < <(rg -n "fact_kind" "$path" 2>/dev/null || true)
+done
+
+# Broken symlinks under the :8765 host (post zone-move depth bugs)
+DASH_ASSETS=(
+  "eval/benchmarking/dashboard/assets/fcd-focusing.svg"
+  "eval/benchmarking/dashboard/assets/fcd-pipeline-ipo.svg"
+)
+for link in "${DASH_ASSETS[@]}"; do
+  if [[ -L "$link" ]]; then
+    target="$(readlink -f "$link" 2>/dev/null || true)"
+    if [[ -z "$target" || ! -e "$target" ]]; then
+      echo "BROKEN_SYMLINK: $link → $(readlink "$link")"
+      fail=1
+    fi
+  elif [[ ! -e "$link" ]]; then
+    echo "MISSING_ASSET: $link"
+    fail=1
+  fi
 done
 
 if [[ $fail -ne 0 ]]; then

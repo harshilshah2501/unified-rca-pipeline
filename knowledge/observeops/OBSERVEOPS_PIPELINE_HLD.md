@@ -234,7 +234,7 @@ The same template applies to every stage:
 ### E3 Topology (P1)
 - Purpose: maintain walkable dependency graph for neighborhood reasoning.
 - Graph extension (Draft): interactive [Fusion](./observeops-fusion-guide.html) then normative [`OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md`](./OBSERVEOPS_HLD_OPERATIONAL_GRAPH.md) · worked example [`observeops-ci-graph.html`](./observeops-ci-graph.html). Schema is Grounded as an authored artifact; live E3 discovery remains Design-level. Does **not** replace this contract.
-- Motadata fabric: after E2, **E3 Topology ∥ E4 Stores** — Pillar B writes versioned `GraphSnapshot` under `map/`; see [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) §10.
+- Motadata fabric: after E2, **E3 Topology ∥ E4 Stores** — Pillar B GraphWriter admits post-E2 **`writer_stream.v1`** lines when a **`topology`** block is present ([`WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md); no Collect `fact_kind` router) and writes versioned `GraphSnapshot` under `map/`; see [`LLD-E3-Topology.md`](./LLD-E3-Topology.md) §10.
 - Trigger: continuous updates + periodic refresh.
 - Inputs: `IdentifiedRecord`, discovery relations, optional CMDB enrich.
 - Outputs: `GraphSnapshot`.
@@ -248,7 +248,7 @@ The same template applies to every stage:
 
 ### E4 Stores (P1)
 - Purpose: persist queryable evidence over time under shared identity.
-- Motadata fabric: Pillar A sketch writer → `sketch.v1` in `history/` (**metrics-only**); parallel to E3, not sequential after it. Logs/traces use other evidence surfaces — see [`LLD-E4-Stores.md`](./LLD-E4-Stores.md) §0.
+- Motadata fabric: Pillar A SketchWriter admits when a **`metric`** block is present on **`writer_stream.v1`** → `sketch.v1` in `history/` (**metrics-only**); parallel to E3, not sequential after it. Logs/traces use other evidence surfaces — see [`LLD-E4-Stores.md`](./LLD-E4-Stores.md) §0 · wire SoT [`WRITER_REGULATOR.md`](../../pillar-ab-implementation/contracts/WRITER_REGULATOR.md).
 - Trigger: continuous writes.
 - Inputs: `IdentifiedRecord`.
 - Outputs: modality-specific query surfaces and history (Motadata: sketches; bakeoff: Lean/Fed stores).
@@ -562,6 +562,6 @@ Layer I docs are not `LLD-E*` unless investigation notebook is productized later
 
 ## Doc hub contract (navigation)
 
-Global site bar (`doc-nav.js`) remains the single site menu:
+Global site bar (`doc-nav.js`) remains the single site menu. Flat links stay on the bar; vendor and bakeoff pages nest under dropdown groups:
 
-`Docs index` · `Our HLD` · `DT hub` · `DD hub` · `ED hub` · `DT vs DD vs ED` · `Obs 1.0/2.0/3.0` · `Fed vs DT` · `Motadata FR/AC` · `PoC console`
+`Docs index` · `Glossary` · `Our HLD` · **Vendor survey** (DT hub · DD hub · ED hub · Obs 1.0/2.0/3.0 · DT vs DD vs ED) · **Bakeoff** (Fed vs DT · Lean · Federated eval) · `Motadata FR/AC` · `PoC console`

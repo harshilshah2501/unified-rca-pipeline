@@ -1,1 +1,1 @@
-../../docs/theme-init.js
+../../../docs/theme-init.js

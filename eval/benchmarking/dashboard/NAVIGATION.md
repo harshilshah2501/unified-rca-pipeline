@@ -1,1 +1,1 @@
-../../docs/NAVIGATION.md
+../../../docs/NAVIGATION.md

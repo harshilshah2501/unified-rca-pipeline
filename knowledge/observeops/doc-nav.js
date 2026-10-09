@@ -4,6 +4,10 @@
  * One global sticky bar only. Do NOT add a second horizontal site menu on pages.
  *
  * Optional: <script src="/theme-init.js"></script> in <head> avoids a flash before defer load.
+ *
+ * Top bar uses flat links plus dropdown groups:
+ *   Vendor survey — DT / DD / ED hubs, Obs 1.0/2.0/3.0, DT vs DD vs ED
+ *   Bakeoff — Fed vs DT, Lean/Federated eval reference
  */
 (function applyHubThemeEarly() {
   try {
@@ -74,18 +78,34 @@
 
   ensureTheme();
 
-  var links = [
-    { href: "/docs.html", label: "Docs index" },
-    { href: "/urca-glossary.html", label: "Glossary" },
-    { href: "/observeops-pipeline-hld.html", label: "Our HLD" },
-    { href: "/dt-davis-category-hub.html", label: "DT hub" },
-    { href: "/dd-detect-category-hub.html", label: "DD hub" },
-    { href: "/ed-ai-team-hub.html", label: "ED hub" },
-    { href: "/comparable-pipeline-dt-dd.html", label: "DT vs DD vs ED" },
-    { href: "/observability-generations-dt-dd.html", label: "Obs 1.0 / 2.0 / 3.0" },
-    { href: "/federated-vs-dt-pipeline-gaps.html", label: "Fed vs DT" },
-    { href: "/multi-telemetry-rca-fac.html", label: "Motadata FR/AC" },
-    { href: "/", label: "PoC console" }
+  /** Flat top links and dropdown groups (order = left → right). */
+  var navItems = [
+    { type: "link", href: "/docs.html", label: "Docs index" },
+    { type: "link", href: "/urca-glossary.html", label: "Glossary" },
+    { type: "link", href: "/observeops-pipeline-hld.html", label: "Our HLD" },
+    {
+      type: "group",
+      id: "vendor-survey",
+      label: "Vendor survey",
+      items: [
+        { href: "/dt-davis-category-hub.html", label: "DT hub" },
+        { href: "/dd-detect-category-hub.html", label: "DD hub" },
+        { href: "/ed-ai-team-hub.html", label: "ED hub" },
+        { href: "/observability-generations-dt-dd.html", label: "Obs 1.0 / 2.0 / 3.0" },
+        { href: "/comparable-pipeline-dt-dd.html", label: "DT vs DD vs ED" }
+      ]
+    },
+    {
+      type: "group",
+      id: "bakeoff",
+      label: "Bakeoff",
+      items: [
+        { href: "/federated-vs-dt-pipeline-gaps.html", label: "Fed vs DT" },
+        { href: "/eval-reference.html", label: "Lean · Federated eval" }
+      ]
+    },
+    { type: "link", href: "/multi-telemetry-rca-fac.html", label: "Motadata FR/AC" },
+    { type: "link", href: "/", label: "PoC console" }
   ];
 
   var path = (location.pathname || "").replace(/\/+$/, "") || "/";
@@ -99,7 +119,7 @@
   label.textContent = "Site";
   nav.appendChild(label);
 
-  function isHere(item) {
+  function linkIsHere(item) {
     var target = item.href.replace(/\/+$/, "") || "/";
     if (path === target || path.endsWith(target)) return true;
     if (item.href === "/docs.html" && /\/docs\.html$|\/docs-index\.html$/.test(path)) return true;
@@ -141,19 +161,102 @@
     }
     if (
       item.href === "/comparable-pipeline-dt-dd.html" &&
-      /comparable-pipeline-dt-dd|observability-generations-dt-dd/.test(path)
+      /comparable-pipeline-dt-dd/.test(path)
     ) {
-      return /comparable-pipeline-dt-dd/.test(path);
+      return true;
+    }
+    if (
+      item.href === "/observability-generations-dt-dd.html" &&
+      /observability-generations-dt-dd/.test(path)
+    ) {
+      return true;
+    }
+    if (
+      item.href === "/federated-vs-dt-pipeline-gaps.html" &&
+      /federated-vs-dt|FEDERATED_VS_DT/.test(path)
+    ) {
+      return true;
+    }
+    if (
+      item.href === "/eval-reference.html" &&
+      /eval-reference|rca-workflow-sim|ECOM_CHECKOUT|PIPELINE_PARITY|ADR-001/i.test(path)
+    ) {
+      return true;
     }
     return false;
   }
 
-  links.forEach(function (item) {
+  function groupHasHere(group) {
+    return group.items.some(linkIsHere);
+  }
+
+  function makeLink(item) {
     var a = document.createElement("a");
     a.href = item.href;
     a.textContent = item.label;
-    if (isHere(item)) a.className = "here";
-    nav.appendChild(a);
+    if (linkIsHere(item)) a.className = "here";
+    return a;
+  }
+
+  function closeAllMenus(except) {
+    nav.querySelectorAll(".urca-nav-group.open").forEach(function (g) {
+      if (g !== except) {
+        g.classList.remove("open");
+        var btn = g.querySelector(".urca-nav-group-btn");
+        if (btn) btn.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  function makeGroup(group) {
+    var wrap = document.createElement("div");
+    wrap.className = "urca-nav-group";
+    wrap.dataset.group = group.id;
+    if (groupHasHere(group)) wrap.classList.add("here");
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "urca-nav-group-btn";
+    btn.setAttribute("aria-expanded", "false");
+    btn.setAttribute("aria-haspopup", "true");
+    btn.setAttribute("aria-controls", "urca-nav-menu-" + group.id);
+    btn.textContent = group.label;
+
+    var menu = document.createElement("div");
+    menu.className = "urca-nav-menu";
+    menu.id = "urca-nav-menu-" + group.id;
+    menu.setAttribute("role", "menu");
+
+    group.items.forEach(function (item) {
+      var a = makeLink(item);
+      a.setAttribute("role", "menuitem");
+      menu.appendChild(a);
+    });
+
+    btn.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      var open = !wrap.classList.contains("open");
+      closeAllMenus(wrap);
+      wrap.classList.toggle("open", open);
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+    return wrap;
+  }
+
+  navItems.forEach(function (item) {
+    if (item.type === "group") nav.appendChild(makeGroup(item));
+    else nav.appendChild(makeLink(item));
+  });
+
+  document.addEventListener("click", function () {
+    closeAllMenus(null);
+  });
+
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape") closeAllMenus(null);
   });
 
   themeToggle = document.createElement("button");

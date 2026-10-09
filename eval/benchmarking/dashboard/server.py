@@ -25,7 +25,9 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 DASH = Path(__file__).resolve().parent
-REPO = DASH.parents[1]
+# Zone layout: eval/benchmarking/dashboard → repo root is parents[2]
+# (was parents[1] when the host lived at benchmarking/dashboard/).
+REPO = DASH.parents[2]
 sys.path.insert(0, str(DASH))
 
 from poc_status import (  # noqa: E402

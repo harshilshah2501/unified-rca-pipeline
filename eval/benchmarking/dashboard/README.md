@@ -16,7 +16,7 @@ OpenObserve peer / Option B metrics are **out of scope** for this PoC console (D
 
 **Walkthrough:** [`../../docs/POC_DEMO_GUIDE.md`](../../docs/POC_DEMO_GUIDE.md)
 
-**Hosted docs hub:** [`http://127.0.0.1:8765/docs.html`](http://127.0.0.1:8765/docs.html) · Unified pipeline workflow: [`/motadata-unified-pipeline-workflow.html`](http://127.0.0.1:8765/motadata-unified-pipeline-workflow.html) · Comparable DT vs DD: [`/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) · Fed vs DT gaps: [`/federated-vs-dt-pipeline-gaps.html`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html)
+**Hosted docs hub (Motadata cold start):** door [`/observeops-pipeline-hld.html`](http://127.0.0.1:8765/observeops-pipeline-hld.html) (Our HLD) · ladder [`/docs.html`](http://127.0.0.1:8765/docs.html) · Workflow tab [`#workflow`](http://127.0.0.1:8765/observeops-pipeline-hld.html#workflow) (former unified-pipeline URL redirects here). Vendor compare: [`/comparable-pipeline-dt-dd.html`](http://127.0.0.1:8765/comparable-pipeline-dt-dd.html) · Bakeoff: [`/federated-vs-dt-pipeline-gaps.html`](http://127.0.0.1:8765/federated-vs-dt-pipeline-gaps.html)
 
 ## Serve (control plane)
 

@@ -2,10 +2,15 @@
 # Full crawl: HUB_CATALOG.generated.yaml (regenerate with scripts/repo_inventory.py --hub-write)
 # Policy: docs/HUB_PORTAL_AUDIT.md · Tier lock: observeops/OUR_HLD_TIER1.md
 
-generated_at: "2026-10-07"
+generated_at: "2026-10-09"
 policy: "No new docs/index.html link without a row here."
 
 tier1_everyone:
+  - url_path: /observeops-pipeline-hld.html#workflow
+    canonical_file: docs/observeops/observeops-pipeline-hld.html
+    audience: everyone
+    action: keep-prominent
+    notes: "Tier 1 #0 — Workflow tab (former unified-pipeline URL redirects here)"
   - url_path: /observeops-pipeline-hld.html
     canonical_file: docs/observeops/observeops-pipeline-hld.html
     audience: everyone
@@ -32,11 +37,23 @@ tier1_everyone:
     audience: everyone
     action: keep-prominent
 
+tier1_companions:
+  - url_path: /docs/observeops/E1_E11_ERROR_SLOWDOWN_NARRATIVE.md
+    canonical_file: docs/observeops/E1_E11_ERROR_SLOWDOWN_NARRATIVE.md
+    audience: everyone
+    action: keep-archive
+    notes: Optional after Fusion — not a numbered Tier 1 page
+
 tier1_implementers:
   - url_path: /pillar-ab-implementation/README.md
     canonical_file: pillar-ab-implementation/README.md
     audience: implementer
     action: keep-prominent
+  - url_path: /docs/fabric/KNOWLEDGE_GRAPH_USE_CASES.md
+    canonical_file: docs/fabric/KNOWLEDGE_GRAPH_USE_CASES.md
+    audience: implementer
+    action: keep-archive
+    notes: Graph lifecycle scenarios — build · walk · diagnose
 
 tier2_io_chain:
   - url_path: /docs/INGEST_DATA_FORMAT.md

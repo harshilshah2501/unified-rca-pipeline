@@ -475,7 +475,7 @@
       <g class="actor" transform="translate(1096, 224)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-bars" class="ico hist" x="2" y="2" width="20" height="20"/></g>
       <text class="tag" x="1128" y="238">E4 · Pillar A</text>
       <text class="lbl" x="1100" y="262" fill="var(--hist)">history/</text>
-      <text class="sub" x="1100" y="282">sketch.v1 · baselines</text>
+      <text class="sub" x="1100" y="282">sketch.v1</text>
 
       <text class="sub" x="1268" y="206" text-anchor="middle">no sync</text>
       <line id="noSync" x1="1268" y1="196" x2="1268" y2="216" stroke="var(--warn)" stroke-dasharray="3 3" opacity="0.35"/>
@@ -484,7 +484,7 @@
       <g class="actor" transform="translate(776, 224)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-warm" class="ico accent" x="2" y="2" width="20" height="20"/></g>
       <text class="tag" x="808" y="238">E5 Maintain · shared</text>
       <text class="lbl" x="780" y="262">Warm both</text>
-      <text class="sub" x="780" y="280">validity · baselines</text>
+      <text class="sub" x="780" y="280">→ edges · → baselines</text>
 
       <rect class="box evt" id="nCap" x="768" y="318" width="680" height="92" rx="6"/>
       <g class="actor" transform="translate(776, 326)"><rect class="ico-badge" width="24" height="24" rx="5"/><use href="#i-bolt" class="ico warn" x="2" y="2" width="20" height="20"/></g>
@@ -544,10 +544,12 @@
       <path class="wire c" id="wNodeCol" d="M464 330 L504 206" marker-end="url(#arrC)"/>
       <path class="wire c" id="wColSaas" d="M696 206 C730 206 740 153 768 153" marker-end="url(#arrC)"/>
       <path class="wire c" id="wNetCol" d="M226 366 C340 420 440 320 504 320" marker-end="url(#arrC)"/>
-      <path class="wire b" id="wIngMap" d="M958 153 C1010 153 1040 152 1088 152" marker-end="url(#arrB)"/>
-      <path class="wire a" id="wIngHist" d="M958 153 C1010 153 1040 258 1088 258" marker-end="url(#arrA)"/>
-      <path class="wire j" id="wE5Map" d="M958 248 C1010 248 1040 152 1088 152" marker-end="url(#arrJ)"/>
-      <path class="wire j" id="wE5Hist" d="M958 258 C1010 258 1040 258 1088 258" marker-end="url(#arrJ)"/>
+      <!-- Fan-out: Ingest API writes into rooms (parallel, no sync) -->
+      <path class="wire b" id="wIngMap" d="M958 140 L1088 140" marker-end="url(#arrB)"/>
+      <path class="wire a" id="wIngHist" d="M958 178 C1010 210 1035 252 1088 255" marker-end="url(#arrA)"/>
+      <!-- E5 Maintain: validity → E3 map/ edges · baselines → E4 history/ -->
+      <path class="wire j" id="wE5Map" d="M958 228 C1005 200 1045 162 1088 158" marker-end="url(#arrJ)"/>
+      <path class="wire j" id="wE5Hist" d="M958 280 L1088 280" marker-end="url(#arrJ)"/>
       <path class="wire a" id="wHistCap" d="M1268 300 L1100 360" marker-end="url(#arrA)"/>
       <path class="wire w" id="wCapDet" d="M1108 410 L1108 428" marker-end="url(#arrW)"/>
       <path class="wire w" id="wDetCur" d="M900 524 L873 540" marker-end="url(#arrW)"/>
@@ -564,10 +566,10 @@
       <g class="wlab" data-for="wNodeCol"><rect class="wlab-bg" x="458" y="248" width="88" height="16" rx="3"/><text class="wlab-t" x="502" y="256" text-anchor="middle">stream row</text></g>
       <g class="wlab" data-for="wColSaas"><rect class="wlab-bg" x="686" y="168" width="100" height="16" rx="3"/><text class="wlab-t" x="736" y="176" text-anchor="middle">writer_stream</text></g>
       <g class="wlab" data-for="wNetCol"><rect class="wlab-bg" x="300" y="372" width="78" height="16" rx="3"/><text class="wlab-t" x="339" y="380" text-anchor="middle">SNMP / flows</text></g>
-      <g class="wlab" data-for="wIngMap"><rect class="wlab-bg" x="980" y="128" width="96" height="16" rx="3"/><text class="wlab-t" x="1028" y="136" text-anchor="middle">→ GraphSnapshot</text></g>
-      <g class="wlab" data-for="wIngHist"><rect class="wlab-bg" x="980" y="218" width="88" height="16" rx="3"/><text class="wlab-t" x="1024" y="226" text-anchor="middle">→ sketch.v1</text></g>
-      <g class="wlab" data-for="wE5Map"><rect class="wlab-bg" x="990" y="178" width="58" height="16" rx="3"/><text class="wlab-t" x="1019" y="186" text-anchor="middle">validity</text></g>
-      <g class="wlab" data-for="wE5Hist"><rect class="wlab-bg" x="990" y="278" width="64" height="16" rx="3"/><text class="wlab-t" x="1022" y="286" text-anchor="middle">baselines</text></g>
+      <g class="wlab" data-for="wIngMap"><rect class="wlab-bg" x="990" y="116" width="88" height="16" rx="3"/><text class="wlab-t" x="1034" y="124" text-anchor="middle">write edges</text></g>
+      <g class="wlab" data-for="wIngHist"><rect class="wlab-bg" x="1010" y="228" width="92" height="16" rx="3"/><text class="wlab-t" x="1056" y="236" text-anchor="middle">write sketches</text></g>
+      <g class="wlab" data-for="wE5Map"><rect class="wlab-bg" x="1005" y="155" width="100" height="16" rx="3"/><text class="wlab-t" x="1055" y="163" text-anchor="middle">validity → edges</text></g>
+      <g class="wlab" data-for="wE5Hist"><rect class="wlab-bg" x="990" y="288" width="110" height="16" rx="3"/><text class="wlab-t" x="1045" y="296" text-anchor="middle">baselines → history</text></g>
       <g class="wlab" data-for="wHistCap"><rect class="wlab-bg" x="1140" y="318" width="100" height="16" rx="3"/><text class="wlab-t" x="1190" y="326" text-anchor="middle">digest + baseline</text></g>
       <g class="wlab" data-for="wCapDet"><rect class="wlab-bg" x="1118" y="408" width="72" height="16" rx="3"/><text class="wlab-t" x="1154" y="416" text-anchor="middle">fire inputs</text></g>
       <g class="wlab" data-for="wDetCur"><rect class="wlab-bg" x="848" y="522" width="58" height="16" rx="3"/><text class="wlab-t" x="877" y="530" text-anchor="middle">Signal(s)</text></g>
@@ -674,10 +676,10 @@
     {
       title: "Maintain",
       kicker: "Beat 6 of 11 · E5 shared",
-      lede: "E5 Maintain is common: keep map/ validity and history/ baselines warm.",
+      lede: "E5 Maintain is common: map/ edge validity and history/ sketch baselines — two outputs, no sync.",
       where: "SaaS policy over both rooms. Does not create edges and does not merge rooms.",
-      io: "In: rooms already written. Out: freshness on graph and seasonal baselines on sketches.",
-      not: "Maintain is not only for Pillar A. It is not a case opener.",
+      io: "Out to E3: validity on edges. Out to E4: seasonal baselines on sketches. Rooms stay independent.",
+      not: "Maintain is not a fan-out write. It does not invent GraphSnapshot or sketch rows — only warms what writers already published.",
       live: ["nE5", "nMap", "nHist"]
     },
     {
@@ -862,10 +864,9 @@
     }
     if (n === 5) {
       idle("zCol", false); idle("nAgg", false); idle("nDirect", false);
-      ["wDevE1","wE1E2","wNodeSaas","wNodeCol","wColSaas","wNetCol","wIngMap","wIngHist","wE5Map","wE5Hist"].forEach(id => wireOn(id, true));
+      // Maintain beat: only E5 → rooms (not ingest write wires — those are fan-out).
+      ["wE5Map","wE5Hist"].forEach(id => wireOn(id, true));
       el("noSync").style.opacity = "0.9";
-      el("pMap").classList.add("on"); el("pHist").classList.add("on");
-      moveAlong(el("pMap"), el("wIngMap"), 1); moveAlong(el("pHist"), el("wIngHist"), 1);
       await Promise.all([
         travel(el("pE5a"), el("wE5Map"), TRAVEL, gen),
         travel(el("pE5b"), el("wE5Hist"), TRAVEL, gen)
@@ -1024,17 +1025,17 @@
     nE5: {
       kicker: "E5 · Maintain · shared",
       title: "Warm both rooms",
-      blurb: "Shared policy over map/ and history/. Does not create edges and does not merge rooms.",
+      blurb: "Two maintain outputs: edge validity into Pillar B map/, sketch baselines into Pillar A history/. Does not create edges and does not merge rooms.",
       inn: "Already-published map/ and history/.",
-      out: "Map: valid_to / last_seen / version. History: seasonal baselines refreshed.",
+      out: "→ E3 map/: validity on edges (valid_to / soft·hard). → E4 history/: seasonal baselines for Door C.",
       accent: "var(--accent)",
       steps: [
-        { t: "Map validity", d: "Expire edges past valid_to; drop stale stream-origin edges; mark declared soft/hard." },
-        { t: "Touch nodes", d: "Optional last_seen refresh and version bump (Motadata maintain)." },
-        { t: "History baselines", d: "Keep sketch seasonal baselines warm for Door C." },
-        { t: "Re-publish", d: "Callers publish_map again so Dest reflects marks — still two rooms." }
+        { t: "→ map/ edges", d: "Expire edges past valid_to; drop stale stream-origin edges; mark declared soft/hard." },
+        { t: "Touch nodes", d: "Optional last_seen refresh and version bump on map vertices." },
+        { t: "→ history/ baselines", d: "Refresh seasonal baselines on sketches — not a new sketch write from Ingest." },
+        { t: "Re-publish", d: "Callers publish again so Dest reflects marks — still two rooms, no sync." }
       ],
-      flow: ["map/ + history/", "validity ∥ baselines", "re-publish"]
+      flow: ["E5", "validity→map", "baselines→history"]
     },
     nCap: {
       kicker: "Capture · writer_stream blocks",

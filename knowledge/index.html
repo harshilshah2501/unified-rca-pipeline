@@ -58,11 +58,22 @@
   <p class="lead" style="margin-top:0">
     Six pages from <a href="/docs/observeops/OUR_HLD_TIER1.md">OUR_HLD_TIER1</a>. Read in order on first visit.
   </p>
+  <div class="note" style="margin-bottom:1rem;">
+    <strong style="color:var(--text)">E1–E11 walks (ranked):</strong>
+    <a href="/observeops-fusion-guide.html">Fusion</a>
+    → optional
+    <a href="/docs/observeops/E1_E11_ERROR_SLOWDOWN_NARRATIVE.md">ERROR + SLOWDOWN narration</a>
+    →
+    <a href="/observeops-pipeline-hld.html#workflow">Workflow</a>
+    →
+    <a href="/observeops-pipeline-hld.html#diagnose">Diagnose</a>
+    (map/∥history/ step-through).
+  </div>
   <div class="grid two">
-    <a class="card" href="/observeops-pipeline-hld.html">
-      <div class="k compare">Door</div>
-      <h3>Our HLD hub</h3>
-      <p>Overview · Workflow · GraphWriter · Diagnose · fabric cards.</p>
+    <a class="card" href="/observeops-pipeline-hld.html#workflow">
+      <div class="k compare">0 · Workflow</div>
+      <h3>Our HLD · Workflow</h3>
+      <p>Estate map vs diagnose · E1–E11 rail · checkout spine · triage JSON.</p>
     </a>
     <a class="card" href="/observeops-fusion-guide.html">
       <div class="k compare">1 · Try</div>
@@ -90,6 +101,10 @@
       <p>Normalize vs Identify, Detect classes, tier vocabulary.</p>
     </a>
   </div>
+  <p class="note" style="margin-top:.75rem;">
+    Optional companion after Fusion (not a numbered Tier 1 page):
+    <a href="/docs/observeops/E1_E11_ERROR_SLOWDOWN_NARRATIVE.md">ERROR + SLOWDOWN · E1–E11 narration</a>.
+  </p>
 
   <h2>1 · Implementers</h2>
   <div class="grid two">
@@ -108,6 +123,11 @@
       <h3>Map · history · Vortex</h3>
       <p>All teaching HTML and normative map contract links in one place.</p>
     </a>
+    <a class="card" href="/docs/fabric/KNOWLEDGE_GRAPH_USE_CASES.md">
+      <div class="k compare">Scenarios</div>
+      <h3>Knowledge graph lifecycle</h3>
+      <p>Build → live → Detect → Scope walk → Diagnose — diagrams + examples.</p>
+    </a>
     <a class="card" href="/pillar-b-poc-hub.html">
       <div class="k kickoff">Pillar B PoC</div>
       <h3>Knowledge-graph hub</h3>
@@ -120,9 +140,11 @@
     Full searchable list: <a href="/hld-archive.html">HLD archive</a>.
   </p>
 
-  <h2>2 · Vendor labs (Tier 3)</h2>
+  <h2>2 · Vendor survey (Tier 3)</h2>
   <p class="lead" style="margin-top:0">
-    Open a vendor hub for timelines and evidence. Per-category lab pages stay linked from those hubs — not duplicated here.
+    Site bar group <strong style="color:var(--text)">Vendor survey</strong>:
+    Dynatrace · Datadog · Edge Delta hubs, then generations framing and the abstract compare.
+    Per-category lab pages stay linked from those hubs — not duplicated here.
   </p>
   <div class="grid">
     <a class="card" href="/dt-davis-category-hub.html">
@@ -140,6 +162,11 @@
       <h3>AI Team + Pipelines</h3>
       <p>Independent third lens — use-case switcher, not ERROR/SLOWDOWN twins.</p>
     </a>
+    <a class="card" href="/observability-generations-dt-dd.html">
+      <div class="k compare">Framing</div>
+      <h3>Obs 1.0 / 2.0 / 3.0</h3>
+      <p>Must-pass criteria · why DD/DT are hybrids, not clean generation labels.</p>
+    </a>
     <a class="card" href="/comparable-pipeline-dt-dd.html">
       <div class="k compare">Compare</div>
       <h3>DT vs DD vs ED</h3>
@@ -147,8 +174,17 @@
     </a>
   </div>
 
-  <h2>3 · Eval reference (not Motadata path)</h2>
+  <h2>3 · Bakeoff (not Motadata path)</h2>
+  <p class="lead" style="margin-top:0">
+    Site bar group <strong style="color:var(--text)">Bakeoff</strong>:
+    Federated vs Dynatrace pipeline gaps, plus Lean · Federated eval history.
+  </p>
   <div class="grid two">
+    <a class="card" href="/federated-vs-dt-pipeline-gaps.html">
+      <div class="k compare">Gap map</div>
+      <h3>Fed vs DT</h3>
+      <p>Federated Part 1 vs Dynatrace 5+3+3 — evaluation track, not Motadata lock.</p>
+    </a>
     <a class="card" href="/eval-reference.html">
       <div class="k compare">Bakeoff history</div>
       <h3>Lean · Federated · ADR-001</h3>
@@ -163,7 +199,8 @@
 
   <p class="note">
     Markdown map: <a href="/docs/NAVIGATION.md">NAVIGATION.md</a>.
-    Site bar via <code>urca-docs.css</code> + <code>doc-nav.js</code>.
+    Site bar via <code>urca-docs.css</code> + <code>doc-nav.js</code>
+    (groups: <strong style="color:var(--text)">Vendor survey</strong>, <strong style="color:var(--text)">Bakeoff</strong>).
   </p>
 </div>
 <script src="/doc-nav.js" defer></script>

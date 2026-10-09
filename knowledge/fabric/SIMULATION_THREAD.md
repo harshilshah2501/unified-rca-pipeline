@@ -15,7 +15,7 @@ Former separate case and capture URLs redirect to the same page.
 ## Architecture locks (confirmed)
 
 1. **Ingest API fans out to both rooms.** After E2 Identity, SaaS ingest offers **`writer_stream.v1`** to GraphRegulator (E3 → `map/`) and SketchRegulator (E4 → `history/`) **in parallel**. The rooms do not sync.
-2. **E5 Maintain is shared.** It keeps **both** rooms warm: `map/` validity and `history/` baselines. It does not create edges and does not merge rooms ([HLD E5](../observeops/OBSERVEOPS_PIPELINE_HLD.md)).
+2. **E5 Maintain is shared.** Two outputs (no sync): **validity → E3 `map/` edges**, and **baselines → E4 `history/` sketches**. It does not create edges and does not merge rooms ([HLD E5](../observeops/OBSERVEOPS_PIPELINE_HLD.md)).
 3. **Two SaaS ingest doors only:** Node (straight or via Collector) and optional Collector-direct (SNMP / flows / APM). Coordinator is not a data path.
 4. **Normalize = E2 Identity** (not E10 Identify).
 5. **Detect = E6 → `Signal`.** Door C (platform on sketches) is primary in the film. Door A on Node is shown unfired. An `anomaly` block also becomes a Signal. An `event` block (including logs) is evidence — correlates / Identify cites — not a second root-cause engine.

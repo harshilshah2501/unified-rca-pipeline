@@ -1,6 +1,6 @@
 [Unit]
-Description=Unified RCA PoC Console + Comparative Dashboard (:8765)
-Documentation=file:///root/Harshil-PoCs/Unified-RCA/benchmarking/dashboard/README.md
+Description=Unified RCA docs hub + PoC console (http://127.0.0.1:8765)
+Documentation=file:///root/Harshil-PoCs/Unified-RCA/eval/benchmarking/dashboard/deploy/README.md
 After=network-online.target
 Wants=network-online.target
 
@@ -11,8 +11,9 @@ Environment=POC_DASHBOARD_HOST=127.0.0.1
 Environment=POC_DASHBOARD_PORT=8765
 Environment=POC_SSH_HOST=pro6000-server
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/root/Harshil-PoCs/Unified-RCA/.venv/bin/python benchmarking/dashboard/server.py
-Restart=on-failure
+# Canonical path after zone move (benchmarking/ is a shim → eval/benchmarking/)
+ExecStart=/root/Harshil-PoCs/Unified-RCA/.venv/bin/python eval/benchmarking/dashboard/server.py
+Restart=always
 RestartSec=3
 
 # Job runners (Motadata / bakeoff / lab) need Docker + SSH as the service user.

@@ -243,7 +243,7 @@
   <div class="steps" id="step-cards">
     <article data-stage="0" id="step-0" class="is-lit">
       <div class="head"><span class="n">STEP 1</span><h3>JSON in</h3></div>
-      <p>Stream claim: two CI ids + relation. Lab uses <code>topo_update</code>; target wire is <code>writer_stream.v1</code>.</p>
+      <p>Stream claim: two CI ids + relation. Motadata SoT is <code>writer_stream.v1</code> with a <code>topology</code> block (right). Lab fixtures may still send legacy <code>ingest.v1</code> + <code>fact_kind: topo_update</code> (left) — GraphWriter dual-admits both.</p>
       <div class="cols">
         <div>
           <p class="file-meta"><a href="/pillar-ab-implementation/pillar-b/poc/sample_estate/customer_checkout/stream.resolved.jsonl">stream.resolved.jsonl</a> · lab</p>

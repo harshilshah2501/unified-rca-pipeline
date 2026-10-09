@@ -103,10 +103,12 @@ table.ex code{font-size:.8rem;word-break:break-all;}
   <p class="lead">
     One-stop reference for <strong style="color:var(--text)">service RED metrics</strong> (Rate · Errors · Duration),
     <strong style="color:var(--text)">histogram exemplars</strong> in OpenTelemetry and Prometheus,
-    and how both map to ObserveOps Pillar A (<code>metric_sample</code> → <code>sketch.v1</code>).
+    and how both map to ObserveOps Pillar A (<code>metric</code> block on <code>writer_stream.v1</code> → <code>sketch.v1</code>;
+    Motadata SoT is presence predicates — see <a href="/pillar-ab-implementation/contracts/WRITER_REGULATOR.md">WRITER_REGULATOR</a>;
+    lab lines may still show legacy <code>fact_kind: metric_sample</code>).
     Exemplars are <strong style="color:var(--text)">optional write-time pointers</strong> on the <strong>Duration</strong> path —
     not a fourth Detect input, not derived from histogram counts later, and not a substitute for keeping metric raw.
-    Canonical Q&amp;A: <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a> <strong>G22</strong>, <strong>G26</strong>, <strong>G28</strong>, <strong>G29</strong>, <strong>G41</strong>, <strong>G43</strong>–<strong>G46</strong>
+    Canonical Q&amp;A: <a href="/docs/GRAPH_QNA.md">GRAPH_QNA</a> <strong>G22</strong>, <strong>G26</strong>, <strong>G28</strong>, <strong>G29</strong>, <strong>G31</strong>, <strong>G41</strong>, <strong>G43</strong>–<strong>G46</strong>
     · counter-question: <a href="/pillar-ab-implementation/discussion/04-raw-data-identity-lut-open-questions.md">raw/LUT discussion §4.5</a>
     · industry: <a href="https://opentelemetry.io/docs/specs/otel/metrics/">OpenTelemetry Metrics</a> ·
     <a href="https://opentelemetry.io/docs/languages/dotnet/metrics/exemplars/">OTel exemplars guide</a>.
@@ -247,7 +249,7 @@ table.ex code{font-size:.8rem;word-break:break-all;}
         <tr>
           <td><strong><code>metric_sample</code></strong></td>
           <td>E1 ingest → E4 writer (in memory per window)</td>
-          <td>One identified measurement line: <code>value</code>, <code>ts</code>, labels (e.g. <code>trace_id</code>). <strong>Not</strong> forever-raw in <code>history/</code> after flush. Optional Edge/Gateway may shape telemetry <em>before</em> E1 — the sketch writer still sees <code>fact_kind: metric_sample</code>, not a raw lake rescan.</td>
+          <td>One identified measurement line: <code>value</code>, <code>ts</code>, labels (e.g. <code>trace_id</code>). <strong>Not</strong> forever-raw in <code>history/</code> after flush. Optional Edge/Gateway may shape telemetry <em>before</em> E1 — Motadata SketchWriter admits a <code>metric</code> block on <code>writer_stream.v1</code> (lab may still label the line <code>fact_kind: metric_sample</code>); not a raw lake rescan.</td>
         </tr>
         <tr>
           <td><strong><code>ci_id</code></strong> (configuration item)</td>

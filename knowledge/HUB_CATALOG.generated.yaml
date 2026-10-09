@@ -1,10 +1,17 @@
 # Auto-generated hub crawl — merge curated overrides into HUB_CATALOG.yaml
-generated_at: 2026-10-07T09:40:18Z
+generated_at: 2026-10-09T08:38:03Z
 seed_count: 5
-page_count: 129
+page_count: 132
 pages:
   - url_path: '/knowledge/CANVASES.md'
     canonical_file: 'knowledge/CANVASES.md'
+    hub_tier: 3
+    audience: everyone
+    topic: observeops
+    status: current
+    action: keep-archive
+  - url_path: '/knowledge/DOCUMENTATION_SEARCH.md'
+    canonical_file: 'knowledge/DOCUMENTATION_SEARCH.md'
     hub_tier: 3
     audience: everyone
     topic: observeops
@@ -57,6 +64,13 @@ pages:
     hub_tier: 3
     audience: everyone
     topic: observeops
+    status: current
+    action: keep-archive
+  - url_path: '/knowledge/fabric/KNOWLEDGE_GRAPH_USE_CASES.md'
+    canonical_file: 'knowledge/fabric/KNOWLEDGE_GRAPH_USE_CASES.md'
+    hub_tier: 2
+    audience: implementer
+    topic: fabric
     status: current
     action: keep-archive
   - url_path: '/knowledge/fabric/PILLAR_A_PERCENTILES_DEEP_DIVE.md'
@@ -222,6 +236,13 @@ pages:
     action: keep-archive
   - url_path: '/knowledge/motadata/motadata-3pillars-vs-shift-left.html'
     canonical_file: 'knowledge/motadata/motadata-3pillars-vs-shift-left.html'
+    hub_tier: 3
+    audience: everyone
+    topic: observeops
+    status: current
+    action: keep-archive
+  - url_path: '/knowledge/observeops/E1_E11_ERROR_SLOWDOWN_NARRATIVE.md'
+    canonical_file: 'knowledge/observeops/E1_E11_ERROR_SLOWDOWN_NARRATIVE.md'
     hub_tier: 3
     audience: everyone
     topic: observeops

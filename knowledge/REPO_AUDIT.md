@@ -37,9 +37,9 @@ The tree mixes four eras of work:
 | W7 | `_archive/` | Frozen hub export + old combined PoC | Keep one export; no day-edits |
 | W8 | Bulk / CI | `target/`, `.venv`, JSONL gitignored | Document clone vs git size in root README |
 | W9 | Hub portal pages | 144 pages crawled from seeds | See HUB_CATALOG — demote Tier 3 from index |
-| W10 | Entry points | Competing: docs.html, Our HLD, NAVIGATION, hld-archive, PoC `/` | **Door = Our HLD**; slim docs.html |
+| W10 | Entry points | Competing: docs.html, Our HLD, NAVIGATION, hld-archive, PoC `/` | **Done (2026-10-09):** Door = Our HLD; slim docs.html ladder |
 | W11 | Past-task clutter | `docs/agent-tasks/`, learning decode notes, print PDFs | Move agent-tasks to archive; print stays Tier 3 |
-| W12 | Tier 1 lock | [`OUR_HLD_TIER1.md`](./observeops/OUR_HLD_TIER1.md) under-enforced on index | Enforce in Phase E2 slim |
+| W12 | Tier 1 lock | [`OUR_HLD_TIER1.md`](./observeops/OUR_HLD_TIER1.md) under-enforced on index | **Done (2026-10-09):** #0 = Workflow tab; index · band · catalog aligned; ERROR narration = companion |
 
 ## Top-level action column
 

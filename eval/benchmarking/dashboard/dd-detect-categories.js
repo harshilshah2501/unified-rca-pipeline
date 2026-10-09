@@ -1,1 +1,1 @@
-../../docs/dd-detect-categories.js
+../../../docs/dd-detect-categories.js

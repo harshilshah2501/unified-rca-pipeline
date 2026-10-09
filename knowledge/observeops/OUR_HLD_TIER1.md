@@ -46,14 +46,15 @@ When you write a new page, say **hub Tier**, **evidentiary Tier**, or **storage 
 
 ## Tier 1 catalog (six pages + Tier 2 I/O chain)
 
-### Everyone (five pages)
+### Everyone (six pages)
 
 Read in this order on first visit.
 
 | # | Page | Path | One-line job |
 |---|------|------|--------------|
-| **0** | **Unified pipeline workflow** | [`motadata-unified-pipeline-workflow.html`](../motadata-unified-pipeline-workflow.html) | GIF-style end-to-end: estate map vs diagnose procedure · guidance bias · E1–E11 · checkout walk. |
+| **0** | **Our HLD · Workflow** | [`observeops-pipeline-hld.html#workflow`](./observeops-pipeline-hld.html#workflow) | Estate map vs diagnose · E1–E11 rail · checkout spine · triage JSON. (Former `motadata-unified-pipeline-workflow.html` redirects here.) |
 | **1** | **Fusion** | [`observeops-fusion-guide.html`](./observeops-fusion-guide.html) | Click a Detect class; walk E1–E11 with step inputs and outputs. |
+| — | **Companion (optional)** | [`E1_E11_ERROR_SLOWDOWN_NARRATIVE.md`](./E1_E11_ERROR_SLOWDOWN_NARRATIVE.md) | Plain narration: shared fabric + ERROR and SLOWDOWN sample scenarios end-to-end (same checkout estate). Not a numbered Tier 1 page. |
 | **2** | **Pipeline HLD** | [`OBSERVEOPS_PIPELINE_HLD.md`](./OBSERVEOPS_PIPELINE_HLD.md) | Canonical written spec — stage purpose, contracts, signed ADRs, NFR targets. |
 | **3** | **Data shape journey** | [`../fabric/data-shape-journey.html`](../fabric/data-shape-journey.html) | How object names and JSON forms evolve Edge → Platform → case objects (E1–E11). |
 | **4** | **GRAPH_QNA** | [`../GRAPH_QNA.md`](../GRAPH_QNA.md) | Locked fabric rules — fan-out, `map/` vs `history/`, rooms ≠ temperature, sketch vs graph. FAQ with TOC. |
@@ -112,9 +113,9 @@ E1 Collect envelope          E2 Identity overlay           Pillar writers       
 
 ### Product / architecture reviewer
 
-1. Fusion → 2. Pipeline HLD → 3. Data shape journey → 4. GRAPH_QNA → 5. Glossary  
+1. Workflow tab → 2. Fusion → 3. Pipeline HLD → 4. Data shape journey → 5. GRAPH_QNA → 6. Glossary  
 
-Skip the implementer entry (#6) unless reviewing Pillar A/B delivery.
+Optional companion: ERROR + SLOWDOWN narration. Skip the implementer entry (#6 Pillar A+B) unless reviewing Pillar A/B delivery.
 
 ### Pillar A or B engineer
 
@@ -130,7 +131,7 @@ Other Tier 2: contract brief, exemplars visual, inventory/catalog visual, LLD-E1
 
 ### Leadership / Motadata alignment (no code)
 
-1. Fusion → 2. Pipeline HLD (§ purpose + ADRs) → 3. Data shape journey ( skim ) → 4. Glossary  
+1. Workflow tab → 2. Fusion → 3. Pipeline HLD (§ purpose + ADRs) → 4. Data shape journey (skim) → 5. Glossary  
 
 Tier 2 only if needed: [`motadata-3pillars-implementation-scope.html`](../motadata-3pillars-implementation-scope.html). Tier 3 for study Q&A and PDF job-map depth.
 
@@ -166,7 +167,8 @@ The hub’s five paths collapse into Tier 1 + Tier 2:
 
 | Old path | Tier 1 | Tier 2 (first stop after Tier 1) |
 |----------|--------|----------------------------------|
-| **1 · Try** | Fusion (#1) | — |
+| **0 · Workflow** | Our HLD Workflow tab (#0) | Diagnose tab for map/∥history/ step-through |
+| **1 · Try** | Fusion (#1) | Optional ERROR+SLOWDOWN narration companion |
 | **2 · Spec** | Pipeline HLD (#2) | Hub spec excerpt → prefer MD |
 | **3 · Fabric** | Data shape journey (#3) + GRAPH_QNA (#4) | [`fabric/README.md`](../fabric/README.md) ordered visuals |
 | **4 · Build** | Pillar slice (#6) | I/O-1 … I/O-4, implementation scope HTML, shift-left, LLDs |
@@ -176,7 +178,7 @@ The hub’s five paths collapse into Tier 1 + Tier 2:
 
 ## Hub refactor checklist
 
-- [x] Above the fold: Everyone (five links) + Implementers entry (#6) + I/O chain
+- [x] Above the fold: Everyone (six links: Workflow #0 … Glossary #5) + Implementers entry (#6) + I/O chain
 - [x] Remove duplicate launchpad cards that repeat paths 1–5
 - [x] Remove duplicate fabric cards (single exemplars/RED entry)
 - [x] Spec detail note → prefer Pipeline HLD MD (long accordion retained below fold)
