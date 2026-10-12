@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://motadata.local/vortex-bench/design-v3/trace-schema.json",
+  "title": "MapVortexSyntheticQueryEvent",
+  "type": "object",
+  "required": [
+    "query_id",
+    "run_id",
+    "type",
+    "seed_id",
+    "seed_degree_bin",
+    "hops",
+    "latency_ms",
+    "reachable",
+    "result_checksum"
+  ],
+  "properties": {
+    "query_id": { "type": "string" },
+    "run_id": { "type": "string" },
+    "type": {
+      "type": "string",
+      "enum": ["forward_bfs", "reverse_blast", "dependency_chain"]
+    },
+    "seed_id": { "type": "string" },
+    "seed_degree_bin": {
+      "type": "string",
+      "enum": ["p10", "p50", "p90"]
+    },
+    "hops": { "type": "integer", "minimum": 1 },
+    "edge_type_filter": {
+      "type": ["array", "null"],
+      "items": { "type": "string" }
+    },
+    "concurrency": { "type": "integer", "const": 1 },
+    "layout": { "type": "string" },
+    "latency_ms": { "type": "number" },
+    "reachable": { "type": "integer", "minimum": 0 },
+    "result_checksum": { "type": "string" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,40 @@
+{
+  "run_id": "20261012T100000Z-stage1-500k-uniform-clustered-sort_aware-spine",
+  "timestamp_rfc3339": "2026-10-12T10:00:00Z",
+  "git_sha": "deadbeef",
+  "host": "lab-host",
+  "dataset_id": "synth-uniform-e500000-n100000-s42",
+  "estate_shape": "uniform",
+  "edges": 500000,
+  "nodes": 100000,
+  "mean_out_degree_target": 5.0,
+  "seed": 42,
+  "edge_sort": "Clustered",
+  "adj_builder": "sort_aware",
+  "layout": "hash",
+  "load_mode": "spine",
+  "coldness": "process_cold",
+  "workload_id": "stage1_2x2",
+  "warmup": 1,
+  "repeats": 20,
+  "phases_ms": {
+    "decode_nodes": 5.0,
+    "decode_edges": 12.0,
+    "build": 49.6,
+    "first_bfs": 0.05,
+    "total_cold_to_walk": 66.65
+  },
+  "peak_rss_bytes": 256000000,
+  "profile": {
+    "source_key_clones": 99346,
+    "hashmap_source_ops": 99346
+  },
+  "parts_bytes": {
+    "nodes": 1881344,
+    "edges": 6826632
+  },
+  "result_checksum": "sha256:…",
+  "correctness_ok": true,
+  "query_events_path": null,
+  "errors": []
+}

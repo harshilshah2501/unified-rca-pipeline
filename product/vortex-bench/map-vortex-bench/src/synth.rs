@@ -66,12 +66,17 @@ pub enum EdgeSort {
 }
 
 /// How source endpoints are sampled when generating edges.
+/// Stage 4 adds power_law / hierarchical / community / layered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum EstateShape {
     /// Near-uniform source and target over all nodes (original lab).
     Uniform,
     /// A small hub set emits most edges (preferential / Motadata-like skew).
     Hubby,
+    PowerLaw,
+    Hierarchical,
+    Community,
+    Layered,
 }
 
 impl EstateShape {
@@ -79,6 +84,10 @@ impl EstateShape {
         match self {
             Self::Uniform => "uniform",
             Self::Hubby => "hubby",
+            Self::PowerLaw => "power_law",
+            Self::Hierarchical => "hierarchical",
+            Self::Community => "community",
+            Self::Layered => "layered",
         }
     }
 }
@@ -127,75 +136,26 @@ pub fn nodes_for_density(edges_n: usize, mean_out_degree: f64) -> usize {
 }
 
 pub fn generate_estate(cfg: &EstateConfig) -> (Vec<NodeRow>, Vec<EdgeRow>, DegreeStats) {
-    let nodes_n = cfg.nodes_n.max(2);
-    let edges_n = cfg.edges_n;
-    let seed = cfg.seed;
-
-    let mut nodes = Vec::with_capacity(nodes_n);
-    for i in 0..nodes_n {
-        let r = mix(seed, i as u64);
-        let type_ = NODE_TYPES[(r as usize) % NODE_TYPES.len()];
-        let entity_id = format!("{type_}-{:05}", i);
-        nodes.push(NodeRow {
-            entity_id: entity_id.clone(),
-            type_: type_.into(),
-            name: entity_id,
-            env: Some(if r % 3 == 0 { "prod" } else { "rca-lab" }.into()),
-            region: Some(if r % 2 == 0 { "ap-south-1" } else { "us-east-1" }.into()),
-            owner: Some(format!("team-{}", r % 16)),
-            namespace: if type_ == "service" {
-                Some(format!("ns-{}", r % 8))
-            } else {
-                None
-            },
-            last_seen: 1_787_196_600_000 + (r % 86_400_000),
-            valid_from: Some(1_787_184_000_000),
-            valid_to: None,
-            version: 1 + (r % 5) as u32,
-        });
-    }
-
-    let hub_count = ((nodes_n as f64) * cfg.hub_fraction)
-        .round()
-        .clamp(1.0, (nodes_n as f64) - 1.0) as usize;
-    // First hub_count node indices are the hub set (stable, seed-independent membership by index).
-    let hub_threshold = ((cfg.hub_edge_share.clamp(0.0, 1.0)) * 10_000.0).round() as u64;
-
-    let mut edges = Vec::with_capacity(edges_n);
-    let mut i = 0usize;
-    while edges.len() < edges_n {
-        let r = mix(seed ^ 0xC0FFEE, i as u64);
-        let src_idx = match cfg.shape {
-            EstateShape::Uniform => (r as usize) % nodes_n,
-            EstateShape::Hubby => {
-                if (r % 10_000) < hub_threshold {
-                    (r as usize) % hub_count
-                } else {
-                    // Non-hub sources: sample from the remaining nodes.
-                    hub_count + ((r >> 17) as usize) % (nodes_n - hub_count)
-                }
-            }
-        };
-        let dst_idx = ((r >> 11) as usize) % nodes_n;
-        i += 1;
-        if src_idx == dst_idx {
-            continue;
-        }
-        let src = &nodes[src_idx];
-        let dst = &nodes[dst_idx];
-        let edge_type = EDGE_TYPES[(r as usize) % EDGE_TYPES.len()];
-        edges.push(EdgeRow {
-            edge_id: 7_146_828_800_000_000 + edges.len() as u64,
-            source_id: src.entity_id.clone(),
-            target_id: dst.entity_id.clone(),
-            edge_type: edge_type.into(),
-            valid_from: Some(1_787_184_000_000),
-            valid_to: None,
-            evidence_event_id: 7_146_828_900_000_000 + edges.len() as u64,
-        });
-    }
-
-    let stats = degree_stats(&edges, nodes_n);
+    use crate::estate::{EstateFamily, FamilyConfig, generate_family};
+    let family = match cfg.shape {
+        EstateShape::Uniform => EstateFamily::Uniform,
+        EstateShape::Hubby => EstateFamily::Hubby,
+        EstateShape::PowerLaw => EstateFamily::PowerLaw,
+        EstateShape::Hierarchical => EstateFamily::Hierarchical,
+        EstateShape::Community => EstateFamily::Community,
+        EstateShape::Layered => EstateFamily::Layered,
+    };
+    let fcfg = FamilyConfig {
+        family,
+        nodes_n: cfg.nodes_n,
+        edges_n: cfg.edges_n,
+        seed: cfg.seed,
+        hub_fraction: cfg.hub_fraction,
+        hub_edge_share: cfg.hub_edge_share,
+        pa_softener: 1.0,
+    };
+    let (nodes, edges, _meta) = generate_family(&fcfg);
+    let stats = degree_stats(&edges, nodes.len());
     (nodes, edges, stats)
 }
 
@@ -272,7 +232,7 @@ impl HashMapCount {
     }
 }
 
-fn mix(a: u64, b: u64) -> u64 {
+pub fn mix(a: u64, b: u64) -> u64 {
     let mut x = a ^ b.wrapping_mul(0x9E37_79B9_7F4A_7C15);
     x ^= x >> 30;
     x = x.wrapping_mul(0xBF58_476D_1CE4_E5B9);

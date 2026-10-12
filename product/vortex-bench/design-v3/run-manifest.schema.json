@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://motadata.local/vortex-bench/design-v3/run-manifest.schema.json",
+  "title": "MapVortexRunManifest",
+  "type": "object",
+  "required": [
+    "run_id",
+    "timestamp_rfc3339",
+    "git_sha",
+    "host",
+    "dataset_id",
+    "estate_shape",
+    "edges",
+    "nodes",
+    "edge_sort",
+    "adj_builder",
+    "layout",
+    "load_mode",
+    "coldness",
+    "phases_ms",
+    "correctness_ok"
+  ],
+  "properties": {
+    "run_id": { "type": "string" },
+    "timestamp_rfc3339": { "type": "string" },
+    "git_sha": { "type": "string" },
+    "host": { "type": "string" },
+    "dataset_id": { "type": "string" },
+    "estate_shape": { "type": "string" },
+    "edges": { "type": "integer" },
+    "nodes": { "type": "integer" },
+    "mean_out_degree_target": { "type": "number" },
+    "seed": { "type": "integer" },
+    "edge_sort": { "type": "string" },
+    "adj_builder": { "type": "string" },
+    "layout": { "type": "string" },
+    "load_mode": { "type": "string" },
+    "coldness": {
+      "type": "string",
+      "enum": ["process_cold", "page_cache_warm"]
+    },
+    "workload_id": { "type": "string" },
+    "warmup": { "type": "integer" },
+    "repeats": { "type": "integer" },
+    "phases_ms": {
+      "type": "object",
+      "properties": {
+        "decode_nodes": { "type": "number" },
+        "decode_edges": { "type": "number" },
+        "build": { "type": "number" },
+        "first_bfs": { "type": "number" },
+        "total_cold_to_walk": { "type": "number" }
+      }
+    },
+    "peak_rss_bytes": { "type": ["integer", "null"] },
+    "profile": { "type": "object" },
+    "parts_bytes": {
+      "type": "object",
+      "properties": {
+        "nodes": { "type": "integer" },
+        "edges": { "type": "integer" }
+      }
+    },
+    "result_checksum": { "type": "string" },
+    "correctness_ok": { "type": "boolean" },
+    "query_events_path": { "type": ["string", "null"] },
+    "errors": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": true
+}

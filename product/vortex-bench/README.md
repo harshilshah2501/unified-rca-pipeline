@@ -19,6 +19,7 @@ Shared achievement bar: **one Vortex Dest temperature, two playbooks** — proje
 |-------|------|---------------------|
 | [`sketch-vortex-bench/`](./sketch-vortex-bench/) | `history/` | How should sketch.v2-shaped rows be laid out so Stage‑1 RCA does not decode T‑Digest / exemplars early? |
 | [`map-vortex-bench/`](./map-vortex-bench/) | `map/` | How expensive is cold load → hot adjacency rebuild under spine vs full projection and edge clustering? |
+| [`design-v3/`](./design-v3/) | `map/` | Design v3 Stages 0–4.2: contracts, 2×2, factor screen, layouts, workload-informed synthetic estates |
 
 ## Reports
 
@@ -27,6 +28,15 @@ Shared achievement bar: **one Vortex Dest temperature, two playbooks** — proje
 | [`reports/01-sketch-physical-layout.md`](./reports/01-sketch-physical-layout.md) | Detailed sketch layout results (A–E × Q1–Q8) |
 | [`reports/02-map-load-adjacency.md`](./reports/02-map-load-adjacency.md) | Detailed map load / adjacency / BFS results |
 | [`reports/03-comparative-analysis.md`](./reports/03-comparative-analysis.md) | Side-by-side conclusions for Motadata Dest |
+| [`reports/04-design-v3-stage1-reproduce.md`](./reports/04-design-v3-stage1-reproduce.md) | Design v3 Stage 1 — order × builder 2×2 |
+| [`reports/05-design-v3-stage2-screen.md`](./reports/05-design-v3-stage2-screen.md) | Design v3 Stage 2 — factor screening |
+| [`reports/06-design-v3-stage3-layouts.md`](./reports/06-design-v3-stage3-layouts.md) | Design v3 Stage 3 — hash / CSR / CSC / hybrid |
+| [`reports/07-design-v3-stage3_5-fair.md`](./reports/07-design-v3-stage3_5-fair.md) | Design v3 Stage 3.5 — fair compare + hash_bi + per-class latency |
+| [`reports/08-design-v3-stage4_1-properties.md`](./reports/08-design-v3-stage4_1-properties.md) | Design v3 Stage 4.1 — six estate family property reports |
+| [`reports/09-design-v3-stage4_2-screen.md`](./reports/09-design-v3-stage4_2-screen.md) | Design v3 Stage 4.2 — layout screen ≤5M + crossover candidates |
+| [`reports/10-design-v3-comprehensive.md`](./reports/10-design-v3-comprehensive.md) | Design v3 comprehensive — v2→v3 changes + full results analysis |
+| [`reports/11-map-vortex-engineering-brief.md`](./reports/11-map-vortex-engineering-brief.md) | **Share with eng (cold readers)** — final brief, decisions, do/don’t |
+| [`reports/Map_Vortex_Graph_Architecture_Decision_Record.md`](./reports/Map_Vortex_Graph_Architecture_Decision_Record.md) | ADR hypothesis (segmented CSR+CSC) — not a Stage 4.2 lock |
 
 Companion design notes:
 

@@ -53,8 +53,9 @@ Vortex’s three layers apply to both Dest rooms. The **optimization target** di
 - Spine vs full projection is a modest decode win (thin columns); still the correct default for walk rebuild.
 - Clustering edges at publish shrinks edge parts (~10–27% across 100k–1000k) and, more importantly, cuts cold→walk time by ~28% → ~50–60% as edge count grows — mostly via faster adjacency build (see report 02 scale sweep).
 - A **sort-aware** adjacency builder adds another ~28–37% adj-build cut on clustered parts (near-zero on natural). Hubby estates (1% hubs → ~50% of edges) still benefit from clustered publish (~30–50% under naive rebuild).
+- Design v3 Stages 1–4.2 (synthetic): order ≫ builder; Stage 3.5 shows **hash_bi** matches CSR+CSC reverse p95 without packed CSC; Stage 4.2 adds workload-informed estate screen — see reports 04–09 and the synthesis in [Report 10](./10-design-v3-comprehensive.md). Do not use Stage 3 aggregate query p95 for architecture choice.
 
-**Provisional physical direction:** keep locked flat tables; optimize **publish sort + spine load + sort-aware hot rebuild + index reuse**.
+**Provisional physical direction:** keep locked flat tables; **clustered publish + sort-aware hash** for forward Scope rebuild; add **hash_bi** (or CSR+CSC) when reverse/blast walks matter.
 
 ---
 

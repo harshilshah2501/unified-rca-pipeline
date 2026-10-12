@@ -52,4 +52,15 @@ cargo run --release --bin map_vortex_bench -- \
 
 Natural vs clustered scale sweep and builder×hubby matrix: [`../reports/02-map-load-adjacency.md`](../reports/02-map-load-adjacency.md) §5.1, §5.4, and §8.
 
-Results: `<out>/results.json` plus a cold→walk summary on stdout (includes profile counters).
+Design v3 Stages 1–3 drivers:
+
+```bash
+./scripts/stage1_2x2.sh
+./scripts/stage2_screen.sh
+./scripts/stage3_layouts.sh
+./scripts/stage3_5_fair.sh
+```
+
+Contracts: [`../design-v3/`](../design-v3/). Reports 04–07 under [`../reports/`](../reports/).
+
+Results: `<out>/results.json`, per-cell `*-manifest.json`, optional `*-queries.jsonl`.
