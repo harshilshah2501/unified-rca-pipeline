@@ -86,6 +86,7 @@ impl IdMap {
     }
 }
 
+#[derive(Clone)]
 pub struct Csr {
     pub n: usize,
     pub offsets: Vec<u32>,
@@ -129,6 +130,7 @@ impl Csr {
     }
 }
 
+#[derive(Clone)]
 pub struct Csc {
     pub n: usize,
     pub offsets: Vec<u32>,
@@ -349,7 +351,7 @@ pub fn build_hot(
     ))
 }
 
-fn triples_from_batch(
+pub(crate) fn triples_from_batch(
     edges: &RecordBatch,
 ) -> Result<(IdMap, Vec<(u32, u32, String)>, BuildProfile)> {
     let src = utf8_col(edges, "source_id")?;
@@ -384,7 +386,7 @@ fn triples_from_batch(
     Ok((ids, triples, profile))
 }
 
-fn forward_expand(graph: &HotGraph, cur: u32) -> Vec<(u32, String)> {
+pub(crate) fn forward_expand(graph: &HotGraph, cur: u32) -> Vec<(u32, String)> {
     match graph {
         HotGraph::Hash { adj, ids } | HotGraph::HashBi { out: adj, ids, .. } => {
             let Some(name) = ids.id_to_str.get(cur as usize) else {
@@ -414,7 +416,7 @@ fn forward_expand(graph: &HotGraph, cur: u32) -> Vec<(u32, String)> {
     }
 }
 
-fn reverse_expand(graph: &HotGraph, cur: u32) -> Vec<(u32, String)> {
+pub(crate) fn reverse_expand(graph: &HotGraph, cur: u32) -> Vec<(u32, String)> {
     match graph {
         HotGraph::Hash { adj, ids } => {
             let mut preds = Vec::new();

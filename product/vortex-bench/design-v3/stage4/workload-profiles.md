@@ -7,6 +7,9 @@ Percentages are **experimental scenarios**, not Motadata production estimates.
 | `forward_dominant` | 90% | 5% | 5% |
 | `balanced` | 45% | 45% | 10% |
 | `reverse_heavy` | 20% | 70% | 10% |
+| `scope_policy_mixed` | 70% | 20% | 10% |
+
+`scope_policy_mixed` is the **Action 2 approved** Motadata-facing mix for Milestone A (Scope default outbound + non-zero inbound/both for saturation / monitoring / ingress). It is **not** a measured production mix — approved via intake waiver; see [`../action2-synthetic-operating-envelope.md`](../action2-synthetic-operating-envelope.md).
 
 ## Trace rules
 

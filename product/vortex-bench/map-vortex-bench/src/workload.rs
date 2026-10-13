@@ -15,6 +15,8 @@ pub enum WorkloadProfile {
     ForwardDominant,
     Balanced,
     ReverseHeavy,
+    /// Action 2 approved Motadata-facing mix (Milestone A): 70/20/10, hops=2.
+    ScopePolicyMixed,
 }
 
 impl WorkloadProfile {
@@ -23,6 +25,7 @@ impl WorkloadProfile {
             Self::ForwardDominant => "forward_dominant",
             Self::Balanced => "balanced",
             Self::ReverseHeavy => "reverse_heavy",
+            Self::ScopePolicyMixed => "scope_policy_mixed",
         }
     }
 
@@ -32,7 +35,20 @@ impl WorkloadProfile {
             Self::ForwardDominant => (90, 5, 5),
             Self::Balanced => (45, 45, 10),
             Self::ReverseHeavy => (20, 70, 10),
+            Self::ScopePolicyMixed => (70, 20, 10),
         }
+    }
+
+    /// Scope policy default hops=2; Stage-4 profiles keep {1,2,3}.
+    pub fn hops_cycle(self) -> &'static [usize] {
+        match self {
+            Self::ScopePolicyMixed => &[2],
+            _ => &[1, 2, 3],
+        }
+    }
+
+    pub fn include_max_hub(self) -> bool {
+        matches!(self, Self::ReverseHeavy | Self::ScopePolicyMixed)
     }
 
     pub fn all() -> &'static [WorkloadProfile] {
@@ -40,6 +56,7 @@ impl WorkloadProfile {
             Self::ForwardDominant,
             Self::Balanced,
             Self::ReverseHeavy,
+            Self::ScopePolicyMixed,
         ]
     }
 }
@@ -105,13 +122,13 @@ pub fn emit_query_trace(
     estate_seed: u64,
     trace_len: usize,
 ) -> Vec<TraceOp> {
-    let include_hub = matches!(profile, WorkloadProfile::ReverseHeavy);
+    let include_hub = profile.include_max_hub();
     let seeds = pick_degree_bins(graph, include_hub);
     if seeds.is_empty() {
         return Vec::new();
     }
     let (pf, pr, pd) = profile.mix_pct();
-    let hops_cycle = [1usize, 2, 3];
+    let hops_cycle = profile.hops_cycle();
     let mut ops = Vec::with_capacity(trace_len);
     for i in 0..trace_len {
         let r = mix(estate_seed ^ 0x72CE, mix(i as u64, profile.id().len() as u64));
@@ -126,7 +143,8 @@ pub fn emit_query_trace(
         };
         let seed = &seeds[(r as usize >> 8) % seeds.len()];
         let hops = hops_cycle[(i + (r as usize >> 16)) % hops_cycle.len()];
-        let hops = if qtype == "dependency_chain" {
+        let hops = if qtype == "dependency_chain" && !matches!(profile, WorkloadProfile::ScopePolicyMixed)
+        {
             hops + 1
         } else {
             hops
@@ -188,6 +206,17 @@ pub fn replay_trace(
     layout: &str,
     reverse_algorithm: &str,
 ) -> (Vec<QueryEvent>, QueryClassBreakdown) {
+    replay_trace_with_concurrency(graph, ops, run_id, layout, reverse_algorithm, 1)
+}
+
+fn replay_trace_with_concurrency(
+    graph: &HotGraph,
+    ops: &[TraceOp],
+    run_id: &str,
+    layout: &str,
+    reverse_algorithm: &str,
+    concurrency: u32,
+) -> (Vec<QueryEvent>, QueryClassBreakdown) {
     let mut events = Vec::with_capacity(ops.len());
     for op in ops {
         let reverse = op.r#type == "reverse_blast";
@@ -200,7 +229,7 @@ pub fn replay_trace(
             seed_degree_bin: op.seed_degree_bin.clone(),
             hops: op.hops,
             edge_type_filter: None,
-            concurrency: 1,
+            concurrency,
             layout: layout.into(),
             reverse_algorithm: reverse_algorithm.into(),
             latency_ms: ms,
@@ -210,6 +239,75 @@ pub fn replay_trace(
     }
     let br = class_breakdown(&events);
     (events, br)
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ConcurrentReplayStats {
+    pub readers: u32,
+    pub total_ops: usize,
+    pub wall_ms: f64,
+    pub throughput_qps: f64,
+    pub latency_p50_ms: f64,
+    pub latency_p95_ms: f64,
+    pub latency_p99_ms: f64,
+    pub by_class: QueryClassBreakdown,
+}
+
+/// Shared-graph concurrent replay (Action 5). Each reader walks the full trace once.
+pub fn replay_trace_concurrent(
+    graph: &HotGraph,
+    ops: &[TraceOp],
+    run_id: &str,
+    layout: &str,
+    reverse_algorithm: &str,
+    readers: u32,
+) -> ConcurrentReplayStats {
+    use std::sync::Arc;
+    use std::thread;
+    use std::time::Instant;
+
+    let readers = readers.max(1);
+    let graph = graph as *const HotGraph;
+    // SAFETY: HotGraph is immutable during replay; threads only read.
+    let graph_ref: &HotGraph = unsafe { &*graph };
+    let ops = Arc::new(ops.to_vec());
+    let started = Instant::now();
+    let mut handles = Vec::with_capacity(readers as usize);
+    for r in 0..readers {
+        let ops = Arc::clone(&ops);
+        let run = format!("{run_id}-r{r}");
+        let layout = layout.to_string();
+        let rev = reverse_algorithm.to_string();
+        // Use transmute-free approach: cast pointer per thread
+        let gptr = graph_ref as *const HotGraph as usize;
+        handles.push(thread::spawn(move || {
+            let g = unsafe { &*(gptr as *const HotGraph) };
+            replay_trace_with_concurrency(g, &ops, &run, &layout, &rev, readers)
+        }));
+    }
+    let mut all_events = Vec::new();
+    for h in handles {
+        let (ev, _) = h.join().expect("reader thread");
+        all_events.extend(ev);
+    }
+    let wall_ms = started.elapsed().as_secs_f64() * 1000.0;
+    let mut lats: Vec<f64> = all_events.iter().map(|e| e.latency_ms).collect();
+    lats.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    let by_class = class_breakdown(&all_events);
+    ConcurrentReplayStats {
+        readers,
+        total_ops: all_events.len(),
+        wall_ms,
+        throughput_qps: if wall_ms > 0.0 {
+            (all_events.len() as f64) * 1000.0 / wall_ms
+        } else {
+            0.0
+        },
+        latency_p50_ms: percentile(&lats, 50.0),
+        latency_p95_ms: percentile(&lats, 95.0),
+        latency_p99_ms: percentile(&lats, 99.0),
+        by_class,
+    }
 }
 
 pub fn mean_class_latency(events: &[QueryEvent], class: &str) -> f64 {
@@ -267,13 +365,13 @@ pub fn emit_trace_from_edges(
     estate_seed: u64,
     trace_len: usize,
 ) -> Vec<TraceOp> {
-    let include_hub = matches!(profile, WorkloadProfile::ReverseHeavy);
+    let include_hub = profile.include_max_hub();
     let seeds = seeds_from_edge_rows(edges, include_hub);
     if seeds.is_empty() {
         return Vec::new();
     }
     let (pf, pr, pd) = profile.mix_pct();
-    let hops_cycle = [1usize, 2, 3];
+    let hops_cycle = profile.hops_cycle();
     let mut ops = Vec::with_capacity(trace_len);
     for i in 0..trace_len {
         let r = mix(estate_seed ^ 0x72CE, mix(i as u64, profile.id().len() as u64));
@@ -288,7 +386,8 @@ pub fn emit_trace_from_edges(
         };
         let seed = &seeds[(r as usize >> 8) % seeds.len()];
         let hops = hops_cycle[(i + (r as usize >> 16)) % hops_cycle.len()];
-        let hops = if qtype == "dependency_chain" {
+        let hops = if qtype == "dependency_chain" && !matches!(profile, WorkloadProfile::ScopePolicyMixed)
+        {
             hops + 1
         } else {
             hops

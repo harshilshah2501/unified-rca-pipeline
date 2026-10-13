@@ -1,11 +1,11 @@
 # Motadata map Vortex — engineering brief (cold readers)
 
 **Audience:** engineers who did not sit through Design v3 chats and need a single shareable brief.  
-**Date:** 2026-10-12  
-**Status:** Lab evidence through Design v3 Stage **4.2** (synthetic). **Not** a Motadata production architecture approval.  
+**Date:** 2026-10-12 (updated pointers 2026-10-13)  
+**Status:** Lab evidence through Design v3 Stage **4.2** (synthetic). Milestone A/B closed later — see **[Report 22](./22-program-one-stop.md)** for the current one-stop guide. **Not** a Motadata production architecture approval.  
 **Owner path in repo:** `product/vortex-bench/`
 
-If you read only one page of map Vortex work, read **this**. Deep dive: [Report 10](./10-design-v3-comprehensive.md). Next architecture hypothesis (unmeasured): [Architecture Decision Record](./Map_Vortex_Graph_Architecture_Decision_Record.md).
+If you need the **current** program close (Reports 01–21 + locked decisions), read **[Report 22](./22-program-one-stop.md)** instead. This page remains the Stage‑4.2-era brief. Deep dive: [Report 10](./10-design-v3-comprehensive.md). ADR after measurement: [Architecture Decision Record](./Map_Vortex_Graph_Architecture_Decision_Record.md).
 
 ---
 
@@ -155,22 +155,26 @@ Read: [Architecture Decision Record (Markdown)](./Map_Vortex_Graph_Architecture_
 
 ---
 
-## 7. What engineering should do / not do this week
+## 7. What engineering should do next (decision-validation sprint)
+
+Full program: [`../design-v3/decision-validation-sprint.md`](../design-v3/decision-validation-sprint.md).  
+Milestone A **FROZEN** ([Report 17](./17-milestone-a-close.md)): serve baseline **`csr_csc`**; recovery reference **`hash`**. Milestone B / Action 6 **CLOSED** ([Report 21](./21-action6-milestone-b-close.md)): segmented CSR+CSC retained as a **conditional** candidate for localized mutations only; conventional `csr_csc` remains the serve path. Per-segment journals stay a separate hypothesis.
 
 ### Do
 
-1. Treat **clustered publish + sort-aware + spine load** as the default cold packing path in design docs and prototypes.  
-2. When designing Scope features, state whether the path is **forward-only** or **needs reverse**—that choice drives hot index shape more than micro-tuning Vortex nesting.  
-3. Use Reports **07 / 09 / 10** when someone quotes old Stage 3 “CSR wins on query p95” aggregate numbers—those aggregates were **confounded**; fair reverse is in Report 07.  
-4. If prototyping mutation, measure **mutation-to-visibility**, rebuild cost, peak RSS with two snapshots live, and recovery—not insert microseconds alone.  
-5. Keep synthetic profiles labeled as **experimental**, never as Motadata production mix.
+1. **Freeze** primary candidates to `hash` · `hash_bi` · `csr_csc` — no new layout variants in the primary matrix.  
+2. Get Motadata to fill (or formally waive) success criteria: query mix, latency SLO, recovery budget, memory ceiling, freshness.  
+3. Strengthen correctness beyond walk checksums, then run Milestone A (final compare, real cold→hot, concurrency/memory).  
+4. Treat **clustered publish + sort-aware + spine load** as the default cold packing path.  
+5. Keep synthetic profiles labeled **experimental** unless an approved Motadata envelope replaces them.
 
 ### Do not
 
-1. Do **not** announce a production GraphWriter architecture lock from this brief.  
-2. Do **not** treat hybrid’s Stage 4.2 numbers as proof of mutation superiority (churn was off).  
-3. Do **not** treat the segmented ADR as “Design v3 chose segmented CSR+CSC.” Design v3 chose an **evidence boundary**; the ADR proposes the **next candidate to test**.  
-4. Do **not** reopen map schema nesting to chase cold→hot performance.
+1. Do **not** declare a production winner from Stage 4.2 alone.  
+2. Do **not** expand the architecture zoo before Milestone A closes.  
+3. Do **not** treat hybrid Stage 4.2 numbers as mutation proof (churn was off).  
+4. Do **not** treat the segmented ADR as “Design v3 chose segmented CSR+CSC universally” — Report 21 retains it only for localized mutations.  
+5. Do **not** reopen map schema nesting to chase cold→hot performance.
 
 ---
 
@@ -191,4 +195,4 @@ Program contracts and exit gates: [`../design-v3/`](../design-v3/). Bench code a
 
 ## 9. Bottom line for the engineering team
 
-Motadata map performance work is about **cold→hot adjacency rebuild and the shape of the hot index**, not about redesigning locked Vortex map columns. Lab evidence through Stage 4.2 supports **clustered publish**, **sort-aware build**, and a **mode-based** hot index choice: **hash** when rebuild and forward walks dominate; **hash_bi or CSR+CSC** when reverse matters; **CSR+CSC** when retained memory matters. A **segmented, snapshot-published** index is a plausible next architecture for mutation and consistency, but it remains **unproven** until measured against these baselines on lifecycle metrics and real Motadata traces.
+Motadata map performance work is about **cold→hot adjacency rebuild and the shape of the hot index**, not about redesigning locked Vortex map columns. Lab evidence through Milestone A supports **clustered publish**, **sort-aware build**, and a **mode-based** hot index: serve baseline **`csr_csc`**; recovery-speed reference **`hash`**. Milestone B measured segmented CSR+CSC under an approved synthetic mutation envelope: it is a **conditional** candidate for localized mutation publish windows, not a universal replacement, and not yet validated against measured Motadata churn.

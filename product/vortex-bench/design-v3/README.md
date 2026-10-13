@@ -28,8 +28,10 @@ This folder freezes P0 lab contracts before Stages 1–4. It is a companion to R
 
 Scripts live in [`../map-vortex-bench/scripts/`](../map-vortex-bench/scripts/). Reports 04–09 under [`../reports/`](../reports/).
 
-**Share with engineering (cold readers):** [`../reports/11-map-vortex-engineering-brief.md`](../reports/11-map-vortex-engineering-brief.md).  
-Deep synthesis: [`../reports/10-design-v3-comprehensive.md`](../reports/10-design-v3-comprehensive.md).
+**Share with engineering (cold readers):** [`../reports/22-program-one-stop.md`](../reports/22-program-one-stop.md) (Reports 01–21 + decisions). Stage‑4.2-era brief: [`../reports/11-map-vortex-engineering-brief.md`](../reports/11-map-vortex-engineering-brief.md).  
+Deep synthesis: [`../reports/10-design-v3-comprehensive.md`](../reports/10-design-v3-comprehensive.md).  
+**Decision-validation sprint:** [`decision-validation-sprint.md`](./decision-validation-sprint.md).  
+Actions 1–5 **PASSED**. Milestone A **FROZEN**: [Report 17](../reports/17-milestone-a-close.md). Milestone B / Action 6 **CLOSED (conditional)**: [Report 21](../reports/21-action6-milestone-b-close.md).
 
 Stage 4 contracts: [`stage4/`](./stage4/).
 
@@ -45,6 +47,9 @@ Stage 4 contracts: [`stage4/`](./stage4/).
 | [`factor-registry.md`](./factor-registry.md) | Factor levels for Stages 1–3.5 |
 | [`query-algorithms.md`](./query-algorithms.md) | Per-layout forward/reverse algorithms |
 | [`gates.md`](./gates.md) | Exit criteria per stage |
+| [`decision-validation-sprint.md`](./decision-validation-sprint.md) | Milestone A/B decision-validation program |
+| [`action2-motadata-workload-intake.md`](./action2-motadata-workload-intake.md) | Motadata anonymized estate / Scope mix intake |
+| [`action2-synthetic-operating-envelope.md`](./action2-synthetic-operating-envelope.md) | Proposed synthetic envelope for Milestone A |
 | [`stage4/README.md`](./stage4/README.md) | Stage 4.0–4.2 philosophy + phase map |
 
 ## Evidence base

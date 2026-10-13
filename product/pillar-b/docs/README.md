@@ -14,6 +14,7 @@ One page should have **one job**. Do not fork contracts under this folder.
 | Code tour | [`Codebase-go-through.md`](./Codebase-go-through.md) |
 | Build/maintain + walk eval | [`MAP_P1_FABRIC_EVAL.md`](./MAP_P1_FABRIC_EVAL.md) |
 | Vortex + S3 map PoC | [`MAP_VORTEX_S3_POC_PRIMER.md`](./MAP_VORTEX_S3_POC_PRIMER.md) |
+| **Production Rust graph — paste-ready build prompt** | [`PRODUCTION_OPERATIONAL_GRAPH_BUILD_PROMPT.md`](./PRODUCTION_OPERATIONAL_GRAPH_BUILD_PROMPT.md) |
 | Rows → Arrow → Vortex (APIs) | [`MAP_ARROW_VORTEX_PIPELINE.md`](./MAP_ARROW_VORTEX_PIPELINE.md) |
 | JSON → Arrow → Vortex → S3 (visual) | [map-arrow-vortex-pipeline.html](../../../docs/fabric/map-arrow-vortex-pipeline.html) |
 | Framing hub | [Pillar B PoC hub](../../../docs/fabric/pillar-b-poc-hub.html) |

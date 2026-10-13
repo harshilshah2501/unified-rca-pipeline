@@ -14,8 +14,8 @@ use std::time::Instant;
 pub enum AdjBuilder {
     /// One `HashMap::entry` per edge (clone source key every time).
     Naive,
-    /// Walk contiguous `source_id` runs: one key clone + one insert per source group.
-    /// Correct for any order; fastest when edges are clustered by source.
+    /// Walk contiguous `source_id` runs: one key clone per run, append into the source bucket.
+    /// Correct for any order (reappearing sources extend the same list). Fastest when clustered.
     SortAware,
 }
 
@@ -117,9 +117,7 @@ fn build_sort_aware(
         }
         let source = src.value(i);
         profile.source_groups += 1;
-        profile.source_key_clones += 1;
-        profile.hashmap_source_ops += 1;
-        let key = source.to_string();
+        // Contiguous run for this source; append so non-clustered reappearances do not drop arcs.
         let mut list = Vec::new();
         while i < n {
             if src.is_null(i) || tgt.is_null(i) || et.is_null(i) {
@@ -133,8 +131,11 @@ fn build_sort_aware(
             list.push((tgt.value(i).to_string(), et.value(i).to_string()));
             i += 1;
         }
-        profile.max_out_degree = profile.max_out_degree.max(list.len());
-        adj.insert(key, list);
+        profile.source_key_clones += 1;
+        profile.hashmap_source_ops += 1;
+        let bucket = adj.entry(source.to_string()).or_default();
+        bucket.extend(list);
+        profile.max_out_degree = profile.max_out_degree.max(bucket.len());
     }
     (adj, profile)
 }

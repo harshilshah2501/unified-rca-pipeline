@@ -25,6 +25,7 @@ Shared achievement bar: **one Vortex Dest temperature, two playbooks** — proje
 
 | Doc | Content |
 |-----|---------|
+| [`reports/22-program-one-stop.md`](./reports/22-program-one-stop.md) | **Start here (cold readers)** — all Reports 01–21 + locked decisions in plain words |
 | [`reports/01-sketch-physical-layout.md`](./reports/01-sketch-physical-layout.md) | Detailed sketch layout results (A–E × Q1–Q8) |
 | [`reports/02-map-load-adjacency.md`](./reports/02-map-load-adjacency.md) | Detailed map load / adjacency / BFS results |
 | [`reports/03-comparative-analysis.md`](./reports/03-comparative-analysis.md) | Side-by-side conclusions for Motadata Dest |
@@ -36,7 +37,23 @@ Shared achievement bar: **one Vortex Dest temperature, two playbooks** — proje
 | [`reports/09-design-v3-stage4_2-screen.md`](./reports/09-design-v3-stage4_2-screen.md) | Design v3 Stage 4.2 — layout screen ≤5M + crossover candidates |
 | [`reports/10-design-v3-comprehensive.md`](./reports/10-design-v3-comprehensive.md) | Design v3 comprehensive — v2→v3 changes + full results analysis |
 | [`reports/11-map-vortex-engineering-brief.md`](./reports/11-map-vortex-engineering-brief.md) | **Share with eng (cold readers)** — final brief, decisions, do/don’t |
-| [`reports/Map_Vortex_Graph_Architecture_Decision_Record.md`](./reports/Map_Vortex_Graph_Architecture_Decision_Record.md) | ADR hypothesis (segmented CSR+CSC) — not a Stage 4.2 lock |
+| [`design-v3/decision-validation-sprint.md`](./design-v3/decision-validation-sprint.md) | Post–4.2 sprint — freeze 3 candidates; Milestone A/B finish line |
+| [`reports/12-action1-correctness-oracle.md`](./reports/12-action1-correctness-oracle.md) | Action 1 — typed-multigraph oracle + sort_aware natural-order fix |
+| [`reports/13-action2-operating-envelope.md`](./reports/13-action2-operating-envelope.md) | Action 2 — approved synthetic envelope (waiver path B) |
+| [`reports/14-action3-final-compare.md`](./reports/14-action3-final-compare.md) | Action 3 — `hash`/`hash_bi`/`csr_csc` under approved envelope; winner `csr_csc` |
+| [`reports/15-action4-cold-recovery.md`](./reports/15-action4-cold-recovery.md) | Action 4 — T_ready by coldness; recovery winner `hash` |
+| [`reports/16-action5-concurrency.md`](./reports/16-action5-concurrency.md) | Action 5 — concurrent readers; `csr_csc` retains lead |
+| [`reports/17-milestone-a-close.md`](./reports/17-milestone-a-close.md) | Milestone A **FROZEN** — conventional baseline `csr_csc` |
+| [`design-v3/action6-mutation-lifecycle.md`](./design-v3/action6-mutation-lifecycle.md) | Milestone B / Action 6 — segmented vs conventional mutation |
+| [`reports/18-action6-mutation-lifecycle.md`](./reports/18-action6-mutation-lifecycle.md) | Action 6 first ladder — locality-dependent mutation gains |
+| [`reports/19-action6-atomic-publish.md`](./reports/19-action6-atomic-publish.md) | Action 6 residual — atomic publish + dual-hold RSS PASSED |
+| [`reports/20-action6-durability-replay.md`](./reports/20-action6-durability-replay.md) | Action 6 priority 3 — durability/replay lab model PASSED |
+| [`design-v3/action6-synthetic-mutation-envelope.md`](./design-v3/action6-synthetic-mutation-envelope.md) | Action 6 priority 4 — approved synthetic mutation envelope |
+| [`reports/21-action6-5m-thin-ladder.md`](./reports/21-action6-5m-thin-ladder.md) | Action 6 priority 5 — 5M thin ladder |
+| [`reports/21-action6-milestone-b-close.md`](./reports/21-action6-milestone-b-close.md) | Action 6 / Milestone B **CLOSED** — conditional segmented adopt |
+| [`design-v3/action2-motadata-workload-intake.md`](./design-v3/action2-motadata-workload-intake.md) | Action 2 intake questionnaire / waiver |
+| [`design-v3/action2-synthetic-operating-envelope.md`](./design-v3/action2-synthetic-operating-envelope.md) | Proposed `motadata_like_hubby` + `scope_policy_mixed` |
+| [`reports/Map_Vortex_Graph_Architecture_Decision_Record.md`](./reports/Map_Vortex_Graph_Architecture_Decision_Record.md) | ADR — segmented CSR+CSC locality-conditional after Report 21 |
 
 Companion design notes:
 
@@ -62,4 +79,4 @@ cargo run --release --bin map_vortex_bench -- \
 
 ## One-line program conclusion
 
-**Sketches need a hot spine and progressive cold columns; map needs a fast cold→hot rebuild and already-flat walk spines — do not copy the sketch layout matrix onto `map_nodes` / `map_edges`.**
+**Sketches need a hot spine and progressive cold columns; map serves on conventional `csr_csc`, uses `hash` as the fast-rebuild reference, and may use segmented CSR+CSC only for localized mutations — do not copy the sketch layout matrix onto `map_nodes` / `map_edges`. Full close: [`reports/22-program-one-stop.md`](./reports/22-program-one-stop.md).**

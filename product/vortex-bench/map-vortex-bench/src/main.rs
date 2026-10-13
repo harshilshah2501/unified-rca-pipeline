@@ -1,14 +1,18 @@
 //! Map Vortex cold-load + hot adjacency bench (Design v3 Stages 1–4.2).
 
 mod adj;
+mod cold;
+mod durable;
 mod estate;
 mod hot;
 mod index_mem;
 mod load;
 mod manifest;
+mod oracle;
 mod properties;
 mod query;
 mod rss;
+mod segmented;
 mod synth;
 mod workload;
 mod write;
@@ -23,13 +27,17 @@ use crate::load::{LoadMode, load_parts};
 use crate::manifest::{
     PartsBytes, PhasesMs, RunManifest, git_sha, host_name, now_rfc3339, write_manifest,
 };
+use crate::oracle::{
+    Action1Report, degree_bin_definition_note, validate_layout,
+};
 use crate::properties::{compute_properties, estate_checksum};
 use crate::query::{QueryClassBreakdown, class_breakdown, percentile, run_query_mix, write_query_jsonl};
 use crate::rss::peak_rss_bytes;
 use crate::synth::{DegreeStats, EdgeSort, EstateShape, nodes_for_density, sort_edges};
+use crate::write::edges_batch;
 use crate::workload::{
-    WorkloadProfile, emit_trace_from_edges, read_trace_jsonl, replay_trace, trace_checksum,
-    write_trace_jsonl,
+    ConcurrentReplayStats, WorkloadProfile, emit_trace_from_edges, read_trace_jsonl, replay_trace,
+    replay_trace_concurrent, trace_checksum, write_trace_jsonl,
 };
 use crate::write::write_parts;
 use anyhow::{Result, bail};
@@ -41,8 +49,14 @@ const MAX_EDGES_DEFAULT: usize = 5_000_000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 enum Coldness {
+    /// Fresh process timings; OS page cache may already hold Vortex parts.
     ProcessCold,
+    /// Explicitly warm page cache before timed loads.
     PageCacheWarm,
+    /// Best-effort drop page cache on part files before each timed load (Action 4).
+    DiskCold,
+    /// Copy parts to a staging dir then disk-cold load — **lab proxy** for remote Dest fetch (not Motadata S3).
+    RemoteProxy,
 }
 
 impl Coldness {
@@ -50,6 +64,8 @@ impl Coldness {
         match self {
             Self::ProcessCold => "process_cold",
             Self::PageCacheWarm => "page_cache_warm",
+            Self::DiskCold => "disk_cold",
+            Self::RemoteProxy => "remote_proxy",
         }
     }
 }
@@ -131,6 +147,31 @@ struct Args {
     /// Generate + validate properties only (Phase 4.1); no layout timing.
     #[arg(long, default_value_t = false)]
     characterize_only: bool,
+    /// Action 5: concurrent shared-graph query readers after final build (1 = serial replay only).
+    #[arg(long, default_value_t = 1)]
+    concurrent_readers: u32,
+    /// Action 5: after build, construct a second index and hold both briefly to observe RSS amplification.
+    #[arg(long, default_value_t = false)]
+    dual_index_hold: bool,
+    /// Action 6 / Milestone B: mutation lifecycle — conventional csr_csc vs segmented_csr_csc.
+    #[arg(long, default_value_t = false)]
+    action6_mutation: bool,
+    /// Action 6 residual: atomic publish under overlapping pinned readers + dual-hold RSS.
+    #[arg(long, default_value_t = false)]
+    action6_overlap: bool,
+    /// Action 6 priority 3: durable mutation log + crash injection / replay.
+    #[arg(long, default_value_t = false)]
+    action6_durability: bool,
+    #[arg(long, default_value_t = 64)]
+    segments: u32,
+    #[arg(long, default_value_t = 1000)]
+    mutation_batch_inserts: usize,
+    #[arg(long, default_value_t = 200)]
+    mutation_batch_deletes: usize,
+    #[arg(long, default_value_t = 20)]
+    mutation_batches: u64,
+    #[arg(long, default_value_t = 8)]
+    overlap_readers: u32,
     /// Skip Vortex write; reuse existing parts under DIR/{edge_sort}/.
     #[arg(long)]
     reuse_parts: Option<PathBuf>,
@@ -140,6 +181,10 @@ struct Args {
     /// Prepare estate + traces only (write parts, no layout timing).
     #[arg(long, default_value_t = false)]
     prepare_only: bool,
+    /// Action 1: independent typed-multigraph oracle for hash / hash_bi / csr_csc
+    /// across clustered + natural (no performance timing).
+    #[arg(long, default_value_t = false)]
+    action1_oracle: bool,
     #[arg(long, default_value_t = MAX_EDGES_DEFAULT)]
     max_edges: usize,
 }
@@ -148,8 +193,14 @@ struct Args {
 struct SampleTiming {
     decode_nodes_ms: f64,
     decode_edges_ms: f64,
+    /// Remote-proxy copy cost (0 unless coldness=remote_proxy).
+    remote_fetch_ms: f64,
     build_ms: f64,
+    /// Lab publish stub: write ready marker (Action 4 T_publish).
+    publish_ms: f64,
     bfs_ms: f64,
+    /// T_ready = remote_fetch + decode_nodes + decode_edges + build + publish.
+    t_ready_ms: f64,
     total_ms: f64,
     reachable: usize,
     checksum: String,
@@ -167,14 +218,21 @@ struct ScenarioResult {
     median: SampleTiming,
     p95_total_ms: f64,
     p50_total_ms: f64,
+    /// Build-time distribution across repeats (Action 3 credibility).
+    build_p50_ms: f64,
+    build_p95_ms: f64,
+    t_ready_p50_ms: f64,
+    t_ready_p95_ms: f64,
     samples: usize,
     correctness_ok: bool,
     peak_rss_bytes: Option<u64>,
     steady_index_bytes: Option<u64>,
+    dual_hold_peak_rss_bytes: Option<u64>,
     query_events: usize,
     query_p50_ms: Option<f64>,
     query_p95_ms: Option<f64>,
     query_by_class: Option<QueryClassBreakdown>,
+    concurrent: Option<ConcurrentReplayStats>,
     reverse_algorithm: String,
     workload_profile: Option<String>,
     trace_checksum: Option<String>,
@@ -221,6 +279,496 @@ fn resolve_family(args: &Args) -> EstateFamily {
     }
 }
 
+/// Action 1 — independent oracle for frozen candidates × clustered/natural.
+fn run_action1_oracle(args: &Args, family: EstateFamily) -> Result<()> {
+    let nodes_n = if args.fix_nodes_from_density {
+        nodes_for_density(args.edges, args.mean_out_degree)
+    } else {
+        args.nodes
+    };
+    let fcfg = FamilyConfig {
+        family,
+        nodes_n,
+        edges_n: args.edges,
+        seed: args.seed,
+        hub_fraction: args.hub_fraction,
+        hub_edge_share: args.hub_edge_share,
+        pa_softener: 1.0,
+    };
+    println!(
+        "action1_oracle family={} nodes={} edges={} seed={}",
+        family.id(),
+        nodes_n,
+        args.edges,
+        args.seed
+    );
+    let (nodes, edges_base, _meta) = generate_family(&fcfg);
+    let degree_note = degree_bin_definition_note(&edges_base, nodes.len());
+    println!("degree_bins: {degree_note}");
+
+    let layouts = [
+        HotLayoutKind::Hash,
+        HotLayoutKind::HashBi,
+        HotLayoutKind::CsrCsc,
+    ];
+    let sorts = [EdgeSort::Clustered, EdgeSort::Natural];
+    let mut reports = Vec::new();
+
+    for sort in sorts {
+        let mut edges = edges_base.clone();
+        sort_edges(&mut edges, sort);
+        let sort_name = format!("{sort:?}").to_lowercase();
+        let batch = edges_batch(&edges)?;
+        // Reachable reference uses hash_bi (indexed reverse), not forward-only hash.
+        let (href, _) = build_hot(&batch, HotLayoutKind::HashBi, AdjBuilder::SortAware)?;
+        for layout in layouts {
+            let (g, _) = build_hot(&batch, layout, AdjBuilder::SortAware)?;
+            let rep = validate_layout(
+                &nodes,
+                &edges,
+                &g,
+                layout,
+                &sort_name,
+                family.id(),
+                &href,
+            );
+            let status = if rep.all_ok { "PASS" } else { "FAIL" };
+            println!(
+                "oracle {} {} {} → {}",
+                family.id(),
+                sort_name,
+                layout.id(),
+                status
+            );
+            for c in &rep.checks {
+                let mark = if c.ok { "ok" } else { "FAIL" };
+                println!("  [{mark}] {}: {}", c.name, c.detail);
+            }
+            reports.push(rep);
+        }
+    }
+
+    let all_ok = reports.iter().all(|r| r.all_ok);
+    let out = Action1Report {
+        degree_bin_definition: degree_note,
+        layouts: reports,
+        all_ok,
+    };
+    std::fs::create_dir_all(&args.out)?;
+    let path = args.out.join("action1_oracle.json");
+    std::fs::write(&path, serde_json::to_string_pretty(&out)?)?;
+    println!("wrote {} all_ok={all_ok}", path.display());
+    if !all_ok {
+        bail!("Action 1 oracle failed — see {}", path.display());
+    }
+    Ok(())
+}
+
+/// Action 6 priority 3 — crash injection at publication boundaries + recovery oracle.
+fn run_action6_durability(args: &Args, family: EstateFamily) -> Result<()> {
+    use crate::durable::{CrashPoint, run_crash_case};
+    use crate::hot::triples_from_batch;
+    use crate::segmented::synth_mutation_batch;
+    use crate::write::edges_batch;
+
+    let nodes_n = if args.fix_nodes_from_density {
+        nodes_for_density(args.edges, args.mean_out_degree)
+    } else {
+        args.nodes
+    };
+    let fcfg = FamilyConfig {
+        family,
+        nodes_n,
+        edges_n: args.edges,
+        seed: args.seed,
+        hub_fraction: args.hub_fraction,
+        hub_edge_share: args.hub_edge_share,
+        pa_softener: 1.0,
+    };
+    println!(
+        "action6_durability family={} edges={} segments={}",
+        family.id(),
+        args.edges,
+        args.segments
+    );
+    let (_nodes, mut edges_rows, _meta) = generate_family(&fcfg);
+    sort_edges(&mut edges_rows, EdgeSort::Clustered);
+    let batch = edges_batch(&edges_rows)?;
+    let (ids, triples, _prof) = triples_from_batch(&batch)?;
+    let n = ids.len();
+    let (ins, del) = synth_mutation_batch(
+        &triples,
+        args.seed,
+        7,
+        args.mutation_batch_inserts,
+        args.mutation_batch_deletes,
+    );
+
+    let mut cases = Vec::new();
+    let mut all_ok = true;
+    for crash in CrashPoint::all_injected()
+        .iter()
+        .copied()
+        .chain(std::iter::once(CrashPoint::None))
+    {
+        // IdMap is moved into store; regenerate mapping each case from same triples.
+        let (ids_i, triples_i, _) = triples_from_batch(&batch)?;
+        let case_dir = args.out.join(format!("durable-{}", crash.id()));
+        let result = run_crash_case(
+            &case_dir,
+            &triples_i,
+            n,
+            args.segments,
+            ids_i,
+            &ins,
+            &del,
+            crash,
+        )?;
+        println!(
+            "crash={} ok={} gen {}->{} (expect {}) replayed={} lost={} recovery_ms={:.1} notes={}",
+            result.crash_point,
+            result.ok,
+            result.committed_generation_before,
+            result.committed_generation_after_recovery,
+            result.expected_generation,
+            result.mutations_replayed,
+            result.mutations_lost,
+            result.recovery_ms,
+            result.notes
+        );
+        all_ok = all_ok && result.ok;
+        cases.push(result);
+    }
+    let _ = ids;
+    let report = serde_json::json!({
+        "action": "action6_durability",
+        "milestone_a_frozen": true,
+        "lab_model_only": true,
+        "family": family.id(),
+        "edges": args.edges,
+        "segments": args.segments,
+        "mutation_batch_inserts": args.mutation_batch_inserts,
+        "mutation_batch_deletes": args.mutation_batch_deletes,
+        "all_ok": all_ok,
+        "cases": cases,
+        "note": "Bench durability model with committed marker + pending batch; not Motadata production protocol. Per-segment journals not in scope.",
+    });
+    let path = args.out.join("action6_durability_results.json");
+    std::fs::write(&path, serde_json::to_string_pretty(&report)?)?;
+    println!("all_ok={} wrote {}", all_ok, path.display());
+    Ok(())
+}
+
+/// Action 6 residual — atomic publish + dual-hold RSS under overlapping pinned readers.
+fn run_action6_overlap(args: &Args, family: EstateFamily) -> Result<()> {
+    use crate::hot::triples_from_batch;
+    use crate::segmented::{OverlapReaders, SegmentedStore, synth_mutation_batch};
+    use crate::write::edges_batch;
+
+    let nodes_n = if args.fix_nodes_from_density {
+        nodes_for_density(args.edges, args.mean_out_degree)
+    } else {
+        args.nodes
+    };
+    let fcfg = FamilyConfig {
+        family,
+        nodes_n,
+        edges_n: args.edges,
+        seed: args.seed,
+        hub_fraction: args.hub_fraction,
+        hub_edge_share: args.hub_edge_share,
+        pa_softener: 1.0,
+    };
+    println!(
+        "action6_overlap family={} edges={} segments={} readers={} batches={} ins/del={}/{}",
+        family.id(),
+        args.edges,
+        args.segments,
+        args.overlap_readers,
+        args.mutation_batches,
+        args.mutation_batch_inserts,
+        args.mutation_batch_deletes
+    );
+    let (nodes, mut edges_rows, _meta) = generate_family(&fcfg);
+    sort_edges(&mut edges_rows, EdgeSort::Clustered);
+    let batch = edges_batch(&edges_rows)?;
+    let (ids, triples, _prof) = triples_from_batch(&batch)?;
+    let seed_ci = nodes
+        .first()
+        .map(|r| r.entity_id.clone())
+        .unwrap_or_else(|| "middleware-000000".into());
+
+    let baseline_rss = peak_rss_bytes();
+    let mut store = SegmentedStore::from_triples(ids, triples.clone(), args.segments);
+    let single_hold_rss = peak_rss_bytes();
+    let handle = store.published_handle();
+    let readers = OverlapReaders::spawn(handle, &seed_ci, args.overlap_readers);
+
+    let mut batch_rows = Vec::new();
+    let mut edges_view = triples;
+    for b in 0..args.mutation_batches {
+        let (ins, del) = synth_mutation_batch(
+            &edges_view,
+            args.seed,
+            b,
+            args.mutation_batch_inserts,
+            args.mutation_batch_deletes,
+        );
+        for e in &ins {
+            edges_view.push(e.clone());
+        }
+        for e in &del {
+            if let Some(pos) = edges_view
+                .iter()
+                .position(|(s, t, et)| s == &e.0 && t == &e.1 && et == &e.2)
+            {
+                edges_view.swap_remove(pos);
+            }
+        }
+        let mt = store.apply_batch(&ins, &del);
+        batch_rows.push(mt.clone());
+        if (b + 1) % 5 == 0 || b + 1 == args.mutation_batches {
+            println!(
+                "batch={} gen={}->{} dual_rss={:?} old_sym={} new_sym={} segs={}",
+                b + 1,
+                mt.old_generation,
+                mt.new_generation,
+                mt.dual_hold_peak_rss_bytes,
+                mt.old_pin_symmetric_ok,
+                mt.new_pin_symmetric_ok,
+                mt.segments_rebuilt
+            );
+        }
+    }
+
+    let overlap = readers.finish();
+    let final_rss = peak_rss_bytes();
+    let all_atomic_ok = batch_rows
+        .iter()
+        .all(|m| m.old_pin_symmetric_ok && m.new_pin_symmetric_ok);
+    let report = serde_json::json!({
+        "action": "action6_overlap",
+        "milestone_a_frozen": true,
+        "family": family.id(),
+        "edges": args.edges,
+        "segments": args.segments,
+        "overlap_readers": args.overlap_readers,
+        "mutation_batches": args.mutation_batches,
+        "mutation_batch_inserts": args.mutation_batch_inserts,
+        "mutation_batch_deletes": args.mutation_batch_deletes,
+        "baseline_rss_bytes": baseline_rss,
+        "single_snapshot_rss_bytes": single_hold_rss,
+        "final_rss_bytes": final_rss,
+        "batches": batch_rows,
+        "overlap_readers_report": overlap,
+        "atomic_publish_ok": all_atomic_ok && overlap.ok,
+        "implementation_note": "v0 rebuild rescans authoritative edge list per touched segment; per-segment journals are a separate hypothesis",
+    });
+    let path = args.out.join("action6_overlap_results.json");
+    std::fs::write(&path, serde_json::to_string_pretty(&report)?)?;
+    println!(
+        "atomic_publish_ok={} overlap_ok={} gen_mismatch={} sym_fail={} ops={} wrote {}",
+        all_atomic_ok && overlap.ok,
+        overlap.ok,
+        overlap.generation_mismatches,
+        overlap.symmetry_failures,
+        overlap.ops,
+        path.display()
+    );
+    Ok(())
+}
+
+/// Action 6 — conventional full-rebuild CSR+CSC vs segmented incremental publish.
+fn run_action6_mutation(args: &Args, family: EstateFamily) -> Result<()> {
+    use crate::hot::triples_from_batch;
+    use crate::segmented::{
+        SegmentedStore, bfs_segmented, build_conventional_csr_csc, synth_mutation_batch,
+    };
+    use crate::write::edges_batch;
+    use std::time::Instant;
+
+    let nodes_n = if args.fix_nodes_from_density {
+        nodes_for_density(args.edges, args.mean_out_degree)
+    } else {
+        args.nodes
+    };
+    let fcfg = FamilyConfig {
+        family,
+        nodes_n,
+        edges_n: args.edges,
+        seed: args.seed,
+        hub_fraction: args.hub_fraction,
+        hub_edge_share: args.hub_edge_share,
+        pa_softener: 1.0,
+    };
+    println!(
+        "action6_mutation family={} nodes={} edges={} segments={} batches={} ins/del={}/{}",
+        family.id(),
+        nodes_n,
+        args.edges,
+        args.segments,
+        args.mutation_batches,
+        args.mutation_batch_inserts,
+        args.mutation_batch_deletes
+    );
+    let (nodes, edges_rows, _meta) = generate_family(&fcfg);
+    let mut edges_rows = edges_rows;
+    sort_edges(&mut edges_rows, EdgeSort::Clustered);
+    let batch = edges_batch(&edges_rows)?;
+    let (ids, triples, _prof) = triples_from_batch(&batch)?;
+    let n = ids.len();
+    let seed_ci = nodes
+        .first()
+        .map(|r| r.entity_id.clone())
+        .unwrap_or_else(|| "middleware-000000".into());
+
+    // --- T_cold-ready: initial build both candidates ---
+    let t0 = Instant::now();
+    let (_csr0, _csc0, conv_build_ms) = build_conventional_csr_csc(n, &triples)?;
+    let t_cold_conv = t0.elapsed().as_secs_f64() * 1000.0;
+    let t1 = Instant::now();
+    let mut segmented = SegmentedStore::from_triples(ids, triples.clone(), args.segments);
+    let t_cold_seg = t1.elapsed().as_secs_f64() * 1000.0;
+    println!(
+        "T_cold_ready conventional_ms={:.2} (build={:.2}) segmented_ms={:.2} arcs={}",
+        t_cold_conv,
+        conv_build_ms,
+        t_cold_seg,
+        triples.len()
+    );
+
+    let mut conv_edges = triples.clone();
+    let mut seg_timings = Vec::new();
+    let mut conv_timings = Vec::new();
+    let mut query_rows = Vec::new();
+
+    for b in 0..args.mutation_batches {
+        let (ins, del) = synth_mutation_batch(
+            &conv_edges,
+            args.seed,
+            b,
+            args.mutation_batch_inserts,
+            args.mutation_batch_deletes,
+        );
+
+        // Conventional: apply to edge list + full rebuild = T_mutation_visible
+        let c_started = Instant::now();
+        for e in &ins {
+            conv_edges.push(e.clone());
+        }
+        for e in &del {
+            if let Some(pos) = conv_edges
+                .iter()
+                .position(|(s, t, et)| s == &e.0 && t == &e.1 && et == &e.2)
+            {
+                conv_edges.swap_remove(pos);
+            }
+        }
+        let (_c, _s, rebuild_ms) = build_conventional_csr_csc(n, &conv_edges)?;
+        let conv_vis = c_started.elapsed().as_secs_f64() * 1000.0;
+        conv_timings.push(serde_json::json!({
+            "batch_id": b + 1,
+            "candidate": "csr_csc",
+            "t_mutation_visible_ms": conv_vis,
+            "rebuild_ms": rebuild_ms,
+            "segments_rebuilt": 1,
+            "inserts": ins.len(),
+            "deletes": del.len(),
+            "peak_rss_bytes": peak_rss_bytes(),
+        }));
+
+        // Segmented incremental
+        let mt = segmented.apply_batch(&ins, &del);
+        seg_timings.push(mt.clone());
+
+        // T_query on pinned segmented snapshot (hops=2 forward+reverse sample)
+        let pin = segmented.pin();
+        let (_rf, fwd_ms, _) = bfs_segmented(&pin, &seed_ci, 2, false);
+        let (_rr, rev_ms, _) = bfs_segmented(&pin, &seed_ci, 2, true);
+        query_rows.push(serde_json::json!({
+            "batch_id": b + 1,
+            "generation": pin.generation,
+            "t_query_forward_ms": fwd_ms,
+            "t_query_reverse_ms": rev_ms,
+            "arcs": pin.arc_count,
+        }));
+
+        if (b + 1) % 5 == 0 || b + 1 == args.mutation_batches {
+            println!(
+                "batch={} conv_vis_ms={:.1} seg_vis_ms={:.1} segs_rebuilt={} fwd_ms={:.3} rev_ms={:.3}",
+                b + 1,
+                conv_vis,
+                mt.t_mutation_visible_ms,
+                mt.segments_rebuilt,
+                fwd_ms,
+                rev_ms
+            );
+        }
+    }
+
+    let report = serde_json::json!({
+        "action": "action6_mutation",
+        "envelope_note": "Milestone B — does not reopen Milestone A layout pick",
+        "family": family.id(),
+        "nodes": nodes_n,
+        "initial_edges": args.edges,
+        "segments": args.segments,
+        "mutation_batches": args.mutation_batches,
+        "mutation_batch_inserts": args.mutation_batch_inserts,
+        "mutation_batch_deletes": args.mutation_batch_deletes,
+        "t_cold_ready_ms": {
+            "csr_csc": t_cold_conv,
+            "segmented_csr_csc": t_cold_seg,
+        },
+        "conventional_batches": conv_timings,
+        "segmented_batches": seg_timings,
+        "segmented_queries": query_rows,
+        "final_arcs_segmented": segmented.arc_count(),
+        "peak_rss_bytes": peak_rss_bytes(),
+    });
+    let path = args.out.join("action6_results.json");
+    std::fs::write(&path, serde_json::to_string_pretty(&report)?)?;
+    println!("wrote {}", path.display());
+    Ok(())
+}
+
+/// Load Vortex parts under the requested coldness tier.
+/// Returns (nodes, edges, load_timing, remote_fetch_ms).
+async fn load_with_coldness(
+    coldness: Coldness,
+    nodes_path: &std::path::Path,
+    edges_path: &std::path::Path,
+    mode: LoadMode,
+    out_dir: &std::path::Path,
+) -> Result<(
+    arrow::record_batch::RecordBatch,
+    arrow::record_batch::RecordBatch,
+    crate::load::LoadTiming,
+    f64,
+)> {
+    match coldness {
+        Coldness::ProcessCold | Coldness::PageCacheWarm => {
+            let (n, e, t) = load_parts(nodes_path, edges_path, mode).await?;
+            Ok((n, e, t, 0.0))
+        }
+        Coldness::DiskCold => {
+            crate::cold::drop_parts_page_cache(nodes_path, edges_path)?;
+            let (n, e, t) = load_parts(nodes_path, edges_path, mode).await?;
+            Ok((n, e, t, 0.0))
+        }
+        Coldness::RemoteProxy => {
+            let staging = out_dir.join("remote_proxy_stage");
+            let fetch_started = std::time::Instant::now();
+            let (n_path, e_path) =
+                crate::cold::stage_remote_proxy_copy(nodes_path, edges_path, &staging)?;
+            let remote_fetch_ms = fetch_started.elapsed().as_secs_f64() * 1000.0;
+            crate::cold::drop_parts_page_cache(&n_path, &e_path)?;
+            let (n, e, t) = load_parts(&n_path, &e_path, mode).await?;
+            Ok((n, e, t, remote_fetch_ms))
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
@@ -235,6 +783,19 @@ async fn main() -> Result<()> {
     }
 
     let family = resolve_family(&args);
+
+    if args.action1_oracle {
+        return run_action1_oracle(&args, family);
+    }
+    if args.action6_mutation {
+        return run_action6_mutation(&args, family);
+    }
+    if args.action6_overlap {
+        return run_action6_overlap(&args, family);
+    }
+    if args.action6_durability {
+        return run_action6_durability(&args, family);
+    }
     let sort_name = format!("{:?}", args.edge_sort).to_lowercase();
 
     let (nodes_len, edges_len, degree_stats, seed_ci, written) = if args.skip_estate_generate {
@@ -468,8 +1029,7 @@ async fn main() -> Result<()> {
 
     for mode in &modes {
         if args.coldness == Coldness::PageCacheWarm {
-            let (_n, _e, _) =
-                load_parts(&written.nodes_path, &written.edges_path, *mode).await?;
+            crate::cold::warm_parts_page_cache(&written.nodes_path, &written.edges_path)?;
         }
 
         for layout in &layouts {
@@ -488,8 +1048,14 @@ async fn main() -> Result<()> {
                 }
 
                 for _ in 0..args.warmup {
-                    let (_n, e, _) =
-                        load_parts(&written.nodes_path, &written.edges_path, *mode).await?;
+                    let (_n, e, _, _) = load_with_coldness(
+                        args.coldness,
+                        &written.nodes_path,
+                        &written.edges_path,
+                        *mode,
+                        &args.out,
+                    )
+                    .await?;
                     let (mut g, _) = build_hot(&e, *layout, effective_builder)?;
                     if *layout == HotLayoutKind::Hybrid {
                         apply_hybrid_churn(
@@ -511,11 +1077,19 @@ async fn main() -> Result<()> {
                 let mut query_by_class: Option<QueryClassBreakdown> = None;
                 let mut query_path: Option<String> = None;
                 let mut steady_bytes: Option<u64> = None;
+                let mut concurrent_stats: Option<ConcurrentReplayStats> = None;
+                let mut dual_hold_peak: Option<u64> = None;
                 let rev_algo = layout.reverse_algorithm();
 
                 for rep in 0..args.repeats {
-                    let (_nodes_b, edges_b, load_t) =
-                        load_parts(&written.nodes_path, &written.edges_path, *mode).await?;
+                    let (_nodes_b, edges_b, load_t, remote_fetch_ms) = load_with_coldness(
+                        args.coldness,
+                        &written.nodes_path,
+                        &written.edges_path,
+                        *mode,
+                        &args.out,
+                    )
+                    .await?;
                     let (mut g, build_t) = build_hot(&edges_b, *layout, effective_builder)?;
                     if *layout == HotLayoutKind::Hybrid {
                         apply_hybrid_churn(
@@ -525,6 +1099,23 @@ async fn main() -> Result<()> {
                             args.seed,
                         );
                     }
+                    // Lab publish stub: write a ready marker (atomic pointer swap analogue).
+                    let pub_started = std::time::Instant::now();
+                    let ready_path = args.out.join(format!(
+                        "ready-{}-{}.json",
+                        shape_id,
+                        layout.id()
+                    ));
+                    std::fs::write(
+                        &ready_path,
+                        format!(
+                            "{{\"layout\":\"{}\",\"ready\":true,\"rep\":{}}}\n",
+                            layout.id(),
+                            rep
+                        ),
+                    )?;
+                    let publish_ms = pub_started.elapsed().as_secs_f64() * 1000.0;
+
                     let (reach, bfs_ms, names) = bfs(&g, &seed_ci, args.walk_hops, false);
                     let checksum = checksum_names(&names);
                     if let Some(r) = &ref_checksum {
@@ -534,15 +1125,20 @@ async fn main() -> Result<()> {
                     } else {
                         ref_checksum = Some(checksum.clone());
                     }
-                    let total = load_t.nodes_decode_ms
+                    let t_ready = remote_fetch_ms
+                        + load_t.nodes_decode_ms
                         + load_t.edges_decode_ms
                         + build_t.build_ms
-                        + bfs_ms;
+                        + publish_ms;
+                    let total = t_ready + bfs_ms;
                     samples.push(SampleTiming {
                         decode_nodes_ms: load_t.nodes_decode_ms,
                         decode_edges_ms: load_t.edges_decode_ms,
+                        remote_fetch_ms,
                         build_ms: build_t.build_ms,
+                        publish_ms,
                         bfs_ms,
+                        t_ready_ms: t_ready,
                         total_ms: total,
                         reachable: reach,
                         checksum,
@@ -562,6 +1158,21 @@ async fn main() -> Result<()> {
                             serde_json::to_string_pretty(&est)?,
                         )?;
 
+                        if args.dual_index_hold {
+                            let (_n2, e2, _, _) = load_with_coldness(
+                                Coldness::ProcessCold,
+                                &written.nodes_path,
+                                &written.edges_path,
+                                *mode,
+                                &args.out,
+                            )
+                            .await?;
+                            let (g2, _) = build_hot(&e2, *layout, effective_builder)?;
+                            let _keep = (&g, &g2);
+                            dual_hold_peak = peak_rss_bytes();
+                            drop(g2);
+                        }
+
                         if let Some(ops) = &preloaded_trace {
                             let run_id = format!(
                                 "{}-{}-{}-{}",
@@ -572,15 +1183,28 @@ async fn main() -> Result<()> {
                                     .map(|p| p.id())
                                     .unwrap_or("trace")
                             );
-                            let (events, br) =
-                                replay_trace(&g, ops, &run_id, layout.id(), rev_algo);
-                            let qpath = args.out.join(format!("{run_id}-queries.jsonl"));
-                            write_query_jsonl(&qpath, &events)?;
-                            query_path = Some(qpath.display().to_string());
-                            query_events_count = events.len();
-                            query_p50 = Some(br.aggregate.p50_ms);
-                            query_p95 = Some(br.aggregate.p95_ms);
-                            query_by_class = Some(br);
+                            let readers = args.concurrent_readers.max(1);
+                            let conc = replay_trace_concurrent(
+                                &g,
+                                ops,
+                                &run_id,
+                                layout.id(),
+                                rev_algo,
+                                readers,
+                            );
+                            // Also keep a JSONL sample for readers=1 debugging.
+                            if readers == 1 {
+                                let (events, _) =
+                                    replay_trace(&g, ops, &run_id, layout.id(), rev_algo);
+                                let qpath = args.out.join(format!("{run_id}-queries.jsonl"));
+                                write_query_jsonl(&qpath, &events)?;
+                                query_path = Some(qpath.display().to_string());
+                            }
+                            query_events_count = conc.total_ops;
+                            query_p50 = Some(conc.latency_p50_ms);
+                            query_p95 = Some(conc.latency_p95_ms);
+                            query_by_class = Some(conc.by_class.clone());
+                            concurrent_stats = Some(conc);
                         } else if args.emit_queries {
                             let run_id = format!(
                                 "{}-{}-{}-{}-{}",
@@ -623,6 +1247,14 @@ async fn main() -> Result<()> {
                     }
                 }
 
+                let mut builds: Vec<f64> = samples.iter().map(|s| s.build_ms).collect();
+                builds.sort_by(|a, b| a.partial_cmp(b).unwrap());
+                let build_p50 = percentile(&builds, 50.0);
+                let build_p95 = percentile(&builds, 95.0);
+                let mut t_readies: Vec<f64> = samples.iter().map(|s| s.t_ready_ms).collect();
+                t_readies.sort_by(|a, b| a.partial_cmp(b).unwrap());
+                let t_ready_p50 = percentile(&t_readies, 50.0);
+                let t_ready_p95 = percentile(&t_readies, 95.0);
                 samples.sort_by(|a, b| a.total_ms.partial_cmp(&b.total_ms).unwrap());
                 let median = samples[samples.len() / 2].clone();
                 let mut totals: Vec<f64> = samples.iter().map(|s| s.total_ms).collect();
@@ -636,18 +1268,19 @@ async fn main() -> Result<()> {
                     .map(|c| (c.forward_bfs.p95_ms, c.reverse_blast.p95_ms))
                     .unwrap_or((0.0, 0.0));
                 println!(
-                    "mode={:<24} layout={:<8} builder={:<11} adj_ms={:>7.2} total_p50={:>7.2} fwd_p95={:>8.3} rev_p95={:>8.3} rss={:?} idx={:?} ok={} q_events={}",
+                    "mode={:<24} layout={:<8} cold={:<14} adj_ms={:>7.2} t_ready_p50={:>7.2} fwd_p95={:>8.3} rev_p95={:>8.3} rss={:?} idx={:?} ok={} q_events={} conc={}",
                     mode.id(),
                     layout.id(),
-                    effective_builder.id(),
+                    args.coldness.id(),
                     median.build_ms,
-                    p50,
+                    t_ready_p50,
                     fwd95,
                     rev95,
                     peak,
                     steady_bytes,
                     correctness_ok,
                     query_events_count,
+                    args.concurrent_readers,
                 );
 
                 let run_id = format!(
@@ -712,14 +1345,20 @@ async fn main() -> Result<()> {
                     median,
                     p95_total_ms: p95,
                     p50_total_ms: p50,
+                    build_p50_ms: build_p50,
+                    build_p95_ms: build_p95,
+                    t_ready_p50_ms: t_ready_p50,
+                    t_ready_p95_ms: t_ready_p95,
                     samples: samples.len(),
                     correctness_ok,
                     peak_rss_bytes: peak,
                     steady_index_bytes: steady_bytes,
+                    dual_hold_peak_rss_bytes: dual_hold_peak,
                     query_events: query_events_count,
                     query_p50_ms: query_p50,
                     query_p95_ms: query_p95,
                     query_by_class,
+                    concurrent: concurrent_stats,
                     reverse_algorithm: rev_algo.into(),
                     workload_profile: args.workload_profile.map(|p| p.id().into()),
                     trace_checksum: trace_cs.clone(),

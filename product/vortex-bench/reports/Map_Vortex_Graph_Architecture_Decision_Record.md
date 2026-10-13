@@ -1,12 +1,16 @@
 # Map Vortex Graph Architecture Decision Record
 
-**Status:** discussion synthesis — proposed architecture, **not** a production-approved implementation.
+**Status:** Milestone B **conditionally closed** ([Report 21](./21-action6-milestone-b-close.md)) — segmented CSR+CSC is a locality-conditional candidate, **not** a Motadata-wide production lock.
 
 This Markdown companion mirrors and clarifies
 [`Map_Vortex_Graph_Architecture_Decision_Record.docx`](./Map_Vortex_Graph_Architecture_Decision_Record.docx)
 after soft-spot follow-ups aligned with Design v3 evidence.
 
-**Measured baseline (read screen):** [`10-design-v3-comprehensive.md`](./10-design-v3-comprehensive.md) · stage reports [07](./07-design-v3-stage3_5-fair.md)–[09](./09-design-v3-stage4_2-screen.md).
+**Milestone A (frozen):** conventional hot-index baseline = **`csr_csc`** under approved envelope — [Report 17](./17-milestone-a-close.md). Do not reopen `hash` / `hash_bi` / `csr_csc` selection here.
+
+**Measured conventional baseline:** [Report 17](./17-milestone-a-close.md) · [14](./14-action3-final-compare.md)–[16](./16-action5-concurrency.md); earlier screen [`10-design-v3-comprehensive.md`](./10-design-v3-comprehensive.md).
+
+**Action 6 program:** [`../design-v3/action6-mutation-lifecycle.md`](../design-v3/action6-mutation-lifecycle.md).
 
 ---
 
@@ -56,4 +60,4 @@ This is a **design hypothesis**. Stages 4.0–4.2 screened conventional `hash`, 
 
 ## Final status
 
-Architectural discussion: substantially complete for the **hypothesis**. Chosen direction to **test next:** adaptive node-group segmented bidirectional adjacency with incremental copy-on-write reconstruction, atomic publication, snapshot-pinned queries, and bounded reader lifetimes. **Do not** present this as the winning architecture until the distinct segmented candidate is measured on lifecycle metrics against the Design v3 baselines.
+Architectural discussion: complete for the **lab hypothesis** under the approved synthetic mutation envelope ([Report 21](./21-action6-milestone-b-close.md)). Milestone A selected conventional **`csr_csc`** as the serve baseline. Action 6 measured adaptive node-group segmented bidirectional adjacency with incremental reconstruction, atomic publication, and snapshot-pinned queries. **Outcome:** segmented CSR+CSC is a **conditional** candidate for localized mutations — not a Motadata-wide winning architecture, and not validated against measured production churn.
