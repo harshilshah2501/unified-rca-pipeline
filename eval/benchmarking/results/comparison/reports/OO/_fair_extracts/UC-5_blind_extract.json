@@ -1,0 +1,19 @@
+{
+  "uc": "UC-5",
+  "extracted_at": "2026-07-27T09:33:57.873921+00:00",
+  "incident_id": "3H540hUYTQLWbBGwKuuJ52GTz2W",
+  "incident_title": "orders_api_p95_latency_high_UC5",
+  "shift_to_now": true,
+  "fair_alert": true,
+  "source": "user_executive_summary_paste",
+  "OO_root": "orders-api (DB connection pool saturation + JVM heap pressure)",
+  "OO_potential_cause_verbatim": "Database connection pool saturation (100% active ratio) combined with JVM heap memory pressure (96% utilization) caused cascading resource exhaustion in orders-api. The saturated connection pool created request queueing, directly resulting in the observed p95 latency increase to 1800ms and 18% error rate.",
+  "pack_gt_root": "orders-api",
+  "pack_gt_signature": "app_resource_exhaustion",
+  "oo_correct_vs_gt": true,
+  "evidence_notes": [
+    "Root CI matches pack GT orders-api; signature aligns with app_resource_exhaustion"
+  ],
+  "analysis_chars": 5913,
+  "analysis_path": "UC-5_fair_r4_analysis.md"
+}

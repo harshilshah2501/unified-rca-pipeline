@@ -1,0 +1,14 @@
+{
+  "source": "postgres",
+  "export_method": "psql",
+  "tenant_id": "acme",
+  "schema": "public",
+  "host": "127.0.0.1",
+  "db": "observability",
+  "counts": {
+    "metrics": 12726,
+    "logs": 287,
+    "spans": 840
+  },
+  "exported_at": "2026-07-22T11:06:51Z"
+}

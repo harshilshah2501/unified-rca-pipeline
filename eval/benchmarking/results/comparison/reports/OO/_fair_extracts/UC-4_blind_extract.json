@@ -1,0 +1,19 @@
+{
+  "uc": "UC-4",
+  "extracted_at": "2026-07-27T09:33:57.860539+00:00",
+  "incident_id": "3H543H5FOsjMsNlfp197LYU8FqJ",
+  "incident_title": "orders_api_5xx_error_rate_high_UC4",
+  "shift_to_now": true,
+  "fair_alert": true,
+  "source": "user_executive_summary_paste",
+  "OO_root": "unidentified (deploy/config/infra or upstream); no precise failure point",
+  "OO_potential_cause_verbatim": "Sudden and sustained elevation of orders-api error rate from 2% to 42% at 2026-07-27 09:23:51 UTC, coinciding with either a recent application deployment, infrastructure change, or upstream service failure. Distributed traces and application logs were not captured during the incident, preventing precise identification of the failure point.",
+  "pack_gt_root": "guest-os-vm-app-01",
+  "pack_gt_signature": "os_resource_exhaustion",
+  "oo_correct_vs_gt": false,
+  "evidence_notes": [
+    "Did not name guest-os-vm-app-01 / os_resource_exhaustion"
+  ],
+  "analysis_chars": 6686,
+  "analysis_path": "UC-4_fair_r4_analysis.md"
+}

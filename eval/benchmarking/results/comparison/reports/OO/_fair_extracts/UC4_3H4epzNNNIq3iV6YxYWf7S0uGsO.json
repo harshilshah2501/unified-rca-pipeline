@@ -1,0 +1,154 @@
+{
+  "id": "3H4epzNNNIq3iV6YxYWf7S0uGsO",
+  "org_id": "default",
+  "status": "open",
+  "severity": "P3",
+  "first_alert_at": 1785131954019488,
+  "last_alert_at": 1785139934020293,
+  "alert_count": 8,
+  "title": "orders_api_5xx_error_rate_high_UC4",
+  "created_at": 1785131954134281,
+  "updated_at": 1785139934049471,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+        "alert_name": "orders_api_5xx_error_rate_high_UC4",
+        "service_name": "unknown",
+        "alert_count": 8,
+        "first_fired_at": 1785131954019488,
+        "last_fired_at": 1785139934020293
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "1. The OpenObserve backend service is currently unavailable\n2. Network connectivity to the observability platform has been interrupted\n3. Authentication credentials may have expired\n\n**Recommendation**: Please verify that:\n- The OpenObserve API endpoint is accessible and running\n- Network connectivity from this environment to the observability platform is restored\n- Any required authentication tokens or credentials are current\n\nOnce connectivity is restored, I can immediately proceed with the full incident analysis for incident ID `3H4epzNNNIq3iV6YxYWf7S0uGsO`, which includes:\n- Retrieving incident details and correlated alerts\n- Analyzing service dependencies and topology\n- Examining distributed traces for error patterns\n- Extracting and grouping log patterns\n- Querying metrics for resource anomalies\n- Cross-correlating findings to determine root cause\n- Generating the comprehensive RCA report\n\nPlease confirm when the OpenObserve platform is back online, and I'll complete the analysis."
+  },
+  "triggers": [
+    {
+      "incident_id": "3H4epzNNNIq3iV6YxYWf7S0uGsO",
+      "alert_id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+      "alert_name": "orders_api_5xx_error_rate_high_UC4",
+      "alert_fired_at": 1785139934020293,
+      "correlation_reason": "alert_id",
+      "created_at": 1785139934046161
+    },
+    {
+      "incident_id": "3H4epzNNNIq3iV6YxYWf7S0uGsO",
+      "alert_id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+      "alert_name": "orders_api_5xx_error_rate_high_UC4",
+      "alert_fired_at": 1785138974019348,
+      "correlation_reason": "alert_id",
+      "created_at": 1785138974090009
+    },
+    {
+      "incident_id": "3H4epzNNNIq3iV6YxYWf7S0uGsO",
+      "alert_id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+      "alert_name": "orders_api_5xx_error_rate_high_UC4",
+      "alert_fired_at": 1785137174019443,
+      "correlation_reason": "alert_id",
+      "created_at": 1785137174087667
+    },
+    {
+      "incident_id": "3H4epzNNNIq3iV6YxYWf7S0uGsO",
+      "alert_id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+      "alert_name": "orders_api_5xx_error_rate_high_UC4",
+      "alert_fired_at": 1785135374020245,
+      "correlation_reason": "alert_id",
+      "created_at": 1785135374106822
+    },
+    {
+      "incident_id": "3H4epzNNNIq3iV6YxYWf7S0uGsO",
+      "alert_id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+      "alert_name": "orders_api_5xx_error_rate_high_UC4",
+      "alert_fired_at": 1785133574019335,
+      "correlation_reason": "alert_id",
+      "created_at": 1785133574097021
+    },
+    {
+      "incident_id": "3H4epzNNNIq3iV6YxYWf7S0uGsO",
+      "alert_id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+      "alert_name": "orders_api_5xx_error_rate_high_UC4",
+      "alert_fired_at": 1785133564019571,
+      "correlation_reason": "alert_id",
+      "created_at": 1785133564059811
+    },
+    {
+      "incident_id": "3H4epzNNNIq3iV6YxYWf7S0uGsO",
+      "alert_id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+      "alert_name": "orders_api_5xx_error_rate_high_UC4",
+      "alert_fired_at": 1785131984019964,
+      "correlation_reason": "alert_id",
+      "created_at": 1785131984062731
+    },
+    {
+      "incident_id": "3H4epzNNNIq3iV6YxYWf7S0uGsO",
+      "alert_id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+      "alert_name": "orders_api_5xx_error_rate_high_UC4",
+      "alert_fired_at": 1785131954019488,
+      "correlation_reason": "alert_id",
+      "created_at": 1785131954136061
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+      "name": "orders_api_5xx_error_rate_high_UC4",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "observeops_error_rate_5xx",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "sql",
+        "conditions": {
+          "version": 2,
+          "conditions": {
+            "filterType": "group",
+            "logicalOperator": "AND",
+            "conditions": []
+          }
+        },
+        "sql": "SELECT _timestamp, ci, uc_id, signal, value\nFROM \"observeops_error_rate_5xx\"\nWHERE uc_id = 'UC-4'\n  AND ci = 'orders-api'\n  AND value > 0.05",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 360,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1440,
+        "timezone": "UTC",
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "slice": "A_fair",
+        "corpus": "observeops",
+        "ci": "orders-api",
+        "uc_id": "UC-4"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Symptom: orders-api error_rate_5xx breached (threshold 0.05). Investigate guest OS / app / host. Do not assume root CI. Slice A fair alert \u2014 filter uc_id='UC-4'.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

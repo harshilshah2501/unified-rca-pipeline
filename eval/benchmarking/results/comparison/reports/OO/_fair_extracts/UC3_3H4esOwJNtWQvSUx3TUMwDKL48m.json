@@ -1,0 +1,138 @@
+{
+  "id": "3H4esOwJNtWQvSUx3TUMwDKL48m",
+  "org_id": "default",
+  "status": "open",
+  "severity": "P3",
+  "first_alert_at": 1785131974019281,
+  "last_alert_at": 1785139914019562,
+  "alert_count": 6,
+  "title": "orders_api_p95_latency_high_UC3",
+  "created_at": 1785131974108177,
+  "updated_at": 1785139914072617,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3H4eouO95KaAUaeS6nyzbul7nAn",
+        "alert_name": "orders_api_p95_latency_high_UC3",
+        "service_name": "unknown",
+        "alert_count": 5,
+        "first_fired_at": 1785133574019335,
+        "last_fired_at": 1785139914019562
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3H4esOwJNtWQvSUx3TUMwDKL48m\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-27 05:59:34 UTC\n- **Resolved**: Ongoing\n- **Duration**: Active (less than 1 minute from detection)\n- **Affected Services**: orders-api (UC-3 slice)\n- **Customer Impact**: Elevated latency on orders API requests for UC-3 (Use Case 3), potentially affecting order processing workflows\n\n## Impact Assessment\n\n- **Services Affected**: 1 (orders-api)\n- **Peak Error Rate**: Unknown (no error rate metric queried)\n- **Failed Requests**: Data not available in incident window\n- **Users Impacted**: Unknown (UC-3 specific, estimated subset of customers)\n- **Data Loss**: No\n- **SLA Breach**: Likely (orders-api P95 latency breached 1000ms threshold at UC-3 slice A)\n\n## Evidence\n\n### Service Dependencies\nService topology graph returned empty (no nodes/edges), indicating either:\n1. Service topology data not yet collected in the current monitoring window\n2. Service graph is not actively tracking relationships in this environment\n\nHowever, based on log evidence and alert context:\n- **orders-api** is the primary affected service (UC-3 slice)\n- **checkout-service** is a downstream dependency showing correlated payment call slowness in historical logs\n- **api-gateway** is an upstream service showing 504 Gateway Timeout errors when checkout-service fails\n- **catalog-db** shows concurrent slow query patterns in the same historical period\n- **checkout-db** shows latency spikes correlating with the incident pattern\n\n### Distributed Traces\nNo recent trace data available in current incident window. Historical API gateway logs from 2026-07-07 show:\n- 46 ERROR level log entries\n- Primary error: \"504 Gateway Timeout POST /api/checkout: upstream checkout-service did not respond within 5s\"\n- Timestamps clustered between 2026-07-07 07:33:02 UTC and 2026-07-07 07:44:51 UTC\n- Indicates upstream timeout issues (checkout-service not responding within SLA)\n\n### Log Patterns\n**Anomalies detected:**\n\n1. **Checkout service payment call slowness** (100+ log entries):\n   - Downstream payment calls showing 9000ms\u201317000ms latencies\n   - Region-B specific issue with INR currency transactions\n   - Cart sizes 13\u201322 items (high complexity orders)\n   - Consistent pattern: \"Downstream payment call slow (Xms)\"\n   - Timeframe: 2026-07-07 07:11:08 UTC to 2026-07-07 10:00:25 UTC\n\n2. **Database slow queries** (64 log entries):\n   - Catalog-db product queries: 977ms\u20132389ms each\n   - Multiple queries examining 50k\u2013200k rows per execution\n   - All from catalog-db in ap-southeast-1 region\n   - Concurrent with payment slowness\n\n3. **API Gateway errors** (46 entries):\n   - 504 Gateway Timeout on `/api/checkout` endpoint\n   - Upstream checkout-service timeout (5s threshold)\n   - Clustered between 2026-07-07 07:33:02 UTC and 07:44:51 UTC\n   - Cascading failures from checkout-service unavailability\n\n### Metrics Analysis\n\n**orders-api P95 Latency (observeops_request_p95_latency_ms):**\n\nRecent data available from 2026-07-10:\n- UC-3 (current incident): **2100ms** (exceeds 1000ms threshold)\n- UC-1: 1450ms (within threshold)\n- UC-5: 1800ms (exceeds threshold)\n\nHistorical degradation pattern (2026-07-07, checkout-db latency):\n- Peak latencies: **5000ms** sustained (2026-07-07 07:33:02 to 07:44:51 UTC)\n- Degradation: 5000ms \u2192 28ms over 30 minutes\n- Recovery: Sharp drop from 5000ms to baseline (12\u201320ms range)\n\nThis suggests a resource exhaustion event that was self-healed or manually recovered within ~30 minutes.\n\nCurrent incident (UC-3 = 2100ms) reflects elevated baseline from that historical event, indicating incomplete recovery or new degradation.\n\n**checkout-db call latency:**\n- Baseline: ~12\u201321ms\n- Peak: 5000ms+ (matches orders-api degradation window)\n- Symptom: Downstream payment processing delays\n\n### Recent Changes\nChange history not investigated \u2014 no tool access to git commits, deployment audit logs, or infrastructure change tracking.\n\n### Contributing Factors\n\n1. **Database performance degradation** \u2014 Catalog-db and checkout-db showing sustained high query latencies (1000\u20132389ms) and slow external calls (9000\u201317000ms), indicating either:\n   - Missing database indexes on product queries\n   - Resource contention (disk I/O, CPU, memory pressure)\n   - Connection pool saturation\n\n2. **Downstream payment service latency** \u2014 Checkout-service is experiencing slow calls to an external payment processor (Region-B, INR currency), causing:\n   - Order processing delays (9\u201317 seconds per payment call)\n   - Cascading timeout failures in API gateway (5s upstream timeout)\n   - Orders-api latency spike when orders include Region-B payment region\n\n3. **Cross-region request distribution** \u2014 UC-3 appears to concentrate high-cart-complexity orders (13\u201322 items, INR currency, Region-B) that are slower to process, pushing orders-api P95 latency above SLA when combined with payment slowness\n\n## Timeline\n\n- **2026-07-07 07:11:08 UTC** \u2014 Checkout-service payment slowness begins (first slow payment call logged)\n- **2026-07-07 07:33:02 UTC** \u2014 API gateway 504 errors spike; checkout-service unresponsive within 5s SLA\n- **2026-07-07 07:44:51 UTC** \u2014 Last error log; database slow query pattern ends\n- **2026-07-07 ~08:15 UTC** \u2014 Apparent recovery: checkout-db latency drops from 5000ms to <21ms baseline\n- **2026-07-10 10:00:25 UTC** \u2014 Most recent historical data point in system (orders-api P95 at 2100ms)\n- **2026-07-27 05:59:34 UTC** \u2014 Alert fires: orders-api UC-3 P95 latency reaches 2100ms (threshold 1000ms)\n\n## Actions\n\n### Immediate\n- Investigate current state of checkout-service and payment processor connection (test latency, error rates, connection pool)\n- Check database index coverage on catalog-db product queries; add composite index on (category, status) if missing\n- Validate orders-api query patterns against checkout-db \u2014 identify if N+1 queries or missing result caching exists\n- Review Region-B payment processor SLA and circuit-breaker configuration (current 5s timeout may be too aggressive given observed 9\u201317s call times)\n\n### Future\n- Implement query caching for product catalog queries (Redis or in-memory cache) to reduce database load\n- Add connection pooling with adaptive timeout backoff to payment processor to handle transient latency\n- Establish database performance baselines and alert on sustained query latency >1000ms for critical tables\n- Implement distributed tracing (if not present) to isolate latency to specific service boundaries\n- Review and optimize Region-B payment routing \u2014 consider dedicated payment service or circuit breaker pattern with fallback\n\n## Executive Summary\n\n**Potential Cause**: Orders-api P95 latency breach (2100ms on UC-3) is driven by downstream payment processor slowness (9\u201317 second call times) combined with catalog-database query degradation (1\u20132+ second queries). Historical evidence shows this pattern correlates with high-complexity orders (13+ items, INR currency, Region-B region) processed through checkout-service, where payment calls are not adequately parallelized or cached. Recent change history not investigated due to lack of tool access.\n\n**Impact**: UC-3 customer orders are experiencing elevated processing latency, breaching the 1000ms P95 SLA on orders-api. This cascades to api-gateway 504 errors when checkout-service timeouts occur, resulting in lost transactions if not retried.\n\n**Resolution**: Identify and address the root cause of payment processor slowness (external service degradation vs. local connection pool exhaustion); optimize database query performance for product lookups; implement circuit breaker with exponential backoff on payment calls; consider adding request-level caching or result pagination for high-item-count orders."
+  },
+  "triggers": [
+    {
+      "incident_id": "3H4esOwJNtWQvSUx3TUMwDKL48m",
+      "alert_id": "3H4eouO95KaAUaeS6nyzbul7nAn",
+      "alert_name": "orders_api_p95_latency_high_UC3",
+      "alert_fired_at": 1785139914019562,
+      "correlation_reason": "alert_id",
+      "created_at": 1785139914068555
+    },
+    {
+      "incident_id": "3H4esOwJNtWQvSUx3TUMwDKL48m",
+      "alert_id": "3H4eouO95KaAUaeS6nyzbul7nAn",
+      "alert_name": "orders_api_p95_latency_high_UC3",
+      "alert_fired_at": 1785138974019348,
+      "correlation_reason": "alert_id",
+      "created_at": 1785138974097360
+    },
+    {
+      "incident_id": "3H4esOwJNtWQvSUx3TUMwDKL48m",
+      "alert_id": "3H4eouO95KaAUaeS6nyzbul7nAn",
+      "alert_name": "orders_api_p95_latency_high_UC3",
+      "alert_fired_at": 1785137174019443,
+      "correlation_reason": "alert_id",
+      "created_at": 1785137174097330
+    },
+    {
+      "incident_id": "3H4esOwJNtWQvSUx3TUMwDKL48m",
+      "alert_id": "3H4eouO95KaAUaeS6nyzbul7nAn",
+      "alert_name": "orders_api_p95_latency_high_UC3",
+      "alert_fired_at": 1785135384019603,
+      "correlation_reason": "alert_id",
+      "created_at": 1785135384066349
+    },
+    {
+      "incident_id": "3H4esOwJNtWQvSUx3TUMwDKL48m",
+      "alert_id": "3H4eouO95KaAUaeS6nyzbul7nAn",
+      "alert_name": "orders_api_p95_latency_high_UC3",
+      "alert_fired_at": 1785133574019335,
+      "correlation_reason": "alert_id",
+      "created_at": 1785133574104071
+    },
+    {
+      "incident_id": "3H4esOwJNtWQvSUx3TUMwDKL48m",
+      "alert_id": "3H4eouO95KaAUaeS6nyzbul7nAn",
+      "alert_name": "orders_api_p95_latency_high_UC3",
+      "alert_fired_at": 1785131974019281,
+      "correlation_reason": "alert_id",
+      "created_at": 1785131974111123
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3H4eouO95KaAUaeS6nyzbul7nAn",
+      "name": "orders_api_p95_latency_high_UC3",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "observeops_request_p95_latency_ms",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "sql",
+        "conditions": {
+          "version": 2,
+          "conditions": {
+            "filterType": "group",
+            "logicalOperator": "AND",
+            "conditions": []
+          }
+        },
+        "sql": "SELECT _timestamp, ci, uc_id, signal, value\nFROM \"observeops_request_p95_latency_ms\"\nWHERE uc_id = 'UC-3'\n  AND ci = 'orders-api'\n  AND value > 1000",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 360,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1440,
+        "timezone": "UTC",
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "slice": "A_fair",
+        "corpus": "observeops",
+        "ci": "orders-api",
+        "uc_id": "UC-3"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Symptom: orders-api request.p95_latency_ms breached (threshold 1000ms). Investigate storage/DB/app path. Do not assume root CI. Slice A fair alert \u2014 filter uc_id='UC-3'.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

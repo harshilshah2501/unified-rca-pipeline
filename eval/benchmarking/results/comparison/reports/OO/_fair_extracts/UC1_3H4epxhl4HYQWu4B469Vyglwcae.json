@@ -1,0 +1,154 @@
+{
+  "id": "3H4epxhl4HYQWu4B469Vyglwcae",
+  "org_id": "default",
+  "status": "open",
+  "severity": "P3",
+  "first_alert_at": 1785131954019488,
+  "last_alert_at": 1785139924019681,
+  "alert_count": 8,
+  "title": "orders_api_p95_latency_high_UC1",
+  "created_at": 1785131954101887,
+  "updated_at": 1785139924049254,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+        "alert_name": "orders_api_p95_latency_high_UC1",
+        "service_name": "unknown",
+        "alert_count": 7,
+        "first_fired_at": 1785131954019488,
+        "last_fired_at": 1785139924019681
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "# Incident Analysis Report\n\n## Incident Summary\n- **Incident ID**: 3H4epxhl4HYQWu4B469Vyglwcae\n- **Severity**: P3 (Medium)\n- **Detected**: 2026-07-27T05:59:14.019Z (05:59:14 UTC)\n- **Resolved**: Ongoing\n- **Duration**: Less than 1 minute (single alert trigger)\n- **Affected Services**: orders-api\n- **Customer Impact**: P95 request latency exceeded SLO threshold (1000ms) for UC-1 orders-api service\n\n## Impact Assessment\n\n- **Services Affected**: 1 service (orders-api)\n- **Peak Error Rate**: Not determined from current data\n- **Failed Requests**: Not determined\n- **Users Impacted**: Unknown (UC-1 slice A fair)\n- **Data Loss**: No\n- **SLA Breach**: Yes - P95 latency exceeded 1000ms threshold\n\n## Evidence\n\n### Alert Configuration\nThe incident was triggered by the alert **orders_api_p95_latency_high_UC1**:\n- **Stream**: observeops_request_p95_latency_ms (metrics)\n- **Query**: Filters for uc_id='UC-1' and ci='orders-api' with value > 1000ms\n- **Trigger**: Alert fires when value exceeds 1000ms threshold\n- **Context**: Corpus \"observeops\", slice \"A_fair\"\n- **Alert Owner**: admin@motadata.com\n- **Description**: \"Symptom: orders-api request.p95_latency_ms breached SLO (threshold 1000ms). Investigate upstream of the app. Do not assume root CI. Slice A fair alert \u2014 filter uc_id='UC-1'.\"\n\n### Service Dependencies\nService topology query was unable to complete due to connection issues. Unable to determine upstream/downstream dependencies at this time.\n\n### Distributed Traces\nTrace data retrieval was unsuccessful due to connection issues. Unable to analyze request flow patterns or latency injection points.\n\n### Log Patterns\nLog pattern extraction was unsuccessful due to connection issues. Unable to group logs into anomalous clusters.\n\n### Metrics Analysis\nThe alert condition indicates that at **2026-07-27T05:59:14.019Z**, the P95 latency for orders-api in UC-1 exceeded the 1000ms SLO threshold. The specific latency value and trend over the 30-minute window could not be retrieved due to connection issues.\n\n[Updated] The incident has persisted with additional alert triggers:\n- **2026-07-27T05:59:14.019Z** - First alert trigger\n- **2026-07-27T05:59:34.019Z** - Second alert trigger (20 seconds later)\n- **2026-07-27T06:04:24.019Z** - Third alert trigger (5 minutes after second)\n- **2026-07-27T06:13:04.020Z** - Fourth alert trigger (8.5 minutes after third)\n\nThe sustained multi-trigger pattern indicates the latency issue has NOT resolved and continues to breach the 1000ms threshold across a 13+ minute window. Metrics queries to observeops_request_p95_latency_ms returned no data for the current time window (data in that stream is dated July 8, 2026), suggesting either:\n1. Real-time metric ingestion is delayed or disabled\n2. The alert is triggering on cached/historical data\n3. Metric data is being written to a different stream\n\nUpstream dependency metrics (database connection pool, CPU usage, disk I/O) also returned no current data.\n\n### Recent Changes\nChange history investigation was not available \u2014 no Git or deploy audit tools were accessible. Cannot determine if recent deploys, config changes, or code modifications contributed to the latency increase.\n\n### Contributing Factors\n1. **P95 Latency Spike**: The orders-api service's 95th percentile response time exceeded the 1000ms SLO threshold, indicating performance degradation.\n2. **Upstream Component Issue**: Per the alert description, the root cause is upstream of the orders-api application layer itself (not the app code, but infrastructure/dependencies).\n3. **Sustained Duration**: The alert has fired 4 times over 13+ minutes, indicating the condition has not self-resolved and warrants immediate investigation.\n4. **Unknown Root Cause**: Specific contributing factor cannot be identified without:\n   - Service topology to identify upstream dependencies\n   - Trace data to pinpoint where latency is being injected\n   - Metrics/logs from upstream services to correlate the degradation\n   - Current metric data (system appears to be serving historical data only)\n\n## Timeline\n\n- **2026-07-27T05:59:14.019Z** - Alert \"orders_api_p95_latency_high_UC1\" triggered; P95 latency exceeded 1000ms threshold for orders-api (UC-1, slice A fair)\n- **2026-07-27T05:59:14.101Z** - Incident created (3H4epxhl4HYQWu4B469Vyglwcae)\n- **2026-07-27T05:59:34.019Z** - [Updated] Second alert trigger; latency remains elevated\n- **2026-07-27T06:04:24.019Z** - [Updated] Third alert trigger; issue persists across 5-minute window\n- **2026-07-27T06:13:04.020Z** - [Updated] Fourth alert trigger; issue continues across 13+ minutes\n\n## Actions\n\n### Immediate\n- Identify upstream dependencies of orders-api using service topology to narrow investigation scope\n- Retrieve traces for orders-api in the incident window to identify latency injection points\n- Query upstream service metrics (CPU, memory, connection pools, queue depth) for anomalies\n- Check if database, cache, or external API calls show elevated latency or error rates\n- [Updated] Verify metric ingestion pipeline is functioning correctly and real-time data is being collected\n- [Updated] Check incident status and confirm orders-api latency is still elevated (4 consecutive alerts over 13 minutes suggests ongoing issue)\n\n### Future\n- Establish baseline latency profiles per service to distinguish normal variance from anomalies\n- Implement distributed tracing at service boundaries to reduce MTTR for latency investigations\n- Set up alerts on upstream service metrics (connection pool exhaustion, database lock contention) before downstream SLO breaches\n- Review and document known upstream dependencies in runbooks for orders-api\n\n## Executive Summary\n\n**Potential Cause**: P95 latency degradation in orders-api is upstream of the application layer (database, cache, external API, or network); root cause unknown pending topology and trace investigation.\n\n**Impact**: Orders-api P95 latency breached 1000ms SLO for UC-1 slice A fair, affecting customer request performance.\n\n**Resolution**: Identify and measure upstream dependencies (database, cache, APIs) to pinpoint latency injection source; verify metrics and trace data; apply targeted remediation to the affected upstream component.\n\n---\n\n**[Updated Summary]**\n\nThe delta analysis confirms that the latency incident has worsened since the previous analysis. The alert has fired 3 additional times (for a total of 4 triggers) across a 13-minute window, changing the severity from a transient single-point breach to a sustained performance degradation event. The repeated triggers at regular intervals (05:59:14, 05:59:34, 06:04:24, 06:13:04) suggest either:\n\n1. **Persistent upstream bottleneck** that is not auto-resolving (database connection exhaustion, memory pressure, or network saturation)\n2. **Workload spike** hitting orders-api at regular intervals, consistently exceeding the 1000ms latency threshold\n\nThe inability to retrieve current metric data for analysis represents a critical observability gap. Immediate actions should prioritize verifying metric ingestion, confirming the alert continues to fire, and then walking the service dependency graph to isolate which upstream component is introducing the latency."
+  },
+  "triggers": [
+    {
+      "incident_id": "3H4epxhl4HYQWu4B469Vyglwcae",
+      "alert_id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+      "alert_name": "orders_api_p95_latency_high_UC1",
+      "alert_fired_at": 1785139924019681,
+      "correlation_reason": "alert_id",
+      "created_at": 1785139924045610
+    },
+    {
+      "incident_id": "3H4epxhl4HYQWu4B469Vyglwcae",
+      "alert_id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+      "alert_name": "orders_api_p95_latency_high_UC1",
+      "alert_fired_at": 1785138964020303,
+      "correlation_reason": "alert_id",
+      "created_at": 1785138964065335
+    },
+    {
+      "incident_id": "3H4epxhl4HYQWu4B469Vyglwcae",
+      "alert_id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+      "alert_name": "orders_api_p95_latency_high_UC1",
+      "alert_fired_at": 1785137164020008,
+      "correlation_reason": "alert_id",
+      "created_at": 1785137164075331
+    },
+    {
+      "incident_id": "3H4epxhl4HYQWu4B469Vyglwcae",
+      "alert_id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+      "alert_name": "orders_api_p95_latency_high_UC1",
+      "alert_fired_at": 1785135364019399,
+      "correlation_reason": "alert_id",
+      "created_at": 1785135364065436
+    },
+    {
+      "incident_id": "3H4epxhl4HYQWu4B469Vyglwcae",
+      "alert_id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+      "alert_name": "orders_api_p95_latency_high_UC1",
+      "alert_fired_at": 1785133584020213,
+      "correlation_reason": "alert_id",
+      "created_at": 1785133584077347
+    },
+    {
+      "incident_id": "3H4epxhl4HYQWu4B469Vyglwcae",
+      "alert_id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+      "alert_name": "orders_api_p95_latency_high_UC1",
+      "alert_fired_at": 1785133464019955,
+      "correlation_reason": "alert_id",
+      "created_at": 1785133464072387
+    },
+    {
+      "incident_id": "3H4epxhl4HYQWu4B469Vyglwcae",
+      "alert_id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+      "alert_name": "orders_api_p95_latency_high_UC1",
+      "alert_fired_at": 1785131974019281,
+      "correlation_reason": "alert_id",
+      "created_at": 1785131974106948
+    },
+    {
+      "incident_id": "3H4epxhl4HYQWu4B469Vyglwcae",
+      "alert_id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+      "alert_name": "orders_api_p95_latency_high_UC1",
+      "alert_fired_at": 1785131954019488,
+      "correlation_reason": "alert_id",
+      "created_at": 1785131954109306
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+      "name": "orders_api_p95_latency_high_UC1",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "observeops_request_p95_latency_ms",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "sql",
+        "conditions": {
+          "version": 2,
+          "conditions": {
+            "filterType": "group",
+            "logicalOperator": "AND",
+            "conditions": []
+          }
+        },
+        "sql": "SELECT _timestamp, ci, uc_id, signal, value\nFROM \"observeops_request_p95_latency_ms\"\nWHERE uc_id = 'UC-1'\n  AND ci = 'orders-api'\n  AND value > 1000",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 360,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1440,
+        "timezone": "UTC",
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "slice": "A_fair",
+        "uc_id": "UC-1",
+        "ci": "orders-api",
+        "corpus": "observeops"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Symptom: orders-api request.p95_latency_ms breached SLO (threshold 1000ms). Investigate upstream of the app. Do not assume root CI. Slice A fair alert \u2014 filter uc_id='UC-1'.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

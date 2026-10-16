@@ -1,0 +1,21 @@
+{
+  "uc": "UC-1",
+  "extracted_at": "2026-07-27T09:21:00Z",
+  "incident_id": "3H538eGNAa0meaFoJwB2o8NnQMO",
+  "incident_title": "orders_api_p95_latency_high_UC1",
+  "shift_to_now": true,
+  "fair_alert": true,
+  "OO_root": "payment-db (db-01) / checkout-service network connectivity (TCP retransmissions) + slow product catalog queries",
+  "OO_signature_guess": "db_connectivity_timeout_cascade",
+  "OO_potential_cause_verbatim": "checkout-service unable to establish connections to payment-db (db-01) due to network connectivity failure (TCP retransmissions detected); combined with systematic slow product catalog queries (1000-2400ms execution time on 50K-200K row scans), resulting in 13000ms+ downstream payment latency; orders-api unable to reach checkout-service within 5-second timeout, cascading to 100% 504 Gateway Timeout errors and p95 latency of 1450ms (45% above 1000ms SLO threshold).",
+  "pack_gt_root": "esxi-host-01",
+  "pack_gt_signature": "cpu_contention",
+  "oo_correct_vs_gt": false,
+  "evidence_notes": [
+    "Did cite observeops orders-api p95=1450ms",
+    "Did not cite esxi-host-01 / cpu_ready / cpu_contention",
+    "Primary narrative from unrelated org streams: api_gateway_logs, checkout_service_logs, db_slow_query_logs",
+    "observeops_cpu_ready / disk metrics reported as no results in Analysis"
+  ],
+  "analysis_path": "UC1_fair_r3_analysis.md"
+}

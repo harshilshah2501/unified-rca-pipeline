@@ -1,0 +1,138 @@
+{
+  "id": "3H4erFgoA2KdNcRvNddAikSZwbf",
+  "org_id": "default",
+  "status": "open",
+  "severity": "P3",
+  "first_alert_at": 1785131964019926,
+  "last_alert_at": 1785138974019348,
+  "alert_count": 6,
+  "title": "orders_api_p95_latency_high_UC5",
+  "created_at": 1785131964081047,
+  "updated_at": 1785138974083583,
+  "group_values": {},
+  "key_type": "alert_id",
+  "topology_context": {
+    "nodes": [
+      {
+        "alert_id": "3H4eoz1LHL6YiNoh6XV8b47tDBX",
+        "alert_name": "orders_api_p95_latency_high_UC5",
+        "service_name": "unknown",
+        "alert_count": 4,
+        "first_fired_at": 1785133574019335,
+        "last_fired_at": 1785138974019348
+      }
+    ],
+    "edges": [],
+    "related_incident_ids": [],
+    "suggested_root_cause": "**Status**: Unable to proceed with incident analysis due to platform connectivity issues.\n\n**Required Data Unavailable**:\n- Incident details (ID: 3H4erFgoA2KdNcRvNddAikSZwbf)\n- Service dependency topology\n- Distributed traces\n- Log patterns\n- Metrics data\n- Change history\n\n**Recommendation**: Verify OpenObserve platform connectivity and retry the analysis when the service is available."
+  },
+  "triggers": [
+    {
+      "incident_id": "3H4erFgoA2KdNcRvNddAikSZwbf",
+      "alert_id": "3H4eoz1LHL6YiNoh6XV8b47tDBX",
+      "alert_name": "orders_api_p95_latency_high_UC5",
+      "alert_fired_at": 1785138974019348,
+      "correlation_reason": "alert_id",
+      "created_at": 1785138974078353
+    },
+    {
+      "incident_id": "3H4erFgoA2KdNcRvNddAikSZwbf",
+      "alert_id": "3H4eoz1LHL6YiNoh6XV8b47tDBX",
+      "alert_name": "orders_api_p95_latency_high_UC5",
+      "alert_fired_at": 1785137194019423,
+      "correlation_reason": "alert_id",
+      "created_at": 1785137194066003
+    },
+    {
+      "incident_id": "3H4erFgoA2KdNcRvNddAikSZwbf",
+      "alert_id": "3H4eoz1LHL6YiNoh6XV8b47tDBX",
+      "alert_name": "orders_api_p95_latency_high_UC5",
+      "alert_fired_at": 1785135374020245,
+      "correlation_reason": "alert_id",
+      "created_at": 1785135374093220
+    },
+    {
+      "incident_id": "3H4erFgoA2KdNcRvNddAikSZwbf",
+      "alert_id": "3H4eoz1LHL6YiNoh6XV8b47tDBX",
+      "alert_name": "orders_api_p95_latency_high_UC5",
+      "alert_fired_at": 1785133574019335,
+      "correlation_reason": "alert_id",
+      "created_at": 1785133574107391
+    },
+    {
+      "incident_id": "3H4erFgoA2KdNcRvNddAikSZwbf",
+      "alert_id": "3H4eoz1LHL6YiNoh6XV8b47tDBX",
+      "alert_name": "orders_api_p95_latency_high_UC5",
+      "alert_fired_at": 1785131974019281,
+      "correlation_reason": "alert_id",
+      "created_at": 1785131974101022
+    },
+    {
+      "incident_id": "3H4erFgoA2KdNcRvNddAikSZwbf",
+      "alert_id": "3H4eoz1LHL6YiNoh6XV8b47tDBX",
+      "alert_name": "orders_api_p95_latency_high_UC5",
+      "alert_fired_at": 1785131964019926,
+      "correlation_reason": "alert_id",
+      "created_at": 1785131964083337
+    }
+  ],
+  "alerts": [
+    {
+      "id": "3H4eoz1LHL6YiNoh6XV8b47tDBX",
+      "name": "orders_api_p95_latency_high_UC5",
+      "org_id": "default",
+      "stream_type": "metrics",
+      "stream_name": "observeops_request_p95_latency_ms",
+      "is_real_time": false,
+      "query_condition": {
+        "type": "sql",
+        "conditions": {
+          "version": 2,
+          "conditions": {
+            "filterType": "group",
+            "logicalOperator": "AND",
+            "conditions": []
+          }
+        },
+        "sql": "SELECT _timestamp, ci, uc_id, signal, value\nFROM \"observeops_request_p95_latency_ms\"\nWHERE uc_id = 'UC-5'\n  AND ci = 'orders-api'\n  AND value > 1000",
+        "promql": null,
+        "promql_condition": null,
+        "aggregation": null,
+        "vrl_function": null,
+        "search_event_type": null,
+        "multi_time_range": null
+      },
+      "trigger_condition": {
+        "period": 360,
+        "operator": ">=",
+        "threshold": 1,
+        "frequency": 300,
+        "cron": "",
+        "frequency_type": "minutes",
+        "silence": 1440,
+        "timezone": "UTC",
+        "tolerance_in_secs": null,
+        "align_time": true
+      },
+      "destinations": [
+        "starter_dest"
+      ],
+      "context_attributes": {
+        "slice": "A_fair",
+        "uc_id": "UC-5",
+        "corpus": "observeops",
+        "ci": "orders-api"
+      },
+      "row_template": "",
+      "row_template_type": "String",
+      "description": "Symptom: orders-api request.p95_latency_ms breached (threshold 1000ms). Rule out healthy infra before blaming app or host. Do not assume root CI. Slice A fair alert \u2014 filter uc_id='UC-5'.",
+      "enabled": true,
+      "tz_offset": 0,
+      "last_triggered_at": null,
+      "last_satisfied_at": null,
+      "owner": "admin@motadata.com",
+      "last_edited_by": "admin@motadata.com",
+      "creates_incident": true
+    }
+  ]
+}

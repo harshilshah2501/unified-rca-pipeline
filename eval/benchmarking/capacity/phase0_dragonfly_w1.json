@@ -1,0 +1,16 @@
+{
+  "backend": "dragonfly/df-v1.25.1",
+  "host": "127.0.0.1",
+  "port": 6380,
+  "seconds": 15.0,
+  "events": 65536,
+  "eps": 4369.066666666667,
+  "event_bytes": 200,
+  "p99_latency_ms": 0.582,
+  "workers": 1,
+  "pipeline_size": 64,
+  "thread_count": 2,
+  "cpu_count": 2,
+  "hardware": "x86_64",
+  "notes": "Lua ZADD+HSET path approximating Nezha pattern write/score; 1 concurrent client workers"
+}

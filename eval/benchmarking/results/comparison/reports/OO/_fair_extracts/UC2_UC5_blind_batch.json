@@ -1,0 +1,78 @@
+[
+  {
+    "uc": "UC-2",
+    "extracted_at": "2026-07-27T09:33:57.843404+00:00",
+    "incident_id": "3H5422DwKJLI1NtoagESqnaoZ3v",
+    "incident_title": "orders_api_tcp_timeouts_high_UC2",
+    "shift_to_now": true,
+    "fair_alert": true,
+    "source": "user_executive_summary_paste",
+    "OO_root": null,
+    "OO_potential_cause_verbatim": "OpenObserve API service unavailable at time of analysis.",
+    "pack_gt_root": "switch-core-01:GigE0/2",
+    "pack_gt_signature": "link_failure",
+    "oo_correct_vs_gt": false,
+    "evidence_notes": [
+      "Analysis failed \u2014 no RCA"
+    ],
+    "analysis_chars": 1694,
+    "analysis_path": "UC-2_fair_r4_analysis.md"
+  },
+  {
+    "uc": "UC-3",
+    "extracted_at": "2026-07-27T09:33:57.852283+00:00",
+    "incident_id": "3H541z1bJNXfExUagp4l5AyAdGg",
+    "incident_title": "orders_api_p95_latency_high_UC3",
+    "shift_to_now": true,
+    "fair_alert": true,
+    "source": "user_executive_summary_paste",
+    "OO_root": "unidentified shared downstream bottleneck (UC-1/3/5 co-spike)",
+    "OO_potential_cause_verbatim": "P95 latency for orders-api (UC-3) surged from 400 ms to 2100 ms at 2026-07-27 09:23:51 UTC, with simultaneous spikes in UC-1 and UC-5, indicating a shared downstream bottleneck. The specific bottleneck cannot be identified without access to database latency metrics, cache health, error rates, distributed traces, or change history.",
+    "pack_gt_root": "datastore-01",
+    "pack_gt_signature": "storage_contention",
+    "oo_correct_vs_gt": false,
+    "evidence_notes": [
+      "Did not name datastore-01 / storage_contention"
+    ],
+    "analysis_chars": 6657,
+    "analysis_path": "UC-3_fair_r4_analysis.md"
+  },
+  {
+    "uc": "UC-4",
+    "extracted_at": "2026-07-27T09:33:57.860539+00:00",
+    "incident_id": "3H543H5FOsjMsNlfp197LYU8FqJ",
+    "incident_title": "orders_api_5xx_error_rate_high_UC4",
+    "shift_to_now": true,
+    "fair_alert": true,
+    "source": "user_executive_summary_paste",
+    "OO_root": "unidentified (deploy/config/infra or upstream); no precise failure point",
+    "OO_potential_cause_verbatim": "Sudden and sustained elevation of orders-api error rate from 2% to 42% at 2026-07-27 09:23:51 UTC, coinciding with either a recent application deployment, infrastructure change, or upstream service failure. Distributed traces and application logs were not captured during the incident, preventing precise identification of the failure point.",
+    "pack_gt_root": "guest-os-vm-app-01",
+    "pack_gt_signature": "os_resource_exhaustion",
+    "oo_correct_vs_gt": false,
+    "evidence_notes": [
+      "Did not name guest-os-vm-app-01 / os_resource_exhaustion"
+    ],
+    "analysis_chars": 6686,
+    "analysis_path": "UC-4_fair_r4_analysis.md"
+  },
+  {
+    "uc": "UC-5",
+    "extracted_at": "2026-07-27T09:33:57.873921+00:00",
+    "incident_id": "3H540hUYTQLWbBGwKuuJ52GTz2W",
+    "incident_title": "orders_api_p95_latency_high_UC5",
+    "shift_to_now": true,
+    "fair_alert": true,
+    "source": "user_executive_summary_paste",
+    "OO_root": "orders-api (DB connection pool saturation + JVM heap pressure)",
+    "OO_potential_cause_verbatim": "Database connection pool saturation (100% active ratio) combined with JVM heap memory pressure (96% utilization) caused cascading resource exhaustion in orders-api. The saturated connection pool created request queueing, directly resulting in the observed p95 latency increase to 1800ms and 18% error rate.",
+    "pack_gt_root": "orders-api",
+    "pack_gt_signature": "app_resource_exhaustion",
+    "oo_correct_vs_gt": true,
+    "evidence_notes": [
+      "Root CI matches pack GT orders-api; signature aligns with app_resource_exhaustion"
+    ],
+    "analysis_chars": 5913,
+    "analysis_path": "UC-5_fair_r4_analysis.md"
+  }
+]

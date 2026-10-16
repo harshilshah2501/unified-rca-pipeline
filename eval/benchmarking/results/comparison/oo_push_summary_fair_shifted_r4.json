@@ -1,0 +1,739 @@
+{
+  "base_url": "http://172.16.14.77:5080",
+  "org": "default",
+  "dry_run": false,
+  "fair_push": true,
+  "parity_run_id": "adr001-rerun-20260723",
+  "shift_to_now": true,
+  "retain_hours": 4.5,
+  "purge_stale": {
+    "deleted": [
+      {
+        "name": "observeops_uc_uc1",
+        "type": "logs",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_uc_uc1?type=logs&delete_all=true"
+      },
+      {
+        "name": "observeops_uc_uc2",
+        "type": "logs",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_uc_uc2?type=logs&delete_all=true"
+      },
+      {
+        "name": "observeops_uc_uc3",
+        "type": "logs",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_uc_uc3?type=logs&delete_all=true"
+      },
+      {
+        "name": "observeops_uc_uc4",
+        "type": "logs",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_uc_uc4?type=logs&delete_all=true"
+      },
+      {
+        "name": "observeops_uc_uc5",
+        "type": "logs",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_uc_uc5?type=logs&delete_all=true"
+      },
+      {
+        "name": "observeops_ingest_probe",
+        "type": "logs",
+        "status": 404,
+        "error": "{\"code\":404,\"message\":\"stream not found\"}",
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_ingest_probe?type=logs&delete_all=true"
+      },
+      {
+        "name": "observeops_cpu_ready",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_cpu_ready?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_cpu_usage",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_cpu_usage?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_davg_latency_ms",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_davg_latency_ms?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_db_conn_pool_active_ratio",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_db_conn_pool_active_ratio?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_disk_iowait_pct",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_disk_iowait_pct?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_error_rate_5xx",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_error_rate_5xx?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_filesystem_used_pct",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_filesystem_used_pct?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_gavg_latency_ms",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_gavg_latency_ms?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_health_check",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_health_check?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_ifoutdiscards",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_ifoutdiscards?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_jvm_heap_used_pct",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_jvm_heap_used_pct?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_linkdown",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_linkdown?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_load_avg",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_load_avg?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_oom_killer_event",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_oom_killer_event?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_request_p95_latency_ms",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_request_p95_latency_ms?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_tcp_retransmits",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_tcp_retransmits?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_tcp_timeouts",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_tcp_timeouts?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_virtualdisk_iops",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_virtualdisk_iops?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_virtualdisk_totallatency_ms",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_virtualdisk_totallatency_ms?type=metrics&delete_all=true"
+      },
+      {
+        "name": "observeops_vmnic_dropped_packets",
+        "type": "metrics",
+        "status": 200,
+        "body": {
+          "code": 200,
+          "message": "stream deleted"
+        },
+        "url": "http://172.16.14.77:5080/api/default/streams/observeops_vmnic_dropped_packets?type=metrics&delete_all=true"
+      }
+    ],
+    "skipped": []
+  },
+  "generated_at": "2026-07-27T09:25:51.184526+00:00",
+  "results": [
+    {
+      "uc_id": "UC-1",
+      "log_stream": "observeops_uc_uc1",
+      "pack_dir": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-1/run-adr001-rerun-20260723/parity_corpus/UC-1",
+      "fair_push": true,
+      "time_shift": {
+        "shift_ms": 1466605904,
+        "original_max_ts": "2026-07-10T10:00:25+00:00",
+        "shifted_max_ts": "2026-07-27T09:23:50.904000+00:00",
+        "end_offset_minutes": 2.0,
+        "retain_hours": 4.5
+      },
+      "logs": {
+        "count": 9,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_uc_uc1",
+                "successful": 9,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "metrics": {
+        "count": 60,
+        "dropped_outside_retain": 1968,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_cpu_usage",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_request_p95_latency_ms",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_cpu_ready",
+                "successful": 30,
+                "failed": 0
+              },
+              {
+                "name": "observeops_load_avg",
+                "successful": 10,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "traces": {
+        "span_count": 0,
+        "result": null,
+        "ok": true
+      },
+      "ok": true,
+      "gt": {
+        "root_ci": "esxi-host-01",
+        "signature": "cpu_contention",
+        "fault_title": "CPU contention on ESXi host",
+        "seed": {
+          "ci": "orders-api",
+          "signal": "request.p95_latency_ms",
+          "timestamp": "2026-07-10T10:00:25Z",
+          "anomaly_class": "performance",
+          "change_near_onset": true,
+          "change_count_in_window": 2
+        }
+      },
+      "shift_ms": 1466605904
+    },
+    {
+      "uc_id": "UC-2",
+      "log_stream": "observeops_uc_uc2",
+      "pack_dir": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-2/run-adr001-rerun-20260723/parity_corpus/UC-2",
+      "fair_push": true,
+      "time_shift": {
+        "shift_ms": 1466612975,
+        "original_max_ts": "2026-07-10T10:00:18+00:00",
+        "shifted_max_ts": "2026-07-27T09:23:50.975000+00:00",
+        "end_offset_minutes": 2.0,
+        "retain_hours": 4.5
+      },
+      "logs": {
+        "count": 8,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_uc_uc2",
+                "successful": 8,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "metrics": {
+        "count": 50,
+        "dropped_outside_retain": 1640,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_tcp_timeouts",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_linkdown",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_ifoutdiscards",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_tcp_retransmits",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_vmnic_dropped_packets",
+                "successful": 10,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "traces": {
+        "span_count": 0,
+        "result": null,
+        "ok": true
+      },
+      "ok": true,
+      "gt": {
+        "root_ci": "switch-core-01:GigE0/2",
+        "signature": "link_failure",
+        "fault_title": "Core switch link failure",
+        "seed": {
+          "ci": "orders-api",
+          "signal": "tcp.timeouts",
+          "timestamp": "2026-07-10T10:00:18Z",
+          "anomaly_class": "threshold"
+        }
+      },
+      "shift_ms": 1466612975
+    },
+    {
+      "uc_id": "UC-3",
+      "log_stream": "observeops_uc_uc3",
+      "pack_dir": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-3/run-adr001-rerun-20260723/parity_corpus/UC-3",
+      "fair_push": true,
+      "time_shift": {
+        "shift_ms": 1466606029,
+        "original_max_ts": "2026-07-10T10:00:25+00:00",
+        "shifted_max_ts": "2026-07-27T09:23:51.029000+00:00",
+        "end_offset_minutes": 2.0,
+        "retain_hours": 4.5
+      },
+      "logs": {
+        "count": 7,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_uc_uc3",
+                "successful": 7,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "metrics": {
+        "count": 60,
+        "dropped_outside_retain": 1968,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_request_p95_latency_ms",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_davg_latency_ms",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_virtualdisk_totallatency_ms",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_virtualdisk_iops",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_gavg_latency_ms",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_disk_iowait_pct",
+                "successful": 10,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "traces": {
+        "span_count": 0,
+        "result": null,
+        "ok": true
+      },
+      "ok": true,
+      "gt": {
+        "root_ci": "datastore-01",
+        "signature": "storage_contention",
+        "fault_title": "Datastore storage contention",
+        "seed": {
+          "ci": "orders-api",
+          "signal": "request.p95_latency_ms",
+          "timestamp": "2026-07-10T10:00:25Z",
+          "anomaly_class": "performance"
+        }
+      },
+      "shift_ms": 1466606029
+    },
+    {
+      "uc_id": "UC-4",
+      "log_stream": "observeops_uc_uc4",
+      "pack_dir": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-4/run-adr001-rerun-20260723/parity_corpus/UC-4",
+      "fair_push": true,
+      "time_shift": {
+        "shift_ms": 1466613093,
+        "original_max_ts": "2026-07-10T10:00:18+00:00",
+        "shifted_max_ts": "2026-07-27T09:23:51.093000+00:00",
+        "end_offset_minutes": 2.0,
+        "retain_hours": 4.5
+      },
+      "logs": {
+        "count": 6,
+        "batches": 1,
+        "result": {
+          "status": 400,
+          "error": "{\"code\":400,\"message\":\"Error# stream [observeops_uc_uc4] is being deleted\"}",
+          "url": "http://172.16.14.77:5080/api/default/observeops_uc_uc4/_json"
+        },
+        "ok": false
+      },
+      "metrics": {
+        "count": 57,
+        "dropped_outside_retain": 1968,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_oom_killer_event",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_health_check",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_error_rate_5xx",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_linkdown",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_filesystem_used_pct",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_cpu_usage",
+                "successful": 9,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "traces": {
+        "span_count": 0,
+        "result": null,
+        "ok": true
+      },
+      "ok": false,
+      "gt": {
+        "root_ci": "guest-os-vm-app-01",
+        "signature": "os_resource_exhaustion",
+        "fault_title": "Guest OS resource exhaustion",
+        "seed": {
+          "ci": "orders-api",
+          "signal": "error_rate_5xx",
+          "timestamp": "2026-07-10T10:00:18Z",
+          "anomaly_class": "error_rate"
+        }
+      },
+      "shift_ms": 1466613093
+    },
+    {
+      "uc_id": "UC-5",
+      "log_stream": "observeops_uc_uc5",
+      "pack_dir": "/root/Harshil-PoCs/Unified-RCA/benchmarking/results/lean/UC-5/run-adr001-rerun-20260723/parity_corpus/UC-5",
+      "fair_push": true,
+      "time_shift": {
+        "shift_ms": 1466619144,
+        "original_max_ts": "2026-07-10T10:00:12+00:00",
+        "shifted_max_ts": "2026-07-27T09:23:51.144000+00:00",
+        "end_offset_minutes": 2.0,
+        "retain_hours": 4.5
+      },
+      "logs": {
+        "count": 5,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_uc_uc5",
+                "successful": 5,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "metrics": {
+        "count": 85,
+        "dropped_outside_retain": 2952,
+        "batches": 1,
+        "result": {
+          "status": 200,
+          "body": {
+            "code": 200,
+            "status": [
+              {
+                "name": "observeops_filesystem_used_pct",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_jvm_heap_used_pct",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_error_rate_5xx",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_cpu_usage",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_cpu_ready",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_request_p95_latency_ms",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_db_conn_pool_active_ratio",
+                "successful": 10,
+                "failed": 0
+              },
+              {
+                "name": "observeops_gavg_latency_ms",
+                "successful": 9,
+                "failed": 0
+              },
+              {
+                "name": "observeops_linkdown",
+                "successful": 9,
+                "failed": 0
+              }
+            ]
+          }
+        },
+        "ok": true
+      },
+      "traces": {
+        "span_count": 0,
+        "result": null,
+        "ok": true
+      },
+      "ok": true,
+      "gt": {
+        "root_ci": "orders-api",
+        "signature": "app_resource_exhaustion",
+        "fault_title": "Orders-api resource exhaustion",
+        "seed": {
+          "ci": "orders-api",
+          "signal": "request.p95_latency_ms",
+          "timestamp": "2026-07-10T10:00:12Z",
+          "anomaly_class": "performance"
+        }
+      },
+      "shift_ms": 1466619144
+    }
+  ],
+  "totals": {
+    "logs": 35,
+    "metrics": 312,
+    "spans": 0
+  },
+  "note": "Parity mode: loads lean parity_corpus (same shared-detect inputs as Lean/Fed), original timestamps, full metric series. OO streams: observeops_uc_uc1..uc5 (logs); metrics via ingest/metrics/_json. Filter by uc_id / corpus=observeops / parity_input=true around 2026-07-10."
+}

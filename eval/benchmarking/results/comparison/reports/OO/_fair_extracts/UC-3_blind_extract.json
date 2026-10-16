@@ -1,0 +1,19 @@
+{
+  "uc": "UC-3",
+  "extracted_at": "2026-07-27T09:33:57.852283+00:00",
+  "incident_id": "3H541z1bJNXfExUagp4l5AyAdGg",
+  "incident_title": "orders_api_p95_latency_high_UC3",
+  "shift_to_now": true,
+  "fair_alert": true,
+  "source": "user_executive_summary_paste",
+  "OO_root": "unidentified shared downstream bottleneck (UC-1/3/5 co-spike)",
+  "OO_potential_cause_verbatim": "P95 latency for orders-api (UC-3) surged from 400 ms to 2100 ms at 2026-07-27 09:23:51 UTC, with simultaneous spikes in UC-1 and UC-5, indicating a shared downstream bottleneck. The specific bottleneck cannot be identified without access to database latency metrics, cache health, error rates, distributed traces, or change history.",
+  "pack_gt_root": "datastore-01",
+  "pack_gt_signature": "storage_contention",
+  "oo_correct_vs_gt": false,
+  "evidence_notes": [
+    "Did not name datastore-01 / storage_contention"
+  ],
+  "analysis_chars": 6657,
+  "analysis_path": "UC-3_fair_r4_analysis.md"
+}

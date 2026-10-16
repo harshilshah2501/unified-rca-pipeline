@@ -1,0 +1,171 @@
+{
+  "created": [
+    {
+      "uc": "UC-1",
+      "name": "orders_api_p95_latency_high_UC1",
+      "id": "3H4eotofh5R3eSFwdCe8zFl8EWU"
+    },
+    {
+      "uc": "UC-2",
+      "name": "orders_api_tcp_timeouts_high_UC2",
+      "id": "3H4eovMel2i74tfSwzaCkwWeybz"
+    },
+    {
+      "uc": "UC-3",
+      "name": "orders_api_p95_latency_high_UC3",
+      "id": "3H4eouO95KaAUaeS6nyzbul7nAn"
+    },
+    {
+      "uc": "UC-4",
+      "name": "orders_api_5xx_error_rate_high_UC4",
+      "id": "3H4eozDXMy3bdUoKca3mWRMMob3"
+    },
+    {
+      "uc": "UC-5",
+      "name": "orders_api_p95_latency_high_UC5",
+      "id": "3H4eoz1LHL6YiNoh6XV8b47tDBX"
+    }
+  ],
+  "deleted": [
+    {
+      "name": "slicea_fair_uc1_probe_DELETE",
+      "id": "3H4egt6Mp2c8RVSbaD37nhEylKV",
+      "code": 200
+    },
+    {
+      "name": "uc1_esxi_cpu_contention",
+      "id": "3GwGkXeWAFpIUHq808BuktBT0n2",
+      "code": 200
+    },
+    {
+      "name": "uc2_core_switch_link_failure",
+      "id": "3GwGkaTeFp7yMILHcDxuko00q60",
+      "code": 200
+    },
+    {
+      "name": "uc3_datastore_storage_contention",
+      "id": "3GwGkc0znxE7rmXlZwH7dMTw7dx",
+      "code": 200
+    },
+    {
+      "name": "uc4_guest_os_resource_exhaustion",
+      "id": "3GwGkalAuxVHE3hLGhUYLycqsBW",
+      "code": 200
+    },
+    {
+      "name": "uc5_orders_api_resource_exhaustion",
+      "id": "3GwGkklmi9m0EeWG0OsZePhxFIh",
+      "code": 200
+    }
+  ],
+  "verify": [
+    {
+      "name": "orders_api_5xx_error_rate_high_UC4",
+      "alert_id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+      "folder": "default",
+      "enabled": true,
+      "contaminated": false,
+      "context": {
+        "slice": "A_fair",
+        "uc_id": "UC-4",
+        "corpus": "observeops",
+        "ci": "orders-api"
+      },
+      "sql": "SELECT _timestamp, ci, uc_id, signal, value | FROM \"observeops_error_rate_5xx\" | WHERE uc_id = 'UC-4' |   AND ci = 'orders-api' |   AND value > 0.05",
+      "description": "Symptom: orders-api error_rate_5xx breached (threshold 0.05). Investigate guest OS / app / host. Do not assume root CI. Slice A fair alert \u2014 filter uc_id='UC-4'."
+    },
+    {
+      "name": "orders_api_p95_latency_high_UC1",
+      "alert_id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+      "folder": "default",
+      "enabled": true,
+      "contaminated": false,
+      "context": {
+        "corpus": "observeops",
+        "uc_id": "UC-1",
+        "ci": "orders-api",
+        "slice": "A_fair"
+      },
+      "sql": "SELECT _timestamp, ci, uc_id, signal, value | FROM \"observeops_request_p95_latency_ms\" | WHERE uc_id = 'UC-1' |   AND ci = 'orders-api' |   AND value > 1000",
+      "description": "Symptom: orders-api request.p95_latency_ms breached SLO (threshold 1000ms). Investigate upstream of the app. Do not assume root CI. Slice A fair alert \u2014 filter uc_id='UC-1'."
+    },
+    {
+      "name": "orders_api_p95_latency_high_UC3",
+      "alert_id": "3H4eouO95KaAUaeS6nyzbul7nAn",
+      "folder": "default",
+      "enabled": true,
+      "contaminated": false,
+      "context": {
+        "uc_id": "UC-3",
+        "ci": "orders-api",
+        "corpus": "observeops",
+        "slice": "A_fair"
+      },
+      "sql": "SELECT _timestamp, ci, uc_id, signal, value | FROM \"observeops_request_p95_latency_ms\" | WHERE uc_id = 'UC-3' |   AND ci = 'orders-api' |   AND value > 1000",
+      "description": "Symptom: orders-api request.p95_latency_ms breached (threshold 1000ms). Investigate storage/DB/app path. Do not assume root CI. Slice A fair alert \u2014 filter uc_id='UC-3'."
+    },
+    {
+      "name": "orders_api_p95_latency_high_UC5",
+      "alert_id": "3H4eoz1LHL6YiNoh6XV8b47tDBX",
+      "folder": "default",
+      "enabled": true,
+      "contaminated": false,
+      "context": {
+        "corpus": "observeops",
+        "uc_id": "UC-5",
+        "ci": "orders-api",
+        "slice": "A_fair"
+      },
+      "sql": "SELECT _timestamp, ci, uc_id, signal, value | FROM \"observeops_request_p95_latency_ms\" | WHERE uc_id = 'UC-5' |   AND ci = 'orders-api' |   AND value > 1000",
+      "description": "Symptom: orders-api request.p95_latency_ms breached (threshold 1000ms). Rule out healthy infra before blaming app or host. Do not assume root CI. Slice A fair alert \u2014 filter uc_id='UC-5'."
+    },
+    {
+      "name": "orders_api_tcp_timeouts_high_UC2",
+      "alert_id": "3H4eovMel2i74tfSwzaCkwWeybz",
+      "folder": "default",
+      "enabled": true,
+      "contaminated": false,
+      "context": {
+        "uc_id": "UC-2",
+        "corpus": "observeops",
+        "slice": "A_fair",
+        "ci": "orders-api"
+      },
+      "sql": "SELECT _timestamp, ci, uc_id, signal, value | FROM \"observeops_tcp_timeouts\" | WHERE uc_id = 'UC-2' |   AND ci = 'orders-api' |   AND value > 5",
+      "description": "Symptom: orders-api tcp.timeouts elevated (threshold 5). Investigate path to dependency. Do not assume root CI. Slice A fair alert \u2014 filter uc_id='UC-2'."
+    }
+  ],
+  "old_still_present": [],
+  "final_alerts": [
+    {
+      "name": "orders_api_5xx_error_rate_high_UC4",
+      "alert_id": "3H4eozDXMy3bdUoKca3mWRMMob3",
+      "folder": "default",
+      "enabled": true
+    },
+    {
+      "name": "orders_api_p95_latency_high_UC1",
+      "alert_id": "3H4eotofh5R3eSFwdCe8zFl8EWU",
+      "folder": "default",
+      "enabled": true
+    },
+    {
+      "name": "orders_api_p95_latency_high_UC3",
+      "alert_id": "3H4eouO95KaAUaeS6nyzbul7nAn",
+      "folder": "default",
+      "enabled": true
+    },
+    {
+      "name": "orders_api_p95_latency_high_UC5",
+      "alert_id": "3H4eoz1LHL6YiNoh6XV8b47tDBX",
+      "folder": "default",
+      "enabled": true
+    },
+    {
+      "name": "orders_api_tcp_timeouts_high_UC2",
+      "alert_id": "3H4eovMel2i74tfSwzaCkwWeybz",
+      "folder": "default",
+      "enabled": true
+    }
+  ]
+}
