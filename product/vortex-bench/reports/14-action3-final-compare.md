@@ -137,13 +137,13 @@ Under **`motadata_like_hubby` + `scope_policy_mixed`**:
 
 | Constraint | Winner | Why |
 | ---------- | ------ | --- |
-| Envelope-weighted query p95 | **`csr_csc`** | Best (or tied-best) at 1M and clearly best at 5M; reverse p95 stays ~0.03 ms while `hash` reverse p95 is hundreds–thousands of ms |
-| Steady index bytes | **`csr_csc`** | ~½ of `hash_bi` at 1M; ~½ of `hash_bi` at 5M |
-| Build p50 | **`hash`** | Fastest rebuild, but **fails the approved mix** on reverse latency |
-| Runner-up latency | `hash_bi` | Close to `csr_csc` at 1M hubby mixed (0.32 vs 0.19 env); loses on memory and widens at 5M |
+| Envelope-weighted query p95 | **`csr_csc`** | Best (or tied-best) at 1M and clearly best at 5M versus the fair reverse-capable opponent **`hash_bi`** (env 0.193 vs 0.318 at 1M hubby mixed; 0.810 vs 3.575 at 5M). Reverse p95 is the same class (~0.03–0.06 ms) for both |
+| Steady index bytes | **`csr_csc`** | ~½ of `hash_bi` at 1M; ~½ of `hash_bi` at 5M — primary reason `csr_csc` serves better when reverse already works |
+| Build p50 | **`hash`** | Fastest rebuild (recovery reference). Forward-only `hash` **fails the approved mix** on reverse; do not use it as the reverse-serve opponent |
+| Runner-up latency | `hash_bi` | Close reverse/forward tails to `csr_csc` at 1M hubby mixed; loses on retained index and widens on envelope score at 5M |
 
 **Milestone A read-layout pick under this envelope: `csr_csc`.**  
-`hash` remains a build-speed / forward-only hypothesis only if Motadata later proves reverse share ≈ 0 (contradicts current Scope policy). `hash_bi` stays viable if engineering prefers hash mutability semantics and accepts ~2× index bytes.
+Fair reverse-serve bake-off is **`hash_bi` vs `csr_csc`** (see [Report 11 §5.3](./11-map-vortex-engineering-brief.md)). `hash` remains a build-speed / forward-only hypothesis only if Motadata later proves reverse share ≈ 0 (contradicts current Scope policy). `hash_bi` stays viable if engineering prefers hash mutability semantics and accepts ~2× index bytes.
 
 **Status:** Action 3 **PASSED** (2026-10-13). Not a Motadata-wide production lock; Actions 4–5 still required before Milestone A closes.
 

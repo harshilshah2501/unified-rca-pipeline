@@ -151,10 +151,10 @@ Report 22         This one-stop page
 Ask these questions in order:
 
 1. **Are we serving Scope walks with meaningful reverse / blast-radius?**  
-   → Prefer **`csr_csc`**. Do not ship forward-only **`hash`** as the serve index for that mix.
+   → Need a reverse index: **`hash_bi` or `csr_csc`**. Do **not** ship forward-only **`hash`**. Prefer **`csr_csc`** over `hash_bi` mainly for **~½ retained index** (reverse latency is already sub-ms for both — see [Report 11 §5.3](./11-map-vortex-engineering-brief.md)).
 
 2. **Is the urgent constraint restart / failover time to first query?**  
-   → **`hash`** is the fastest rebuild reference. Product may still choose `csr_csc` and accept slower ready time if reverse walks and memory matter more.
+   → Forward-only **`hash`** is the fastest rebuild/recovery reference (it skips the reverse index). Against a bidirectional layout, quote **`hash_bi`**: Report 15 disk-cold T_ready is only ~1.3–1.4× for `csr_csc` vs `hash_bi` (not the ~3× vs forward-only `hash`). See [Report 11 §5.2](./11-map-vortex-engineering-brief.md).
 
 3. **Do topology updates usually touch a small region of the estate?**  
    → Segmented CSR+CSC is a **justified candidate** (lab: ~2–2.6× faster mutation visibility at 1M–5M for small batches).

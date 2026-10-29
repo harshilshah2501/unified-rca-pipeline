@@ -180,9 +180,8 @@ All six families passed property gates at 500k, 1M, and 5M (mean out-degree targ
 
 Reading that table in words:
 
-- Forward-only **hash** stays the **fastest rebuild**, but reverse p95 grows into **seconds** by 5M under a balanced reverse share.
-- **hash_bi** keeps reverse in the **sub-millisecond** class across 500k→5M, at roughly **2×** hash build and roughly **2×** CSR+CSC retained index bytes.
-- **csr_csc** matches hash_bi reverse, usually with **~half the steady index** of hash_bi, but **slower build** (especially at 5M).
+- Forward-only **hash** stays the **fastest rebuild**, but reverse p95 grows into **seconds** by 5M under a balanced reverse share. That makes `hash` a recovery reference, **not** the fair opponent when arguing why CSR+CSC serves better under reverse load.
+- **Fair reverse-serve compare is `hash_bi` vs `csr_csc`:** both keep reverse in the **sub-millisecond** class across 500k→5M. `csr_csc` usually holds **~half the steady index** of `hash_bi`, at **slower build** (especially at 5M). See [Report 11 §5.3](./11-map-vortex-engineering-brief.md) and [`figures/fig-hash_bi-vs-csr_csc-reverse-serve.svg`](./figures/fig-hash_bi-vs-csr_csc-reverse-serve.svg).
 - **csr** without CSC is a middle trap: better reverse than hash, far worse than hash_bi/csr_csc, not a destination layout if reverse matters.
 
 **Workload regime matters (same estate, different profile)**

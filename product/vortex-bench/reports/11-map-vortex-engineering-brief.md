@@ -103,34 +103,91 @@ These are **lab-backed defaults for further Motadata GraphWriter design**, not a
 | Decode set for rebuild | Prefer **spine** columns for walk rebuild; defer tags / evidence until UI needs them. |
 | Schema | **Do not** reopen map column redesign for layout performance. |
 
-### 5.2 Hot index selection (mode-dependent)
+### 5.2 Why hash-style layouts rebuild faster, and how big the gap really is
+
+**Same flaw as the old reverse-serve chart:** comparing `csr_csc` only to forward-only `hash` overstates the rebuild penalty of a usable bidirectional index, because forward-only `hash` skips the reverse index.
+
+#### Two comparisons (keep them separate)
+
+| Question | Fair opponent | What the gap means |
+| -------- | ------------- | ------------------ |
+| Fastest cold→ready when reverse share ≈ 0 | forward-only **`hash`** | Recovery-speed **reference** — least work per edge |
+| Rebuild cost of a **bidirectional** serve index | **`hash_bi`** | Like-for-like gap for reverse-capable layouts |
+
+#### Mechanism (no low-level profiling claimed)
+
+1. **Forward-only `hash`:** one neighbor-list append per edge (outgoing only).  
+2. **`hash_bi`:** that work twice — outgoing and incoming maps.  
+3. **`csr_csc`:** packed forward and reverse arrays plus row/column offsets (more structured build, usually slower than `hash_bi`).
+
+#### Build-time ladder (hubby × balanced, Stage 4.2 — Reports 09 / 10)
+
+| Edges | `hash` build (ms) | `hash_bi` build (ms) | `csr_csc` build (ms) | `csr_csc` / `hash` | `csr_csc` / `hash_bi` |
+| ----: | ----------------: | -------------------: | -------------------: | -----------------: | --------------------: |
+| 500k | ~142 | ~309 | ~450 | ~3.2× | ~1.5× |
+| 1M | ~407 | ~924 | ~1357 | ~3.3× | ~1.5× |
+| 5M | ~2909 | ~6876 | ~10578 | ~3.6× | ~1.5× |
+
+Ratios are from those report numbers (rounded). Under the Action 3 envelope (Report 14, 5M hubby `scope_policy_mixed` build p50): `csr_csc` ~11056 ms vs `hash_bi` ~5801 ms ≈ **1.9×**.
+
+**Takeaway:** forward-only `hash` rebuilds fastest because it does the least work. Against `hash_bi`, the gap is real but much smaller (~1.5× in Stage 4.2 build, ~1.9× on the Report 14 5M cell). The lasting trade is **retained memory** (`csr_csc` ≈ half of `hash_bi`), not a 3×+ rebuild cliff versus a bidirectional layout.
+
+#### Recovery (Report 15) — do not read ~3× as the bidirectional cost
+
+Report 15’s headline ~3.1× (disk-cold T_ready: 450 vs 1203 ms at 1M; 3178 vs 9794 ms at 5M) is **forward-only `hash` vs `csr_csc`**. Build is only one phase of \(T_{\mathrm{ready}}\); the full-recovery gap versus `hash_bi` is smaller:
+
+| Scale × coldness | `hash` T_ready p50 | `hash_bi` T_ready p50 | `csr_csc` T_ready p50 | `csr`/`hash` | `csr`/`hash_bi` |
+| ---------------- | -----------------: | --------------------: | --------------------: | -----------: | --------------: |
+| 1M disk_cold | 450 ms | **943 ms** | 1203 ms | ~2.7× | **~1.3×** |
+| 5M disk_cold | 3178 ms | **6902 ms** | 9794 ms | ~3.1× | **~1.4×** |
+
+Reference only: forward-only `hash` still wins absolute recovery speed. For a reverse-capable product path, quote the **`hash_bi`** column.
+
+#### Mode selection (after the gaps above)
 
 | Product mode | Lab envelope |
 | ------------ | ------------ |
-| Rebuild / failover latency first; Scope mostly **forward** after the index exists | **Hash** (clustered + sort-aware) is the fastest rebuild baseline. |
-| Reverse walks or blast-radius queries are **common** | Use **hash_bi** or **CSR+CSC**. Do **not** ship forward-only hash or CSR-only for that mode. |
-| Retained index memory matters after build | Prefer **CSR+CSC** over hash_bi in the synthetic screen (often ~half the estimated retained bytes). |
-| Need in-place mutation without full packed rebuild | **Hybrid** is a candidate only; Stage 4.2 did **not** prove mutation economics. |
+| Rebuild / failover first; Scope mostly **forward** | Forward-only **`hash`** (clustered + sort-aware) — recovery reference |
+| Reverse / blast-radius walks are **common** | **`hash_bi` or `csr_csc`** — not forward-only hash or CSR-only |
+| Retained index memory matters after build | Prefer **`csr_csc`** over `hash_bi` (~½ retained bytes) |
+| In-place mutation without full packed rebuild | **Hybrid** candidate only; Stage 4.2 did **not** prove mutation economics |
 
-### 5.3 Numbers engineers usually ask for (hubby, balanced, synthetic)
+### 5.3 Why `csr_csc` serves better when reverse traversal matters
 
-Illustrative medians from Stage 4.2 (not SLOs):
+**Fair opponent:** bidirectional hash (`hash_bi`), not forward-only `hash`.
+
+Forward-only `hash` has **no reverse index**, so reverse walks scan the whole graph. Comparing `csr_csc` reverse latency to that cliff proves only that *some* reverse index is required — it does **not** explain why packed CSR+CSC beats bidirectional hash for serving. Keep `hash` as the **recovery-speed reference** (fastest rebuild); use `hash_bi` when arguing the serve choice under reverse load.
+
+**Primary compare — hubby × balanced (Stage 4.2, Reports 09 / 10):**
+
+![hash_bi vs csr_csc reverse-serve compare](./figures/fig-hash_bi-vs-csr_csc-reverse-serve.svg)
 
 | Edges | Layout | Build (ms) | Reverse p95 (ms) | Est. retained index |
 | ----: | ------ | ---------: | ---------------: | ------------------: |
-| 500k | hash | ~142 | ~244 | ~62 MB |
 | 500k | hash_bi | ~309 | ~0.04 | ~111 MB |
 | 500k | CSR+CSC | ~450 | ~0.04 | ~48 MB |
-| 1M | hash | ~407 | ~706 | ~127 MB |
 | 1M | hash_bi | ~924 | ~0.06 | ~225 MB |
 | 1M | CSR+CSC | ~1357 | ~0.06 | ~96 MB |
-| 5M | hash | ~2909 | ~3961 | ~636 MB |
 | 5M | hash_bi | ~6876 | ~0.05 | ~1.1 GB |
 | 5M | CSR+CSC | ~10578 | ~0.03 | ~510 MB |
 
-Reading guide: hash wins **time-to-index**; hash_bi and CSR+CSC win **reverse**; CSR+CSC wins **retained size** among the fast-reverse pair.
+Reading guide for this claim:
 
-Full tables and other families: [Report 09](./09-design-v3-stage4_2-screen.md).
+1. **Reverse:** `hash_bi` and `csr_csc` are both sub-millisecond — same class, not a latency cliff.
+2. **Retained index:** `csr_csc` is ~½ of `hash_bi` at every rung — this is the main serve win.
+3. **Build:** `hash_bi` rebuilds faster; that trade is acceptable when reverse share is material and memory matters.
+
+**Sidebar — why forward-only `hash` is not the serve opponent**
+
+| Edges | `hash` reverse p95 | `csr_csc` reverse p95 |
+| ----: | -----------------: | --------------------: |
+| 500k | ~244 ms | ~0.04 ms |
+| 1M | ~706 ms | ~0.06 ms |
+| 5M | ~3961 ms | ~0.03 ms |
+
+That gap only shows that forward-only hash fails reverse Scope / blast-radius. It is the recovery-vs-serve trade-off, not the fair reverse-serve bake-off.
+
+Full tables and other families: [Report 09](./09-design-v3-stage4_2-screen.md). Deep narrative: [Report 10](./10-design-v3-comprehensive.md) §3 Stage 4.2.
 
 ### 5.4 Correctness hygiene
 
@@ -184,7 +241,7 @@ Milestone A **FROZEN** ([Report 17](./17-milestone-a-close.md)): serve baseline 
 | ----: | --- | --- |
 | 1 | **This brief** | Shared picture and boundaries |
 | 2 | [Report 10](./10-design-v3-comprehensive.md) | What changed from Report 02 and full analysis |
-| 3 | [Report 07](./07-design-v3-stage3_5-fair.md) | Fair layout + hash_bi (fixes Stage 3 confound) |
+| 3 | [Report 07](./07-design-v3-stage3_5-fair.md) | Fair layout + hash_bi (fixes Stage 3 confound); §5.3 reverse-serve bake-off uses hash_bi not hash |
 | 4 | [Report 09](./09-design-v3-stage4_2-screen.md) | Workload screen and crossover list |
 | 5 | [Architecture Decision Record](./Map_Vortex_Graph_Architecture_Decision_Record.md) | Next hypothesis to implement/bench |
 | Optional | [Report 02](./02-map-load-adjacency.md) | Original cold→hot motivation |

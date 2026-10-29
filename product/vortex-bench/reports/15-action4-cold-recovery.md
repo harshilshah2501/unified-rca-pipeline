@@ -76,11 +76,13 @@ Action 4 distinguishes process-cold (cache may be warm), disk-cold (best-effort 
 
 | Constraint | Winner | Evidence |
 | ---------- | ------ | -------- |
-| Fastest T_ready (all coldness tiers at 1M and 5M) | **`hash`** | ~0.4–0.5 s (1M) / ~2.4–3.2 s (5M) vs `csr_csc` ~1.2–1.3 s / ~9.8–10.0 s |
-| Runner-up recovery | `hash_bi` | Roughly 2× `hash`, still well ahead of `csr_csc` |
+| Fastest T_ready (all coldness tiers at 1M and 5M) | forward-only **`hash`** | ~0.4–0.5 s (1M) / ~2.4–3.2 s (5M). Skips reverse index — recovery-speed **reference**, not the fair bidirectional opponent |
+| Like-for-like bidirectional recovery | **`hash_bi`** ahead of `csr_csc` | Disk-cold: 943 vs 1203 ms at 1M (~1.3×); 6902 vs 9794 ms at 5M (~1.4×). Do **not** quote ~3× (hash vs csr_csc) as the cost of a reverse-capable index |
 | Slowest recovery | `csr_csc` | Build dominates T_ready; decode and remote_proxy fetch are small vs build |
 
-**Implication:** Action 3’s query/index winner (`csr_csc`) is **not** the recovery-time winner. Milestone A must state both constraints. Real Motadata Dest remote-cold remains **unmeasured** (`remote_proxy` is a local copy proxy only).
+**Implication:** Action 3’s query/index winner (`csr_csc`) is **not** the recovery-time winner. Milestone A must state both constraints, and must separate the forward-only recovery reference from the bidirectional gap. Real Motadata Dest remote-cold remains **unmeasured** (`remote_proxy` is a local copy proxy only).
+
+Fair rebuild / recovery framing for cold readers: [Report 11 §5.2](./11-map-vortex-engineering-brief.md).
 
 **Status:** Action 4 **PASSED** (2026-10-13) under lab coldness tiers.
 
